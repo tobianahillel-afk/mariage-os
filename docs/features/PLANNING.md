@@ -1,12 +1,14 @@
 # Planning and Milestones Feature Contract
 
+Status: **Normative V1 feature contract**
+
 ## Purpose
 
-Track wedding progress from initial framing through post-wedding closure using weighted milestones and phase-aware priorities.
+Track project progress from initial framing through post-wedding closure using weighted milestones, dependencies and phase-aware priorities.
 
 ## Phases
 
-Initial phase model:
+Initial guidance:
 
 1. Framing
 2. Venue & date
@@ -18,11 +20,11 @@ Initial phase model:
 8. Wedding day
 9. Post-wedding closure
 
-Phase boundaries may overlap; they are planning guidance rather than rigid locks.
+Phases can overlap and do not lock work artificially.
 
 ## Milestones
 
-Milestones are higher-level outcomes, not ordinary tasks.
+Milestones represent outcomes, not microtasks.
 
 Examples:
 
@@ -31,50 +33,91 @@ Examples:
 - caterer contracted;
 - invitations sent;
 - RSVP closed;
-- seating plan final;
+- basic seating/table assignment ready;
+- final seating plan validated;
 - vendor balances scheduled;
-- day-of timeline frozen.
+- day-of information frozen/exported;
+- refundable cautions recovered.
 
-Each milestone may have:
+Each milestone persists:
 
+- stable/system key where applicable;
+- label;
+- phase;
 - importance weight;
-- target offset relative to wedding date;
-- dependencies;
-- completion rule;
-- linked tasks/decisions.
+- status;
+- fixed target date and/or J±N rule;
+- completion-rule type/parameters;
+- milestone dependencies;
+- linked tasks/decisions/entities;
+- completion timestamp/history.
+
+## Completion rules
+
+Supported patterns include:
+
+- manual validation;
+- all linked tasks done;
+- linked decision locked;
+- linked entity reaches required lifecycle state;
+- a documented supported custom rule.
+
+Automatic completion is explainable and reversible if its source state becomes invalid; it cannot rely on hidden magic.
+
+## Dependencies
+
+Milestone dependencies are persisted. Cycles are rejected. A milestone can be marked blocked when a prerequisite outcome is incomplete.
 
 ## Progress
 
-Progress is weighted by milestone importance and phase, not count of completed microtasks.
+Progress is weighted by milestone importance, not count of tiny tasks. UI can explain contributing milestones/weights.
 
-## Timeline
+A blocked or invalidated milestone may reduce readiness appropriately; the app never permanently caches a stale percentage as independent truth.
 
-Shows absolute dates computed from wedding date/offsets where appropriate. If wedding date changes, relative milestone deadlines recalculate; manually fixed contractual deadlines do not.
+## Wedding date changes
+
+Relative J±N milestones recalculate against newly selected wedding date. Fixed contractual/manual dates do not move unless deliberately edited.
+
+Candidate date scenarios can exist before final selection without rewriting the project timeline as if confirmed.
 
 ## Phase-aware dashboard
 
-Current phase influences next-action priority and dashboard emphasis.
+Current phase influences next-action priority and dashboard emphasis, but urgent blockers/deadlines can override phase defaults.
 
-## Freeze mode near wedding
+## Seating milestone
 
-A future/late V1 or V1.x operational feature may create a frozen snapshot of day-of contacts/timeline/plan distributed to vendors/helpers. Later edits do not silently alter already distributed snapshots.
+V1 includes the non-visual table-assignment workflow defined in `SEATING.md`.
+
+`Final seating plan` readiness means the underlying structured assignments pass validation. A graphical floor-plan canvas is **not** required for V1.
+
+## Final-week freeze/export
+
+V1 must support producing a stable operational export/snapshot of critical final information (timeline/contact/seating lists as available) so already distributed information is not silently mutated in retrospect.
+
+This is an export/snapshot concept, not a second mutable source of truth. Later edits show that the live plan differs from the previously generated snapshot.
+
+A dedicated rich “wedding-day mode” remains post-V1 unless promoted separately.
 
 ## Post-wedding
 
 Track:
 
 - final balances;
-- refundable cautions;
-- returns;
+- refundable cautions/returns;
 - photo/album delivery;
+- outstanding vendor follow-up;
 - thank-you tasks;
-- private-data cleanup/archive.
+- privacy cleanup/archive.
 
 ## Acceptance criteria
 
-- changing wedding date correctly recalculates relative milestones;
-- contractual fixed due dates remain fixed unless edited;
-- progress weighting is explainable;
-- blocked milestones surface blockers rather than falsely counting microtasks;
-- dashboard priorities shift with phase;
-- no alert spam for low-priority future milestones.
+- relative milestone dates recalculate correctly on selected date change;
+- fixed contractual deadlines remain fixed;
+- dependency cycles rejected;
+- completion rules deterministic/explainable;
+- progress reproducible from source milestones;
+- blocked milestones surface reason;
+- final seating milestone reflects structured seating validity;
+- phase-aware priorities do not suppress urgent work;
+- operational export/snapshot remains identifiable as a snapshot rather than live mutable truth;
+- no alert spam for low-priority distant milestones.
