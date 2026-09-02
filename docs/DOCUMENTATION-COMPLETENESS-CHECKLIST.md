@@ -1,258 +1,216 @@
-# Documentation Completeness Checklist
+# Documentation Completeness and Freeze Checklist
 
-Status: **Final pre-code review checklist — COMPLETE pending Run 4 merge**
+Status: **V1 design coverage complete; final cross-document review in progress; implementation gate CLOSED**
 
-This checklist is the formal answer to whether Mariage OS is documented precisely enough to start implementation without relying on prior chat context.
+A checked item means a normative contract exists and has been reconciled into the frozen V1 baseline. It does not mean implementation evidence already exists.
 
-A checked item means a dedicated normative document or explicit section exists. Implementation/test evidence is expected later in the named implementation lots, not during documentation-only design.
+The final implementation authorization is separately controlled by `FINAL-DESIGN-REVIEW.md` + Run 4 merge.
 
----
+## Product/scope
 
-## Product and scope
-
-- [x] Product mission and jobs-to-be-done.
-- [x] Two-partner collaboration model.
-- [x] Cloud/multi-device requirement.
-- [x] Hard €0/month operating constraint.
+- [x] Mission / Understand→Decide→Act model.
+- [x] Two-owner collaboration model.
+- [x] Cloud/multi-device/offline requirement.
+- [x] €0/month design constraint.
+- [x] Single-couple closed production bootstrap.
 - [x] Public-code/private-data rule.
-- [x] V1 definition.
-- [x] Explicit post-V1 backlog.
-- [x] Non-goals/scope guardrails.
-- [x] Master product specification/cahier des charges.
+- [x] Frozen V1 definition and explicit post-V1 boundary.
+- [x] Master frozen product specification.
 - [x] Stable P0/P1/P2 requirements catalog.
-- [x] Forty critical behavioral acceptance scenarios.
-- [x] Deliberately deferred implementation decisions.
-- [x] Source-of-truth cutover criteria.
+- [x] 24 critical user flows.
+- [x] 80 critical Given/When/Then acceptance scenarios.
+- [x] Deliberately deferred implementation choices separated from frozen semantics.
+- [x] Source-of-truth cutover criteria/evidence.
 
-## UX/product behavior
+## V1 functional coverage
+
+- [x] Authentication/bootstrap/invitation/MFA/logout.
+- [x] Dashboard.
+- [x] Venues/compare/visit.
+- [x] Multi-origin access/map.
+- [x] Vendors/caterers.
+- [x] Guests/households/statistics.
+- [x] Structured non-visual seating.
+- [x] Tasks/waiting/dependencies.
+- [x] Joint decisions/approvals/rationale.
+- [x] Inbox/quick capture.
+- [x] Global search.
+- [x] Budget/named scenarios/tax/payments/refunds/cash flow.
+- [x] Planning/milestones.
+- [x] Structured wedding-day timeline/frozen export.
+- [x] Documents/media/versioning.
+- [x] Contract readiness factual checklist.
+- [x] Tags.
+- [x] Import/export/mapping/dedup/rollback.
+- [x] Portable/encrypted backup/restore.
+- [x] Settings/security/diagnostics.
+
+## UX/navigation
 
 - [x] Desktop/mobile navigation.
-- [x] Route/screen contract matrix.
-- [x] Core user flows.
-- [x] Wireframe-level screen structures.
-- [x] Auth/onboarding flow.
-- [x] Settings/diagnostics flow.
-- [x] Design system principles/components.
-- [x] Form/autosave/draft behavior.
-- [x] Loading/empty/error/offline/conflict/permission states.
-- [x] Undo/destructive confirmation policy.
-- [x] Dashboard prioritization contract.
-- [x] Phase-aware planning behavior.
-- [x] Accessibility contract.
-- [x] Browser/device support policy.
-- [x] Performance budgets/reference data sizes.
+- [x] Route/screen matrix for all V1 domains.
+- [x] Document detail/contract-review route.
+- [x] Seating route/workspace.
+- [x] Timeline route/workspace.
+- [x] Search and Inbox surfaces.
+- [x] Auth/invite/restore routes.
+- [x] Universal loading/empty/partial/offline/pending/conflict/error/permission/session-expired states.
+- [x] Explicit session-expiry vs logout behavior.
+- [x] Autosave/drafts.
+- [x] Undo/destructive confirmation.
+- [x] Accessibility/no pointer-only critical feature.
+- [x] Browser/device and performance policies.
 
 ## Architecture
 
-- [x] High-level architecture.
-- [x] Chosen stack and rationale.
-- [x] Trust boundaries.
-- [x] Cloud/local/recovery source-of-truth distinctions.
-- [x] Local-first interaction model.
-- [x] Sync/revision/idempotence/conflict model.
-- [x] Offline policy.
-- [x] PWA/service-worker lifecycle/update compatibility.
-- [x] Supabase Storage architecture/upload lifecycle.
-- [x] IndexedDB/local working schema.
-- [x] Pending mutation/conflict/draft local stores.
-- [x] Repository/service/provider boundaries.
-- [x] Pure business-engine boundaries.
-- [x] Derived-data dependency/invalidation graph.
+- [x] High-level Cloudflare + Supabase + IndexedDB PWA architecture.
+- [x] Stack and ADRs.
+- [x] Trust boundaries including browser/local/CI/Auth/DB/Storage/Realtime/external/import/export/email.
+- [x] Cloud/local/recovery sources of truth.
+- [x] Local-first write/read model.
+- [x] Sync/revision/idempotence/conflicts/reconnect.
+- [x] Per-workflow offline capability matrix.
+- [x] PWA/service-worker lifecycle.
+- [x] Storage object/path/upload/derivative/remote-media model.
+- [x] IndexedDB schema reconciled with frozen V1 cloud/domain model.
+- [x] Repository/service/provider boundaries reconciled with every V1 feature.
+- [x] Pure critical engines identified.
+- [x] Business dependency/invalidation graph reconciled with dates/origins/scenarios/seating/timeline/contracts.
 - [x] Provider portability rule.
-- [x] Major architecture decisions recorded as ADRs.
 
-## Database/domain model
+## Domain/database
 
-- [x] Conceptual ERD.
-- [x] Physical V1 PostgreSQL schema reference.
-- [x] Tables/columns/types/key relationships.
-- [x] Project scoping/RLS baseline.
-- [x] Indexing baseline.
-- [x] Polymorphic same-project validation approach.
-- [x] UUID/external-ID/hash strategy.
-- [x] Data dictionary conventions.
-- [x] Revision/audit metadata.
-- [x] Venue domain.
-- [x] Venue spaces/capacities.
-- [x] Venue offers/components/availability.
-- [x] Generic fact definitions.
-- [x] Fact observations/sources/retained values.
-- [x] Confidence/freshness/revalidation.
-- [x] Stable default venue criteria keys.
-- [x] Stable default caterer/vendor criteria keys.
-- [x] Vendor/offers/contacts/interactions.
-- [x] Households/guests.
-- [x] Tasks/dependencies/links.
-- [x] Decisions/options/approvals/links.
-- [x] Budget/payments/links.
-- [x] Milestones.
-- [x] Documents/media/derivatives/links.
-- [x] Import history/change lineage/external identifiers.
-- [x] Server idempotence/sync mutation receipts.
-- [x] Deletion/retention.
-- [x] Domain invariants.
-- [x] State machines.
-- [x] Dates/timezones/after-midnight semantics.
-- [x] Exact money semantics.
+- [x] Conceptual ERD reconciled with physical schema + freeze addendum.
+- [x] Physical PostgreSQL V1 reference.
+- [x] Freeze addendum for criteria typing/timeline/document review.
+- [x] Project scoping and same-project composite FK rule.
+- [x] Polymorphic DB target validation.
+- [x] RLS baseline/table matrix.
+- [x] IDs/external IDs/hashes and parent-scoped nested IDs.
+- [x] Audit/revision metadata.
+- [x] Weekday/date/timezone/after-midnight rules.
+- [x] Exact money/tax semantics.
+- [x] State-machine/transition catalog.
+- [x] 90+ domain/security/recovery invariants.
+- [x] Fact definitions/value types/evaluation rules.
+- [x] Fact observations/multi-source/retained value/confidence/freshness.
+- [x] Default stable venue/vendor/caterer criterion keys.
+- [x] Member ratings/preferences distinct from facts.
+- [x] Date options/reference origins/access routes.
+- [x] Guest categories/seating.
+- [x] Budget categories/scenarios/payments.
+- [x] Milestones/timeline.
+- [x] Documents/version/review/source linkage.
+- [x] Inbox/tags/import mapping profiles/activity/sync receipts.
+- [x] Soft deletion/purge eligibility/recovery.
 
-## Feature contracts
+## Import/export/portability
 
-- [x] Authentication/onboarding.
-- [x] Dashboard.
-- [x] Venues and visit mode.
-- [x] Map/accessibility.
-- [x] Vendors/caterers.
-- [x] Guests/households.
-- [x] Budget/payments.
-- [x] Tasks.
-- [x] Decisions.
-- [x] Planning/milestones.
-- [x] Documents/media.
-- [x] Import/export.
-- [x] Settings/diagnostics.
-
-## Import/export and portability
-
-- [x] CSV semantics.
-- [x] XLSX semantics.
-- [x] Canonical JSON v1 logical contract and sample shapes.
-- [x] `.mariage` open recovery format.
+- [x] CSV/XLSX semantics.
+- [x] Canonical JSON v1 + freeze addendum.
 - [x] Missing/null/unknown/conflict semantics.
-- [x] Mapping behavior.
-- [x] Locale normalization.
-- [x] Duplicate matching confidence.
-- [x] Re-import idempotence.
+- [x] Parent-scoped nested external ID semantics.
+- [x] Mapping and saved profiles.
+- [x] Locale/type normalization.
+- [x] Duplicate matching confidence/human resolution.
 - [x] Evidence-aware merge precedence.
-- [x] Protected data behavior.
-- [x] No implicit deletion from missing rows.
-- [x] Preview-before-commit.
-- [x] Atomic/partial import semantics.
-- [x] Rollback after later edits.
-- [x] Import provenance/history.
-- [x] External research completion workflow.
-- [x] Round-trip requirement.
-- [x] Active spreadsheet/file-content security rule.
-- [x] Machine schema/template generation explicitly assigned to Lot 4.
+- [x] Protected fields/locked truth.
+- [x] Preview-before-commit + stale-preview revalidation.
+- [x] No implicit deletion.
+- [x] Rollback protecting later edits.
+- [x] Provenance/history.
+- [x] External research round-trip.
+- [x] CSV formula-injection protections.
+- [x] Active spreadsheet content never executed.
+- [x] Plain `.mariage` structure/checksums/version.
+- [x] Authenticated encrypted `.mariage` semantics.
+- [x] Wrong password/tamper/future-version failure before mutation.
 
 ## Security/privacy
 
-- [x] Security architecture.
-- [x] Threat model.
-- [x] Authentication/MFA policy.
-- [x] Invitation/project-membership model.
-- [x] Session/re-authentication principles.
-- [x] RLS project isolation.
+- [x] Security architecture and full threat model.
+- [x] Controlled single-couple bootstrap threat/control.
+- [x] Secure invitation hash/identity/replay semantics.
+- [x] MFA/session/re-authentication.
+- [x] RLS table-by-table matrix incl. timeline/document review/seating.
 - [x] Storage RLS.
+- [x] Same-project FK/link integrity.
+- [x] Security-definer command requirements.
 - [x] Client secret/service-role prohibition.
-- [x] File upload/type/active-content security.
-- [x] Frontend XSS/CSP/header requirements.
-- [x] Privacy/data minimization/classification.
-- [x] Public-repo hygiene and `.gitignore` defense-in-depth.
-- [x] Supply-chain controls.
-- [x] ASVS 5.0 verification matrix framework.
-- [x] Security testing strategy.
-- [x] Incident response.
-- [x] Public vulnerability-reporting policy.
-- [x] Diagnostics/log PII minimization.
+- [x] File/active-content security.
+- [x] Frontend XSS/CSP/security headers.
+- [x] Privacy/data minimization/export allowlists.
+- [x] Remote image/referrer/private-URL policy.
+- [x] Public Git/CI/supply-chain boundaries.
+- [x] ASVS 5.0 verification framework.
+- [x] Sanitized diagnostics/logging.
+- [x] Incident/vulnerability reporting.
 
 ## Testing/quality
 
-- [x] Layered test strategy.
-- [x] Unit tests.
-- [x] Property-based tests.
-- [x] Integration/local Supabase tests.
-- [x] Database/RLS allow+deny tests.
-- [x] Security/adversarial tests.
-- [x] Playwright E2E.
-- [x] Forty critical acceptance scenarios.
-- [x] Offline/reconnect/session-expiry tests.
-- [x] Import/export/rollback/round-trip tests.
-- [x] Backup/restore tests.
-- [x] Historical DB/local/import migration tests.
-- [x] 100% in-scope code-coverage gate.
-- [x] Mutation testing of critical engines.
-- [x] Synthetic/golden project test data.
-- [x] Accessibility automated/manual checks.
-- [x] Performance budgets.
-- [x] Browser/device test matrix and real-device checks.
-- [x] Release-blocking Quality Gates.
+- [x] Unit/property/integration/database/RLS/security layers.
+- [x] Playwright critical E2E.
+- [x] 80 critical acceptance scenarios.
+- [x] Offline/reconnect/session/PWA scenarios.
+- [x] Import/rollback/round-trip/hostile-file scenarios.
+- [x] Finance/scenario/tax/payment/refund tests.
+- [x] Guest/statistics/seating tests.
+- [x] Timeline/date/dependency/export tests.
+- [x] Document version/readiness tests.
+- [x] Backup/encryption/restore/migration tests.
+- [x] 100% in-scope lines/statements/functions/branches policy.
+- [x] Mutation testing critical engines.
+- [x] Synthetic/golden data only.
+- [x] Accessibility/performance/browser-device gates.
+- [x] Critical/High vulnerability release policy.
+- [x] Requirement traceability.
 
-## Engineering process
+## Engineering/operations
 
-- [x] Coding standards.
-- [x] Application/service/repository boundaries.
-- [x] Error taxonomy/recovery UX.
-- [x] Observability/diagnostics without behavioral tracking.
+- [x] Coding/error/observability standards.
 - [x] DB/local/import/backup migration strategy.
-- [x] CI/CD principles.
-- [x] Release process.
+- [x] CI/CD and release principles.
 - [x] Definition of Done.
-- [x] Requirements traceability process.
-- [x] Contributor guide.
-- [x] Changelog policy.
-- [x] ADR policy.
-- [x] Deliberate ambiguity register.
+- [x] Free-tier/quota degradation behavior.
+- [x] Backup/disaster recovery.
+- [x] Storage orphan/retention rules.
+- [x] Existing-data migration/cutover.
+- [x] Lots 0–12 reconciled with frozen feature set.
+- [x] Objective lot acceptance criteria.
+- [x] No implementation lot may start before final design gate opens.
 
-## Operations/recovery
+## Intentionally implementation-time, not missing
 
-- [x] Free-tier/quota behavior.
-- [x] Essential-data-first storage/sync priority.
-- [x] Backup strategy.
-- [x] Portable restore/integrity validation.
-- [x] Disaster recovery scenarios.
-- [x] Cloud outage degradation.
-- [x] Diagnostics/integrity checking.
-- [x] Orphan media cleanup/retention.
-- [x] Existing-data migration plan.
-- [x] Cutover/source-of-truth plan.
+The following remain deliberately deferred mechanisms:
 
-## Implementation roadmap
+- concrete Node/npm/package versions;
+- exact lint/formatter/property/mutation libraries;
+- IndexedDB wrapper vs native API;
+- exact supported browser minimum versions after Lot 0/real-device validation;
+- exact accessible visual palette/font stack;
+- exact XLSX/CSV/JSON-schema libraries;
+- manual vs maintained PWA/service-worker helper;
+- exact map/tile library/provider integration;
+- concrete SQL migration files implementing frozen physical semantics;
+- concrete machine JSON Schema files generated from canonical contract;
+- concrete CI YAML/test source files;
+- production Supabase/Cloudflare identifiers/configuration.
 
-- [x] Documentation runs 1–4.
-- [x] Implementation lots 0–12.
-- [x] Lot dependency order.
-- [x] Per-lot deliverables.
-- [x] Per-lot tests/security expectations.
-- [x] Per-lot objective exit criteria.
-- [x] V1 release blockers.
-- [x] Cutover evidence package.
-- [x] Post-V1 promotion process.
-- [x] Explicit next step: Lot 0 only.
+These cannot alter frozen product/security/data semantics without reviewed spec/ADR change.
 
 ---
 
-# Items intentionally not finalized before coding
+# Final freeze gate
 
-The following are explicitly deferred, not missing:
+Documentation coverage is considered **complete**, but implementation remains CLOSED until all of the following are true:
 
-- concrete package versions;
-- exact lint/formatter/test package choices;
-- exact final browser minimum versions;
-- exact visual palette/font stack;
-- IndexedDB helper library vs native abstraction;
-- exact service-worker library/manual implementation;
-- exact CSV/XLSX parser packages;
-- machine-readable JSON Schema files generated from the canonical logical contract;
-- synthetic template files generated during Import/Export implementation;
-- concrete SQL migration files implementing the physical schema;
-- exact CI YAML and script syntax;
-- exact test source files;
-- exact production Supabase/Cloudflare project identifiers/configuration.
+- [ ] `FINAL-DESIGN-REVIEW.md` completed across all review dimensions.
+- [ ] Every final-review BLOCKING/MAJOR finding resolved.
+- [ ] Master spec, V1 scope, requirements, routes, ERD/schema/local schema, lots and acceptance scenarios agree.
+- [ ] Five existing PR P1 review comments have documented responses/resolution.
+- [ ] No stale normative `future/pending/candidate/Lot0 next` wording creates contradictory semantics.
+- [ ] Public repository branch contains no real wedding data/secrets/private artifacts.
+- [ ] PR #4 is mergeable and final review/consistency check passes.
+- [ ] PR #4 is merged into `main`.
 
-These belong to named implementation lots and are constrained by existing specs/ADRs. Their deferral is documented in `DEFERRED-DECISIONS.md`.
-
----
-
-# Completion rule
-
-Documentation is ready for code when:
-
-1. this checklist is reviewed;
-2. Run 4 PR is merged;
-3. `README`, `START-HERE`, `INDEX`, V1 scope and roadmap agree;
-4. no undocumented critical behavior relies solely on chat memory;
-5. no known internal documentation contradiction remains;
-6. real wedding data/secrets are absent from the public repository;
-7. implementation begins at Lot 0 and uses versioned spec/ADR changes for future discoveries.
-
-After this point, more pre-code brainstorming is optional rather than required. Product precision should improve from implementation/tests/real usage through normal change control, not indefinite design expansion.
+Only after those boxes are closed may implementation gate become OPEN. The first implementation lot would then be Lot 0, but this documentation task does **not** start it.
