@@ -1,85 +1,140 @@
 # Domain Invariants
 
-These rules must hold regardless of UI path, import source, sync path or client behavior.
+Status: **Normative V1 invariants**
 
-## Project and identity
+These rules hold regardless of UI, import, offline queue, direct API call or client behavior. Prefer database constraints/RLS/commands where they can enforce a rule more strongly than frontend validation.
+
+## Project / identity / authorization
 
 1. Every project-scoped entity belongs to exactly one project.
-2. Ordinary mutations cannot change an entity's `project_id`.
-3. A user can access project data only while authorized membership exists.
-4. The last project owner cannot be removed without an explicit project-destruction/ownership-transfer workflow.
-5. Internal IDs are never reused.
+2. Ordinary mutation cannot change an entity's `project_id`.
+3. Ordinary relational references cannot connect rows from different projects.
+4. Polymorphic links validate target existence/type/same-project at database boundary.
+5. A user accesses project data only while active authorized membership exists.
+6. The last active owner cannot be removed through ordinary membership mutation.
+7. V1 production initial project can be created only once during controlled bootstrap.
+8. Partner invitation acceptance requires valid unexpired/unrevoked token + matching verified authenticated email.
+9. Invitation token can produce at most one semantic membership; replay is idempotent/denied safely.
+10. Internal UUIDs are never reused.
+
+## Date/time
+
+11. At most one active wedding-date option is `selected` per project.
+12. Numeric weekday mapping is always 0=Sunday ... 6=Saturday.
+13. After-midnight operational times preserve day offset; `01:00 dayOffset=1` never sorts before `23:00 dayOffset=0`.
+14. Fixed contractual deadlines do not move merely because planning wedding date changes.
 
 ## Venue/vendor
 
-6. A rejected venue/vendor remains recoverable/history-visible until purge policy removes it.
-7. A contractually confirmed selection cannot be silently replaced by an import or score recalculation.
-8. Capacity values must identify their scope (venue marketing capacity versus specific space/configuration) when known.
-9. A blocking criterion failure cannot be hidden by aggregate compatibility scoring.
+15. Rejected venue/vendor remains recoverable/history-visible until explicit retention/purge policy removes it.
+16. A contractually confirmed selection cannot be silently replaced by import/score recalculation.
+17. Capacity identifies scope (marketing venue vs physical space/configuration) when known.
+18. Blocking criterion failure/conflict/unknown cannot be hidden by high weighted score.
+19. A criterion used for compatibility has a valid evaluation rule; missing/invalid rule cannot silently PASS.
+20. Context-specific route observations remain associated with their origin/mode; a different origin does not overwrite them.
 
-## Facts/provenance
+## Facts/evidence
 
-10. `unknown`, `false`, `not_applicable` and `conflict` are distinct states.
-11. An imported weaker observation cannot silently overwrite stronger contractual/confirmed evidence.
-12. A source observation remains historical even if a newer retained value supersedes it, subject to retention rules.
-13. Contradictory observations do not silently collapse into a single value without a retained-value decision/policy.
-14. Derived values are not manually edited as independent authoritative facts.
+21. `unknown`, known-false, `not_applicable` and `conflict` are distinct.
+22. Fact JSON value matches referenced definition value type and validation constraints.
+23. Imported weaker evidence cannot silently replace stronger contractual/confirmed retained evidence.
+24. Evidence observations remain historical after supersession subject to retention/project destruction.
+25. One observation may cite multiple sources without duplicating the observation.
+26. Contradictory credible observations do not silently collapse without documented retained-value resolution.
+27. Derived values are never manually edited as independent authoritative facts.
 
-## Guests
+## Partner opinions
 
-15. An active guest belongs to at most one active household in one project.
-16. Attendance probability is constrained to [0,1].
-17. RSVP status and probability are distinct.
-18. Confirmed operational attendance calculations follow explicit RSVP precedence rules rather than summing stale probabilities blindly.
-19. Guest priority values must remain within configured project rules.
-20. Deleting a household with active guests requires reassignment, cascade-to-soft-delete, or explicit resolution; it cannot orphan guests silently.
+28. Each member owns their own personal preference/rating row; one partner cannot mutate the other's rating/approval identity.
+29. Shared objective facts and personal opinions remain distinct data.
 
-## Budget/payments
+## Guests / seating
 
-21. Money calculations use exact monetary semantics.
-22. Currency is explicit or safely inherited from project context.
-23. A payment is linked to a project and, where applicable, a budget/contractual item in the same project.
-24. Refundable cautions are distinguishable from final expected cost.
-25. Payment/refund semantics are explicit; unexplained negative ordinary payments are forbidden.
-26. `remaining_to_pay` is derived from authoritative commitments/payments, not manually maintained independently.
-27. A contracted amount cannot be silently modified by an unrelated import after signature without explicit review/history.
+30. An active guest belongs to at most one active household in one project.
+31. Attendance probability is within [0,1].
+32. RSVP and probability are distinct concepts.
+33. Confirmed attendance calculations follow explicit RSVP precedence.
+34. Priority values remain in configured project range.
+35. Household deletion cannot silently orphan active guests.
+36. A guest has at most one active seating assignment.
+37. Seating guest/table/section references remain same-project.
+38. Final seating readiness cannot PASS while a required attending guest is unassigned, duplicate assignment exists or table is over capacity.
+39. RSVP change never silently destroys seating history; it invalidates/reviews assignment as appropriate.
 
-## Tasks/decisions
+## Budget/scenarios/payments
 
-28. A `waiting_external` task identifies what/who is awaited.
-29. A blocked task records a reason or dependency.
-30. A joint decision cannot become final before required approvals are satisfied.
-31. Decision history/rationale is preserved when a decision is reopened.
-32. Completing the same task twice is idempotent.
+40. Money uses exact integer-minor-unit semantics.
+41. Currency is explicit/safely inherited; cross-currency arithmetic is never implicit.
+42. Multiple named scenarios may coexist; at most one is operationally `active`.
+43. Scenario overrides never overwrite base/contracted budget-item truth.
+44. Refundable security deposits are distinguishable from final expected wedding cost.
+45. Payment amounts are non-negative; financial direction comes from payment type.
+46. Refund/return links cannot create a refund exceeding valid refundable amount without explicit credit semantics.
+47. `remaining_to_pay`, paid totals and cash-flow are derived, not manually maintained.
+48. Contracted/paid truth cannot be silently downgraded by weaker import.
+49. Unknown tax treatment remains unknown; system never silently assumes included/excluded tax.
 
-## Files/media
+## Tasks/decisions/Inbox
 
-33. A database media/document record is not considered committed until its required storage/reference state is valid.
-34. Exact duplicate uploaded files may be deduplicated by hash but metadata relationships remain correct.
-35. Original user media is never silently replaced by a recompressed derivative.
-36. Remote URLs never become trusted executable content.
+50. `waiting_external` task identifies awaited party/reason.
+51. Blocked task identifies dependency/reason.
+52. Task dependency graph has no self-dependency/cycle.
+53. Completing already-completed task is idempotent.
+54. Joint decision cannot finalize before required owner approvals and valid result.
+55. A member cannot submit/change another member's approval identity.
+56. Final/locked decision preserves rationale/history through reopen.
+57. Inbox conversion is idempotent and cannot create duplicate target on retry.
+
+## Planning/timeline
+
+58. Milestone dependency graph has no self-dependency/cycle.
+59. Derived milestone progress is reproducible from milestone source state/weights.
+60. Event-timeline end cannot occur before start after applying day offsets.
+61. Event-timeline dependencies cannot create invalid cyclic ordering.
+62. Frozen/exported operational timeline is historical snapshot; later live edit cannot silently mutate it.
+
+## Files/media/tags
+
+63. Media/document is not committed until required storage/reference state is valid.
+64. Exact duplicate file bytes may deduplicate storage but relationships/metadata remain correct.
+65. Original user media is never silently replaced by compressed derivative.
+66. Remote URL content is never trusted executable content.
+67. Derivative/media/document/tag links cannot cross projects.
 
 ## Import/export
 
-37. Reimporting the exact same canonical import must not create duplicate semantic entities.
-38. Missing rows in an import never mean deletion by default.
-39. Destructive replacement requires explicit scope/preview/confirmation.
-40. A failed atomic critical import leaves the project unchanged.
-41. Every applied import is traceable to an import session.
-42. Rollback cannot silently overwrite later legitimate user edits.
+68. Reimporting same stable canonical objects does not duplicate semantic entities.
+69. Nested external IDs are parent-scoped; same nested ID under different parents does not collide.
+70. Missing import rows/properties never mean deletion by default.
+71. Destructive replacement requires explicit scope/preview/confirmation.
+72. Failed atomic critical import leaves project unchanged.
+73. Every applied import is traceable to import session.
+74. Rollback never silently overwrites later legitimate changes.
+75. Saved mapping profile belongs to user/project and cannot leak mappings/data to another project.
 
 ## Sync/offline
 
-43. Confirmed cloud data is not silently lost because another device reconnects with stale state.
-44. Pending local mutations survive transient network failure and app restart where platform persistence permits.
-45. Retried operations with the same operation ID do not create duplicate side effects.
-46. A true same-field conflict is either deterministically resolved by documented semantics or surfaced.
+76. Stale reconnect cannot silently overwrite newer confirmed cloud data.
+77. Pending local mutations survive transient network loss/app restart where supported storage remains available.
+78. Same operation ID cannot create duplicate side effects.
+79. True same-field semantic conflict is deterministically resolved by documented rule or surfaced.
+80. Session expiry does not delete pending local work; sync resumes only after reauth + membership validation.
+81. Safe logout cannot silently discard pending work and removes private local cache after pending-work resolution.
 
 ## Deletion/recovery
 
-47. Ordinary deletion is soft first for recoverable entities.
-48. Permanent project deletion requires explicit high-assurance confirmation.
-49. Purging structured entities must not leave unauthorized/orphan private storage indefinitely.
-50. Restore/import operations must preserve project-level referential integrity.
+82. Ordinary deletion is soft first for recoverable entities.
+83. 30-day trash threshold makes an entity purge-eligible; exact timed background purge is not assumed.
+84. Permanent project deletion requires strong auth/explicit confirmation and cannot be emulated by owner removal.
+85. Purge cannot leave unauthorized orphan Storage indefinitely.
+86. Restore/import preserves project-level relational integrity.
+87. Corrupt/tampered encrypted backup never partially restores.
+88. Unsupported future backup/schema never silently loses fields while claiming success.
 
-All invariants require automated tests at the narrowest effective layer, with database constraints/policies used where they provide stronger guarantees than frontend checks.
+## Free-tier / deployment
+
+89. Unrelated public user cannot create another production wedding project after bootstrap lock.
+90. Quota pressure blocks/degrades nonessential large media before essential structured project edits.
+91. Application never automatically activates a paid plan/upgrade.
+
+Every invariant requires automated verification at the narrowest effective layer; security/data-integrity invariants require direct DB/RLS/adversarial tests in addition to UI tests.
