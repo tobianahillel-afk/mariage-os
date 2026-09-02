@@ -1,95 +1,151 @@
-# Offline Behavior
+# Offline Behavior and Capability Matrix
 
-## Objective
+Status: **Normative V1 offline contract**
 
-Mariage OS is a cloud application, but essential work must remain possible during temporary network loss, especially during venue visits.
+Mariage OS is cloud-backed but local-first for eligible work. Offline behavior must distinguish **readable locally**, **editable/queueable locally**, and **server-required finalization**.
 
-## Offline-capable V1 workflows
+A locally accepted mutation is visibly `pending`; it is not represented as remotely confirmed until server acknowledgement.
 
-When the necessary project data has previously been synchronized, users should be able to:
+## Global rules
 
-- open recently cached/favorite venues;
-- view essential venue facts and visit checklist;
-- add/edit notes;
-- change personal ratings/favorites;
-- complete/create ordinary tasks;
-- capture measurements;
-- queue structured edits;
-- capture media locally for later upload where browser capabilities permit;
-- inspect cached upcoming tasks and decisions.
+- Pending edits survive restart where platform persistence permits.
+- Unsynchronized work is not ordinary cache and is not silently evicted.
+- Offline writes use operation IDs/base revisions and may later conflict.
+- Security/admin operations are never faked offline.
+- A workflow that requires a fresh global invariant can collect a draft offline but finalizes only online.
+- UI labels partial/cached state instead of pretending full freshness.
 
-## Online-required or degraded workflows
+---
 
-The following may require network access:
+## Capability matrix
 
-- first login on a new device;
-- uncached records/media;
-- map tiles;
-- external source pages;
-- Google Maps routing;
-- final cloud membership changes;
-- download of uncached original files;
-- cloud-wide search where local cache is incomplete.
+| Domain/action | Offline read if cached | Offline mutation | Server required before final truth |
+|---|---|---|---|
+| Venue summary/facts/spaces | Yes | Yes, queue ordinary edits/observations | Cloud confirmation for shared truth |
+| Personal venue rating/favorite | Yes | Yes | Sync acknowledgement |
+| Venue visit notes/measurements | Yes if pinned/cached | Yes | Sync acknowledgement |
+| Venue offer/availability note | Yes | Yes for ordinary draft/edit | Contractual/locked transitions may require fresh state |
+| Access route observations | Yes | Yes if manually recorded | External route calculation itself needs provider/network |
+| Tasks | Yes | Yes for ordinary create/edit/status | Any conflict resolved after refresh |
+| Task dependency graph | Yes | Queue simple changes | Server/domain validation confirms no conflicting graph revision |
+| Decision comment/option draft | Yes | Yes | Sync acknowledgement |
+| Decision approval/vote | Yes | May queue as pending approval | Final shared approval state is server-confirmed |
+| Finalize/lock/reopen joint decision | Read yes | No authoritative finalization offline | **Online required** to verify approvals/revision/invariants |
+| Inbox capture | Yes | Yes | Conversion target confirmation after sync |
+| Inbox conversion | Cached target context yes | May queue only for simple create commands | Existing-target merge/conflict may require refresh |
+| Vendor/contact/interaction | Yes | Yes | Sync acknowledgement |
+| Contract readiness answers | Yes | Yes | Readiness summary becomes shared after sync |
+| Guest/household/RSVP/probability | Yes | Yes | Sync acknowledgement/conflict handling |
+| Seating assignment | Yes | Yes, queue moves/assignments | Server confirms concurrent capacity/assignment integrity |
+| Budget planning item/scenario | Yes | Yes | Shared scenario truth after sync |
+| Record payment/refund/deposit movement | Yes | Yes as **pending financial mutation** | Not shown as cloud-confirmed financial truth until server validates revision/invariants |
+| Milestones/planning | Yes | Yes | Sync acknowledgement |
+| Event timeline | Yes | Yes | Server validates shared dependency/revision conflicts |
+| Frozen timeline export | If all source data cached and clearly labeled | Local file generation possible | “Current authoritative export” requires known synchronized source state |
+| Documents/media metadata | Yes | Metadata draft/queue possible | Committed file state requires storage/database success |
+| Capture new photo/file | Browser permitting | Local pending blob allowed | Upload/commit online |
+| Remote image/source page | Cached thumbnail maybe | No remote fetch | Network required |
+| Search | Local cached subset | N/A | Complete project-wide search requires cloud/current cache |
+| Map pins from cached coords | Fallback/list yes | N/A | Tile/provider rendering/routing normally online |
+| Import parse/map/preview | Yes if file/local tools available | Local working session only | **Commit online required** for DB transaction/RLS/current duplicate state |
+| Import rollback | Report may be cached | No authoritative rollback offline | **Online required** |
+| Full `.mariage` authoritative backup | Cached partial data can support a clearly labeled recovery export | Local archive generation only when completeness known | Full current project backup requires synchronized/complete source set |
+| Restore `.mariage` | File can be inspected/validated locally | No production mutation offline | **Online required** for restore target/transaction/RLS |
+| First login/new device | No | No | **Online required** |
+| Create/bootstrap project | No | No | **Online required** |
+| Invite/accept/revoke member | Cached status maybe | No | **Online required** |
+| MFA/session recovery | No | No | **Online required** |
+| Permanent purge/project deletion | Cached preview maybe | No | **Online + recent strong auth required** |
 
-The UI must label this limitation rather than display generic failures.
+---
 
-## Offline pinning
+## Venue offline pinning
 
-Users should be able to mark a venue or visit package as `Available offline`. This prepares:
+`Available offline` prepares at least:
 
-- venue summary;
-- critical facts;
-- checklist;
-- selected photos/previews;
-- contact information;
-- address/coordinates;
-- relevant pending tasks.
+- venue identity/location/status;
+- critical facts/criteria and retained values;
+- relevant sources summary;
+- spaces/capacities;
+- visit checklist/questions;
+- selected photo thumbnails/previews;
+- contact/access summary;
+- relevant tasks/decision context.
 
-Original high-resolution media is not automatically cached unless deliberately selected.
+Original high-resolution remote/private media is not automatically cached unless explicitly chosen and storage policy permits.
 
-## Storage pressure
+## Financial pending semantics
 
-The application must monitor browser storage signals where available and degrade conservatively.
+An offline payment/refund edit is allowed only as a durable **pending mutation**. Until cloud acknowledgement:
 
-Priority of local data retention:
+- UI labels it pending;
+- shared/confirmed totals should distinguish confirmed cloud movements from local pending projection;
+- another device may have changed the same schedule;
+- reconnect may produce conflict/revalidation.
 
-1. unsynchronized mutations;
-2. current project metadata and structured data;
-3. upcoming/active workflows;
-4. explicitly offline-pinned content;
-5. thumbnails;
+Never tell the user a payment is fully recorded/shared merely because it exists locally.
+
+## Decision finalization semantics
+
+Offline approval can be queued because it represents that member's intent. Finalizing a require-both decision is online-only because the application must verify current approvals, decision revision and authorization atomically.
+
+## Import semantics
+
+Parsing/mapping/validation/preview can operate locally. Bulk canonical commit and rollback are online because they require current canonical state, duplicate/evidence rules, transactions and RLS. An offline import preview must prominently say the project has not changed.
+
+## Backup semantics
+
+A complete authoritative backup must know it contains the intended complete current project graph. If cloud freshness/completeness cannot be established, the app can generate only a clearly labeled **local recovery export** containing available cached/pending data; it must not call that a verified full project backup.
+
+## Storage pressure priority
+
+1. pending mutations/unsynced original files;
+2. project identity and required structured state;
+3. active/upcoming workflows;
+4. explicit offline pins;
+5. thumbnails/previews;
 6. disposable cached originals.
 
-Unsynchronized user work must never be evicted as ordinary cache.
+Unsynchronized work is never evicted as normal cache.
 
-## App restart while offline
+## Session expiry offline
 
-Pending edits must survive page refresh/browser restart when browser persistence permits.
+Cached data may remain readable according to local privacy policy. Pending work remains retained. Sync waits for reauthentication. A revoked/removed member cannot regain cloud access merely because a local queue exists.
 
-## Session expiration
+## Reconnect process
 
-If authentication expires while offline, locally cached information may remain available according to the local privacy policy, but cloud synchronization waits for reauthentication. Pending changes remain retained.
+1. reauthenticate if needed;
+2. validate active membership/project namespace;
+3. refresh relevant remote revisions;
+4. merge nonconflicting remote state;
+5. send/rebase eligible queued mutations;
+6. isolate semantic conflicts;
+7. update local cache/sync status.
 
-## Conflict after long offline period
+## User-visible states
 
-On reconnection, remote changes are fetched before unsafe pending changes are finalized. Nonconflicting operations merge; genuine conflicts are isolated for review.
-
-## Service worker
-
-The service worker caches the application shell and versioned static assets. It is not the authoritative store for project data.
-
-## Versioning
-
-A new application version must not combine an incompatible old cache/local schema with a new cloud schema. App-shell caches and IndexedDB migrations require explicit version management.
-
-## User-visible network states
+Examples:
 
 - `Online · Synced`
 - `Synchronizing…`
-- `Offline · N changes pending`
-- `Cloud temporarily unavailable · local data available`
-- `Sync problem · your local changes are preserved`
+- `Offline · 4 changes pending`
+- `Cloud unavailable · cached data`
+- `Payment saved locally · waiting to sync`
+- `Approval saved locally · not finalized yet`
+- `Import ready · connect to apply`
+- `Sync conflict · local work preserved`
 
-## Testing
+## Required tests
 
-Offline tests must include reload while offline, pending writes, reconnect, long offline divergence, storage pressure behavior and PWA update interactions.
+- reload/restart offline with pending mutations;
+- venue visit pinned data;
+- offline RSVP/task/budget/seating/timeline mutations;
+- pending financial mutation is not mislabeled confirmed;
+- offline approval cannot bypass joint finalization invariant;
+- import commit/rollback unavailable offline;
+- authoritative backup refuses to claim completeness when cache is incomplete;
+- reconnect after remote concurrent edit;
+- storage pressure preserves pending work;
+- PWA update preserves queue;
+- session expiry/re-auth;
+- project/account switch isolation.
