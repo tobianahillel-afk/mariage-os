@@ -1,8 +1,8 @@
 # Conceptual Entity Relationship Model
 
-Status: **V1 conceptual model aligned with `PHYSICAL-SCHEMA-V1.md`**
+Status: **Frozen V1 conceptual model aligned with `PHYSICAL-SCHEMA-V1.md` + freeze addendum**
 
-The physical schema is normative for SQL implementation; this document explains domain grouping and relationships.
+The physical schema and addendum are normative for SQL implementation. This document provides one conceptual map so no V1 entity is hidden only in an addendum.
 
 ```text
 auth.users
@@ -30,10 +30,11 @@ profiles
                             │    ├── facts / evidence
                             │    └── media/document/tag links
                             │
-                            ├── fact_definitions
+                            ├── fact_definitions (incl. evaluation rule)
                             ├── facts
                             │    └── fact_observations
                             │          └──< observation_sources >── sources
+                            │                                      └── optional document evidence
                             │
                             ├── guest_categories
                             ├── households ──< guests
@@ -61,7 +62,14 @@ profiles
                             │    ├── milestone_dependencies
                             │    └── milestone_links
                             │
-                            ├── documents / document_links
+                            ├── event_timeline_items
+                            │    ├── event_timeline_dependencies
+                            │    └── event_timeline_vendor_links → vendors/contacts
+                            │
+                            ├── documents
+                            │    ├── document_links
+                            │    ├── document_review_items → facts/sources/tasks
+                            │    └── supersedes_document_id → documents
                             ├── media / media_links
                             ├── tags / entity_tags
                             │
@@ -75,99 +83,112 @@ profiles
 ## Project and membership
 
 ### `projects`
-One private wedding workspace. V1 production deployment intentionally supports the couple's single project.
+One private wedding workspace. V1 production deployment is deliberately single-couple/closed-bootstrap rather than public SaaS project creation.
 
 ### `project_members`
-Active authorized user→project relation and role. Also holds member activity cursor used for “since your last visit”.
+Active user→project authorization/role plus member activity cursor used for “since your last visit”.
 
 ### `project_invitations`
-Pre-membership, email-bound one-time invitation with only token hash persisted. It is not a substitute for Auth verification.
+Email-bound one-time pre-membership invitation; token hash only is persisted. Valid invitation still requires authenticated intended identity.
 
 ### `user_project_preferences`
-Per-user UI preferences; not shared planning truth.
+Per-user cross-device UI preferences, distinct from shared wedding facts.
 
 ## Planning inputs
 
 ### `wedding_date_options`
-Candidate/selected/rejected dates. One selected maximum. Venue availability and budget scenario can reference candidate dates.
+Candidate/selected/rejected/archived dates. Zero-or-one selected maximum. Availability and budget scenarios may reference candidate dates.
 
 ### `project_reference_origins`
-Private origins used for contextual access/travel comparison.
+Private reference origins for contextual access/travel comparison.
 
-## Venues and vendors
+## Venues/vendors/access
 
-Venue/vendor identity rows remain relatively stable while spaces, offers, availabilities, interactions, sources and facts represent changing detail.
+Venue/vendor identity rows remain relatively stable while spaces, offers, availability, interactions, facts, files and routes represent changing detail.
 
-Capacity belongs to the relevant venue space whenever known, not only a commercial venue-level number.
-
-### Access routes
-`venue_access_routes` stores origin/mode-specific travel observations so Paris→venue and TGV-station→venue are not collapsed into one ambiguous duration fact.
+`venue_access_routes` preserves origin/mode-specific observations rather than flattening Paris/home/station travel into one ambiguous duration.
 
 ## Facts/evidence
 
 ### `fact_definitions`
-Project-configurable typed criterion definitions.
+Typed criterion definition plus configurable priority/weight/freshness and explicit evaluation rule when used for compatibility.
 
 ### `facts`
-One retained operational fact state/value per target+definition.
+One retained semantic state/value per target+definition.
 
 ### `fact_observations`
-Append-oriented observations underneath the retained value.
+Append-oriented evidence values, validated against the definition's value type.
 
 ### `observation_sources`
-Many-to-many evidence links: one observation can cite multiple sources; one source can support multiple observations/facts.
+Many-to-many evidence links. A `source` can optionally point to the specific versioned document that constitutes evidence.
 
-## Guests and seating
+## Guests/seating
 
-### `guest_categories`
-Configurable stable guest grouping taxonomy.
+`guest_categories`, `households`, `guests` store invitation/people/statistics inputs.
 
-### `households` / `guests`
-Invitation grouping + individual people, RSVP/probability/logistics.
-
-### Seating
-V1 persists sections, tables and guest assignments. It is an operational non-visual model; graphical floor plan is post-V1.
+V1 seating stores `seating_sections`, `seating_tables`, `seating_assignments`. It is structured/operational but non-graphical; drag/drop floor-plan is post-V1.
 
 ## Partner-specific opinions
 
-`member_entity_preferences` and `member_ratings` keep individual favorites/notes/scores separate from shared objective facts. A partner cannot overwrite the other partner's rating row.
+`member_entity_preferences` and `member_ratings` keep personal favorites/notes/scores distinct from shared objective facts and from the other owner's opinion.
 
-## Tasks, decisions and Inbox
+## Tasks/decisions/Inbox
 
-Tasks represent actions/dependencies. Decisions represent alternatives/approvals/rationale. Inbox represents intentionally unstructured quick capture before conversion to a domain entity.
+- tasks = executable action/dependency/waiting state;
+- decisions = alternatives/approvals/rationale;
+- Inbox = low-friction unstructured capture before idempotent conversion.
 
 ## Finance
 
-### `budget_categories`
-Project taxonomy.
+- `budget_categories` = taxonomy;
+- `budget_items` = estimate/quote/contract source amounts;
+- `budget_scenarios` = named date/venue/guest assumptions, multiple coexist;
+- `budget_scenario_items` = scenario-specific inclusion/override without rewriting base truth;
+- `payments` = explicit planned/actual cash movements, refunds/returns/deposits.
 
-### `budget_scenarios`
-Named date/venue/guest assumptions; multiple coexist, at most one active operational scenario.
+At most one scenario is active operationally; activation is protected/atomic.
 
-### `budget_scenario_items`
-Per-scenario inclusion/override without overwriting base budget items.
+## Planning and event timeline
 
-### `payments`
-Planned/actual cash movements including deposits, installments, refunds/returns. Refundable deposits are distinguishable from final cost.
+### Milestones
+`milestones` + dependencies/links model preparation outcomes and weighted progress.
 
-## Planning/milestones
+### `event_timeline_items`
+Models what happens during the wedding event: local time/day offset, location/venue space, responsibility, status and notes.
 
-Milestones persist completion rules, dependencies and entity/task/decision links. Weighted progress is derived from this source state.
+### Timeline links/dependencies
+Dependencies remain acyclic and same-project. Vendor/contact links support operational/vendor-filtered exports.
 
-## Files/media/tags
+Frozen timeline exports are generated historical artifacts, not rows that mutate with the live timeline.
 
-Documents/media are private or remote-reference metadata with link tables. Tags are project-scoped reusable labels.
+## Documents/media/contract review
+
+### `documents`
+Private file metadata with optional date, review status and version/supersession link. Supersession is same-project/acyclic and never destroys older versions.
+
+### `document_review_items`
+Factual checklist items for quote/contract readiness, linkable to facts/sources/tasks. These are planning validation records, not legal-advice conclusions.
+
+### `media`
+Remote/private images and derivatives with original/preview distinction. DB link tables allow multiple entity relationships independently from physical object paths.
+
+### Tags
+Project-scoped reusable labels linked through `entity_tags`.
 
 ## Import/sync
 
-Mapping profiles remember approved spreadsheet mappings. Imports/change rows preserve provenance/rollback. External identifiers make re-import idempotent and nested IDs parent-scoped. Mutation receipts support retry idempotence.
+`import_mapping_profiles`, imports/change lineage and `external_identifiers` support safe repeatable mappings/imports. Nested external identifiers are parent-scoped. Mutation receipts support retry idempotence.
 
 ## Same-project integrity
 
-Every project-owned ordinary relationship is enforceably same-project using composite foreign keys. Polymorphic links use database validation. RLS is mandatory but is not a replacement for relational integrity.
+Every project-owned ordinary relationship is enforceably same-project with composite FKs where relational. Polymorphic links use DB validation. RLS is mandatory but not a substitute for referential integrity.
 
 ## Derived-data rule
 
-Counts, totals, compatibility and readiness are derived from authoritative rows. They are not separate manually editable truths unless a documented invalidatable cache is later introduced.
+Counts, totals, compatibility, readiness, progress and search/read models derive from authoritative inputs. Persisted caches, if introduced, must be invalidatable/rebuildable.
 
-See [`PHYSICAL-SCHEMA-V1.md`](PHYSICAL-SCHEMA-V1.md) for concrete columns/constraints and `../security/RLS-MATRIX-V1.md` for client authorization.
+See:
+
+- `PHYSICAL-SCHEMA-V1.md` + `PHYSICAL-SCHEMA-V1-ADDENDUM.md` for concrete persistence;
+- `../security/RLS-MATRIX-V1.md` for authorization;
+- `../architecture/LOCAL-DATA-SCHEMA.md` for offline/local representation.
