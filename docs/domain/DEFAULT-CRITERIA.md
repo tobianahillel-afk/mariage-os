@@ -2,13 +2,29 @@
 
 Status: **Normative seeded criteria/key catalog for V1**
 
-Mariage OS supports project-defined custom criteria, but V1 must seed a stable set of commonly used wedding criteria so imports, comparisons and UI do not invent incompatible keys.
+Mariage OS supports project-defined custom criteria, but V1 seeds stable system keys so imports, comparisons and UI never invent incompatible synonyms.
 
-Keys are English snake_case machine identifiers. Labels are localized in the UI.
+Keys use English `snake_case`; labels are localized.
 
-Priority is configurable per project. Defaults below reflect the current product use case, not a universal rule for every wedding.
+## Priority and evaluation are separate
 
-Value states still distinguish `unknown`, known value, `not_applicable` and `conflict`.
+Allowed priorities are exactly:
+
+- `blocking`
+- `important`
+- `bonus`
+- `informational`
+
+A criterion is never `blocking-negative` or `important-negative`. Whether high/true is good or bad is defined by `evaluation_rule_json` according to `CRITERIA-EVALUATION.md`.
+
+Examples:
+
+- `external_caterer_allowed`: priority `blocking`, rule boolean expected `true`;
+- `exclusive_caterer`: priority `blocking`, rule boolean expected `false`;
+- `canteen_event_hall_risk`: priority `important`, rule rejects/high-penalizes `high`;
+- `interior_aesthetic_score`: important, rating minimum configured by project if used for scoring.
+
+Facts still distinguish `unknown`, `known`, `not_applicable`, `conflict` independently of criterion evaluation.
 
 ---
 
@@ -25,13 +41,20 @@ Value states still distinguish `unknown`, known value, `not_applicable` and `con
 | `main_room_width_m` | number m | important | usable dimension |
 | `main_room_height_m` | number m | bonus | ceiling height |
 | `single_large_reception_room` | boolean | blocking | one shared principal room rather than split rooms |
-| `target_guest_count_supported` | boolean | blocking | supports configured wedding target range |
+| `target_guest_count_supported` | boolean/dynamic | blocking | supports current project/scenario target |
 | `two_dance_areas_feasible` | boolean/assessment | blocking | two distinct dance areas in same shared room |
 | `two_dance_areas_max_guest_estimate` | number people | important | couple-specific estimated comfortable max |
 | `dance_area_total_m2_estimate` | number m² | informational | estimated dance space |
 | `circulation_comfort` | rating/select | important | circulation around tables/zones |
-| `central_columns_obstructive` | boolean | important | obstructive columns/pillars |
+| `central_columns_obstructive` | boolean | important | obstructive columns/pillars; expected false if scored |
 | `room_shape` | select/text | important | rectangular/long/narrow/irregular/etc. |
+
+Default evaluation seeds:
+
+- `single_large_reception_room`: boolean true;
+- `target_guest_count_supported`: dynamic project-target rule;
+- `two_dance_areas_feasible`: boolean true;
+- `central_columns_obstructive`: boolean false if criterion enabled for scoring.
 
 ## Ceremony / religious configuration
 
@@ -46,12 +69,14 @@ Value states still distinguish `unknown`, known value, `not_applicable` and `con
 | `ceremony_power_available` | boolean | bonus |
 | `ceremony_accessible_pmr` | boolean | important |
 
+Boolean requirement defaults expect true except purely descriptive fields.
+
 ## Catering and kitchen
 
 | Key | Type | Default priority |
 |---|---|---|
 | `external_caterer_allowed` | boolean | blocking |
-| `exclusive_caterer` | boolean | blocking-negative |
+| `exclusive_caterer` | boolean | blocking |
 | `approved_caterer_list_required` | boolean | important |
 | `kosher_caterer_previously_hosted` | boolean | bonus |
 | `caterer_access_fee_minor` | money | important |
@@ -64,6 +89,13 @@ Value states still distinguish `unknown`, known value, `not_applicable` and `con
 | `open_flame_allowed` | boolean | important |
 | `caterer_delivery_access` | rating/select | important |
 | `caterer_setup_time_hours` | duration | important |
+
+Evaluation exceptions/defaults:
+
+- `external_caterer_allowed`: true required;
+- `exclusive_caterer`: **false required**;
+- `approved_caterer_list_required`: false preferred unless project deliberately accepts it;
+- kitchen/cooking availability booleans normally prefer true.
 
 ## Weather / seasonal resilience
 
@@ -82,6 +114,8 @@ Value states still distinguish `unknown`, known value, `not_applicable` and `con
 | `wind_exposure` | rating/select | informational |
 | `rain_ground_mud_risk` | rating/select | informational |
 
+`full_rain_plan` defaults true-required. Risk criteria, if scored, use lower-is-better/reject-high rules.
+
 ## Aesthetics and atmosphere
 
 | Key | Type | Default priority |
@@ -95,21 +129,23 @@ Value states still distinguish `unknown`, known value, `not_applicable` and `con
 | `natural_light` | rating | important |
 | `large_windows_or_glazing` | boolean | bonus |
 | `authentic_character` | rating | important |
-| `canteen_event_hall_risk` | rating/select | important-negative |
+| `canteen_event_hall_risk` | select/rating | important |
 | `decoration_effort_required` | select low/medium/high | important |
 | `stone_architecture` | boolean | bonus |
 | `wood_beams` | boolean | bonus |
 | `provence_style` | boolean | bonus |
 | `park_garden_quality` | rating | bonus |
 
+`canteen_event_hall_risk` and `decoration_effort_required` are lower-is-better. Positive aesthetic ratings are higher-is-better if a project sets a threshold.
+
 ## Music / technical
 
 | Key | Type | Default priority |
 |---|---|---|
-| `music_end_time` | time/local convention | important |
+| `music_end_time` | time + day offset | important |
 | `sound_limiter_present` | boolean | important |
 | `sound_limit_db` | number dB | important |
-| `doors_close_for_music_at` | time | important |
+| `doors_close_for_music_at` | time + day offset | important |
 | `soundproofing_quality` | rating/select | important |
 | `dj_sound_system_included` | boolean | bonus |
 | `microphone_included` | boolean | bonus |
@@ -117,6 +153,8 @@ Value states still distinguish `unknown`, known value, `not_applicable` and `con
 | `three_phase_power_available` | boolean | informational |
 | `backup_generator_available` | boolean | bonus |
 | `wifi_available` | boolean | informational |
+
+`music_end_time` can use `time_at_or_after` when project config sets a minimum acceptable curfew. `sound_limiter_present` is descriptive/risk-related and should not assume true is good.
 
 ## Furniture / included package
 
@@ -139,14 +177,18 @@ Value states still distinguish `unknown`, known value, `not_applicable` and `con
 | `basic_decoration_included` | boolean | bonus |
 | `flowers_included` | boolean | bonus |
 
+Included-service booleans normally prefer true but remain project-configurable.
+
 ## Access and logistics
+
+Context-dependent route observations are authoritative in `venue_access_routes`. Generic duration/distance facts below may represent a configured **default-origin summary only**.
 
 | Key | Type | Default priority |
 |---|---|---|
-| `driving_duration_from_reference` | duration | important |
-| `distance_from_reference_km` | distance km | informational |
+| `driving_duration_from_reference` | duration minutes | important |
+| `distance_from_reference_km` | distance | informational |
 | `nearest_tgv_station` | text | important |
-| `tgv_station_transfer_duration` | duration | important |
+| `tgv_station_transfer_duration` | duration minutes | important |
 | `public_transport_from_station` | boolean | bonus |
 | `taxi_vtc_feasibility` | rating/select | important |
 | `shuttle_feasibility` | rating/select | important |
@@ -158,6 +200,8 @@ Value states still distinguish `unknown`, known value, `not_applicable` and `con
 | `pmr_access` | boolean | important |
 | `nearest_airport` | text | informational |
 | `airport_transfer_duration` | duration | informational |
+
+Changing default reference origin recomputes/invalidates summary duration facts; it does not overwrite route history.
 
 ## Accommodation / weekend
 
@@ -186,6 +230,8 @@ Value states still distinguish `unknown`, known value, `not_applicable` and `con
 
 ## Commercial / contract
 
+Structured offers/payments remain monetary source of truth; these flags exist only as comparison/readiness facts where useful.
+
 | Key | Type | Default priority |
 |---|---|---|
 | `venue_hire_price_reference_minor` | money | important |
@@ -199,8 +245,6 @@ Value states still distinguish `unknown`, known value, `not_applicable` and `con
 | `quote_requested` | boolean | important |
 | `quote_received` | boolean | important |
 | `visit_completed` | boolean | important |
-
-Many commercial state values also have dedicated structured entities. These criteria exist only where a comparison flag is useful; source-of-truth commercial amounts remain in offers/contracts/payments rather than duplicated fact values.
 
 ---
 
@@ -239,6 +283,8 @@ Many commercial state values also have dedicated structured entities. These crit
 | `late_night_food_available` | boolean | bonus |
 | `brunch_next_day_available` | boolean | bonus |
 
+`compatible_with_required_kashrut` defaults true-required.
+
 ## Vendor reliability/process
 
 | Key | Type | Default priority |
@@ -250,13 +296,15 @@ Many commercial state values also have dedicated structured entities. These crit
 | `communication_rating` | rating | important |
 | `recent_review_score` | rating | informational |
 | `reliability_risk` | select low/medium/high | important |
-| `backup_plan_if_unavailable` | boolean/text | important depending vendor type |
+| `backup_plan_if_unavailable` | boolean/text | important |
+
+`reliability_risk` is lower-is-better.
 
 ---
 
 # Personal couple ratings
 
-Partner-specific ratings should generally not use shared factual retained-value semantics. Store each member's rating independently for dimensions such as:
+Partner-specific subjective ratings are stored in `member_ratings`, not as shared facts. Initial dimensions:
 
 - `love_score`;
 - `interior_aesthetic_score_personal`;
@@ -264,30 +312,29 @@ Partner-specific ratings should generally not use shared factual retained-value 
 - `logistics_score_personal`;
 - `value_for_money_score_personal`.
 
-Shared factual criteria and individual opinions must not overwrite one another.
+Shared factual criteria and individual opinions never overwrite each other.
 
 ---
 
 # Criterion creation rules
 
-Custom criteria can be added from UI/import with:
+Custom criterion includes:
 
 - stable generated key;
 - label;
 - entity type;
-- value type;
+- value type + validation metadata;
 - unit/options;
 - priority/weight;
-- freshness policy.
+- freshness policy;
+- optional evaluation rule.
 
-Before import creates a new definition, preview possible semantic duplicates against existing keys/labels.
+Before import creates a definition, preview semantic duplicates. System key cannot be repurposed to incompatible type/rule.
 
-System-defined keys cannot be silently repurposed to a different semantic/type.
+A criterion shown in compatibility scoring must have a valid evaluation rule; otherwise its evaluation is `UNKNOWN/configuration incomplete`, never implicit PASS.
 
 ---
 
 # Import contract
 
-Canonical imports should reference these stable keys whenever semantics match. ChatGPT-generated venue research imports should prefer these keys over inventing synonyms.
-
-If source data uses a different column label, mapping translates it to the stable criterion key.
+Canonical imports use these stable keys when semantics match. Mapping translates external column labels/synonyms to stable keys. New semantic fields must not be invented merely because a source uses a new label.
