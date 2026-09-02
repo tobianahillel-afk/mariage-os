@@ -1,71 +1,140 @@
 # Budget Feature Contract
 
+Status: **Normative V1 feature contract**
+
+Domain semantics: `../domain/BUDGET-PAYMENTS.md` and `MONEY.md`.
+
 ## Purpose
 
-Provide a trustworthy financial view that separates estimate, commitment, cash paid and future cash requirements, while supporting scenario comparison.
+Provide a trustworthy financial view separating planning estimates, quote/approval/contract truth, actual cash movements and named alternative scenarios.
 
 ## Main views
 
-- budget summary;
-- line-item table;
-- category breakdown;
-- payment schedule/cash-flow view;
-- scenario comparison.
+- Summary
+- Budget items/categories
+- Named scenarios
+- Payments
+- Cash flow
 
-## Header summary
+## Summary
 
 At minimum:
 
-- expected/probable total;
+- active-scenario expected total;
 - contracted total;
-- paid total;
+- paid non-refundable/final-cost cash;
 - remaining contractual balance;
-- upcoming amount due;
-- refundable cautions tracked separately;
-- contingency remaining.
+- due/overdue amount;
+- next 30/60/90-day cash needs;
+- refundable cash temporarily immobilized;
+- contingency/reserve if configured.
 
-## Line items
+A user can always drill into rows that reconstruct a total.
 
-Each item shows calculation basis and state, not only one number.
+## Budget items
+
+Each shows:
+
+- category/label;
+- calculation method;
+- assumptions;
+- estimate/quote/approved/contracted amounts where present;
+- linked offer/entity/source;
+- required/optional;
+- scenario inclusion/override;
+- related payments.
 
 Example:
 
-`Catering · 110 €/adult × 175 planning guests · Quote · 19,250 €`
+`Catering · 110 €/adult × 175 scenario guests · Quote · 19 250 €`
 
-## Scenarios
+## Named scenarios
 
-Users can compare, for example:
+Users can persist/compare examples such as:
 
-- S29 + 175 guests + target date A;
-- S32 + 175 guests + target date A;
-- S32 + 195 guests + target date B.
+- S29 · Date A · 175 guests;
+- S32 · Date A · 175 guests;
+- S32 · Date B · 195 guests;
+- Minimum / Probable / Maximum.
 
-Scenario recalculation does not overwrite contracted actuals.
+Each scenario owns assumptions/overrides without rewriting base budget-item truth.
+
+Exactly zero/one scenario is operationally active. Activating is explicit and atomic; imports cannot switch it silently.
 
 ## Date-aware pricing
 
-Applicable venue/vendor offers are selected according to documented date/day validity and assumptions.
+Offer applicability uses:
+
+- candidate/selected date;
+- frozen weekday convention;
+- offer validity range;
+- package/guest assumptions;
+- tax semantics;
+- documented mandatory components.
+
+When applicability is uncertain, display uncertainty rather than choosing a price silently.
+
+## Tax
+
+Offer/item source displays `tax included`, `tax excluded`, `not applicable` or `unknown`. Unknown tax handling must remain visible when material to comparison.
 
 ## Payments
 
-Payment timeline shows due/paid/overdue installments and evidence links.
+Payment view distinguishes:
 
-A payment task may be suggested without duplicating the financial due-date source.
+- nonrefundable deposit;
+- installment;
+- final balance;
+- refundable security deposit;
+- refund/credit/deposit return.
 
-## Cost transparency
+Statuses include planned/due/processing/manual-pending/paid/partially-refunded/refunded/cancelled/overdue.
 
-Comparison should expose hidden/mandatory extras such as cleaning, security, furniture, shuttle and overtime.
+Refund/return can be linked to original payment. No negative authoritative payment amounts.
 
 ## Cash flow
 
-Monthly/period view shows expected outgoing cash, including refundable cautions separately.
+Calendar/period view includes actual/planned outgoing cash and expected returns, while final-cost totals exclude refundable deposits unless forfeited/converted through explicit record.
+
+## Hidden extras
+
+Comparison exposes documented mandatory extras such as:
+
+- cleaning;
+- security;
+- furniture;
+- corkage;
+- external-caterer fee;
+- travel;
+- overtime;
+- taxes.
+
+No “cheap” headline total if known mandatory components are omitted from probable scenario.
+
+## Interaction with guests/date
+
+Changing scenario guest count/date recalculates deterministic dependent items only. It does not alter historical quote/contract/payment records.
+
+RSVP counts may be shown as a planning suggestion/reference but do not silently change active scenario guest count.
+
+## Payment reminders
+
+Creating/dismissing reminder task never changes the financial source row. Due/overdue remains finance truth.
+
+## Import protections
+
+Significant financial import changes are highlighted. Weaker estimate cannot overwrite contracted/paid truth. `paid`, active scenario, refund and tax treatment changes require explicit supported review.
 
 ## Acceptance criteria
 
-- exact money semantics prevent cent drift;
-- guest-count change updates only variable components;
-- refundable caution is excluded from expected final cost but visible in cash needs;
-- quote/contract/paid states remain separate;
-- scenario comparisons explain assumptions;
-- changing wedding date recalculates/invalidates relevant offers safely;
-- privacy exports never expose total budget unless explicitly allowed.
+- cent-exact calculations;
+- scenario coexistence/switching deterministic;
+- tax unknown visible;
+- date/weekday selection correct;
+- guest count updates only dependent formulas;
+- refundable deposit excluded from final cost, included cash exposure;
+- partial/full refund correct;
+- contracted/paid history preserved;
+- every aggregate explains source items;
+- restricted export never leaks unrelated budget;
+- offline edits/reconnect use finance conflict protections.
