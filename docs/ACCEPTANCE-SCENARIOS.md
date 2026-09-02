@@ -1,400 +1,431 @@
-# Critical Acceptance Scenarios
+# Critical V1 Acceptance Scenarios
 
-Status: **Normative behavioral acceptance suite outline**
+Status: **Normative behavioral acceptance-suite outline**
 
-These scenarios define high-value end-to-end behavior in Given/When/Then form. Implementation must turn them into automated tests and/or documented manual release evidence as appropriate.
+These Given/When/Then scenarios are end-to-end acceptance contracts. Implementation converts them to automated tests and/or documented manual evidence at the appropriate layer. They supplement, not replace, lower-level unit/property/database/RLS/security tests.
 
-They do not replace lower-level unit/integration/security tests.
+## Identity, project isolation and local safety
 
----
+### ACC-001 — Controlled first-owner bootstrap
+**Requirements:** IAM-011, OPS-008
 
-## ACC-001 — Two owners collaborate on the same project
+Given production has no initialized project and bootstrap is explicitly open, when the intended authenticated owner performs bootstrap, then exactly one project and one active owner membership are created atomically and bootstrap closes according to policy.
 
-**Requirements:** PRD-001, IAM-007, SYN-003
+### ACC-002 — Public outsider cannot create arbitrary production project
+**Requirements:** IAM-011, OPS-008
 
-Given owner A has created a project and invited owner B
-When owner B accepts the valid invitation
-And owner A creates a venue
-And owner B opens the venue list
-Then both owners see the same venue project data
-And their individual ratings remain independent
-And no unrelated project data is visible.
+Given the static website is publicly reachable and the couple project already exists, when an unrelated authenticated/anonymous user attempts project creation directly through backend APIs, then creation is denied and no free-tier resource-consuming project is created.
 
-## ACC-002 — Unrelated user cannot access the project
+### ACC-003 — Secure partner invitation
+**Requirements:** IAM-007, IAM-012
 
-**Requirements:** IAM-002, IAM-004, SEC-003, QLT-004
+Given owner A creates an invitation for partner B, when B authenticates with the intended verified identity and submits the unexpired token, then one owner membership is created and invitation becomes accepted without storing the raw token server-side.
 
-Given user C is authenticated but is not a project member
-When user C directly requests a known venue UUID from project A through the backend API
-Then the request returns no authorized project data
-And user C cannot update or delete it
-And the denial does not depend on frontend route hiding.
+### ACC-004 — Invitation replay/wrong identity/expiry denied
+**Requirements:** IAM-012
 
-## ACC-003 — Offline venue visit survives restart
+Given an invitation is accepted, expired, revoked or presented by a different verified identity, when acceptance is attempted, then no duplicate/unauthorized membership is created and safe typed outcome is returned.
 
-**Requirements:** SYN-001, SYN-010, PWA-004, VEN-013
+### ACC-005 — Cross-project direct API access denied
+**Requirements:** IAM-002, IAM-004, SEC-003
 
-Given venue S32 is pinned for offline use
-And the device has synchronized its visit checklist
-When network connectivity is removed
-And the partner adds a note, a measurement and a photo reference
-And closes/reopens the PWA
-Then the structured note and measurement remain visible locally as pending
-And the unsynced photo is not silently discarded
-When network/authentication returns
-Then the changes synchronize exactly once or produce an explicit conflict/error requiring action.
+Given user C is not member of project A, when C requests/updates a known project-A UUID through direct API, then project data is not disclosed or mutated independent of frontend route hiding.
 
-## ACC-004 — Same-field collaborative conflict is not lost
+### ACC-006 — Cross-project relational injection denied
+**Requirements:** SEC-011
 
-**Requirements:** SYN-005
+Given owner A can write project A and knows a project-B venue UUID, when A tries inserting a child/link with project A `project_id` referencing project-B parent, then DB constraint/validation rejects it.
 
-Given both partners start from venue revision 12 where `tables_included=unknown`
-When partner A confirms `20 tables`
-And partner B, while offline from revision 12, records `22 tables`
-Then the application does not silently choose one value
-And stores/presents an explicit conflict
-And offers resolutions such as keep A, keep B, or mark to verify
-And resolving it creates auditable new current state.
+### ACC-007 — Member cannot impersonate partner rating/approval
+**Requirements:** PRD-004, DEC-002
 
-## ACC-005 — Independent changes merge
+Given A and B are owners, when A submits a rating/preference/decision approval row using B's user ID, then backend denies the write.
 
+### ACC-008 — Session expiry preserves pending work
+**Requirements:** SYN-008, IAM-013
+
+Given an edit is durably pending locally and cloud session expires, when the app reloads, then the edit remains available/pending and sync resumes only after successful reauthentication/membership validation.
+
+### ACC-009 — Safe logout with pending work
+**Requirements:** IAM-013
+
+Given pending work exists, when owner requests logout, then app does not silently purge it; user must sync, safely export/recover or explicitly discard where allowed before private cache purge completes.
+
+### ACC-010 — Project/account switch never flashes old cache
+**Requirements:** SYN-011
+
+Given cached project A data exists, when user/project context changes to project B, then A's visible context clears before B renders and B cannot read A cache through application state.
+
+## Local-first, sync and PWA
+
+### ACC-011 — Durable optimistic edit
+**Requirements:** SYN-001, SYN-003
+
+Given an offline-capable edit, when UI indicates locally saved/pending success, then operation already exists in durable local queue; process restart cannot erase it.
+
+### ACC-012 — Duplicate retry is idempotent
+**Requirements:** SYN-004
+
+Given operation ID X was already accepted remotely, when X is retried after lost acknowledgement, then side effect occurs once and client receives/reconstructs prior result.
+
+### ACC-013 — Independent concurrent edits merge
 **Requirements:** SYN-006
 
-Given both partners start from the same venue revision
-When partner A adds an exterior photo
-And partner B updates their personal rating
-Then both changes survive synchronization without unnecessary conflict.
+Given both owners start at same revision, when A adds photo and B changes their own rating, then both changes survive without unnecessary conflict.
 
-## ACC-006 — Session expiry never loses a local edit
+### ACC-014 — Same shared field conflict remains explicit
+**Requirements:** SYN-005
 
-**Requirements:** SYN-008, IAM-009
+Given both devices edit same shared due date from same base to different values, when reconnect occurs, then no silent last-write winner occurs; conflict remains until domain resolution.
 
-Given a partner is editing a venue and their cloud session expires
-When the edit reaches durable local-save state
-Then the app marks synchronization as requiring reauthentication
-And retains the edit across reload
-When the partner signs in again
-Then the edit synchronizes or enters conflict resolution without requiring retyping.
+### ACC-015 — Observation-preserving factual conflict
+**Requirements:** FAC-002, FAC-006
 
-## ACC-007 — Blocking venue criterion overrides aggregate score
+Given two devices/imports record different credible room areas, when reconciled, then both observations/sources are preserved and fact becomes conflict/retained-value review rather than silently dropping one.
 
-**Requirements:** VEN-011, FAC-001
+### ACC-016 — PWA update preserves pending mutations
+**Requirements:** PWA-002, PWA-007
 
-Given a venue has excellent aesthetic/logistics scores
-But `external_caterer_allowed=false` and that criterion is blocking
-When the comparison/readiness screen is rendered
-Then the venue is visibly incompatible/blocking
-And an aggregate percentage cannot present it as fully compatible.
+Given pending local mutations exist and new app/service worker is ready, when update/reload occurs, then queue/drafts survive compatible local migration and old incompatible code does not continue indefinitely.
 
-## ACC-008 — Unknown is not No
-
-**Requirements:** FAC-001
-
-Given `air_conditioning` has never been verified
-When the venue detail is opened
-Then it is displayed as Unknown/To verify
-And not as No
-And it can produce a missing-information action if the criterion priority requires it.
-
-## ACC-009 — Conflicting evidence is retained
-
-**Requirements:** FAC-002, FAC-003, FAC-006
-
-Given the official website observation says room area 300 m²
-And a directory observation says 250 m²
-And both observations are imported/stored
-Then both observations remain visible with sources
-And the system can retain 300 m² using evidence rules/user review
-And the 250 m² observation is not deleted.
-
-## ACC-010 — Weak import does not overwrite contractual truth
-
-**Requirements:** FAC-004, IMP-010
-
-Given `external_caterer_allowed=true` is confirmed by a signed contract
-When an older CSV import contains `external_caterer_allowed=false` from an unsourced directory
-Then preview flags the discrepancy
-And the contractual retained value is not silently replaced
-And the imported value may be retained only as a weaker observation/provenance according to merge rules.
-
-## ACC-011 — Repeat canonical import is idempotent
-
-**Requirements:** IMP-003, IMP-006
-
-Given canonical venue JSON from namespace X with external ID `venue-s32` has already been applied
-When the identical file is imported again
-Then no duplicate venue/space/source is created
-And the preview reports unchanged/no-op content or the previously imported file hash.
-
-## ACC-012 — Missing import row does not delete
-
-**Requirements:** IMP-002
-
-Given the project contains 200 guests
-When an XLSX import contains only 180 of them
-Then the other 20 remain unchanged unless the user enters a separately specified destructive reconciliation flow
-And ordinary preview never marks them for deletion merely because they are absent.
-
-## ACC-013 — Ambiguous guest names do not auto-merge
-
-**Requirements:** GST-011, IMP-009
-
-Given two existing guests can legitimately share the name `Alex Example`
-When a new spreadsheet row contains only that same name without stable external ID/contact/household evidence
-Then the importer requires user duplicate resolution or creates only according to explicit choice
-And does not auto-merge by name.
-
-## ACC-014 — Import preview protects production state
-
-**Requirements:** IMP-001
-
-Given a valid XLSX import has been parsed and mapped
-When the user is reviewing the preview
-Then project canonical data is unchanged
-And the UI explicitly says no data has been changed yet
-Until the user confirms commit.
-
-## ACC-015 — Failed atomic import does not half-apply critical data
-
-**Requirements:** IMP-012
-
-Given an import transaction is designed as atomic
-When a DB/invariant failure occurs partway through commit
-Then none of that transaction's structured changes are left partially applied
-And the import record reports failure with safe diagnostics.
-
-## ACC-016 — Intelligent rollback protects later manual edits
-
-**Requirements:** IMP-012
-
-Given an import changed venue price from unknown to 9,000 EUR
-And later a partner manually changed it to 9,500 EUR from a new quote
-When the old import is rolled back
-Then rollback does not blindly restore unknown over the later 9,500 value
-And reports that the affected field changed after import and requires reconciliation.
-
-## ACC-017 — Guest expected/cumulative statistics are reproducible
-
-**Requirements:** GST-003, GST-004, GST-005
-
-Given a synthetic guest dataset with known priorities and 0/25/75/100% attendance probabilities
-When expected and cumulative-priority statistics are calculated
-Then results exactly match independently specified fixture expectations
-And editing RSVP/probability updates derived views without editing another manual total field.
-
-## ACC-018 — Guest-count scenario updates variable costs, not historical quotes
-
-**Requirements:** FIN-005
-
-Given a caterer quoted 110 EUR per person and a historical quote document exists for 175 guests
-When scenario guest count changes from 175 to 185
-Then the active scenario recalculates the variable estimate
-And the historical 175-guest quote/document remains unchanged.
-
-## ACC-019 — Refundable caution is not final cost
-
-**Requirements:** FIN-004
-
-Given a venue requires a 2,000 EUR refundable security deposit
-When budget totals are shown
-Then cash-flow can show 2,000 EUR leaving at its due date
-But probable final cost excludes/refines it according to refundable-deposit semantics
-And a later deposit return is represented as a return rather than negative hidden price.
-
-## ACC-020 — Partial payment math is exact
-
-**Requirements:** FIN-001, FIN-007, FIN-008
-
-Given a contracted vendor amount of 9,500 EUR
-And two paid installments of 2,000 EUR and 1,500 EUR
-When the financial summary is computed
-Then paid = 3,500 EUR and contractual remainder = 6,000 EUR exactly
-Without floating-point rounding errors.
-
-## ACC-021 — Joint decision requires both approvals
-
-**Requirements:** DEC-002
-
-Given a venue-selection decision requires both owners
-When owner A approves S32 but owner B has not approved
-Then the decision cannot be finalized as jointly approved
-When owner B approves the same final option
-Then finalize becomes available subject to other state rules.
-
-## ACC-022 — Rejected venue remains searchable
-
-**Requirements:** PRD-007, VEN-006
-
-Given venue S34 is rejected with reason `interior too canteen-like`
-When it is removed from the active shortlist
-Then it remains findable in Rejected/history
-And displays rejection reason/date/history
-And can be restored without recreating a duplicate venue.
-
-## ACC-023 — Waiting external is not personal overdue work
-
-**Requirements:** TSK-002, VND-006
-
-Given the couple requested a quote and is waiting on a venue
-When the task enters `waiting_external`
-Then Dashboard/Tasks show it under Waiting with follow-up timing
-And do not present it as an unfinished actionable personal task before follow-up is due.
-
-## ACC-024 — Next action is explainable
-
-**Requirements:** TSK-004, PRD-003
-
-Given one overdue blocking venue follow-up and several low-priority decorative tasks
-When Dashboard selects a next useful action
-Then the blocking/overdue follow-up ranks above decoration
-And UI can explain the main ranking reason.
-
-## ACC-025 — Map outage does not block venue data
-
+### ACC-017 — Map/provider outage does not block venue records
 **Requirements:** PWA-005
 
-Given venue records are cached/available
-When map tiles/provider fail
-Then venue list/detail/access data remains usable
-And Map displays a clear unavailable fallback rather than breaking navigation.
+Given venue data is cached, when map tiles/routing provider fails, then venue list/detail/access text remains usable and map presents fallback state.
 
-## ACC-026 — Private file access is project-isolated
+### ACC-018 — Offline financial mutation is not falsely confirmed
+**Requirements:** FIN-007, SYN-002
 
-**Requirements:** IAM-003, MED-010
+Given device is offline, when owner records a payment, then UI labels it pending/projected; confirmed shared financial totals distinguish it until server validates mutation.
 
-Given a contract file belongs to project A
-When a member of project B attempts direct Storage access using its known path/object ID
-Then access is denied by backend policy
-And no client-side URL obscurity is relied upon.
+### ACC-019 — Offline approval cannot finalize joint decision
+**Requirements:** DEC-002
 
-## ACC-027 — Interrupted media upload is not a valid file
+Given B's approval is queued offline, when decision requires both owners, then app cannot represent decision finalized until current approvals/revision are atomically validated online.
 
-**Requirements:** MED-009
+### ACC-020 — Offline import can preview but not apply
+**Requirements:** IMP-001, IMP-012
 
-Given a large photo upload is interrupted before completion
-Then media metadata does not present it as Ready
-And retry/cleanup is available
-And orphaned partial state is cleaned according to storage policy.
+Given file can be parsed locally while offline, when preview completes, then canonical project is unchanged and Apply/Rollback requires connectivity/current canonical validation.
 
-## ACC-028 — Original photo remains immutable
+## Venue, criteria, evidence and access
 
-**Requirements:** MED-004, MED-005
+### ACC-021 — Quick-add venue keeps unknown unknown
+**Requirements:** VEN-012, FAC-001
 
-Given an original visit photo is archived
-When a thumbnail/preview is generated
-Then derivative has a separate object/metadata relationship
-And original bytes/hash remain unchanged.
+Given only venue name is entered, when record is created, then missing criteria show Unknown/To verify, never default No/false.
 
-## ACC-029 — CSV formula injection is neutralized on export
+### ACC-022 — Blocking criterion overrides score
+**Requirements:** VEN-011, FAC-011
 
+Given excellent weighted aesthetic/logistic ratings but `external_caterer_allowed=false` under blocking expected-true rule, when compatibility renders, then blocking status is FAIL regardless of weighted score.
+
+### ACC-023 — Negative-desirability criterion uses evaluation rule
+**Requirements:** FAC-011
+
+Given `exclusive_caterer=true` with blocking expected-false rule, when evaluated, then it fails without inventing a `blocking-negative` priority state.
+
+### ACC-024 — Fact value type rejects malformed canonical value
+**Requirements:** FAC-012
+
+Given a boolean fact definition, when client/import attempts object/string value incompatible with type, then canonical mutation is rejected/preview error before retained value is stored.
+
+### ACC-025 — Multi-source observation is preserved
+**Requirements:** FAC-002
+
+Given one factual observation is supported by official page and written email, when stored, then both source links remain attached to one observation and same-project integrity holds.
+
+### ACC-026 — Strong contractual evidence resists weaker import
+**Requirements:** FAC-004, IMP-010
+
+Given signed contract confirms external caterer allowed, when old unsourced CSV says false, then preview flags discrepancy and contract retained truth is not silently replaced.
+
+### ACC-027 — Broken source does not delete evidence
+**Requirements:** FAC-005
+
+Given official source URL later becomes broken, when health changes, then historical observation remains and may become stale/revalidation-needed.
+
+### ACC-028 — Changing criterion rule recomputes without rewriting facts
+**Requirements:** FAC-011, FAC-013
+
+Given project changes criterion priority/expected value, when saved, then compatibility recomputes from same fact observations and facts are not mutated.
+
+### ACC-029 — Partner ratings remain independent
+**Requirements:** VEN-017, PRD-004
+
+Given A rates venue 9 and B rates 6, when either later edits their rating, then other member's rating remains unchanged and shared factual score is separate.
+
+### ACC-030 — Origin switch preserves route history
+**Requirements:** VEN-016
+
+Given venue has Paris and home driving observations, when default origin changes, then summary changes to new origin while both observations/history remain.
+
+### ACC-031 — Candidate dates coexist until atomic selection
+**Requirements:** VEN-018
+
+Given several candidate wedding dates, when one is selected, then exactly one becomes selected atomically and prior candidate/status/history is preserved.
+
+### ACC-032 — Rejected venue remains searchable/history-visible
+**Requirements:** PRD-007, VEN-006
+
+Given venue is rejected with reason, when removed from active shortlist, then it remains queryable under rejected/history and can be restored without duplicate creation.
+
+## Import/export identities and mapping
+
+### ACC-033 — Repeat canonical import is idempotent
+**Requirements:** IMP-003, IMP-006
+
+Given canonical venue external ID already applied, when identical import repeats, then no duplicate semantic entities are created and preview reports no-op/unchanged as appropriate.
+
+### ACC-034 — Nested external IDs are parent-scoped
+**Requirements:** IMP-019
+
+Given venue A and venue B each have child space external ID `main`, when both import under same namespace, then both spaces coexist under correct parents without collision/mis-match.
+
+### ACC-035 — Missing import row never means delete
+**Requirements:** IMP-002
+
+Given 200 guests exist and import contains 180, when ordinary import is applied, then absent 20 remain unchanged unless separate explicitly destructive reconciliation flow is chosen.
+
+### ACC-036 — Ambiguous same-name guest is never auto-merged
+**Requirements:** GST-011, IMP-009
+
+Given two possible Alex Example matches and incoming row lacks stable evidence, when import matches, then human resolution is required/no name-only auto-merge occurs.
+
+### ACC-037 — Mapping profile reuse remains user/project scoped
+**Requirements:** IMP-020
+
+Given owner saves a spreadsheet mapping profile, when reused in same authorized context, then mappings prefill safely; another unrelated project/user cannot access it by guessed ID.
+
+### ACC-038 — Stale import preview revalidates before apply
+**Requirements:** IMP-001, IMP-010
+
+Given preview was computed then another owner changes affected canonical data, when Apply is attempted, then commit detects stale/current conflicts and revalidates/reviews rather than applying old plan blindly.
+
+### ACC-039 — Rollback protects later legitimate edit
+**Requirements:** IMP-012
+
+Given import set price then later owner manually updates price from stronger new quote, when import rollback runs, then later edit is not overwritten silently; reconciliation is surfaced.
+
+### ACC-040 — CSV export neutralizes formula payload
 **Requirements:** IMP-015
 
-Given a user text value begins with spreadsheet formula-control characters
-When exported to a CSV intended for spreadsheet use
-Then export encodes/escapes it according to security policy so opening the file does not execute it as formula content.
+Given user-controlled text begins with spreadsheet formula-control characters, when CSV export is opened in spreadsheet software, then output encoding prevents unintended formula execution according to security policy.
 
-## ACC-030 — Unsupported future backup is rejected safely
+## Guests and seating
 
+### ACC-041 — Guest statistics reproduce reference fixture
+**Requirements:** GST-003, GST-004, GST-005
+
+Given known 0/25/75/100% probabilities and priorities, when expected/cumulative statistics calculate, then values exactly match independent fixture and are derived from source rows.
+
+### ACC-042 — RSVP precedence is explicit
+**Requirements:** GST-004, GST-006
+
+Given guest probability 75% then RSVP `attending`, when operational confirmed count renders, then RSVP rule is applied without overwriting probability field as unrelated source truth.
+
+### ACC-043 — One active seating assignment per guest
+**Requirements:** GST-012
+
+Given guest already assigned table 1, when another concurrent assignment to table 2 is applied without move semantics, then invariant prevents two active assignments/produces conflict.
+
+### ACC-044 — Seating cannot cross project
+**Requirements:** GST-013
+
+Given owner knows table UUID from another project, when assigning own guest to it, then DB/domain rejects relationship.
+
+### ACC-045 — Table capacity warning is derived
+**Requirements:** GST-012
+
+Given table capacity 8 and 9 active assignments, when Seating renders, then over-capacity warning appears; capacity is not silently increased and guest assignment history remains.
+
+### ACC-046 — RSVP change marks seating review, not silent deletion
+**Requirements:** GST-012
+
+Given attending guest has table assignment then RSVP changes to not attending, when data recalculates, then seating is marked/reviewable according to rule; assignment is not silently destroyed without explicit command.
+
+## Budget/scenarios/payments
+
+### ACC-047 — Multiple named scenarios coexist independently
+**Requirements:** FIN-011
+
+Given scenarios S29/175/date A and S32/195/date B, when one assumption changes in S32, then S29 and historical actuals remain unchanged.
+
+### ACC-048 — Only one active scenario
+**Requirements:** FIN-011
+
+Given scenario A active, when owner activates B through protected command, then B becomes active and A inactive atomically; no two active operational scenarios remain.
+
+### ACC-049 — Scenario change never rewrites historical quote
+**Requirements:** FIN-005
+
+Given quote document for 175 guests and scenario changes to 185, when calculated, then variable planning total changes while original quote/document/terms remain unchanged.
+
+### ACC-050 — Tax unknown is never assumed TTC/HT
+**Requirements:** FIN-012
+
+Given offer tax treatment unknown, when budget comparison renders, then total/label exposes uncertainty and app does not silently assume included/excluded tax.
+
+### ACC-051 — Refundable security deposit is not final cost
+**Requirements:** FIN-004
+
+Given €2,000 refundable caution, when budget/cash flow renders, then outgoing cash requirement is visible but expected final wedding cost excludes it per refundable semantics until outcome changes.
+
+### ACC-052 — Partial payment/refund math is exact
+**Requirements:** FIN-001, FIN-013
+
+Given €9,500 contract, payments €2,000 + €1,500 and later €500 refund, when summary computes, then movements/remainder are exact minor-unit values and refund remains explicit linked movement.
+
+## Documents, contracts and external media
+
+### ACC-053 — Revised contract preserves old version
+**Requirements:** MED-011
+
+Given contract v1 reviewed, when v2 arrives, then v2 links as superseding document, v1 remains historical and v2 does not inherit version-specific reviewed status silently.
+
+### ACC-054 — Contract readiness preserves unresolved items
+**Requirements:** MED-012
+
+Given cancellation terms not found and tax contradictory, when checklist reviewed, then readiness shows open/contradictory items and can link follow-up task/evidence; app never labels legal validity.
+
+### ACC-055 — Interrupted upload never appears committed
+**Requirements:** MED-009
+
+Given binary upload/metadata transaction fails midway, when user opens documents/media, then incomplete object is not shown Ready and retry/orphan cleanup path exists.
+
+### ACC-056 — Original media remains immutable
+**Requirements:** MED-004, MED-005
+
+Given archived original photo, when thumbnail regenerated, then original bytes/hash remain unchanged and derivative relationship/version updates separately.
+
+### ACC-057 — External image request protects privacy
+**Requirements:** MED-013
+
+Given remote marketing image URL, when displayed, then request does not append private project/guest/token data and uses privacy-preserving referrer policy/fallback; remote failure does not block venue record.
+
+### ACC-058 — Storage path does not expose private filename
+**Requirements:** SEC-010, MED-010
+
+Given uploaded `Contrat_NomPrive.pdf`, when stored, then object path uses opaque IDs; original filename remains authorized metadata rather than publicly observable path identity.
+
+## Planning/timeline/search/Inbox
+
+### ACC-059 — Milestone relative date vs fixed deadline
+**Requirements:** PLN-003
+
+Given milestone J-30 and fixed contractual payment date, when wedding date moves, then J-30 recalculates while fixed payment date remains unchanged unless edited from new evidence.
+
+### ACC-060 — After-midnight timeline sorts correctly
+**Requirements:** PLN-004, PLN-005
+
+Given dinner 22:00 day 0 and music end 01:30 day 1, when timeline sorts/validates, then music appears after dinner and duration is not treated negative.
+
+### ACC-061 — Timeline dependency cycle is rejected
+**Requirements:** PLN-004
+
+Given A depends on B and B would depend on A, when second link is created, then cycle is rejected and existing timeline remains valid.
+
+### ACC-062 — Frozen timeline snapshot is immutable
+**Requirements:** PLN-006
+
+Given timeline snapshot exported at revision X, when live timeline changes later, then distributed snapshot content remains unchanged and UI can indicate live data differs.
+
+### ACC-063 — Vendor timeline export is privacy allowlisted
+**Requirements:** SEC-010
+
+Given vendor-specific timeline packet, when generated, then only relevant schedule/access/contact data is included and unrelated guest PII/private budget/notes are excluded.
+
+### ACC-064 — Inbox conversion is idempotent
+**Requirements:** CAP-001, CAP-002
+
+Given Inbox venue hint converted to venue UUID V, when conversion is retried after lost acknowledgement, then V is reused/recognized and no duplicate venue is created; original capture remains linked.
+
+### ACC-065 — Search respects authorization and archive state
+**Requirements:** CAP-003
+
+Given project contains active/rejected/private guest data, when authorized owner searches, then results follow configured archive/deletion scope; outsider direct search returns no project data.
+
+### ACC-066 — Search URL does not leak guest PII
+**Requirements:** CAP-004
+
+Given owner searches private guest details, when navigating/results deep-link, then unnecessary PII is not serialized into externally visible/public URLs/history beyond safe bounded route state.
+
+## Backup/recovery/security/operations
+
+### ACC-067 — Full backup reconstructs golden project
+**Requirements:** BAK-001, BAK-009
+
+Given golden project includes all V1 domains, when full supported backup exported/restored into clean target, then semantic equality and included binary checksums pass modulo generated IDs/audit metadata allowed by contract.
+
+### ACC-068 — Encrypted backup wrong password/tamper fails before mutation
+**Requirements:** BAK-011, BAK-012
+
+Given encrypted `.mariage`, when password is wrong or authenticated ciphertext altered, then decryption/authentication fails and target project remains unchanged.
+
+### ACC-069 — Unsupported future backup is rejected safely
 **Requirements:** BAK-006
 
-Given the app supports backup schema 1–2
-When a `.mariage` backup declares schema 5
-Then restore stops before production mutation
-And tells the user a newer app is required
-And does not partially interpret the archive.
+Given app supports schema v1 and backup declares unsupported future version, when restore begins, then process stops before target mutation and explains upgrade incompatibility.
 
-## ACC-031 — Backup restore reconstructs golden project
+### ACC-070 — Offline cache cannot masquerade as full authoritative backup
+**Requirements:** BAK-001, SYN-009
 
-**Requirements:** BAK-001, BAK-004, BAK-009
+Given device is offline with incomplete cached project, when user requests full backup, then app refuses to label it verified complete; may offer clearly labeled local recovery export of available/pending data.
 
-Given the golden synthetic project contains venues, sources, guests, vendors, tasks, decisions, finances and documents/media metadata
-When a complete supported backup is exported
-And restored into an empty compatible project/test target
-Then domain-semantic equality checks pass
-And included binary checksums validate.
+### ACC-071 — Storage quota pressure preserves essential edits
+**Requirements:** OPS-001, OPS-003
 
-## ACC-032 — Corrupt backup file is detected
+Given storage near free-tier safety threshold, when large decorative upload attempted, then app warns/defer/blocks it while RSVP/task/payment structured edits remain functional.
 
-**Requirements:** BAK-004
-
-Given one included media/document binary has been changed after backup creation
-When integrity verification runs
-Then checksum mismatch is reported before pretending the backup is healthy.
-
-## ACC-033 — Production repository contains no wedding data or secret
-
-**Requirements:** PRD-002, SEC-009, GST-009
-
-Given CI/public-repo safety checks run
-When fixtures/docs/source are scanned
-Then production secrets and known private artifact patterns are absent
-And tests use synthetic names/data only.
-
-## ACC-034 — PWA update does not lose pending edit
-
-**Requirements:** PWA-002, SYN-010
-
-Given a pending local mutation exists
-When a new service-worker/app version becomes available
-Then update lifecycle does not silently destroy pending IndexedDB state
-And after compatible reload the mutation remains pending/syncable.
-
-## ACC-035 — Backend temporarily paused/unavailable
-
-**Requirements:** OPS-006, SYN-009
-
-Given the app has cached essential data
-When Supabase is temporarily unavailable
-Then the user can still view cached essentials
-And eligible edits are saved locally/pending
-And UI communicates cloud unavailability without raw backend jargon.
-
-## ACC-036 — Storage quota pressure preserves essential work
-
-**Requirements:** OPS-001, OPS-002, OPS-003
-
-Given storage use is near configured free-tier safety threshold
-When user attempts a large non-essential photo upload
-Then the app warns/blocks/defer the media operation before a paid upgrade path
-While still allowing essential structured edits such as RSVP/task/payment data.
-
-## ACC-037 — Personal settings remain personal
-
-**Requirements:** PRD-004
-
-Given partner A customizes venue table columns and rating
-When partner B opens their view
-Then B's personal preferences/rating remain independent
-And shared venue facts remain common.
-
-## ACC-038 — Critical destructive project deletion requires strong safeguards
-
+### ACC-072 — Project deletion requires strong safeguards
 **Requirements:** IAM-009
 
-Given an owner initiates permanent project deletion
-Then the app requires explicit strong confirmation and recent strong authentication
-And recommends a backup
-And does not let a non-owner or stale unauthenticated session complete deletion.
+Given owner requests permanent project deletion, then recent strong auth + explicit high-impact confirmation + backup guidance are required and non-owner/stale session cannot execute purge.
 
-## ACC-039 — Data date semantics survive DST/timezone boundaries
+### ACC-073 — Downloaded backup remains outside cloud deletion claim
+**Requirements:** BAK-001
 
-**Requirements:** domain date/time invariants
+Given owner downloaded private backup then deletes project, when deletion completes, then app explicitly does not claim downloaded external copy was erased.
 
-Given project timezone Europe/Paris and an event occurring after midnight
-When stored/rendered around DST changes
-Then civil wedding date and absolute audit timestamps follow documented semantics
-And an event at 01:30 after the reception is not silently reassigned through browser-local timezone guessing.
+### ACC-074 — Repository/CI contains no private production data/secrets
+**Requirements:** PRD-002, SEC-009, GST-009
 
-## ACC-040 — No-context developer can bootstrap Lot 0
+Given public-repo safety checks/review run, then real wedding data, private backups/dumps and production secrets are absent; fixtures are synthetic.
 
-**Requirements:** QLT-001 / documentation readiness
+## Architecture/no-context/readiness
 
-Given a developer has only the repository
-When they follow README/START-HERE/Lot 0 documentation
-Then they can identify product scope, architecture, security constraints, test expectations, next implementation lot and deliberate deferred decisions without prior chat access.
+### ACC-075 — Every offline-capable V1 screen has local representation
+**Requirements:** QLT-011
+
+Given frozen V1 route/feature matrix, when architecture review compares local schema, then each offline-capable durable entity/action has local cache/queue semantics or is explicitly online-required.
+
+### ACC-076 — Every project-owned relationship has same-project integrity
+**Requirements:** SEC-011
+
+Given physical schema and addendum, when reviewed table-by-table, then no project-owned relational/polymorphic link relies only on separate client-provided project ID without DB same-project validation.
+
+### ACC-077 — Every V1 feature belongs to a lot and route/workflow
+**Requirements:** QLT-011
+
+Given frozen V1 scope, when compared to screen contracts/user flows/LOTS, then no required feature is orphaned from implementation sequence or user navigation.
+
+### ACC-078 — No-context developer can identify governing semantics
+**Requirements:** QLT-011
+
+Given only repository, when developer follows START-HERE/INDEX/final review, then they can determine V1 boundary, architecture, security constraints, next allowed lot, intentional deferred decisions and required tests without prior chat context.
+
+### ACC-079 — Final design gate blocks premature Lot 0
+**Requirements:** QLT-011
+
+Given frozen product spec but unresolved final-review BLOCKING/MAJOR finding, when implementation is proposed, then documentation gate remains CLOSED until finding is resolved and Run 4 merged.
+
+### ACC-080 — Source-of-truth cutover requires evidence package
+**Requirements:** PRD-009, BAK-009
+
+Given application code appears functional, when real-data cutover is proposed, then Mariage OS is not declared source of truth until required security/tests/reconciliation/real-device/backup evidence is complete and both owners accept cutover.
 
 ---
 
-# Release use
+## Release use
 
-The V1 cutover evidence package should reference automated/manual evidence for all applicable critical scenarios. Additional scenarios are added when implementation reveals meaningful new failure modes.
+P0/P1 scenarios must map to automated/manual objective evidence before applicable lot/V1 completion. New implementation-discovered failure modes add regression scenarios rather than weakening this baseline.
