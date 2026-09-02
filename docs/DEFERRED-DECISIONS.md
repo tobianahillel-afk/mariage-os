@@ -1,98 +1,124 @@
 # Deliberately Deferred Decisions
 
-Status: **Normative ambiguity register**
+Status: **Normative implementation-choice register**
 
-This file prevents implementation details from becoming accidental hidden requirements. Every item here is intentionally deferred to a named lot. Anything not listed here and already covered by a normative specification should not be reinterpreted silently.
+This file lists choices intentionally left to named implementation lots. Anything already fixed by the frozen V1 product/domain/security contracts must not be reinterpreted as deferred.
 
-## Lot 0 decisions
+A deferred implementation choice may change mechanism, not product/data/security semantics.
+
+## Lot 0
 
 ### Tool versions
-Choose concrete Node/Vite/TypeScript/Vitest/Playwright/etc. versions compatible with current stable tooling. Commit lockfile. Record significant choice only if it changes architecture.
+Choose maintained compatible Node/Vite/TypeScript/Vitest/Playwright/etc. versions, commit a lockfile and document support/runtime requirements.
 
 ### Lint/format stack
-Select minimal maintained tooling that enforces the documented coding standards without creating unnecessary dependencies.
+Choose minimal maintained tooling enforcing documented standards.
 
-### Test directory convention
-Choose colocated vs centralized test layout and document it consistently.
+### Test layout
+Choose colocated vs centralized layout consistently.
 
 ### Local Supabase bootstrap
-Choose exact scripts/commands for local migrations/seed/test reset.
+Choose exact scripts/commands for migrations, seed and isolated test reset.
 
-## Lot 1 decisions
+## Lot 1
 
 ### IndexedDB implementation
-Decide native API vs a small maintained wrapper based on:
+Choose native IndexedDB vs a small maintained wrapper based on transaction ergonomics, migrations, bundle size, typing and maintenance/security. Repository/local-first abstractions and frozen local-data semantics must remain unchanged.
 
-- transaction ergonomics;
-- migration support;
-- bundle size;
-- typing;
-- maintenance/security posture.
+### Auth UX mechanism
+Choose the current supported Supabase browser-safe sign-in UX (for example password and/or provider-supported email flow) while preserving controlled single-couple bootstrap, identity-bound invitation, MFA and recovery rules.
 
-The choice must preserve repository/local-first abstraction boundaries.
+### Session configuration
+Choose concrete ordinary-session values compatible with provider capability and usability. Critical operations still require recent/strong authentication.
 
-### Auth UX
-Finalize password vs email-link UX details according to current Supabase capabilities and MFA compatibility, while preserving invitation/project isolation requirements.
+## UI implementation
 
-### Session durations
-Select concrete configured values after testing usability/security; critical actions still require recent/strong auth according to security spec.
+### Visual palette/font stack
+Finalize exact accessible palette/font stack within design-system constraints; no proprietary font dependency required to run.
 
-## Lot 2/UI decisions
+### Data-table implementation
+Start semantic/simple. Add virtualization only if measured performance budgets require it.
 
-### Visual palette and fonts
-Finalize exact accessible palette/font stack consistent with Design System. Do not require proprietary fonts to run.
+### Seating presentation
+**Not deferred:** structured seating sections/tables/assignments are V1.
 
-### Table implementation
-Use ordinary semantic table/grid first; introduce virtualization only if performance measurements require it.
+**Deferred/post-V1:** drag-and-drop seating canvas, automatic optimization and advanced visual floor-plan editing.
 
-## Lot 4 import decisions
+### Wedding-day presentation
+**Not deferred:** structured event timeline is V1.
+
+**Deferred/post-V1:** dedicated live operations mode, staff command center or push-driven day-of execution system.
+
+## Lot 4 import/export
 
 ### XLSX library
-Choose minimal maintained parser that does not execute macros/active content and supports required values/sheets.
+Choose maintained parser satisfying hostile-file/active-content requirements.
 
-### Canonical JSON schema tooling
-Choose concrete JSON Schema validator/version suitable for browser and CI. The documented semantics remain authoritative.
+### JSON Schema tooling
+Choose concrete validator/schema dialect compatible with browser and CI; canonical V1 semantics and addendum remain authoritative.
 
 ### CSV parser
-Choose native/small parser library after hostile fixture testing.
+Choose native/small maintained parser after hostile fixture testing.
 
-## Lot 9 map decisions
+## Lot 9 map
 
-Choose mapping library/tile integration based on:
-
-- zero-cost operation;
-- privacy;
-- bundle size;
-- offline graceful failure;
-- attribution obligations.
-
-Map provider must not become essential to venue data access.
+Choose mapping/tile integration based on zero-cost operation, privacy, bundle size, attribution and graceful failure. Map provider must not become required for core venue data access.
 
 ## Lot 10 service worker
 
-Choose manual service worker vs maintained Vite/PWA helper only after confirming lifecycle/update behavior can satisfy `PWA-LIFECYCLE.md` without hiding dangerous stale-cache behavior.
+Choose manual service worker vs maintained Vite/PWA helper only after proving lifecycle/update behavior satisfies `PWA-LIFECYCLE.md`.
 
-## Quota usage reporting
+## Provider quota reporting
 
-Providers may not expose every free-tier quota through a safe public client API. Implement only values that can be measured accurately. Never display invented precision. Where live provider usage cannot be fetched safely, display locally known upload/storage counts and link/admin guidance as documented.
+Implement only provider usage values that can be safely and accurately measured. Where exact live values are unavailable, show explicitly labeled locally-known estimates/counters rather than invented precision.
 
-## Push notifications
+## Backup implementation tuning
 
-Not V1. Do not introduce a notification backend merely to satisfy reminders. V1 uses in-app reminders and calendar export where implemented.
+The backup format, authenticated encryption semantics and algorithm/KDF parameter storage are frozen. Implementation may benchmark device UX and choose supported runtime tuning only within the versioned format/security contract; any algorithm/format change requires explicit version/spec review.
 
-## Seating plan
+## Explicitly post-V1
 
-Not V1. Domain should avoid preventing it, but do not create premature drag/drop canvas complexity.
+- graphical drag/drop seating canvas and automatic seating optimization;
+- advanced shuttle/hotel allocation engine;
+- dedicated live wedding-day operations mode;
+- guest portal/vendor temporary sharing links;
+- push notifications;
+- AI/OCR automatic quote/contract extraction;
+- automatic Internet venue research inside the app;
+- internal messaging;
+- native App Store/Play Store app;
+- banking/payment integration;
+- automated email sending;
+- full calendar-provider synchronization.
 
-## AI/OCR
+## Not allowed as “implementation discretion”
 
-Not V1. Imports and document handling must work fully without AI services or paid inference.
+The following are **not** deferred:
 
-## Rule for closing an item
+- V1 feature boundary;
+- project isolation/RLS;
+- same-project referential integrity;
+- controlled single-couple bootstrap;
+- invitation security semantics;
+- local pending-edit durability;
+- logout safe-purge semantics;
+- weekday mapping;
+- money/tax semantics;
+- payment/refund/deposit states;
+- named budget scenarios;
+- fact value types/evaluation rules;
+- parent-scoped nested external IDs;
+- canonical import non-destructive behavior;
+- seating structured data;
+- event timeline structured data;
+- contract version/readiness semantics;
+- portable backup/recovery requirements.
 
-When a deferred decision is made:
+## Closing a deferred item
 
-1. record it in code/config or a new ADR if architectural;
-2. update this file/remove resolved item;
+When a choice is made:
+
+1. record it in code/config or ADR if architectural;
+2. update/remove this item;
 3. add relevant tests;
-4. verify it does not contradict normative requirements.
+4. verify no normative requirement is weakened.
