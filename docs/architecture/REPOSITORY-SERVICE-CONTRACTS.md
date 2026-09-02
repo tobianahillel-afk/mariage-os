@@ -1,273 +1,318 @@
 # Repository and Service Contracts
 
-Status: **Normative application-layer architecture reference**
+Status: **Normative V1 application-layer architecture reference**
 
-Mariage OS must keep domain behavior independent from direct UI/Supabase calls so offline behavior, synchronization, testing and future backend portability remain centralized.
-
-## Layer contract
+Mariage OS keeps domain behavior independent from arbitrary UI/Supabase calls so offline behavior, synchronization, security testing and future backend portability remain centralized.
 
 ```text
-View / component
+View / routed screen
       ↓
-Application service / domain engine
+Application service / pure domain engine / read model
       ↓
 Repository interface
       ↓
 Local store + sync coordinator
       ↓
-Supabase adapter / storage adapter
+Supabase/PostgreSQL/Storage/Auth adapter
 ```
 
-A view may call a service or a query/read-model helper, but must not scatter raw table queries/mutations across UI code.
-
----
+Views may call services/read-model helpers; they must not scatter raw backend queries or mutate tables directly.
 
 ## 1. Common repository semantics
 
-Repositories operate on typed domain DTO/entity forms and expose explicit outcomes/errors.
+Repositories expose typed domain forms and explicit outcomes. Typical semantics include get/list/create/update/soft-delete/restore and fresh-vs-cached reads.
 
-Common concepts:
-
-- `getById(projectId,id)`
-- `list(query/filter)`
-- `create(input,operationContext)`
-- `update(id,patch,expectedRevision,operationContext)`
-- `softDelete(id,expectedRevision)`
-- `restore(id,expectedRevision)` where allowed
-- local read vs required-fresh read when behavior differs
-
-Exact method names may evolve in Lot 0/1, but semantics must remain centralized.
-
-Every mutation context can carry:
+Mutation context carries as applicable:
 
 - operation ID;
 - project ID;
 - actor/user;
 - device ID;
 - expected/base revision;
-- offline eligibility.
+- offline eligibility;
+- correlation/diagnostic ID.
 
-## 2. Query vs mutation
+A service must distinguish locally accepted/pending, remotely confirmed, validation failure, authorization failure, conflict and retryable failure. UI does not infer business state from HTTP codes alone.
 
-Reads may come from local cache immediately and synchronize/revalidate in the background.
+## 2. Command vs read separation
 
-Mutations follow local durability + queue/sync rules. The service layer must distinguish:
+Read models may assemble local cached state immediately and refresh in background.
 
-- locally accepted/pending;
-- remotely confirmed;
-- validation failure;
-- authorization failure;
-- conflict;
-- retryable remote failure.
+Critical transitions use explicit domain commands rather than uncontrolled generic field mutation. Examples: accept invitation, finalize joint decision, resolve retained fact, record payment/refund, apply import, restore backup, permanently purge project.
 
-UI should never infer these solely from HTTP status.
-
----
-
-## 3. Domain services
-
-Recommended service boundaries:
+## 3. Required V1 service boundaries
 
 ### `ProjectService`
 
-- project settings;
+- project settings/date options/reference origins;
+- controlled bootstrap status;
 - membership-safe project operations;
-- owner invitation handoff to Auth/project adapter;
-- project lifecycle actions.
+- project lifecycle/archive/purge handoff;
+- member activity cursor/preferences where shared/member-scoped.
+
+Initial project creation/partner invitation acceptance are network/auth-required operations and do not pretend to be ordinary offline-safe edits.
+
+### `AuthMembershipService`
+
+- sign-in/session/MFA handoff;
+- controlled first-owner bootstrap;
+- invitation creation/status/acceptance/revocation;
+- recent-auth checks for critical operations;
+- safe logout/project-switch coordination with local data layer.
+
+It never exposes service-role credentials or raw reusable token material to unrelated storage/logs.
 
 ### `VenueService`
 
-- venue lifecycle/status;
-- spaces;
-- favorites/ratings through user/member-specific storage;
-- venue summaries;
-- comparison input assembly;
-- missing-info request generation;
-- links to facts/media/docs/offers.
+- venue CRUD/lifecycle/rejection;
+- spaces/capacities;
+- member ratings/favorites;
+- offers/availability;
+- summary/compare inputs;
+- missing-info/criterion readiness;
+- photos/documents/source links.
+
+### `AccessService`
+
+- project reference origins;
+- venue route observations by origin/mode;
+- TGV/access summaries;
+- default-origin derived convenience values;
+- external directions link construction with privacy constraints.
 
 ### `FactService`
 
-- fact definitions;
-- observations;
+- fact definitions and value-type validation;
+- observations and multi-source links;
 - retained-value resolution;
-- conflict/freshness state;
-- source linkage;
-- revalidation flags.
+- conflict/freshness/revalidation;
+- criterion evaluation-rule configuration.
+
+### `CompatibilityEngine`
+
+Pure deterministic engine producing blocking status, weighted score, completeness/evidence readiness and explanations from facts/definitions/project criteria/scenario dependencies.
 
 ### `VendorService`
 
 - vendor lifecycle;
 - contacts/interactions;
-- vendor offers/packages;
-- venue compatibility.
+- offers/packages/components;
+- caterer specialization;
+- venue compatibility;
+- waiting/follow-up integration.
 
 ### `GuestService`
 
-- household/guest CRUD;
+- guest categories/households/guests;
 - relationship integrity;
 - priority/probability/RSVP;
-- attendance statistics via pure calculation engine.
+- logistics;
+- statistics through pure engines.
+
+### `SeatingService`
+
+- sections/tables;
+- capacities;
+- guest assignment/move/unassign;
+- validation (duplicate assignment, capacity, project integrity);
+- seating summary/export input.
+
+No graphical canvas assumptions enter the service API.
 
 ### `TaskService`
 
 - task state machine;
-- dependencies;
+- dependencies/cycle checks;
 - waiting/follow-up;
-- links;
-- priority inputs.
+- entity links;
+- priority/next-action inputs.
 
 ### `DecisionService`
 
-- options;
-- approvals;
-- both-owner rules;
+- options/approvals;
+- require-both;
 - finalize/reopen/lock;
-- rationale/history.
+- rationale/history;
+- linked evidence/entities.
+
+### `InboxService`
+
+- capture text/link/file-reference;
+- classification/status;
+- idempotent conversion to supported target command;
+- preservation of original capture/provenance.
 
 ### `BudgetService`
 
-- budget items;
-- exact amount calculations;
-- quote/contract transitions;
-- scenario assembly;
-- payments/cash-flow.
+- budget categories/items;
+- exact calculations;
+- named scenario CRUD/selection/assumptions;
+- offer applicability;
+- tax semantics;
+- payments/deposits/refunds/credits/cash flow;
+- links/documents.
+
+### `PlanningService`
+
+- phases/milestones;
+- milestone dependencies/completion rules;
+- relative/fixed target-date behavior;
+- weighted progress inputs;
+- blockers and phase context.
+
+### `TimelineService`
+
+- event timeline items;
+- time/day-offset validation;
+- dependencies/cycle checks;
+- venue/space/vendor/contact links;
+- chronological read model;
+- frozen export snapshot generation input.
 
 ### `MediaService` / `DocumentService`
 
 - metadata;
 - upload lifecycle;
-- remote references;
-- source/link associations;
+- remote refs;
+- link associations;
+- versions/supersession;
 - deletion/retention;
-- safe access URLs.
+- safe authorized URLs;
+- derivatives/dedup.
+
+### `ContractReadinessService`
+
+- factual checklist template/answers/status;
+- links to document/offer/vendor/venue;
+- missing/unknown/conflicting checklist items;
+- completion/readiness summary.
+
+It must not claim legal validity or give legal advice.
+
+### `TagService`
+
+- project-scoped tag definitions;
+- entity-tag links;
+- safe import creation/merge semantics.
+
+### `SearchService`
+
+Search is a query service/read model, not a privileged bypass. It searches only authorized project data, applies archive/deletion/privacy rules, supports bounded offline cached search and never puts unnecessary PII into URLs.
 
 ### `ImportService`
 
-Split responsibilities internally:
+Internal responsibilities:
 
-- detector/parser;
-- mapping;
-- validation;
-- duplicate matching;
+- detect/parse;
+- mapping/profile selection;
+- normalize/validate;
+- duplicate matching including parent-scoped external IDs;
 - merge planning;
 - preview;
-- commit transaction;
-- rollback/provenance.
+- transactional commit;
+- provenance/history;
+- rollback/reconciliation.
 
-Parsing must not mutate canonical repositories.
+Parsing never mutates canonical repositories.
 
 ### `BackupService`
 
 - export graph;
-- archive/manifest;
-- checksums;
-- encryption option;
+- manifest/checksums;
+- optional binary inclusion;
+- encrypted-container generation;
 - validation;
-- restore plan/commit.
+- restore plan;
+- migration/transactional commit.
+
+Wrong password/tamper/future schema fail before canonical mutation.
 
 ### `SyncService`
 
 - pending queue;
-- send/retry;
-- server receipt/idempotence;
-- remote refresh;
-- conflict creation;
-- resolution/rebase;
-- status summary.
+- send/retry/idempotence receipts;
+- remote refresh/realtime reconciliation;
+- conflict creation/resolution/rebase;
+- project/account scope transition;
+- sync-state summary.
 
----
+## 4. Pure deterministic engines
 
-## 4. Pure engines
+Implement as pure modules where practical:
 
-The following should be implemented as pure/deterministic functions or modules as far as practical:
-
-- guest probability/cumulative stats;
-- budget calculation/scenarios;
-- compatibility/criterion evaluation;
-- freshness calculation;
-- retained-value evidence ranking where deterministic;
+- guest expected/cumulative statistics;
+- budget/scenario calculations;
+- payment/cash-flow derivation;
+- compatibility criterion evaluation;
+- fact value/type normalization;
+- freshness/evidence ranking where deterministic;
 - next-action ranking;
-- weighted progress;
-- import mapping normalization;
-- merge-plan calculation;
-- date/offer applicability.
+- milestone progress;
+- seating validation summaries;
+- timeline ordering/time offsets;
+- import normalization/merge-plan calculation;
+- date/offer applicability;
+- backup manifest/checksum planning.
 
-Pure engines are mutation-tested where critical.
+Critical engines receive mutation/property tests.
 
----
+## 5. Provider adapters
 
-## 5. Supabase adapters
+Supabase/Auth/Storage adapters:
 
-Provider adapter responsibilities:
+- translate repository commands/queries;
+- preserve revision/operation semantics;
+- translate provider failures to typed app errors;
+- enforce no secret/service-role exposure in browser;
+- keep provider types out of domain engines.
 
-- translate typed repository query/mutation into Supabase calls;
-- preserve operation/revision semantics;
-- translate backend errors into typed application errors;
-- never leak service-role secrets to browser;
-- keep provider-specific details out of domain calculations.
+Direct Supabase SDK calls in arbitrary views/domain engines are prohibited by architecture/lint/review convention.
 
-Direct Supabase SDK imports in arbitrary views/domain engines are prohibited by lint/code-review convention where enforceable.
+## 6. Local data responsibilities
 
----
+Local store handles cached entities, durable accepted offline edits, pending queue, drafts, conflicts, offline pins and unsynced binary refs.
 
-## 6. Local repositories/store
+Local storage never invents authorization; remote authorization remains authoritative. Project/account switch clears visible context before another namespace renders.
 
-Local store responsibilities:
+## 7. Required read models
 
-- cached entity read;
-- durable local accepted edits;
-- optimistic view state grounded in persisted local mutation;
-- pending queue;
-- drafts;
-- conflict persistence;
-- offline pin/cache metadata.
+Complex screens use typed read-model assemblers, including at least conceptually:
 
-The local data layer must not invent authorization. Remote/server authorization remains authoritative; cached records are only those previously authorized to that session/device.
+- `DashboardReadModel`;
+- `VenueSummaryReadModel`;
+- `VenueComparisonReadModel`;
+- `GuestStatsReadModel`;
+- `SeatingReadModel`;
+- `CashFlowReadModel`;
+- `BudgetScenarioComparisonReadModel`;
+- `PlanningReadModel`;
+- `EventTimelineReadModel`;
+- `SearchResultsReadModel`;
+- `ContractReadinessReadModel`.
 
----
-
-## 7. Read models
-
-For complex screens such as Dashboard or Venue Summary, build typed read-model/query assemblers rather than embedding ten unrelated queries in the component.
-
-Examples:
-
-- `DashboardReadModel`
-- `VenueSummaryReadModel`
-- `VenueComparisonReadModel`
-- `GuestStatsReadModel`
-- `CashFlowReadModel`
-
-Read models contain derived presentation-ready data, not new authoritative truth.
-
----
+Read models are derived presentation state, never new authoritative truth.
 
 ## 8. Transaction boundaries
 
-Operations that must be atomic/consistent should use database transactions/RPC or designed local transaction + server commit strategy.
+Use DB transaction/RPC or explicitly designed atomic command when partial success would violate invariants, including:
 
-Examples:
+- first-owner project bootstrap;
+- invitation acceptance/membership creation;
+- final-owner protection/ownership changes;
+- joint decision finalization;
+- retained fact resolution where multiple rows change;
+- seating multi-assignment/bulk move where partial state is invalid;
+- import commit/rollback;
+- payment/refund linked state updates;
+- backup restore;
+- permanent purge workflows.
 
-- finalize joint decision + final option consistency;
-- remove final owner prohibition;
-- import structured batch commit;
-- rollback import changes;
-- payment/status invariant updates when multiple rows must change together.
+Sequential unrelated client calls must not simulate atomicity for critical invariants.
 
-Do not simulate atomicity by sequential unrelated client calls when partial success would violate invariants.
+## 9. Test doubles and integration reality
 
----
+Repository interfaces may use deterministic in-memory adapters for unit tests, but local Supabase/IndexedDB/provider integration and direct RLS tests remain mandatory. Fake repositories cannot prove authorization, SQL constraints, Storage policy or real migration behavior.
 
-## 9. Test doubles
+## 10. Portability
 
-Repository interfaces should support deterministic in-memory/fake adapters for unit/component tests without weakening integration tests against local Supabase.
-
-Unit tests do not replace RLS/database integration tests.
-
----
-
-## 10. Portability rule
-
-The domain/service API must not expose Supabase-specific response types as business types.
-
-A future provider migration should require replacing/adapting repository/storage/auth infrastructure rather than rewriting venue/budget/guest business logic.
+Domain/service APIs expose business types, not Supabase response types. A future backend migration should replace provider/repository/storage/auth adapters without rewriting venue, guest, budget, criteria, seating or planning engines.
