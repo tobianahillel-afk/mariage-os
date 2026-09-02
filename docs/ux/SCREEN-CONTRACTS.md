@@ -1,84 +1,88 @@
 # Route and Screen Contracts
 
-Status: **Normative V1 navigation/screen reference**
+Status: **Normative V1 navigation/screen reference — freeze candidate**
 
-This document maps logical routes to required purpose, primary actions and designed states. Exact URL syntax may be refined in implementation, but deep-link semantics and behavior remain.
+Exact router syntax may refine implementation details, but deep-link semantics, privacy and required screens/actions remain.
 
-## Global shell
+## Authenticated global shell
 
-Authenticated shell always provides:
+Always provides:
 
 - project identity;
-- current screen title/breadcrumb context;
+- screen title/breadcrumb context;
 - global sync state;
 - navigation;
-- global quick-add action;
-- profile/settings access;
-- global search entry only if/when Search is promoted into the current V1 implementation milestone.
+- global Search entry;
+- global quick-add / Inbox capture `+`;
+- profile/settings access.
 
-Mobile shell uses bottom navigation plus `More`; desktop uses side navigation.
+Desktop uses side navigation; mobile uses bottom navigation + `More`. Private content is never rendered before auth + membership resolution.
 
 ---
 
+# Authentication / onboarding
+
 ## `/login`
 
-Purpose: authenticate securely.
-
-Primary actions:
-- sign in;
-- recover account where applicable.
-
-States:
-- idle;
-- submitting;
-- invalid credentials/link;
-- MFA required;
-- backend unavailable;
-- already authenticated redirect.
-
-No project data is visible here.
+Actions: email/password sign-in, recovery. States: idle/submitting/invalid/unverified/MFA/backend unavailable/already authenticated.
 
 ## `/onboarding`
 
-Purpose: create/complete project and invite partner.
+Controlled, not public SaaS creation.
 
-Primary actions:
-- create project;
-- set optional basics;
-- invite partner;
-- review MFA/setup;
-- continue to Dashboard/Import Center.
+States/actions:
 
-States:
-- new owner;
-- pending invitation;
-- invitation accepted;
-- incomplete setup;
-- offline unavailable for server-required creation/invitation.
+- first-owner bootstrap only when deployment bootstrap is open and no project exists;
+- project basics/date candidates/reference origins/criteria;
+- generate one-time partner invite link;
+- partner invitation acceptance;
+- MFA/recovery setup;
+- close bootstrap/setup checklist.
+
+No arbitrary “create another wedding project” in normal production.
+
+## `/invite/:token`
+
+Token-bearing route displays no project data until authenticated identity/token validation. Handles wrong account, expired/revoked/already-used state generically.
 
 ## `/`
 
-Redirects authenticated project member to `/dashboard` or last safe remembered route.
+Authenticated active member → last safe route or `/dashboard`; otherwise auth/onboarding state.
+
+---
+
+# Dashboard
 
 ## `/dashboard`
 
-Purpose: operational cockpit.
+Shows in priority order: countdown/phase, next action, blockers, joint decisions, external waiting, deadlines/payments, budget, progress, meaningful partner changes.
 
-Primary actions:
-- open next action;
-- inspect blockers;
-- open joint decisions;
-- open waiting items;
-- open upcoming payments/deadlines.
+Empty project shows security/setup/import/add-first-data guidance.
 
-Data hierarchy follows `features/DASHBOARD.md`.
+States include cached/offline/stale/partial/sync error.
 
-States:
-- new project empty setup;
-- normal;
-- cached/offline/stale;
-- partial data;
-- sync error.
+---
+
+# Global Search / Inbox
+
+## `/search` or global command overlay
+
+Searches project-scoped venues/vendors/guests/tasks/decisions/document metadata/Inbox according to `features/GLOBAL-SEARCH.md`.
+
+Offline explicitly reports cached-only scope.
+
+## `/inbox`
+
+Shows unprocessed/converted/archived captures.
+
+Actions:
+
+- add text/URL/hint;
+- convert with duplicate preview;
+- archive/discard/restore;
+- open converted target.
+
+Conversion retry is idempotent.
 
 ---
 
@@ -86,96 +90,42 @@ States:
 
 ## `/venues`
 
-Default venue collection route.
+Modes: Gallery / Table / Compare selection.
 
-Views/toggles:
-- gallery;
-- table;
-- compare selection mode.
+Actions: add, import, filter/sort, save personal view preferences, compare/open.
 
-Primary actions:
-- add venue;
-- import venues;
-- filter/sort;
-- select compare candidates;
-- open venue.
-
-Filters include at least:
-- lifecycle/status;
-- region;
-- favorites;
-- blocking-criteria compatibility;
-- quote/visit state where available.
-
-Empty state: add/import first venue.
+Filters at least status/region/favorite/blocking compatibility/quote/visit.
 
 ## `/venues/:venueId`
 
-Venue summary/detail route.
+Header: identity/location/status, both partner rating/favorite summary, sync/conflict state.
 
-Header contains:
-- code/name;
-- location;
-- status;
-- partner ratings/favorites;
-- sync/conflict if relevant.
+Summary: blocking result, explainable score/completeness, scenario/cost context, missing critical data, strengths/reservations, quote/availability, next action.
 
-Summary contains:
-- blocking criteria status;
-- cost/quote context;
-- missing critical data;
-- strengths/reservations;
-- next action.
+Sections:
 
-Subsections/tabs:
-- Summary;
-- Photos;
-- Spaces;
-- Prices & dates;
-- Included/extras;
-- Catering;
-- Access;
-- Technical/weather;
-- Quotes/contacts;
-- Documents;
-- Sources;
-- History.
+- Summary
+- Photos
+- Spaces
+- Prices & dates
+- Included/extras
+- Catering
+- Access
+- Technical/weather
+- Quotes/contacts
+- Documents
+- Sources/evidence
+- History
 
-Primary actions:
-- edit;
-- status/reject/restore;
-- create linked task;
-- discuss/decision;
-- add source/photo/document/offer;
-- compare;
-- visit mode.
+Actions: edit/status/reject/restore, rate/favorite personally, task/decision, add source/photo/document/offer, compare, visit mode.
 
 ## `/venues/:venueId/visit`
 
-Mobile-first visit surface.
-
-Primary actions:
-- answer generated/universal question;
-- add note;
-- take/upload photo;
-- add measurement;
-- rate personally;
-- finish visit summary.
-
-Offline-pinned data must be usable here.
+Mobile-first offline-capable visit: questions, note, photo, measurement, personal rating, summary.
 
 ## `/venues/compare`
 
-Inputs: explicit selected venue IDs in route/query/local session state.
-
-Primary actions:
-- remove/add candidate;
-- differences only;
-- change criterion ordering/filter;
-- open source/fact detail;
-- mark finalist/reject/create joint decision.
-
-Blocking criterion failures shown before aggregate scores.
+2–5 practical candidates; blocking criteria first; difference-only mode; objective facts/cost/access, evidence readiness, personal ratings separately; open source/detail; finalist/reject/joint decision actions.
 
 ---
 
@@ -183,13 +133,7 @@ Blocking criterion failures shown before aggregate scores.
 
 ## `/map`
 
-Primary actions:
-- filter visible venues;
-- select pin;
-- open venue;
-- open external route link.
-
-Network/map-tile failure presents fallback list/text, not blank application failure.
+Filter/select pins, open venue/external route. Map failure shows fallback list/location data. Stored venue data never depends on map provider availability.
 
 ---
 
@@ -197,73 +141,50 @@ Network/map-tile failure presents fallback list/text, not blank application fail
 
 ## `/vendors`
 
-Views:
-- list/cards;
-- type/status filters.
-
-Primary actions:
-- add vendor;
-- import;
-- filter;
-- open vendor.
+List/cards, type/status filters, add/import/open.
 
 ## `/vendors/:vendorId`
 
-Summary:
-- vendor type/status;
-- contacts;
-- quote/package state;
-- important facts;
-- venue compatibility;
-- waiting/follow-up;
-- linked budget/documents/tasks.
-
-Primary actions:
-- edit;
-- request/update quote state;
-- add interaction/contact/offer/document;
-- create task;
-- mark selected/rejected according to state machine.
+Contacts/interactions, quote/offers/tax/package, facts/evidence, ratings/preferences where enabled, venue compatibility, waiting/follow-up, linked budget/documents/tasks.
 
 ---
 
-# Guests
+# Guests / households / seating
 
 ## `/guests`
 
-Primary modes:
-- guest/household table;
-- group/priority filters;
-- RSVP filters;
-- summary statistics.
+Guest/household table, category/priority/RSVP filters, expected/confirmed/cumulative stats. Add/import/bulk allowed updates/export.
 
-Primary actions:
-- add household/guest;
-- import spreadsheet;
-- bulk update allowed fields;
-- open household/guest;
-- export.
-
-Header summary includes:
-- invited individual count;
-- expected attendance;
-- confirmed yes/no/pending;
-- cumulative priority views.
-
-PII is never included in public URLs/query strings unnecessarily.
+PII never appears unnecessarily in URLs.
 
 ## `/guests/:guestId`
 
-Primary actions:
-- edit guest;
-- change RSVP;
-- set probability/priority;
-- link household/relationship;
-- update useful logistics/dietary notes.
+Edit identity/category/priority/probability/RSVP/household relationship/logistics/dietary info and open seating assignment.
 
 ## `/households/:householdId`
 
-Shows household invitation context and members. Supports household-level address/note and adding/removing members consistent with invariants.
+Invitation/address context and members; safe add/reassign/remove.
+
+## `/seating`
+
+Non-visual V1 seating workspace.
+
+Views:
+
+- by section/table;
+- unassigned;
+- warnings/readiness;
+- alphabetical guest→table.
+
+Actions:
+
+- create section/table;
+- set capacity;
+- assign/move/unassign guest;
+- import/export;
+- validate/finalize print data.
+
+Finalization is blocked on duplicate assignment/overcapacity/required attending unassigned state.
 
 ---
 
@@ -271,29 +192,11 @@ Shows household invitation context and members. Supports household-level address
 
 ## `/tasks`
 
-Default views/filters:
-- Mine;
-- Partner;
-- Together;
-- Waiting;
-- Blocked;
-- Completed.
-
-Primary actions:
-- add task;
-- complete/update;
-- assign/take;
-- follow-up;
-- open linked entity.
+Views Mine / Partner / Together / Waiting / Blocked / Completed. Add, update, assign/take, follow-up, open related entity.
 
 ## `/tasks/:taskId`
 
-Detail shows:
-- owner/status/priority;
-- due/follow-up;
-- dependencies;
-- linked entities;
-- history.
+Owner/status/priority/due/follow-up/dependencies/links/history.
 
 ---
 
@@ -301,29 +204,11 @@ Detail shows:
 
 ## `/decisions`
 
-Views:
-- needs my input;
-- needs both;
-- discuss together;
-- finalized/history.
-
-Primary actions:
-- create decision;
-- vote/approve;
-- open option/linked entity;
-- finalize when conditions met.
+Needs my input / both / discuss together / finalized-history.
 
 ## `/decisions/:decisionId`
 
-Shows:
-- question;
-- options;
-- evidence/linked data;
-- each partner's state;
-- deadline;
-- final rationale/history.
-
-Finalized/locked decisions clearly distinguish current outcome from alternatives.
+Question/options/evidence/partner approvals/deadline/final rationale/history. Locked result visually distinct from alternatives.
 
 ---
 
@@ -332,193 +217,176 @@ Finalized/locked decisions clearly distinguish current outcome from alternatives
 ## `/budget`
 
 Summary:
-- planned/probable;
+
+- active-scenario expected total;
 - contracted;
 - paid;
-- remaining contractual;
-- upcoming cash flow;
-- reserve if configured.
+- refundable exposure;
+- due/overdue;
+- upcoming cash flow.
 
-Views:
-- categories/items;
-- payments;
-- scenarios;
-- cash flow.
+Views: items/categories, scenarios, payments, cash flow.
 
-Primary actions:
-- add budget item;
-- add payment;
-- link quote/vendor/venue;
-- adjust scenario inputs;
-- export.
+Actions: add item/payment, create/switch scenario through protected flow, link offer/entity, export.
+
+## `/budget/scenarios/:scenarioId`
+
+Shows date/venue/guest assumptions, included items/overrides and exact derived total explanation. Activate action is explicit/atomic.
 
 ## `/budget/items/:itemId`
 
-Shows source amounts by state, calculation method, links, payment schedule/history and documents.
-
-No editable derived total masquerades as authoritative input.
+Amounts by state, calculation method, linked scenario/offer/entity, payments/documents/history. Derived totals not editable as source truth.
 
 ---
 
-# Planning
+# Planning / event timeline
 
 ## `/planning`
 
-Displays:
-- phase;
-- milestones;
-- chronological deadlines;
-- weighted progress;
-- linked tasks/payments.
+Phase, milestones/dependencies, chronological preparation deadlines, weighted progress and links.
 
-Primary actions:
-- open milestone/task/payment;
-- add custom milestone if supported;
-- export calendar event where implemented.
+## `/timeline`
+
+Actual wedding-event schedule defined by `features/EVENT-TIMELINE.md`.
+
+Views/actions:
+
+- chronological live timeline;
+- draft/confirmed/cancelled;
+- add/edit timed item;
+- link venue/space/vendor/contact;
+- dependency/conflict warnings;
+- vendor-filtered view;
+- print/export/freeze snapshot.
+
+After-midnight day offsets display/sort correctly.
 
 ---
 
-# Documents
+# Documents/media
 
 ## `/documents`
 
-Filters:
-- type;
-- linked entity;
-- vendor/venue;
-- sensitivity/classification;
-- recent.
+Filters by type/entity/vendor/venue/classification/recent. Upload/link/open/download/trash/provenance. Unsafe active content never executed.
 
-Primary actions:
-- upload document;
-- link/unlink;
-- open/download safely;
-- move to trash;
-- inspect provenance.
-
-No unsafe inline execution.
+Media galleries are primarily entity-local; global media browsing may be exposed under Documents/Resources without creating a separate source of truth.
 
 ---
 
-# Import/export
+# Import / export
 
 ## `/import`
 
-Wizard stages:
-1. choose/capture input;
+Wizard:
+
+1. choose/paste/drop;
 2. detect;
-3. map;
-4. validate;
+3. map/profile;
+4. normalize/validate;
 5. duplicates/conflicts;
 6. preview;
-7. commit;
+7. commit/revalidate stale preview;
 8. report/rollback link.
 
-Global invariant: prior to commit, explicitly state that project data is unchanged.
+Before commit explicitly says project unchanged.
 
 ## `/imports/:importId`
 
-Shows:
-- source file/hash/schema;
-- actor/time;
-- mapping/profile;
-- created/updated/unchanged/conflict/error counts;
-- exact change report;
-- rollback eligibility/status.
+Source/hash/schema/actor/mapping, create/update/same/conflict/error counts, exact changes, rollback state.
 
 ## `/export`
 
-Modes:
-- module CSV/XLSX/JSON;
-- missing/stale research data;
-- `.mariage` structured backup;
-- complete archive with binaries;
-- sanitized/share profile only when feature is in scope.
+Module CSV/XLSX/JSON, research-missing-data export, plain/encrypted `.mariage`, complete archive, print/share profiles where explicitly supported.
+
+## `/restore`
+
+Inspect/verify backup, password decrypt locally where encrypted, compatibility report, controlled recovery/replace flow with strong auth/checkpoint where destructive.
 
 ---
 
-# Settings
+# Settings / diagnostics
 
 ## `/settings`
-
-Index for sections below.
+Index.
 
 ## `/settings/project`
-Project/date/timezone/locale/currency/guest target/budget settings.
+Project display, candidate/selected dates, timezone/locale/currency, guest/budget preferences.
 
 ## `/settings/members`
-Owners/invites/security setup.
+Owners/invite status; controlled changes.
 
 ## `/settings/criteria`
-Criterion definitions/priorities/weights/freshness.
+Criterion definitions, priorities/weights/evaluation/freshness.
 
 ## `/settings/locations`
-Reference addresses/origins.
+Reference origins.
 
 ## `/settings/offline-storage`
-Pins/cache/pending/conflicts/quota status.
+Local cache/pins/pending/conflicts/cloud quota info.
 
 ## `/settings/backup`
-Exports, validation, restore entry.
+Backup age, export/verify/restore.
 
 ## `/settings/security`
-MFA/session/logout/account actions.
+MFA/session/logout/recovery state.
 
 ## `/settings/diagnostics`
-Versions/sync/integrity/sanitized diagnostics.
+Versions, sync, integrity, sanitized diagnostics.
 
 ## `/settings/danger`
-Archive/purge/device data actions with strong safeguards.
+Archive, trash/purge and permanent project destruction with proportional safeguards.
 
 ---
 
 # Global dialogs/sheets
 
-Reusable routed or modal flows include:
+- Quick Add / Inbox capture
+- Search
+- Source/evidence detail
+- Fact retained-value conflict
+- Sync conflict
+- Add photo/document
+- reject/delete/undo
+- link entity
+- import mapping/duplicate/conflict resolution
+- date/scenario protected transition confirmation
+- reauthentication
+- backup password/export/restore verification
 
-- quick add;
-- source detail;
-- fact conflict resolution;
-- sync conflict resolution;
-- add photo/document;
-- delete/reject/undo;
-- select linked entity;
-- choose import mapping;
-- import duplicate resolution;
-- reauthentication.
-
-Dialogs must support keyboard/focus/accessibility semantics and mobile bottom-sheet adaptation where appropriate.
+Keyboard/focus semantics and mobile sheet adaptation mandatory.
 
 ---
 
-# Route protection and data safety
+# Route protection / data safety
 
-- unauthenticated access to project route redirects/asks for auth without rendering private content;
-- unauthorized project/entity ID does not reveal data existence details;
-- switching user/project clears visible context before showing next project;
-- pending form data is saved/reconciled before route transitions according to forms contract;
-- external links use safe navigation and preserve internal draft state;
-- browser Back/Forward returns to logical prior screen/filter state where feasible.
+- unauthenticated route never renders cached project data;
+- unauthorized ID returns generic not-found/permission behavior without existence leak;
+- project/user context clears before other account data can render;
+- route transition follows autosave/draft rules;
+- external navigation preserves pending local work;
+- Back/Forward restores logical view/filter state where feasible;
+- invite token is not written to logs/history and should be removed from browser-visible URL/history state after successful acceptance where router/security design permits.
 
 ---
 
 # Universal screen-state matrix
 
-Every primary route explicitly implements/tests applicable states:
+Each primary route implements/tests applicable:
 
-1. loading with no local data;
-2. cached data + background refresh;
-3. normal synchronized;
+1. initial loading;
+2. cached + refresh;
+3. synchronized;
 4. empty;
-5. partial/incomplete;
+5. incomplete/partial;
 6. offline;
 7. pending sync;
 8. conflict;
 9. retryable backend error;
 10. permanent validation error;
-11. permission denied/not found without data leak;
+11. permission denied/not-found without leak;
 12. unsupported capability fallback;
-13. mobile narrow viewport;
-14. desktop keyboard/focus behavior.
+13. narrow mobile/keyboard state;
+14. desktop keyboard/focus;
+15. session-expired/re-auth state where editing can persist.
 
-A screen is not considered implemented if only its normal happy-path state exists.
+A screen with only the happy path is incomplete.
