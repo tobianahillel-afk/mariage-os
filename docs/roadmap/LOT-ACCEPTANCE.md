@@ -1,412 +1,373 @@
 # Implementation Lot Acceptance Contracts
 
-Status: **Binding implementation sequencing and exit criteria**
+Status: **Binding V1 sequencing and exit criteria — implementation gate currently CLOSED**
 
-A lot is complete only when its deliverables, tests, security controls and documentation are complete. “UI appears to work” is not sufficient.
+A lot is complete only when deliverables, tests, security controls, migrations and documentation are complete. “UI appears to work” is never sufficient.
 
-All lots inherit the global Definition of Done and Quality Gates.
+All lots inherit the Definition of Done, Quality Gates, frozen requirements and all prior-lot invariants.
+
+Before any implementation lot begins, `FINAL-DESIGN-REVIEW.md` must declare the implementation gate **OPEN** and Run 4 must be merged.
 
 ---
 
 ## Lot 0 — Repository and tooling
 
 ### Goal
-Create a reproducible development environment and verification pipeline before feature work.
+Create a reproducible engineering environment and executable quality pipeline before feature work.
 
 ### Deliverables
-- Vite + TypeScript app skeleton.
-- strict TypeScript configuration.
-- lint/format scripts.
-- Vitest unit/coverage harness.
+- Vite + TypeScript skeleton using the frozen no-React V1 ADR.
+- strict TypeScript.
+- lint/format.
+- Vitest unit/coverage.
 - property-test harness.
-- Playwright harness.
-- mutation-test harness for future critical engines.
-- local Supabase configuration.
-- initial migration directory.
-- synthetic seed/golden-project mechanism.
-- `npm run dev`, `npm run test:fast`, `npm run verify` contracts.
-- CI workflow skeleton.
-- Cloudflare preview build configuration.
-- environment-variable validation.
+- Playwright.
+- mutation-testing harness.
+- local Supabase config/migration directory.
+- isolated synthetic seed/golden project.
+- environment validation/no-secret safeguards.
+- `dev`, fast-test and full-verify command contracts.
+- CI from clean checkout.
+- Cloudflare preview build.
 
-### Exit criteria
-- fresh clone can bootstrap using documented commands;
-- no production credentials are needed locally;
-- clean app builds;
-- synthetic smoke test passes;
-- CI runs from clean checkout;
-- public repository secret scans are clean.
+### Exit
+Fresh clone can bootstrap with no production credentials; build/tests/CI smoke/secret checks are green. No wedding feature code is required.
 
 ---
 
 ## Lot 1 — Identity, project and secure foundation
 
-### Goal
-Establish the security boundary and project shell before storing meaningful wedding data.
-
 ### Deliverables
 - Auth integration.
-- profiles/project/project_members tables.
-- owner invitation/join flow.
-- RLS baseline.
-- protected routing.
-- application shell and responsive navigation.
-- local database abstraction.
-- repository/service/domain layering.
-- initial sync-operation model.
-- global sync indicator.
-- diagnostics shell.
+- controlled initial-owner bootstrap.
+- secure identity-bound partner invitation.
+- profiles/projects/project_members/project_invitations.
+- RLS and same-project FK/polymorphic validation foundation.
+- protected shell/routes.
+- repository/service/domain boundaries.
+- local DB abstraction/project-scoped cache.
+- operation IDs/revisions/sync indicator.
+- safe session-expiry/logout/pending-work behavior.
+- diagnostics/security setup shell.
 
-### Required tests
-- anonymous deny tests;
-- member allow tests;
-- cross-project deny tests for every operation;
-- owner membership invariants;
-- session expiry/no-loss flow;
-- route auth behavior;
+### Required verification
+- anonymous deny;
+- member allow;
+- cross-project CRUD deny;
+- mixed-project FK injection denied;
+- invite wrong identity/replay/expiry denied;
+- unrelated user cannot create production project;
+- final-owner invariant;
+- session expiry and logout do not lose pending work;
+- cross-project local cache not shown;
 - synthetic two-owner E2E.
 
-### Exit criteria
-No feature lot may store project data until project isolation is demonstrated at the database layer.
+### Exit
+No feature lot may persist meaningful project data until project isolation is demonstrated directly at DB/Storage boundaries.
 
 ---
 
 ## Lot 2 — Venue core
 
-### Goal
-Deliver the first realistic end-user domain using existing venue research as validation material.
-
 ### Deliverables
-- venue CRUD/quick add;
-- stable UUID + human code;
-- venue statuses/rejection reason;
-- personal ratings/favorites;
-- spaces/capacity model;
-- configurable facts;
-- observations/sources/confidence;
-- remote media references and uploaded venue photos;
-- summary/detail/gallery/table views;
-- missing-information summary;
-- basic comparison;
-- history/activity;
-- deep links.
+- venue CRUD/quick add/code/status/rejection/history;
+- member-scoped ratings/favorites;
+- spaces/capacity/dimensions;
+- fact definitions/types/evaluation rules;
+- observations/multiple sources/confidence/freshness;
+- missing-info and compatibility explanation;
+- venue offers/availability basics;
+- reference origins/access routes basics;
+- remote/private photos and document basics;
+- summary/gallery/table/detail/compare/visit/deep links.
 
-### Required tests
-- venue invariants;
-- fact-state semantics;
-- source-conflict retention;
+### Required verification
+- fact state/type invariants;
+- multi-source conflict retention;
+- blocked criterion always visible;
 - natural code sort;
-- blocked criterion comparison;
-- RLS on all venue-owned rows/media;
-- venue create/edit/reject/restore E2E;
-- mobile venue-detail smoke tests.
+- parent/child same-project constraints;
+- route-origin observations remain contextual;
+- personal ratings independent;
+- remote image privacy safeguards;
+- venue create/edit/reject/restore/compare/visit E2E.
 
-### Exit criteria
-A synthetic venue with conflicting sources and multiple spaces can be created, compared, rejected/restored and fully recovered without unexplained data loss.
+### Exit
+A synthetic complex venue with conflicting evidence, multiple spaces, route observations, offers and two independent partner ratings can be safely created/compared/rejected/restored/exported.
 
 ---
 
-## Lot 3 — Tasks and decisions
-
-### Goal
-Make Mariage OS actionable and couple-aware.
+## Lot 3 — Tasks, decisions and Inbox
 
 ### Deliverables
-- task CRUD/status/owners;
-- waiting/blocked state;
-- dependencies;
-- follow-up date;
-- entity linking;
-- joint decisions;
-- require-both approval;
-- rationale/alternatives;
-- `discuss together` queue;
-- deterministic next-action inputs.
+- task lifecycle/owners/dependencies/waiting/blockers/follow-up;
+- entity links;
+- decisions/options/approvals/require-both/rationale/lock/reopen;
+- discuss-together queue;
+- Inbox capture and conversion;
+- deterministic next-action factors.
 
-### Required tests
-- state-machine transitions;
-- dependency/blocking behavior;
-- independent partner approval behavior;
-- concurrent approval/update behavior;
-- waiting-vs-personal-work behavior;
-- E2E joint-decision flow.
+### Verification
+- transition/dependency/cycle tests;
+- waiting vs actionable behavior;
+- both-owner approval;
+- concurrent approval/update;
+- Inbox conversion idempotence/provenance;
+- cross-project link denials;
+- joint-decision E2E.
 
-### Exit criteria
-The application can distinguish “I must act”, “we must decide”, “we are blocked”, and “we are waiting for someone else”.
+### Exit
+The application correctly distinguishes “I must act”, “we must decide”, “blocked”, “waiting external” and “captured but not classified”.
 
 ---
 
 ## Lot 4 — Import/export foundation
 
-### Goal
-Eliminate repetitive manual entry and establish open data portability.
-
 ### Deliverables
-- canonical JSON v1 schema;
-- CSV parser/exporter;
-- XLSX parser/exporter;
-- clipboard/pasted JSON entry where planned;
-- schema/type detection;
-- mapping engine;
-- validation engine;
-- duplicate detector;
-- merge planner;
-- preview UI;
-- import provenance/history;
-- rollback engine;
-- research-missing-data export;
+- machine-readable canonical JSON v1 + addendum schema/validators;
+- CSV/XLSX/clipboard/pasted JSON;
+- stable namespaced external IDs including parent-scoped nested IDs;
+- mapping engine and stored mapping profiles;
+- locale/value normalization;
+- duplicate detection/merge planning;
+- preview/protected-field behavior;
+- category/tag creation review;
+- provenance/import change history;
+- intelligent rollback;
+- missing/stale-research export;
 - round-trip fixtures.
 
-### Required tests
-- repeated import idempotence;
+### Verification
+- repeat import idempotence;
+- child external ID reuse across different parents;
 - missing rows do not delete;
-- strong evidence not overwritten by weak data;
-- guest ambiguous-name no-auto-merge;
-- venue strong matching rules;
+- stronger evidence preserved;
+- ambiguous guests never name-auto-merge;
 - malformed/hostile spreadsheets;
-- CSV formula-injection export protection;
-- rollback after later edits;
-- schema future-version rejection;
-- round-trip.
+- formula-injection-safe export;
+- rollback protects later edits;
+- future-schema rejection;
+- lossless round-trip where claimed.
 
-### Exit criteria
-The same venue/guest import can be safely repeated, previewed and rolled back without silent destructive behavior.
+### Exit
+Supported files can be analyzed, previewed, committed, repeated and rolled back without silent destructive behavior.
 
 ---
 
-## Lot 5 — Budget and payments
-
-### Goal
-Provide trustworthy financial decision support.
+## Lot 5 — Budget, scenarios and payments
 
 ### Deliverables
 - budget categories/items;
-- pricing calculation types;
-- estimate/quote/contract states;
-- payment schedule;
-- refundable deposits;
-- cash-flow view;
-- guest-count/date scenario inputs;
-- minimum/probable/max model where configured;
-- venue/vendor financial links.
+- exact calculation engine;
+- estimate/quote/approved/contracted states;
+- named scenarios with date/venue/guest/offers/components;
+- one explicit active scenario;
+- tax treatment;
+- payment schedule/status/type;
+- deposits/refunds/credits/deposit returns/final balance;
+- cash flow and derived totals;
+- source/document/entity links.
 
-### Required tests
-- exact-money invariants;
-- rounding rules;
-- fixed/per-unit/per-guest/per-table/per-hour calculations;
-- deposits/refunds;
-- partial payments;
-- scenario recomputation;
-- property-based monotonicity where applicable;
-- migration/export round-trip.
+### Verification
+- cent-exact arithmetic/rounding;
+- fixed/per-unit/per-guest/per-table/per-hour/minimum-variable;
+- historical quote immutable under scenario change;
+- partial payment/refund/deposit return;
+- tax unknown is never assumed;
+- scenario coexistence/switch/recompute;
+- property/mutation tests for critical financial engine.
 
-### Exit criteria
-All supported calculations match independently computed fixture expectations and mutation tests kill non-equivalent arithmetic mutants.
+### Exit
+All supported calculations match independent fixtures and financially distinct states remain distinguishable.
 
 ---
 
-## Lot 6 — Guests and households
-
-### Goal
-Replace the existing guest spreadsheet without losing its probabilistic/priority logic.
+## Lot 6 — Guests, households and structured seating
 
 ### Deliverables
-- household/person model;
-- priority/category;
-- attendance probability;
-- RSVP;
-- partner/child grouping;
-- expected counts;
-- cumulative priority calculations;
-- bulk actions;
-- import mapping for legacy spreadsheet;
-- export.
+- categories/households/guests;
+- priority/probability/RSVP;
+- relationships and limited logistics;
+- expected/cumulative statistics;
+- bulk actions/import/export;
+- seating sections/tables/capacities/assignments;
+- unassigned/over-capacity checks and seating export.
 
-### Required tests
-- existing spreadsheet-style fixture totals;
-- zero/25/75/100% probability cases;
-- household behavior;
-- RSVP override/derived-statistic rules;
+### Verification
+- reference probability/priority totals;
+- RSVP precedence;
+- household invariants;
 - ambiguous duplicate protection;
-- PII logging checks;
-- import rollback.
+- PII-log checks;
+- seating same-project integrity;
+- duplicate assignment/capacity/unassigned rules;
+- keyboard/mobile seating usability without drag/drop.
 
-### Exit criteria
-Synthetic and reconciled legacy-reference statistics match exactly for every supported cumulative view.
+### Exit
+Legacy-style guest statistics reconcile exactly and a complete non-visual seating assignment can be created/exported safely.
 
 ---
 
-## Lot 7 — Vendors
-
-### Goal
-Track service providers and commercial follow-up in one consistent model.
+## Lot 7 — Vendors, commercial documents and contract readiness
 
 ### Deliverables
-- vendor CRUD/types;
+- vendor types/CRUD/status;
 - contacts/interactions;
-- quote/request status;
-- offers/packages/inclusions;
-- caterer-specific facts;
-- venue compatibility links;
-- documents;
-- waiting/follow-up task integration.
+- quote/request/clarification/follow-up;
+- offers/packages/components;
+- caterer facts;
+- venue compatibility;
+- document version/supersession;
+- contract-readiness checklist;
+- linked tasks/budget/files.
 
-### Required tests
-- vendor lifecycle;
-- package calculations/semantics;
-- wait/follow-up flows;
-- venue-vendor link RLS;
-- documents private-access tests.
+### Verification
+- vendor lifecycle and package semantics;
+- waiting/follow-up;
+- venue-vendor cross-project denial;
+- document private access/version lineage;
+- contract checklist factual-state behavior;
+- no presentation of checklist as legal approval/advice.
 
-### Exit criteria
-A caterer can be compared on actual included package and linked to venue compatibility without separate manual tracking.
+### Exit
+A caterer/other provider can be compared and commercially tracked from research through reviewed contract readiness without parallel manual tracking.
 
 ---
 
-## Lot 8 — Dashboard and planning
-
-### Goal
-Turn stored information into prioritized project control.
+## Lot 8 — Dashboard, planning, event timeline and search
 
 ### Deliverables
-- phases/milestones;
+- phases/milestones/dependencies/completion rules;
 - weighted progress;
-- blockers;
-- next-action ranking;
-- waiting summary;
-- joint-decision summary;
-- upcoming deadlines/payments;
-- meaningful partner activity;
-- phase-aware dashboard rules.
+- blockers/waiting/joint-decision summaries;
+- member activity cursor;
+- deterministic next action;
+- structured event timeline and dependencies/vendor links;
+- frozen timeline export;
+- global authorized/offline-aware search;
+- phase-aware dashboard.
 
-### Required tests
-- deterministic prioritization;
-- no fake progress from low-value task volume;
-- phase-aware rendering;
-- blocker propagation;
-- explainability.
+### Verification
+- milestone dependency/date recalculation;
+- no fake progress from microtasks;
+- next-action explainability;
+- after-midnight timeline order;
+- timeline dependency cycles rejected;
+- frozen export immutability;
+- search RLS/privacy/archive rules;
+- partner “since last visit” cursor behavior.
 
-### Exit criteria
-A partner opening the app can identify current project state and next useful action within the product's 30-second objective.
+### Exit
+A partner can understand project state and next action quickly, and the wedding-day plan/search are usable without introducing advanced post-V1 command-center behavior.
 
 ---
 
 ## Lot 9 — Map and access
 
-### Goal
-Provide spatial venue decision support without making maps a critical dependency.
-
 ### Deliverables
 - stored coordinates;
-- map pins/status filters;
+- pins/status/region filters;
 - selected venue card;
-- external directions link;
-- accessibility/TGV facts;
-- map network-error fallback.
+- external directions;
+- multi-origin route presentation/TGV/access facts;
+- external-request privacy/referrer handling;
+- map/network fallback.
 
-### Required tests
+### Verification
 - coordinate validation;
-- status filtering;
-- no-network behavior;
-- deep link to venue;
-- external-link safety.
+- contextual origin/mode correctness;
+- no private data in external route/image query URLs;
+- map outage never blocks venue data;
+- safe external navigation.
 
-### Exit criteria
-Map outage never blocks venue decision data.
+### Exit
+Map improves spatial decision-making but is never a dependency for core records.
 
 ---
 
 ## Lot 10 — Offline/PWA hardening
 
-### Goal
-Make local-first behavior production trustworthy on real devices.
-
 ### Deliverables
-- application shell cache/versioning;
+- versioned app-shell/service-worker lifecycle;
 - IndexedDB migrations;
-- offline pinning/recent cache policy;
-- durable mutation queue;
-- reconnect process;
-- conflict UX;
+- durable queue/reconnect/conflict UX;
 - media queue separation;
-- installability;
-- update prompt/version lifecycle.
+- offline pins/recent data;
+- install/update flow;
+- cross-account/project cache isolation;
+- real-device support validation.
 
-### Required tests
-- close/reopen while offline;
-- reconnect after multiple remote changes;
+### Verification
+- close/reopen offline;
+- reconnect/out-of-order/duplicate retry;
 - same-field conflict;
-- session expiration;
-- service-worker update;
-- old cache/new schema safety;
-- real-device smoke tests.
+- delete/edit race;
+- session expiry;
+- service-worker update with pending mutations;
+- old app/new schema incompatibility;
+- logout/purge;
+- real-device smoke.
 
-### Exit criteria
-No supported offline test scenario loses a confirmed local structured edit silently.
+### Exit
+No supported offline/update/session scenario silently loses confirmed structured work or reveals another project cache.
 
 ---
 
 ## Lot 11 — Backup, recovery and production readiness
 
-### Goal
-Prove the system can fail safely and recover.
-
 ### Deliverables
-- `.mariage` export;
-- optional full media archive;
-- checksums;
-- restore workflow;
-- backup verification;
-- historic schema fixtures/migrations;
-- security header deployment;
-- quota protection;
-- incident diagnostics;
+- structured/full `.mariage` export;
+- encrypted container implementation;
+- manifest/checksums;
+- restore/verification/migrations;
+- historical fixtures;
+- complete RLS/Storage evidence;
+- CSP/security headers;
+- quota protections;
+- incident/diagnostic readiness;
 - release-candidate pipeline.
 
-### Required tests
-- backup→destroy→restore equivalence;
-- corrupt-file detection;
+### Verification
+- backup→restore semantic equality;
+- wrong password/tamper detection before mutation;
+- corrupt binary detection;
 - future-schema rejection;
-- historical migrations;
-- RLS complete matrix;
-- security scanning;
-- quota-pressure behavior.
+- historical migration;
+- complete security/RLS matrix;
+- quota-pressure behavior;
+- ASVS applicable evidence.
 
-### Exit criteria
-A validated portable backup can restore a golden project and all P0 release gates pass.
+### Exit
+A golden project is recoverable from verified portable backup and all applicable P0 production-readiness gates pass.
 
 ---
 
 ## Lot 12 — Existing-data migration and V1 cutover
 
-### Goal
-Move real wedding operations into Mariage OS safely.
-
 ### Deliverables
-- venue research migration package;
-- guest spreadsheet migration package;
-- initial vendor migration package;
-- reconciliation reports;
-- corrections without provenance loss;
-- partner acceptance on real devices;
-- pre-cutover archival export;
+- venue research migration/reconciliation;
+- guest spreadsheet migration/reconciliation;
+- vendor migration/reconciliation;
+- critical budget/statistical validation;
+- corrections retaining provenance;
+- both-owner real-device acceptance;
+- pre-cutover legacy archive;
 - production recovery export;
 - formal source-of-truth declaration.
 
-### Required verification
-- manual reconciliation of critical real data;
-- guest totals and priority cumulative figures;
-- venue status/rejection reasons;
-- source URLs/confidence where imported;
-- vendor contact/quote state;
-- production backup restore drill using safe procedure;
-- real-device mobile/desktop walkthrough.
+### Verification
+- critical real-data reconciliation;
+- guest totals/cumulative priorities;
+- venue status/rejection/source data;
+- vendor quote/contact state;
+- backup restore drill via safe procedure;
+- supported mobile/desktop walkthrough.
 
-### Exit criteria
-Both partners explicitly accept Mariage OS as source of truth and the V1 cutover evidence package defined in `V1-SCOPE.md` is complete.
+### Exit
+Both owners explicitly accept Mariage OS as source of truth and the V1 cutover evidence package is complete.
 
 ---
 
 ## Cross-lot rule
 
-No later lot is allowed to weaken security, data integrity, offline guarantees, import semantics or test coverage established by earlier lots. Any architectural change requires an ADR and migration/security/test impact review.
+No later lot may weaken frozen security, data-integrity, financial, offline, import/export or recovery semantics. Material architectural changes require reviewed spec/requirements, ADR when applicable, migration impact and updated tests.
