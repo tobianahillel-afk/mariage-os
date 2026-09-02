@@ -1,693 +1,600 @@
-# Mariage OS — Master Product Specification
+# Mariage OS — Frozen V1 Product Specification
 
-Status: **Normative specification for V1**
+Status: **FROZEN V1 DESIGN BASELINE — implementation gate remains CLOSED pending final architecture/product review**
 
-This document is the master functional specification for Mariage OS. It is intentionally written so that a developer, tester, security reviewer or future AI agent can understand what must be built without access to prior conversations.
+This is the master functional specification for Mariage OS. It is written so a developer, tester, security reviewer or future AI agent can understand the product without prior conversation context.
 
-If this document conflicts with a more specialized normative document, the specialized document wins for that specific domain. Any conflict must then be resolved by updating this master specification.
+Specialized normative documents remain authoritative for their domain. This master document defines the product-level contract and reconciles the final pre-code audit. A specialized document may add detail but must not contradict this baseline. Any discovered contradiction is a documentation defect and blocks implementation until resolved or explicitly accepted through ADR/spec change.
 
 ---
 
 ## 1. Product mission
 
-Mariage OS is a private, collaborative, local-first wedding-planning progressive web application designed primarily for two partners planning one wedding together.
+Mariage OS is a private, collaborative, local-first wedding-planning PWA for two partners planning one wedding together.
 
-The product is not a generic project-management suite. It is a decision and execution system for a wedding.
+It must centralize the information required to **understand, decide and act** across:
 
-At any time, either partner must be able to answer quickly:
+- venues;
+- vendors/caterers;
+- guests and households;
+- budget, scenarios and payments;
+- tasks and waiting states;
+- joint decisions;
+- planning/milestones;
+- wedding-day timeline;
+- seating assignments;
+- documents/media;
+- evidence/sources;
+- map/access;
+- Inbox/quick capture;
+- import/export/backup/recovery.
+
+The product is not a generic project-management suite. It is the couple's wedding decision-and-execution system.
+
+At any time either partner should be able to answer quickly:
 
 1. Where are we?
-2. What has already been decided?
-3. What is still unknown or unreliable?
-4. What is blocking progress?
-5. What should we do next?
-6. Who owns that action?
-7. By when?
+2. What is decided?
+3. What is still unknown, stale or contradictory?
+4. What blocks progress?
+5. What are we waiting for?
+6. What should I/we do next?
+7. Who owns it and by when?
 8. What will it cost?
-9. What is already contractually committed?
-10. What has already been paid?
-11. What information requires both partners to agree?
-12. Why was a past decision made?
-
-The product must optimize for three verbs: **Understand → Decide → Act**.
+9. What is quoted, contracted, paid and still due?
+10. Which decisions need both partners?
+11. Why was a previous decision made?
+12. Is our critical data backed up and synchronized?
 
 ---
 
-## 2. Primary users
+## 2. Primary users and deployment model
 
-### 2.1 Couple owners
+### Two owner accounts
 
-The normal project has two owner members. Each owner has:
+V1 is optimized for exactly two primary owners. Each partner has:
 
-- their own identity;
-- individual ratings and favorites;
+- an individual authenticated identity;
+- independent ratings/favorites/preferences;
 - individual task ownership;
-- individual activity history;
-- access to all project data;
-- ability to participate in joint decisions.
+- individual activity cursor/history;
+- access to the same authorized project data;
+- participation in decisions requiring both approvals.
 
-One partner's opinion must never overwrite the other's opinion merely because it was saved later.
+One partner's opinion must never overwrite the other's because it was saved later.
 
-### 2.2 Future limited roles
+### Single-couple public deployment
 
-Viewer/editor roles may be added for parents or professionals, but are not required for the initial functional cutover unless explicitly promoted into V1 scope.
+The web application/repository can be public, but the production data service is **not a public SaaS signup surface**.
 
-No limited-role feature may weaken the core project-isolation model.
+V1 uses a controlled bootstrap/invitation flow so unrelated Internet users cannot create arbitrary projects or consume the couple's free-tier resources. After both production owners are enrolled, open signup/project creation is disabled unless deliberately reopened for a controlled recovery/admin flow.
 
 ---
 
-## 3. Hard product constraints
+## 3. Hard constraints
 
-The following are binding constraints:
+These constraints are release-binding:
 
-- Normal operation must target **€0/month** on the chosen free tiers.
-- The same private data must be accessible from phone, tablet and desktop.
-- Real wedding data must never be stored in the public GitHub repository.
-- Supabase production is shared cloud truth; IndexedDB is local working/offline state.
-- The application must remain useful during temporary network loss.
-- The application must make synchronization state visible.
-- No destructive import, merge or synchronization behavior may be silent.
-- Important facts must support provenance, confidence and freshness.
-- `unknown`, `false`, `not applicable` and `conflict` are distinct states.
-- Stronger confirmed/contractual evidence must not be silently replaced by weaker imported evidence.
-- Financial calculations must use exact monetary semantics, not floating-point business arithmetic.
-- Real production authorization is enforced in PostgreSQL/Storage RLS, not only UI checks.
-- Critical functionality must be deterministic and testable.
-- Required quality gates may not be bypassed for production releases.
-- The product must remain exportable and recoverable without vendor lock-in.
+- Normal production operation targets **€0/month**.
+- Real wedding data never belongs in the public GitHub repository.
+- Supabase production is the shared cloud source of truth.
+- IndexedDB is local working/cache/offline state, not a separate permanent authority.
+- PostgreSQL/Storage RLS enforces project authorization; UI hiding is never sufficient.
+- Cross-project references are forbidden at both authorization and referential-integrity levels.
+- Important facts can retain multiple observations, provenance, confidence and freshness.
+- `unknown`, `false`, `not_applicable` and `conflict` are distinct.
+- Stronger confirmed/contractual evidence is not silently replaced by weaker input/import data.
+- Financial arithmetic uses exact minor-unit semantics, never authoritative binary floating point.
+- Import, merge, rollback and synchronization behavior is explicit and non-destructive by default.
+- Confirmed local edits are never silently lost on reconnect, session expiry or PWA update.
+- Public/private exports use explicit allowlists.
+- The project remains portable through open canonical exports and `.mariage` backups.
+- Required quality/security gates cannot be bypassed for production convenience.
 
 ---
 
 ## 4. Information architecture
 
-Desktop primary navigation:
-
 ### Prepare
+
 - Venues
 - Vendors
 - Guests
+- Seating
 
 ### Pilot
+
 - Dashboard
 - Tasks
 - Decisions
 - Budget
 - Planning
+- Wedding timeline
 
 ### Resources
+
 - Map
 - Documents
+- Inbox
+- Search
 - Import/Export
-- Ideas/Inbox when implemented
 
 ### System
+
 - Settings
+- Backup/Restore
 - Diagnostics
+- Security
 
-Mobile navigation prioritizes:
-- Home
-- Venues
-- Tasks
-- Budget
-- More
+Mobile prioritizes Home, Venues, Tasks, Budget and More. Routes are deep-linkable after authentication and must restore logical context safely.
 
-Routes must be deep-linkable. Refreshing `/venues/<id>` must return to the same logical entity after authentication.
+The authoritative route/state matrix is `docs/ux/SCREEN-CONTRACTS.md`.
 
 ---
 
 ## 5. Dashboard contract
 
-The dashboard is a prioritization surface, not an analytics wall.
+Dashboard is a prioritization surface, not an analytics wall. It prioritizes:
 
-It must present, in priority order:
-
-1. wedding countdown / current project phase;
-2. next most useful action;
+1. countdown/current phase;
+2. next useful action;
 3. blockers;
-4. joint decisions awaiting attention;
-5. items waiting on external parties;
-6. upcoming deadlines/payments;
-7. budget summary;
-8. weighted progress by wedding area;
-9. meaningful changes by the other partner since last visit.
+4. joint decisions;
+5. waiting-external items;
+6. upcoming tasks/payments;
+7. budget/scenario summary;
+8. weighted milestone progress;
+9. meaningful partner changes since the member's last activity cursor;
+10. backup/sync/security warnings only when genuinely actionable.
 
-The dashboard must not create fake urgency. Red/critical alerts are reserved for genuine overdue, blocking, security, financial or data-integrity issues.
-
-The dashboard must become phase-aware. What matters at J-300 is different from J-7.
+No fake urgency and no opaque AI ranking. Ranking must be deterministic/explainable.
 
 ---
 
 ## 6. Venue management
 
-Venues are a first-class decision domain.
+A venue is a first-class decision entity with:
 
-Each venue supports:
-
-- stable database ID;
-- optional human code such as `S32` or `P10`;
-- identity and contact information;
-- geographic coordinates;
-- status/lifecycle;
-- individual partner ratings/favorites;
-- multiple physical spaces;
-- capacities per space/configuration;
-- criteria/facts with provenance;
-- multiple offers and date-dependent pricing;
-- availability observations;
-- media and documents;
+- stable UUID and optional human code such as `S32`/`P10`;
+- lifecycle/rejection reason/history;
+- location and coordinates;
+- partner-specific ratings/favorites;
+- multiple spaces with dimensions/capacities;
+- typed criteria/facts with evidence;
+- multiple offers, components and date/day pricing;
+- availability observations/options;
 - contacts/interactions;
-- linked tasks and decisions;
-- rejection reason/history;
-- visit notes;
+- route/access observations from one or more reference origins;
+- remote and privately archived photos;
+- documents and versions;
+- linked tasks/decisions/budget items;
+- visit mode and notes;
 - missing-information analysis;
-- comparison membership;
-- import provenance.
+- compatibility calculation and explanation.
 
-The application must distinguish the commercial maximum capacity of a venue from suitability for the couple's actual configuration.
-
-For the current wedding use case, venue evaluation must be capable of representing at least:
+Current wedding use case must support at least:
 
 - 150–200 seated guests;
 - one large shared reception room;
-- two distinct dance-floor areas in that same room;
-- external caterer allowed;
-- outdoor chuppah/civil-ceremony suitability;
-- rain plan;
-- climate/heat/winter suitability;
-- room aesthetics;
-- elevated/panoramic location;
-- accessibility from Paris;
-- nearby TGV station;
-- station-to-venue transfer;
-- parking;
-- accommodation;
-- music end time and acoustic constraints;
-- furniture/inclusions;
-- kitchen/caterer facilities;
+- two distinct dance areas in the same room;
+- outdoor chuppah;
+- indoor/rain backup;
 - mehitsa feasibility/provision;
-- quote/contact progress.
+- external caterer allowed and exclusive-caterer constraints;
+- heat/winter/air-conditioning/heating/ventilation;
+- room aesthetics and character;
+- elevated/panoramic situation;
+- Paris/reference-origin access;
+- TGV transfer/accessibility;
+- parking/accommodation;
+- music end time/acoustic constraints;
+- furniture/table/chair/linen/tableware inclusions;
+- kitchen/caterer logistics;
+- quote/contact/visit progress.
 
-A rejected venue remains searchable and must preserve the rejection reason. Rejection is not deletion.
+Blocking criteria can never be hidden by a high weighted score. Compatibility logic is defined by `domain/CRITERIA-EVALUATION.md` and `domain/DEFAULT-CRITERIA.md`.
 
----
-
-## 7. Vendor management
-
-Vendors use a generic vendor model with type-specific attributes.
-
-Supported categories include at minimum:
-
-- caterer;
-- photographer/videographer;
-- DJ/music;
-- florist/decorator;
-- transport;
-- accommodation;
-- other wedding service providers.
-
-A vendor can have:
-
-- multiple contacts;
-- multiple offers/quotes;
-- documents;
-- tasks;
-- interactions;
-- due dates;
-- reliability notes;
-- compatibility links to venues;
-- package/inclusion details.
-
-Caterers require richer support for price-per-person, servers, drinks, cake, tableware, kosher constraints and venue compatibility.
+Rejected venues are archived history, not deleted data.
 
 ---
 
-## 8. Guest and household management
+## 7. Vendor/caterer management
 
-The system models both households and individual guests.
+Vendors use a generic supplier model with typed specialization. V1 supports caterer, photo/video, DJ/music, florist/decorator, transport, accommodation and other providers.
 
-It must support:
+Vendors support:
 
-- family/group structure;
+- lifecycle/status;
+- multiple contacts/interactions;
+- quote/request/clarification/follow-up state;
+- multiple offers/packages/components;
+- documents and versions;
+- linked tasks/decisions/budget;
+- venue compatibility;
+- reliability/communication notes/ratings where useful.
+
+Caterer support includes price per adult/child, guest minimums, buffet/table service, meat/menu availability, drinks, cake, servers, tableware, linens, setup/cleanup, travel/tasting fees, kosher supervision/compatibility and venue kitchen/logistic requirements.
+
+---
+
+## 8. Guests, households and seating
+
+The guest model supports:
+
+- households/invitation groups;
+- individual guests;
+- categories/groups;
 - priorities;
-- probability of attendance;
+- attendance probability;
 - RSVP lifecycle;
-- partner/children relationships;
+- partner/child relationships;
 - age group;
-- dietary/logistical notes where necessary;
-- transportation/accommodation needs;
-- table assignment in later seating features;
+- transport/accommodation needs;
+- dietary/accessibility notes only when useful;
+- expected attendance;
 - cumulative priority statistics;
-- expected-attendance calculations;
 - bulk import/export.
 
-Household grouping must prevent duplicated invitation management while retaining individual attendance states.
+Names are data, never reliable unique identifiers. Ambiguous same-name guests are not auto-merged.
 
-Guest data is personal data and must never appear in public repository fixtures.
+### Seating in V1
+
+V1 includes a **non-visual structured seating model**:
+
+- sections/zones;
+- tables;
+- table capacity;
+- guest assignments;
+- unassigned/over-capacity validation;
+- simple statistics/export.
+
+A drag-and-drop graphical seating canvas/automatic optimization is post-V1.
 
 ---
 
-## 9. Budget, commitments and payments
+## 9. Budget, offers, scenarios and payments
 
-The financial model must distinguish:
+The finance subsystem distinguishes:
 
-- estimate;
-- quoted amount;
-- approved amount;
-- contracted amount;
-- partially paid;
+- estimated;
+- quoted;
+- approved/negotiated;
+- contracted;
+- planned payment;
+- due/overdue;
+- processing/manual-pending;
 - paid;
+- partially refunded;
 - refunded/cancelled;
-- refundable deposits/cautions;
-- fixed vs variable cost.
+- refundable security deposit/caution;
+- returned deposit/credit.
 
-Variable calculation modes must include:
+Supported pricing includes fixed, per guest, per adult, per child, per table, per hour, quantity/unit and minimum-plus-variable/package logic.
 
-- fixed;
-- per guest;
-- per table;
-- per hour;
-- quantity × unit price;
-- minimum/package logic where required.
+### Named scenarios
 
-Changing guest count or date must recompute derived scenarios without rewriting historical quotes.
+Multiple named scenarios can coexist. Each can carry:
 
-The application must provide:
+- candidate date;
+- candidate venue;
+- planning guest count;
+- selected vendor/venue offers;
+- included/optional components;
+- assumptions/notes;
+- active/inactive status.
 
-- budget total;
-- probable/minimum/max reasonable scenarios where configured;
-- committed amount;
-- paid amount;
-- remaining contractual amount;
-- upcoming cash-flow deadlines;
-- cost-per-guest derived views.
+Scenario recalculation never rewrites historical quotes or contracted truth.
 
-Money semantics are defined by `domain/MONEY.md`.
+Tax semantics are explicit (`included`, `excluded`, `unknown`, `not_applicable`) and never guessed.
+
+Dashboard/budget outputs distinguish probable/final expected cost, contractual commitment, paid amount, remaining balance, refundable cash immobilization, upcoming cash flow and contingency.
 
 ---
 
-## 10. Tasks and waiting states
+## 10. Tasks, waiting and decisions
 
-Tasks are executable work. They are not decisions.
+### Tasks
 
-A task supports:
+Tasks support owner (`partner`, `both`, `third_party`, `unassigned`), status, priority, due date, dependencies, blockers, `waiting_for`, follow-up date, linked entities and history.
 
-- title/description;
-- owner: partner A, partner B, both, or third party;
-- status;
-- due date;
-- priority;
+`waiting_external` is not presented as unfinished personal work until follow-up becomes actionable.
+
+### Decisions
+
+Decisions support question, options, linked evidence/entities, deadline, individual approvals, require-both mode, final option/result, rationale, alternatives, lock/reopen history and `discuss together` queue.
+
+A joint decision cannot finalize before required approvals exist.
+
+---
+
+## 11. Planning, milestones and wedding-day timeline
+
+Planning distinguishes phases, weighted milestones, tasks, vendor deadlines and financial deadlines.
+
+Milestones can have dependencies, links, fixed or relative dates, completion rules and weights. Progress is weighted; low-value microtasks cannot create fake project completion.
+
+### Wedding-day timeline in V1
+
+V1 contains a structured timeline with:
+
+- title/description/status;
+- start/end local time and next-day offsets;
+- venue/space/location;
+- responsible owner/label;
+- linked vendors/contacts;
 - dependencies;
-- linked domain entity;
-- blocker status;
-- waiting-for party;
-- follow-up date;
-- history.
+- audience/notes/sources;
+- chronological validation.
 
-Required statuses include:
-
-- todo;
-- in progress;
-- waiting externally;
-- blocked;
-- done;
-- cancelled.
-
-A task that is waiting on a vendor must not appear as unfinished personal work without context.
+A frozen export/snapshot can be produced for distribution. A dedicated advanced live day-of operations mode remains post-V1.
 
 ---
 
-## 11. Decisions
+## 12. Documents, contracts and media
 
-A decision captures a choice, not merely an action.
+Documents include quotes, contracts, invoices, plans, menus and evidence. Media includes venue marketing photos, visit photos, inspiration and generated derivatives.
 
-It supports:
+Requirements:
 
-- question/title;
-- options;
-- evidence/linked entities;
-- deadline;
-- whether both partners must approve;
-- each partner's vote/approval;
-- final outcome;
-- rationale;
-- alternatives retained;
-- locked/final state;
-- history.
+- private by default;
+- safe MIME/type/size handling;
+- no imported active content execution;
+- same binary can link to multiple entities;
+- originals remain distinct from thumbnails/derivatives;
+- exact-byte dedup may use hash;
+- interrupted uploads are not treated as committed;
+- superseded/revised documents retain history;
+- remote images are nonessential external references and must not expose private project data through URLs/referrers.
 
-A final critical decision must retain why it was taken.
+### Contract readiness
 
-The system must support an explicit `discuss together` queue.
+For important quotes/contracts, the app supports a factual readiness checklist before signature/confirmation (identity/date/location/price/tax/payment/cancellation/postponement/service scope/capacity/caterer constraints/music/access/etc.).
 
----
-
-## 12. Planning and milestones
-
-Planning must distinguish:
-
-- high-level wedding phases;
-- weighted milestones;
-- tasks;
-- vendor-specific deadlines;
-- payment deadlines.
-
-Progress must not be a raw percentage of tasks completed. Foundational milestones carry greater weight than decorative finishing tasks.
-
-The product must be able to represent phases such as:
-
-- framing;
-- venue/date;
-- vendors;
-- invitations/RSVP;
-- logistics;
-- finalization;
-- wedding week;
-- wedding day;
-- post-wedding.
+This is planning/data validation, not legal advice.
 
 ---
 
-## 13. Documents and media
+## 13. Facts, evidence and criteria
 
-Documents and media are separate concepts.
+Facts use typed definitions and retained values backed by append-oriented observations. One observation may cite multiple sources.
 
-Documents include:
-- quotes;
-- contracts;
-- invoices;
-- brochures;
-- plans;
-- menus;
-- evidence/proofs.
+Sources can include contract, written confirmation, quote, official website, phone/in-person observation, specialist directory and unsourced estimate/import.
 
-Media includes:
-- venue photos;
-- visit photos;
-- inspiration images;
-- thumbnails/previews.
+Critical rules:
 
-For imported photos:
+- retain conflicting evidence;
+- preserve historical observations;
+- explicit retained-value resolution;
+- track freshness/verification;
+- type-check fact values;
+- never use a priority label such as `blocking-negative`; desirability is encoded by the criterion evaluation rule.
 
-- original bytes are preserved when explicitly stored;
-- derived thumbnails/previews may be compressed;
-- source/provenance is retained;
-- externally hosted images may remain URL references to protect free storage quota;
-- important final-candidate images may be explicitly archived privately.
+Compatibility output separates:
 
-Unsafe active content must not be executed.
+- blocking status: PASS/FAIL/UNKNOWN;
+- weighted score;
+- data completeness/evidence readiness;
+- human-readable explanation.
 
 ---
 
-## 14. Map and accessibility
+## 14. Map and access
 
-Venue coordinates are stored rather than geocoded at every render.
+Venue coordinates are stored. Maps support pins, filters, selected-card access and external directions while gracefully degrading to list/text when tiles/network are unavailable.
 
-Map functionality must support:
+Access data can be contextual by origin/mode, including driving time, distance, TGV station/transfer, public transport, taxi/VTC, shuttle, coach, parking, airport and accommodation facts.
 
-- venue pins;
-- status filters;
-- region filters;
-- selected-venue summary;
-- graceful degradation when map tiles/network are unavailable;
-- routing links to external map applications.
-
-Accessibility facts can include:
-
-- driving time from configurable origins;
-- nearest TGV station;
-- train journey notes;
-- transfer time;
-- public-transport feasibility;
-- shuttle feasibility;
-- parking;
-- nearby accommodation.
-
-The map is useful, but never critical to core data access.
+Changing a default origin can recalculate derived convenience summaries without rewriting historical route observations.
 
 ---
 
-## 15. Sources, evidence and confidence
+## 15. Inbox and search
 
-Important factual values must be able to retain observations instead of being flattened into one unexplained value.
+### Inbox
 
-Example:
+Inbox supports low-friction capture of a note/link/idea/file reference before classification. An Inbox item can later be converted idempotently to a task, venue/vendor candidate, document link or other supported entity without losing original provenance.
 
-- official website: room = 300 m²;
-- directory: room = 250 m²;
-- venue email: room = 300 m².
+### Search
 
-The system retains all observations and selects/displays a retained value according to explicit evidence rules.
-
-Evidence levels can represent, in increasing practical strength:
-
-- estimate/personal inference;
-- third-party directory;
-- official website;
-- direct verbal confirmation;
-- direct written confirmation;
-- quote;
-- signed contract.
-
-A stronger contractual/confirmed observation is not silently overwritten by a weaker import.
-
-Facts may become stale according to domain-specific freshness policy.
+Global search can find authorized project entities by appropriate safe fields such as name/code/title/tags and selected notes/metadata. Search must respect RLS, offline availability, privacy classification and deleted/archived visibility rules.
 
 ---
 
-## 16. Missing-information engine
+## 16. Import/export
 
-For entities such as venues/vendors, the product must identify missing critical facts.
-
-It must distinguish:
-
-- unknown critical requirement;
-- known negative requirement;
-- conflicting evidence;
-- stale evidence;
-- optional missing information.
-
-The user can generate suggested follow-up questions/tasks from missing information, but automation must remain reviewable rather than silently creating uncontrolled work.
-
----
-
-## 17. Import/export
-
-Import/export is a core product subsystem.
-
-Supported entry modes:
+Supported V1 inputs include:
 
 - CSV;
 - XLSX;
 - canonical Mariage OS JSON;
-- `.mariage` backup;
 - clipboard table;
 - pasted JSON;
-- media/document upload.
+- document/media upload;
+- `.mariage` restore.
 
-Canonical automated exchange format is versioned Mariage OS JSON.
+Canonical JSON is versioned. Nested external IDs are scoped by source namespace, entity type and parent context.
 
 Import lifecycle:
 
-1. choose/read locally;
-2. detect type/schema;
+1. select/read;
+2. detect;
 3. parse;
-4. map fields;
+4. map;
 5. validate;
-6. detect duplicates;
+6. match/deduplicate;
 7. compute merge plan;
-8. preview all meaningful changes;
-9. commit transaction;
-10. retain provenance/import history;
-11. allow safe rollback where possible.
+8. preview;
+9. commit;
+10. record provenance/change history;
+11. allow safe rollback/reconciliation.
 
-Default import semantics are non-destructive:
+Missing fields/rows do not mean deletion. Locked/contractual truth is protected. Ambiguous duplicates require review. Spreadsheet active content is never executed. CSV export mitigates formula injection.
 
-- missing rows never imply deletion;
-- repeated imports must be idempotent when stable IDs/hash indicate same input;
-- locked critical decisions are protected;
-- stronger existing evidence is preserved;
-- ambiguous duplicates require human resolution.
-
-The user must be able to export missing/stale data for external research and later re-import completed results.
+The user can export missing/stale research fields and re-import enriched results.
 
 ---
 
-## 18. Offline/local-first behavior
+## 17. Backup, restore and portability
 
-The UI writes to local working state first so interactions remain fast and resilient.
+`.mariage` is the open recovery format.
 
-Synchronization state must be visible as one of:
+It supports:
 
-- synchronized;
-- synchronizing;
-- offline with pending mutations;
-- conflict;
-- synchronization error.
+- structured project data;
+- optional documents/media;
+- versioned manifest;
+- checksums;
+- format/schema/app versions;
+- restore validation;
+- old-version migration;
+- safe rejection of unsupported future versions.
 
-Offline mode must support at minimum:
+Full private backups support client-side authenticated encryption using the normative `operations/BACKUP-FORMAT.md` contract.
 
-- opening cached essential data;
-- viewing pinned/recent venue information;
-- editing text/facts/tasks;
-- completing visit checklist actions;
-- queueing mutations;
-- later synchronization.
+Backup is not considered trustworthy until restore testing reconstructs a golden project semantically.
 
-Media uploads may remain pending separately.
+---
 
-No confirmed local edit may disappear silently after reconnect.
+## 18. Local-first/offline/PWA
+
+The user interaction model writes eligible changes into durable local state before cloud acknowledgement.
+
+Visible sync states include synchronized, synchronizing, offline/pending, conflict and error.
+
+Offline V1 supports cached essential data, structured edits, tasks, selected/pinned venue visits and a durable mutation queue. Media can remain separately pending.
+
+Service-worker/app-shell versions are explicit. A PWA update cannot destroy pending local work or continue incompatible code indefinitely against a changed schema.
+
+Logout policy: do not silently discard pending work. Once synchronized or explicitly exported/discarded, private project cache is purged from that browser profile according to the security/local-data contract.
 
 ---
 
 ## 19. Security and privacy
 
-Security requirements are normative and defined in `docs/security/`.
+Security documentation in `docs/security/` is normative. Minimum V1 requirements include:
 
-Minimum product expectations:
-
-- email-based authentication;
-- MFA/TOTP for production owners once enabled by rollout policy;
-- private project membership;
-- RLS on all project-owned data;
-- private Storage policies;
-- no service-role/secret key in browser;
-- no execution of imported files;
-- restrictive CSP;
-- no third-party tracking analytics;
-- privacy-preserving diagnostics;
-- strong confirmation/reauthentication for destructive critical actions;
-- synthetic public test data only.
+- controlled production onboarding/invitations;
+- individual accounts;
+- MFA/TOTP rollout for owners;
+- reauthentication for critical operations;
+- RLS for every project-scoped DB table and private Storage;
+- same-project FK/polymorphic validation;
+- no browser service-role/secret key;
+- restrictive CSP/security headers;
+- safe text/content rendering;
+- file validation and no macro/active execution;
+- privacy-minimized diagnostics;
+- no behavioral advertising trackers;
+- supply-chain controls;
+- OWASP ASVS 5.0 evidence matrix before cutover;
+- no known accepted Critical/High exploitable release vulnerability.
 
 ---
 
 ## 20. Free-tier behavior
 
-The app must actively protect the €0/month operating goal.
+The app protects the zero-cost goal:
 
-If quotas approach limits:
+1. warn as free quotas approach risk thresholds;
+2. preserve auth/sync/structured business data first;
+3. restrict/defer large nonessential media before essential edits;
+4. prefer remote references for public marketing imagery;
+5. never automatically enable paid upgrades/overages.
 
-1. warn before impact;
-2. prioritize essential structured data;
-3. defer/block large non-essential media before blocking business updates;
-4. suggest external-reference mode or cleanup;
-5. never automatically upgrade or enable paid usage.
-
-The product must degrade safely rather than surprise the couple with a bill.
+Displayed quota values must be measured/known; fake precision is forbidden.
 
 ---
 
-## 21. Search, filtering and comparison
+## 21. UX contract
 
-Global search must eventually find relevant entities by name/code/notes/tags where permitted.
+The interface is simpler than the data model:
 
-Venue/vendor lists support:
-
-- sorting;
-- filtering;
-- status views;
-- customizable visible columns on desktop;
-- saved preferences where implemented.
-
-Venue comparison should normally display no more than 4–5 options simultaneously and support an `only differences` view.
-
-Compatibility scores must be explainable. A blocking criterion failure must not be hidden by a high aggregate score.
-
----
-
-## 22. UX rules
-
-The interface is simpler than the data model.
-
-Rules:
-
-- summary first, details on demand;
-- no giant form required to create an entity;
-- drafts/autosave for long editing;
+- summary first, detail on demand;
+- minimal quick-add rather than giant mandatory forms;
+- autosave/drafts for long editing;
 - touch-friendly mobile controls;
-- destructive confirmations proportional to risk;
-- undo for easy reversible actions;
-- explicit loading/empty/error/offline/permission/conflict states;
-- no color-only meaning;
-- external links open without losing local edits;
-- user-visible language must avoid implementation jargon.
+- keyboard/focus support on desktop;
+- no color-only semantics;
+- explicit loading/empty/offline/error/permission/conflict states;
+- proportional confirmation for risky actions;
+- undo for safe reversible actions;
+- external navigation must not lose local drafts;
+- user-facing language avoids DB/sync implementation jargon.
+
+---
+
+## 22. V1 scope boundary
+
+V1 includes secure cloud collaboration, venues, vendors, guests/households, basic structured seating, budget/scenarios/payments, tasks, decisions, planning/milestones, wedding timeline, documents/media, Inbox/search, map/access, imports/exports, offline/local-first/PWA and backup/restore.
+
+Explicitly post-V1 unless promoted through reviewed scope change:
+
+- drag-and-drop graphical seating canvas/automatic seating optimization;
+- advanced transport/hotel allocation engine;
+- dedicated live wedding-day operations mode;
+- guest portal/vendor sharing links;
+- push notifications;
+- AI/OCR automatic contract extraction;
+- in-app automated Internet venue research;
+- internal messaging;
+- native App Store/Play Store application;
+- banking/payment integration;
+- automated email/calendar-provider synchronization.
 
 ---
 
 ## 23. Quality definition
 
-A feature is not complete because it works once.
+A feature is complete only when its applicable:
 
-It must satisfy:
+- product behavior;
+- data invariants;
+- authorization/security controls;
+- migration/import/export semantics;
+- offline/error states;
+- unit/property/integration/RLS/security/E2E tests;
+- coverage/mutation requirements;
+- accessibility/performance/browser requirements;
+- documentation/traceability;
+- release gates
 
-- documented behavior;
-- acceptance criteria;
-- domain invariants;
-- relevant threat/security controls;
-- deterministic tests;
-- in-scope code coverage policy;
-- E2E coverage for critical flows;
-- mobile/desktop behavior;
-- accessibility requirements;
-- error/offline states;
-- updated documentation;
-- full CI Quality Gate.
+are satisfied.
 
-Critical silent data loss, project-isolation failures, broken restore, known Critical/High vulnerabilities, and supported financial-calculation errors are release blockers.
+Critical silent data loss, cross-project access, broken supported restore, incorrect supported financial calculations, exposed secrets, unrecoverable migrations or incompatible stale PWA behavior are release blockers.
 
 ---
 
-## 24. V1 definition
+## 24. Source-of-truth cutover
 
-V1 is the first version safe enough to become the couple's source of truth.
+Mariage OS becomes the operational wedding source of truth only after:
 
-V1 must include at least:
+- full required CI/security gates pass;
+- both owners can operate it on supported real devices;
+- current venue/guest/vendor sources are imported and reconciled;
+- critical guest/budget calculations match trusted references;
+- backup integrity and restore are demonstrated;
+- owner MFA/recovery procedures are verified;
+- pre-cutover legacy archive is preserved;
+- production `.mariage` recovery export exists;
+- no V1 release blocker remains.
 
-- secure project/auth foundation;
-- venue management;
-- facts/sources/spaces/media;
-- tasks and decisions;
-- import/export foundation;
-- budget/payments;
-- guests/households;
-- vendors;
-- dashboard/planning;
-- map/accessibility basics;
-- local-first/offline synchronization hardening;
-- backup/restore;
-- existing-data migration;
-- production security/quality gates.
-
-Visual seating plan, advanced transport allocation, full wedding-day execution mode, push notifications and automated document extraction are post-V1 unless explicitly promoted by a future ADR/spec change.
+Before cutover, existing spreadsheets/research sources remain authoritative legacy data.
 
 ---
 
-## 25. V1 cutover success
+## 25. Freeze and change-control rule
 
-Mariage OS may become the source of truth only after:
+This specification is the **V1 frozen design baseline**, but frozen does not mean immune to evidence.
 
-- synthetic beta succeeds;
-- production authorization is verified;
-- backup/restore is demonstrated;
-- existing venue/guest/vendor data is imported and reconciled;
-- critical calculations match trusted existing references;
-- both partners can use it on their real devices;
-- offline/reconnect behavior is verified;
-- no open release-blocking defect exists;
-- a pre-cutover export of legacy sources exists;
-- a complete `.mariage` recovery export is successfully verified.
+Before implementation starts, the separate final architecture/product review must pass and close every known BLOCKING/MAJOR issue. Lot 0 must **not** begin merely because this file says `FROZEN`.
 
-After cutover, legacy spreadsheets/conversations remain archival inputs rather than parallel editable sources of truth.
+After implementation starts, any discovered ambiguity that materially affects behavior, schema, security, synchronization, import/export, migration, privacy or V1 scope requires:
 
----
+1. specification/requirement update;
+2. impact analysis;
+3. ADR if architectural;
+4. migration compatibility review where needed;
+5. updated acceptance tests;
+6. normal reviewed merge.
 
-## 26. Specification ownership
-
-Any implementation behavior not justified by this specification or a linked specialized specification must be treated as an explicit design decision, not invented silently.
-
-When requirements change:
-
-1. update specification/requirement ID;
-2. assess data/security/test impact;
-3. update acceptance criteria;
-4. implement;
-5. update tests;
-6. pass the complete required verification pipeline.
+No developer or AI agent may invent material behavior silently.
