@@ -1,134 +1,273 @@
 # Threat Model
 
-## Assets
+Status: **Normative V1 threat model**
 
-High-value assets include:
+## Protected assets
 
-- guest personal/contact information;
-- private couple notes and decisions;
-- financial budgets/payments;
+- guest/contact personal data;
+- sensitive logistics/dietary/accessibility data;
+- couple private notes/opinions/decisions;
+- budget/scenario/payment data;
 - quotes/contracts/invoices;
 - private photos/documents;
-- project membership and permissions;
-- authentication sessions;
-- portable backups;
-- integrity of planning decisions/tasks.
+- Auth sessions/MFA/recovery state;
+- project membership/invitations;
+- portable backups and backup passwords;
+- integrity of tasks, dates, seating, timeline and decisions;
+- free-tier cloud resources/availability.
 
 ## Actors
 
 ### Authorized owners
+Can make mistakes, import bad files, use compromised devices or mis-share exports.
 
-Legitimate users can still make mistakes, import bad files, use compromised devices or accidentally expose data.
+### Unauthenticated Internet user
+Can discover public static app/repository and probe Supabase endpoints/signup surface.
 
-### Unauthorized Internet user
-
-May discover the public site/repository and attempt direct Supabase API/object access.
-
-### Authenticated user from another project
-
-Must never cross project boundaries.
+### Authenticated unrelated user / other project owner in tests
+Must never cross project or create unauthorized production resources.
 
 ### Attacker with stolen session/device
+May read cached/cloud data until revocation; offline cached bytes cannot be remotely erased.
 
-May attempt to read/export/change data until session is revoked.
-
-### Malicious/untrusted file or external content
-
-May attempt script execution, parser abuse, formula injection, oversized resource consumption or privacy leakage.
+### Malicious/untrusted import/file/URL
+Can attempt execution, parser abuse, resource exhaustion, formula injection, malicious URL/navigation or data poisoning.
 
 ### Supply-chain attacker
+Compromised npm package/CI Action/build dependency.
 
-May compromise a dependency, CI action or package release.
+### Honest third-party remote host
+Venue/image/map host receives ordinary network request metadata even without malicious intent; privacy leakage must still be minimized/disclosed.
 
-## Entry points
+---
 
-- login/session flows;
-- Supabase REST/realtime access;
-- Storage upload/download;
-- import center;
-- external URL fields/images;
-- quick-add/forms/notes;
-- backup restore;
-- exported files opened in spreadsheet software;
-- PWA/service worker/update mechanism;
-- CI/repository/dependency chain.
+# Trust/entry points
 
-## Primary threats and controls
+- login/password/MFA/recovery;
+- controlled bootstrap/signup configuration;
+- project invitation URL/token;
+- direct Supabase REST/RPC/Realtime;
+- Storage upload/download/signed URL;
+- IndexedDB/PWA cache;
+- import center and `.mariage` restore;
+- CSV/XLSX opened externally;
+- remote URLs/images/maps;
+- forms/notes/search;
+- service-worker update;
+- GitHub/CI/dependency chain.
 
-### Cross-project IDOR / authorization bypass
+---
 
-Threat: changing an entity UUID/project ID or calling API directly.
+# Primary threats and controls
 
-Controls: RLS, membership joins/functions, foreign-key/project consistency, deny tests, no reliance on UI.
+## Cross-project IDOR / reference injection
 
-### Credential/session theft
+Threat: attacker knows/guesses UUID and writes child row with their authorized `project_id` referencing another project's parent.
 
-Controls: MFA for owners, secure Auth defaults, reauthentication for critical actions, session revocation guidance, minimal sensitive offline persistence.
+Controls:
 
-### XSS
+- RLS;
+- composite `(project_id,parent_id)` foreign keys;
+- same-project polymorphic validation;
+- immutable `project_id`;
+- direct allow/deny tests.
 
-Threat: note/source/import content rendered as executable HTML.
+## Public signup / free-tier resource abuse
 
-Controls: textContent/safe rendering, no arbitrary HTML, CSP, protocol validation, no untrusted inline SVG.
+Threat: public static site lets arbitrary users create Supabase accounts/projects/files and consume free quotas.
 
-### Malicious file upload
+Controls:
 
-Controls: allowlist, size limits, MIME/signature checks where practical, no execution/macros, private storage, safe preview, incomplete-upload state.
+- V1 single-couple deployment;
+- controlled first-owner bootstrap;
+- partner invite only;
+- disable unrestricted Auth signup after enrollment;
+- DB refuses additional unauthorized project creation;
+- quotas/rate limits/provider protections;
+- tests/checklist prove production lock.
 
-### Spreadsheet formula injection
+## Invitation theft/replay/wrong account
 
-Controls: neutralize dangerous text cells on CSV/XLSX export where needed; never execute formulas/macros during import.
+Threat: raw invite token leaked or reused to join project.
 
-### Import data poisoning/destruction
+Controls:
 
-Controls: preview, validation, confidence/provenance, no deletion by absence, protected fields, idempotence, rollback, stronger-value preservation.
+- cryptographically random token;
+- only hash stored;
+- expiry/revocation;
+- verified authenticated email must equal invited email;
+- one-time/idempotent atomic acceptance;
+- raw token excluded from logs/activity/diagnostics;
+- no service-role secret in browser.
 
-### Sync stale overwrite
+## Credential/session theft
 
-Controls: revisions, operation IDs, semantic merge classes, conflict UI, no timestamp-only last-write authority.
+Controls:
 
-### Service worker stale code
+- verified email/password;
+- TOTP MFA both owners before cutover;
+- strong/recent auth for destructive export/admin;
+- provider recovery/session controls;
+- safe local logout purge after pending-work handling.
 
-Controls: versioned cache, controlled update/reload, schema compatibility checks, migration tests.
+Residual: remote revocation cannot erase already cached data on permanently offline stolen device; rely on device security.
 
-### Backup exposure
+## XSS / malicious URL
 
-Controls: explicit privacy warning, optional client-side encryption, no upload to public repo, minimized diagnostic content.
+Controls:
 
-### Storage URL leakage
+- safe text rendering/no arbitrary HTML;
+- runtime input validation;
+- reject unsafe URL schemes;
+- CSP;
+- no inline untrusted SVG/HTML;
+- safe search highlighting;
+- no imported executable content.
 
-Controls: private bucket, authorized access/signed URLs where needed, avoid long-lived public URLs for private files.
+## Malicious file/archive
 
-### Dependency compromise
+Controls:
 
-Controls: minimal dependencies, lockfile, `npm ci`, scanners, review, pinned CI actions, Dependabot with full tests.
+- type/size allowlists;
+- MIME/signature validation where practical;
+- no macros/formula execution;
+- private Storage;
+- safe preview;
+- archive path traversal/symlink rejection;
+- entry/count/uncompressed-size/decompression-ratio limits;
+- incomplete-upload state.
 
-### Quota/resource exhaustion
+## Spreadsheet formula injection
 
-Controls: import/media size limits, batch limits, storage budget, prioritize structured data, reject oversized operations before upload.
+Controls: neutralize textual leading formula markers in CSV/XLSX exports; never evaluate imported formulas/macros as code.
 
-### Accidental deletion
+## Import data poisoning/destruction
 
-Controls: soft delete, trash, undo, backup, strong project-deletion confirmation.
+Controls:
 
-## Abuse cases to test
+- local parse/previews;
+- strict schema/type validation;
+- parent-scoped external IDs;
+- duplicate detection;
+- provenance/evidence precedence;
+- no deletion by absence;
+- protected fields;
+- stale-preview revalidation;
+- rollback/checkpoint.
 
-- anonymous API read;
-- user A reads/updates user B project by guessed UUID;
-- manipulate `project_id` in mutation;
-- direct Storage object path access;
-- malicious `javascript:` URL;
-- HTML/SVG payload in note/import;
-- renamed executable pretending to be image;
+## Sync stale overwrite/replay
+
+Controls:
+
+- revisions;
+- operation IDs/receipts;
+- semantic merge classes;
+- protected commands with preconditions;
+- no client-time last-write-wins;
+- explicit conflicts;
+- membership revalidation after offline/session gap.
+
+## Financial corruption
+
+Threat: incorrect cents/tax/scenario/refund handling or malicious import changes paid/contracted truth.
+
+Controls:
+
+- integer minor units;
+- explicit tax mode;
+- named scenarios separate from base truth;
+- protected payment transitions/import rules;
+- invariant/property/mutation tests;
+- significant-change preview.
+
+## Seating/timeline operational corruption
+
+Threat: duplicate guest assignment, overcapacity final export, cross-project references, after-midnight timeline misordering.
+
+Controls:
+
+- DB same-project constraints;
+- unique assignment rule;
+- finalization validation;
+- explicit day offsets;
+- deterministic timeline/seating tests;
+- versioned final exports.
+
+## Service-worker stale code
+
+Controls: versioned shell cache, compatibility ranges, controlled activation, transactional local migration, update-required fail-safe.
+
+## Backup confidentiality/tamper/wrong password
+
+Controls:
+
+- optional client-side PBKDF2-HMAC-SHA-256 + AES-256-GCM format;
+- fresh random salt/nonce;
+- 600k minimum PBKDF2 iterations for V1 unless security review increases it;
+- authenticated header parameters;
+- checksums inside archive;
+- full decrypt/authenticate/verify before destructive restore;
+- password never sent/stored;
+- future schema reject-safe.
+
+## Remote image privacy/tracking
+
+Threat: direct image request reveals IP/network metadata/referrer to venue/CDN.
+
+Controls:
+
+- no-referrer image policy;
+- no private query parameters;
+- lazy/nonessential loading;
+- no third-party tracking scripts;
+- important images may be privately archived;
+- user-facing privacy documentation does not claim IP anonymity.
+
+## Storage URL leakage
+
+Controls: private bucket, membership RLS, short/authorized signed access where needed, no permanent public URLs for private files.
+
+## Dependency/CI compromise
+
+Controls: minimal dependencies, lockfile + `npm ci`, audit/scanning, pinned Actions, secret scanning, Dependabot through full gate, review.
+
+## Quota/resource exhaustion
+
+Controls: input/media limits, bounded queries/pagination, free-tier preflight, structured data priority, public signup lock, reject oversized archive/import.
+
+## Accidental deletion/corruption
+
+Controls: soft delete, trash, undo, purge eligibility, import rollback, portable verified backup, project-deletion strong auth.
+
+---
+
+# Abuse/adversarial cases to test
+
+- anonymous direct API read/write;
+- outsider creates second production project;
+- project A child references project B venue/guest/document UUID;
+- manipulate `project_id`/protected audit fields;
+- direct private Storage path access;
+- invitation raw token replay/wrong verified email/expired token;
+- revoked member reconnects with offline queue;
+- malicious `javascript:`/HTML/SVG payload;
+- renamed executable/image mismatch;
 - CSV formula payload;
-- huge/recursive/malformed import;
-- stale device overwrites newer financial fact;
-- old session attempts project deletion;
-- import downgrades contractual venue condition;
-- exported vendor packet leaks total private budget;
-- backup from future schema imported by old app;
-- service worker serves incompatible old bundle.
+- zip-slip/archive bomb backup;
+- malformed huge XLSX/JSON;
+- stale device tries to overwrite newer payment/date/scenario/seating state;
+- import downgrades contractual evidence;
+- imported payment attempts false `paid` state;
+- two devices assign same guest to two tables;
+- timeline after-midnight sort error;
+- vendor export leaks total budget/guest PII;
+- remote image request includes Mariage OS referrer/private query parameter;
+- old app imports future backup/schema;
+- wrong backup password/tampered ciphertext partially restores;
+- service worker old bundle writes against incompatible schema;
+- logout exposes previous user's cached project;
+- large media upload starves essential structured sync.
 
-## Residual risk
+## Residual-risk rule
 
-No design eliminates all risk. Residual risks, accepted limitations and N/A controls must be documented explicitly rather than implied.
+No architecture removes all risk. Residual risks, accepted limitations and N/A ASVS controls are documented explicitly. A known Critical/High release vulnerability, cross-project leak or silent data-loss path cannot be accepted for V1 cutover.
