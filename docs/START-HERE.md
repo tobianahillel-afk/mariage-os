@@ -2,204 +2,199 @@
 
 This is the mandatory onboarding entry point for anyone working on Mariage OS without prior conversation context.
 
-If you remember only one rule: **do not invent behavior from intuition when the repository already contains a normative contract. Read the relevant specification first.**
+If you remember one rule: **do not invent material behavior from intuition. Read the governing specification first.**
+
+## Current gate
+
+The V1 product specification is frozen as a design baseline, but **implementation is not yet authorized**.
+
+Current required work:
+
+1. finish documentation consolidation;
+2. complete `FINAL-DESIGN-REVIEW.md` across product, architecture, data, UX, security, quality and operations;
+3. close every BLOCKING/MAJOR finding;
+4. merge the documentation PR;
+5. only then may Lot 0 be considered for start.
+
+`FROZEN` means the intended V1 behavior is defined; it does not mean review may be skipped.
 
 ---
 
 ## 1. What Mariage OS is
 
-Mariage OS is a private collaborative wedding-planning PWA for a couple. It centralizes decision-making, progress, venues, vendors, guests, budget, documents, tasks, evidence and planning.
+Mariage OS is a private collaborative wedding-planning PWA for two partners. It centralizes venues, vendors, guests, seating, budget, documents, tasks, decisions, evidence, planning, the wedding timeline, Inbox/search, import/export and recovery.
 
-The product optimizes for three outcomes:
+It optimizes for:
 
 1. **Understand** — know current state and reliability.
 2. **Decide** — compare options and know what is missing.
 3. **Act** — know the next useful action, owner and deadline.
 
-It is not a generic PM/CRM/social platform.
+It is not a generic PM/CRM/social application.
 
 ---
 
-## 2. Mandatory reading order before substantial implementation
+## 2. Mandatory reading order
 
-### Product
+### Master/freeze layer
 
 1. `README.md`
-2. `docs/PRODUCT-SPECIFICATION.md` — master cahier des charges
-3. `docs/REQUIREMENTS-CATALOG.md` — stable requirement IDs
-4. `docs/PRODUCT.md` — product framing/jobs
-5. `docs/PRINCIPLES.md`
-6. `docs/NON-GOALS.md`
-7. `docs/roadmap/V1-SCOPE.md`
-8. `docs/DEFERRED-DECISIONS.md`
+2. `docs/PRODUCT-SPECIFICATION.md`
+3. `docs/REQUIREMENTS-CATALOG.md`
+4. `docs/roadmap/V1-SCOPE.md`
+5. `docs/DOCUMENTATION-AUDIT.md`
+6. `docs/FINAL-DESIGN-REVIEW.md` once present
+7. `docs/DEFERRED-DECISIONS.md`
+
+### Product context
+
+8. `docs/PRODUCT.md`
+9. `docs/PRINCIPLES.md`
+10. `docs/NON-GOALS.md`
+11. `docs/USER-FLOWS.md`
+12. `docs/ACCEPTANCE-SCENARIOS.md`
 
 ### Architecture
 
-9. `docs/architecture/OVERVIEW.md`
-10. `docs/architecture/STACK.md`
-11. `docs/architecture/TRUST-BOUNDARIES.md`
-12. `docs/architecture/DATA-OWNERSHIP.md`
-13. `docs/architecture/LOCAL-FIRST.md`
-14. `docs/architecture/SYNC.md`
-15. `docs/architecture/OFFLINE.md`
-16. `docs/architecture/PWA-LIFECYCLE.md`
-17. `docs/architecture/STORAGE.md`
-18. `docs/architecture/DEPENDENCY-GRAPH.md`
-19. relevant ADRs in `docs/adr/`
+13. `docs/architecture/OVERVIEW.md`
+14. `docs/architecture/STACK.md`
+15. `docs/architecture/TRUST-BOUNDARIES.md`
+16. `docs/architecture/DATA-OWNERSHIP.md`
+17. `docs/architecture/LOCAL-FIRST.md`
+18. `docs/architecture/SYNC.md`
+19. `docs/architecture/OFFLINE.md`
+20. `docs/architecture/PWA-LIFECYCLE.md`
+21. `docs/architecture/STORAGE.md`
+22. `docs/architecture/LOCAL-DATA-SCHEMA.md`
+23. `docs/architecture/REPOSITORY-SERVICE-CONTRACTS.md`
+24. `docs/architecture/DEPENDENCY-GRAPH.md`
+25. relevant ADRs.
 
-### Domain
+### Domain/data
 
-20. `docs/domain/ERD.md`
-21. `docs/domain/DATA-DICTIONARY.md`
-22. `docs/domain/IDENTIFIERS.md`
-23. `docs/domain/DATES-TIME.md`
-24. `docs/domain/MONEY.md`
-25. `docs/domain/STATE-MACHINES.md`
-26. `docs/domain/INVARIANTS.md`
-27. `docs/domain/FACTS-SOURCES.md`
-28. `docs/domain/CONFIDENCE-FRESHNESS.md`
-29. `docs/domain/DERIVED-DATA.md`
-30. relevant domain file for the feature being implemented
+26. `docs/domain/ERD.md`
+27. `docs/domain/PHYSICAL-SCHEMA-V1.md`
+28. `docs/domain/PHYSICAL-SCHEMA-V1-ADDENDUM.md`
+29. `docs/domain/DATA-DICTIONARY.md`
+30. `docs/domain/IDENTIFIERS.md`
+31. `docs/domain/DATES-TIME.md`
+32. `docs/domain/MONEY.md`
+33. `docs/domain/STATE-MACHINES.md`
+34. `docs/domain/INVARIANTS.md`
+35. `docs/domain/FACTS-SOURCES.md`
+36. `docs/domain/FACT-VALUE-TYPES.md`
+37. `docs/domain/CRITERIA-EVALUATION.md`
+38. `docs/domain/DEFAULT-CRITERIA.md`
+39. `docs/domain/CONFIDENCE-FRESHNESS.md`
+40. `docs/domain/DERIVED-DATA.md`
+41. relevant specialized domain document.
 
-### Security and quality
+### Security/quality/operations
 
-31. all applicable `docs/security/*` documents
-32. all applicable `docs/quality/*` documents
-33. `docs/engineering/CODING-STANDARDS.md`
-34. `docs/engineering/ERROR-HANDLING.md`
-35. `docs/engineering/MIGRATIONS.md`
-36. `docs/engineering/DEFINITION-OF-DONE.md`
+42. applicable `docs/security/*`.
+43. applicable `docs/quality/*`.
+44. applicable `docs/operations/*`.
+45. `docs/engineering/CODING-STANDARDS.md`.
+46. `docs/engineering/ERROR-HANDLING.md`.
+47. `docs/engineering/MIGRATIONS.md`.
+48. `docs/engineering/DEFINITION-OF-DONE.md`.
 
 ### Feature/lot
 
-37. relevant `docs/features/<FEATURE>.md`
-38. import/export contract if data enters/leaves the system
-39. `docs/roadmap/LOTS.md`
-40. `docs/roadmap/LOT-ACCEPTANCE.md`
-41. `CONTRIBUTING.md`
+49. relevant `docs/features/<FEATURE>.md`.
+50. `docs/ux/SCREEN-CONTRACTS.md`.
+51. import/export contract if data enters/leaves the system.
+52. `docs/roadmap/LOTS.md`.
+53. `docs/roadmap/LOT-ACCEPTANCE.md`.
+54. `CONTRIBUTING.md`.
 
-You do not need to reread every document for every small change, but you must understand the foundation and read every document applicable to the lot/behavior being changed.
+You do not reread every document for every tiny edit, but you must read every governing contract for the behavior being changed.
 
 ---
 
 ## 3. Hard constraints
 
-These are not suggestions:
-
-- Normal production operation targets **€0/month**.
-- Real wedding data is private and never belongs in the public GitHub repository.
-- Supabase is shared cloud truth; IndexedDB is local working/cache/offline state.
-- Authorization is enforced at database/storage level, never only UI.
-- Important facts can retain provenance/confidence/freshness/conflicts.
-- Confirmed/contractual data is not silently overwritten by weaker imports.
+- Normal operation targets **€0/month**.
+- Production is a controlled single-couple deployment, not open project signup.
+- Real wedding data never belongs in public Git.
+- Supabase is shared cloud truth; IndexedDB is local working/offline state.
+- Database/Storage RLS and same-project referential integrity enforce isolation.
+- Important facts retain provenance/confidence/freshness/conflicts.
+- Strong confirmed/contractual data is protected from weaker silent overwrite.
 - Imports are previewed and non-destructive by default.
-- Offline edits are not silently lost.
-- Money/date semantics follow their domain specs.
-- Required quality gates cannot be bypassed for a release.
-- Open portable backup/recovery is a first-class capability.
+- Offline/session/PWA transitions do not silently lose confirmed local work.
+- Financial/date/fact semantics follow their domain contracts.
+- Portable backup/restore is first-class.
+- Required quality/security gates cannot be bypassed.
 
 ---
 
 ## 4. Sources of truth
 
-Do not confuse these layers:
-
-- **Product truth:** normative documentation in Git.
+- **Product truth:** frozen/reviewed normative documentation in Git.
 - **Schema/code truth:** migrations and typed contracts in Git.
-- **Production wedding truth:** authorized Supabase production data.
-- **Offline working state:** IndexedDB/local queue on each device.
-- **Portable recovery truth:** validated `.mariage` exports.
-- **Legacy truth before V1 cutover:** existing spreadsheets/research sources.
+- **Production wedding truth:** authorized Supabase project data.
+- **Offline working state:** project-scoped IndexedDB/local queue.
+- **Portable recovery truth:** verified `.mariage` backups.
+- **Legacy pre-cutover truth:** existing spreadsheets/research files.
 
-After formal cutover, legacy sources become archival rather than independently edited sources of truth.
-
----
-
-## 5. What must never be committed
-
-Never add real:
-
-- guest names/contact details;
-- private partner notes/ratings/decisions;
-- real budget/payment data;
-- quotes/contracts/invoices/RIB-like sensitive documents;
-- production DB dumps;
-- private photos;
-- `.mariage` project backups;
-- production debug logs with PII;
-- Supabase service-role/secret keys;
-- authentication tokens.
-
-Examples/fixtures must be synthetic.
+After formal V1 cutover, legacy sources become read-only archives.
 
 ---
 
-## 6. Development flow after documentation merge
+## 5. Never commit real production/private data
 
-1. Identify the current implementation lot.
-2. Read its acceptance contract.
-3. Create a feature branch.
-4. Reference requirement IDs affected.
-5. Update spec first if behavior changes.
-6. Implement smallest coherent unit.
-7. Add applicable unit/property/integration/RLS/security/E2E/accessibility tests.
-8. Run fast local tests while iterating.
-9. Run full `npm run verify` before push once Lot 0 defines it.
-10. Open PR.
-11. CI runs complete required gates from clean state.
-12. Merge only when all blocking gates pass.
+Never commit real guest contact details, partner notes/ratings, budgets/payments, quotes/contracts/invoices, private photos, production dumps, `.mariage` backups, PII-bearing logs, service-role keys, auth tokens or equivalent secrets.
 
-No implementation lot may silently weaken an earlier invariant/security guarantee.
+Fixtures/examples are synthetic.
 
 ---
 
-## 7. How to decide when documentation is insufficient
+## 6. When documentation is insufficient
 
-If implementation encounters a question that materially affects:
+If a question materially affects user behavior, data semantics, security/privacy, synchronization, import/export, migration/compatibility or V1 scope and the answer is not specified:
 
-- user behavior;
-- data semantics;
-- security/privacy;
-- synchronization;
-- import/export;
-- compatibility/migration;
-- V1 scope;
+1. check `DEFERRED-DECISIONS.md`;
+2. if not intentionally deferred, treat it as a documentation defect;
+3. update the governing specification/requirement;
+4. create ADR if architectural;
+5. update acceptance verification.
 
-and the answer is not specified, do **not** pick silently.
-
-Check `docs/DEFERRED-DECISIONS.md`. If the choice is not intentionally deferred, create/update the specification or ADR before merging behavior.
+Do not pick silently.
 
 ---
 
-## 8. Current project phase
+## 7. Implementation flow after the gate opens
 
-The four design/documentation runs define the complete pre-code specification.
+Only after `FINAL-DESIGN-REVIEW.md` declares **implementation gate OPEN** and the documentation PR is merged:
 
-Once Run 4 is merged, the next permitted implementation work is:
+1. identify current lot;
+2. read its acceptance contract;
+3. create feature branch;
+4. reference requirement IDs;
+5. update spec first when behavior changes;
+6. implement smallest coherent unit;
+7. add required tests/security evidence;
+8. run local/full verification;
+9. merge only with required gates green.
 
-**Lot 0 — Repository and tooling**
-
-Do not jump directly to venue UI or production Supabase data.
-
-See:
-
-- `docs/IMPLEMENTATION-READINESS.md`
-- `docs/roadmap/LOT-ACCEPTANCE.md`
+The first implementation lot remains **Lot 0 — Repository and tooling**, but this file does not authorize starting it before the final review gate opens.
 
 ---
 
-## 9. Definition of product success
+## 8. Definition of success
 
-Either partner can open the application and quickly answer:
+Either partner can quickly answer:
 
 - What is done?
-- What is not done?
-- What is uncertain?
-- What is blocking us?
+- What is unknown/stale/conflicting?
+- What blocks us?
 - What are we waiting for?
 - What do we need to decide together?
-- What should I do now?
+- What should I/we do now?
 - What costs money and when?
-- Why did we make a previous decision?
+- What has been paid/committed?
+- Why did we make an important decision?
+- Is our project synchronized and recoverable?
 
-The interface remains simpler than the underlying model, and important data remains explainable, secure, recoverable and portable.
+The interface remains simpler than the underlying model, while critical data remains explainable, secure, portable and recoverable.
