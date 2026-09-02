@@ -1,195 +1,173 @@
 # Conceptual Entity Relationship Model
 
-This is the conceptual ERD for V1. The normative physical PostgreSQL reference is [`PHYSICAL-SCHEMA-V1.md`](PHYSICAL-SCHEMA-V1.md); versioned migrations implement that reference and may refine physical details only under the documented migration/specification rules.
+Status: **V1 conceptual model aligned with `PHYSICAL-SCHEMA-V1.md`**
+
+The physical schema is normative for SQL implementation; this document explains domain grouping and relationships.
 
 ```text
+auth.users
+   │
 profiles
-  │
-  └──< project_members >── projects
+   │
+   └──< project_members >── projects ──< project_invitations
                             │
-                            ├──< venues ──< venue_spaces
-                            │       │
-                            │       ├──< facts ──< fact_observations >── sources
-                            │       ├──< venue_offers ──< offer_components
-                            │       ├──< venue_availabilities
-                            │       ├──< media_links >── media
-                            │       ├──< document_links >── documents
-                            │       └──< contacts/interactions
+                            ├── user_project_preferences (per member)
+                            ├── project_reference_origins
+                            ├── wedding_date_options
                             │
-                            ├──< vendors
-                            │       ├──< facts
-                            │       ├──< vendor_offers ──< offer_components
-                            │       ├──< contacts
-                            │       ├──< interactions
-                            │       └──< document/media links
+                            ├── venues
+                            │    ├── venue_spaces
+                            │    ├── venue_offers ──< offer_components
+                            │    ├── venue_availabilities → date option
+                            │    ├── venue_access_routes → reference origin
+                            │    ├── contacts / interactions
+                            │    ├── facts / evidence
+                            │    └── media/document/tag links
                             │
-                            ├──< households ──< guests
+                            ├── vendors
+                            │    ├── vendor_offers ──< offer_components
+                            │    ├── contacts / interactions
+                            │    ├── facts / evidence
+                            │    └── media/document/tag links
                             │
-                            ├──< tasks
-                            │       ├──< task_dependencies
-                            │       └──< task_links → validated project entities
+                            ├── fact_definitions
+                            ├── facts
+                            │    └── fact_observations
+                            │          └──< observation_sources >── sources
                             │
-                            ├──< decisions
-                            │       ├──< decision_options
-                            │       ├──< decision_approvals
-                            │       └──< decision_links → validated project entities
+                            ├── guest_categories
+                            ├── households ──< guests
                             │
-                            ├──< budget_items
-                            │       ├──< payments
-                            │       └──< budget_links → validated project entities
+                            ├── seating_sections ──< seating_tables
+                            │                          └──< seating_assignments >── guests
                             │
-                            ├──< milestones
-                            ├──< fact_definitions
-                            ├──< sources
-                            ├──< media
-                            ├──< documents
-                            ├──< imports ──< import_changes
-                            ├──< external_identifiers
-                            ├──< activity_log
-                            └──< sync_mutation_receipts
+                            ├── member_entity_preferences
+                            ├── member_ratings
+                            │
+                            ├── tasks ──< task_dependencies / task_links
+                            ├── decisions
+                            │    ├── decision_options
+                            │    ├── decision_approvals
+                            │    └── decision_links
+                            ├── inbox_items
+                            │
+                            ├── budget_categories
+                            ├── budget_scenarios
+                            │    └──< budget_scenario_items >── budget_items
+                            │                                  ├── payments
+                            │                                  └── budget_links
+                            │
+                            ├── milestones
+                            │    ├── milestone_dependencies
+                            │    └── milestone_links
+                            │
+                            ├── documents / document_links
+                            ├── media / media_links
+                            ├── tags / entity_tags
+                            │
+                            ├── import_mapping_profiles
+                            ├── imports ──< import_changes
+                            ├── external_identifiers
+                            ├── activity_log
+                            └── sync_mutation_receipts
 ```
 
-## Core project entities
+## Project and membership
 
 ### `projects`
-
-One wedding workspace. Contains project-wide settings such as display name, locale, timezone, currency, target date and target guest count.
+One private wedding workspace. V1 production deployment intentionally supports the couple's single project.
 
 ### `project_members`
+Active authorized user→project relation and role. Also holds member activity cursor used for “since your last visit”.
 
-Links authenticated profiles/users to projects with a role and membership status. Membership is the basis of RLS authorization.
+### `project_invitations`
+Pre-membership, email-bound one-time invitation with only token hash persisted. It is not a substitute for Auth verification.
 
-### `profiles`
+### `user_project_preferences`
+Per-user UI preferences; not shared planning truth.
 
-User-facing identity metadata separate from auth provider internals.
+## Planning inputs
 
-## Venue domain
+### `wedding_date_options`
+Candidate/selected/rejected dates. One selected maximum. Venue availability and budget scenario can reference candidate dates.
 
-### `venues`
+### `project_reference_origins`
+Private origins used for contextual access/travel comparison.
 
-A physical venue candidate or selected venue. Contains stable identity/location/status fields rather than an ever-growing set of criterion columns.
+## Venues and vendors
 
-### `venue_spaces`
+Venue/vendor identity rows remain relatively stable while spaces, offers, availabilities, interactions, sources and facts represent changing detail.
 
-Distinct reception/ceremony/terrace/garden/kitchen/accommodation spaces attached to a venue. Capacity belongs to the relevant space when possible rather than only at venue level.
+Capacity belongs to the relevant venue space whenever known, not only a commercial venue-level number.
 
-### `venue_offers`
+### Access routes
+`venue_access_routes` stores origin/mode-specific travel observations so Paris→venue and TGV-station→venue are not collapsed into one ambiguous duration fact.
 
-Commercial pricing packages with validity/date/day rules, deposits/cautions and pricing components.
-
-### `venue_availabilities`
-
-Observed availability for candidate wedding dates, including options/holds and observation time.
-
-## Generic facts and provenance
+## Facts/evidence
 
 ### `fact_definitions`
-
-Project-visible typed criterion definitions such as external caterer, air conditioning, panoramic view or music end time.
+Project-configurable typed criterion definitions.
 
 ### `facts`
-
-The current semantic fact attached to a supported entity: state, retained value, retained observation and freshness metadata.
+One retained operational fact state/value per target+definition.
 
 ### `fact_observations`
+Append-oriented observations underneath the retained value.
 
-Append-oriented evidence observations that preserve individual values, evidence strength, source, time and import provenance.
+### `observation_sources`
+Many-to-many evidence links: one observation can cite multiple sources; one source can support multiple observations/facts.
 
-### `sources`
+## Guests and seating
 
-External or internal evidence: official site, quote, contract, email, phone-call note, visit observation, specialist directory or import source.
+### `guest_categories`
+Configurable stable guest grouping taxonomy.
 
-This structure is intentionally richer than one `value + source_url` field because conflicting/historical evidence must survive.
+### `households` / `guests`
+Invitation grouping + individual people, RSVP/probability/logistics.
 
-## Vendor domain
+### Seating
+V1 persists sections, tables and guest assignments. It is an operational non-visual model; graphical floor plan is post-V1.
 
-### `vendors`
+## Partner-specific opinions
 
-Generic supplier entity with `vendor_type` such as caterer, photographer, DJ, florist, transport or accommodation.
+`member_entity_preferences` and `member_ratings` keep individual favorites/notes/scores separate from shared objective facts. A partner cannot overwrite the other partner's rating row.
 
-Specialized properties use facts/offers rather than duplicating nearly identical supplier tables.
+## Tasks, decisions and Inbox
 
-### `contacts`
+Tasks represent actions/dependencies. Decisions represent alternatives/approvals/rationale. Inbox represents intentionally unstructured quick capture before conversion to a domain entity.
 
-Named contact methods/people related to a venue/vendor.
+## Finance
 
-### `interactions`
+### `budget_categories`
+Project taxonomy.
 
-Chronological contact history: email, phone call, visit, quote received, follow-up, etc.
+### `budget_scenarios`
+Named date/venue/guest assumptions; multiple coexist, at most one active operational scenario.
 
-## Guest domain
-
-### `households`
-
-Invitation/address grouping. A household can contain one or more guests.
-
-### `guests`
-
-Individual invitee with priority, probability, RSVP and limited useful logistics/meal metadata.
-
-## Work-management domain
-
-### `tasks`
-
-Actionable work with owner, due date, status, priority, dependencies, waiting/follow-up metadata and links to related entities.
-
-### `decisions`
-
-A question/options/rationale workflow distinct from tasks. Can require both primary owners to approve.
-
-## Finance domain
-
-### `budget_items`
-
-Expected/quoted/approved/contracted cost item with calculation method and scenario relevance.
+### `budget_scenario_items`
+Per-scenario inclusion/override without overwriting base budget items.
 
 ### `payments`
+Planned/actual cash movements including deposits, installments, refunds/returns. Refundable deposits are distinguishable from final cost.
 
-Actual/expected cash movements against budget items. Refundable deposits/cautions are distinct from final cost.
+## Planning/milestones
 
-## Files
+Milestones persist completion rules, dependencies and entity/task/decision links. Weighted progress is derived from this source state.
 
-### `media`
+## Files/media/tags
 
-Image/media metadata; may point to private Storage objects or remote source URLs. Originals and derivatives remain distinguishable.
+Documents/media are private or remote-reference metadata with link tables. Tags are project-scoped reusable labels.
 
-### `documents`
+## Import/sync
 
-Quotes, contracts, invoices, plans and other files. Stored privately when uploaded.
+Mapping profiles remember approved spreadsheet mappings. Imports/change rows preserve provenance/rollback. External identifiers make re-import idempotent and nested IDs parent-scoped. Mutation receipts support retry idempotence.
 
-`media_links` and `document_links` allow legitimate many-to-many relationships while enforcing same-project validation.
+## Same-project integrity
 
-## Imports and external identity
+Every project-owned ordinary relationship is enforceably same-project using composite foreign keys. Polymorphic links use database validation. RLS is mandatory but is not a replacement for relational integrity.
 
-### `imports`
+## Derived-data rule
 
-Import-session metadata: file hash, source, schema/mapping profile, summary and actor.
+Counts, totals, compatibility and readiness are derived from authoritative rows. They are not separate manually editable truths unless a documented invalidatable cache is later introduced.
 
-### `import_changes`
-
-Applied change lineage used for provenance and intelligent rollback.
-
-### `external_identifiers`
-
-Stable namespaced importer IDs mapped to internal entity UUIDs for idempotent re-import.
-
-## Activity and sync
-
-### `activity_log`
-
-Human-meaningful mutation history sufficient for “since your last visit,” decision history and recovery diagnostics without storing unnecessary sensitive payloads.
-
-### `sync_mutation_receipts`
-
-Server-side operation receipts/idempotence metadata for safe retries of local-first mutations.
-
-## Relationship rules
-
-- Every project-scoped row belongs to exactly one project, directly where the physical schema specifies it.
-- Cross-project foreign keys/links are forbidden.
-- Generic polymorphic links validate target type, existence and same-project ownership.
-- Normal entity deletion is soft first where defined.
-- Derived values are not independent authoritative entities unless a documented cache strategy exists.
-- Project isolation is enforced by RLS and tested with allow/deny cases.
-
-See [`PHYSICAL-SCHEMA-V1.md`](PHYSICAL-SCHEMA-V1.md) for concrete tables, columns, constraints, indexing baseline and RLS structure.
+See [`PHYSICAL-SCHEMA-V1.md`](PHYSICAL-SCHEMA-V1.md) for concrete columns/constraints and `../security/RLS-MATRIX-V1.md` for client authorization.
