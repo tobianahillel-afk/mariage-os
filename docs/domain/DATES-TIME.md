@@ -1,64 +1,95 @@
 # Date, Time and Timezone Rules
 
+Status: **Normative V1 temporal contract**
+
 ## Project timezone
 
-Each project has one canonical planning timezone. For the initial project this is expected to be `Europe/Paris`.
+Each project has one canonical planning timezone. Initial default: `Europe/Paris`.
 
 ## Distinct temporal concepts
 
-Do not collapse all temporal values into generic timestamps.
+Never collapse all temporal values into generic timestamps.
 
 ### Date-only
 
 Examples:
 
-- wedding date;
+- candidate/selected wedding date;
 - quote validity date;
 - RSVP deadline;
 - accommodation check-in date when time is irrelevant.
 
-Stored/transported as ISO date: `YYYY-MM-DD`.
+Stored/transported as ISO `YYYY-MM-DD`.
 
 ### Local time-only
 
 Examples:
 
-- ceremony start time;
-- music curfew time;
-- venue access time when paired with a known event date.
+- ceremony local start time;
+- access time;
+- music curfew when paired with event day-offset.
 
-Use explicit local-time semantics such as `HH:mm[:ss]`.
+Canonical form `HH:mm[:ss]`.
 
 ### Instant/timestamp
 
 Examples:
 
 - record creation;
-- source verification timestamp;
+- source verification;
 - synchronization acknowledgement;
 - audit event.
 
-Store as timezone-aware timestamp/instant, normally UTC in transport/storage and localized for display.
+Store as timezone-aware instant (`timestamptz`), transport ISO-8601, normally UTC, localize for display.
 
 ### Local date-time tied to event timezone
 
 Examples:
 
 - venue visit appointment;
-- payment deadline at a specific local clock time.
+- timed contractual deadline.
 
-Store enough information to reconstruct the intended local time in the project/event timezone.
+Store enough information to reconstruct intended local time in project/event timezone.
+
+## Candidate and selected wedding dates
+
+Before final selection, the project can contain several `wedding_date_options` with statuses:
+
+- `candidate`;
+- `selected`;
+- `rejected`;
+- `archived`.
+
+Exactly zero or one active option is selected. Selection is an atomic protected transition. Venue availability and budget scenarios may reference candidate options before final choice.
+
+Changing the selected date triggers documented dependency invalidation/recalculation. It does **not** rewrite fixed contractual deadlines.
+
+## Weekday integer convention
+
+Frozen V1 mapping in database, TypeScript and imports:
+
+| Integer | Day |
+|---:|---|
+| 0 | Sunday |
+| 1 | Monday |
+| 2 | Tuesday |
+| 3 | Wednesday |
+| 4 | Thursday |
+| 5 | Friday |
+| 6 | Saturday |
+
+Therefore canonical `weekday=6` means Saturday.
+
+If an imported source uses ISO weekday numbering (Monday=1 ... Sunday=7), mapping must explicitly convert to Mariage OS convention during preview. Never silently reinterpret.
 
 ## Midnight and next-day wedding events
 
-An event at `01:30` after a reception beginning the previous evening belongs operationally to the following calendar day.
+An event at `01:30` after a reception beginning the previous evening belongs to the following civil day.
 
-The model must not represent “music until 01:30” as an ambiguous time-only fact when comparison/calendar logic needs the associated end-day offset.
-
-Recommended representation for curfews:
+For operational time windows that can cross midnight, represent:
 
 - local time;
-- day offset relative to event start date where relevant.
+- day offset relative to event date.
 
 Example:
 
@@ -67,50 +98,59 @@ music_end_time = 01:30
 music_end_day_offset = 1
 ```
 
+Same rule applies to venue included end time and day-of schedule entries.
+
 ## DST
 
-Conversions involving instants must use IANA timezones, not hard-coded UTC offsets.
+Conversions use IANA timezones, never fixed UTC offset assumptions.
 
 `Europe/Paris` may be UTC+1 or UTC+2 depending on date.
 
+For a nonexistent/ambiguous local time around DST, UI/import must surface the ambiguity rather than silently shifting a contractual/event time.
+
 ## Locale
 
-UI default locale is `fr-FR` for formatting, while canonical machine formats remain ISO.
+Default display locale: `fr-FR`; canonical machine values remain ISO/normalized.
 
-Examples:
+Example:
 
-- display: `3 avril 2027`
-- stored date: `2027-04-03`
+- UI: `3 avril 2027`;
+- stored: `2027-04-03`.
 
 ## Imported dates
 
-Imports must detect/preview ambiguous formats.
+`03/04/2027` under confirmed `fr-FR` means 3 April 2027.
 
-For `03/04/2027` under a confirmed `fr-FR` context, interpretation is 3 April 2027.
+If metadata/content suggests another locale or confidence is insufficient, preview flags ambiguity and blocks silent commit for critical dates.
 
-If file metadata/content suggests another locale or ambiguity cannot be resolved confidently, the preview must flag the value.
+Spreadsheet serial dates must be interpreted through the workbook/date-system metadata and normalized before preview; raw serial number is never treated as an ISO date.
 
 ## Relative deadlines
 
-Milestones may be defined relative to the wedding date, for example `J-30`. Store the rule/offset, not only the currently calculated absolute date, when ongoing recalculation is intended.
+Milestones can be `J±N`. Persist the offset/rule if the date should recalculate with selected wedding date.
 
-## Freshness timestamps
+A manually fixed/contractual deadline remains fixed unless deliberately edited.
 
-Source/fact freshness should use actual verification timestamps/dates, not only entity `updated_at`.
+## Freshness
+
+Evidence freshness uses its own verification/observed timestamps, not entity `updated_at`.
 
 ## Client clocks
 
-Client clock values are useful for UX ordering but cannot be the sole authority for synchronization conflict order. Server revisions/acknowledgements remain authoritative where concurrency matters.
+Client clock can support UX ordering/drafts, but never decides synchronization truth on its own. Server revisions/acknowledgements control concurrency.
 
 ## Tests
 
-Temporal tests must include:
+Temporal suite includes:
 
-- DST transitions;
-- leap years;
+- weekday mapping including Saturday/Sunday pricing;
+- DST spring/fall transitions;
+- leap year;
 - month/year boundaries;
-- event end after midnight;
-- ambiguous imported dates;
-- project timezone conversion;
-- relative deadlines before/after date changes;
-- device timezone differing from project timezone.
+- after-midnight day offset;
+- ambiguous French/US imports;
+- Excel date systems/serials;
+- project/device timezone mismatch;
+- candidate→selected date transition;
+- date-change dependent recalculation;
+- fixed contractual deadlines unaffected by planning-date changes.
