@@ -15,7 +15,8 @@ Start with [`START-HERE.md`](START-HERE.md), not by browsing files randomly.
 - [`PRINCIPLES.md`](PRINCIPLES.md) — binding principles.
 - [`NON-GOALS.md`](NON-GOALS.md) — deliberate scope boundaries.
 - [`USER-FLOWS.md`](USER-FLOWS.md) — critical user journeys.
-- [`IMPLEMENTATION-READINESS.md`](IMPLEMENTATION-READINESS.md) — final design readiness review.
+- [`DOCUMENTATION-COMPLETENESS-CHECKLIST.md`](DOCUMENTATION-COMPLETENESS-CHECKLIST.md) — final pre-code documentation review.
+- [`IMPLEMENTATION-READINESS.md`](IMPLEMENTATION-READINESS.md) — final design readiness assessment.
 - [`DEFERRED-DECISIONS.md`](DEFERRED-DECISIONS.md) — intentionally deferred implementation choices.
 
 ---
@@ -31,6 +32,8 @@ Start with [`START-HERE.md`](START-HERE.md), not by browsing files randomly.
 - [`architecture/OFFLINE.md`](architecture/OFFLINE.md)
 - [`architecture/PWA-LIFECYCLE.md`](architecture/PWA-LIFECYCLE.md)
 - [`architecture/STORAGE.md`](architecture/STORAGE.md)
+- [`architecture/LOCAL-DATA-SCHEMA.md`](architecture/LOCAL-DATA-SCHEMA.md)
+- [`architecture/REPOSITORY-SERVICE-CONTRACTS.md`](architecture/REPOSITORY-SERVICE-CONTRACTS.md)
 - [`architecture/DEPENDENCY-GRAPH.md`](architecture/DEPENDENCY-GRAPH.md)
 
 ### Architecture Decision Records
@@ -47,6 +50,7 @@ Start with [`START-HERE.md`](START-HERE.md), not by browsing files randomly.
 ## Domain and data model
 
 - [`domain/ERD.md`](domain/ERD.md) — conceptual entity relationships.
+- [`domain/PHYSICAL-SCHEMA-V1.md`](domain/PHYSICAL-SCHEMA-V1.md) — reference PostgreSQL table/column design.
 - [`domain/DATA-DICTIONARY.md`](domain/DATA-DICTIONARY.md) — field-definition rules.
 - [`domain/IDENTIFIERS.md`](domain/IDENTIFIERS.md) — UUID/external ID/hash semantics.
 - [`domain/DATES-TIME.md`](domain/DATES-TIME.md) — civil dates/timestamps/timezones.
@@ -55,6 +59,7 @@ Start with [`START-HERE.md`](START-HERE.md), not by browsing files randomly.
 - [`domain/INVARIANTS.md`](domain/INVARIANTS.md) — non-negotiable integrity rules.
 - [`domain/FACTS-SOURCES.md`](domain/FACTS-SOURCES.md) — observations/provenance/retained values.
 - [`domain/CONFIDENCE-FRESHNESS.md`](domain/CONFIDENCE-FRESHNESS.md) — evidence and revalidation.
+- [`domain/DEFAULT-CRITERIA.md`](domain/DEFAULT-CRITERIA.md) — stable default venue/vendor criterion keys.
 - [`domain/DERIVED-DATA.md`](domain/DERIVED-DATA.md) — derived-value rules.
 - [`domain/DELETION-RETENTION.md`](domain/DELETION-RETENTION.md) — trash/archive/purge.
 - [`domain/VENUES.md`](domain/VENUES.md)
@@ -85,6 +90,7 @@ Start with [`START-HERE.md`](START-HERE.md), not by browsing files randomly.
 ## Import/export
 
 - [`import-export/FORMATS.md`](import-export/FORMATS.md)
+- [`import-export/CANONICAL-JSON-V1.md`](import-export/CANONICAL-JSON-V1.md)
 - [`import-export/MAPPING.md`](import-export/MAPPING.md)
 - [`import-export/DEDUPLICATION.md`](import-export/DEDUPLICATION.md)
 - [`import-export/MERGE.md`](import-export/MERGE.md)
@@ -169,6 +175,7 @@ Root [`../CONTRIBUTING.md`](../CONTRIBUTING.md), [`../ARCHITECTURE.md`](../ARCHI
 - [`roadmap/V1-SCOPE.md`](roadmap/V1-SCOPE.md)
 - [`roadmap/LOTS.md`](roadmap/LOTS.md)
 - [`roadmap/LOT-ACCEPTANCE.md`](roadmap/LOT-ACCEPTANCE.md)
+- [`roadmap/BACKLOG.md`](roadmap/BACKLOG.md)
 
 ---
 
