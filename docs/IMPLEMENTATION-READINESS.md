@@ -1,282 +1,146 @@
 # Implementation Readiness Review
 
-Status: **Final design-phase readiness assessment**
+Status: **DESIGN FROZEN; IMPLEMENTATION GATE CLOSED pending final architecture/product review**
 
-This document answers one question: **Can a developer with no prior conversation context begin implementing Mariage OS safely and consistently?**
+This document answers whether a developer with no prior conversation context can begin implementation safely and consistently.
 
-## Readiness result
+## Current result
 
-**YES — ready to begin Lot 0 after this documentation branch is reviewed and merged.**
+**NOT YET AUTHORIZED TO START LOT 0.**
 
-The specification is intentionally detailed enough that implementation does not need to reconstruct product intent from chat history.
+The V1 product/domain baseline is frozen and substantially implementation-ready, but the project is intentionally running one final cross-document architecture/product review before the gate opens.
 
-This does not mean every package, pixel or implementation helper is pre-selected. It means:
+The gate opens only when `FINAL-DESIGN-REVIEW.md` proves that:
 
-- product behavior is specified;
-- V1 boundary and non-goals are explicit;
-- routes/screens and core workflows are specified;
-- architecture boundaries are explicit;
-- PostgreSQL and local-data reference schemas are explicit;
-- domain semantics/invariants are explicit;
-- source/evidence/conflict behavior is explicit;
-- import/export/backup semantics are explicit;
-- security/privacy requirements are explicit;
-- test/quality/release gates are explicit;
-- implementation lots have objective exit criteria;
-- deliberate implementation-time choices are explicitly registered rather than hidden ambiguities.
+- no known BLOCKING/MAJOR contradiction remains;
+- frozen scope is consistently represented in product, routes, domain schema, local schema, security, tests and lots;
+- all required V1 behaviors have a persistence/derived-data model where needed;
+- every material external dependency/trust boundary has a failure/privacy/security contract;
+- all high-risk transitions are testable;
+- documentation entry points agree;
+- the Run 4 PR is mergeable/reviewed and contains no private production data/secrets.
 
 ---
 
-## Product specification — PASS
+## What is already ready
 
-Available:
+### Product/scope
 
-- master product specification / cahier des charges;
-- product mission and jobs-to-be-done;
-- two-owner collaboration model;
-- hard constraints including €0/month target;
-- explicit non-goals;
-- exact V1 scope and post-V1 backlog;
-- feature contracts including Auth/Onboarding and Settings/Diagnostics;
+- frozen master product specification;
+- V1/post-V1 boundary;
+- stable requirements catalog;
+- feature contracts;
 - route/screen contracts;
-- user flows;
-- wireframes/navigation/design system/forms;
-- 40 critical Given/When/Then acceptance scenarios;
-- requirements catalog with stable P0/P1/P2 IDs.
+- user flows/wireframes;
+- critical acceptance scenarios;
+- explicit deferred implementation choices.
 
-No critical V1 behavior intentionally relies only on prior chat memory.
+### Architecture
 
----
-
-## Architecture — PASS
-
-Available:
-
-- cloud/frontend architecture;
-- stack rationale;
-- trust boundaries;
-- source-of-truth/data ownership model;
-- local-first interaction architecture;
-- revision/idempotent sync/conflict contracts;
-- offline policy;
-- PWA/service-worker update lifecycle;
-- Storage lifecycle/orphan/quota architecture;
-- IndexedDB local working schema;
+- Cloudflare static frontend + Supabase architecture;
+- TypeScript/Vite/no-React V1 decision;
+- trust boundaries/data ownership;
+- local-first/sync/offline model;
+- PWA update lifecycle;
+- Storage lifecycle;
+- IndexedDB reference schema;
 - repository/service/provider boundaries;
-- business dependency/invalidation graph;
-- portability principles;
-- ADRs for the major architectural decisions.
+- dependency/invalidation rules;
+- portability ADRs.
 
-Implementation may choose small helper libraries only within these contracts.
-
----
-
-## Domain/data — PASS
-
-Available:
+### Domain/data
 
 - conceptual ERD;
-- physical PostgreSQL V1 reference schema with tables/columns/constraints/index/RLS baseline;
-- data-dictionary rules;
-- IDs/external IDs/hashes;
-- dates/time/timezone/after-midnight semantics;
-- exact money semantics;
-- lifecycle state machines;
-- 50 core invariants;
-- fact definitions/observations/sources/retained values;
-- confidence/freshness/revalidation;
-- default venue/caterer criteria registry and stable keys;
-- derived-data rules/dependency graph;
-- deletion/retention;
-- venue/vendor/guest/task/decision/budget/document/media contracts.
+- physical PostgreSQL V1 schema plus freeze addendum;
+- same-project integrity policy;
+- IDs/dates/time/money/state machines/invariants;
+- facts/observations/multiple sources/value types;
+- criterion definitions/evaluation;
+- venue/vendor/guest/tasks/decisions/finance/documents models;
+- date options, route origins/observations, ratings/preferences;
+- structured seating;
+- event timeline;
+- named budget scenarios;
+- Inbox/search support;
+- document version/contract-readiness support;
+- deletion/retention.
 
-Lot 1+ migrations implement rather than invent the physical schema.
+### Import/export/recovery
 
----
+- CSV/XLSX/canonical JSON semantics;
+- canonical V1 addendum;
+- parent-scoped nested external IDs;
+- mapping/dedup/merge/rollback;
+- mapping profiles/tags/categories;
+- portable `.mariage` format;
+- encrypted-backup contract;
+- migration/cutover strategy.
 
-## Import/export — PASS
+### Security/privacy
 
-Available:
+- controlled single-couple bootstrap;
+- secure partner invitation semantics;
+- MFA/session/re-authentication policy;
+- PostgreSQL/Storage RLS contract and table matrix;
+- same-project FK/link rules;
+- file/frontend/privacy/supply-chain controls;
+- threat model and ASVS framework;
+- remote-content privacy controls;
+- public-code/private-data policy.
 
-- CSV semantics;
-- XLSX semantics;
-- canonical JSON v1 logical contract with normalized shapes;
-- `.mariage` open backup architecture;
-- mapping rules;
-- locale parsing rules;
-- duplicate detection;
-- stable namespaced external IDs;
-- evidence-aware merge precedence;
-- preview/non-destructive defaults;
-- protected fields;
-- provenance/import history;
-- rollback after subsequent edits;
-- migration/cutover plan;
-- round-trip requirements;
-- export-missing/stale-research workflow.
+### Quality/operations
 
-Implementation still needs concrete machine-readable JSON Schema files and synthetic XLSX/CSV templates in Lot 4. Their semantics are no longer undefined.
-
----
-
-## Security/privacy — PASS for implementation start
-
-Available:
-
-- security architecture;
-- threat model;
-- authentication/MFA/session policy;
-- invitation/project-isolation behavior;
-- PostgreSQL RLS authorization contract;
-- Storage RLS/file security;
-- XSS/CSP/security-header requirements;
-- privacy/data-minimization policy;
-- public-code/private-data ADR;
-- supply-chain controls;
-- OWASP ASVS 5.0 verification-matrix framework;
-- security/adversarial test strategy;
-- incident/vulnerability-reporting process.
-
-Before production cutover the ASVS matrix must contain actual implementation/test evidence, not merely planned control mappings.
+- layered testing strategy;
+- coverage + mutation policy;
+- RLS/security/E2E/offline/backup/migration testing;
+- accessibility/performance/browser contracts;
+- free-tier behavior;
+- disaster recovery/incident process;
+- lots 0–12 with reconciled acceptance criteria.
 
 ---
 
-## Quality/testing — PASS for implementation start
+## Final review still required
 
-Available:
+The final review must explicitly cross-check these dimensions rather than assume they are correct because documents exist:
 
-- layered unit/property/integration/database/RLS/security/E2E strategy;
-- 100% lines/statements/functions/branches policy for defined in-scope business code;
-- mutation testing of critical engines;
-- synthetic/golden project fixture strategy;
-- 40 high-level acceptance scenarios;
-- accessibility contract;
-- browser/device support tiers;
-- performance budgets/reference project sizes;
-- offline/reconnect/session-expiry tests;
-- import/rollback/round-trip tests;
-- backup/restore/migration tests;
-- release Quality Gates.
-
-Lot 0 translates these specifications into executable configs/scripts/workflows.
-
----
-
-## Engineering/process — PASS
-
-Available:
-
-- coding standards;
-- application/service/repository/provider boundaries;
-- error taxonomy/recovery UX;
-- diagnostics without behavioral tracking;
-- DB/IndexedDB/import/backup migration policy;
-- CI/CD policy;
-- release process;
-- Definition of Done;
-- requirement traceability process;
-- contributing guide;
-- ADR process;
-- explicit deferred-decision register.
+1. **Product completeness** — every important couple workflow is represented and bounded.
+2. **Scope coherence** — V1/post-V1 wording agrees everywhere.
+3. **Navigation coherence** — every V1 feature has a discoverable route/flow and no orphan screen.
+4. **Persistence completeness** — every durable behavior has storage semantics; derived values are not mistaken for source data.
+5. **Relational integrity** — all project-owned relationships are same-project safe.
+6. **RLS coverage** — every table/bucket/function has explicit allowed/denied operations.
+7. **Local/cloud parity** — offline-capable entities/mutations can be represented in local schema/queue.
+8. **Sync semantics** — every collaborative mutation class has merge/conflict/idempotence behavior.
+9. **Import/export parity** — canonical schema/DB/domain identities align.
+10. **Finance correctness** — scenario/tax/payment/refund/contract links agree.
+11. **Guest/seating correctness** — probability/RSVP/household/seating invariants agree.
+12. **Venue decision correctness** — blocking criteria, facts, access, offers and ratings remain distinct.
+13. **Vendor/contract correctness** — offer/document/readiness semantics agree.
+14. **Timeline/date correctness** — date candidates, timezone, after-midnight and fixed/relative deadlines agree.
+15. **File/media lifecycle** — upload, dedup, derivatives, remote refs, versioning, purge and quota are complete.
+16. **Backup/recovery** — format, encryption, restore, migration and destructive-operation recovery agree.
+17. **Security/privacy** — threat model covers every entry point and privacy-sensitive external request.
+18. **Free-tier sustainability** — no open signup, accidental large upload or provider behavior silently creates a paid-risk path.
+19. **UX state completeness** — happy, loading, empty, offline, conflict, error, permission and destructive states are specified.
+20. **Accessibility/mobile** — no V1 feature requires hover/pointer-only/desktop-only interaction.
+21. **Testability** — every P0/P1 behavior can be objectively verified.
+22. **Implementation sequencing** — every frozen feature belongs to a lot and no lot requires an undeclared future dependency.
+23. **Operations/cutover** — project can safely become and cease being source of truth.
+24. **Documentation precedence** — no old normative sentence contradicts the frozen baseline.
+25. **Repository hygiene/mergeability** — no private artifacts, secrets or unresolved review/merge blockers.
 
 ---
 
-## Operations/recovery — PASS
+## Gate rule
 
-Available:
+`FINAL-DESIGN-REVIEW.md` must contain a finding register with severity/status/evidence. The implementation gate can change to **OPEN** only when:
 
-- free-tier/no-surprise-cost policy;
-- quota priority behavior;
-- backup policy;
-- open portable recovery format;
-- disaster recovery;
-- storage garbage collection;
-- diagnostics/integrity checking;
-- incident response;
-- cloud-outage degradation;
-- existing-data migration and source-of-truth cutover plan.
+- all BLOCKING and MAJOR findings are resolved;
+- remaining MINOR findings are either resolved or explicitly safe/non-semantic;
+- master spec, requirements, V1 scope, screen contracts, lots and checklists agree;
+- reviewer comments are resolved/responded to;
+- final PR consistency/hygiene check passes;
+- PR is merged into `main`.
 
----
-
-## Implementation plan — PASS
-
-Available:
-
-- ordered implementation Lots 0–12;
-- lot dependencies/goals;
-- per-lot deliverables;
-- per-lot test/security requirements;
-- objective exit criteria;
-- V1 release blockers;
-- cutover evidence package;
-- controlled post-V1 promotion process.
-
-**The next implementation action after merge is Lot 0, not feature UI.**
-
----
-
-## Public-repository hygiene — PASS at specification level
-
-- public-code/private-data policy is explicit;
-- `.gitignore` blocks common private artifacts as defense-in-depth;
-- contributing/security docs prohibit production PII/secrets;
-- public fixtures must be synthetic;
-- secret/PII scanning is required in Lot 0/CI.
-
-Repository privacy is not relied upon for runtime data security.
-
----
-
-## Deliberately deferred implementation details
-
-These are **not specification gaps**; they are intentionally assigned to named implementation lots and recorded in `DEFERRED-DECISIONS.md`:
-
-- exact npm/package versions;
-- final lint/formatter package selection;
-- exact supported browser minimum version numbers;
-- exact visual palette/font stack within accessibility/design constraints;
-- IndexedDB helper library vs native abstraction;
-- concrete parser packages;
-- concrete JSON Schema validator;
-- service-worker helper/manual implementation;
-- virtual-list implementation only if measured need exists;
-- exact provider quota usage data obtainable safely at implementation time.
-
-None of these may change documented product/security/data semantics silently.
-
----
-
-## Mandatory no-context reading path
-
-1. `README.md`
-2. `docs/START-HERE.md`
-3. `docs/PRODUCT-SPECIFICATION.md`
-4. `docs/REQUIREMENTS-CATALOG.md`
-5. `docs/roadmap/V1-SCOPE.md`
-6. `docs/architecture/*` + applicable ADRs
-7. relevant `docs/domain/*`
-8. relevant `docs/security/*`
-9. relevant `docs/quality/*`
-10. relevant `docs/features/*`
-11. `docs/roadmap/LOT-ACCEPTANCE.md`
-12. `docs/engineering/DEFINITION-OF-DONE.md`
-13. `CONTRIBUTING.md`
-
-Then implement only the next unfinished lot.
-
----
-
-## Documentation completeness evidence
-
-See `DOCUMENTATION-COMPLETENESS-CHECKLIST.md`.
-
-The design phase is considered complete when:
-
-- all four documentation runs are merged;
-- README/START-HERE/INDEX match the actual tree;
-- the completeness checklist is reviewed;
-- deliberate open choices are registered;
-- no known critical internal contradiction remains;
-- public-repository review finds no real wedding data/secrets.
-
-After that point, the project should **stop indefinite pre-code brainstorming**. New discoveries are handled through normal versioned specification/ADR updates triggered by implementation, tests or real couple usage.
+After that, the first permitted implementation work is Lot 0. Until then, **do not write Lot 0 code**.
