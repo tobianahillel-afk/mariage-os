@@ -1,201 +1,142 @@
 # Development Lots
 
-This roadmap organizes delivery by dependency and risk. Detailed lot exit criteria live in [`LOT-ACCEPTANCE.md`](LOT-ACCEPTANCE.md). Binding V1 scope lives in [`V1-SCOPE.md`](V1-SCOPE.md).
+Status: **Frozen V1 implementation sequence — not yet authorized to start**
 
-A later lot must not weaken security, integrity, import, offline or recovery guarantees established by an earlier lot.
+Detailed exit criteria live in `LOT-ACCEPTANCE.md`. Binding scope lives in `V1-SCOPE.md`.
 
----
+A later lot cannot weaken security, integrity, import, offline or recovery guarantees established earlier.
 
-## Documentation/design phase — COMPLETE after Run 4 merge
+## Documentation/design phase
 
-The design phase was intentionally executed in four review runs.
+Runs 1–3 are merged. Run 4 contains the frozen V1 specification plus final pre-implementation review.
 
-### Run 1 — Foundation ✅
-
-Delivered:
-
-- product definition;
-- principles and non-goals;
-- architecture overview/stack;
-- trust boundaries/data ownership;
-- local-first/sync/offline model;
-- navigation/interaction states;
-- Definition of Done;
-- initial implementation sequence.
-
-### Run 2 — Domain/data model ✅
-
-Delivered:
-
-- conceptual ERD;
-- data-dictionary conventions;
-- identifiers;
-- money/date/time semantics;
-- state machines;
-- 50 domain invariants;
-- venue/vendor/guest/task/decision/budget/document models;
-- facts/provenance/confidence/freshness;
-- derived data;
-- deletion/retention.
-
-### Run 3 — Security/quality/operations ✅
-
-Delivered:
-
-- security architecture/threat model;
-- Auth/MFA/session policy;
-- RLS authorization contract;
-- file/frontend/privacy/supply-chain security;
-- OWASP ASVS matrix framework;
-- unit/property/integration/RLS/security/E2E testing strategy;
-- 100% in-scope coverage policy;
-- mutation testing;
-- CI/CD quality gates;
-- backups/disaster recovery;
-- free-tier operations;
-- incident/release process.
-
-### Run 4 — Feature contracts/implementation readiness ✅ pending merge
-
-Delivered in the Run 4 branch:
-
-- master product specification/cahier des charges;
-- requirements catalog;
-- dashboard/venues/map/vendors/guests/budget/tasks/decisions/planning/documents feature contracts;
-- import/export contracts;
-- user flows/wireframes/design system/forms;
-- PWA/storage/dependency architecture;
-- coding/error/migration/diagnostic contracts;
-- accessibility/performance/browser support;
-- existing-data migration/cutover;
-- ADRs;
-- V1 boundary;
-- per-lot acceptance contracts;
-- implementation-readiness/deferred-decision registers.
-
-After Run 4 is merged, specification work changes from a design phase into normal versioned product documentation maintained alongside code.
+**No implementation lot starts until `FINAL-DESIGN-REVIEW.md` declares the gate OPEN and Run 4 is merged.**
 
 ---
-
-# Implementation roadmap
 
 ## Lot 0 — Repository and tooling
 
-Build the reproducible engineering environment:
+Build the reproducible engineering environment only:
 
 - Vite + TypeScript;
-- strict typecheck/lint/format;
-- Vitest/coverage/property testing;
-- mutation-test harness;
+- strict type/lint/format;
+- unit/property/coverage harness;
 - Playwright;
+- mutation-test harness;
 - local Supabase;
 - synthetic/golden seed project;
-- CI skeleton;
-- preview deployment;
+- CI/preview build;
 - environment/secret safeguards.
 
-**No production feature data yet.**
+No production wedding feature/data.
 
 ## Lot 1 — Identity, project and secure foundation
 
-- authentication;
-- project membership/invitation;
-- RLS baseline;
-- app shell/navigation;
-- repository/service/domain architecture;
-- local IndexedDB abstraction;
-- sync primitives/status;
-- diagnostics shell.
+- Supabase Auth integration;
+- controlled single-couple bootstrap;
+- secure partner invitation flow;
+- profiles/projects/members/invitations;
+- RLS + same-project relational integrity baseline;
+- protected shell/navigation;
+- IndexedDB/repository/service foundations;
+- sync operation/status primitives;
+- diagnostics/security setup shell;
+- safe logout/cache policy.
 
-No later domain should bypass these primitives.
+No later domain may bypass these primitives.
 
 ## Lot 2 — Venues core
 
 - venue CRUD/quick add;
-- status/history/rejection;
-- partner ratings/favorites;
-- spaces/capacity;
-- facts/observations/sources;
-- images/documents basics;
-- gallery/table/detail;
-- missing-info summary;
-- comparison;
+- code/status/rejection/history;
+- member ratings/favorites;
+- spaces/capacity/dimensions;
+- facts/observations/sources/value typing;
+- criterion evaluation/missing information;
+- offers/availability basics;
+- photos/documents basics;
+- access origins/routes basics;
+- gallery/table/detail/compare/visit;
 - deep links.
 
-Venue comes early because current research provides strong validation data.
+## Lot 3 — Tasks, decisions and Inbox
 
-## Lot 3 — Tasks and decisions
-
-- task ownership/status/dependencies;
-- waiting/blocked states;
-- joint decisions;
-- both-partner approvals;
-- rationale/alternatives;
+- tasks/owners/status/dependencies/waiting/blockers;
+- joint decisions/approvals/rationale/history;
 - discuss-together queue;
-- next-action primitives.
+- Inbox capture and idempotent conversion;
+- deterministic next-action inputs;
+- links to existing project entities.
 
 ## Lot 4 — Import/export foundation
 
-- canonical JSON schema v1;
-- CSV/XLSX parsing/export;
-- clipboard/pasted JSON where specified;
-- mapping/validation;
-- duplicate detection;
-- merge planning;
-- preview;
-- provenance/history;
-- rollback;
+- canonical JSON v1 + addendum machine schema;
+- CSV/XLSX/clipboard/pasted JSON;
+- parent-scoped nested external IDs;
+- mapping profiles;
+- validation/dedup/merge/preview;
+- provenance/history/rollback;
+- categories/tags import behavior;
 - research-missing-data export;
-- round-trip tests.
+- round-trip/hostile-file tests.
 
-## Lot 5 — Budget and payments
+## Lot 5 — Budget, scenarios and payments
 
-- budget model;
-- fixed/variable calculations;
-- quotes/contracts;
-- payment schedule;
-- deposits/refunds;
-- scenarios;
-- cash-flow summary.
+- budget categories/items;
+- exact pricing engine;
+- estimate/quote/approved/contracted semantics;
+- named scenarios with date/venue/guest/package assumptions;
+- tax treatment;
+- payment/deposit/refund/credit/final-balance semantics;
+- cash-flow views;
+- financial links and exports.
 
-## Lot 6 — Guests and households
+## Lot 6 — Guests, households and structured seating
 
-- household/person model;
-- priority/probability;
-- RSVP;
+- household/person/category model;
+- priority/probability/RSVP;
+- relationships/logistics;
 - expected/cumulative statistics;
-- bulk operations;
-- legacy spreadsheet migration/export.
+- bulk actions and legacy spreadsheet migration;
+- seating sections/tables/capacity/assignments;
+- seating validation/export.
 
-## Lot 7 — Vendors
+Graphical drag/drop seating remains post-V1.
 
-- generic vendor model/types;
+## Lot 7 — Vendors, commercial documents and contract readiness
+
+- generic vendor/types;
 - contacts/interactions;
-- quote lifecycle;
-- packages/inclusions;
-- caterer details;
+- quote lifecycle/offers/packages/components;
+- caterer-specific facts/inclusions;
 - venue compatibility;
-- files/follow-up workflow.
+- document supersession/version links;
+- contract readiness checklist;
+- waiting/follow-up integration.
 
-## Lot 8 — Dashboard and planning
+## Lot 8 — Dashboard, planning, timeline and search
 
-- milestones/phases;
+- phases/milestones/dependencies;
 - weighted progress;
-- blockers;
-- waiting items;
-- next action;
-- joint-decision summary;
-- upcoming deadlines/payments;
-- partner activity;
+- blockers/waiting/joint decisions;
+- partner activity cursor;
+- next-action ranking;
+- structured wedding-day timeline;
+- frozen timeline export;
+- global authorized search;
 - phase-aware dashboard.
+
+Dedicated advanced live day-of mode remains post-V1.
 
 ## Lot 9 — Map and access
 
-- coordinates;
-- map pins/filters;
-- route links;
-- TGV/accessibility facts;
-- graceful map failure/offline behavior.
+- venue coordinates;
+- pins/status filters;
+- selected venue card;
+- external directions;
+- multi-origin access presentation/TGV facts;
+- external-content privacy safeguards;
+- graceful map failure/offline fallback.
 
 ## Lot 10 — Offline/PWA hardening
 
@@ -204,52 +145,50 @@ Venue comes early because current research provides strong validation data.
 - durable queue/reconnect;
 - conflict UX;
 - media queue separation;
-- offline pinning;
-- PWA installation/update;
+- offline venue pinning;
+- install/update UX;
+- cross-project cache isolation;
 - real-device tests.
 
 ## Lot 11 — Backup, recovery and production readiness
 
-- `.mariage` backup;
-- full media archive option;
-- integrity verification;
-- restore;
-- historical migration fixtures;
+- structured/full `.mariage` export;
+- encrypted backup format implementation;
+- checksums/integrity verification;
+- restore/migrations;
 - production headers/security hardening;
+- complete RLS/security evidence;
 - quota protection;
+- incident diagnostics;
 - release candidate gates.
 
 ## Lot 12 — Existing-data migration and V1 cutover
 
-- migrate/reconcile current venue research;
-- migrate/reconcile guest spreadsheet;
-- migrate initial vendor research;
-- validate critical statistics/financials;
-- real-device acceptance;
-- archive legacy source files;
-- verify recovery export;
-- formally declare Mariage OS source of truth.
+- venue research migration/reconciliation;
+- guest spreadsheet migration/reconciliation;
+- vendor initial-data migration/reconciliation;
+- budget/statistical validation;
+- real-device partner acceptance;
+- legacy archival exports;
+- recovery export/restore drill;
+- formal source-of-truth declaration.
 
 ---
 
-## Post-V1 backlog
+## Explicit post-V1 examples
 
-Post-V1 by default:
-
-- visual seating-plan canvas;
+- graphical/automatic seating optimization;
 - advanced transport/hotel allocation;
-- dedicated wedding-day operations mode;
-- controlled guest/vendor sharing;
+- live wedding-day command-center mode;
+- guest portal/vendor temporary sharing;
 - push notifications;
-- AI/OCR-assisted document extraction;
-- native mobile application;
+- AI/OCR document extraction;
+- automatic Internet research inside app;
+- internal messaging;
+- native mobile app;
 - banking/payment integration;
-- internal messaging.
+- automated email/calendar-provider sync.
 
-Nothing enters V1 because it is attractive or easy. Scope changes require explicit spec/ADR review, dependencies, security/testing impact and revised cutover criteria.
+## Scope-change rule
 
----
-
-## Rule for implementation
-
-Before starting a lot, read its section in [`LOT-ACCEPTANCE.md`](LOT-ACCEPTANCE.md). Before considering it complete, demonstrate every exit criterion and all inherited Quality Gates.
+Nothing moves into/out of V1 silently. Scope changes require product/spec/requirement update, dependency/security/data/test review and updated lot/cutover criteria.
