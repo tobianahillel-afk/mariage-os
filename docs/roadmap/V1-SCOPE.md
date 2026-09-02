@@ -1,273 +1,309 @@
 # V1 Scope
 
-Status: **Binding scope for the first production cutover**
+Status: **Binding scope for first production cutover — freeze candidate**
 
-V1 is not a prototype. It is the first version considered safe and useful enough to replace fragmented wedding-planning sources as the couple's operational source of truth.
-
-V1 scope is intentionally broad enough to run the wedding project, but narrow enough to avoid building a generic project-management platform.
-
----
+V1 is not a prototype. It is the first version safe/useful enough to replace fragmented wedding-planning sources as the couple's operational source of truth.
 
 ## V1 outcome
 
-At V1 cutover both partners can securely use Mariage OS from supported phone/tablet/desktop devices to:
+Both partners can securely use Mariage OS from supported phone/tablet/desktop devices to:
 
-- understand wedding status;
-- manage and compare venues;
-- manage vendors including caterers;
-- manage guests/households and attendance statistics;
-- manage tasks, waiting items and joint decisions;
-- track budget, commitments, payments and deadlines;
-- store/link documents and photos;
+- understand status/next action;
+- compare venues and date options;
+- manage vendors/caterers;
+- manage guests/households/RSVP and a reliable basic seating plan;
+- manage tasks, Inbox capture and joint decisions;
+- track named budget scenarios, commitments, payments and deadlines;
+- store/link documents/photos/evidence;
+- search project data quickly;
 - import/export existing/new data safely;
 - work through short offline periods and synchronize safely;
-- recover the project from a validated portable backup.
+- recover from a validated portable backup.
 
 ---
 
-## Required V1 capabilities
+# Required V1 capabilities
 
-### Platform foundation
+## Platform foundation
 
 - Vite + TypeScript static frontend.
-- Cloudflare Pages deployment.
+- Cloudflare Pages.
 - Supabase Auth/PostgreSQL/Storage/Realtime.
-- private project membership.
-- RLS for all project-owned data.
-- local IndexedDB working state.
-- synchronization queue and conflict model.
-- PWA manifest/service worker.
+- single-couple closed production bootstrap.
+- two private owner accounts.
+- RLS all project-owned data/storage.
+- same-project relational DB constraints.
+- IndexedDB local working state.
+- queued sync/conflict model.
+- PWA manifest/service worker/version lifecycle.
 - diagnostics/version information.
 
-### Authentication/security
+## Authentication/security
 
-- production authentication.
-- invitation into project.
-- two owner accounts.
-- MFA/TOTP support and owner rollout according to security spec.
-- safe session expiry/re-auth flows.
-- secure production headers/CSP.
-- no production secrets in client/repository.
-- mandatory RLS/security tests.
+- verified email/password authentication.
+- controlled first-owner bootstrap.
+- one-time hashed partner invitation.
+- unrestricted signups disabled after owner bootstrap.
+- project creation locked against unrelated public users.
+- mandatory owner TOTP MFA before real-data cutover.
+- session/re-auth recovery flows.
+- logout pending-work safeguard + private local-cache purge.
+- CSP/security headers/no client secrets.
+- exact RLS matrix + allow/deny tests.
 
-### Venues
+## Project setup/date/access origins
 
-- CRUD/minimal quick add.
-- human code and stable ID.
-- gallery/table/detail views.
-- lifecycle status/rejection reason/history.
-- partner favorites/ratings.
+- project locale/timezone/currency.
+- zero/several candidate wedding dates.
+- explicit selected date transition.
+- target guest count.
+- configurable venue criteria.
+- one/several private reference origins for access comparison.
+
+## Venues
+
+- quick add/CRUD.
+- human code + UUID/external-ID support.
+- gallery/table/detail/compare.
+- lifecycle/rejection/history.
+- independent partner favorites/ratings/personal notes.
 - spaces/capacities/dimensions.
-- configurable facts/criteria.
-- source observations/confidence/freshness.
-- missing-information view.
-- offers/date pricing.
-- quote/contact tracking basics.
-- photos: remote references + private uploaded photos.
-- documents.
-- comparison of up to practical small shortlist.
-- coordinates/map integration.
+- configurable facts/observations/multi-source evidence/confidence/freshness.
+- missing-information/verification workflow.
+- offers/date pricing/tax semantics.
+- candidate-date availability observations.
+- contact/interaction/quote tracking.
+- contextual access routes/TGV facts.
+- remote marketing photos + private uploaded originals.
+- documents/tags.
+- visit workflow/offline pinning.
 
-### Vendors
+## Vendors
 
-- generic vendor CRUD.
-- vendor types.
-- contacts/interactions.
-- quotes/offers.
-- caterer-specific facts/inclusions.
-- linked files.
-- linked tasks/waiting state.
+- generic vendor CRUD/types/status.
+- contacts/interactions/follow-ups.
+- offers/components/tax semantics.
+- caterer-specific criteria/inclusions.
+- linked files/tasks/tags.
+- partner opinion support where relevant.
 
-### Guests
+## Guests
 
-- household + person model.
-- group/category.
-- priority.
-- attendance probability.
-- RSVP status.
+- household/person model.
+- configurable guest categories/groups.
+- priority + attendance probability.
+- RSVP lifecycle.
 - partner/child grouping.
-- expected-attendance statistics.
-- cumulative priority statistics.
+- expected/cumulative priority statistics.
+- transport/accommodation/dietary logistics where useful.
 - bulk import/export.
-- basic logistics/dietary notes.
 
-### Tasks
+## Basic seating plan
 
-- personal/joint/third-party owner semantics.
+- configurable seating sections.
+- tables/capacities.
+- one active assignment per guest.
+- unassigned/over-capacity readiness checks.
+- RSVP invalidation handling.
+- table/alphabetical/section export + print.
+- offline structured access/edits.
+
+A graphical drag-and-drop floor-plan canvas and automatic optimization remain post-V1.
+
+## Tasks
+
+- member/both/third-party/unassigned ownership.
 - todo/in-progress/waiting/blocked/done/cancelled.
-- due dates and priorities.
-- linked entities.
-- dependencies/blocker semantics.
-- follow-up date for waiting items.
-- next-action prioritization inputs.
+- due date/priority/blocker/follow-up.
+- links/dependencies/cycle prevention.
+- next-action inputs.
 
-### Decisions
+## Inbox/quick capture
 
-- question/options.
-- linked entities.
-- individual approvals.
-- require-both mode.
+- fast text/URL/hint capture from global `+`.
+- offline persistence.
+- explicit idempotent conversion to domain entity.
+- duplicate detection before conversion.
+- archive/discard/recovery.
+
+## Decisions
+
+- question/options/links.
+- owner-specific approvals.
+- require-all-owners mode.
 - final outcome/rationale.
-- locked/final lifecycle.
-- retained alternatives/history.
+- lock/reopen/history.
+- retained alternatives.
 - `discuss together` queue.
 
-### Budget/payments
+## Budget/payments
 
-- categories/items.
-- fixed and variable pricing modes required by spec.
-- estimate/quote/approved/contracted states.
-- payment schedule.
-- paid/remaining views.
-- refundable deposit distinction.
-- cash-flow upcoming deadlines.
-- scenario recalculation by guest count/date where inputs exist.
+- configurable categories/items.
+- fixed + supported variable formulas.
+- named scenarios with date/venue/guest assumptions.
+- exactly one optional active operational scenario.
+- minimum/probable/maximum/custom scenario classes.
+- quote/approved/contracted amounts.
+- tax included/excluded/unknown semantics.
+- nonrefundable deposit/installments/final balance.
+- refundable security deposit separated from final cost.
+- payment/refund/credit/return lifecycle including partial refunds.
+- due/overdue/paid/remaining/cash-flow views.
 
-### Planning/dashboard
+## Planning/dashboard
 
-- wedding date/project timezone settings.
-- phases/milestones.
-- weighted progress.
-- blockers.
-- waiting items.
-- next action.
-- joint decisions.
-- upcoming tasks/payments.
-- meaningful partner activity.
-- phase-aware prioritization basics.
+- phases + weighted milestones.
+- milestone dependencies/completion rules.
+- relative vs fixed deadlines.
+- blockers/waiting/next action.
+- joint decisions/upcoming tasks/payments.
+- meaningful partner changes using per-member activity cursor.
+- phase-aware priorities.
+- final seating readiness.
+- final operational print/export snapshot capability.
 
-### Documents/media
+## Search
+
+- project-scoped global search for venues/vendors/guests/tasks/decisions/document metadata/Inbox.
+- safe deep links.
+- cached-only offline search disclosure.
+- no third-party analytics/semantic-search dependency.
+
+## Documents/media/tags
 
 - private document upload/linking.
-- venue/vendor document association.
-- remote photo references.
-- private photo originals.
-- thumbnails/previews.
-- duplicate hash support.
-- orphan/incomplete upload safety.
+- remote images + private archived copies.
+- original/preview/thumbnail semantics.
+- duplicate hash/incomplete upload/orphan cleanup.
+- privacy-safe external-image loading behavior.
+- configurable generic tags.
 
-### Map/access
+## Map/access
 
-- stored venue coordinates.
+- stored coordinates.
 - status/filter pins.
-- basic venue card from map.
+- basic map venue card.
 - external route link.
-- stored access/TGV facts.
-- graceful network/offline map failure.
+- reference-origin contextual access observations.
+- TGV/transport facts.
+- graceful offline/map-provider failure.
 
-### Import/export
+## Import/export
 
-- CSV.
-- XLSX.
-- canonical JSON.
-- clipboard table/pasted JSON entry where specified.
-- type/schema detection.
-- mapping preview.
-- validation.
-- duplicate detection.
-- non-destructive merge.
-- provenance.
-- import history.
-- rollback semantics.
+- CSV/XLSX/canonical JSON/clipboard/pasted JSON.
+- schema/domain detection.
+- saved mapping profiles.
+- locale/type normalization.
+- preview/validation.
+- duplicate detection + parent-scoped external IDs.
+- non-destructive evidence-aware merge.
+- protected-field rules.
+- provenance/history/rollback.
+- categories/tags/date/scenario/seating support.
 - export by major module.
 - research-missing-data export.
 
-### Backup/recovery
+## Backup/recovery
 
-- structured `.mariage` backup.
-- optional full media/doc archive.
-- manifest/schema version.
-- checksums/integrity validation.
-- restore into a controlled target.
-- supported-old-version migration fixtures.
+- documented `.mariage` ZIP-compatible plain format.
+- optional media/doc complete archive.
+- schema/version/checksums.
+- optional password-protected AES-256-GCM client-side container per `operations/BACKUP-FORMAT.md`.
+- inspect/verify without mutation.
+- restore into controlled recovery target.
+- historical version fixtures.
 
-### Offline/local-first
+## Offline/local-first
 
-- local cached shell.
-- essential cached project data.
-- queued structured edits.
-- restart-safe pending queue.
-- reconnect.
-- explicit conflicts.
-- session-expiry preservation.
-- selected/pinned venue visit data offline.
+- cached application shell.
+- essential project data cache.
+- durable structured mutation queue.
+- restart/session-expiry survival.
+- reconnect/idempotence/explicit conflicts.
+- pinned venue-visit data.
+- private local cache purged after safe logout.
 
-### Quality/operations
+## Quality/operations
 
 - CI Quality Gate.
-- 100% in-scope business-code coverage policy.
+- strict TypeScript/lint/format.
+- 100% in-scope business-code lines/statements/functions/branches.
 - mutation testing critical engines.
-- unit/property/integration/RLS/security/E2E test suites.
-- browser/device support matrix.
-- accessibility checks.
-- performance budgets.
-- backup/recovery drills in tests.
-- free-tier quota behavior.
+- unit/property/integration/DB/RLS/security/E2E/offline/import/backup/migration tests.
+- accessibility/performance/browser-device budgets.
+- secure supply chain/secret scanning.
+- zero-cost quota behavior.
+- disaster/incident runbooks.
 
 ---
 
-## Explicitly post-V1 unless promoted by ADR
+# Explicitly post-V1 unless promoted by ADR/spec
 
-The following are useful but not required for source-of-truth cutover:
-
-- visual drag-and-drop seating-plan canvas;
+- graphical drag/drop seating-floorplan canvas;
 - automatic seating optimization;
 - advanced per-guest shuttle scheduling;
-- hotel-room block allocation engine;
-- dedicated wedding-day operations mode;
+- hotel room-block allocation engine;
+- rich dedicated wedding-day operations app mode;
 - public guest portal;
 - temporary vendor-sharing links;
 - push notifications;
 - AI/OCR automatic contract/quote extraction;
-- automatic internet venue research from inside the application;
-- messaging/chat inside Mariage OS;
-- native App Store/Play Store application;
-- payments/banking integration;
+- automatic web venue research from inside Mariage OS;
+- internal messaging/chat;
+- native App Store/Play Store apps;
+- banking/payment integration;
 - automated email sending;
-- full calendar provider synchronization;
-- marketplace/vendor discovery product.
-
-The data model should avoid preventing these future additions, but V1 implementation must not prematurely build them.
-
----
-
-## V1 release blockers
-
-V1 may not cut over if any of the following is true:
-
-- known cross-project access is possible;
-- any required project table/bucket lacks verified RLS;
-- production secret appears in repository/client;
-- silent local-edit loss is reproducible;
-- supported backup restore is broken;
-- existing-data import is not reversible/reviewable;
-- supported financial calculation is known incorrect;
-- critical guest-statistic calculations differ from validated reference without resolution;
-- open Critical/High security defect remains;
-- both partner accounts cannot operate on real supported devices;
-- production data cannot be exported independently;
-- required tests/quality gates are not green;
-- free-tier design has a known automatic paid-overage path;
-- the application cannot explain sync errors/pending state to the user.
+- full calendar-provider synchronization;
+- public multi-couple SaaS/project creation;
+- marketplace/vendor discovery.
 
 ---
 
-## Cutover evidence package
+# V1 release blockers
 
-Before declaring V1 live, retain evidence of:
+No cutover if any is true:
+
+- cross-project read/write/reference possible;
+- required table/bucket lacks verified RLS;
+- unrestricted public users can consume production by creating projects;
+- secret/service-role exposed;
+- both owners not MFA/recovery ready;
+- silent local-edit loss reproducible;
+- safe logout can lose pending work or expose prior user's cache;
+- backup validation/restore broken;
+- existing-data import not reviewable/recoverable;
+- supported financial or guest calculation known incorrect;
+- payment/refund/scenario semantics unresolved;
+- seating finalization can accept duplicate/overcapacity invalid state;
+- open Critical/High security defect;
+- both partner accounts fail on supported real devices;
+- project cannot be portably exported;
+- mandatory tests/gates not green;
+- known automatic paid-overage path;
+- sync/pending/conflict state not understandable;
+- unresolved BLOCKING/MAJOR documentation-audit finding affects implemented V1 behavior.
+
+---
+
+# Cutover evidence package
+
+Retain:
 
 1. release commit/version;
-2. complete passing CI run;
-3. RLS/security verification;
-4. synthetic golden-project E2E result;
-5. real-device smoke test checklist;
-6. backup export + integrity check + restore test;
-7. imported venue reconciliation summary;
-8. guest spreadsheet reconciliation summary;
-9. vendor initial-data reconciliation summary;
-10. budget/statistics validation against trusted reference inputs;
-11. production owner MFA/account-recovery verification;
-12. pre-cutover legacy archive;
-13. V1 `.mariage` recovery export.
+2. complete passing CI;
+3. RLS/security verification matrix;
+4. golden synthetic E2E;
+5. real-device smoke tests;
+6. backup export/integrity/restore test;
+7. encrypted-backup test where enabled;
+8. venue reconciliation;
+9. guest spreadsheet/statistics reconciliation;
+10. vendor reconciliation;
+11. budget/payment/scenario reference validation;
+12. seating assignment validation/export test;
+13. both owner MFA/recovery verification;
+14. production signup/project-creation lock verification;
+15. pre-cutover legacy archive;
+16. V1 `.mariage` recovery export.
 
 Only then is Mariage OS the operational source of truth.
