@@ -1,132 +1,168 @@
 # Data Dictionary Rules
 
-The physical schema will be implemented through migrations, but every field must follow the conventions in this document.
+Status: **Normative V1 field-semantics convention**
 
-## Every field specification must define
+The physical schema is implemented through migrations, but every field/DTO/import property follows these conventions unless a more specific normative contract deliberately overrides it.
 
-- technical name;
-- user-facing label where applicable;
-- owning entity;
-- data type;
+## Every field specification defines as applicable
+
+- stable technical name;
+- localized user label;
+- owning entity/domain;
+- data type/value shape;
 - semantic meaning;
 - unit/format;
-- nullable/required behavior;
-- default value if any;
+- required/nullable/missing behavior;
+- default only when semantically safe;
 - validation constraints;
-- whether it is user-entered, imported, derived or system-managed;
+- source classification: user-entered/imported/observed/derived/system;
 - confidentiality class;
-- freshness policy if relevant;
-- import/export mapping if relevant;
-- indexing needs if relevant;
-- state-machine or invariant constraints if relevant.
+- freshness/evidence policy;
+- import/export mapping;
+- index/query needs;
+- lifecycle/invariant/authorization constraints.
 
-## Null semantics
+## Missing, null, unknown and empty are distinct
 
-`null` means absence/unknown unless a field-specific rule says otherwise.
+Do **not** use a global rule `null = unknown`.
 
-Do not overload `false`, `0`, empty string or empty array to mean “unknown.”
+### Canonical/import object property missing
+Means the producer supplied **no opinion/change** for that property. Ordinary merge leaves existing value unchanged.
 
-## Enumerations
+### `null`
+Means explicit absence **only when that field's schema defines nullable absence semantics**. It does not universally mean unknown, delete or reset.
 
-Enumerations must be centrally defined, versioned and documented. Display labels may change without changing stable stored codes.
+### Fact `unknown`
+A known criterion/fact exists but its current value is unknown. Represent through fact state, not an arbitrary `null` convention.
 
-Example:
+### Empty string/array
+A valid empty value only where field semantics allow it. Never silently substitute for unknown/deleted state.
 
-```text
-stored: quote_requested
-display fr-FR: Devis demandé
-```
+### `false` / `0`
+Real known values, never unknown sentinels.
 
-## Text fields
+These rules must align with canonical JSON import semantics and forms.
 
-Text fields have documented maximum lengths. Long free-text notes are separate from identifiers/labels to avoid accidental oversized payloads.
+## Enumerations/codes
 
-User-controlled text is always treated as text, never executable HTML.
+Stored codes are centrally defined/versioned/documented. Localized labels may change without changing machine value.
+
+No new semantic status is invented from UI wording alone.
+
+## Text
+
+Text fields define reasonable lengths at DB/schema/form boundaries. Long notes are separated from labels/IDs where useful.
+
+User-controlled text is data, never executable HTML. Normalization must not silently destroy meaningful names/accents.
 
 ## Numbers
 
-Numbers must define unit and domain constraints.
+Every number defines unit/domain constraints, e.g.:
 
-Examples:
+- area: decimal m² >= 0 or >0 according to field;
+- capacity: integer >=0;
+- probability: decimal [0,1];
+- rating: defined range, e.g. [0,10];
+- day offset: bounded integer;
+- quantity: exact decimal where fractional unit is meaningful.
 
-- `area_m2`: decimal >= 0
-- `capacity_seated`: integer >= 0
-- `probability`: decimal in [0,1]
-- `rating_10`: decimal in [0,10]
+Do not attach one ambiguous raw numeric field to values with different units.
 
 ## Money
 
-Money uses integer minor units or PostgreSQL numeric/decimal semantics according to `MONEY.md`. JavaScript floating-point arithmetic must not be the authoritative financial representation.
+V1 authoritative money is **integer minor units (`bigint`/safe exact integer abstraction) + explicit ISO currency** as frozen in `MONEY.md` and physical schema.
 
-## Dates and times
+JavaScript binary floating-point decimal currency is never authoritative. Display decimal strings are formatting only.
 
-Date-only values, local times and timestamps are distinct types/concepts. See `DATES-TIME.md`.
+## Taxes
+
+Commercial amounts that require tax semantics distinguish `included`, `excluded`, `unknown`, `not_applicable`. Unknown tax treatment is not guessed.
+
+## Dates/times
+
+Date-only, local time, local time + day offset and absolute timestamp are different semantic types. See `DATES-TIME.md`.
+
+Weekday integer V1 mapping is 0=Sunday ... 6=Saturday.
 
 ## IDs
 
-Internal IDs are stable UUIDs. Human codes such as `S32` are not database primary keys. See `IDENTIFIERS.md`.
+- internal entity ID = stable UUID;
+- human code such as `S32` = user-facing identifier, not PK;
+- import external ID = source-namespace identity governed by `IDENTIFIERS.md`/canonical contract;
+- nested external IDs can be parent-scoped;
+- hashes identify content/inputs, not user/domain identity unless explicitly specified.
 
-## Metadata fields
+## Project ownership metadata
 
-Mutable project entities generally include:
+Project-owned relational rows contain/validate `project_id` according to physical schema. Parent-child project ownership cannot be inferred solely from client payload.
 
-- `id`
-- `project_id`
-- `created_at`
-- `created_by`
-- `updated_at`
-- `updated_by`
-- `revision` or equivalent concurrency token
-- soft-deletion metadata where applicable
+Collaborative rows generally expose:
 
-Exact implementation may be centralized/triggered but semantics must remain available.
+- ID/project ID;
+- created/updated timestamp/actor;
+- revision/concurrency token;
+- soft-delete metadata where applicable.
+
+System-managed fields are protected from arbitrary client update.
 
 ## Confidentiality classes
 
-Every meaningful field belongs to a class defined later in the privacy/security documentation. Initial classes:
+Use privacy/security classes such as:
 
-- PUBLIC_REFERENCE
-- PRIVATE_PROJECT
-- PERSONAL
-- FINANCIAL
-- SENSITIVE_DOCUMENT
-
-Examples:
-
-- venue official website: PUBLIC_REFERENCE
-- couple's private venue comment: PRIVATE_PROJECT
-- guest phone: PERSONAL
-- payment amount: FINANCIAL
-- signed contract: SENSITIVE_DOCUMENT
-
-## Derived fields
-
-A derived field must specify its inputs and recalculation rules.
+- `PUBLIC_REFERENCE`;
+- `PRIVATE_PROJECT`;
+- `PERSONAL`;
+- `FINANCIAL`;
+- `SENSITIVE_DOCUMENT`.
 
 Examples:
 
-- `remaining_to_pay = contracted_total - net_paid`
-- `expected_guest_count = sum(attendance_probability)` subject to guest status rules
+- official venue URL = public reference;
+- couple rating/note = private project;
+- guest phone/address = personal;
+- payment amount = financial;
+- signed contract = sensitive document.
 
-Derived values must not drift from independent manually maintained copies.
+Classification affects export/log/cache/external-request behavior, not only visual labeling.
 
-## Sourceable fields
+## Source vs derived
 
-Important factual fields may be represented through the facts/provenance subsystem rather than fixed columns.
+A derived value specifies inputs/recalculation/invalidation and is not independently editable truth.
 
-A field requiring evidence must be able to represent:
+Examples:
 
-- current retained value;
-- unknown/conflict state;
-- confidence/verification level;
-- observed date;
-- source links;
-- historical observations where necessary.
+- remaining contractual balance;
+- expected guest attendance;
+- compatibility output;
+- milestone progress;
+- seating readiness;
+- next action.
 
-## Import/export names
+If cached, dependency/version metadata must allow safe invalidation/rebuild.
 
-Canonical machine-readable import names use stable ASCII snake_case identifiers, independent of localized UI labels.
+## Sourceable facts
 
-## Schema change rule
+Important variable factual attributes use the facts/evidence subsystem when appropriate, supporting:
 
-Changing the meaning of an existing stored field is considered a migration/compatibility event and requires documentation and tests. Reusing an old field name for a new semantic meaning is forbidden.
+- semantic state;
+- typed retained value;
+- multiple observations;
+- multiple sources per observation;
+- verification/confidence/freshness;
+- conflict/history.
+
+A broken source never converts a known historical observation into “never existed”.
+
+## Personal opinions
+
+Member ratings/preferences are member-scoped opinion data, not shared fact values. One member cannot overwrite another's opinion.
+
+## Import/export machine names
+
+Canonical JSON property names use documented camelCase schema; stable domain/criterion keys use their defined machine convention (commonly snake_case). CSV/XLSX labels can be localized/mapped.
+
+Do not infer that every DB snake_case column is automatically a public canonical JSON field.
+
+## Schema/semantic change rule
+
+Changing field meaning/type/null semantics/units/status interpretation is a migration/compatibility event and requires governing documentation + tests. Reusing an old name for a new semantic meaning is forbidden.
