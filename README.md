@@ -1,73 +1,129 @@
 # Mariage OS
 
-Mariage OS is a private, collaborative wedding-planning application designed for a couple to make decisions quickly, track progress from start to finish, centralize evidence and documents, and keep a reliable view of budget, guests, venues, vendors, tasks, decisions and deadlines.
+Mariage OS is a private, collaborative wedding-planning application for a couple. It centralizes venues, vendors, guests, budget, documents, tasks, decisions, evidence and planning while remaining simple enough to answer one question quickly: **what matters next?**
 
-## Status
+## Project status
 
-**Current phase: specification and architecture only.**
+**Design/specification phase: complete in documentation Run 4, pending merge/review.**
 
-No production feature should be implemented until the foundational documentation, data model, security model, quality gates and delivery lots are approved.
+After Run 4 is merged, implementation starts at **Lot 0 — Repository and tooling**. No real wedding data is migrated until V1 reaches the explicit cutover gates.
 
-## Product goals
+The project is intentionally specification-first: architecture, security, data semantics, import/backup behavior and test gates are documented before feature code.
 
-Mariage OS must let two partners answer, in under 30 seconds:
+## Product objective
 
-1. Where are we?
-2. What is already decided?
-3. What is still unknown?
-4. What is blocking us?
-5. What should we do next?
-6. Who owns that action?
-7. When is it due?
-8. What is the current budget, committed amount and paid amount?
-9. Which facts are verified, uncertain or contradictory?
-10. What do we need to decide together?
+Either partner should be able to open Mariage OS and quickly understand:
 
-The application is a **decision-and-action system**, not merely a database.
+1. where the wedding project stands;
+2. what is decided;
+3. what remains unknown or unreliable;
+4. what blocks progress;
+5. what action matters next;
+6. who owns it and when it is due;
+7. what requires a joint decision;
+8. what is estimated, quoted, contracted, paid and still due;
+9. which facts are confirmed, stale or contradictory;
+10. why important past decisions were made.
 
-## Core constraints
+Mariage OS is a **decision-and-action system**, not merely a database or wedding inspiration site.
+
+## Hard constraints
 
 - Cloud-accessible from phone, tablet and desktop.
-- Collaborative for two primary owners.
+- Two primary partner owners.
 - Free-tier-first: normal operation targets **€0/month**.
-- Progressive Web App (PWA), responsive and usable offline for essential workflows.
-- Cloud source of truth with local-first interaction and queued synchronization.
-- Public GitHub repository contains **code and documentation only**.
-- Real wedding data, personal data, quotes, contracts, private photos and backups never belong in GitHub.
-- Every important fact can carry provenance, verification state, freshness and conflicting observations.
-- Every major decision keeps its reasoning and history.
-- Import/export is a first-class subsystem.
-- No silent destructive import, silent conflict overwrite or silent loss of confirmed data.
-- Security, privacy, backup/restore and testability are architectural requirements.
+- Responsive Progressive Web App.
+- Local-first interaction with safe offline queue/reconnect behavior.
+- Supabase is shared cloud truth; IndexedDB is local working/offline state.
+- Public GitHub repository contains code/docs/tests/synthetic fixtures only.
+- Real wedding data and secrets never belong in GitHub.
+- Important facts can retain evidence, confidence, freshness and conflicting observations.
+- Import/export is first-class and non-destructive by default.
+- No silent conflict overwrite or silent confirmed-data loss.
+- Security, privacy, backup/restore, portability and testability are architectural requirements.
 
 ## Chosen architecture
 
-- Frontend: TypeScript + Vite, lightweight browser UI.
-- Hosting: Cloudflare Pages free tier.
-- Cloud backend: Supabase free tier.
-- Database: PostgreSQL via Supabase.
-- Authentication: Supabase Auth.
-- Authorization: PostgreSQL Row Level Security (RLS).
-- Files: private Supabase Storage.
-- Realtime: Supabase Realtime only where collaboration benefits from it.
-- Local cache/offline queue: IndexedDB.
-- PWA: Service Worker + Web App Manifest.
-- Repository: GitHub.
+- **Frontend:** Vite + TypeScript, no React in V1.
+- **Hosting:** Cloudflare Pages free tier.
+- **Cloud backend:** Supabase free tier.
+- **Database:** PostgreSQL.
+- **Authentication:** Supabase Auth.
+- **Authorization:** PostgreSQL/Storage Row Level Security.
+- **Files:** private Supabase Storage plus external media references when appropriate.
+- **Realtime:** scoped Supabase Realtime subscriptions.
+- **Local/offline:** IndexedDB working state + durable mutation queue.
+- **PWA:** Service Worker + Web App Manifest with explicit version/update lifecycle.
+- **Repository:** public GitHub repository containing no real wedding data.
 
-## Repository rule
+> **GitHub stores the application. Supabase stores the real wedding. Portable `.mariage` backups keep the couple independent from both.**
 
-> GitHub stores the application, schemas, migrations, tests, fixtures and documentation. Supabase stores the real wedding.
+## Documentation — start here
 
-Never commit real guest/contact data, budgets, payments, quotes, contracts, private photos, `.mariage` backups, production dumps, service-role keys or other secrets.
+Mandatory entry point: [`docs/START-HERE.md`](docs/START-HERE.md).
 
-## Documentation entry point
+Master documents:
 
-Start with [`docs/START-HERE.md`](docs/START-HERE.md).
+- [`docs/PRODUCT-SPECIFICATION.md`](docs/PRODUCT-SPECIFICATION.md) — master cahier des charges;
+- [`docs/REQUIREMENTS-CATALOG.md`](docs/REQUIREMENTS-CATALOG.md) — traceable P0/P1/P2 requirements;
+- [`docs/IMPLEMENTATION-READINESS.md`](docs/IMPLEMENTATION-READINESS.md) — readiness assessment;
+- [`docs/INDEX.md`](docs/INDEX.md) — complete documentation map;
+- [`docs/roadmap/V1-SCOPE.md`](docs/roadmap/V1-SCOPE.md) — binding V1 boundary;
+- [`docs/roadmap/LOT-ACCEPTANCE.md`](docs/roadmap/LOT-ACCEPTANCE.md) — implementation lot exit criteria;
+- [`docs/engineering/DEFINITION-OF-DONE.md`](docs/engineering/DEFINITION-OF-DONE.md) — feature completion rules.
 
-## Development policy
+## Security and privacy
 
-A feature is not complete because it works once. It is complete only when its behavior, edge cases, security properties, data model, tests and documentation satisfy the project's Definition of Done.
+Real guest names, contact details, private notes, quotes, contracts, invoices, budgets, payment evidence, private photos, production database dumps, `.mariage` backups and secret/service-role keys must never be committed.
 
-Quality targets include zero TypeScript/lint errors, all tests passing, 100% coverage thresholds for in-scope business code, integration/RLS/E2E/security/offline/backup/migration testing, and no accepted known Critical or High severity vulnerability in a release.
+Production authorization is enforced through Supabase/PostgreSQL/Storage policy rather than frontend visibility.
 
-See [`docs/engineering/DEFINITION-OF-DONE.md`](docs/engineering/DEFINITION-OF-DONE.md).
+Security design and threat/testing requirements are documented under [`docs/security/`](docs/security/).
+
+## Quality policy
+
+A feature is not complete because it works once.
+
+Required engineering posture includes:
+
+- strict TypeScript;
+- deterministic unit/property tests;
+- 100% lines/statements/functions/branches coverage for defined in-scope business code;
+- mutation testing on critical engines;
+- database/RLS allow+deny tests;
+- integration and Playwright E2E;
+- offline/sync/session-expiry tests;
+- import/export/rollback/round-trip tests;
+- backup/restore and migration compatibility tests;
+- accessibility and performance budgets;
+- security scanning and no known accepted Critical/High release vulnerability;
+- full Quality Gate on every production-bound change.
+
+100% coverage is a gate, not a claim that software can be mathematically guaranteed bug-free.
+
+## Implementation roadmap
+
+Implementation is split into Lots 0–12. The order is deliberate because each later lot depends on integrity/security foundations from earlier work.
+
+See:
+
+- [`docs/roadmap/LOTS.md`](docs/roadmap/LOTS.md)
+- [`docs/roadmap/LOT-ACCEPTANCE.md`](docs/roadmap/LOT-ACCEPTANCE.md)
+
+## V1 cutover rule
+
+Mariage OS becomes the operational source of truth only after:
+
+- complete required test/security gates pass;
+- both partner accounts work on real devices;
+- backup→restore has been demonstrated;
+- current venue/guest/vendor sources are imported and reconciled;
+- critical guest/budget calculations are validated;
+- production recovery export exists;
+- no V1 release blocker remains.
+
+Until then, existing wedding spreadsheets/research remain authoritative legacy sources.
+
+## Current next step
+
+After documentation Run 4 is reviewed/merged: **implement Lot 0 only**, following `docs/roadmap/LOT-ACCEPTANCE.md`. Do not skip directly to feature coding.
