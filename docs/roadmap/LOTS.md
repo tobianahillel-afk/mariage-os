@@ -1,197 +1,255 @@
 # Development Lots
 
-This roadmap organizes delivery by dependency and risk. Each lot must satisfy the Definition of Done before the next dependent lot is considered complete.
+This roadmap organizes delivery by dependency and risk. Detailed lot exit criteria live in [`LOT-ACCEPTANCE.md`](LOT-ACCEPTANCE.md). Binding V1 scope lives in [`V1-SCOPE.md`](V1-SCOPE.md).
 
-## Documentation Runs
+A later lot must not weaken security, integrity, import, offline or recovery guarantees established by an earlier lot.
 
-The current design/documentation phase is executed in four review runs of roughly 20–25 areas each.
+---
 
-### Run 1 — Foundation
+## Documentation/design phase — COMPLETE after Run 4 merge
+
+The design phase was intentionally executed in four review runs.
+
+### Run 1 — Foundation ✅
+
+Delivered:
 
 - product definition;
 - principles and non-goals;
-- architecture overview;
-- chosen stack;
-- trust boundaries;
-- data ownership;
-- local-first interaction;
-- synchronization model;
-- offline model;
-- navigation and interaction states;
+- architecture overview/stack;
+- trust boundaries/data ownership;
+- local-first/sync/offline model;
+- navigation/interaction states;
 - Definition of Done;
-- initial delivery structure.
+- initial implementation sequence.
 
-### Run 2 — Data and domain specification
+### Run 2 — Domain/data model ✅
 
-Planned:
+Delivered:
 
-- ERD;
-- data dictionary;
-- money/date/time rules;
+- conceptual ERD;
+- data-dictionary conventions;
+- identifiers;
+- money/date/time semantics;
 - state machines;
-- domain invariants;
-- venue/vender/guest/task/decision/budget models;
-- facts/provenance model;
-- freshness/confidence model;
-- derived-data dependency graph;
-- deletion/retention semantics.
+- 50 domain invariants;
+- venue/vendor/guest/task/decision/budget/document models;
+- facts/provenance/confidence/freshness;
+- derived data;
+- deletion/retention.
 
-### Run 3 — Security, quality and operations
+### Run 3 — Security/quality/operations ✅
 
-Planned:
+Delivered:
 
-- threat model;
-- ASVS matrix;
-- auth/MFA/session policy;
-- RLS authorization matrix;
-- storage/file security;
-- frontend security/CSP;
-- test strategy;
-- coverage/mutation policy;
-- E2E/accessibility/performance testing;
+- security architecture/threat model;
+- Auth/MFA/session policy;
+- RLS authorization contract;
+- file/frontend/privacy/supply-chain security;
+- OWASP ASVS matrix framework;
+- unit/property/integration/RLS/security/E2E testing strategy;
+- 100% in-scope coverage policy;
+- mutation testing;
 - CI/CD quality gates;
 - backups/disaster recovery;
-- free-tier/quota operations;
+- free-tier operations;
 - incident/release process.
 
-### Run 4 — Feature contracts and implementation readiness
+### Run 4 — Feature contracts/implementation readiness ✅ pending merge
 
-Planned:
+Delivered in the Run 4 branch:
 
-- feature specifications for dashboard, venues, map, vendors, guests, budget, tasks, decisions, planning, documents;
+- master product specification/cahier des charges;
+- requirements catalog;
+- dashboard/venues/map/vendors/guests/budget/tasks/decisions/planning/documents feature contracts;
 - import/export contracts;
-- wireframe/state specifications;
-- initial migration plan from existing wedding data;
-- acceptance criteria and requirement traceability;
-- ADR set;
-- developer bootstrap/contributing docs;
-- finalized implementation backlog.
+- user flows/wireframes/design system/forms;
+- PWA/storage/dependency architecture;
+- coding/error/migration/diagnostic contracts;
+- accessibility/performance/browser support;
+- existing-data migration/cutover;
+- ADRs;
+- V1 boundary;
+- per-lot acceptance contracts;
+- implementation-readiness/deferred-decision registers.
 
-## Implementation Lots
+After Run 4 is merged, specification work changes from a design phase into normal versioned product documentation maintained alongside code.
 
-The implementation roadmap is separate from the four documentation runs.
+---
 
-### Lot 0 — Repository and tooling
+# Implementation roadmap
 
-- TypeScript/Vite project;
-- lint/format/typecheck;
-- testing harness;
-- local Supabase bootstrap;
+## Lot 0 — Repository and tooling
+
+Build the reproducible engineering environment:
+
+- Vite + TypeScript;
+- strict typecheck/lint/format;
+- Vitest/coverage/property testing;
+- mutation-test harness;
+- Playwright;
+- local Supabase;
+- synthetic/golden seed project;
 - CI skeleton;
-- synthetic seed project.
+- preview deployment;
+- environment/secret safeguards.
 
-### Lot 1 — Identity, project and secure foundation
+**No production feature data yet.**
+
+## Lot 1 — Identity, project and secure foundation
 
 - authentication;
-- project membership;
+- project membership/invitation;
 - RLS baseline;
-- application shell/navigation;
-- local store;
-- sync primitives;
-- diagnostics skeleton.
+- app shell/navigation;
+- repository/service/domain architecture;
+- local IndexedDB abstraction;
+- sync primitives/status;
+- diagnostics shell.
 
-### Lot 2 — Venues core
+No later domain should bypass these primitives.
 
-- venue CRUD;
-- status/history;
-- facts/sources;
-- spaces;
-- photos/remote references;
+## Lot 2 — Venues core
+
+- venue CRUD/quick add;
+- status/history/rejection;
+- partner ratings/favorites;
+- spaces/capacity;
+- facts/observations/sources;
+- images/documents basics;
 - gallery/table/detail;
-- basic compare;
-- quick add.
+- missing-info summary;
+- comparison;
+- deep links.
 
-This lot is intentionally early because existing venue research provides realistic product validation.
+Venue comes early because current research provides strong validation data.
 
-### Lot 3 — Tasks and decisions
+## Lot 3 — Tasks and decisions
 
-- owners;
+- task ownership/status/dependencies;
 - waiting/blocked states;
 - joint decisions;
-- next-action primitives;
-- links to venues/vendors/etc.
+- both-partner approvals;
+- rationale/alternatives;
+- discuss-together queue;
+- next-action primitives.
 
-### Lot 4 — Import/export foundation
+## Lot 4 — Import/export foundation
 
-- canonical JSON;
-- CSV/XLSX basic import;
-- preview/mapping;
+- canonical JSON schema v1;
+- CSV/XLSX parsing/export;
+- clipboard/pasted JSON where specified;
+- mapping/validation;
 - duplicate detection;
-- provenance;
+- merge planning;
+- preview;
+- provenance/history;
 - rollback;
-- export.
+- research-missing-data export;
+- round-trip tests.
 
-### Lot 5 — Budget and payments
+## Lot 5 — Budget and payments
 
-- fixed/variable pricing;
-- estimates/quotes/contracts;
-- payments and due dates;
-- scenario calculations;
+- budget model;
+- fixed/variable calculations;
+- quotes/contracts;
+- payment schedule;
+- deposits/refunds;
+- scenarios;
 - cash-flow summary.
 
-### Lot 6 — Guests and households
+## Lot 6 — Guests and households
 
-- Excel migration support;
-- priorities/probabilities;
+- household/person model;
+- priority/probability;
 - RSVP;
-- cumulative statistics;
-- household model.
+- expected/cumulative statistics;
+- bulk operations;
+- legacy spreadsheet migration/export.
 
-### Lot 7 — Vendors
+## Lot 7 — Vendors
 
-- generic vendor model;
-- caterer-specific facts;
-- quotes/contacts/documents;
-- follow-up workflow.
+- generic vendor model/types;
+- contacts/interactions;
+- quote lifecycle;
+- packages/inclusions;
+- caterer details;
+- venue compatibility;
+- files/follow-up workflow.
 
-### Lot 8 — Dashboard and planning
+## Lot 8 — Dashboard and planning
 
-- next best action;
+- milestones/phases;
+- weighted progress;
 - blockers;
 - waiting items;
-- weighted progress;
-- milestones;
+- next action;
+- joint-decision summary;
+- upcoming deadlines/payments;
+- partner activity;
 - phase-aware dashboard.
 
-### Lot 9 — Map and access
+## Lot 9 — Map and access
 
-- venue coordinates;
-- map pins/status filters;
-- routing links;
-- graceful offline/map failure.
+- coordinates;
+- map pins/filters;
+- route links;
+- TGV/accessibility facts;
+- graceful map failure/offline behavior.
 
-### Lot 10 — Offline/PWA hardening
+## Lot 10 — Offline/PWA hardening
 
-- offline pinning;
-- queue/reconnect conflict UX;
 - service-worker lifecycle;
-- real-device testing.
+- IndexedDB migrations;
+- durable queue/reconnect;
+- conflict UX;
+- media queue separation;
+- offline pinning;
+- PWA installation/update;
+- real-device tests.
 
-### Lot 11 — Backup, recovery and production readiness
+## Lot 11 — Backup, recovery and production readiness
 
 - `.mariage` backup;
-- restore/integrity verification;
-- migrations from old fixtures;
-- security hardening;
-- full release gates;
-- beta with synthetic data.
+- full media archive option;
+- integrity verification;
+- restore;
+- historical migration fixtures;
+- production headers/security hardening;
+- quota protection;
+- release candidate gates.
 
-### Lot 12 — Existing-data migration and V1 cutover
+## Lot 12 — Existing-data migration and V1 cutover
 
-- import existing venue research;
-- import existing guest spreadsheet;
-- import initial vendor research;
-- reconcile inconsistencies;
-- export pre-cutover backup;
-- declare Mariage OS source of truth only after verification.
+- migrate/reconcile current venue research;
+- migrate/reconcile guest spreadsheet;
+- migrate initial vendor research;
+- validate critical statistics/financials;
+- real-device acceptance;
+- archive legacy source files;
+- verify recovery export;
+- formally declare Mariage OS source of truth.
 
-## Post-V1 candidates
+---
 
-- visual seating plan;
+## Post-V1 backlog
+
+Post-V1 by default:
+
+- visual seating-plan canvas;
 - advanced transport/hotel allocation;
-- day-of mode;
-- controlled sharing;
-- optional push notifications;
-- optional assisted document extraction.
+- dedicated wedding-day operations mode;
+- controlled guest/vendor sharing;
+- push notifications;
+- AI/OCR-assisted document extraction;
+- native mobile application;
+- banking/payment integration;
+- internal messaging.
 
-Nothing enters an implementation lot without specification, acceptance criteria and test/security implications.
+Nothing enters V1 because it is attractive or easy. Scope changes require explicit spec/ADR review, dependencies, security/testing impact and revised cutover criteria.
+
+---
+
+## Rule for implementation
+
+Before starting a lot, read its section in [`LOT-ACCEPTANCE.md`](LOT-ACCEPTANCE.md). Before considering it complete, demonstrate every exit criterion and all inherited Quality Gates.
