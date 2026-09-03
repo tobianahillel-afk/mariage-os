@@ -2,7 +2,10 @@ import { spawnSync } from "node:child_process";
 
 const result = spawnSync(
   process.execPath,
-  ["scripts/check-secrets.mjs", "tests/fixtures/security-violations/fake-secret.env"],
+  [
+    "scripts/check-secrets.mjs",
+    "tests/fixtures/security-violations/fake-secret.env",
+  ],
   { encoding: "utf8" },
 );
 
@@ -17,4 +20,6 @@ if (!result.stderr.includes("Secret-like material detected")) {
   process.exit(1);
 }
 
-console.log("Secret guard negative control passed by rejecting the deliberate fixture.");
+console.log(
+  "Secret guard negative control passed by rejecting the deliberate fixture.",
+);
