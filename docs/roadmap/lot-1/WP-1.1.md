@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-1.1`
 - Lot: `1`
 - Name: Permission catalog and authorization helper foundation
-- State: `IN_PROGRESS`
-- Current pass: `A-IMPLEMENT`
+- State: `REVIEW_PENDING`
+- Current pass: `B-ADVERSARIAL-REVIEW`
 - Primary bounded context: authorization metadata / permission evaluation foundation
 - Branch/PR: `lot-1/identity-project-foundation`
 
@@ -74,23 +74,24 @@
 
 ### Implementation evidence
 
-- code/modules: pending.
-- migrations/schema: pending.
-- tests added: pending.
+- migration/schema: `supabase/migrations/20260903213500_create_authorization_catalog.sql` creates the three migration-owned authorization catalogs, seeds all 51 frozen V1 permission keys, seeds owner/editor/viewer templates and provides the internal role-permission lookup scaffold;
+- grants/security posture: ordinary `anon`/`authenticated` table access is revoked and direct client execution of the internal role lookup is revoked;
+- tests: `supabase/tests/authorization_catalog_test.sql` provides 14 direct pgTAP assertions covering catalog existence/counts, representative allow/deny mappings, fail-closed unknown state, client privilege denial and key-format integrity;
+- CI: exact-head run `33809158568` on `b76aa509d84c4aa73f80669faa2c9d6b494c15b8` completed all five jobs successfully, including local Supabase start/reset/test/stop and clean-checkout `npm run verify`;
+- scope: compare against accepted Lot 0 base shows only Lot 1 orchestration docs, the authorization migration/test and CI branch activation; no project/member/product-domain implementation leaked into WP-1.1;
 - FIRs updated: not applicable as this packet is a cross-cutting foundation; affected Feature FIRs begin with their first user-facing implementation packet.
-- docs/status updated: coverage matrix + status board + this record created.
 
 ### Pass A exit
 
-- [ ] intended vertical slice exists
-- [ ] applicable tests written
-- [ ] no known untracked stub/TODO
-- [ ] packet moved from `IN_PROGRESS` to `REVIEW_PENDING`
-- [ ] current/next pass recorded as `B-ADVERSARIAL-REVIEW`
+- [x] intended vertical slice exists
+- [x] applicable tests written
+- [x] no known untracked stub/TODO
+- [x] packet moved from `IN_PROGRESS` to `REVIEW_PENDING`
+- [x] current/next pass recorded as `B-ADVERSARIAL-REVIEW`
 
 ## Pass B — ADVERSARIAL REVIEW
 
-Not started.
+In progress. Pass B must independently challenge the security contract, exact role mapping, fail-closed behavior, privilege surface and migration/test evidence rather than relying on the green Pass A CI conclusion.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
@@ -98,8 +99,8 @@ Not started.
 
 ## Handoff
 
-- Current state: `IN_PROGRESS`
-- Current/next pass: `A-IMPLEMENT`
-- Last green verification: inherited Lot 0 exact-head full verification.
-- Remaining blocker/finding: none.
-- Next permitted action: implement migration-controlled authorization catalog/helper plus direct SQL tests, then run affected/full verification and transition to `REVIEW_PENDING`.
+- Current state: `REVIEW_PENDING`
+- Current/next pass: `B-ADVERSARIAL-REVIEW`
+- Last green verification: exact-head run `33809158568`, all five jobs SUCCESS including clean-checkout `npm run verify`.
+- Remaining blocker/finding: none recorded yet; adversarial review is active.
+- Next permitted action: complete independent Pass B, repair any BLOCKING/MAJOR finding, then and only then consider `ACCEPTANCE_PENDING`.
