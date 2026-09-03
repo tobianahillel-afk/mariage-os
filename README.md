@@ -1,23 +1,16 @@
 # Mariage OS
 
-Mariage OS is a private, collaborative wedding-planning application for a couple. It centralizes venues, vendors, guests, seating, budget, documents, tasks, decisions, evidence, planning and the wedding-day timeline while staying focused on one question: **what matters next?**
+Mariage OS is a collaborative wedding-planning application for a couple. It centralizes venues, vendors, guests, secure invitations/RSVP, Email/SMS/WhatsApp communications through configured providers, seating, budget, documents, tasks, decisions, evidence, planning and the wedding-day timeline while staying focused on one question: **what matters next?**
 
-> **AI/coding agents arriving without conversation context must start with [`AGENTS.md`](AGENTS.md), then the current [`IMPLEMENTATION-STATUS`](docs/roadmap/IMPLEMENTATION-STATUS.md).**
+> **AI/coding agents arriving without conversation context must start with [`AGENTS.md`](AGENTS.md), the current [`IMPLEMENTATION-STATUS`](docs/roadmap/IMPLEMENTATION-STATUS.md), and [`docs/V1-FROZEN-MANIFEST.md`](docs/V1-FROZEN-MANIFEST.md).**
 
 ## Project status
 
-**V1 design baseline is frozen; final cross-document architecture/product/UX/engineering review is in progress. Implementation gate is CLOSED.**
+The original pre-code design freeze was completed and Run 4 merged. A reviewed **V1 scope change** is now integrating guest self-service RSVP plus Email/SMS/WhatsApp invitations/reminders.
 
-Do **not** start Lot 0 merely because the specification is frozen or because PR #4 exists. Implementation becomes authorized only after:
+**Lot 0 remains `READY / NOT_STARTED` and MUST NOT start while this scope-change re-freeze/review is open.**
 
-1. `docs/FINAL-DESIGN-REVIEW.md` closes every BLOCKING/MAJOR finding;
-2. all documentation entry points agree;
-3. PR review comments/merge blockers are resolved;
-4. documentation Run 4 is merged into `main`.
-
-Current exact progress and next permitted action live in [`docs/roadmap/IMPLEMENTATION-STATUS.md`](docs/roadmap/IMPLEMENTATION-STATUS.md).
-
-This documentation task deliberately stops before Lot 0.
+Current exact phase/gate/next action: [`docs/roadmap/IMPLEMENTATION-STATUS.md`](docs/roadmap/IMPLEMENTATION-STATUS.md).
 
 ## Product objective
 
@@ -31,29 +24,63 @@ Either partner should quickly understand:
 - what requires both partners;
 - what is estimated, quoted, contracted, paid and still due;
 - why important decisions were made;
+- who is invited, contacted, awaiting RSVP or confirmed;
+- whether invitations/reminders were delivered or need action;
 - whether local/cloud state is synchronized and recoverable.
+
+Invited households can receive a secure no-account RSVP link and update their own authorized response without receiving private project access.
 
 Mariage OS is a **decision-and-action system**, not merely a database/inspiration site.
 
-The UX must remain simpler than the data model: purposeful screens, progressive detail, readable mobile flows and a calm/elegant visual hierarchy instead of giant forms or universal admin tables.
+## Frozen V1 inventory
+
+The current V1 specification contains **120 trackable capabilities**:
+
+- [`docs/FEATURE-LEDGER.md`](docs/FEATURE-LEDGER.md) — FTR-001..104
+- [`docs/FEATURE-LEDGER-GUEST-COMMUNICATIONS-EXTENSION.md`](docs/FEATURE-LEDGER-GUEST-COMMUNICATIONS-EXTENSION.md) — FTR-105..120
+
+The precise composition/precedence is [`docs/V1-FROZEN-MANIFEST.md`](docs/V1-FROZEN-MANIFEST.md).
+
+Guest communication V1 includes:
+
+- normalized guest email/phone contact points;
+- secure household invitation links + QR/manual fallback;
+- no-account mobile RSVP portal;
+- controlled +1/children additions;
+- RSVP questions/deadline/edit policy;
+- Email/SMS/WhatsApp Business-compatible campaigns through provider-neutral adapters;
+- preview/frozen audience/idempotent retries/webhook status handling;
+- onboarding/settings/QIF flows;
+- cost/send caps and production provider diagnostics.
+
+## QIF — Quick & Intuitive Flow
+
+QIF is an **internal Mariage OS quality criterion**, not an external certification.
+
+For onboarding, invitations and guest RSVP, the UI must provide obvious next actions, focused progressive steps, nontechnical language, one primary CTA, safe preview before send, clear recovery, mobile-first guest flow and no dead ends.
 
 ## Hard constraints
 
 - Cloud-accessible from supported phone/tablet/desktop.
-- Two primary partner owners in first deployment, with multi-tenant/public-ready core architecture.
-- Controlled single-couple production bootstrap; not open public project signup in V1.
-- Normal private-V1 operation targets **€0/month**.
+- Two primary partner owners in first deployment, multi-tenant/public-ready core.
+- Controlled private production bootstrap; public self-service project signup is post-V1 activation work.
+- Core private-V1 infrastructure targets **€0/month** where possible.
+- External Email/SMS/WhatsApp delivery may incur provider charges; Mariage OS does not promise those channels are free.
+- No automatic paid provider upgrade/overage; manual RSVP link/QR fallback remains available.
 - Responsive PWA with explicit offline/pending/conflict behavior.
 - Supabase = shared cloud truth; IndexedDB = local working/offline state.
 - PostgreSQL/Storage RLS + same-project integrity enforce isolation.
+- Guest RSVP capability ≠ project membership.
+- Provider webhook ≠ trusted project command until authenticated/normalized.
+- Provider credentials never belong in browser/project export/public Git.
 - Public GitHub contains code/docs/tests/synthetic fixtures only.
 - Real wedding data/secrets/backups never belong in GitHub.
 - Important facts retain evidence/confidence/freshness/conflicts.
 - Financial/date/import semantics are exact and explicit.
-- No silent destructive import, conflict overwrite or confirmed-data loss.
+- No silent destructive import, conflict overwrite, duplicate paid send or confirmed-data loss.
 - Portable verified recovery is first-class.
-- User-facing implementation must conform to UX/visual architecture and cannot satisfy requirements by dumping all fields into one page/table.
-- Code must follow canonical layer/folder/dependency/size/complexity rules; a working god file is not an acceptable implementation.
+- UX/visual/QIF gates cannot be satisfied by dumping all fields into one mega-page/table.
+- Code follows canonical layers/folders/dependencies/size/complexity; provider SDKs stay in infrastructure adapters.
 
 ## Chosen architecture
 
@@ -61,95 +88,59 @@ The UX must remain simpler than the data model: purposeful screens, progressive 
 - **Hosting:** Cloudflare Pages free-tier target for private V1.
 - **Backend:** Supabase Auth/PostgreSQL/Storage/Realtime free-tier target.
 - **Authorization:** centralized permissions + PostgreSQL/Storage RLS + same-project relational validation.
-- **Local/offline:** project/account-scoped IndexedDB + durable mutation queue.
+- **Guest portal:** narrow public/capability endpoint + minimal guest-safe DTO, not generic anonymous DB access.
+- **Communications:** provider-neutral Email/SMS/WhatsApp ports; secrets/server dispatch/webhooks in infrastructure.
+- **Local/offline:** project/account-scoped IndexedDB + durable mutation queue; communication drafts may persist, provider send is server-authoritative.
 - **PWA:** versioned Service Worker + Web App Manifest.
 - **Files:** private Supabase Storage + privacy-safe external media references.
 - **Repository:** public GitHub with no production/private wedding data.
 
-> **GitHub stores the application. Supabase stores the synchronized wedding. IndexedDB protects temporary local work. Verified `.mariage` backups preserve portability/recovery.**
+> **GitHub stores the application. Supabase stores the synchronized wedding. IndexedDB protects temporary local work. Providers deliver optional communications. Verified `.mariage` backups preserve portability/recovery.**
 
 ## Documentation — start here
 
-For humans: [`docs/START-HERE.md`](docs/START-HERE.md).
+- AI/context-free: [`AGENTS.md`](AGENTS.md) → [`IMPLEMENTATION-STATUS`](docs/roadmap/IMPLEMENTATION-STATUS.md) → [`V1-FROZEN-MANIFEST`](docs/V1-FROZEN-MANIFEST.md).
+- Human full map: [`docs/START-HERE.md`](docs/START-HERE.md).
+- Full index: [`docs/INDEX.md`](docs/INDEX.md).
 
-For AI/context-free contributors: [`AGENTS.md`](AGENTS.md) + [`docs/engineering/LLM-TASK-ROUTING.md`](docs/engineering/LLM-TASK-ROUTING.md).
+Key product/scope:
+- `docs/PRODUCT-SPECIFICATION.md`
+- `docs/PRODUCT-SPECIFICATION-PUBLIC-READINESS-ADDENDUM.md`
+- `docs/PRODUCT-SPECIFICATION-GUEST-COMMUNICATIONS-ADDENDUM.md`
+- `docs/roadmap/V1-SCOPE.md`
+- `docs/requirements/GUEST-COMMUNICATIONS-REQUIREMENTS.md`
+- `docs/GUEST-COMMUNICATIONS-TRACEABILITY.md`
 
-Key product/governance contracts:
-
-- [`docs/PRODUCT-SPECIFICATION.md`](docs/PRODUCT-SPECIFICATION.md) — frozen V1 master specification.
-- [`docs/REQUIREMENTS-CATALOG.md`](docs/REQUIREMENTS-CATALOG.md) — traceable requirements.
-- [`docs/FEATURE-LEDGER.md`](docs/FEATURE-LEDGER.md) — 104 V1 capabilities tracked feature by feature.
-- [`docs/roadmap/V1-SCOPE.md`](docs/roadmap/V1-SCOPE.md) — frozen V1/post-V1 boundary.
-- [`docs/FINAL-DESIGN-REVIEW.md`](docs/FINAL-DESIGN-REVIEW.md) — final implementation gate.
-- [`docs/reviews/DOCUMENTATION-SYSTEM-SCORECARD.md`](docs/reviews/DOCUMENTATION-SYSTEM-SCORECARD.md) — systematic 44-criterion documentation/LLM/engineering scorecard.
-- [`docs/reviews/LLM-COLD-START-REVIEW.md`](docs/reviews/LLM-COLD-START-REVIEW.md) — context-free takeover simulation.
-- [`docs/INDEX.md`](docs/INDEX.md) — full documentation map.
-
-Key UX contracts:
-
-- [`docs/ux/VISUAL-SYSTEM.md`](docs/ux/VISUAL-SYSTEM.md) — visual-design entry point.
-- [`docs/ux/UX-ARCHITECTURE.md`](docs/ux/UX-ARCHITECTURE.md) — page model, progressive disclosure and anti-overload rules.
-- [`docs/ux/SCREEN-BLUEPRINTS.md`](docs/ux/SCREEN-BLUEPRINTS.md) — detailed screen composition.
-- [`docs/ux/SCREEN-CONTRACTS.md`](docs/ux/SCREEN-CONTRACTS.md) — route/actions/states.
-- [`docs/ux/DESIGN-SYSTEM.md`](docs/ux/DESIGN-SYSTEM.md) — visual/component consistency.
-
-Key engineering contracts:
-
-- [`docs/engineering/IMPLEMENTATION-PLAYBOOK.md`](docs/engineering/IMPLEMENTATION-PLAYBOOK.md) — feature lifecycle/FIR/anti-drift workflow.
-- [`docs/engineering/CODING-STANDARDS.md`](docs/engineering/CODING-STANDARDS.md) — binding coding rules.
-- [`docs/engineering/CODEBASE-STRUCTURE.md`](docs/engineering/CODEBASE-STRUCTURE.md) — canonical physical source/test/module architecture.
-- [`docs/engineering/MODULE-SIZE-COMPLEXITY.md`](docs/engineering/MODULE-SIZE-COMPLEXITY.md) — quantitative file/function/complexity guardrails.
-- [`.github/pull_request_template.md`](.github/pull_request_template.md) — required PR evidence surface.
-- [`docs/roadmap/LOTS.md`](docs/roadmap/LOTS.md) and [`docs/roadmap/LOT-ACCEPTANCE.md`](docs/roadmap/LOT-ACCEPTANCE.md) — implementation sequence/exit criteria.
-- [`docs/roadmap/INTEGRATION-CHECKPOINTS.md`](docs/roadmap/INTEGRATION-CHECKPOINTS.md) — whole-product reviews after Lots 0–3, 4–7, 8–10 and 11–12.
-- [`docs/roadmap/IMPLEMENTATION-STATUS.md`](docs/roadmap/IMPLEMENTATION-STATUS.md) — living progress/handoff state.
+Guest communications task entry points:
+- `docs/features/GUEST-RSVP-PORTAL.md`
+- `docs/features/COMMUNICATIONS.md`
+- `docs/ux/GUEST-COMMUNICATIONS-BLUEPRINTS.md`
+- `docs/security/GUEST-COMMUNICATIONS-SECURITY.md`
+- `docs/architecture/COMMUNICATION-PROVIDER-PORTS.md`
+- `docs/quality/GUEST-COMMUNICATIONS-ACCEPTANCE.md`
 
 ## Security/privacy
 
-Never commit real guest/contact data, private notes/ratings, budgets/payments, quotes/contracts/invoices, payment evidence, private photos, production dumps, `.mariage` backups, tokens or secret/service-role keys.
+Never commit real guest/contact data, private notes/ratings, budgets/payments, contracts/invoices, private photos, production dumps, `.mariage` backups, raw RSVP tokens, provider credentials, auth tokens or secret/service-role keys.
 
 Security work starts at [`docs/security/README.md`](docs/security/README.md). Browser/UI is not an authorization boundary.
 
 ## Quality
 
-A feature is not complete because it works once. The project requires applicable:
-
-- strict TypeScript/lint/format and architecture/complexity checks;
-- deterministic unit/property/integration tests;
-- 100% defined in-scope business-code lines/statements/functions/branches gate;
-- mutation testing for critical engines;
-- database/RLS allow+deny/adversarial tests;
-- Playwright critical journeys;
-- offline/reconnect/session/PWA tests;
-- import/rollback/round-trip/hostile-file tests;
-- backup/encryption/restore/migration tests;
-- accessibility/performance/browser-device validation;
-- synthetic desktop/mobile UX evidence for major screen changes;
-- no accepted known exploitable Critical/High release vulnerability;
-- requirement/Feature/Security/documentation traceability.
+A feature is not complete because it works once. Applicable evidence includes strict typing/lint/architecture, unit/property/mutation/integration tests, DB/RLS allow+deny, guest-capability adversarial tests, webhook/idempotency tests, Playwright journeys, QIF/accessibility/mobile evidence, offline/PWA/import/backup/migration tests, provider production smoke evidence when enabled, and no accepted known exploitable Critical/High release vulnerability.
 
 Coverage is a gate, not proof of correctness by itself.
 
-## Development control after the gate opens
+## Development control
 
-Implementation is tracked capability by capability, not by vague percentage, LOC or file count.
-
-Every V1 feature follows:
+Every feature follows:
 
 `SPECIFIED → READY → IN_PROGRESS → IMPLEMENTED → VERIFIED → INTEGRATED → ACCEPTED`
 
-with a Feature Implementation Record linking requirements, routes, UX, module ownership, domain model, cloud/local storage, security, offline behavior, tests and evidence.
+Feature Implementation Records link requirements, routes, UX/QIF, module ownership, domain model, cloud/local persistence, security, provider/offline behavior and tests.
 
-Every 3–4 lots, a mandatory integration checkpoint re-reviews the whole implemented product for product fidelity, UX, architecture/maintainability, security, data integrity, offline behavior and documentation drift. The systematic scorecard is repeated with real implementation evidence.
-
-## V1 cutover
-
-Mariage OS becomes the operational source of truth only after the V1 cutover evidence package is complete: security/RLS gates, real-device partner acceptance, reconciled existing venue/guest/vendor data, validated guest/finance calculations, tested backup→restore, MFA/recovery readiness and a production recovery export.
-
-Until then, existing wedding spreadsheets/research remain authoritative legacy sources.
+Mandatory integration checkpoints re-review the whole product after Lots 0–3, 4–7, 8–10 and 11–12. Guest communications add specific Checkpoint B/D evidence.
 
 ## Current next step
 
-**Finish and pass the final design review. Do not start Lot 0.**
-
-After that review passes and Run 4 is merged, Lot 0 becomes the first permitted implementation lot; it is not part of this documentation/freeze step.
+**Finish the guest-communications V1 scope-change coherence review and 36-criterion re-certification. Do not start Lot 0.**

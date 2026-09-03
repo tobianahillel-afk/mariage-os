@@ -14,18 +14,10 @@ Choose maintained compatible Node/Vite/TypeScript/Vitest/Playwright/etc. version
 ### Lint/format implementation stack
 Choose minimal maintained tooling that enforces `CODING-STANDARDS.md`, `CODEBASE-STRUCTURE.md` and `MODULE-SIZE-COMPLEXITY.md` as closely/reliably as practical.
 
-The **rules and thresholds are not deferred**; only the exact maintained packages/configuration mechanism is.
+The rules/thresholds are not deferred; only exact maintained packages/configuration mechanism is.
 
 ### Test placement
-**Not deferred anymore.** `CODEBASE-STRUCTURE.md` freezes:
-
-- colocated unit/domain/property tests;
-- integration tests under `tests/integration/`;
-- security/adversarial tests under `tests/security/` and DB/RLS tests under `supabase/tests/`;
-- E2E under `tests/e2e/`;
-- synthetic shared fixtures under `tests/fixtures/`.
-
-Lot 0 implements this convention rather than choosing another one silently.
+**Not deferred anymore.** `CODEBASE-STRUCTURE.md` freezes colocated unit/domain/property tests plus dedicated integration/security/E2E/fixtures/DB test locations.
 
 ### Local Supabase bootstrap
 Choose exact scripts/commands for migrations, seed and isolated test reset.
@@ -33,18 +25,18 @@ Choose exact scripts/commands for migrations, seed and isolated test reset.
 ## Lot 1
 
 ### IndexedDB implementation
-Choose native IndexedDB vs a small maintained wrapper based on transaction ergonomics, migrations, bundle size, typing and maintenance/security. Repository/local-first abstractions and frozen local-data semantics must remain unchanged.
+Choose native IndexedDB vs small maintained wrapper based on transaction ergonomics, migrations, bundle size, typing and maintenance/security. Frozen local-data semantics remain unchanged.
 
 ### Auth UX mechanism
-Choose the current supported Supabase browser-safe sign-in UX (for example password and/or provider-supported email flow) while preserving controlled private bootstrap, identity-bound invitation, MFA/recovery, project membership separation and future public-readiness rules.
+Choose current supported Supabase browser-safe sign-in UX while preserving controlled private bootstrap, MFA/recovery, membership separation and public-readiness rules.
 
 ### Session configuration
-Choose concrete ordinary-session values compatible with provider capability and usability. Critical operations still require recent/strong authentication.
+Choose concrete ordinary-session values compatible with provider capability/usability. Critical operations still require recent/strong authentication.
 
 ## UI implementation
 
 ### Typography stack
-Choose the exact accessible UI/display font stack within `VISUAL-IDENTITY.md` and `DESIGN-SYSTEM.md`. Palette/domain color architecture is **not deferred**; it is frozen by `COLOR-SYSTEM.md`.
+Choose exact accessible UI/display font stack within visual contracts. Palette/domain color architecture is frozen.
 
 ### Data-table implementation
 Start semantic/simple. Add virtualization only if measured performance budgets require it.
@@ -57,7 +49,7 @@ Start semantic/simple. Add virtualization only if measured performance budgets r
 ### Wedding-day presentation
 **Not deferred:** structured event timeline is V1.
 
-**Deferred/post-V1:** dedicated live operations mode, staff command center or push-driven day-of execution system.
+**Deferred/post-V1:** dedicated live operations mode, staff command center or push-driven day-of execution.
 
 ## Lot 4 import/export
 
@@ -65,10 +57,58 @@ Start semantic/simple. Add virtualization only if measured performance budgets r
 Choose maintained parser satisfying hostile-file/active-content requirements.
 
 ### JSON Schema tooling
-Choose concrete validator/schema dialect compatible with browser and CI; canonical V1 semantics and addendum remain authoritative.
+Choose concrete validator/schema dialect compatible with browser/CI; canonical semantics remain authoritative.
 
 ### CSV parser
 Choose native/small maintained parser after hostile fixture testing.
+
+## Lot 6 / Lot 11 guest communications
+
+### Email provider
+Deferred: exact transactional email vendor/SDK/API.
+
+Not deferred:
+- provider-neutral port boundary;
+- server-side credentials;
+- authenticated sending-domain readiness for production;
+- delivery/bounce event handling;
+- preview/idempotency/privacy/cost rules;
+- manual link/QR fallback.
+
+### SMS provider
+Deferred: exact SMS vendor/SDK/API.
+
+Not deferred:
+- validated normalized destinations;
+- provider-neutral port;
+- delivery/failure callbacks;
+- bounded retries/cost caps;
+- no secrets in browser.
+
+### WhatsApp provider
+Deferred: exact official Business Platform-compatible provider/integration mechanism.
+
+Not deferred:
+- official provider/API boundary;
+- no personal WhatsApp/WhatsApp Web automation;
+- provider template/eligibility rules where required;
+- authenticated webhook handling;
+- send/cost caps;
+- provider-neutral domain.
+
+### Durable scheduler mechanism
+Deferred: exact server-side scheduling infrastructure compatible with chosen stack/provider.
+
+Not deferred:
+- browser timer/service worker cannot be authoritative scheduler;
+- dispatch revalidates authorization/provider readiness/caps;
+- idempotency prevents duplicate paid sends.
+
+### Guest invitation token representation
+Exact standard primitive/package helpers may be chosen, but entropy/hash-at-rest/rotation/revocation/non-logging semantics are not deferred.
+
+### Communication UI implementation details
+Fine visual component implementation may vary within `GUEST-COMMUNICATIONS-BLUEPRINTS.md` and the frozen visual system. The QIF flow/order, preview-before-send and Guests-domain placement are not deferred.
 
 ## Lot 9 map
 
@@ -80,15 +120,17 @@ Choose manual service worker vs maintained Vite/PWA helper only after proving li
 
 ## Provider quota reporting
 
-Implement only provider usage values that can be safely and accurately measured. Where exact live values are unavailable, show explicitly labeled locally-known estimates/counters rather than invented precision.
+Implement only provider usage values that can be safely and accurately measured. Where exact live values are unavailable, show explicitly labeled estimates/counters rather than invented precision.
+
+This applies to core hosting and communication-provider usage.
 
 ## Backup implementation tuning
 
-The backup format, authenticated encryption semantics and algorithm/KDF parameter storage are frozen. Implementation may benchmark device UX and choose supported runtime tuning only within the versioned format/security contract; any algorithm/format change requires explicit version/spec review.
+Backup format, authenticated encryption semantics and algorithm/KDF parameter storage are frozen. Implementation may benchmark device UX and choose supported tuning only within the versioned format/security contract.
 
 ## Public SaaS activation — deliberately post-V1
 
-The **public-facing activation work** is deferred, but **public-ready core architecture is not deferred**.
+The public-facing activation work is deferred, but public-ready core architecture is not.
 
 Deferred public product/operations work includes:
 
@@ -96,7 +138,7 @@ Deferred public product/operations work includes:
 - public project-provisioning control plane;
 - Turnstile/CAPTCHA rollout for public Auth flows;
 - public provisioning/invite anti-abuse limits;
-- production transactional SMTP suitable for public scale;
+- public-scale communication-provider account/billing/tenant-quota choices beyond private V1;
 - public Privacy Policy/Terms/consent capture;
 - public marketing/help site beyond private deployment needs;
 - project chooser UI for multi-project users;
@@ -115,6 +157,8 @@ Not deferred and required in private V1 architecture/tests:
 - Storage/Realtime tenant isolation;
 - deployment-policy provisioning abstraction;
 - public/private SEO boundary;
+- guest capability isolation from project membership;
+- tenant-scoped communication domain/campaign data;
 - `PUB-*` regression tests at checkpoints;
 - no single-couple assumptions in core domain code.
 
@@ -123,31 +167,42 @@ Not deferred and required in private V1 architecture/tests:
 - graphical drag/drop seating canvas and automatic seating optimization;
 - advanced shuttle/hotel allocation engine;
 - dedicated live wedding-day operations mode;
-- guest portal/vendor temporary sharing links;
+- arbitrary self-registration of uninvited guests;
+- vendor temporary sharing links;
 - push notifications;
 - AI/OCR automatic quote/contract extraction;
 - automatic Internet venue research inside the app;
-- internal messaging;
+- internal messaging/social chat;
 - native App Store/Play Store app;
 - banking/payment integration;
-- automated ordinary wedding email sending;
 - full calendar-provider synchronization;
-- public self-service SaaS activation listed above.
+- public self-service SaaS activation listed above;
+- cold-marketing contact acquisition/scraped-list messaging.
+
+**Not post-V1 anymore:** secure invited-household RSVP portal, secure invitation links/QR, and Email/SMS/WhatsApp invitation/reminder communication through configured official providers. Those are frozen V1 scope.
 
 ## Not allowed as “implementation discretion”
 
-The following are **not** deferred:
+The following are not deferred:
 
-- V1 feature boundary;
+- V1 feature boundary including FTR-105..120;
+- QIF acceptance for onboarding/invitations/guest RSVP;
 - canonical code layer/folder architecture;
 - code-size/complexity guardrails;
 - test placement convention;
 - project isolation/RLS;
+- guest capability isolation;
 - same-project referential integrity;
 - public-ready multi-tenant core;
 - project-scoped authenticated routes/context;
 - controlled private provisioning policy;
-- invitation security semantics;
+- partner-account invitation security semantics;
+- guest RSVP token security semantics;
+- communication audience preview/freeze;
+- communication idempotency;
+- provider webhook authentication/dedup;
+- provider credential isolation;
+- no automatic provider paid upgrade/overage;
 - local pending-edit durability;
 - logout safe-purge semantics;
 - weekday mapping;

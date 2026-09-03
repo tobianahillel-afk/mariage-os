@@ -2,11 +2,13 @@
 
 Status: **Normative V1 feature contract**
 
-This document describes user-facing onboarding. Security-sensitive mechanics are governed by `../security/BOOTSTRAP-INVITATIONS.md` and `../security/AUTHENTICATION.md`.
+This document describes user-facing onboarding. Security-sensitive mechanics are governed by `../security/BOOTSTRAP-INVITATIONS.md`, `../security/AUTHENTICATION.md` and the guest-communications security contracts where applicable.
 
 ## Purpose
 
 Get exactly the intended couple into one private wedding project with secure/recoverable accounts and enough initial settings to make the app useful, without exposing a public project-creation service.
+
+Onboarding is progressive: users can finish core setup without knowing every wedding detail or configuring external messaging providers.
 
 ---
 
@@ -17,7 +19,7 @@ Get exactly the intended couple into one private wedding project with secure/rec
 Show:
 
 - Mariage OS identity;
-- email/password sign-in;
+- browser-safe sign-in flow chosen by Lot 1;
 - recovery entry;
 - private-project explanation;
 - no project existence/data leakage.
@@ -57,7 +59,7 @@ Minimum:
 - project display name;
 - owner display name/profile.
 
-Project creation occurs through the protected initial-project command and is allowed only once for the deployment.
+Project creation occurs through the protected initial-project command and is allowed only once for the private deployment.
 
 Optional editable-later setup:
 
@@ -68,22 +70,97 @@ Optional editable-later setup:
 - target guest count;
 - budget target/reserve;
 - one or more reference travel origins;
-- venue criteria priorities.
+- venue criteria priorities;
+- invitation/RSVP intent.
 
 Unknown optional planning information never blocks creation.
 
 ---
 
+## QIF onboarding structure
+
+Onboarding follows the internal `QIF — Quick & Intuitive Flow` rule:
+
+1. Welcome / project identity
+2. Couple / partner setup
+3. Wedding basics (date candidates, guest target, locale)
+4. Planning preferences (budget/origins/venue criteria, skippable)
+5. Invitations & RSVP intent (skippable/configurable later)
+6. Security/MFA readiness
+7. Data start choice (empty/import/add first item)
+8. Summary + obvious next action
+
+A first-time couple must be able to complete onboarding without learning technical terms such as RLS, E.164, DKIM, SPF, DMARC, WhatsApp template IDs or webhooks.
+
+Each step has one primary action, a clear `Later`/skip behavior where allowed, and no irreversible external send.
+
+---
+
+## Invitations & RSVP onboarding step
+
+This step configures intent, not provider internals.
+
+Ask in wedding language:
+
+### RSVP method
+
+- `Utiliser les liens RSVP Mariage OS`
+- `Je gérerai les réponses manuellement`
+- `Je déciderai plus tard`
+
+### Deadline
+
+Optional RSVP deadline; editable later.
+
+### Guest questions
+
+Simple toggles/checklist for:
+
+- dietary information;
+- accessibility needs;
+- transport interest;
+- accommodation interest;
+- guest message;
+- +1/children policy handled per household later.
+
+### Planned communication channels
+
+- Email
+- SMS
+- WhatsApp
+- Link / QR code manually
+- decide later
+
+### Contact-data readiness
+
+- I already have emails;
+- I already have phone numbers;
+- I will import them later;
+- I do not have them yet.
+
+### Technical configuration
+
+If the couple selects an automatic channel, offer:
+
+- `Configurer maintenant`
+- `Le faire plus tard`
+
+Choosing later creates an actionable setup item/checklist and does not block onboarding or manual secure-link/QR RSVP.
+
+Provider credentials/domain/template setup belongs under `Settings → Invitations & communications`, not the main onboarding path.
+
+---
+
 ## Invite partner
 
-V1 does not require an email-sending backend.
+Partner-account invitation remains separate from guest invitations.
 
-Owner enters intended partner email and creates a secure one-time invitation link. The browser receives the raw token once from the authorized database command; only the token hash is stored server-side. Owner shares the link with partner through their chosen private channel.
+V1 private bootstrap does not require the guest outbound provider stack to invite the second owner. Owner enters intended partner email and creates a secure one-time identity-bound invitation link according to `BOOTSTRAP-INVITATIONS.md`; sharing can remain manual/private.
 
 Partner:
 
 1. opens link;
-2. registers/verifies the **same invited email** if needed while controlled signup is open;
+2. registers/verifies the same invited email if needed while controlled signup is open;
 3. signs in;
 4. accepts invitation;
 5. receives exactly one active owner membership;
@@ -108,7 +185,7 @@ After both intended owners are active and MFA/recovery are verified:
 - additional project creation remains refused by DB rule;
 - Dashboard security blocker clears only when required owner setup is complete.
 
-Reopening registration later is deliberate operator/owner recovery administration, not user-visible public signup.
+Guest RSVP capability links remain independently available because they are not account signup/project-membership links.
 
 ---
 
@@ -129,11 +206,7 @@ Real-data cutover is blocked until both production owners meet MFA/recovery poli
 
 ## Reference origins
 
-User can define private route-comparison origins such as:
-
-- Paris;
-- home;
-- family origin.
+User can define private route-comparison origins such as Paris, home or family origin.
 
 Each origin is a real project entity with label, optional address/coordinates and one default flag. Route observations are contextual per origin/mode.
 
@@ -179,15 +252,20 @@ Options:
 - open Import Center;
 - add first venue/vendor/guest manually.
 
+If Guest setup was selected, the summary may suggest:
+
+- import guest spreadsheet;
+- add contact points;
+- configure RSVP form;
+- configure an automatic channel later.
+
 Do not require private import before security setup.
 
 ---
 
 ## Project/account switch
 
-Production V1 intentionally has one wedding project. Architecture still scopes local cache/queues by project ID so tests/recovery projects cannot leak into each other.
-
-If a future version exposes switching, cache isolation is mandatory.
+Private production V1 intentionally has one wedding project for the real couple. Architecture still scopes local cache/queues by project ID and is public-SaaS-ready so tests/recovery projects cannot leak into each other.
 
 ---
 
@@ -219,14 +297,18 @@ Before meaningful planning data exists, show setup actions rather than fake aler
 - budget target;
 - reference origin(s);
 - review mandatory venue criteria;
-- import/add first data.
+- choose/import initial data;
+- if guests are a current priority: configure RSVP basics/contact data;
+- if automatic invitations are desired: complete selected provider setup.
+
+Do not make provider configuration look mandatory when the couple can continue with manual link/QR.
 
 ---
 
 ## Acceptance criteria
 
-- anonymous user sees no project data;
-- unrelated account cannot create another production project;
+- anonymous user sees no private project data;
+- unrelated account cannot create another private-production project;
 - initial owner/project creation atomic and one-time;
 - partner invite one-time, email-bound and idempotent;
 - no optional planning field blocks bootstrap;
@@ -234,19 +316,28 @@ Before meaningful planning data exists, show setup actions rather than fake aler
 - signup lock is part of cutover checklist;
 - session expiry preserves pending local edits;
 - logout never silently loses work and removes private cache after safe completion;
-- no service-role key is needed in browser;
+- no service-role/provider secret is needed in browser;
 - onboarding works desktop/mobile;
-- date candidates/reference origins persist as structured entities.
+- date candidates/reference origins persist as structured entities;
+- Invitations & RSVP onboarding step uses nontechnical language and can be deferred;
+- a couple can complete onboarding with no communication provider configured;
+- choosing manual RSVP links yields a clear future next action;
+- choosing automatic channels does not send anything during onboarding;
+- QIF onboarding review passes without external documentation.
 
 ## Required tests
 
 - first bootstrap once only;
 - second arbitrary project create denied;
-- invite accepted once;
-- wrong email/expired/revoked invite;
+- partner invite accepted once;
+- wrong email/expired/revoked partner invite;
 - both owners edit same venue;
 - session expiry + pending offline edit;
 - TOTP protected action;
 - signup closed unrelated account scenario;
 - logout/relogin/purge local data;
-- cross-project/direct UUID access denied.
+- cross-project/direct UUID access denied;
+- Invitations & RSVP onboarding skip/defer path;
+- onboarding channel selection without provider credentials;
+- mobile QIF completion;
+- guest RSVP capability link remains separate from project membership/auth routes.

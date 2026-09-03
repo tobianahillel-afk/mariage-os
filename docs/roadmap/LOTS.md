@@ -1,16 +1,16 @@
 # Development Lots
 
-Status: **Frozen V1 implementation sequence — not yet authorized to start**
+Status: **Frozen V1 implementation sequence — includes Invitations / RSVP / Communications scope**
 
-Detailed exit criteria live in `LOT-ACCEPTANCE.md`. Binding scope lives in `V1-SCOPE.md`. Feature-level progress lives in `../FEATURE-LEDGER.md`. Cross-lot reviews live in `INTEGRATION-CHECKPOINTS.md`.
+Detailed exit criteria live in `LOT-ACCEPTANCE.md`. Binding scope lives in `V1-SCOPE.md` plus the guest-communications scope addendum. Feature-level progress is the union of `../FEATURE-LEDGER.md` and `../FEATURE-LEDGER-GUEST-COMMUNICATIONS-EXTENSION.md`. Cross-lot reviews live in `INTEGRATION-CHECKPOINTS.md`.
 
-A later lot cannot weaken security, integrity, UX, code architecture, maintainability, import, offline or recovery guarantees established earlier.
+A later lot cannot weaken security, integrity, UX/QIF, code architecture, maintainability, import, offline, recovery or communication-provider boundaries established earlier.
 
 ## Documentation/design phase
 
-Runs 1–3 are merged. Run 4 contains the frozen V1 specification plus final pre-implementation review.
+Runs 1–4 are merged. The guest-communications V1 scope change must pass its dedicated change review and refreshed 36-criterion pre-code certification before implementation begins.
 
-**No implementation lot starts until `FINAL-DESIGN-REVIEW.md` declares the gate OPEN and Run 4 is merged.**
+**Lot 0 remains READY / NOT_STARTED until explicit kickoff. This documentation change does not start implementation.**
 
 ---
 
@@ -35,7 +35,7 @@ Build the reproducible engineering environment only:
 - environment/secret safeguards;
 - `npm run dev`, `npm run test:fast`, `npm run verify` or documented equivalents.
 
-Lot 0 acceptance must prove a deliberately violating fixture/example is caught by the relevant architecture/complexity check where practical (for example forbidden cross-layer import or cycle), so the rules are not merely configured but ineffective.
+Lot 0 acceptance must prove a deliberately violating fixture/example is caught by the relevant architecture/complexity check where practical.
 
 No production wedding feature/data.
 
@@ -51,7 +51,9 @@ No production wedding feature/data.
 - IndexedDB/repository/service foundations;
 - sync operation/status primitives;
 - diagnostics/security setup shell;
-- safe logout/cache policy.
+- safe logout/cache policy;
+- project Settings hooks for Invitations & RSVP intent;
+- guest-capability/public-shell architectural boundary (no outbound provider implementation yet).
 
 No later domain may bypass these primitives.
 
@@ -102,6 +104,8 @@ Checkpoint A must PASS with no unresolved BLOCKING/MAJOR finding.
 - research-missing-data export;
 - round-trip/hostile-file tests.
 
+Guest contact import is supported, but import MUST NOT activate/send invitations automatically.
+
 ## Lot 5 — Budget, scenarios and payments
 
 - budget categories/items;
@@ -113,15 +117,48 @@ Checkpoint A must PASS with no unresolved BLOCKING/MAJOR finding.
 - cash-flow views;
 - financial links and exports.
 
-## Lot 6 — Guests, households and structured seating
+## Lot 6 — Guests, households, invitations/RSVP, communications and structured seating
+
+### Guest planning core
 
 - household/person/category model;
 - priority/probability/RSVP;
 - relationships/logistics;
 - expected/cumulative statistics;
-- bulk actions and legacy spreadsheet migration;
+- bulk actions and legacy spreadsheet migration.
+
+### Guest invitations / RSVP
+
+- normalized guest/household contact points;
+- secure invitation-link create/activate/rotate/revoke/expire;
+- no-account mobile RSVP portal;
+- person-by-person attendance;
+- controlled +1/children creation;
+- configurable RSVP questions/deadline/edit policy;
+- RSVP submission history/idempotency;
+- link copy/share/QR fallback;
+- Household Communication & RSVP detail;
+- Invitations & RSVP workspace.
+
+### Outbound communications
+
+- provider-neutral campaign/template/audience/preflight engine;
+- safe allowlisted personalization;
+- email/SMS/WhatsApp provider ports and test/sandbox adapters;
+- communication status normalization;
+- webhook adapter contract/test harness;
+- reminders/information campaigns;
+- scheduled/manual send model;
+- selective retry/suppression;
+- QIF usability review for couple and guest flows.
+
+Production sender/domain/provider credentials and real-channel cutover evidence remain Lot 11 responsibilities.
+
+### Seating
+
 - seating sections/tables/capacity/assignments;
-- seating validation/export.
+- seating validation/export;
+- RSVP changes invalidate/recalculate seating readiness correctly.
 
 Graphical drag/drop seating remains post-V1.
 
@@ -140,7 +177,17 @@ Graphical drag/drop seating remains post-V1.
 
 Before normal Lot 8 work starts, perform **Checkpoint B — Data Intake & Operational Planning Core** across Lots 0–7.
 
-This checkpoint verifies especially that Import, Budget, Guests, Seating and Vendors form one usable workflow rather than separate tables/modules, and that feature growth has not produced god services/files or architectural boundary erosion.
+This checkpoint verifies especially that Import, Budget, Guests, Invitations/RSVP, Communications, Seating and Vendors form one usable workflow rather than separate tables/modules.
+
+Additional mandatory Checkpoint B evidence:
+
+- FTR-105..119 reconciled;
+- QIF couple-side campaign review PASS;
+- QIF mobile guest RSVP review PASS;
+- token/cross-household/idempotency security tests PASS;
+- campaign preview/frozen-audience/duplicate-send tests PASS;
+- manual link/QR fallback works without paid providers;
+- no provider-specific SDK leaks into domain/application layers.
 
 Repeat/update the systematic scorecard with implemented evidence.
 
@@ -158,7 +205,8 @@ Checkpoint B must PASS with no unresolved BLOCKING/MAJOR finding.
 - structured wedding-day timeline;
 - frozen timeline export;
 - global authorized search;
-- phase-aware dashboard.
+- phase-aware dashboard;
+- invitation/RSVP actionable summaries without turning Dashboard into a communications console.
 
 Dedicated advanced live day-of mode remains post-V1.
 
@@ -184,6 +232,8 @@ Dedicated advanced live day-of mode remains post-V1.
 - cross-project cache isolation;
 - real-device tests.
 
+Guest-facing public RSVP is network-dependent for authoritative submission in V1 unless a later explicit design adds guest-offline submission. Couple-side communication drafts/previews may be locally durable but provider sends require server connectivity.
+
 ### Mandatory Checkpoint C after Lot 10
 
 Before production-readiness Lot 11 proceeds normally, perform **Checkpoint C — Product Control, Spatial UX & Offline Hardening** across the complete implemented product.
@@ -196,7 +246,7 @@ Checkpoint C must PASS with no unresolved BLOCKING/MAJOR finding.
 
 ---
 
-## Lot 11 — Backup, recovery and production readiness
+## Lot 11 — Backup, recovery, communication-provider hardening and production readiness
 
 - structured/full `.mariage` export;
 - encrypted backup format implementation;
@@ -206,15 +256,27 @@ Checkpoint C must PASS with no unresolved BLOCKING/MAJOR finding.
 - complete RLS/security evidence;
 - quota protection;
 - incident diagnostics;
-- release candidate gates.
+- release candidate gates;
+- real email provider/domain configuration with SPF/DKIM/DMARC readiness evidence if email enabled;
+- real SMS provider configuration/callback evidence if SMS enabled;
+- real WhatsApp Business-compatible provider/template/webhook evidence if WhatsApp enabled;
+- webhook signature/replay/dedup evidence;
+- production communication cost/send caps;
+- communication-provider health diagnostics;
+- suppression/bounce/failure handling;
+- FTR-113..117 and FTR-120 production evidence for enabled channels.
+
+A channel not configured for production is shown as unavailable; its absence must not break secure link/QR RSVP.
 
 ## Lot 12 — Existing-data migration and V1 cutover
 
 - venue research migration/reconciliation;
-- guest spreadsheet migration/reconciliation;
+- guest spreadsheet/contact migration/reconciliation;
 - vendor initial-data migration/reconciliation;
 - budget/statistical validation;
+- invitation/contact data quality review;
 - real-device partner acceptance;
+- guest RSVP acceptance on representative mobile devices;
 - legacy archival exports;
 - recovery export/restore drill;
 - formal source-of-truth declaration.
@@ -224,6 +286,8 @@ Checkpoint C must PASS with no unresolved BLOCKING/MAJOR finding.
 Perform **Checkpoint D — Recovery, Real Data & V1 Cutover**.
 
 This is the final cutover gate. The final scorecard/review uses actual implementation, devices and recovery evidence rather than documentation-only scores.
+
+If automatic outbound channels are enabled, Checkpoint D includes a controlled real-channel send/callback test with synthetic/test recipients before any real guest campaign.
 
 No declaration that Mariage OS is the operational source of truth occurs before Checkpoint D PASS.
 
@@ -236,9 +300,9 @@ Every lot uses `engineering/IMPLEMENTATION-PLAYBOOK.md`:
 - implement feature by feature;
 - maintain Feature Implementation Records;
 - follow canonical code structure/complexity rules;
-- update `FEATURE-LEDGER.md` states;
+- update both V1 Feature Ledger files;
 - update `IMPLEMENTATION-STATUS.md`;
-- perform UX review for user-facing features;
+- perform UX/QIF review for affected user-facing features;
 - no unexplained `IN_PROGRESS`/`IMPLEMENTED` rows at lot acceptance;
 - no unexplained maintainability/architecture exception accumulation.
 
@@ -251,14 +315,17 @@ Lot completion is not measured by file count, LOC or percentage of UI mocked. It
 - graphical/automatic seating optimization;
 - advanced transport/hotel allocation;
 - live wedding-day command-center mode;
-- guest portal/vendor temporary sharing;
+- vendor temporary sharing portal;
+- arbitrary self-registration of uninvited guests;
 - push notifications;
 - AI/OCR document extraction;
 - automatic Internet venue research inside app;
-- internal messaging;
+- internal messaging/social chat;
 - native mobile app;
 - banking/payment integration;
-- automated email/calendar-provider sync.
+- automatic Gmail/calendar-provider inbox sync.
+
+**Secure invited-household RSVP portal and email/SMS/WhatsApp invitation/reminder communications are V1, not post-V1.**
 
 ## Scope-change rule
 

@@ -1,59 +1,101 @@
 # Mariage OS — Final Design Review
 
-Status: **PASS — IMPLEMENTATION GATE OPEN**
+Status: **PASS — EXPANDED V1 RE-FREEZE APPROVED; MERGE PENDING**
 
-Purpose: authoritative pre-code decision for Mariage OS after the complete product, UX, architecture, data, security, quality, operations, release, LLM-handoff and maintainability review.
+Purpose: authoritative pre-code design decision after adding secure guest RSVP links and outbound Email/SMS/WhatsApp communications to V1 and re-reviewing product, UX, architecture, data, security, quality, operations, public-readiness, release, LLM handoff and maintainability.
 
 ## Final decision
 
-The pre-Lot 0 design/documentation phase is **COMPLETE and FROZEN**.
+The expanded V1 design/documentation is **COMPLETE and APPROVED FOR RE-FREEZE**.
 
-Run 4 was merged to `main` from the exact reviewed/sealed head. The merge succeeded with expected-SHA protection.
+The frozen V1 feature set is now:
 
-Final pre-code result:
+- base capabilities `FTR-001..FTR-104`;
+- guest RSVP/communication capabilities `FTR-105..FTR-120`;
+- total: **120 V1 Feature IDs**.
 
-- **36 / 36 pre-Lot 0 criteria = 10/10 each**;
-- zero unresolved BLOCKING design findings;
-- zero unresolved MAJOR design findings;
-- all known P1 review threads resolved;
-- final exact-head content sentry clean for the privately maintained known-person identifiers and tested high-signal credential/key patterns;
-- changed-file inventory contained documentation/configuration only and no prohibited private wedding-data/backup/private-media/runtime-secret file class was identified;
-- branch comparison before merge had `behind_by: 0` with `main` as merge base;
-- the exact reviewed Run 4 head was sealed in PR #4 and merged successfully.
+The governing composition/precedence is recorded in `V1-FROZEN-MANIFEST.md`.
 
-Authoritative certification: `reviews/PRE-LOT0-36-CRITERIA-CERTIFICATION.md`.
-Broader maturity controls: `reviews/ABSOLUTE-300-CONTROL-CHECKLIST.md`.
-Maturity roadmap: `reviews/100-PERCENT-GAP-PLAN.md`.
+This review supersedes the earlier pre-scope-change PASS only for the added/affected areas. Unaffected frozen contracts remain valid.
 
-## Implementation gate
+## Scope-change review result
 
-**OPEN** means the repository is now allowed to begin Lot 0 when an explicit future Lot 0 kickoff is requested.
+The guest-communications scope change has been reconciled across:
 
-It does **not** mean Lot 0 has begun.
+- product specification and V1 scope;
+- Feature Ledger/requirements/traceability;
+- user journeys and acceptance scenarios;
+- onboarding and QIF (Quick & Intuitive Flow) criteria;
+- navigation/routes/screen blueprints;
+- domain schema/state machines/invariants/dependency graph;
+- project authorization/capability-link security;
+- provider ports and repository/service boundaries;
+- local/offline behavior;
+- import/export/backup/restore;
+- free-tier/cost semantics;
+- public-SaaS readiness;
+- lots/checkpoints/cutover;
+- LLM cold-start/task routing.
 
-Current implementation state:
+Dedicated review: `reviews/GUEST-COMMUNICATIONS-SCOPE-CHANGE-REVIEW.md`.
+Cold-start review: `reviews/GUEST-COMMUNICATIONS-LLM-COLD-START-REVIEW.md`.
+Acceptance suite: `quality/GUEST-COMMUNICATIONS-ACCEPTANCE.md`.
 
+## Final pre-code score
+
+Authoritative score: `reviews/PRE-LOT0-36-CRITERIA-CERTIFICATION.md`.
+
+Result:
+
+- **36 / 36 criteria = 100/100 each**;
+- arithmetic mean: **100.0/100**;
+- zero known unresolved BLOCKING design findings;
+- zero known unresolved MAJOR design findings for the expanded V1;
+- runtime-only proof remains explicitly assigned to Lot 0 or later and is not falsely claimed.
+
+## Critical safety conclusions for the new V1 scope
+
+- `/rsvp/:token` is a narrow household capability, not an anonymous project session.
+- Raw RSVP capability tokens are never stored as project data or exposed through logs/diagnostics.
+- Guest portal data transfer is allowlisted; internal priority/probability/private notes are never guest-visible.
+- Provider credentials remain server/platform secrets.
+- Provider integrations are behind application ports/adapters; domain/UI code does not depend directly on WhatsApp/SMS/email SDKs.
+- Outbound send is server-authoritative and idempotent; offline/client state cannot claim a send occurred.
+- Webhook/provider callbacks require verified source/signature semantics and deduplication.
+- Restore/migration never automatically reactivates queued/scheduled outbound campaigns.
+- Paid communication channels are opt-in/bounded; free secure link/QR remains a core fallback.
+- V1 WhatsApp integration must use an official/approved WhatsApp Business-compatible provider/API path; browser automation/personal-account circumvention is forbidden.
+
+## Implementation gate state before merge
+
+Because this scope change is not yet on `main`, the implementation gate remains **HOLD-CLOSED FOR RE-FREEZE** on this branch.
+
+Lot 0 must **not** start from this branch.
+
+The only remaining pre-code actions are administrative verification:
+
+1. final exact-head sentry/repository hygiene scan;
+2. open and inspect the scope-change PR;
+3. confirm mergeability/no unexpected review blocker;
+4. merge the exact reviewed HEAD to `main`;
+5. update main-branch status to `PASS / gate OPEN / Lot 0 READY / NOT_STARTED`.
+
+## After successful merge
+
+Once the reviewed scope-change HEAD is merged unchanged and the post-merge status seal is committed on `main`:
+
+- Final Design Review: **PASS**;
+- V1 design: **COMPLETE / FROZEN**;
+- V1 Feature IDs: **120 SPECIFIED**;
+- implementation gate: **OPEN**;
 - Lot 0: **READY / NOT_STARTED**;
 - application code: **not started**;
-- CI/workflow implementation: **not started**;
+- CI/toolchain implementation: **not started**;
 - database migrations: **not started**;
-- feature implementation: **not started**;
-- no V1 Feature ID may be claimed `IMPLEMENTED` merely because documentation is complete.
+- providers/integration code: **not started**.
 
-## 36-criterion result
+`OPEN` permits a future explicit Lot 0 kickoff. It never means Lot 0 started automatically.
 
-The following pre-code domains are certified complete at design level: product mission; scope; private/public boundary; tenancy; feature traceability; user flows; UX architecture; navigation; screen composition; visual identity; motion; image/SEO boundaries; public shell; responsive design; accessibility design; cloud architecture; local-first architecture; sync/conflicts; offline classification; database integrity; facts/evidence; money/budget/payments; guests/seating; venues/vendors; tasks/decisions/Inbox/Search; planning/timeline; documents/media; import/merge/rollback; backup/recovery; Auth/RLS design; public abuse/launch design; privacy/file design; testing strategy; operations/recovery; development anti-drift governance; lot/checkpoint sequencing.
+## Runtime evidence boundary
 
-`10/10 design` does not falsely claim runtime proof. Runtime-only controls remain assigned to Lot 0 or later, including real lint/typecheck/coverage, RLS execution, browser rendering, PWA update behavior, production monitoring and V1→V2 migration rehearsal.
-
-## Findings
-
-All historical FDR-001 through FDR-027 are resolved at the pre-code design level.
-
-The historical `freeze candidate` wording in the physical-schema header is explicitly non-decision-bearing under root `AGENTS.md`; it cannot override the normative schema/addenda or implementation state. It is not a blocker.
-
-## Next permitted action
-
-**Future explicit Lot 0 kickoff only.**
-
-Until that explicit kickoff is requested, do not create application code, workflow implementation, migrations, package/tooling setup or feature code.
+The design is implementation-ready, not runtime-verified. The following require real implementation evidence later: lint/typecheck/coverage, DB/RLS/capability endpoint execution, provider sends, webhook verification, mobile/accessibility rendering, Service Worker behavior, production monitoring and V1→V2 migration rehearsal.
