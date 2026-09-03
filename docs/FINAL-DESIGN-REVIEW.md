@@ -2,7 +2,7 @@
 
 Status: **IN PROGRESS — implementation gate CLOSED**
 
-Purpose: final pre-code review of the frozen V1 specification, including product fidelity, UX/visual architecture, data architecture, security, offline behavior, implementation governance and documentation coherence.
+Purpose: final pre-code review of the frozen V1 specification, including product fidelity, UX/visual architecture, public-SaaS readiness, data architecture, security, offline behavior, implementation governance and documentation coherence.
 
 This file is the only document allowed to declare the pre-code implementation gate OPEN.
 
@@ -20,7 +20,8 @@ A design area is not considered ready merely because a document exists. It must 
 - represented in cloud/local architecture where applicable;
 - safe across security/privacy/offline/failure states;
 - coherent with intended UX/navigation/visual identity;
-- assigned to implementation lot/Feature ID;
+- compatible with the frozen public-ready multi-tenant architecture even though real V1 deployment is private;
+- assigned to implementation lot/Feature/cross-cutting requirement;
 - reviewable later without relying on chat memory.
 
 Overall PASS requires **zero unresolved BLOCKING or MAJOR findings**.
@@ -33,40 +34,44 @@ Overall PASS requires **zero unresolved BLOCKING or MAJOR findings**.
 |---:|---|---|
 | 1 | Product mission / couple jobs | REVIEWED |
 | 2 | V1 / post-V1 scope | REVIEWED |
-| 3 | Feature inventory / traceability | REVIEWED / mapped |
-| 4 | User flows / acceptance scenarios | REVIEWED / mapped |
-| 5 | UX information architecture | REVIEWED / strengthened |
-| 6 | Navigation / route discoverability | REVIEWED / mapped |
-| 7 | Screen composition / progressive disclosure | REVIEWED / strengthened |
-| 8 | Visual identity / color system | REVIEWED / frozen |
-| 9 | Motion / dynamic table-list behavior | REVIEWED / frozen |
-| 10 | Image delivery / metadata / private SEO | REVIEWED / frozen |
-| 11 | Mobile/tablet/desktop behavior | REVIEWED; implementation evidence later |
-| 12 | Accessibility | REVIEWED; implementation evidence later |
-| 13 | Cloud architecture | REVIEWED |
-| 14 | Local-first / IndexedDB parity | REVIEWED / corrected |
-| 15 | Synchronization / conflicts | REVIEWED |
-| 16 | Offline capability classification | REVIEWED / corrected |
-| 17 | Database / same-project integrity | REVIEWED / corrected |
-| 18 | Facts/evidence/criteria | REVIEWED / corrected |
-| 19 | Money / budget / payments | REVIEWED / corrected |
-| 20 | Guests / households / seating | REVIEWED |
-| 21 | Venues / access / vendors | REVIEWED |
-| 22 | Tasks / decisions / Inbox / Search | REVIEWED |
-| 23 | Planning / timeline | REVIEWED / corrected |
-| 24 | Documents / contract readiness / media | REVIEWED / corrected |
-| 25 | Import / external IDs / rollback | REVIEWED / corrected |
-| 26 | Backup / restore / encryption | REVIEWED |
-| 27 | Auth / invitation / RLS | REVIEWED / corrected |
-| 28 | Privacy / external content / files | REVIEWED / corrected |
-| 29 | Testing / quality gates | REVIEWED |
-| 30 | Free-tier / operations / recovery | REVIEWED |
-| 31 | Development anti-drift governance | REVIEWED / strengthened |
-| 32 | Lot/checkpoint sequencing | REVIEWED / strengthened |
-| 33 | Documentation precedence / stale wording | FINAL SCAN IN PROGRESS |
-| 34 | PR review threads | REVIEWED / resolved |
-| 35 | PR mergeability | BLOCKED / investigation required |
-| 36 | Public repository hygiene | FINAL SCAN PENDING |
+| 3 | Private-V1 vs public-SaaS readiness boundary | REVIEWED / strengthened |
+| 4 | Multi-tenant tenancy/project context | REVIEWED / frozen |
+| 5 | Feature inventory / traceability | REVIEWED / mapped |
+| 6 | User flows / acceptance scenarios | REVIEWED / mapped |
+| 7 | UX information architecture | REVIEWED / strengthened |
+| 8 | Navigation / route discoverability | REVIEWED / project-scoped addendum |
+| 9 | Screen composition / progressive disclosure | REVIEWED / strengthened |
+| 10 | Visual identity / color system | REVIEWED / frozen |
+| 11 | Motion / dynamic table-list behavior | REVIEWED / frozen |
+| 12 | Image delivery / metadata / private SEO | REVIEWED / frozen |
+| 13 | Public web shell / future marketing SEO boundary | REVIEWED / frozen |
+| 14 | Mobile/tablet/desktop behavior | REVIEWED; implementation evidence later |
+| 15 | Accessibility | REVIEWED; implementation evidence later |
+| 16 | Cloud architecture | REVIEWED |
+| 17 | Local-first / IndexedDB parity | REVIEWED / corrected |
+| 18 | Synchronization / conflicts | REVIEWED |
+| 19 | Offline capability classification | REVIEWED / corrected |
+| 20 | Database / same-project integrity | REVIEWED / corrected |
+| 21 | Facts/evidence/criteria | REVIEWED / corrected |
+| 22 | Money / budget / payments | REVIEWED / corrected |
+| 23 | Guests / households / seating | REVIEWED |
+| 24 | Venues / access / vendors | REVIEWED |
+| 25 | Tasks / decisions / Inbox / Search | REVIEWED |
+| 26 | Planning / timeline | REVIEWED / corrected |
+| 27 | Documents / contract readiness / media | REVIEWED / corrected |
+| 28 | Import / external IDs / rollback | REVIEWED / corrected |
+| 29 | Backup / restore / encryption | REVIEWED |
+| 30 | Auth / invitation / RLS | REVIEWED / corrected |
+| 31 | Future public signup/abuse/launch boundary | REVIEWED / specified, activation post-V1 |
+| 32 | Privacy / external content / files | REVIEWED / corrected |
+| 33 | Testing / quality gates | REVIEWED |
+| 34 | Free-tier / operations / recovery | REVIEWED |
+| 35 | Development anti-drift governance | REVIEWED / strengthened |
+| 36 | Lot/checkpoint sequencing | REVIEWED / strengthened |
+| 37 | Documentation precedence / stale wording | FINAL SCAN IN PROGRESS |
+| 38 | PR review threads | REVIEWED / resolved |
+| 39 | PR mergeability | BLOCKED / investigation required |
+| 40 | Public repository hygiene | FINAL SCAN PENDING |
 
 ---
 
@@ -178,7 +183,8 @@ Overall PASS requires **zero unresolved BLOCKING or MAJOR findings**.
   - old future-threat wording removed;
   - old immediate `merge → Lot 0` wording removed from normative entry points;
   - old seating/timeline deferrals corrected;
-  - palette deferral corrected.
+  - palette deferral corrected;
+  - private single-couple wording now has explicit public-readiness addendum/precedence.
 - Known remaining exception: `PHYSICAL-SCHEMA-V1.md` header still contains historical `freeze candidate`; normative precedence of schema + addendum must be explicitly finalized without risking accidental schema rewrite.
 - Required work: finish branch-wide sentry scan and record acceptable non-semantic exceptions.
 
@@ -231,6 +237,29 @@ Overall PASS requires **zero unresolved BLOCKING or MAJOR findings**.
 - Status: **RESOLVED**
 - Resolution: `VISUAL-BENCHMARKS.md` records lessons from wedding products and strong data/productivity interfaces, with explicit originality/no-copy rule.
 
+## FDR-025 — Private V1 deployment could be mistaken for single-tenant architecture
+
+- Severity: **MAJOR**
+- Status: **RESOLVED**
+- Problem: a developer could have hard-coded “one production project/two users” into routes/services/local caches and created a major future SaaS rewrite even though RLS tables were project-scoped.
+- Resolution:
+  - `PRODUCT-SPECIFICATION-PUBLIC-READINESS-ADDENDUM.md` separates private launch policy from multi-tenant core;
+  - `architecture/PUBLIC-SAAS-READINESS.md` freezes multi-project service/route/cache/provisioning abstractions;
+  - `domain/TENANCY-MODEL.md` freezes user/project/membership semantics;
+  - authenticated route family is project-scoped by `SCREEN-CONTRACTS-PROJECT-SCOPE-ADDENDUM.md`;
+  - `PUB-001..020` add traceable public-ready requirements;
+  - integration checkpoints re-test multi-project synthetic isolation.
+
+## FDR-026 — Future public signup/abuse/legal layer was not separated from domain CRUD
+
+- Severity: **MAJOR**
+- Status: **RESOLVED**
+- Resolution:
+  - `security/PUBLIC-ABUSE-PROTECTION.md` defines CAPTCHA/rate-limit/provisioning/invite/storage/import/admin abuse requirements;
+  - `operations/PUBLIC-LAUNCH-GATE.md` blocks public activation until capacity/security/legal/SEO/support evidence exists;
+  - `ux/PUBLIC-WEB-SHELL.md` separates indexable public marketing/Auth from private non-indexed project routes;
+  - private `BOOTSTRAP-INVITATIONS.md` now uses a provisioning-policy boundary rather than a permanent one-project invariant.
+
 ---
 
 # 4. Current gate blockers
@@ -255,6 +284,8 @@ Before this document may state `IMPLEMENTATION GATE: OPEN`:
 - [x] Requirement ↔ Feature ↔ Acceptance map reconciled;
 - [x] Route ↔ UX blueprint ↔ Feature map reconciled;
 - [x] visual identity/color/motion/image rules frozen enough to prevent generic implementation drift;
+- [x] private V1 deployment is explicitly separated from multi-tenant/public-ready core architecture;
+- [x] future public activation has a separate abuse/security/legal/SEO/operations gate;
 - [ ] master spec/scope/schema/local schema/security/lots final sentry scan agrees;
 - [ ] public branch contains no prohibited private artifact/secret;
 - [x] PR review threads resolved/responded;
