@@ -4,17 +4,43 @@ Status: **Living repository source of truth for development progress**
 
 Purpose: answer “where exactly are we?” without relying on chat history, memory or interpretation of recent commits.
 
-This file is updated whenever a material feature/lot/checkpoint changes state.
+This file is updated whenever a material feature/lot/checkpoint/review state changes.
 
 ---
 
 # Current phase
 
-**Documentation/design finalization. Implementation gate: CLOSED.**
+**Documentation/design finalization and systematic pre-code review. Implementation gate: CLOSED.**
 
 Lot 0 has not started.
 
 Gate opens only when `FINAL-DESIGN-REVIEW.md` passes with no unresolved BLOCKING/MAJOR finding and documentation Run 4 is merged to `main`.
+
+---
+
+# Latest review status
+
+The context-free LLM / engineering-maintainability review has been completed at design level.
+
+Added/strengthened during this review:
+
+- root `AGENTS.md` cold-start/precedence/stop rules;
+- `engineering/LLM-TASK-ROUTING.md` task-specific context routing;
+- `engineering/CODEBASE-STRUCTURE.md` canonical physical source/test architecture;
+- `engineering/MODULE-SIZE-COMPLEXITY.md` measurable god-file/function/complexity guardrails;
+- stricter `CODING-STANDARDS.md`;
+- `.github/pull_request_template.md` traceability/architecture/security/test evidence;
+- FIR/DoD/Contributing/Lots/Start Here/README integration;
+- `reviews/DOCUMENTATION-SYSTEM-SCORECARD.md` systematic 44-criterion review;
+- `reviews/LLM-COLD-START-REVIEW.md` context-free takeover simulation;
+- `FINAL-DESIGN-REVIEW-LLM-ENGINEERING-ADDENDUM.md` findings/resolutions.
+
+Current documentation-level results:
+
+- Documentation content quality: approximately **97/100**;
+- LLM context-free documentation readiness: approximately **98/100**;
+- LLM cold-start simulation: **9.8/10 PASS**;
+- these scores are design/documentation scores, not implementation evidence.
 
 ---
 
@@ -56,6 +82,8 @@ Allowed lot states:
 | C — Product Control & Offline | 8–10 | NOT_STARTED | `reviews/CHECKPOINT-C-REPORT.md` |
 | D — Recovery & Cutover | 11–12 | NOT_STARTED | `reviews/CHECKPOINT-D-REPORT.md` |
 
+At every checkpoint, repeat/update `reviews/DOCUMENTATION-SYSTEM-SCORECARD.md` using **implemented** evidence. Critical dimensions below 9.0 require a finding/remediation regardless of the average.
+
 See `INTEGRATION-CHECKPOINTS.md`.
 
 ---
@@ -78,29 +106,35 @@ During development this summary must be reconciled against the ledger; do not ma
 
 ---
 
-# Current blockers / review work
+# Current blockers / remaining pre-code work
 
-Current pre-code items:
+The LLM/code-organization/maintainability review is no longer an open design blocker.
 
-1. complete final UX/product/architecture documentation review;
-2. create/finalize `FINAL-DESIGN-REVIEW.md`;
-3. reconcile documentation index/entry points with new governance + UX docs;
-4. inspect PR review threads/mergeability;
-5. confirm public repository contains no real wedding data/secrets;
-6. merge Run 4 only after review PASS.
+Remaining final-gate work is controlled by `FINAL-DESIGN-REVIEW.md`, especially:
+
+1. complete/finalize remaining stale-wording/precedence scan;
+2. reconcile any secondary documentation index/reference omissions discovered by final scan;
+3. inspect current PR #4 mergeability/base divergence and resolve if needed;
+4. perform final public-repository privacy/secret/private-data scan;
+5. record final reviewed HEAD SHA;
+6. update final design review to PASS only if no BLOCKING/MAJOR finding remains;
+7. merge Run 4 only after PASS.
+
+**Next permitted action:** final documentation/PR/repository review remediation only. Do not start Lot 0.
 
 ---
 
 # Progress update protocol
 
-After each material implementation session or PR, update:
+After each material implementation/review session or PR, update:
 
 - current phase;
 - lot state;
 - affected Feature IDs/statuses;
 - new/resolved blockers;
-- latest verification evidence;
+- latest verification/review evidence;
 - checkpoint state if applicable;
+- latest systematic scorecard if checkpoint/systemic review occurred;
 - next permitted action.
 
 Do not record progress as a vague percentage unless the calculation method is stated. Prefer counts such as:
@@ -113,21 +147,18 @@ Open MAJOR findings: 1
 
 ---
 
-# Handoff summary template
-
-At the end of a long development/review run, append/update a concise handoff section:
+# Handoff summary
 
 ```text
-Last reviewed commit:
-Current lot:
-Current feature(s):
-Last feature accepted:
-Pending feature(s):
-Open blockers:
-Last full verify result:
-Last UX review:
-Last checkpoint:
-Next permitted action:
+Last review focus: context-free LLM takeover + physical code architecture + maintainability rules
+Current phase: documentation/design finalization
+Current lot: none — implementation gate CLOSED
+Latest design scorecard: ~97/100 documentation, ~98/100 LLM-readiness
+LLM cold-start review: 9.8/10 PASS (documentation level)
+Lot 0: NOT_STARTED
+Open blockers: final precedence scan, PR mergeability, public-repo hygiene, final reviewed SHA/merge
+Last checkpoint: N/A — implementation not started
+Next permitted action: final design/PR/repository review only
 ```
 
 The repository status board is the canonical handoff. Chat is supplementary only.
