@@ -43,35 +43,36 @@ Physical authorization schema: `../domain/PHYSICAL-SCHEMA-AUTHORIZATION-ADDENDUM
 24. `SECURE-DATABASE-QUERIES.md`
 25. schema/migration contracts under `../domain/` and `../engineering/MIGRATIONS.md`.
 
-## Browser/frontend
+## Browser/frontend/external content
 
 26. `FRONTEND-SECURITY.md`
-27. UX/image/private SEO contracts where external media/navigation is involved.
+27. `EXTERNAL-CONTENT-SECURITY.md`
+28. UX/image/private SEO contracts where external media/navigation is involved.
 
 ## Files/storage/imports
 
-28. `FILE-SECURITY.md`
-29. `STORAGE-RLS.md`
-30. relevant `../import-export/*` and backup contracts.
+29. `FILE-SECURITY.md`
+30. `STORAGE-RLS.md`
+31. relevant `../import-export/*` and backup contracts.
 
 ## Privacy / platform access
 
-31. `PRIVACY.md`
-32. `PLATFORM-ADMIN-ACCESS.md`
-33. public web/SEO/export privacy contracts where applicable.
+32. `PRIVACY.md`
+33. `PLATFORM-ADMIN-ACCESS.md`
+34. public web/SEO/export privacy contracts where applicable.
 
 ## Supply chain / repository
 
-34. `SUPPLY-CHAIN.md`
-35. `SECRET-MANAGEMENT.md`
-36. CI/CD and quality-gate contracts.
+35. `SUPPLY-CHAIN.md`
+36. `SECRET-MANAGEMENT.md`
+37. CI/CD and quality-gate contracts.
 
 ## Verification
 
-37. `ASVS-MATRIX.md`
-38. `../quality/SECURITY-TESTING.md`
-39. `../reviews/SECURITY-HARDENING-REVIEW.md`
-40. `../reviews/AUTHORIZATION-DESIGN-REVIEW.md`
+38. `ASVS-MATRIX.md`
+39. `../quality/SECURITY-TESTING.md`
+40. `../reviews/SECURITY-HARDENING-REVIEW.md`
+41. `../reviews/AUTHORIZATION-DESIGN-REVIEW.md`
 
 ## Non-negotiable authorization rule
 
