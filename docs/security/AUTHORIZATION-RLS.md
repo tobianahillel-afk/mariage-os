@@ -1,90 +1,158 @@
 # Authorization and Row Level Security
 
+Status: **Normative V1 + public-readiness security contract**
+
+Read first:
+
+- `AUTHORIZATION-MODEL.md`
+- `ROLE-PERMISSION-MATRIX.md`
+- `PRIVILEGED-OPERATIONS.md`
+- `RLS-MATRIX-V1.md`
+
 ## Principle
 
-Authentication answers “who are you?” Authorization answers “may you access this project/resource?”
+Authentication answers “who are you?”. Authorization answers “may this identity perform this action on this project/resource now?”.
 
-Mariage OS authorization is enforced in PostgreSQL/Storage policies, not merely in client UI.
+Mariage OS authorization is enforced in PostgreSQL/Storage/RPC policy boundaries, never merely by client UI.
+
+## Canonical model
+
+`project_members(project_id, user_id, role, membership_status, ...)` is the canonical project relationship.
+
+Feature/domain code requests an explicit permission such as `venues.write` or `backup.full_export`; it does **not** authorize with scattered `role === owner` checks.
+
+Conceptual DB primitive:
+
+```sql
+has_project_permission(target_project_id, requested_permission)
+```
+
+Permission evaluation combines:
+
+1. authenticated identity;
+2. active project membership;
+3. centralized role→permission mapping;
+4. resource project ownership;
+5. relationship/attribute constraints;
+6. domain state/invariants;
+7. authentication assurance where required.
+
+Project roles are not trusted as stale long-lived client claims. Current DB membership remains authoritative.
 
 ## Roles
 
-Initial roles:
+Built-in templates:
 
-- `owner` — full project operation, subject to strong-auth requirements for destructive admin actions;
-- `editor` — future optional role, ordinary project edits but limited administration;
-- `viewer` — future optional read-only role.
+- `owner`;
+- `editor`;
+- `viewer`.
 
-V1 is optimized for two owners.
-
-## Membership source
-
-`project_members(project_id, user_id, role, status, ...)` is the canonical membership relation.
+V1 production uses two owners, but the permission system and isolation tests exist from the start. Exact grants are normative in `ROLE-PERMISSION-MATRIX.md`.
 
 ## RLS baseline
 
 For every exposed project-scoped table:
 
 - RLS enabled;
+- unnecessary `anon` / `authenticated` table grants revoked;
+- explicit operation grants;
 - explicit SELECT policy;
 - explicit INSERT policy;
 - explicit UPDATE policy;
 - explicit DELETE policy or deliberate denial;
-- WITH CHECK prevents writing rows into unauthorized projects;
-- policies are tested with allow and deny cases.
+- `WITH CHECK` prevents writing rows into unauthorized projects;
+- policy evaluates current membership/permission;
+- allow and deny tests exist.
 
-## Core policy concept
+A missing policy is not interpreted as future work if the table is exposed; it is a release blocker.
 
-An authenticated user may access a row only if they have active membership in that row's project and their role permits the operation.
+## Deny by default
 
-Do not trust a client-supplied `project_id` simply because the user is authenticated.
+- anonymous private access denied;
+- unknown role/permission denied;
+- inactive/revoked membership denied;
+- project mismatch denied;
+- authorization configuration failure fails closed;
+- known UUID/path does not grant access.
 
 ## Cross-project integrity
 
-Foreign keys/link tables must not permit joining an entity from project A to an entity from project B.
+RLS is necessary but not sufficient.
 
-This may require composite validation, triggers/functions or service-layer checks plus database constraints depending on physical schema.
+Foreign keys/link tables must also prevent relationships from project A to project B through composite constraints, validated polymorphic links, narrow commands or equivalent DB-enforced mechanisms.
 
-## Ownership administration
+## Relationship constraints
 
-Project-owner changes require explicit role policy. The last owner cannot be removed through ordinary membership mutation.
+Even with broad project permission:
+
+- a member writes only their own ratings/preferences;
+- a member casts only their own approval;
+- referenced assignee/member must belong to project;
+- linked entities must share project;
+- finance/seating/decision/fact state transitions obey domain invariants.
+
+## Ownership/member administration
+
+Member invite/revoke/role changes use protected commands from `PRIVILEGED-OPERATIONS.md`.
+
+The last active owner cannot be removed by ordinary flow.
+
+No generic client update to `project_members.role` is permitted.
 
 ## Protected columns
 
-Where possible, prevent arbitrary user updates to system-managed/security-sensitive columns such as:
+RLS is row-level. System/security-sensitive columns require additional protection as appropriate:
 
 - `project_id`;
-- created-by identity;
-- audit fields;
-- certain revision fields;
-- role escalation fields.
+- audit identities/timestamps;
+- server revision;
+- membership role/status;
+- invitation hashes;
+- protected finance/system state.
+
+Use column grants, immutable semantics, triggers and/or narrow commands; never rely on UI omission.
 
 ## Functions/views
 
-Any database function/view exposed to the client must be reviewed for RLS/security-definer implications. `SECURITY DEFINER` functions require especially careful search path and authorization design.
+Any exposed view/function is part of the authorization surface.
+
+- views must not accidentally bypass RLS;
+- security-definer functions use fixed safe `search_path`;
+- every privileged function explicitly checks `auth.uid()`, target project and permission;
+- functions expose minimal results;
+- service-role/secret credentials never enter browser code.
 
 ## Realtime
 
-Realtime authorization must not bypass the same project boundaries. Receiving an event is also data access.
-
-## Tests per table
-
-At minimum:
-
-1. owner A can SELECT own project row;
-2. owner A cannot SELECT project B row;
-3. anonymous cannot SELECT private row;
-4. owner A can INSERT with own project ID if role permits;
-5. owner A cannot INSERT with project B ID;
-6. owner A can UPDATE permitted own fields;
-7. owner A cannot change row into project B;
-8. unauthorized role cannot perform forbidden UPDATE/DELETE;
-9. removed member loses access;
-10. direct REST/API requests fail exactly as UI-hidden actions would.
+Receiving an event is data access. Realtime subscriptions remain project-scoped/authorized and never bypass DB boundaries.
 
 ## Storage
 
-Storage policies are separate but follow the same project-membership principle. Object paths alone are not authorization.
+Storage policies are independent authorization checks.
 
-## Verification
+Object path is not authority. Access must verify membership + appropriate permission (document/media/sensitive-document class). Signed access is short-lived and cannot expand permissions.
 
-RLS tests are mandatory release gates. A UI E2E test is not a replacement for direct policy tests.
+## Public-ready multi-tenancy
+
+Tests must contain multiple projects/users even though the private deployment has one real project. Cross-tenant isolation is a V1 invariant, not deferred SaaS work.
+
+## Tests
+
+At minimum for each project-scoped resource/operation:
+
+1. permitted owner action succeeds;
+2. anonymous denied;
+3. outsider denied;
+4. other-project member denied;
+5. revoked member denied;
+6. viewer/editor forbidden operations denied;
+7. own-project insert/write succeeds only when permission allows;
+8. cross-project `project_id` injection denied;
+9. changing project ownership field denied;
+10. protected-column escalation denied;
+11. relationship-owned row impersonation denied;
+12. direct REST/RPC/Storage requests fail the same way as hidden UI;
+13. role downgrade/revocation takes server-side effect during active session;
+14. stale cached permission cannot authorize cloud mutation.
+
+RLS tests are mandatory release gates. UI E2E is not a substitute for direct policy tests.
