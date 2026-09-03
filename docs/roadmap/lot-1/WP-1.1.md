@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-1.1`
 - Lot: `1`
 - Name: Permission catalog and authorization helper foundation
-- State: `ACCEPTANCE_PENDING`
-- Current pass: `C-ACCEPTANCE`
+- State: `ACCEPTED`
+- Current pass: `C-ACCEPTANCE-COMPLETE`
 - Primary bounded context: authorization metadata / permission evaluation foundation
 - Branch/PR: `lot-1/identity-project-foundation`
 
@@ -42,7 +42,7 @@
 ## Dependency / sequencing
 
 - Required prior packets/features: Lot 0 accepted DB/RLS harness.
-- Downstream packets blocked by this packet: WP-1.2 through WP-1.9 depend on stable permission keys/helper semantics.
+- Downstream packets unblocked by acceptance: WP-1.2 may now start; later packets still depend on their own prerequisites.
 - Shared interfaces/contracts relied on: `PHYSICAL-SCHEMA-AUTHORIZATION-ADDENDUM.md`, `AUTHORIZATION-REQUIREMENTS.md`, `ROLE-PERMISSION-MATRIX.md`.
 
 ## Sizing review
@@ -67,7 +67,7 @@
 - infrastructure adapters: PostgreSQL authorization helper scaffold.
 - cloud persistence/RLS: migration-owned catalogs; ordinary client mutation prohibited by grants/RLS posture.
 - local/offline behavior: none.
-- import/export/backup/versioning impact: permission keys become security/versioned API and must remain migration-controlled.
+- import/export/backup/versioning impact: permission keys are now a migration-controlled security/versioned API.
 - UX/QIF/accessibility impact: none.
 
 ## Pass A — IMPLEMENT
@@ -76,19 +76,11 @@
 
 - migration/schema: `supabase/migrations/20260903213500_create_authorization_catalog.sql` creates the three migration-owned authorization catalogs, seeds all 51 frozen V1 permission keys, seeds owner/editor/viewer templates and provides the internal role-permission lookup scaffold;
 - grants/security posture: ordinary `PUBLIC`, `anon` and `authenticated` table access is explicitly revoked; direct client execution of the internal role lookup is explicitly revoked;
-- tests: `supabase/tests/authorization_catalog_test.sql` now provides 13 direct pgTAP assertions including exact owner/editor/viewer set equality, fail-closed unknown state, client privilege denial, exact `SECURITY DEFINER` search-path posture and key-format integrity;
+- tests: `supabase/tests/authorization_catalog_test.sql` provides 13 direct pgTAP assertions including exact owner/editor/viewer set equality, fail-closed unknown state, client privilege denial, exact `SECURITY DEFINER` search-path posture and key-format integrity;
 - initial CI before review: run `33809158568` on `b76aa509d84c4aa73f80669faa2c9d6b494c15b8`, all five jobs SUCCESS;
 - repair CI: run `33809855993` on `f0b1e46c46bc3ad5d15bf2191c63ec4e85473507`, all five jobs SUCCESS including local DB/RLS verification and clean-checkout `npm run verify`;
-- scope: only Lot 1 orchestration docs, authorization migration/test and CI branch activation exist beyond the accepted Lot 0 base; no project/member/product-domain implementation leaked into WP-1.1;
+- scope: no project/member/product-domain implementation leaked into WP-1.1;
 - FIRs updated: not applicable as this packet is a cross-cutting foundation; affected Feature FIRs begin with their first user-facing implementation packet.
-
-### Pass A exit
-
-- [x] intended vertical slice exists
-- [x] applicable tests written
-- [x] no known untracked stub/TODO
-- [x] packet moved from `IN_PROGRESS` to `REVIEW_PENDING`
-- [x] current/next pass recorded as `B-ADVERSARIAL-REVIEW`
 
 ## Pass B — ADVERSARIAL REVIEW
 
@@ -99,16 +91,16 @@
 #### WP1-AR-001 — MAJOR — role matrix was not proven exactly
 
 - Repair: representative mapping assertions were replaced by exact set equality for owner, editor and viewer.
-- Independent re-review: compared the repaired editor/viewer sets directly with `security/ROLE-PERMISSION-MATRIX.md`; editor has exactly 40 normative grants, viewer exactly 12 conservative grants, owner exactly all 51 catalog permissions.
-- Verification: direct DB tests and full verify are green in run `33809855993`.
+- Independent re-review: compared repaired editor/viewer sets directly with `security/ROLE-PERMISSION-MATRIX.md`; editor has exactly 40 normative grants, viewer exactly 12 conservative grants, owner exactly all 51 catalog permissions.
+- Verification: direct DB tests and full verify green in run `33809855993`.
 - Status: **CLOSED**.
 
 #### WP1-AR-002 — MAJOR — SECURITY DEFINER search path was wider than necessary
 
 - Repair: `public.role_has_permission` now uses `set search_path = pg_catalog`; all application relations remain explicitly schema-qualified.
 - Additional hardening: table/function privileges explicitly revoke `PUBLIC`, `anon` and `authenticated` where applicable.
-- Independent re-review: function still fails closed for unknown role/permission, client roles cannot execute it, and the pgTAP suite directly checks `proconfig = ARRAY['search_path=pg_catalog']`.
-- Verification: direct DB tests and full verify are green in run `33809855993`.
+- Independent re-review: function still fails closed for unknown role/permission, client roles cannot execute it, and pgTAP directly checks `proconfig = ARRAY['search_path=pg_catalog']`.
+- Verification: direct DB tests and full verify green in run `33809855993`.
 - Status: **CLOSED**.
 
 ### Second review result
@@ -119,14 +111,35 @@ The re-review independently checked the normative role matrix, helper privilege 
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-In progress.
+### Responsibility-by-responsibility decision
 
-Acceptance must compare normative expectation, actual implementation and runtime/CI evidence for each WP-1.1 responsibility. No downstream packet may begin until this reconciliation is complete.
+| Responsibility | Normative expectation | Implemented | Verified |
+|---|---|---|---|
+| permission catalog | stable migration-controlled V1 permission keys | 51 dotted keys in `app_permissions` | exact count + clean migration/DB test |
+| built-in roles | owner/editor/viewer centrally controlled | `app_roles` seeds exactly three assignable built-ins | direct pgTAP role count |
+| role mapping | exact frozen built-in matrix, no ad-hoc feature branching | `app_role_permissions` migration seed | exact set equality for owner/editor/viewer against normative matrix |
+| fail-closed lookup | unknown role/permission never grants | `role_has_permission` uses existence over migration-owned mapping | direct unknown-role/permission deny assertion |
+| client trust boundary | client cannot authorize itself by supplying a role | helper/table execution/read surface revoked from ordinary client roles | direct privilege assertions |
+| privileged helper hardening | safe search path for SECURITY DEFINER | `search_path = pg_catalog`, application objects schema-qualified | direct `pg_proc.proconfig` assertion |
+| scope boundary | no project/member RLS before WP-1.2 | only authorization metadata/helper introduced | compare against accepted Lot 0 base + full CI |
+| regression safety | all inherited Lot 0 gates remain green | CI workflow generalized without weakening gates | run `33809855993`, five jobs SUCCESS including full verify |
+
+### Acceptance decision
+
+**ACCEPTED.**
+
+- Contract expectation present: yes.
+- Actual implementation present: yes.
+- Runtime/CI evidence present: yes.
+- Open BLOCKING/MAJOR findings: **0**.
+- Known scope leakage: **none**.
+
+WP-1.1 may be reopened later only if a downstream integration objectively invalidates one of these guarantees.
 
 ## Handoff
 
-- Current state: `ACCEPTANCE_PENDING`
-- Current/next pass: `C-ACCEPTANCE`
-- Last green verification: run `33809855993` on `f0b1e46c46bc3ad5d15bf2191c63ec4e85473507`, all five jobs SUCCESS including clean-checkout `npm run verify`.
+- Current state: `ACCEPTED`
+- Current/next pass: `C-ACCEPTANCE-COMPLETE`
+- Acceptance evidence: run `33809855993` on `f0b1e46c46bc3ad5d15bf2191c63ec4e85473507`, all five jobs SUCCESS.
 - Remaining blockers/findings: none.
-- Next permitted action: perform Pass C responsibility-by-responsibility reconciliation; if complete, mark WP-1.1 accepted and only then open WP-1.2.
+- Next permitted action: open and implement WP-1.2 only.
