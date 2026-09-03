@@ -13,6 +13,7 @@ Purpose: let a human or context-free LLM locate the governing contracts without 
 3. [`V1-FROZEN-MANIFEST.md`](V1-FROZEN-MANIFEST.md)
 4. [`START-HERE.md`](START-HERE.md)
 5. [`engineering/LLM-TASK-ROUTING.md`](engineering/LLM-TASK-ROUTING.md)
+6. for an entire-Lot request: [`engineering/AI-LOT-ORCHESTRATION.md`](engineering/AI-LOT-ORCHESTRATION.md)
 
 ### Human full onboarding
 
@@ -24,7 +25,7 @@ Do not treat this index as an instruction to load every file into one context.
 
 # 1. Frozen product / scope / traceability
 
-- [`V1-FROZEN-MANIFEST.md`](V1-FROZEN-MANIFEST.md) — compact current V1 composition and precedence.
+- [`V1-FROZEN-MANIFEST.md`](V1-FROZEN-MANIFEST.md) — compact current V1 composition, precedence and execution-governance entry points.
 - [`PRODUCT-SPECIFICATION.md`](PRODUCT-SPECIFICATION.md) — master V1 product specification.
 - [`PRODUCT-SPECIFICATION-PUBLIC-READINESS-ADDENDUM.md`](PRODUCT-SPECIFICATION-PUBLIC-READINESS-ADDENDUM.md) — private-first/public-ready core.
 - [`PRODUCT-SPECIFICATION-GUEST-COMMUNICATIONS-ADDENDUM.md`](PRODUCT-SPECIFICATION-GUEST-COMMUNICATIONS-ADDENDUM.md) — V1 invitations/RSVP/Email/SMS/WhatsApp scope.
@@ -233,6 +234,8 @@ Base:
 Guest communications:
 - [`quality/GUEST-COMMUNICATIONS-ACCEPTANCE.md`](quality/GUEST-COMMUNICATIONS-ACCEPTANCE.md) — GC-001..060.
 
+AI execution adds review/acceptance governance but does not replace these executable quality layers.
+
 ---
 
 # 9. Operations / provider / release
@@ -249,9 +252,15 @@ Release/versioning must preserve webhook/idempotency/guest-link compatibility ac
 
 # 10. Engineering / maintainability / agent governance
 
-Base:
-- `engineering/IMPLEMENTATION-PLAYBOOK.md`
-- `engineering/LLM-TASK-ROUTING.md`
+Implementation execution:
+- [`engineering/AI-LOT-ORCHESTRATION.md`](engineering/AI-LOT-ORCHESTRATION.md) — whole-Lot decomposition, packet sizing, three-pass review, mechanical reconciliation, Lot Integration Pass.
+- [`templates/WORK-PACKET-RECORD.md`](templates/WORK-PACKET-RECORD.md) — durable packet/pass evidence template.
+- [`engineering/IMPLEMENTATION-PLAYBOOK.md`](engineering/IMPLEMENTATION-PLAYBOOK.md)
+- [`engineering/LLM-TASK-ROUTING.md`](engineering/LLM-TASK-ROUTING.md)
+- [`engineering/DEFINITION-OF-DONE.md`](engineering/DEFINITION-OF-DONE.md)
+- [`templates/FEATURE-IMPLEMENTATION-RECORD.md`](templates/FEATURE-IMPLEMENTATION-RECORD.md)
+
+Code/quality governance:
 - `engineering/REQUIREMENTS-TRACEABILITY.md`
 - `engineering/CODING-STANDARDS.md`
 - `engineering/CODEBASE-STRUCTURE.md`
@@ -259,7 +268,6 @@ Base:
 - `engineering/ERROR-HANDLING.md`
 - `engineering/OBSERVABILITY-DIAGNOSTICS.md`
 - `engineering/MIGRATIONS.md`
-- `engineering/DEFINITION-OF-DONE.md`
 - `engineering/CI-CD.md`
 - `engineering/RELEASE-PROCESS.md`
 - `engineering/VERSIONING-UPDATE-DELIVERY.md`
@@ -276,12 +284,12 @@ Root governance:
 
 # 11. Roadmap / acceptance / checkpoints
 
-- [`roadmap/LOTS.md`](roadmap/LOTS.md) — current implementation sequence.
-- `roadmap/LOT-ACCEPTANCE.md`
+- [`roadmap/LOTS.md`](roadmap/LOTS.md) — current product milestones + AI decomposition requirement.
+- [`roadmap/LOT-ACCEPTANCE.md`](roadmap/LOT-ACCEPTANCE.md) — base Lot acceptance + packet/reconciliation/integration closure rules.
 - [`roadmap/LOT-ACCEPTANCE-GUEST-COMMUNICATIONS-ADDENDUM.md`](roadmap/LOT-ACCEPTANCE-GUEST-COMMUNICATIONS-ADDENDUM.md)
 - `roadmap/INTEGRATION-CHECKPOINTS.md`
 - [`roadmap/INTEGRATION-CHECKPOINTS-GUEST-COMMUNICATIONS-ADDENDUM.md`](roadmap/INTEGRATION-CHECKPOINTS-GUEST-COMMUNICATIONS-ADDENDUM.md)
-- `roadmap/IMPLEMENTATION-STATUS.md` — exact current state/next allowed action.
+- `roadmap/IMPLEMENTATION-STATUS.md` — exact current state, and while active, current Work Packet/pass/next action.
 
 ---
 
@@ -289,7 +297,13 @@ Root governance:
 
 Systematic reviews live in `reviews/`.
 
-Current scope-change review/certification must be read together with the historical full-design reviews. A future contributor must never infer implementation status from an old review date; use `roadmap/IMPLEMENTATION-STATUS.md`.
+Current relevant reviews:
+- [`reviews/PRE-LOT0-36-CRITERIA-CERTIFICATION.md`](reviews/PRE-LOT0-36-CRITERIA-CERTIFICATION.md)
+- [`reviews/AI-LOT-ORCHESTRATION-REVIEW.md`](reviews/AI-LOT-ORCHESTRATION-REVIEW.md)
+- guest-communications scope/cold-start reviews
+- historical full-design/security/LLM reviews.
+
+A future contributor must never infer implementation status from an old review date; use `roadmap/IMPLEMENTATION-STATUS.md`.
 
 ---
 
