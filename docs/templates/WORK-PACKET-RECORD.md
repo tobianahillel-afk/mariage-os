@@ -4,13 +4,15 @@ Status: **Implementation execution record template**
 
 Use one record per Work Packet when implementation begins. The record is durable repository state and must be understandable without chat context.
 
+`State` and `Current pass` must agree with the canonical state machine in `../engineering/AI-LOT-ORCHESTRATION.md`. If they disagree, the packet is not safely resumable and work must stop until the record is repaired.
+
 ## Identity
 
 - Work Packet ID:
 - Lot:
 - Name:
 - State: `PLANNED | READY | IN_PROGRESS | REVIEW_PENDING | REVIEW_FAILED | ACCEPTANCE_PENDING | ACCEPTED | BLOCKED`
-- Current pass: `PLAN | A-IMPLEMENT | B-ADVERSARIAL-REVIEW | C-ACCEPTANCE | COMPLETE`
+- Current pass: `PLAN | A-IMPLEMENT | B-ADVERSARIAL-REVIEW | REMEDIATION | C-ACCEPTANCE | COMPLETE`
 - Primary bounded context:
 - Branch/PR:
 - Implementer/reviewer if relevant:
@@ -87,7 +89,8 @@ Use one record per Work Packet when implementation begins. The record is durable
 - [ ] intended vertical slice exists
 - [ ] applicable tests written
 - [ ] no known untracked stub/TODO
-- [ ] packet moved to `REVIEW_PENDING`
+- [ ] packet moved from `IN_PROGRESS` to `REVIEW_PENDING`
+- [ ] current/next pass recorded as `B-ADVERSARIAL-REVIEW`
 
 ## Pass B — ADVERSARIAL REVIEW
 
@@ -111,9 +114,23 @@ Review checks:
 - [ ] size/complexity/god-file drift searched
 - [ ] weak/mirroring tests searched
 - [ ] undocumented stubs/TODOs searched
-- [ ] no BLOCKING/MAJOR finding remains
+
+### Pass B decision
+
+Choose exactly one durable result:
+
+- [ ] `PASS` — no unresolved BLOCKING/MAJOR finding; packet moved to `ACCEPTANCE_PENDING`; current/next pass is `C-ACCEPTANCE`.
+- [ ] `FAIL` — BLOCKING/MAJOR finding exists; packet moved to `REVIEW_FAILED`; current/next pass is `REMEDIATION`.
+
+If remediation begins after `REVIEW_FAILED`, move state to `IN_PROGRESS`, keep current pass `REMEDIATION`, resolve the findings, rerun affected implementation/tests, then return through `REVIEW_PENDING` and Pass B. Do not skip directly to Pass C.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
+
+### Entry gate
+
+- [ ] packet entered Pass C from `ACCEPTANCE_PENDING`
+- [ ] current pass is `C-ACCEPTANCE`
+- [ ] no unresolved BLOCKING/MAJOR Pass B finding exists
 
 | Responsibility | Expected | Implemented evidence | Verified evidence | Result |
 |---|---|---|---|---|
@@ -128,13 +145,16 @@ Acceptance checks:
 - [ ] documentation/status/handoff updated
 - [ ] downstream prerequisites clearly recorded
 
-Final packet decision:
+Final packet decision — choose a real state, not a pseudo-status:
 
-- `ACCEPTED | RETURN_TO_IN_PROGRESS | BLOCKED`
+- `ACCEPTED | IN_PROGRESS | BLOCKED`
+
+If Pass C returns the packet to `IN_PROGRESS`, record current pass as `REMEDIATION`, fix the defect, and rerun affected A/B/C evidence before acceptance.
 
 ## Handoff
 
-- Current state/pass:
+- Current state:
+- Current/next pass:
 - Last green verification:
 - Remaining blocker/finding:
 - Next permitted action:
