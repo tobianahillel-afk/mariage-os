@@ -24,10 +24,10 @@ function requireSuccess(result: RpcResult): void {
   }
 }
 
-export class SupabaseMembershipAdministrationAdapter
-  implements ProjectMembershipAdministrationPort
-{
-  public constructor(private readonly client: SupabaseMembershipRpcClientLike) {}
+export class SupabaseMembershipAdministrationAdapter implements ProjectMembershipAdministrationPort {
+  public constructor(
+    private readonly client: SupabaseMembershipRpcClientLike,
+  ) {}
 
   public async changeRole(
     projectId: string,
