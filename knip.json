@@ -1,0 +1,14 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": ["src/main.ts", "vite.config.ts", "scripts/**/*.mjs"],
+  "project": ["src/**/*.ts", "vite.config.ts", "scripts/**/*.mjs"],
+  "ignoreDependencies": [
+    "@playwright/test",
+    "@stryker-mutator/core",
+    "@stryker-mutator/vitest-runner",
+    "@vitest/coverage-v8",
+    "fast-check",
+    "supabase",
+    "vitest"
+  ]
+}
