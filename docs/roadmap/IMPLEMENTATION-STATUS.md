@@ -4,47 +4,28 @@ Status: **Living repository source of truth for development progress**
 
 Purpose: answer “where exactly are we?” without relying on chat history, memory or interpretation of recent commits.
 
-This file is updated whenever a material feature/lot/checkpoint/review state changes.
+## Current phase
 
----
+**Pre-code documentation/design: COMPLETE / FROZEN.**
 
-# Current phase
+**Implementation gate: OPEN.**
 
-**Documentation/design finalization and systematic pre-code review. Implementation gate: CLOSED.**
+**Lot 0: READY / NOT_STARTED.**
 
-Lot 0 has not started.
+Run 4 has been merged to `main`. `FINAL-DESIGN-REVIEW.md` is PASS. The 36 required pre-Lot 0 design criteria are certified at 10/10 each.
 
-Gate opens only when `FINAL-DESIGN-REVIEW.md` passes with no unresolved BLOCKING/MAJOR finding and documentation Run 4 is merged to `main`.
+No implementation work has started.
 
----
+## Final pre-Lot 0 evidence
 
-# Latest review status
+- `../FINAL-DESIGN-REVIEW.md` — PASS / implementation gate open;
+- `../reviews/PRE-LOT0-36-CRITERIA-CERTIFICATION.md` — 36/36 criteria at 10/10;
+- `../reviews/FINAL-SENTRY-SCAN.md` — exact-head sentry methodology and privacy/secret/precedence seal;
+- `../reviews/ABSOLUTE-300-CONTROL-CHECKLIST.md` — C001→C300 durable maturity controls;
+- `../reviews/100-PERCENT-GAP-PLAN.md` — design → Lot 0 → V1 → production → V2 maturity roadmap;
+- PR #4 — sealed exact Run 4 head merged successfully.
 
-The context-free LLM / engineering-maintainability review has been completed at design level.
-
-Added/strengthened during this review:
-
-- root `AGENTS.md` cold-start/precedence/stop rules;
-- `engineering/LLM-TASK-ROUTING.md` task-specific context routing;
-- `engineering/CODEBASE-STRUCTURE.md` canonical physical source/test architecture;
-- `engineering/MODULE-SIZE-COMPLEXITY.md` measurable god-file/function/complexity guardrails;
-- stricter `CODING-STANDARDS.md`;
-- `.github/pull_request_template.md` traceability/architecture/security/test evidence;
-- FIR/DoD/Contributing/Lots/Start Here/README integration;
-- `reviews/DOCUMENTATION-SYSTEM-SCORECARD.md` systematic 44-criterion review;
-- `reviews/LLM-COLD-START-REVIEW.md` context-free takeover simulation;
-- `FINAL-DESIGN-REVIEW-LLM-ENGINEERING-ADDENDUM.md` findings/resolutions.
-
-Current documentation-level results:
-
-- Documentation content quality: approximately **97/100**;
-- LLM context-free documentation readiness: approximately **98/100**;
-- LLM cold-start simulation: **9.8/10 PASS**;
-- these scores are design/documentation scores, not implementation evidence.
-
----
-
-# Lot status
+## Lot status
 
 Allowed lot states:
 - `NOT_STARTED`
@@ -57,7 +38,7 @@ Allowed lot states:
 
 | Lot | Name | State | Feature range / focus | Exit evidence |
 |---:|---|---|---|---|
-| 0 | Repository & tooling | NOT_STARTED | engineering foundation | — |
+| 0 | Repository & tooling | **READY** | engineering foundation | not started |
 | 1 | Identity/project foundation | NOT_STARTED | FTR-002..012 | — |
 | 2 | Venues core | NOT_STARTED | FTR-013..028 + file basics | — |
 | 3 | Tasks/decisions/Inbox | NOT_STARTED | FTR-029..035 | — |
@@ -71,94 +52,68 @@ Allowed lot states:
 | 11 | Backup/recovery/production | NOT_STARTED | FTR-094..099 + hardening | — |
 | 12 | Existing data/cutover | NOT_STARTED | FTR-100..104 | — |
 
----
+`READY` means the lot may be started only after an explicit kickoff. It is not equivalent to `IN_PROGRESS`.
 
-# Cross-lot checkpoints
+## Cross-lot checkpoints
 
-| Checkpoint | Lots | State | Report |
-|---|---|---|---|
-| A — Foundation & Core Decision Loop | 0–3 | NOT_STARTED | `reviews/CHECKPOINT-A-REPORT.md` when executed |
-| B — Data Intake & Operational Core | 4–7 | NOT_STARTED | `reviews/CHECKPOINT-B-REPORT.md` |
-| C — Product Control & Offline | 8–10 | NOT_STARTED | `reviews/CHECKPOINT-C-REPORT.md` |
-| D — Recovery & Cutover | 11–12 | NOT_STARTED | `reviews/CHECKPOINT-D-REPORT.md` |
+| Checkpoint | Lots | State |
+|---|---|---|
+| A — Foundation & Core Decision Loop | 0–3 | NOT_STARTED |
+| B — Data Intake & Operational Core | 4–7 | NOT_STARTED |
+| C — Product Control & Offline | 8–10 | NOT_STARTED |
+| D — Recovery & Cutover | 11–12 | NOT_STARTED |
 
-At every checkpoint, repeat/update `reviews/DOCUMENTATION-SYSTEM-SCORECARD.md` using **implemented** evidence. Critical dimensions below 9.0 require a finding/remediation regardless of the average.
-
-See `INTEGRATION-CHECKPOINTS.md`.
-
----
-
-# Feature status summary
+## Feature status summary
 
 Authoritative feature rows: `../FEATURE-LEDGER.md`.
 
-Before implementation:
-- 104 V1 Feature IDs: `SPECIFIED`;
-- `READY`: 0;
+Current implementation counts:
+
+- V1 Feature IDs: 104 `SPECIFIED`;
+- `READY`: 0 unless individually promoted during a future lot kickoff;
 - `IN_PROGRESS`: 0;
 - `IMPLEMENTED`: 0;
 - `VERIFIED`: 0;
 - `INTEGRATED`: 0;
 - `ACCEPTED`: 0;
-- `BLOCKED`: 0 unless final design review identifies a feature-specific blocker.
+- `BLOCKED`: 0.
 
-During development this summary must be reconciled against the ledger; do not manually claim percentages that are not derivable from feature/lot states.
+Documentation completion never counts as feature implementation.
 
----
+## Current blockers
 
-# Current blockers / remaining pre-code work
+**Pre-Lot 0 blockers: 0.**
 
-The LLM/code-organization/maintainability review is no longer an open design blocker.
+No BLOCKING or MAJOR design finding remains open.
 
-Remaining final-gate work is controlled by `FINAL-DESIGN-REVIEW.md`, especially:
+Runtime/tooling evidence intentionally does not exist yet because Lot 0 has not started. Those controls remain assigned to their proper future phases in the 300-control checklist.
 
-1. complete/finalize remaining stale-wording/precedence scan;
-2. reconcile any secondary documentation index/reference omissions discovered by final scan;
-3. inspect current PR #4 mergeability/base divergence and resolve if needed;
-4. perform final public-repository privacy/secret/private-data scan;
-5. record final reviewed HEAD SHA;
-6. update final design review to PASS only if no BLOCKING/MAJOR finding remains;
-7. merge Run 4 only after PASS.
+## Next permitted action
 
-**Next permitted action:** final documentation/PR/repository review remediation only. Do not start Lot 0.
+**Wait for an explicit Lot 0 kickoff request.**
 
----
+Until then:
 
-# Progress update protocol
+- do not initialize Vite/TypeScript;
+- do not create `package.json`/lockfile/toolchain;
+- do not create GitHub Actions workflows;
+- do not implement CI/CD;
+- do not create Supabase migrations/configuration;
+- do not create application source code;
+- do not implement any Feature ID.
 
-After each material implementation/review session or PR, update:
-
-- current phase;
-- lot state;
-- affected Feature IDs/statuses;
-- new/resolved blockers;
-- latest verification/review evidence;
-- checkpoint state if applicable;
-- latest systematic scorecard if checkpoint/systemic review occurred;
-- next permitted action.
-
-Do not record progress as a vague percentage unless the calculation method is stated. Prefer counts such as:
+## Handoff summary
 
 ```text
-Lot 2: 9/16 features VERIFIED, 5 IN_PROGRESS, 2 READY
-Checkpoint A: not yet eligible
-Open MAJOR findings: 1
+Pre-code design: COMPLETE / FROZEN
+Final Design Review: PASS
+36 pre-Lot 0 criteria: 36/36 at 10/10
+Run 4: MERGED
+Implementation gate: OPEN
+Lot 0: READY / NOT_STARTED
+Features IMPLEMENTED: 0
+Open pre-code BLOCKING/MAJOR findings: 0
+Next permitted action: explicit future Lot 0 kickoff only
 ```
 
----
-
-# Handoff summary
-
-```text
-Last review focus: context-free LLM takeover + physical code architecture + maintainability rules
-Current phase: documentation/design finalization
-Current lot: none — implementation gate CLOSED
-Latest design scorecard: ~97/100 documentation, ~98/100 LLM-readiness
-LLM cold-start review: 9.8/10 PASS (documentation level)
-Lot 0: NOT_STARTED
-Open blockers: final precedence scan, PR mergeability, public-repo hygiene, final reviewed SHA/merge
-Last checkpoint: N/A — implementation not started
-Next permitted action: final design/PR/repository review only
-```
-
-The repository status board is the canonical handoff. Chat is supplementary only.
+The repository is the canonical handoff. Chat history is supplementary only.
