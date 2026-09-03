@@ -8,6 +8,11 @@ const forbiddenPattern = new RegExp(
 );
 const explicitFiles = process.argv.slice(2);
 
+const metaFilesThatDefineQualityRules = new Set([
+  "eslint.config.js",
+  "scripts/check-forbidden-markers.mjs",
+]);
+
 function trackedFiles() {
   const output = execFileSync("git", ["ls-files", "-z"], { encoding: "utf8" });
   return output.split("\0").filter(Boolean);
@@ -15,14 +20,14 @@ function trackedFiles() {
 
 function isNormallyScanned(file) {
   if (file.startsWith("tests/fixtures/quality-violations/")) return false;
-  if (file === "scripts/check-forbidden-markers.mjs") return false;
+  if (metaFilesThatDefineQualityRules.has(file)) return false;
 
   return (
     file.startsWith("src/") ||
     file.startsWith("scripts/") ||
     file.startsWith("supabase/") ||
     file.startsWith(".github/workflows/") ||
-    /^(package\.json|tsconfig.*\.json|vite\.config\.ts|eslint\.config\.js|dependency-cruiser\.config\.mjs|knip\.json)$/.test(
+    /^(package\.json|tsconfig.*\.json|vite\.config\.ts|dependency-cruiser\.config\.mjs|knip\.json)$/.test(
       file,
     )
   );
