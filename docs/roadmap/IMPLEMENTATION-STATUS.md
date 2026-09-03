@@ -34,7 +34,7 @@ Packets:
 
 1. `WP-1.1` — permission catalog and authorization helper foundation — **ACCEPTED**;
 2. `WP-1.2` — core tenancy schema, membership and RLS baseline — **ACCEPTED**;
-3. `WP-1.3` — Supabase Auth/session and controlled first-owner provisioning — **IN_PROGRESS**;
+3. `WP-1.3` — Supabase Auth/session and controlled first-owner provisioning — **IN_PROGRESS / B-ADVERSARIAL-REMEDIATION**;
 4. `WP-1.4` — partner invitation and protected membership lifecycle — **PLANNED**;
 5. `WP-1.5` — project configuration, dates, origins, preferences and RSVP-intent hooks — **PLANNED**;
 6. `WP-1.6` — protected app shell/navigation and public RSVP trust boundary — **PLANNED**;
@@ -48,13 +48,15 @@ Packets:
 - Lot state: **IN_PROGRESS**
 - Current packet: **WP-1.3**
 - Packet state: **IN_PROGRESS**
-- Current pass: **A-IMPLEMENT**
+- Current pass: **B-ADVERSARIAL-REMEDIATION**
 - Accepted packets: **WP-1.1, WP-1.2**
 - Review-failed/blocked packets: **none open**
 - WP-1.1 acceptance evidence: run `33809855993` on `f0b1e46c46bc3ad5d15bf2191c63ec4e85473507`, all five jobs SUCCESS.
 - WP-1.2 acceptance evidence: run `33811568440` on `fa96228bcd8a0b7671fcb561f8f7668eaf5851dc`, all five jobs SUCCESS; repaired 41-assertion grant/RLS matrix; `WP12-AR-001` closed.
+- WP-1.3 Pass-A evidence: run `33816301733` on `0758479222bf777d99cc0e6e855faabf1beef1d5`, all five jobs SUCCESS including clean-checkout `npm run verify`.
+- WP-1.3 Pass-B findings: `WP13-AR-001` malformed RPC project-ID trust and `WP13-AR-002` weak password minimum were remediated and await exact-head verification.
 - Current branch: **`lot-1/identity-project-foundation`**
-- Next permitted action: **implement WP-1.3 only: browser-safe Supabase Auth/session boundary, controlled private first-owner provisioning, verified-identity enforcement and recent-auth/MFA assurance hook**.
+- Next permitted action: **finish WP-1.3 adversarial verification and Pass C only; WP-1.4 remains forbidden until WP-1.3 acceptance**.
 
 ## Lot status
 
@@ -72,18 +74,22 @@ Packets:
 
 ## Current blockers / forward maintenance
 
-**0 open BLOCKING/MAJOR findings at WP-1.3 kickoff.**
+**0 open BLOCKING findings. Two WP-1.3 MAJOR findings are remediated and await exact-head verification.**
 
-Closed adversarial findings:
+Closed/adversarial findings:
 
 - `WP1-AR-001`: exact built-in role matrix evidence completed;
 - `WP1-AR-002`: internal SECURITY DEFINER search path hardened;
-- `WP12-AR-001`: core tenancy table/column/RPC grant and denied-operation matrix expanded to direct exhaustive evidence.
+- `WP12-AR-001`: core tenancy table/column/RPC grant and denied-operation matrix expanded to direct exhaustive evidence;
+- `WP13-AR-001`: provisioning adapter now validates provider-returned project IDs as UUIDs before crossing the infrastructure boundary;
+- `WP13-AR-002`: selected V1 password flow minimum hardened from 8 to 14 characters in Supabase configuration.
 
 Inherited reviewed non-blocking maintenance:
 
 - dependency audit reports two Moderate transitive advisories in development tooling; Critical/High accepted-known count remains zero under the normative vulnerability gate, and the Moderate findings must be re-evaluated on the relevant dependency/toolchain update;
-- external container registries may transiently rate-limit clean Supabase image pulls; bounded retry is permitted only when it does not skip DB/RLS verification.
+- external container registries may transiently rate-limit clean Supabase image pulls; bounded retry is permitted only when it does not skip DB/RLS verification;
+- exact provider signup-window behavior remains a downstream Lot-1 onboarding requirement: private configuration must ultimately prove the intended partner can establish the invited verified identity before unrestricted signup is closed;
+- official Supabase browser SDK composition remains downstream from the structural WP-1.3 adapter boundary and must not introduce custom token/session handling.
 
 ## Handoff
 
@@ -92,8 +98,10 @@ Lot 0: ACCEPTED
 Lot 1: IN_PROGRESS
 Coverage: required - assigned = ∅
 Accepted: WP-1.1, WP-1.2
-Current: WP-1.3 / IN_PROGRESS / A-IMPLEMENT
-Next: implement verified Supabase Auth/session boundary + controlled one-time private first-owner provisioning + assurance hook
+Current: WP-1.3 / IN_PROGRESS / B-ADVERSARIAL-REMEDIATION
+Pass A: SUCCESS — run 33816301733
+Pass B: WP13-AR-001 + WP13-AR-002 remediated; exact-head verification pending
+Next: exact-head verify → finish Pass B → WP-1.3 Pass C
 WP-1.4+: forbidden until WP-1.3 acceptance
 Lot 2+: forbidden
 ```
