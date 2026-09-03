@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-1.3`
 - Lot: `1`
 - Name: Supabase Auth/session and controlled first-owner provisioning
-- State: `IN_PROGRESS`
-- Current pass: `B-ADVERSARIAL-REMEDIATION`
+- State: `ACCEPTED`
+- Current pass: `C-ACCEPTANCE-COMPLETE`
 - Primary bounded context: authentication / private deployment provisioning
 - Branch/PR: `lot-1/identity-project-foundation`
 
@@ -79,7 +79,7 @@ Pass-A repairs before green evidence included SQL role-context corrections, exac
 
 ## Pass B — ADVERSARIAL REVIEW
 
-**IN_PROGRESS — remediations implemented; exact-head re-verification pending.**
+**COMPLETE.**
 
 Review areas:
 
@@ -94,8 +94,17 @@ Review areas:
 
 Findings/remediations:
 
-- `WP13-AR-001` — **MAJOR / CLOSED IN CODE, VERIFY PENDING**: provisioning adapter accepted any non-empty provider string as a project identifier. Remediation validates the RPC response as a canonical UUID before returning it and adds malformed-response negative tests.
-- `WP13-AR-002` — **MAJOR / CLOSED IN CONFIG, VERIFY PENDING**: selected password flow retained the local Supabase default minimum of 8 characters, below the private-owner target in `AUTH-HARDENING.md`. Remediation sets `minimum_password_length = 14` while retaining provider-managed password handling.
+- `WP13-AR-001` — **MAJOR / CLOSED**: provisioning adapter accepted any non-empty provider string as a project identifier. Remediation validates the RPC response as a canonical UUID before returning it and adds malformed-response negative tests.
+- `WP13-AR-002` — **MAJOR / CLOSED**: selected password flow retained the local Supabase default minimum of 8 characters, below the private-owner target in `AUTH-HARDENING.md`. Remediation sets `minimum_password_length = 14` while retaining provider-managed password handling.
+
+Post-remediation evidence:
+
+- GitHub Actions run `33817932867` on `707b1384fbd370fe88ef7a87ac191aa9645f6db3`: all five jobs SUCCESS;
+- Core quality/security SUCCESS including typecheck, static architecture/dead-code/marker gates, negative controls, 100% unit coverage, dependency audit and build;
+- Local Supabase DB/RLS SUCCESS with provider config loaded and direct DB verification;
+- Browser/mutation SUCCESS;
+- privacy-safe preview SUCCESS;
+- full `npm run verify` from clean checkout SUCCESS.
 
 Reviewed non-blocking downstream responsibilities:
 
@@ -107,12 +116,25 @@ No production secrets, real owner email or service-role client path were introdu
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started. Requires a green exact-head run after Pass-B remediations and no open BLOCKING/MAJOR finding.
+**COMPLETE — ACCEPTED.**
+
+Mechanical reconciliation:
+
+- required WP-1.3 responsibilities − implemented/evidenced WP-1.3 responsibilities = **∅**;
+- accepted dependency requirements are satisfied by WP-1.1 and WP-1.2;
+- compare against accepted WP-1.2 head showed changes limited to Auth/provisioning application ports, Supabase adapters/tests, private provisioning migration/tests, provider configuration and governance documentation;
+- no WP-1.4 invitation/token implementation landed early;
+- no Storage/Realtime foundation, protected-route UI, wedding-domain Lot 2+ code, real wedding/customer data or production credential landed;
+- downstream signup-window, official SDK composition and MFA/session lifecycle responsibilities remain explicitly assigned to later Lot-1 packets and are not silently waived.
+
+Acceptance evidence: run `33817932867` on `707b1384fbd370fe88ef7a87ac191aa9645f6db3`, all five jobs SUCCESS after Pass-B remediation.
+
+Open BLOCKING/MAJOR findings: **none**.
 
 ## Handoff
 
-- Current state: `IN_PROGRESS`
-- Current/next pass: `B-ADVERSARIAL-REMEDIATION`
+- Final state: `ACCEPTED`
+- Final pass: `C-ACCEPTANCE-COMPLETE`
 - Accepted dependencies: WP-1.1, WP-1.2.
-- Open BLOCKING/MAJOR findings: none awaiting design/code remediation; `WP13-AR-001` and `WP13-AR-002` await exact-head verification.
-- Next permitted action: obtain exact-head full verification, finish independent Pass B, then perform Pass C reconciliation for WP-1.3 only.
+- Closed findings: `WP13-AR-001`, `WP13-AR-002`.
+- Next permitted packet: **WP-1.4 — partner invitation and protected membership lifecycle**.
