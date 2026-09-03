@@ -1,6 +1,8 @@
 # Start Here
 
-This is the mandatory onboarding entry point for anyone working on Mariage OS without prior conversation context.
+This is the full onboarding map for anyone working on Mariage OS without prior conversation context.
+
+**AI agents / context-free coding agents must read root `AGENTS.md` first.** `AGENTS.md` defines precedence, stop conditions and a minimal task-routing strategy so an agent does not blindly load the entire documentation corpus.
 
 If you remember one rule: **do not invent material behavior from intuition. Read the governing specification and current implementation status first.**
 
@@ -11,7 +13,7 @@ The V1 product specification is frozen as a design baseline, but **implementatio
 Current required work:
 
 1. finish documentation consolidation;
-2. complete `FINAL-DESIGN-REVIEW.md` across product, architecture, data, UX, visual identity, public-readiness, security, quality and operations;
+2. complete `FINAL-DESIGN-REVIEW.md` across product, architecture, data, UX, visual identity, public-readiness, security, quality, maintainability and operations;
 3. close every BLOCKING/MAJOR finding;
 4. merge the documentation PR;
 5. only then may Lot 0 be considered for start.
@@ -38,7 +40,16 @@ Its visual thesis is **wedding editorial warmth × calm operating-system precisi
 
 ---
 
-## 2. Mandatory reading order
+## 2. Reading strategy
+
+This section is the comprehensive map, **not a requirement to load every file for every task**.
+
+For context-limited work, follow:
+
+1. root `AGENTS.md`;
+2. `docs/roadmap/IMPLEMENTATION-STATUS.md`;
+3. `docs/engineering/LLM-TASK-ROUTING.md`;
+4. the governing feature/requirement contracts for the actual task.
 
 ### Master/freeze layer
 
@@ -52,95 +63,102 @@ Its visual thesis is **wedding editorial warmth × calm operating-system precisi
 8. `docs/DOCUMENTATION-AUDIT.md`
 9. `docs/FINAL-DESIGN-REVIEW.md`
 10. `docs/DEFERRED-DECISIONS.md`
+11. `docs/reviews/DOCUMENTATION-SYSTEM-SCORECARD.md` — systematic quality/LLM-readiness scorecard
 
 ### Product context
 
-11. `docs/PRODUCT.md`
-12. `docs/PRINCIPLES.md`
-13. `docs/NON-GOALS.md`
-14. `docs/USER-FLOWS.md`
-15. `docs/ACCEPTANCE-SCENARIOS.md`
+12. `docs/PRODUCT.md`
+13. `docs/PRINCIPLES.md`
+14. `docs/NON-GOALS.md`
+15. `docs/USER-FLOWS.md`
+16. `docs/ACCEPTANCE-SCENARIOS.md`
 
 ### UX / visual product system
 
-16. `docs/ux/VISUAL-SYSTEM.md` — mandatory visual-design entry point
-17. `docs/ux/UX-ARCHITECTURE.md` — page taxonomy and anti-mega-page rules
-18. `docs/ux/NAVIGATION.md`
-19. `docs/ux/SCREEN-BLUEPRINTS.md` — major-screen composition
-20. `docs/ux/SCREEN-CONTRACTS.md` — screen jobs/actions/states
-21. `docs/ux/SCREEN-CONTRACTS-PROJECT-SCOPE-ADDENDUM.md` — canonical project-scoped authenticated routes
-22. `docs/ux/PUBLIC-WEB-SHELL.md` — future public marketing/Auth vs private app boundary
-23. `docs/ux/VISUAL-IDENTITY.md` — brand personality/direction
-24. `docs/ux/COLOR-SYSTEM.md` — frozen multi-color/domain palette architecture
-25. `docs/ux/DESIGN-SYSTEM.md`
-26. `docs/ux/MOTION-INTERACTION.md`
-27. `docs/ux/SEO-METADATA-IMAGES.md`
-28. `docs/ux/INTERACTION-STATES.md`
-29. `docs/ux/FORMS-AUTOSAVE.md`
-30. `docs/ux/UX-REVIEW-CHECKLIST.md`
-31. `docs/ux/VISUAL-REVIEW-CHECKLIST.md`
-32. `docs/ux/VISUAL-BENCHMARKS.md` — research input, never a copying target
-33. `docs/ux/WIREFRAMES.md` — supporting low-fidelity sketches
+17. `docs/ux/VISUAL-SYSTEM.md` — mandatory visual-design entry point
+18. `docs/ux/UX-ARCHITECTURE.md` — page taxonomy and anti-mega-page rules
+19. `docs/ux/NAVIGATION.md`
+20. `docs/ux/SCREEN-BLUEPRINTS.md` — major-screen composition
+21. `docs/ux/SCREEN-CONTRACTS.md` — screen jobs/actions/states
+22. `docs/ux/SCREEN-CONTRACTS-PROJECT-SCOPE-ADDENDUM.md` — canonical project-scoped authenticated routes
+23. `docs/ux/PUBLIC-WEB-SHELL.md` — future public marketing/Auth vs private app boundary
+24. `docs/ux/VISUAL-IDENTITY.md` — brand personality/direction
+25. `docs/ux/COLOR-SYSTEM.md` — frozen multi-color/domain palette architecture
+26. `docs/ux/DESIGN-SYSTEM.md`
+27. `docs/ux/MOTION-INTERACTION.md`
+28. `docs/ux/SEO-METADATA-IMAGES.md`
+29. `docs/ux/INTERACTION-STATES.md`
+30. `docs/ux/FORMS-AUTOSAVE.md`
+31. `docs/ux/UX-REVIEW-CHECKLIST.md`
+32. `docs/ux/VISUAL-REVIEW-CHECKLIST.md`
+33. `docs/ux/VISUAL-BENCHMARKS.md` — research input, never a copying target
+34. `docs/ux/WIREFRAMES.md` — supporting low-fidelity sketches
 
 ### Architecture
 
-34. `docs/architecture/OVERVIEW.md`
-35. `docs/architecture/STACK.md`
-36. `docs/architecture/PUBLIC-SAAS-READINESS.md` — mandatory anti-single-couple architecture constraint
-37. `docs/architecture/TRUST-BOUNDARIES.md`
-38. `docs/architecture/DATA-OWNERSHIP.md`
-39. `docs/architecture/LOCAL-FIRST.md`
-40. `docs/architecture/SYNC.md`
-41. `docs/architecture/OFFLINE.md`
-42. `docs/architecture/PWA-LIFECYCLE.md`
-43. `docs/architecture/STORAGE.md`
-44. `docs/architecture/LOCAL-DATA-SCHEMA.md`
-45. `docs/architecture/REPOSITORY-SERVICE-CONTRACTS.md`
-46. `docs/architecture/DEPENDENCY-GRAPH.md`
-47. relevant ADRs.
+35. `docs/architecture/OVERVIEW.md`
+36. `docs/architecture/STACK.md`
+37. `docs/architecture/PUBLIC-SAAS-READINESS.md` — mandatory anti-single-couple architecture constraint
+38. `docs/architecture/TRUST-BOUNDARIES.md`
+39. `docs/architecture/DATA-OWNERSHIP.md`
+40. `docs/architecture/LOCAL-FIRST.md`
+41. `docs/architecture/SYNC.md`
+42. `docs/architecture/OFFLINE.md`
+43. `docs/architecture/PWA-LIFECYCLE.md`
+44. `docs/architecture/STORAGE.md`
+45. `docs/architecture/LOCAL-DATA-SCHEMA.md`
+46. `docs/architecture/REPOSITORY-SERVICE-CONTRACTS.md`
+47. `docs/architecture/DEPENDENCY-GRAPH.md`
+48. relevant ADRs.
 
 ### Domain/data
 
-48. `docs/domain/TENANCY-MODEL.md` — project/user/membership model
-49. `docs/domain/ERD.md`
-50. `docs/domain/PHYSICAL-SCHEMA-V1.md`
-51. `docs/domain/PHYSICAL-SCHEMA-V1-ADDENDUM.md`
-52. `docs/domain/DATA-DICTIONARY.md`
-53. `docs/domain/IDENTIFIERS.md`
-54. `docs/domain/DATES-TIME.md`
-55. `docs/domain/MONEY.md`
-56. `docs/domain/STATE-MACHINES.md`
-57. `docs/domain/INVARIANTS.md`
-58. `docs/domain/FACTS-SOURCES.md`
-59. `docs/domain/FACT-VALUE-TYPES.md`
-60. `docs/domain/CRITERIA-EVALUATION.md`
-61. `docs/domain/DEFAULT-CRITERIA.md`
-62. `docs/domain/CONFIDENCE-FRESHNESS.md`
-63. `docs/domain/DERIVED-DATA.md`
-64. relevant specialized domain document.
+49. `docs/domain/TENANCY-MODEL.md` — project/user/membership model
+50. `docs/domain/ERD.md`
+51. `docs/domain/PHYSICAL-SCHEMA-V1.md`
+52. `docs/domain/PHYSICAL-SCHEMA-V1-ADDENDUM.md`
+53. `docs/domain/PHYSICAL-SCHEMA-AUTHORIZATION-ADDENDUM.md`
+54. `docs/domain/DATA-DICTIONARY.md`
+55. `docs/domain/IDENTIFIERS.md`
+56. `docs/domain/DATES-TIME.md`
+57. `docs/domain/MONEY.md`
+58. `docs/domain/STATE-MACHINES.md`
+59. `docs/domain/INVARIANTS.md`
+60. `docs/domain/FACTS-SOURCES.md`
+61. `docs/domain/FACT-VALUE-TYPES.md`
+62. `docs/domain/CRITERIA-EVALUATION.md`
+63. `docs/domain/DEFAULT-CRITERIA.md`
+64. `docs/domain/CONFIDENCE-FRESHNESS.md`
+65. `docs/domain/DERIVED-DATA.md`
+66. relevant specialized domain document.
 
 ### Security/quality/operations
 
-65. applicable `docs/security/*`, including `security/PUBLIC-ABUSE-PROTECTION.md` for public-readiness changes.
-66. applicable `docs/quality/*`.
-67. applicable `docs/operations/*`, including `operations/PUBLIC-LAUNCH-GATE.md` before any public self-service activation.
-68. `docs/engineering/CODING-STANDARDS.md`.
-69. `docs/engineering/ERROR-HANDLING.md`.
-70. `docs/engineering/MIGRATIONS.md`.
-71. `docs/engineering/DEFINITION-OF-DONE.md`.
+67. start security work at `docs/security/README.md`, not a random individual policy file.
+68. applicable `docs/quality/*`.
+69. applicable `docs/operations/*`, including `operations/PUBLIC-LAUNCH-GATE.md` before public self-service activation.
+70. `docs/engineering/CODING-STANDARDS.md`.
+71. `docs/engineering/CODEBASE-STRUCTURE.md`.
+72. `docs/engineering/MODULE-SIZE-COMPLEXITY.md`.
+73. `docs/engineering/ERROR-HANDLING.md`.
+74. `docs/engineering/MIGRATIONS.md`.
+75. `docs/engineering/DEFINITION-OF-DONE.md`.
 
 ### Implementation governance / feature / lot
 
-72. `docs/engineering/IMPLEMENTATION-PLAYBOOK.md`.
-73. relevant `docs/features/<FEATURE>.md`.
-74. import/export contract if data enters/leaves the system.
-75. `docs/roadmap/LOTS.md`.
-76. `docs/roadmap/LOT-ACCEPTANCE.md`.
-77. `docs/roadmap/INTEGRATION-CHECKPOINTS.md`.
-78. `docs/reviews/README.md`.
-79. `CONTRIBUTING.md`.
+76. `docs/engineering/IMPLEMENTATION-PLAYBOOK.md`.
+77. `docs/engineering/LLM-TASK-ROUTING.md`.
+78. relevant `docs/features/<FEATURE>.md`.
+79. import/export contract if data enters/leaves the system.
+80. `docs/roadmap/LOTS.md`.
+81. `docs/roadmap/LOT-ACCEPTANCE.md`.
+82. `docs/roadmap/INTEGRATION-CHECKPOINTS.md`.
+83. `docs/templates/FEATURE-IMPLEMENTATION-RECORD.md`.
+84. `.github/pull_request_template.md`.
+85. `docs/reviews/README.md`.
+86. `CONTRIBUTING.md`.
 
-You do not reread every document for every tiny edit, but you must read every governing contract for the behavior being changed.
+You do not reread every document for every tiny edit. You must read every governing contract for the behavior being changed.
 
 ---
 
@@ -164,6 +182,7 @@ You do not reread every document for every tiny edit, but you must read every go
 - Required quality/security/UX/visual gates cannot be bypassed.
 - UX remains summary-first, multi-page where appropriate and mobile-adapted; exposing every available field on one page is not acceptable implementation.
 - The frozen multi-color visual system may not be simplified into a generic one-accent admin theme for implementation convenience.
+- Canonical code layers/folders, dependency direction and maintainability thresholds may not be ignored for implementation convenience.
 - Public wedding-project data is **not** made searchable/indexable merely because the product itself later becomes publicly available.
 
 ---
@@ -173,6 +192,7 @@ You do not reread every document for every tiny edit, but you must read every go
 - **Product truth:** frozen/reviewed normative documentation in Git.
 - **Public-readiness truth:** `PRODUCT-SPECIFICATION-PUBLIC-READINESS-ADDENDUM.md` + `architecture/PUBLIC-SAAS-READINESS.md` + `domain/TENANCY-MODEL.md`.
 - **Visual/UX truth:** `docs/ux/VISUAL-SYSTEM.md` and its governing visual/UX contracts.
+- **Code-organization truth:** `engineering/CODEBASE-STRUCTURE.md` + `engineering/MODULE-SIZE-COMPLEXITY.md` + `engineering/CODING-STANDARDS.md`.
 - **Feature implementation truth:** `FEATURE-LEDGER.md` + Feature Implementation Records/evidence.
 - **Development progress truth:** `roadmap/IMPLEMENTATION-STATUS.md`.
 - **Schema/code truth:** migrations and typed contracts in Git.
@@ -197,11 +217,11 @@ Future public marketing screenshots/assets must also use synthetic/public-safe d
 
 ## 6. When documentation is insufficient
 
-If a question materially affects user behavior, UX/navigation, visual identity, tenancy/public-readiness, data semantics, security/privacy, synchronization, import/export, migration/compatibility or V1 scope and the answer is not specified:
+If a question materially affects user behavior, UX/navigation, visual identity, code architecture, tenancy/public-readiness, data semantics, security/privacy, synchronization, import/export, migration/compatibility or V1 scope and the answer is not specified:
 
 1. check `DEFERRED-DECISIONS.md`;
 2. if not intentionally deferred, treat it as a documentation defect;
-3. update the governing specification/requirement/UX/visual/public-readiness contract;
+3. update the governing specification/requirement/engineering/UX/visual/public-readiness contract;
 4. create ADR if architectural;
 5. update Feature Ledger/FIR and acceptance verification.
 
@@ -215,18 +235,21 @@ Only after `FINAL-DESIGN-REVIEW.md` declares **implementation gate OPEN** and th
 
 1. read current `IMPLEMENTATION-STATUS.md`;
 2. identify current lot and eligible Feature IDs;
-3. review lot/checkpoint dependencies;
-4. complete Feature Implementation Record before meaningful implementation;
-5. read applicable visual/UX and public-readiness contracts before rendering/persisting the feature;
-6. implement the smallest coherent vertical slice;
-7. update Feature Ledger state;
-8. verify visual/UX quality as well as technical behavior;
-9. verify no single-couple shortcut weakened multi-tenant/public-ready architecture;
-10. add required tests/security/visual evidence;
-11. run local/full verification;
-12. perform lot acceptance;
-13. every 3–4 lots perform mandatory integration checkpoint;
-14. update status/handoff before stopping work.
+3. route the task with `AGENTS.md` / `LLM-TASK-ROUTING.md`;
+4. review lot/checkpoint dependencies;
+5. complete Feature Implementation Record before meaningful implementation;
+6. identify the owning modules/folders before creating code;
+7. read applicable visual/UX/public-readiness/security contracts;
+8. implement the smallest coherent vertical slice;
+9. respect code-size/complexity/layer rules continuously, not after the file becomes huge;
+10. update Feature Ledger state;
+11. verify visual/UX quality as well as technical behavior;
+12. verify no single-couple shortcut weakened multi-tenant/public-ready architecture;
+13. add required tests/security/visual evidence;
+14. run local/full verification;
+15. perform lot acceptance;
+16. every 3–4 lots perform mandatory integration checkpoint and repeat the scorecard with implemented evidence;
+17. update status/handoff before stopping work.
 
 The first implementation lot remains **Lot 0 — Repository and tooling**, but this file does not authorize starting it before the final review gate opens.
 
@@ -250,5 +273,9 @@ For the real private project, either partner can quickly answer:
 For architecture review, the implementation must also answer:
 
 > Could multiple unrelated couples run the same domain engine/backend while remaining correctly isolated, if public provisioning were enabled later?
+
+For maintainability review, a context-free contributor must also be able to answer:
+
+> Where does this behavior belong, what may it depend on, how large/complex may the module become, and what evidence proves it without reading chat history?
 
 The interface remains simpler and more beautiful than the underlying model: information is divided into purposeful screens, detail is progressively revealed, mobile workflows are adapted rather than compressed, color/imagery/motion create orientation and delight without noise, and critical data remains explainable, secure, portable and recoverable.
