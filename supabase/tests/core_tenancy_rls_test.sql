@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(31);
+select plan(41);
 
 select has_table('public', 'profiles', 'profiles table exists');
 select has_table('public', 'projects', 'projects table exists');
@@ -12,6 +12,48 @@ select has_function(
   'has_project_permission',
   array['uuid', 'text'],
   'membership-aware permission helper exists'
+);
+
+select ok(
+  not has_table_privilege('anon', 'public.profiles', 'select')
+  and not has_table_privilege('anon', 'public.projects', 'select')
+  and not has_table_privilege('anon', 'public.project_members', 'select'),
+  'anonymous role has no read grant on any core tenancy table'
+);
+
+select ok(
+  not has_function_privilege('anon', 'public.has_project_permission(uuid,text)', 'execute')
+  and has_function_privilege('authenticated', 'public.has_project_permission(uuid,text)', 'execute'),
+  'permission RPC is executable only by authenticated client role'
+);
+
+select ok(
+  has_table_privilege('authenticated', 'public.projects', 'select')
+  and not has_table_privilege('authenticated', 'public.projects', 'insert')
+  and not has_table_privilege('authenticated', 'public.projects', 'update')
+  and not has_table_privilege('authenticated', 'public.projects', 'delete'),
+  'projects expose read only at PostgreSQL grant layer'
+);
+
+select ok(
+  has_table_privilege('authenticated', 'public.project_members', 'select')
+  and not has_table_privilege('authenticated', 'public.project_members', 'insert')
+  and not has_table_privilege('authenticated', 'public.project_members', 'update')
+  and not has_table_privilege('authenticated', 'public.project_members', 'delete'),
+  'project memberships expose read only at PostgreSQL grant layer'
+);
+
+select ok(
+  has_table_privilege('authenticated', 'public.profiles', 'select')
+  and not has_table_privilege('authenticated', 'public.profiles', 'insert')
+  and not has_table_privilege('authenticated', 'public.profiles', 'update')
+  and not has_table_privilege('authenticated', 'public.profiles', 'delete')
+  and has_column_privilege('authenticated', 'public.profiles', 'display_name', 'update')
+  and has_column_privilege('authenticated', 'public.profiles', 'avatar_url', 'update')
+  and not has_column_privilege('authenticated', 'public.profiles', 'id', 'update')
+  and not has_column_privilege('authenticated', 'public.profiles', 'created_at', 'update')
+  and not has_column_privilege('authenticated', 'public.profiles', 'updated_at', 'update'),
+  'profiles expose self-readable data and only ordinary profile columns are update-granted'
 );
 
 insert into auth.users (
@@ -118,6 +160,20 @@ select throws_ok(
 );
 
 select throws_ok(
+  $$update public.projects set name = 'Unauthorized Rename' where id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'$$,
+  '42501',
+  'permission denied for table projects',
+  'ordinary authenticated owner cannot update a project through generic CRUD'
+);
+
+select throws_ok(
+  $$delete from public.projects where id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'$$,
+  '42501',
+  'permission denied for table projects',
+  'ordinary authenticated owner cannot delete a project through generic CRUD'
+);
+
+select throws_ok(
   $$
     update public.project_members
     set role_key = 'viewer'
@@ -144,6 +200,17 @@ select throws_ok(
   'client cannot inject itself into a different project through generic membership CRUD'
 );
 
+select throws_ok(
+  $$
+    delete from public.project_members
+    where project_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+      and user_id = '22222222-2222-4222-8222-222222222222'
+  $$,
+  '42501',
+  'permission denied for table project_members',
+  'ordinary client cannot delete a membership through generic CRUD'
+);
+
 select is(
   (select count(*)::integer from public.profiles),
   1,
@@ -165,6 +232,20 @@ select throws_ok(
   '42501',
   'permission denied for table profiles',
   'client cannot mutate protected profile audit columns'
+);
+
+select throws_ok(
+  $$insert into public.profiles (id, display_name) values ('11111111-1111-4111-8111-111111111111', 'Duplicate Profile')$$,
+  '42501',
+  'permission denied for table profiles',
+  'client cannot create profiles through generic CRUD'
+);
+
+select throws_ok(
+  $$delete from public.profiles where id = '11111111-1111-4111-8111-111111111111'$$,
+  '42501',
+  'permission denied for table profiles',
+  'client cannot delete profiles through generic CRUD'
 );
 
 select set_config(
