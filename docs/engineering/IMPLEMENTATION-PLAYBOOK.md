@@ -4,7 +4,7 @@ Status: **Normative implementation governance contract**
 
 Purpose: prevent implementation from drifting away from the frozen V1 product, losing track of partially implemented behavior, accumulating unmaintainable generated code, or declaring features complete because one screen happens to work.
 
-This playbook is mandatory once the implementation gate opens. It complements `REQUIREMENTS-CATALOG.md`, `roadmap/LOT-ACCEPTANCE.md`, `CODING-STANDARDS.md`, `CODEBASE-STRUCTURE.md`, `MODULE-SIZE-COMPLEXITY.md`, UX contracts and the Definition of Done.
+This playbook is mandatory once the implementation gate opens. It complements `REQUIREMENTS-CATALOG.md`, both V1 Feature Ledgers, `roadmap/LOT-ACCEPTANCE.md`, `AI-LOT-ORCHESTRATION.md`, `CODING-STANDARDS.md`, `CODEBASE-STRUCTURE.md`, `MODULE-SIZE-COMPLEXITY.md`, UX contracts and the Definition of Done.
 
 AI/context-free contributors additionally follow root `AGENTS.md` and `LLM-TASK-ROUTING.md`.
 
@@ -12,7 +12,7 @@ AI/context-free contributors additionally follow root `AGENTS.md` and `LLM-TASK-
 
 ## 1. Fundamental rule
 
-Implementation is performed **feature by feature inside a lot**, not as an uncontrolled sequence of files/components.
+Implementation is performed **feature by feature inside Work Packets inside a lot**, not as an uncontrolled sequence of files/components and never as one giant AI pass for an entire large Lot.
 
 Every implemented behavior has a traceable chain:
 
@@ -39,7 +39,7 @@ If one required link is unknown, the feature is not implementation-ready and the
 
 ## 2. Feature Implementation Record (FIR)
 
-Every V1 feature from `FEATURE-LEDGER.md` receives one living implementation record, using `../templates/FEATURE-IMPLEMENTATION-RECORD.md` or an equivalent durable structure linked from the ledger.
+Every V1 Feature ID in the union of `FEATURE-LEDGER.md` (FTR-001..104) and `FEATURE-LEDGER-GUEST-COMMUNICATIONS-EXTENSION.md` (FTR-105..120) receives one living implementation record, using `../templates/FEATURE-IMPLEMENTATION-RECORD.md` or an equivalent durable structure linked from the relevant ledger.
 
 Required categories include:
 
@@ -238,7 +238,7 @@ Before marking a feature `INTEGRATED`, review whether it changes:
 - project/public-readiness assumptions;
 - shared code/module boundaries.
 
-Use `architecture/DEPENDENCY-GRAPH.md`; absence of an obvious visual change does not imply “no integration impact”.
+Use `architecture/DEPENDENCY-GRAPH.md` and applicable addenda; absence of an obvious visual change does not imply “no integration impact”.
 
 ---
 
@@ -249,6 +249,7 @@ Use `.github/pull_request_template.md`.
 Every implementation PR explicitly answers, as applicable:
 
 - Which Feature/Requirement/Acceptance/Security IDs does this change?
+- Which Work Packet/current pass does it implement or review?
 - Did behavior differ from frozen spec? Where is approved spec/ADR change?
 - Which canonical modules/layers own the implementation?
 - Did a new table/field/status appear? Why is it not invented semantics?
@@ -266,28 +267,60 @@ A PR with unapproved product/architecture divergence cannot merge merely because
 
 ---
 
-## 12. Lot execution sequence
+## 12. AI Lot Orchestration / Work Packets
+
+The user may request only `Do Lot N`. The implementation agent is responsible for decomposing that Lot according to `AI-LOT-ORCHESTRATION.md`.
+
+Before implementation of a Lot:
+
+1. compute its complete Feature/current-lot responsibility inventory from both ledgers + cross-cutting controls;
+2. build a dependency-aware Work Packet plan;
+3. prove every required responsibility belongs to one or more packets;
+4. split packets that exceed the defined granularity/complexity thresholds;
+5. record the plan and current packet/pass durably.
+
+Default execution is one Work Packet `IN_PROGRESS` at a time.
+
+Every packet must complete:
+
+- **Pass A — IMPLEMENT**;
+- **Pass B — ADVERSARIAL REVIEW**;
+- **Pass C — ACCEPTANCE / RECONCILIATION**.
+
+The packet template is `../templates/WORK-PACKET-RECORD.md`.
+
+An interrupted session resumes the recorded Work Packet/pass. It does not restart the Lot and does not silently advance to a later packet.
+
+---
+
+## 13. Lot execution sequence
 
 Within each implementation lot:
 
 1. **Lot kickoff** — review dependencies, Feature IDs, risks, code architecture and acceptance contract.
-2. **Order features** — dependency-heavy behavior before surface polish.
-3. **Implement vertical slices** — maintain FIR for each.
-4. **Continuous integration** — do not wait until end of lot to combine features.
-5. **Continuous maintainability** — keep modules within structure/complexity rules.
-6. **Lot internal audit** — ledger has no unexplained `IN_PROGRESS`/TBD/architecture exceptions.
-7. **Lot acceptance** — satisfy `LOT-ACCEPTANCE.md`.
-8. **Checkpoint review if this lot closes a checkpoint group** — see `roadmap/INTEGRATION-CHECKPOINTS.md`.
-9. Only then begin dependent work.
+2. **Lot Coverage Matrix** — enumerate all required current-lot Feature/control responsibilities.
+3. **Plan Work Packets** — dependency order + sizing/complexity review.
+4. **Execute packets sequentially by default** — each packet completes Pass A/B/C.
+5. **Continuous integration** — accepted packets integrate against the current branch continuously.
+6. **Continuous maintainability** — keep modules within structure/complexity rules.
+7. **Lot reconciliation** — mechanically prove no required responsibility is missing.
+8. **Lot Integration Pass** — exercise important cross-packet end-to-end/derived/invalidation chains.
+9. **Lot internal audit** — ledger has no unexplained elapsed `SPECIFIED`/`READY`/`IN_PROGRESS`/`IMPLEMENTED`/`BLOCKED`, no packet remains unfinished, and no unexplained architecture exception/TBD remains.
+10. **Lot acceptance** — satisfy base + applicable addendum `LOT-ACCEPTANCE.md` contracts.
+11. **Checkpoint review if this lot closes a checkpoint group** — see `roadmap/INTEGRATION-CHECKPOINTS.md`.
+12. Only then begin dependent work.
+
+A Lot is a milestone and user command boundary; it is not the normal AI context size.
 
 ---
 
-## 13. Required implementation artifacts
+## 14. Required implementation artifacts
 
-By feature acceptance, repository evidence must let a context-free developer/LLM answer:
+By feature/packet acceptance, repository evidence must let a context-free developer/LLM answer:
 
 - what was implemented;
 - which requirement caused it;
+- which Work Packet/pass accepted it;
 - what code/schema owns it;
 - where those modules live physically;
 - what they may depend on;
@@ -298,30 +331,31 @@ By feature acceptance, repository evidence must let a context-free developer/LLM
 - what limitations remain;
 - whether implementation intentionally changed product/architecture contract.
 
-Evidence locations include FIR, PR description, requirement-linked tests, Feature Ledger, status board, ADRs and checkpoint/release reports.
+Evidence locations include FIR, Work Packet Record, PR description, requirement-linked tests, both Feature Ledgers, status board, ADRs and checkpoint/release reports.
 
 ---
 
-## 14. Abandoned / deferred implementation
+## 15. Abandoned / deferred implementation
 
 If work begins but is intentionally stopped:
 
-- set feature `BLOCKED` or leave `SPECIFIED`/`READY` as appropriate;
+- set feature/packet `BLOCKED` or leave it `SPECIFIED`/`READY` as appropriate;
 - remove dead half-wired production paths unless a documented feature flag/stub is needed;
 - record what remains;
 - do not leave untracked TODO/FIXME/HACK/TEMP markers;
-- do not claim lot completion while a P0/P1 feature assigned to the lot is incomplete unless V1 scope is formally changed.
+- do not claim lot completion while a P0/P1 feature/current-lot responsibility is incomplete unless V1 scope is formally changed.
 
 ---
 
-## 15. End-of-session / handoff rule
+## 16. End-of-session / handoff rule
 
 A future developer or AI agent must be able to resume from repository state alone.
 
 Before ending material development/review work:
 
-- update Feature Ledger statuses;
-- record unresolved blocker/reason;
+- update both Feature Ledger statuses as applicable;
+- record current Lot and Work Packet/pass/state;
+- record accepted packets and unresolved blocker/reason;
 - ensure tests/evidence are committed;
 - update FIR/module ownership if changed;
 - update lot/current progress in `IMPLEMENTATION-STATUS.md`;
@@ -329,17 +363,20 @@ Before ending material development/review work:
 - record latest full verification/UX/security result if relevant;
 - do not leave the only explanation in chat.
 
+A session that ends with an active Lot but without durable current packet/pass/next action fails handoff quality.
+
 The repository, not conversation memory, is the handoff mechanism.
 
 ---
 
-## 16. Checkpoint reset / systematic review
+## 17. Checkpoint reset / systematic review
 
 Every 3–4 lots, the governing checkpoint re-reviews the **whole implemented product**, not only the latest lot.
 
 It includes:
 
 - Feature/Requirement reconciliation;
+- Work Packet/Lot completion evidence;
 - product/scope fidelity;
 - UX/navigation/visual coherence;
 - cloud/local/data integrity;
