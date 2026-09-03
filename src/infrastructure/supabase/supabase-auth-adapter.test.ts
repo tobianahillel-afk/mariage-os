@@ -122,9 +122,9 @@ it("uses the provider password sign-in operation", async () => {
 });
 
 it("fails closed on provider session and sign-in errors", async () => {
-  await expect(authAdapter({ sessionError: true }).getSession()).rejects.toThrow(
-    "Authentication provider unavailable.",
-  );
+  await expect(
+    authAdapter({ sessionError: true }).getSession(),
+  ).rejects.toThrow("Authentication provider unavailable.");
 
   const adapter = authAdapter({ signInError: true });
   await expect(
