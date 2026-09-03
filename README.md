@@ -6,9 +6,13 @@ Mariage OS is a collaborative wedding-planning application for a couple. It cent
 
 ## Project status
 
-The original pre-code design freeze was completed and Run 4 merged. A reviewed **V1 scope change** is now integrating guest self-service RSVP plus Email/SMS/WhatsApp invitations/reminders.
+**Expanded V1 pre-code design is COMPLETE / FROZEN on `main`. Final Design Review is PASS.**
 
-**Lot 0 remains `READY / NOT_STARTED` and MUST NOT start while this scope-change re-freeze/review is open.**
+The guest RSVP + Email/SMS/WhatsApp V1 scope change was reviewed and merged through PR #5. The frozen V1 contains **120 Feature IDs**.
+
+**Implementation gate: OPEN. Lot 0: READY / NOT_STARTED.**
+
+Lot 0 does not start automatically: an explicit future kickoff is required. No application code, toolchain, CI workflow, Supabase migration or provider integration has been started.
 
 Current exact phase/gate/next action: [`docs/roadmap/IMPLEMENTATION-STATUS.md`](docs/roadmap/IMPLEMENTATION-STATUS.md).
 
@@ -28,7 +32,7 @@ Either partner should quickly understand:
 - whether invitations/reminders were delivered or need action;
 - whether local/cloud state is synchronized and recoverable.
 
-Invited households can receive a secure no-account RSVP link and update their own authorized response without receiving private project access.
+Invited households can receive a secure no-account RSVP link and update only their authorized response without receiving private project access.
 
 Mariage OS is a **decision-and-action system**, not merely a database/inspiration site.
 
@@ -66,7 +70,7 @@ For onboarding, invitations and guest RSVP, the UI must provide obvious next act
 - Controlled private production bootstrap; public self-service project signup is post-V1 activation work.
 - Core private-V1 infrastructure targets **€0/month** where possible.
 - External Email/SMS/WhatsApp delivery may incur provider charges; Mariage OS does not promise those channels are free.
-- No automatic paid provider upgrade/overage; manual RSVP link/QR fallback remains available.
+- No automatic paid provider upgrade/overage; secure RSVP link/QR fallback remains available.
 - Responsive PWA with explicit offline/pending/conflict behavior.
 - Supabase = shared cloud truth; IndexedDB = local working/offline state.
 - PostgreSQL/Storage RLS + same-project integrity enforce isolation.
@@ -143,4 +147,4 @@ Mandatory integration checkpoints re-review the whole product after Lots 0–3, 
 
 ## Current next step
 
-**Finish the guest-communications V1 scope-change coherence review and 36-criterion re-certification. Do not start Lot 0.**
+**Wait for an explicit Lot 0 kickoff. Do not start Lot 0 automatically.**
