@@ -2,20 +2,30 @@
 
 Status: **Normative implementation-choice register**
 
-This file lists choices intentionally left to named implementation lots or future public activation. Anything already fixed by the frozen V1 product/domain/security/public-readiness contracts must not be reinterpreted as deferred.
+This file lists choices intentionally left to named implementation lots or future public activation. Anything already fixed by the frozen V1 product/domain/security/public-readiness/engineering contracts must not be reinterpreted as deferred.
 
-A deferred implementation choice may change mechanism, not product/data/security semantics.
+A deferred implementation choice may change mechanism, not product/data/security/architecture semantics.
 
 ## Lot 0
 
 ### Tool versions
 Choose maintained compatible Node/Vite/TypeScript/Vitest/Playwright/etc. versions, commit a lockfile and document support/runtime requirements.
 
-### Lint/format stack
-Choose minimal maintained tooling enforcing documented standards.
+### Lint/format implementation stack
+Choose minimal maintained tooling that enforces `CODING-STANDARDS.md`, `CODEBASE-STRUCTURE.md` and `MODULE-SIZE-COMPLEXITY.md` as closely/reliably as practical.
 
-### Test layout
-Choose colocated vs centralized layout consistently.
+The **rules and thresholds are not deferred**; only the exact maintained packages/configuration mechanism is.
+
+### Test placement
+**Not deferred anymore.** `CODEBASE-STRUCTURE.md` freezes:
+
+- colocated unit/domain/property tests;
+- integration tests under `tests/integration/`;
+- security/adversarial tests under `tests/security/` and DB/RLS tests under `supabase/tests/`;
+- E2E under `tests/e2e/`;
+- synthetic shared fixtures under `tests/fixtures/`.
+
+Lot 0 implements this convention rather than choosing another one silently.
 
 ### Local Supabase bootstrap
 Choose exact scripts/commands for migrations, seed and isolated test reset.
@@ -129,6 +139,9 @@ Not deferred and required in private V1 architecture/tests:
 The following are **not** deferred:
 
 - V1 feature boundary;
+- canonical code layer/folder architecture;
+- code-size/complexity guardrails;
+- test placement convention;
 - project isolation/RLS;
 - same-project referential integrity;
 - public-ready multi-tenant core;
