@@ -49,20 +49,22 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 
 ### WP-1.1 — Permission catalog and authorization helper foundation
 
-State: **IN_PROGRESS**
+State: **ACCEPTED**
 
 Scope:
 - `app_permissions`, `app_roles`, `app_role_permissions` migration-controlled catalogs;
 - centralized role→permission seed foundation;
-- fail-closed `has_project_permission` helper contract scaffolding compatible with later membership table;
+- fail-closed internal role-permission helper contract;
 - deterministic owner/editor/viewer permission fixtures;
-- direct SQL tests for catalog integrity/fail-closed behavior.
+- direct SQL tests for exact catalog/matrix integrity and fail-closed behavior.
+
+Acceptance evidence: run `33809855993` on `f0b1e46c46bc3ad5d15bf2191c63ec4e85473507`, all five jobs SUCCESS; Pass B repaired and closed two MAJOR findings before Pass C acceptance.
 
 Planning complexity: **9/10**. Cohesion rationale: the three catalog tables, mapping seed and helper are one indivisible authorization API; splitting them would leave an unusable partial security boundary. No project/member RLS is implemented in this packet.
 
 ### WP-1.2 — Core tenancy schema, membership and RLS baseline
 
-State: `PLANNED`
+State: **IN_PROGRESS**
 
 Scope:
 - `profiles`, `projects`, `project_members`;
@@ -169,9 +171,9 @@ Planning complexity: **7/10**.
 ## Sequencing
 
 ```text
-WP-1.1
+WP-1.1 [ACCEPTED]
   ↓
-WP-1.2
+WP-1.2 [IN_PROGRESS]
   ├─→ WP-1.3 → WP-1.4
   ├─→ WP-1.5 → WP-1.6
   └─→ WP-1.7 → WP-1.8
