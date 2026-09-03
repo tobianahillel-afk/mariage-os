@@ -25,27 +25,36 @@ describe("SupabaseProjectProvisioningAdapter", () => {
         ownerDisplayName: "  Owner  ",
       }),
     ).resolves.toBe("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa");
-    expect(client.rpc).toHaveBeenCalledWith("provision_private_initial_project", {
-      requested_project_name: "Mariage",
-      requested_owner_display_name: "Owner",
-    });
+    expect(client.rpc).toHaveBeenCalledWith(
+      "provision_private_initial_project",
+      {
+        requested_project_name: "Mariage",
+        requested_owner_display_name: "Owner",
+      },
+    );
   });
 
   it("fails closed on provider error, non-string data and empty id", async () => {
     await expect(
-      new SupabaseProjectProvisioningAdapter(makeClient(null, true)).provisionPrivateInitialProject({
+      new SupabaseProjectProvisioningAdapter(
+        makeClient(null, true),
+      ).provisionPrivateInitialProject({
         projectName: "Mariage",
         ownerDisplayName: "Owner",
       }),
     ).rejects.toThrow("Private project provisioning unavailable.");
     await expect(
-      new SupabaseProjectProvisioningAdapter(makeClient(42)).provisionPrivateInitialProject({
+      new SupabaseProjectProvisioningAdapter(
+        makeClient(42),
+      ).provisionPrivateInitialProject({
         projectName: "Mariage",
         ownerDisplayName: "Owner",
       }),
     ).rejects.toThrow("Private project provisioning unavailable.");
     await expect(
-      new SupabaseProjectProvisioningAdapter(makeClient("")).provisionPrivateInitialProject({
+      new SupabaseProjectProvisioningAdapter(
+        makeClient(""),
+      ).provisionPrivateInitialProject({
         projectName: "Mariage",
         ownerDisplayName: "Owner",
       }),
