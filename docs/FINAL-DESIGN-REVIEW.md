@@ -1,14 +1,14 @@
 # Mariage OS — Final Design Review
 
-Status: **PASS — EXPANDED V1 RE-FREEZE APPROVED; MERGE PENDING**
+Status: **PASS — EXPANDED V1 FROZEN / IMPLEMENTATION GATE OPEN**
 
 Purpose: authoritative pre-code design decision after adding secure guest RSVP links and outbound Email/SMS/WhatsApp communications to V1 and re-reviewing product, UX, architecture, data, security, quality, operations, public-readiness, release, LLM handoff and maintainability.
 
 ## Final decision
 
-The expanded V1 design/documentation is **COMPLETE and APPROVED FOR RE-FREEZE**.
+The expanded V1 design/documentation is **COMPLETE and FROZEN on `main`**.
 
-The frozen V1 feature set is now:
+The frozen V1 feature set is:
 
 - base capabilities `FTR-001..FTR-104`;
 - guest RSVP/communication capabilities `FTR-105..FTR-120`;
@@ -16,11 +16,11 @@ The frozen V1 feature set is now:
 
 The governing composition/precedence is recorded in `V1-FROZEN-MANIFEST.md`.
 
-This review supersedes the earlier pre-scope-change PASS only for the added/affected areas. Unaffected frozen contracts remain valid.
+PR #5 (`docs: promote guest RSVP and communications into frozen V1`) was reviewed and merged from exact sealed head `96b18f04e6b2af9f21614751096cca7db00a88ea`. Merge commit: `7088d4c48aa9043733bbc015235a538ee4c06120`.
 
 ## Scope-change review result
 
-The guest-communications scope change has been reconciled across:
+The guest-communications scope change is reconciled across:
 
 - product specification and V1 scope;
 - Feature Ledger/requirements/traceability;
@@ -37,8 +37,8 @@ The guest-communications scope change has been reconciled across:
 - lots/checkpoints/cutover;
 - LLM cold-start/task routing.
 
-Dedicated review: `reviews/GUEST-COMMUNICATIONS-SCOPE-CHANGE-REVIEW.md`.
-Cold-start review: `reviews/GUEST-COMMUNICATIONS-LLM-COLD-START-REVIEW.md`.
+Dedicated scope-change review: `reviews/V1-GUEST-COMMUNICATIONS-SCOPE-CHANGE-REVIEW.md`.
+Cold-start review: `reviews/LLM-GUEST-COMMUNICATIONS-COLD-START-REVIEW.md`.
 Acceptance suite: `quality/GUEST-COMMUNICATIONS-ACCEPTANCE.md`.
 
 ## Final pre-code score
@@ -51,6 +51,10 @@ Result:
 - arithmetic mean: **100.0/100**;
 - zero known unresolved BLOCKING design findings;
 - zero known unresolved MAJOR design findings for the expanded V1;
+- PR #5 had no open review thread at the final sentry point;
+- branch was `behind_by: 0` before merge;
+- exact-head sentry found no tested known-person identifiers or tested high-signal credential/key patterns in the scope-change patch;
+- changed-file inventory was documentation only;
 - runtime-only proof remains explicitly assigned to Lot 0 or later and is not falsely claimed.
 
 ## Critical safety conclusions for the new V1 scope
@@ -66,36 +70,29 @@ Result:
 - Paid communication channels are opt-in/bounded; free secure link/QR remains a core fallback.
 - V1 WhatsApp integration must use an official/approved WhatsApp Business-compatible provider/API path; browser automation/personal-account circumvention is forbidden.
 
-## Implementation gate state before merge
+## Implementation gate
 
-Because this scope change is not yet on `main`, the implementation gate remains **HOLD-CLOSED FOR RE-FREEZE** on this branch.
+**OPEN** means Lot 0 is allowed to begin only after an explicit future kickoff request.
 
-Lot 0 must **not** start from this branch.
+It does **not** mean Lot 0 has begun.
 
-The only remaining pre-code actions are administrative verification:
+Current implementation state:
 
-1. final exact-head sentry/repository hygiene scan;
-2. open and inspect the scope-change PR;
-3. confirm mergeability/no unexpected review blocker;
-4. merge the exact reviewed HEAD to `main`;
-5. update main-branch status to `PASS / gate OPEN / Lot 0 READY / NOT_STARTED`.
-
-## After successful merge
-
-Once the reviewed scope-change HEAD is merged unchanged and the post-merge status seal is committed on `main`:
-
-- Final Design Review: **PASS**;
 - V1 design: **COMPLETE / FROZEN**;
 - V1 Feature IDs: **120 SPECIFIED**;
 - implementation gate: **OPEN**;
 - Lot 0: **READY / NOT_STARTED**;
 - application code: **not started**;
-- CI/toolchain implementation: **not started**;
+- package/toolchain implementation: **not started**;
+- CI/workflow implementation: **not started**;
 - database migrations: **not started**;
-- providers/integration code: **not started**.
-
-`OPEN` permits a future explicit Lot 0 kickoff. It never means Lot 0 started automatically.
+- provider integration code: **not started**;
+- real Email/SMS/WhatsApp sending: **not started**.
 
 ## Runtime evidence boundary
 
-The design is implementation-ready, not runtime-verified. The following require real implementation evidence later: lint/typecheck/coverage, DB/RLS/capability endpoint execution, provider sends, webhook verification, mobile/accessibility rendering, Service Worker behavior, production monitoring and V1→V2 migration rehearsal.
+The design is implementation-ready, not runtime-verified. Real proof remains required later for lint/typecheck/coverage, DB/RLS/capability endpoint execution, provider sends, webhook verification, mobile/accessibility rendering, Service Worker behavior, production monitoring and V1→V2 migration rehearsal.
+
+## Next permitted action
+
+**Wait for an explicit Lot 0 kickoff.** Until then, no application/tooling/migration/provider implementation is authorized.
