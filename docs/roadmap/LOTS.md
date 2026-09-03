@@ -4,7 +4,7 @@ Status: **Frozen V1 implementation sequence — not yet authorized to start**
 
 Detailed exit criteria live in `LOT-ACCEPTANCE.md`. Binding scope lives in `V1-SCOPE.md`. Feature-level progress lives in `../FEATURE-LEDGER.md`. Cross-lot reviews live in `INTEGRATION-CHECKPOINTS.md`.
 
-A later lot cannot weaken security, integrity, UX, import, offline or recovery guarantees established earlier.
+A later lot cannot weaken security, integrity, UX, code architecture, maintainability, import, offline or recovery guarantees established earlier.
 
 ## Documentation/design phase
 
@@ -18,15 +18,24 @@ Runs 1–3 are merged. Run 4 contains the frozen V1 specification plus final pre
 
 Build the reproducible engineering environment only:
 
-- Vite + TypeScript;
-- strict type/lint/format;
-- unit/property/coverage harness;
+- Vite + strict TypeScript;
+- canonical `src/` / `tests/` / `supabase/` structure from `engineering/CODEBASE-STRUCTURE.md`;
+- path aliases/composition-root convention without bypassing dependency boundaries;
+- lint/format tooling;
+- automated layer/import-cycle enforcement;
+- automated file/function/complexity/parameter/dead-code/TODO guardrails equivalent to `engineering/MODULE-SIZE-COMPLEXITY.md` where tooling is reliable;
+- unit/property/coverage harness using frozen test-placement convention;
 - Playwright;
 - mutation-test harness;
 - local Supabase;
-- synthetic/golden seed project;
+- direct DB/RLS test harness;
+- synthetic/golden multi-project seed project;
 - CI/preview build;
-- environment/secret safeguards.
+- documentation/link validation;
+- environment/secret safeguards;
+- `npm run dev`, `npm run test:fast`, `npm run verify` or documented equivalents.
+
+Lot 0 acceptance must prove a deliberately violating fixture/example is caught by the relevant architecture/complexity check where practical (for example forbidden cross-layer import or cycle), so the rules are not merely configured but ineffective.
 
 No production wedding feature/data.
 
@@ -36,6 +45,7 @@ No production wedding feature/data.
 - controlled single-couple bootstrap;
 - secure partner invitation flow;
 - profiles/projects/members/invitations;
+- permission/role model foundation;
 - RLS + same-project relational integrity baseline;
 - protected shell/navigation;
 - IndexedDB/repository/service foundations;
@@ -72,7 +82,9 @@ No later domain may bypass these primitives.
 
 Before normal Lot 4 work starts, perform `INTEGRATION-CHECKPOINTS.md` **Checkpoint A — Foundation & Core Decision Loop**.
 
-Review all Lots 0–3 together for product fidelity, UX architecture, data/security boundaries, offline behavior, cross-feature coherence and Feature Ledger completeness.
+Review all Lots 0–3 together for product fidelity, UX architecture, code architecture/complexity, data/security boundaries, offline behavior, cross-feature coherence and Feature Ledger completeness.
+
+Repeat/update `reviews/DOCUMENTATION-SYSTEM-SCORECARD.md` using implementation evidence.
 
 Checkpoint A must PASS with no unresolved BLOCKING/MAJOR finding.
 
@@ -128,7 +140,9 @@ Graphical drag/drop seating remains post-V1.
 
 Before normal Lot 8 work starts, perform **Checkpoint B — Data Intake & Operational Planning Core** across Lots 0–7.
 
-This checkpoint verifies especially that Import, Budget, Guests, Seating and Vendors form one usable workflow rather than separate tables/modules.
+This checkpoint verifies especially that Import, Budget, Guests, Seating and Vendors form one usable workflow rather than separate tables/modules, and that feature growth has not produced god services/files or architectural boundary erosion.
+
+Repeat/update the systematic scorecard with implemented evidence.
 
 Checkpoint B must PASS with no unresolved BLOCKING/MAJOR finding.
 
@@ -174,7 +188,9 @@ Dedicated advanced live day-of mode remains post-V1.
 
 Before production-readiness Lot 11 proceeds normally, perform **Checkpoint C — Product Control, Spatial UX & Offline Hardening** across the complete implemented product.
 
-Checkpoint C must prove Mariage OS now behaves as one coherent wedding OS: Dashboard/Search/Inbox/Planning/Timeline/Map/offline navigation must simplify rather than fragment the product.
+Checkpoint C must prove Mariage OS now behaves as one coherent wedding OS: Dashboard/Search/Inbox/Planning/Timeline/Map/offline navigation must simplify rather than fragment the product, while code/module boundaries remain navigable and maintainable.
+
+Repeat/update the systematic scorecard with implemented evidence.
 
 Checkpoint C must PASS with no unresolved BLOCKING/MAJOR finding.
 
@@ -207,7 +223,9 @@ Checkpoint C must PASS with no unresolved BLOCKING/MAJOR finding.
 
 Perform **Checkpoint D — Recovery, Real Data & V1 Cutover**.
 
-This is the final cutover gate. No declaration that Mariage OS is the operational source of truth occurs before Checkpoint D PASS.
+This is the final cutover gate. The final scorecard/review uses actual implementation, devices and recovery evidence rather than documentation-only scores.
+
+No declaration that Mariage OS is the operational source of truth occurs before Checkpoint D PASS.
 
 ---
 
@@ -217,12 +235,14 @@ Every lot uses `engineering/IMPLEMENTATION-PLAYBOOK.md`:
 
 - implement feature by feature;
 - maintain Feature Implementation Records;
+- follow canonical code structure/complexity rules;
 - update `FEATURE-LEDGER.md` states;
 - update `IMPLEMENTATION-STATUS.md`;
 - perform UX review for user-facing features;
-- no unexplained `IN_PROGRESS`/`IMPLEMENTED` rows at lot acceptance.
+- no unexplained `IN_PROGRESS`/`IMPLEMENTED` rows at lot acceptance;
+- no unexplained maintainability/architecture exception accumulation.
 
-Lot completion is not measured by file count or percentage of UI mocked. It is measured by accepted Feature IDs and objective lot criteria.
+Lot completion is not measured by file count, LOC or percentage of UI mocked. It is measured by accepted Feature IDs and objective lot criteria.
 
 ---
 
@@ -234,7 +254,7 @@ Lot completion is not measured by file count or percentage of UI mocked. It is m
 - guest portal/vendor temporary sharing;
 - push notifications;
 - AI/OCR document extraction;
-- automatic Internet research inside app;
+- automatic Internet venue research inside app;
 - internal messaging;
 - native mobile app;
 - banking/payment integration;
@@ -242,4 +262,4 @@ Lot completion is not measured by file count or percentage of UI mocked. It is m
 
 ## Scope-change rule
 
-Nothing moves into/out of V1 silently. Scope changes require product/spec/requirement update, Feature Ledger impact, dependency/security/data/UX/test review and updated lot/cutover criteria.
+Nothing moves into/out of V1 silently. Scope changes require product/spec/requirement update, Feature Ledger impact, dependency/security/data/UX/code-architecture/test review and updated lot/cutover criteria.
