@@ -1,0 +1,94 @@
+name: Lot 0 CI
+
+on:
+  push:
+    branches:
+      - lot-0/repository-tooling
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lot-0-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: true
+
+jobs:
+  core:
+    name: Core quality and security
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run security:env
+      - run: npm run security:secrets
+      - run: npm run typecheck
+      - run: npm run static
+      - run: npm run quality:negative
+      - run: npm run security:negative
+      - run: npm run test:unit
+      - run: npm run security:dependencies
+      - run: npm run build
+
+  db:
+    name: Local Supabase DB and RLS
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run security:env
+      - run: npm run db:start
+      - run: npm run db:verify
+      - if: always()
+        run: npm run db:stop
+
+  browser-and-mutation:
+    name: Browser and mutation harnesses
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium firefox webkit
+      - run: npm run test:e2e
+      - run: npm run test:mutation
+
+  preview-artifact:
+    name: Privacy-safe preview artifact
+    needs:
+      - core
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run security:env
+      - run: npm run security:secrets
+      - run: npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mariage-os-static-preview-${{ github.sha }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 7
