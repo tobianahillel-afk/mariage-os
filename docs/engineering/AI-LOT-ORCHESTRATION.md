@@ -353,19 +353,37 @@ Checkpoint review re-evaluates the complete product implemented so far, includin
 
 ---
 
-## 14. Recommended packet granularity by Lot risk
+## 14. Lot-level packet-count sanity ranges
 
-The orchestrator must be especially conservative for:
+The exact Work Packet plan is created at lot kickoff from current dependencies and responsibility scope. The ranges below are **sanity ranges, not quotas**. They exist to catch implausibly coarse decomposition.
 
-- Lot 2 Venues;
-- Lot 4 Import/export;
-- Lot 5 Budget/payments;
-- Lot 6 Guests/RSVP/communications/seating;
-- Lot 10 Offline/PWA;
-- Lot 11 Backup/security/providers/production;
-- Lot 12 migration/cutover.
+| Lot | Typical planning range | Risk note |
+|---:|---:|---|
+| 0 | 4–7 packets | tooling/CI/static-analysis concerns should remain separable |
+| 1 | 6–9 packets | Auth/RLS/project/local/shell foundations must not be collapsed |
+| 2 | 8–12 packets | venue facts/evidence/offers/media/UI/access form several distinct slices |
+| 3 | 4–6 packets | tasks/decisions/Inbox + integration |
+| 4 | 7–10 packets | parsers/mapping/dedupe/merge/rollback/security are independently risky |
+| 5 | 6–9 packets | exact money, scenarios, payments, UI/integration need separate proof |
+| 6 | **15–25 packets** | guests + RSVP + public capability + campaigns/providers + seating is the largest functional Lot |
+| 7 | 5–8 packets | vendors/offers/documents/readiness/integration |
+| 8 | 6–9 packets | planning/dashboard/timeline/search and cross-domain derived state |
+| 9 | 3–5 packets | map/access/privacy/fallback |
+| 10 | 6–9 packets | IndexedDB/sync/conflicts/SW/update/session/device behavior |
+| 11 | **10–15 packets** | backup/recovery/security/providers/release readiness; high production risk |
+| 12 | 6–10 packets | migrations/reconciliation/device acceptance/recovery/cutover |
 
-These Lots must never be treated as one implementation context merely because the user requested the entire Lot.
+A plan below the lower bound is not automatically wrong, but requires an explicit **COARSE-PACKET JUSTIFICATION** explaining why responsibilities are still independently reviewable and remain within per-packet complexity limits.
+
+A plan far above the upper bound triggers a **FRAGMENTATION REVIEW** to ensure packets are real coherent slices rather than tiny file-level tasks that create orchestration overhead.
+
+No packet-count range can override the hard rule that a packet >10 complexity points must normally be split.
+
+Especially:
+
+- Lot 6 may not be reduced to “Guests / Communications / Seating” as three giant packets without an approved exceptional rationale;
+- Lot 11 may not be reduced to “Backup / Security / Providers” as three giant packets;
+- Lot 2, 4, 5, 10 and 12 also require conservative decomposition.
 
 ---
 
@@ -375,6 +393,7 @@ Stop and repair orchestration before continuing when:
 
 - a Feature/current-lot responsibility has no packet;
 - a packet exceeds sizing thresholds without accepted exception;
+- a Lot plan is implausibly coarse against the sanity range without explicit justification;
 - packet dependencies form a cycle that prevents safe sequencing;
 - more than one unrelated packet is left IN_PROGRESS;
 - a packet is called complete without Pass B or Pass C;
