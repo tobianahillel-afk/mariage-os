@@ -2,6 +2,8 @@
 
 Mariage OS is specification-first. Do not implement material behavior from chat memory, intuition or an outdated document when a frozen normative contract exists.
 
+AI agents and context-free contributors must start with root `AGENTS.md`. It defines precedence, task routing, stop conditions and the handoff protocol.
+
 ## Implementation gate
 
 **Current state: CLOSED.**
@@ -33,21 +35,28 @@ Do not infer progress solely from recent commits or chat history.
 
 Read:
 
-1. `README.md`
-2. `docs/START-HERE.md`
-3. `docs/roadmap/IMPLEMENTATION-STATUS.md`
-4. `docs/PRODUCT-SPECIFICATION.md`
-5. `docs/REQUIREMENTS-CATALOG.md`
-6. `docs/FEATURE-LEDGER.md`
-7. `docs/roadmap/V1-SCOPE.md`
-8. `docs/FINAL-DESIGN-REVIEW.md`
-9. `docs/DEFERRED-DECISIONS.md`
-10. `docs/engineering/IMPLEMENTATION-PLAYBOOK.md`
-11. relevant UX/architecture/domain/security/quality contracts
-12. relevant feature contract
-13. current `docs/roadmap/LOT-ACCEPTANCE.md`
-14. `docs/roadmap/INTEGRATION-CHECKPOINTS.md`
-15. `docs/engineering/DEFINITION-OF-DONE.md`
+1. `AGENTS.md`
+2. `README.md`
+3. `docs/START-HERE.md`
+4. `docs/roadmap/IMPLEMENTATION-STATUS.md`
+5. `docs/PRODUCT-SPECIFICATION.md`
+6. `docs/REQUIREMENTS-CATALOG.md`
+7. `docs/FEATURE-LEDGER.md`
+8. `docs/roadmap/V1-SCOPE.md`
+9. `docs/FINAL-DESIGN-REVIEW.md`
+10. `docs/DEFERRED-DECISIONS.md`
+11. `docs/engineering/IMPLEMENTATION-PLAYBOOK.md`
+12. `docs/engineering/LLM-TASK-ROUTING.md` for context-efficient task routing
+13. `docs/engineering/CODING-STANDARDS.md`
+14. `docs/engineering/CODEBASE-STRUCTURE.md`
+15. `docs/engineering/MODULE-SIZE-COMPLEXITY.md`
+16. relevant UX/architecture/domain/security/quality contracts
+17. relevant feature contract
+18. current `docs/roadmap/LOT-ACCEPTANCE.md`
+19. `docs/roadmap/INTEGRATION-CHECKPOINTS.md`
+20. `docs/engineering/DEFINITION-OF-DONE.md`
+
+Do not load every document blindly for a small task; follow `AGENTS.md` / `LLM-TASK-ROUTING.md` and read the governing contracts for the affected Feature IDs.
 
 If material behavior is not specified and is not explicitly deferred, treat it as a documentation defect and update spec/ADR/tests rather than inventing a hidden rule.
 
@@ -77,21 +86,44 @@ Do not start the next normal lot group until the governing checkpoint passes.
 
 1. Start from current `main` after implementation gate is open.
 2. Read `IMPLEMENTATION-STATUS.md`.
-3. Identify lot + Feature ID(s) + applicable requirement/acceptance IDs.
+3. Identify lot + Feature ID(s) + applicable requirement/acceptance/security IDs.
 4. Complete the Feature Implementation Record required by `IMPLEMENTATION-PLAYBOOK.md`.
-5. Read governing feature/domain/security/UX contracts.
-6. Create focused branch.
-7. Update specification first/alongside code if behavior changes.
-8. Implement the smallest coherent vertical slice.
-9. Update Feature Ledger state as implementation progresses.
-10. Add every applicable test/evidence layer.
-11. Perform UX review, not merely functional QA.
-12. Run fast iteration tests.
-13. Run complete verification before production-bound PR once Lot 0 provides it.
-14. Open PR with Feature IDs, requirements and impact sections.
-15. Resolve all blocking CI/review findings.
-16. Merge only when feature/lot criteria + Definition of Done are satisfied.
-17. Update `IMPLEMENTATION-STATUS.md` before handoff/end of material work.
+5. Read governing feature/domain/security/UX contracts using task routing.
+6. Identify expected owning modules using `CODEBASE-STRUCTURE.md` before creating files.
+7. Create focused branch.
+8. Update specification first/alongside code if behavior changes.
+9. Implement the smallest coherent vertical slice.
+10. Keep files/functions within `MODULE-SIZE-COMPLEXITY.md`; split before accumulation becomes a god module.
+11. Update Feature Ledger state as implementation progresses.
+12. Add every applicable test/evidence layer.
+13. Perform UX review, not merely functional QA.
+14. Run fast iteration tests.
+15. Run complete verification before production-bound PR once Lot 0 provides it.
+16. Open PR using `.github/pull_request_template.md`.
+17. Resolve all blocking CI/review findings.
+18. Merge only when feature/lot criteria + Definition of Done are satisfied.
+19. Update `IMPLEMENTATION-STATUS.md` before handoff/end of material work.
+
+## Code structure / maintainability
+
+Binding engineering contracts:
+
+- `docs/engineering/CODING-STANDARDS.md`
+- `docs/engineering/CODEBASE-STRUCTURE.md`
+- `docs/engineering/MODULE-SIZE-COMPLEXITY.md`
+
+Key rules:
+
+- canonical layer/folder architecture may not be replaced with a parallel style for convenience;
+- domain/application do not depend on concrete infrastructure;
+- UI does not directly perform provider persistence calls;
+- no circular dependencies;
+- production filenames are specific/kebab-case, not dumping grounds such as `utils.ts`/`helpers.ts`;
+- source-file/function/complexity thresholds are review/enforcement gates;
+- untracked TODO/FIXME/HACK/TEMP is prohibited;
+- size/complexity exceptions must be explicit in the PR and approved.
+
+Lot 0 must implement automated checks for equivalent boundaries/thresholds where reliable tooling exists.
 
 ## UX implementation rule
 
@@ -101,8 +133,10 @@ UI work is governed by:
 - `docs/ux/NAVIGATION.md`;
 - `docs/ux/SCREEN-BLUEPRINTS.md`;
 - `docs/ux/SCREEN-CONTRACTS.md`;
+- `docs/ux/VISUAL-SYSTEM.md`;
 - `docs/ux/DESIGN-SYSTEM.md`;
-- `docs/ux/UX-REVIEW-CHECKLIST.md`.
+- `docs/ux/UX-REVIEW-CHECKLIST.md`;
+- `docs/ux/VISUAL-REVIEW-CHECKLIST.md`.
 
 Do not satisfy requirements by dumping every field onto one page or one universal table.
 
@@ -112,18 +146,20 @@ A feature can fail acceptance even when technically correct if:
 - mobile is merely squeezed desktop;
 - information hierarchy is unclear;
 - a table/form pattern is used because it is easier to code rather than appropriate for the task;
-- navigation creates dead ends or loses useful context.
+- navigation creates dead ends or loses useful context;
+- frozen color/visual identity is replaced with a generic one-accent template.
 
-Major screen PRs should include synthetic-data desktop and mobile screenshots for UX review.
+Major screen PRs should include synthetic-data desktop and mobile screenshots for UX/visual review.
 
 ## Requirement and feature traceability
 
-Implementation PRs list affected Requirement IDs, Acceptance IDs and Feature IDs, for example:
+Implementation PRs list affected Requirement IDs, Acceptance IDs, Feature IDs and applicable Security/Authorization IDs, for example:
 
 ```text
 Features: FTR-019, FTR-020, FTR-021
 Requirements: VEN-005, FAC-002, FAC-004
 Acceptance: ACC-007, ACC-009, ACC-010
+Security: SEC-VAL-001, AUTHZ-005
 ```
 
 Critical tests reference IDs where practical.
@@ -150,8 +186,10 @@ Governed by:
 
 - `docs/domain/PHYSICAL-SCHEMA-V1.md`
 - `docs/domain/PHYSICAL-SCHEMA-V1-ADDENDUM.md`
+- `docs/domain/PHYSICAL-SCHEMA-AUTHORIZATION-ADDENDUM.md`
 - `docs/domain/INVARIANTS.md`
 - `docs/security/RLS-MATRIX-V1.md`
+- `docs/security/RLS-PERMISSION-MAPPING.md`
 - `docs/engineering/MIGRATIONS.md`
 
 No undocumented production-dashboard schema/policy changes.
@@ -191,7 +229,7 @@ Ordinary import never treats absence as delete. Wrong/tampered/unsupported backu
 
 ## Dependencies
 
-Before adding a dependency justify problem, alternatives, maintenance/security, bundle/build impact, license and verification implications. Keep dependencies minimal and reproducibly locked.
+Before adding a dependency justify problem, alternatives, maintenance/security, bundle/build impact, license, private-data/network implications, verification and replacement implications. Keep dependencies minimal and reproducibly locked.
 
 ## Tests
 
@@ -214,20 +252,24 @@ Applicable layers include:
 
 ## PR description
 
-Include as applicable:
+Use `.github/pull_request_template.md`.
+
+It records as applicable:
 
 - purpose/user job;
-- Feature IDs;
-- requirement/acceptance IDs;
+- Feature/Requirement/Acceptance/Security IDs;
 - implementation lot;
 - routes/screens/UX pattern;
+- modules/layer boundaries;
+- size/complexity exceptions;
 - schema/migration impact;
 - security/privacy impact;
 - offline/sync impact;
 - import/export/recovery impact;
 - derived-data/invalidation impact;
+- dependency impact;
 - tests/full verification;
-- synthetic desktop/mobile screenshots for visual feature changes;
+- synthetic desktop/mobile screenshots;
 - known limitations/deferred choices.
 
 ## Lot and checkpoint handoff
@@ -240,7 +282,8 @@ At lot completion:
 
 At checkpoint completion:
 - create `docs/reviews/CHECKPOINT-*-REPORT.md`;
-- review product fidelity, UX, architecture, security, data, offline, testing and documentation drift;
+- review product fidelity, UX, architecture, security, data, offline, testing, code maintainability and documentation drift;
+- repeat/update the documentation/system scorecard using implemented evidence;
 - close every BLOCKING/MAJOR finding before PASS.
 
 ## Public issue/PR hygiene
@@ -249,4 +292,4 @@ Never paste production logs containing PII/secrets. Use sanitized diagnostics + 
 
 ## Definition of complete
 
-A PR is complete only when behavior, Feature IDs, requirements, lot criteria, UX review, Definition of Done, security/data invariants, tests and documentation consistency all pass.
+A PR is complete only when behavior, Feature IDs, requirements, lot criteria, UX/visual review, code-structure/complexity rules, Definition of Done, security/data invariants, tests and documentation consistency all pass.
