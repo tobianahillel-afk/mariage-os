@@ -4,7 +4,7 @@ Mariage OS is a private, collaborative wedding-planning application for a couple
 
 ## Project status
 
-**V1 design baseline is frozen; final cross-document architecture/product review is in progress. Implementation gate is CLOSED.**
+**V1 design baseline is frozen; final cross-document architecture/product/UX review is in progress. Implementation gate is CLOSED.**
 
 Do **not** start Lot 0 merely because the specification is frozen or because PR #4 exists. Implementation becomes authorized only after:
 
@@ -12,6 +12,8 @@ Do **not** start Lot 0 merely because the specification is frozen or because PR 
 2. all documentation entry points agree;
 3. PR review comments/merge blockers are resolved;
 4. documentation Run 4 is merged into `main`.
+
+Current exact progress and next permitted action live in [`docs/roadmap/IMPLEMENTATION-STATUS.md`](docs/roadmap/IMPLEMENTATION-STATUS.md).
 
 This documentation task deliberately stops before Lot 0.
 
@@ -31,6 +33,8 @@ Either partner should quickly understand:
 
 Mariage OS is a **decision-and-action system**, not merely a database/inspiration site.
 
+The UX must remain simpler than the data model: purposeful screens, progressive detail, readable mobile flows and a calm/elegant visual hierarchy instead of giant forms or universal admin tables.
+
 ## Hard constraints
 
 - Cloud-accessible from supported phone/tablet/desktop.
@@ -46,6 +50,7 @@ Mariage OS is a **decision-and-action system**, not merely a database/inspiratio
 - Financial/date/import semantics are exact and explicit.
 - No silent destructive import, conflict overwrite or confirmed-data loss.
 - Portable verified recovery is first-class.
+- User-facing implementation must conform to the UX architecture/blueprints and cannot satisfy requirements by dumping all fields into one page/table.
 
 ## Chosen architecture
 
@@ -64,16 +69,31 @@ Mariage OS is a **decision-and-action system**, not merely a database/inspiratio
 
 Mandatory entry point: [`docs/START-HERE.md`](docs/START-HERE.md).
 
-Key gates/contracts:
+Key product/governance contracts:
 
 - [`docs/PRODUCT-SPECIFICATION.md`](docs/PRODUCT-SPECIFICATION.md) — frozen V1 master specification.
 - [`docs/REQUIREMENTS-CATALOG.md`](docs/REQUIREMENTS-CATALOG.md) — traceable requirements.
+- [`docs/FEATURE-LEDGER.md`](docs/FEATURE-LEDGER.md) — 104 V1 capabilities tracked feature by feature.
 - [`docs/roadmap/V1-SCOPE.md`](docs/roadmap/V1-SCOPE.md) — frozen V1/post-V1 boundary.
 - [`docs/DOCUMENTATION-AUDIT.md`](docs/DOCUMENTATION-AUDIT.md) — freeze audit findings.
 - [`docs/FINAL-DESIGN-REVIEW.md`](docs/FINAL-DESIGN-REVIEW.md) — final implementation gate.
 - [`docs/IMPLEMENTATION-READINESS.md`](docs/IMPLEMENTATION-READINESS.md) — readiness criteria.
 - [`docs/INDEX.md`](docs/INDEX.md) — full documentation map.
-- [`docs/roadmap/LOTS.md`](docs/roadmap/LOTS.md) and [`LOT-ACCEPTANCE.md`](docs/roadmap/LOT-ACCEPTANCE.md) — implementation sequence after gate opens.
+
+Key UX contracts:
+
+- [`docs/ux/UX-ARCHITECTURE.md`](docs/ux/UX-ARCHITECTURE.md) — page model, progressive disclosure and anti-overload rules.
+- [`docs/ux/SCREEN-BLUEPRINTS.md`](docs/ux/SCREEN-BLUEPRINTS.md) — detailed screen composition.
+- [`docs/ux/SCREEN-CONTRACTS.md`](docs/ux/SCREEN-CONTRACTS.md) — route/actions/states.
+- [`docs/ux/DESIGN-SYSTEM.md`](docs/ux/DESIGN-SYSTEM.md) — visual/component consistency.
+- [`docs/ux/UX-REVIEW-CHECKLIST.md`](docs/ux/UX-REVIEW-CHECKLIST.md) — mandatory UX acceptance review.
+
+Key implementation-governance contracts for later:
+
+- [`docs/engineering/IMPLEMENTATION-PLAYBOOK.md`](docs/engineering/IMPLEMENTATION-PLAYBOOK.md) — feature lifecycle/FIR/anti-drift workflow.
+- [`docs/roadmap/LOTS.md`](docs/roadmap/LOTS.md) and [`LOT-ACCEPTANCE.md`](docs/roadmap/LOT-ACCEPTANCE.md) — implementation sequence/exit criteria.
+- [`docs/roadmap/INTEGRATION-CHECKPOINTS.md`](docs/roadmap/INTEGRATION-CHECKPOINTS.md) — whole-product reviews after Lots 0–3, 4–7, 8–10 and 11–12.
+- [`docs/roadmap/IMPLEMENTATION-STATUS.md`](docs/roadmap/IMPLEMENTATION-STATUS.md) — living progress/handoff state.
 
 ## Security/privacy
 
@@ -95,10 +115,23 @@ A feature is not complete because it works once. The project requires applicable
 - import/rollback/round-trip/hostile-file tests;
 - backup/encryption/restore/migration tests;
 - accessibility/performance/browser-device validation;
+- synthetic desktop/mobile UX evidence for major screen changes;
 - no accepted known exploitable Critical/High release vulnerability;
-- documentation/requirements traceability.
+- requirement/Feature-ID/documentation traceability.
 
 Coverage is a gate, not proof of correctness by itself.
+
+## Development control after the gate opens
+
+Implementation is tracked capability by capability, not by vague percentage or file count.
+
+Every V1 feature follows:
+
+`SPECIFIED → READY → IN_PROGRESS → IMPLEMENTED → VERIFIED → INTEGRATED → ACCEPTED`
+
+with a Feature Implementation Record linking requirements, routes, UX, domain model, cloud/local storage, security, offline behavior and tests.
+
+Every 3–4 lots, a mandatory integration checkpoint re-reviews the whole implemented product for UX, architecture, security, data integrity and documentation drift before downstream work proceeds.
 
 ## V1 cutover
 
