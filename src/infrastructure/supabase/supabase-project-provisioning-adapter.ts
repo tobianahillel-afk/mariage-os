@@ -16,7 +16,9 @@ export interface SupabaseRpcClientLike {
   ): PromiseLike<RpcResult>;
 }
 
-export class SupabaseProjectProvisioningAdapter implements ProjectProvisioningPort {
+export class SupabaseProjectProvisioningAdapter
+  implements ProjectProvisioningPort
+{
   public constructor(private readonly client: SupabaseRpcClientLike) {}
 
   public async provisionPrivateInitialProject(
@@ -28,7 +30,11 @@ export class SupabaseProjectProvisioningAdapter implements ProjectProvisioningPo
       requested_owner_display_name: normalized.ownerDisplayName,
     });
 
-    if (result.error || typeof result.data !== "string" || result.data.length === 0) {
+    if (
+      result.error ||
+      typeof result.data !== "string" ||
+      result.data.length === 0
+    ) {
       throw new Error("Private project provisioning unavailable.");
     }
 
