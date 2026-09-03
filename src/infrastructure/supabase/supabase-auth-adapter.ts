@@ -13,25 +13,35 @@ type ProviderUser = {
 
 type ProviderSession = { readonly user: ProviderUser };
 
+type ProviderError = { readonly message: string } | null;
+
 type ProviderResult<T> = {
   readonly data: T;
-  readonly error: { readonly message: string } | null;
+  readonly error: ProviderError;
 };
+
+type ProviderSessionResult = ProviderResult<{
+  readonly session: ProviderSession | null;
+}>;
+
+type ProviderPasswordInput = {
+  readonly email: string;
+  readonly password: string;
+};
+
+type ProviderSignOutResult = { readonly error: ProviderError };
+
+type ProviderAssuranceResult = ProviderResult<{
+  readonly currentLevel: "aal1" | "aal2" | null;
+}>;
 
 export interface SupabaseAuthClientLike {
   readonly auth: {
-    getSession(): Promise<
-      ProviderResult<{ readonly session: ProviderSession | null }>
-    >;
-    signInWithPassword(input: {
-      readonly email: string;
-      readonly password: string;
-    }): Promise<ProviderResult<{ readonly session: ProviderSession | null }>>;
-    signOut(): Promise<{ readonly error: { readonly message: string } | null }>;
+    getSession(): Promise<ProviderSessionResult>;
+    signInWithPassword(input: ProviderPasswordInput): Promise<ProviderSessionResult>;
+    signOut(): Promise<ProviderSignOutResult>;
     readonly mfa: {
-      getAuthenticatorAssuranceLevel(): Promise<
-        ProviderResult<{ readonly currentLevel: "aal1" | "aal2" | null }>
-      >;
+      getAuthenticatorAssuranceLevel(): Promise<ProviderAssuranceResult>;
     };
   };
 }
