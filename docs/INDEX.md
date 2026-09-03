@@ -14,6 +14,7 @@ Start with [`START-HERE.md`](START-HERE.md). Do not browse files randomly and as
 - [`PUBLIC-READINESS-REQUIREMENTS.md`](PUBLIC-READINESS-REQUIREMENTS.md) — PUB-* cross-cutting anti-single-couple requirements.
 - [`FEATURE-LEDGER.md`](FEATURE-LEDGER.md) — 104 V1 capabilities tracked feature by feature through implementation.
 - [`roadmap/V1-SCOPE.md`](roadmap/V1-SCOPE.md) — binding V1/post-V1 boundary.
+- [`roadmap/V1-SCOPE-PUBLIC-READINESS-ADDENDUM.md`](roadmap/V1-SCOPE-PUBLIC-READINESS-ADDENDUM.md) — clarifies public-ready V1 foundation vs post-V1 public activation.
 - [`DOCUMENTATION-AUDIT.md`](DOCUMENTATION-AUDIT.md) — pre-freeze findings/resolutions.
 - [`FINAL-DESIGN-REVIEW.md`](FINAL-DESIGN-REVIEW.md) — final architecture/product/UX implementation gate once completed.
 - [`DOCUMENTATION-COMPLETENESS-CHECKLIST.md`](DOCUMENTATION-COMPLETENESS-CHECKLIST.md) — documentation/freeze coverage checklist.
@@ -39,17 +40,18 @@ Read in this order for UI work:
 5. [`ux/SCREEN-CONTRACTS.md`](ux/SCREEN-CONTRACTS.md) — screen jobs/actions/states.
 6. [`ux/SCREEN-CONTRACTS-PROJECT-SCOPE-ADDENDUM.md`](ux/SCREEN-CONTRACTS-PROJECT-SCOPE-ADDENDUM.md) — canonical public-ready project-scoped route family.
 7. [`ux/PUBLIC-WEB-SHELL.md`](ux/PUBLIC-WEB-SHELL.md) — future public marketing/Auth shell vs private application.
-8. [`ux/VISUAL-IDENTITY.md`](ux/VISUAL-IDENTITY.md) — product/brand personality.
-9. [`ux/COLOR-SYSTEM.md`](ux/COLOR-SYSTEM.md) — frozen multi-color/domain palette.
-10. [`ux/DESIGN-SYSTEM.md`](ux/DESIGN-SYSTEM.md) — components/tokens/status consistency.
-11. [`ux/MOTION-INTERACTION.md`](ux/MOTION-INTERACTION.md) — transitions/dynamic table/list behavior.
-12. [`ux/SEO-METADATA-IMAGES.md`](ux/SEO-METADATA-IMAGES.md) — public/private metadata and image-delivery policy.
-13. [`ux/INTERACTION-STATES.md`](ux/INTERACTION-STATES.md)
-14. [`ux/FORMS-AUTOSAVE.md`](ux/FORMS-AUTOSAVE.md)
-15. [`ux/UX-REVIEW-CHECKLIST.md`](ux/UX-REVIEW-CHECKLIST.md)
-16. [`ux/VISUAL-REVIEW-CHECKLIST.md`](ux/VISUAL-REVIEW-CHECKLIST.md)
-17. [`ux/VISUAL-BENCHMARKS.md`](ux/VISUAL-BENCHMARKS.md) — research input, never a copying target.
-18. [`ux/WIREFRAMES.md`](ux/WIREFRAMES.md) — supporting low-fidelity sketches; blueprints control if less complete.
+8. [`ux/PUBLIC-SEO-RENDERING.md`](ux/PUBLIC-SEO-RENDERING.md) — public static/prerender SEO without framework rewrite.
+9. [`ux/VISUAL-IDENTITY.md`](ux/VISUAL-IDENTITY.md) — product/brand personality.
+10. [`ux/COLOR-SYSTEM.md`](ux/COLOR-SYSTEM.md) — frozen multi-color/domain palette.
+11. [`ux/DESIGN-SYSTEM.md`](ux/DESIGN-SYSTEM.md) — components/tokens/status consistency.
+12. [`ux/MOTION-INTERACTION.md`](ux/MOTION-INTERACTION.md) — transitions/dynamic table/list behavior.
+13. [`ux/SEO-METADATA-IMAGES.md`](ux/SEO-METADATA-IMAGES.md) — public/private metadata and image-delivery policy.
+14. [`ux/INTERACTION-STATES.md`](ux/INTERACTION-STATES.md)
+15. [`ux/FORMS-AUTOSAVE.md`](ux/FORMS-AUTOSAVE.md)
+16. [`ux/UX-REVIEW-CHECKLIST.md`](ux/UX-REVIEW-CHECKLIST.md)
+17. [`ux/VISUAL-REVIEW-CHECKLIST.md`](ux/VISUAL-REVIEW-CHECKLIST.md)
+18. [`ux/VISUAL-BENCHMARKS.md`](ux/VISUAL-BENCHMARKS.md) — research input, never a copying target.
+19. [`ux/WIREFRAMES.md`](ux/WIREFRAMES.md) — supporting low-fidelity sketches; blueprints control if less complete.
 
 ## Architecture
 
@@ -76,6 +78,7 @@ Read in this order for UI work:
 - [`adr/0004-canonical-json-and-open-backup.md`](adr/0004-canonical-json-and-open-backup.md)
 - [`adr/0005-public-code-private-data.md`](adr/0005-public-code-private-data.md)
 - [`adr/0006-facts-observations-retained-values.md`](adr/0006-facts-observations-retained-values.md)
+- [`adr/0007-private-deployment-public-ready-multitenancy.md`](adr/0007-private-deployment-public-ready-multitenancy.md)
 
 ## Domain/data
 
@@ -161,6 +164,7 @@ Read in this order for UI work:
 - [`quality/MUTATION-TESTING.md`](quality/MUTATION-TESTING.md)
 - [`quality/E2E-TESTING.md`](quality/E2E-TESTING.md)
 - [`quality/TEST-DATA.md`](quality/TEST-DATA.md)
+- [`quality/PUBLIC-READINESS-TEST-MATRIX.md`](quality/PUBLIC-READINESS-TEST-MATRIX.md) — mandatory multi-project/tenant synthetic regression matrix.
 - [`quality/SECURITY-TESTING.md`](quality/SECURITY-TESTING.md)
 - [`quality/QUALITY-GATES.md`](quality/QUALITY-GATES.md)
 - [`quality/ACCESSIBILITY.md`](quality/ACCESSIBILITY.md)
@@ -195,6 +199,7 @@ Read in this order for UI work:
 
 - [`roadmap/IMPLEMENTATION-STATUS.md`](roadmap/IMPLEMENTATION-STATUS.md) — living progress/handoff board.
 - [`roadmap/V1-SCOPE.md`](roadmap/V1-SCOPE.md)
+- [`roadmap/V1-SCOPE-PUBLIC-READINESS-ADDENDUM.md`](roadmap/V1-SCOPE-PUBLIC-READINESS-ADDENDUM.md)
 - [`roadmap/LOTS.md`](roadmap/LOTS.md)
 - [`roadmap/LOT-ACCEPTANCE.md`](roadmap/LOT-ACCEPTANCE.md)
 - [`roadmap/INTEGRATION-CHECKPOINTS.md`](roadmap/INTEGRATION-CHECKPOINTS.md) — mandatory whole-product reviews after Lots 0–3, 4–7, 8–10 and 11–12.
