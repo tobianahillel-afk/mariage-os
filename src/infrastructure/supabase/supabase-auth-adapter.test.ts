@@ -22,7 +22,7 @@ type ClientOptions = {
 
 function makeClient(options: ClientOptions = {}): SupabaseAuthClientLike {
   const session = options.session ?? null;
-  const level = options.level ?? "aal1";
+  const level = options.level === undefined ? "aal1" : options.level;
   return {
     auth: {
       getSession: vi.fn(async () => ({
