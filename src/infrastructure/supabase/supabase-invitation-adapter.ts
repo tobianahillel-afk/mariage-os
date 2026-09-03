@@ -21,7 +21,8 @@ const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const TOKEN_PATTERN = /^[0-9a-f]{64}$/;
 
-const providerFailure = (): Error => new Error("Invitation service unavailable.");
+const providerFailure = (): Error =>
+  new Error("Invitation service unavailable.");
 
 function isUuid(value: unknown): value is string {
   return typeof value === "string" && UUID_PATTERN.test(value);
@@ -59,7 +60,9 @@ function parseIssuedInvitation(data: unknown): IssuedProjectInvitation {
 }
 
 export class SupabaseProjectInvitationAdapter implements ProjectInvitationPort {
-  public constructor(private readonly client: SupabaseInvitationRpcClientLike) {}
+  public constructor(
+    private readonly client: SupabaseInvitationRpcClientLike,
+  ) {}
 
   public async issue(
     request: IssueProjectInvitationRequest,
