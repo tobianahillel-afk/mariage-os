@@ -33,7 +33,7 @@
     "security:env:negative": "node scripts/run-environment-negative-control.mjs",
     "security:secrets": "node scripts/check-secrets.mjs",
     "security:negative": "node scripts/run-security-negative-control.mjs",
-    "security:dependencies": "npm audit --audit-level=high",
+    "security:dependencies": "node scripts/run-dependency-audit.mjs",
     "verify": "node scripts/run-full-verification.mjs"
   },
   "devDependencies": {
