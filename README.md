@@ -85,6 +85,7 @@ For onboarding, invitations and guest RSVP, the UI must provide obvious next act
 - Portable verified recovery is first-class.
 - UX/visual/QIF gates cannot be satisfied by dumping all fields into one mega-page/table.
 - Code follows canonical layers/folders/dependencies/size/complexity; provider SDKs stay in infrastructure adapters.
+- AI execution of a whole Lot must be internally decomposed into bounded Work Packets with independent review/acceptance; a Lot is never treated as one uncontrolled context window.
 
 ## Chosen architecture
 
@@ -104,6 +105,7 @@ For onboarding, invitations and guest RSVP, the UI must provide obvious next act
 ## Documentation — start here
 
 - AI/context-free: [`AGENTS.md`](AGENTS.md) → [`IMPLEMENTATION-STATUS`](docs/roadmap/IMPLEMENTATION-STATUS.md) → [`V1-FROZEN-MANIFEST`](docs/V1-FROZEN-MANIFEST.md).
+- Whole-Lot AI implementation protocol: [`docs/engineering/AI-LOT-ORCHESTRATION.md`](docs/engineering/AI-LOT-ORCHESTRATION.md).
 - Human full map: [`docs/START-HERE.md`](docs/START-HERE.md).
 - Full index: [`docs/INDEX.md`](docs/INDEX.md).
 
@@ -142,6 +144,12 @@ Every feature follows:
 `SPECIFIED → READY → IN_PROGRESS → IMPLEMENTED → VERIFIED → INTEGRATED → ACCEPTED`
 
 Feature Implementation Records link requirements, routes, UX/QIF, module ownership, domain model, cloud/local persistence, security, provider/offline behavior and tests.
+
+For a user command such as **“Fais le Lot 2”**, the AI must automatically:
+
+`inventory → Work Packets → Pass A Implement → Pass B adversarial review → Pass C acceptance → Lot reconciliation → Lot integration → Lot acceptance`.
+
+The user does not need to manage individual Work Packets. Work Packet state is durable so another AI can resume an interrupted Lot without chat context.
 
 Mandatory integration checkpoints re-review the whole product after Lots 0–3, 4–7, 8–10 and 11–12. Guest communications add specific Checkpoint B/D evidence.
 
