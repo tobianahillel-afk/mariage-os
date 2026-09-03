@@ -28,7 +28,9 @@ Choose exact scripts/commands for migrations, seed and isolated test reset.
 Choose native IndexedDB vs small maintained wrapper based on transaction ergonomics, migrations, bundle size, typing and maintenance/security. Frozen local-data semantics remain unchanged.
 
 ### Auth UX mechanism
-Choose current supported Supabase browser-safe sign-in UX while preserving controlled private bootstrap, MFA/recovery, membership separation and public-readiness rules.
+**Closed in WP-1.3.** V1 ordinary authentication uses Supabase Auth **email + password** with verified email required for private provisioning and provider-supported recovery. The application consumes a provider-neutral Auth port so a future supported sign-in mechanism may replace the adapter without changing project membership/tenancy semantics.
+
+No browser service-role secret, custom password hashing or custom session-token cryptography is introduced.
 
 ### Session configuration
 Choose concrete ordinary-session values compatible with provider capability/usability. Critical operations still require recent/strong authentication.
