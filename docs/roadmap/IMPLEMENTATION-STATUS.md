@@ -32,7 +32,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 
 Packets:
 
-1. `WP-1.1` — permission catalog and authorization helper foundation — **IN_PROGRESS**;
+1. `WP-1.1` — permission catalog and authorization helper foundation — **REVIEW_PENDING**;
 2. `WP-1.2` — core tenancy schema, membership and RLS baseline — **PLANNED**;
 3. `WP-1.3` — Supabase Auth/session and controlled first-owner provisioning — **PLANNED**;
 4. `WP-1.4` — partner invitation and protected membership lifecycle — **PLANNED**;
@@ -47,13 +47,13 @@ Packets:
 - Current Lot: **1**
 - Lot state: **IN_PROGRESS**
 - Current packet: **WP-1.1**
-- Packet state: **IN_PROGRESS**
-- Current pass: **A-IMPLEMENT**
+- Packet state: **REVIEW_PENDING**
+- Current pass: **B-ADVERSARIAL-REVIEW**
 - Accepted packets: **none yet**
-- Review-failed/blocked packets: **none**
-- Latest inherited full verification: **Lot 0 exact-head CI on `3dccc801a38929c6dfda7ecb06626d9c5143ec76`, all five jobs including clean-checkout `npm run verify` SUCCESS**
+- Review-failed/blocked packets: **none yet; Pass B active**
+- Latest green verification: **WP-1.1 Pass A exact-head run `33809158568` on `b76aa509d84c4aa73f80669faa2c9d6b494c15b8`, all five jobs including clean-checkout `npm run verify` SUCCESS**
 - Current branch: **`lot-1/identity-project-foundation`**
-- Next permitted action: **implement WP-1.1 only; then transition it to REVIEW_PENDING for independent Pass B before any WP-1.2 implementation**
+- Next permitted action: **complete WP-1.1 Pass B; repair any BLOCKING/MAJOR finding before acceptance; WP-1.2 remains forbidden until WP-1.1 is accepted**
 
 ## Lot status
 
@@ -67,11 +67,11 @@ Packets:
 
 - V1 Feature IDs: 120 SPECIFIED inventory rows total.
 - Lot 1 feature rows are being transitioned into lifecycle states as their packets begin; no Lot 2+ Feature may start.
-- ACCEPTED product Features: 0 at Lot 1 kickoff.
+- ACCEPTED product Features: 0 at current cursor.
 
 ## Current blockers / forward maintenance
 
-**0 open BLOCKING/MAJOR findings at Lot 1 kickoff.**
+**WP-1.1 is under adversarial review; no acceptance decision has been made.**
 
 Inherited reviewed non-blocking maintenance:
 
@@ -84,7 +84,9 @@ Inherited reviewed non-blocking maintenance:
 Lot 0: ACCEPTED
 Lot 1: IN_PROGRESS
 Coverage: required - assigned = ∅
-Current: WP-1.1 / IN_PROGRESS / A-IMPLEMENT
-Next: implement permission catalog + role mapping + fail-closed authorization helper foundation; add direct SQL evidence; then move WP-1.1 to REVIEW_PENDING
+Current: WP-1.1 / REVIEW_PENDING / B-ADVERSARIAL-REVIEW
+Pass A evidence: run 33809158568 fully green
+Next: adversarially challenge exact role matrix, internal authorization helper/security-definer posture and client privilege surface; repair all BLOCKING/MAJOR findings before Pass C
+WP-1.2: forbidden until WP-1.1 acceptance
 Lot 2+: forbidden
 ```
