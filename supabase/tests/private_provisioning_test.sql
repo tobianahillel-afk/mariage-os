@@ -242,6 +242,7 @@ select is(
   'private bootstrap succeeds even when another synthetic project already exists'
 );
 
+reset role;
 select ok(
   (
     select p.bootstrap_status = 'claimed'
@@ -255,6 +256,12 @@ select ok(
   'successful bootstrap atomically consumes policy state and records claimant/project'
 );
 
+set local role authenticated;
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"81111111-1111-4111-8111-111111111111","role":"authenticated","aal":"aal1"}',
+  true
+);
 select throws_ok(
   $$select public.provision_private_initial_project('Second Wedding', 'First Owner')$$,
   '42501',
