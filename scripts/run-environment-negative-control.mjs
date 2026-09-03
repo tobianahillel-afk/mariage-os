@@ -1,12 +1,16 @@
 import { spawnSync } from "node:child_process";
 
-const result = spawnSync(process.execPath, ["scripts/validate-local-environment.mjs"], {
-  encoding: "utf8",
-  env: {
-    ...process.env,
-    SUPABASE_SERVICE_ROLE_KEY: "synthetic-deliberate-credential-fixture",
+const result = spawnSync(
+  process.execPath,
+  ["scripts/validate-local-environment.mjs"],
+  {
+    encoding: "utf8",
+    env: {
+      ...process.env,
+      SUPABASE_SERVICE_ROLE_KEY: "synthetic-deliberate-credential-fixture",
+    },
   },
-});
+);
 
 if (result.status === 0) {
   console.error("Environment negative control unexpectedly passed.");
