@@ -1,176 +1,118 @@
 # Mariage OS — Final Pre-Merge Sentry Scan
 
-Status: **FINAL SCAN EXECUTED — rerun required after any subsequent content change before merge**
+Status: **PRE-MERGE SENTRY METHOD FROZEN — FINAL SHA-SPECIFIC RERUN REQUIRED IMMEDIATELY BEFORE MERGE**
 
-Purpose: record the final documentation-precedence/stale-wording and public-repository privacy/secret scan evidence for Run 4.
+Purpose: define and record the final documentation-precedence, public-repository privacy and secret-hygiene checks for Run 4 without retaining real personal-data examples in the audit text itself.
 
-This report closes the substantive scan work behind `FDR-016` and `FDR-019` at the reviewed commit. Because additional commits after the scan change the HEAD, a final lightweight rerun against the true last HEAD is mandatory immediately before declaring the Final Design Review pre-merge PASS.
+## 1. Scope
 
----
+The final sentry evaluates the exact PR HEAD and verifies:
 
-# 1. Reviewed state
+- governing-document precedence and stale wording;
+- unresolved review threads;
+- branch divergence / mergeability;
+- prohibited private file classes;
+- known project-person identifiers;
+- high-signal secret/token/key patterns;
+- production identifiers where they would constitute a private credential/config leak;
+- final changed-file inventory.
 
-At scan time:
+The result is SHA-specific. Any subsequent product/spec content change requires the relevant checks again.
 
-- PR: `#4 — docs: implementation-ready specification run 4/4`;
-- base: `main`;
-- branch had no behind-main divergence in compare evidence;
-- raw GitHub PR endpoint reported `mergeable: true`, `mergeable_state: clean` for the audited HEAD during mergeability verification;
-- changed-file inventory contained repository docs/configuration only; no wedding spreadsheet, backup, private image or production dump was present in the PR filename inventory.
+## 2. Stale-wording / precedence result
 
-The exact current final HEAD must be re-recorded after the final scan rerun because this report itself and other review docs are subsequent commits.
+No known semantic conflict remains among the governing entry points.
 
----
+The historical words `freeze candidate` remain in the header of `docs/domain/PHYSICAL-SCHEMA-V1.md`. They are explicitly non-decision-bearing because:
 
-# 2. Stale-wording / precedence sentry
+1. the same header identifies the file as normative implementation schema design;
+2. schema addenda control narrower corrected scopes;
+3. `AGENTS.md` explicitly states that this historical label cannot authorize an alternative schema;
+4. implementation permission is controlled by `IMPLEMENTATION-STATUS.md` + `FINAL-DESIGN-REVIEW.md`.
 
-Checked themes include:
+Therefore this occurrence is an accepted non-semantic historical label, not a design ambiguity. A literal cleanup may be made later without changing semantics.
 
-- unconditional `merge → Lot 0` authorization;
-- old seating/timeline post-V1 deferrals;
-- old palette deferral wording;
-- private-single-couple wording that could contradict public-ready/multi-project architecture;
-- LLM/engineering precedence and status wording;
-- required `TBD` / untracked implementation markers where applicable;
-- schema freeze wording.
+## 3. Privacy / PII result
 
-## Result
+Real-name examples discovered during review were removed from product examples and replaced with synthetic labels such as `Owner-A`, `Partner A` and `Partner B`.
 
-No known remaining semantic conflict was found among current governing entry points.
+The final sentry must search the exact PR patch for the known project-person identifiers maintained privately during the review. The audit document intentionally does **not** reproduce those identifiers.
 
-Known textual exception:
+Passing condition: zero occurrence outside unavoidable public repository/account metadata that is not part of project content.
 
-`docs/domain/PHYSICAL-SCHEMA-V1.md` contains the historical header phrase:
+## 4. Secret / token result
 
-`Status: Normative schema design for implementation — freeze candidate`
+High-signal patterns to check include provider/token/key signatures such as:
 
-This phrase is **not a competing permission/status contract** because:
+- GitHub personal-access-token prefixes;
+- AWS access-key prefixes;
+- private-key PEM headers;
+- Google API-key prefixes;
+- JWT/provider-secret patterns where practical;
+- production Supabase/private deployment identifiers where they would reveal protected configuration.
 
-1. the same line explicitly identifies the document as normative implementation schema design;
-2. narrower schema addenda explicitly control their corrected scopes;
-3. current implementation permission is controlled by `IMPLEMENTATION-STATUS.md` + `FINAL-DESIGN-REVIEW.md`;
-4. root `AGENTS.md` now explicitly states that `freeze candidate` is a historical non-decision-bearing label and may not be interpreted as permission to invent an alternative schema.
+Do not use ambiguous short substrings as standalone proof. Lot 0 must later add executable entropy/provider-aware secret scanning.
 
-For literal textual cleanliness, replace `freeze candidate` with `frozen V1 implementation reference` when a direct full-file cleanup is convenient. This is cosmetic once the explicit precedence rule exists; it no longer creates material implementation ambiguity.
+Passing condition for documentation phase: no prohibited credential/token/key in the exact PR patch or changed files.
 
-## FDR-016 assessment
+## 5. Prohibited file classes
 
-**Substantive precedence ambiguity: RESOLVED at design level.**
+The PR must contain no real/private runtime artifact such as:
 
-Final close procedure:
-
-- rerun sentry after last content commit;
-- confirm only accepted non-semantic historical occurrences remain;
-- record FDR-016 as resolved in the master Final Design Review.
-
----
-
-# 3. Private-data / PII sentry
-
-During this review two real-name examples were discovered in documentation and removed:
-
-- import mapping example containing a real first name → replaced with synthetic `Owner-A`;
-- conflict wireframe containing a real first name → replaced with `Partner A` / `Partner B`.
-
-Final diff searches on the audited state returned no match for tested known project-person identifiers including:
-
-- `Hillel`;
-- `Tobiana`;
-- `Gabay`.
-
-The scan is designed to catch known project-specific names, not to claim that a text search alone is a universal PII detector. Lot 0 must add executable secret scanning and synthetic-fixture policy enforcement.
-
----
-
-# 4. Secret/token sentry
-
-High-signal token/key patterns checked on the current PR patch included:
-
-- `ghp_`;
-- `github_pat_`;
-- `AKIA`;
-- `BEGIN PRIVATE KEY`;
-- `AIza`;
-- JWT-like/provider patterns reviewed where practical;
-- production Supabase host/project identifiers reviewed where practical.
-
-No prohibited production credential/token was identified by these sentry checks.
-
-The `sk-` substring is not usable as a standalone secret signal in this corpus because ordinary terms such as `task-` create false positives. Executable secret scanning in Lot 0 must use proper entropy/provider detectors rather than naive substring matching.
-
----
-
-# 5. File-class hygiene
-
-PR changed-file inventory was reviewed for prohibited file classes.
-
-No known:
-
-- `.xlsx` / `.xls` wedding data file;
+- wedding XLS/XLSX/CSV working data;
 - `.mariage` backup;
 - production DB dump;
-- private photo/media artifact;
-- private invoice/contract binary;
-- runtime export/import working file;
-- real environment file;
-- private key file
+- private photo/media upload;
+- invoice/contract binary containing real private data;
+- runtime import/export directory content;
+- real `.env` file;
+- key/certificate file;
+- production diagnostic log.
 
-was identified in the changed-file list.
+`.gitignore` is defense in depth only; the final changed-file inventory must still be reviewed directly.
 
-`.gitignore` includes defense-in-depth exclusions for environment files, keys, backups, private/runtime data, imports, exports, uploads and dumps.
+## 6. Review / mergeability
 
----
+Passing condition:
 
-# 6. Mergeability verification
+- all known inline review threads resolved;
+- no new unresolved blocking review;
+- branch not behind `main` in a way requiring reconciliation;
+- raw GitHub PR state reports `mergeable: true` and `mergeable_state: clean` immediately before merge.
 
-GitHub gave inconsistent transient normalized snapshots while the branch was actively receiving commits, but the authoritative raw PR read after recalculation reported:
+Transient normalized snapshots while GitHub recalculates mergeability are not treated as authoritative if the raw PR endpoint later reports `clean` and branch comparison confirms no divergence.
 
-- `mergeable: true`;
-- `mergeable_state: clean`.
+## 7. Release/update architecture
 
-Branch comparison also reported no behind-main divergence at verification time.
-
-Therefore there is no known content conflict with `main`. Because any new commit can trigger GitHub's mergeability recalculation, read the raw PR state once more at the actual final HEAD before merge.
-
----
-
-# 7. Release/update architecture added during final review
-
-The final design review also identified that generic release notes/migrations were insufficient to guarantee safe SaaS evolution.
-
-Remediation added:
+The final review added and reconciled:
 
 - `engineering/VERSIONING-UPDATE-DELIVERY.md`;
-- strengthened `engineering/CI-CD.md`;
-- strengthened `engineering/RELEASE-PROCESS.md`;
-- strengthened `engineering/MIGRATIONS.md`;
-- strengthened `architecture/PWA-LIFECYCLE.md`;
-- strengthened `quality/QUALITY-GATES.md`;
+- `engineering/CI-CD.md`;
+- `engineering/RELEASE-PROCESS.md`;
+- `engineering/MIGRATIONS.md`;
+- `architecture/PWA-LIFECYCLE.md`;
+- `quality/QUALITY-GATES.md`;
 - `templates/RELEASE-PLAN.md`;
 - `reviews/ABSOLUTE-300-CONTROL-CHECKLIST.md`;
 - `reviews/100-PERCENT-GAP-PLAN.md`.
 
-This defines SemVer, release manifests, cross-layer compatibility, staging/production promotion, migrations-before-dependent-frontend, PWA automatic update discovery, stale-client write blocking, monitoring, rollback/forward-fix and V1.x→V2 migration rehearsal.
+This closes the design gap around SemVer, immutable release identity, DB-before-dependent-frontend promotion, PWA update discovery, stale-client write blocking, monitoring, rollback/forward-fix and V1.x→V2 migration rehearsal.
 
-Design-level release/update gap: **RESOLVED**. Executable proof remains a Lot 0/later-release responsibility.
+## 8. Exact final seal procedure
 
----
+On the last immutable PR HEAD:
 
-# 8. Final pre-merge rerun checklist
+- [ ] fetch exact HEAD SHA;
+- [ ] fetch full changed-file inventory;
+- [ ] fetch final PR patch;
+- [ ] run private known-identifier sentry without writing those identifiers into public docs;
+- [ ] run high-signal secret/key sentry;
+- [ ] confirm no prohibited private file class;
+- [ ] confirm no unresolved review thread;
+- [ ] confirm precedence/stale-wording status unchanged;
+- [ ] confirm branch comparison has no behind-main divergence requiring reconciliation;
+- [ ] confirm raw PR `mergeable=true`, `mergeable_state=clean`;
+- [ ] record the exact sealed HEAD in PR metadata/comment, not in a new repository commit;
+- [ ] merge that exact HEAD using expected-SHA protection.
 
-Immediately before master Final Design Review PASS / merge:
-
-- [ ] fetch exact final PR HEAD SHA;
-- [ ] fetch final PR patch/file inventory;
-- [ ] rerun known-name/PII sentry;
-- [ ] rerun proper token/pattern sentry available at documentation phase;
-- [ ] confirm no prohibited binary/private file class;
-- [ ] rerun stale-wording/precedence sentry;
-- [ ] confirm all review threads remain resolved/no new blocker;
-- [ ] read raw PR mergeability (`true` / `clean` expected);
-- [ ] update master `FINAL-DESIGN-REVIEW.md` FDR-016/FDR-019 and reviewed SHA;
-- [ ] only then mark pre-merge design review PASS;
-- [ ] merge Run 4;
-- [ ] after merge move Lot 0 to `READY` according to gate contract.
-
-If any substantive content changes after this rerun, repeat the relevant sentries; the evidence is SHA-specific.
+This SHA-seal design avoids the self-referential problem where committing the SHA into the repository would create a new, different SHA that then needs another seal.
