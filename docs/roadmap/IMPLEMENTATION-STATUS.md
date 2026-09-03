@@ -32,7 +32,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 
 Packets:
 
-1. `WP-1.1` — permission catalog and authorization helper foundation — **REVIEW_PENDING**;
+1. `WP-1.1` — permission catalog and authorization helper foundation — **REVIEW_FAILED / REPAIR**;
 2. `WP-1.2` — core tenancy schema, membership and RLS baseline — **PLANNED**;
 3. `WP-1.3` — Supabase Auth/session and controlled first-owner provisioning — **PLANNED**;
 4. `WP-1.4` — partner invitation and protected membership lifecycle — **PLANNED**;
@@ -47,13 +47,13 @@ Packets:
 - Current Lot: **1**
 - Lot state: **IN_PROGRESS**
 - Current packet: **WP-1.1**
-- Packet state: **REVIEW_PENDING**
-- Current pass: **B-ADVERSARIAL-REVIEW**
+- Packet state: **REVIEW_FAILED**
+- Current pass: **A-IMPLEMENT-REPAIR**
 - Accepted packets: **none yet**
-- Review-failed/blocked packets: **none yet; Pass B active**
-- Latest green verification: **WP-1.1 Pass A exact-head run `33809158568` on `b76aa509d84c4aa73f80669faa2c9d6b494c15b8`, all five jobs including clean-checkout `npm run verify` SUCCESS**
+- Review-failed/blocked packets: **WP-1.1 — 2 MAJOR adversarial findings open**
+- Latest green verification: **WP-1.1 pre-review exact-head run `33809158568` on `b76aa509d84c4aa73f80669faa2c9d6b494c15b8`, all five jobs including clean-checkout `npm run verify` SUCCESS; this green run does not close the adversarial findings**
 - Current branch: **`lot-1/identity-project-foundation`**
-- Next permitted action: **complete WP-1.1 Pass B; repair any BLOCKING/MAJOR finding before acceptance; WP-1.2 remains forbidden until WP-1.1 is accepted**
+- Next permitted action: **repair WP1-AR-001 exact role-matrix evidence and WP1-AR-002 SECURITY DEFINER search-path posture, rerun full verification, then re-enter Pass B**
 
 ## Lot status
 
@@ -71,7 +71,10 @@ Packets:
 
 ## Current blockers / forward maintenance
 
-**WP-1.1 is under adversarial review; no acceptance decision has been made.**
+**2 open MAJOR findings in WP-1.1:**
+
+- `WP1-AR-001`: current SQL tests sample the built-in role mappings but do not prove exact set equality against the complete normative role-permission matrix;
+- `WP1-AR-002`: the internal `SECURITY DEFINER` role lookup includes `public` in its search path even though all application relations can be fully qualified.
 
 Inherited reviewed non-blocking maintenance:
 
@@ -84,9 +87,9 @@ Inherited reviewed non-blocking maintenance:
 Lot 0: ACCEPTED
 Lot 1: IN_PROGRESS
 Coverage: required - assigned = ∅
-Current: WP-1.1 / REVIEW_PENDING / B-ADVERSARIAL-REVIEW
-Pass A evidence: run 33809158568 fully green
-Next: adversarially challenge exact role matrix, internal authorization helper/security-definer posture and client privilege surface; repair all BLOCKING/MAJOR findings before Pass C
+Current: WP-1.1 / REVIEW_FAILED / A-IMPLEMENT-REPAIR
+Open findings: WP1-AR-001 MAJOR, WP1-AR-002 MAJOR
+Next: repair exact matrix evidence + SECURITY DEFINER search path + explicit PUBLIC deny posture; rerun exact-head full verify; then fresh Pass B
 WP-1.2: forbidden until WP-1.1 acceptance
 Lot 2+: forbidden
 ```
