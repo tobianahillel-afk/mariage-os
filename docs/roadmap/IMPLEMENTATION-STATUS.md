@@ -9,16 +9,16 @@ Status: **Living repository source of truth for development progress**
 - AI Lot Orchestration governance: **MERGED / FROZEN**.
 - Final Design Review: **PASS**.
 - Implementation gate: **OPEN**.
-- **Lot 0: IN_PROGRESS** — explicitly kicked off 2026-09-03.
+- **Lot 0: ACCEPTED** — implementation/integration completed 2026-09-03.
 - Lots 1–12: **NOT_STARTED**.
 
-Lot 0 is the only permitted implementation scope. Product Feature implementation remains 0.
+No Product Feature ID has been implemented yet. No further implementation Lot is permitted until the user explicitly kicks it off.
 
 ## Lot 0 orchestration
 
-Coverage plan: `lot-0/LOT-0-COVERAGE-MATRIX.md`.
+Coverage/reconciliation: `lot-0/LOT-0-COVERAGE-MATRIX.md`.
 
-Required current-lot responsibilities minus assigned packet responsibilities: **∅**.
+Required Lot 0 responsibilities minus accepted/evidenced responsibilities: **∅**.
 
 Packets:
 
@@ -27,25 +27,25 @@ Packets:
 3. `WP-0.3` — unit/property/coverage/E2E/mutation harnesses — **ACCEPTED**;
 4. `WP-0.4` — Supabase local / DB security-test foundation — **ACCEPTED**;
 5. `WP-0.5` — CI, preview, secret/dependency security — **ACCEPTED**;
-6. `WP-0.6` — Lot integration, adversarial review, reconciliation and acceptance — **IN_PROGRESS**.
+6. `WP-0.6` — Lot integration, adversarial review, reconciliation and acceptance — **ACCEPTED**.
 
 ### Durable cursor
 
-- Current Lot: **0**
-- Lot state: **IN_PROGRESS**
-- Current packet: **WP-0.6**
-- Packet state: **IN_PROGRESS**
-- Current pass: **A-IMPLEMENT**
-- Accepted packets: **WP-0.1, WP-0.2, WP-0.3, WP-0.4, WP-0.5**
+- Current Lot: **none active**
+- Last completed Lot: **0 / ACCEPTED**
+- Current packet: **none**
+- Accepted packets: **WP-0.1 through WP-0.6**
 - Review-failed/blocked packets: **none**
-- Latest green verification: **WP-0.5 exact-head run 33804821176 — Core, local Supabase DB/RLS, browser/mutation and privacy-safe preview all SUCCESS**
-- Next permitted action: **execute WP-0.6 full-verify integration, adversarial review, reconciliation and Lot 0 acceptance only**
+- Lot Integration Pass: **PASS**
+- Acceptance evidence: **GitHub Actions run 33805776513 — Core, local Supabase DB/RLS, browser/mutation, privacy-safe preview and clean-checkout single-command full verify all SUCCESS**
+- Final exact-head documentation confirmation: **pending the CI run triggered by these durable acceptance records**
+- Next permitted action: **no implementation action without an explicit future user kickoff; Lot 1 remains NOT_STARTED**
 
 ## Lot status
 
 | Lot | State |
 |---:|---|
-| 0 | **IN_PROGRESS** |
+| 0 | **ACCEPTED** |
 | 1–12 | NOT_STARTED |
 
 ## Product Feature counts
@@ -58,16 +58,23 @@ Packets:
 - ACCEPTED: 0
 - BLOCKED: 0
 
-## Current blockers
+## Current blockers / forward maintenance
 
-**0 open BLOCKING/MAJOR findings.** Runtime/tooling findings are repaired and recorded rather than bypassed.
+**0 open BLOCKING/MAJOR findings.**
+
+Reviewed non-blocking maintenance:
+
+- dependency audit currently reports two Moderate transitive advisories in development tooling; Critical/High accepted-known count remains zero under the normative vulnerability gate, and the Moderate findings must be re-evaluated on the relevant dependency/toolchain update;
+- external container registries may transiently rate-limit clean Supabase image pulls; the observed integration run recovered through bounded retry and did not skip any DB/RLS verification.
 
 ## Handoff
 
 ```text
-Current Lot: 0
-Accepted: WP-0.1, WP-0.2, WP-0.3, WP-0.4, WP-0.5
-Current: WP-0.6 / IN_PROGRESS / A-IMPLEMENT
-Next: prove single-command full verify from clean CI, reconcile Lot 0 responsibilities, run independent Lot Integration Pass, then decide Lot acceptance
-Lot 1: forbidden until Lot 0 acceptance and explicit future kickoff
+Lot 0: ACCEPTED
+Accepted packets: WP-0.1 .. WP-0.6
+Required - evidenced responsibilities: ∅
+Lot Integration Pass: PASS
+Product Feature implementation: 0
+Lot 1: NOT_STARTED
+Next: no implementation until explicit future Lot kickoff
 ```
