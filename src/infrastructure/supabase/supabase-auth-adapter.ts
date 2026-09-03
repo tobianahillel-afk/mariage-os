@@ -20,7 +20,9 @@ type ProviderResult<T> = {
 
 export interface SupabaseAuthClientLike {
   readonly auth: {
-    getSession(): Promise<ProviderResult<{ readonly session: ProviderSession | null }>>;
+    getSession(): Promise<
+      ProviderResult<{ readonly session: ProviderSession | null }>
+    >;
     signInWithPassword(input: {
       readonly email: string;
       readonly password: string;
@@ -34,10 +36,12 @@ export interface SupabaseAuthClientLike {
   };
 }
 
-const providerFailure = (): Error => new Error("Authentication provider unavailable.");
+const providerFailure = (): Error =>
+  new Error("Authentication provider unavailable.");
 
-const mapAssurance = (level: "aal1" | "aal2" | null): AuthAssuranceLevel =>
-  level ?? "unknown";
+const mapAssurance = (
+  level: "aal1" | "aal2" | null,
+): AuthAssuranceLevel => level ?? "unknown";
 
 export class SupabaseAuthAdapter implements AuthPort {
   public constructor(private readonly client: SupabaseAuthClientLike) {}
@@ -61,15 +65,19 @@ export class SupabaseAuthAdapter implements AuthPort {
     if (result.error) throw providerFailure();
   }
 
-  private async mapSession(session: ProviderSession | null): Promise<AuthSessionState> {
+  private async mapSession(
+    session: ProviderSession | null,
+  ): Promise<AuthSessionState> {
     if (!session) return { kind: "signed_out" };
 
-    const assuranceResult = await this.client.auth.mfa.getAuthenticatorAssuranceLevel();
+    const assuranceResult =
+      await this.client.auth.mfa.getAuthenticatorAssuranceLevel();
     if (assuranceResult.error) throw providerFailure();
 
     const assurance = mapAssurance(assuranceResult.data.currentLevel);
     const email = session.user.email ?? null;
-    const emailVerified = email !== null && Boolean(session.user.email_confirmed_at);
+    const emailVerified =
+      email !== null && Boolean(session.user.email_confirmed_at);
 
     if (!emailVerified) {
       return {
