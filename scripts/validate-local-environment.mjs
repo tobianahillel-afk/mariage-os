@@ -17,4 +17,6 @@ if (present.length > 0) {
   process.exit(1);
 }
 
-console.log("Local/CI environment validation passed without production credentials.");
+console.log(
+  "Local/CI environment validation passed without production credentials.",
+);
