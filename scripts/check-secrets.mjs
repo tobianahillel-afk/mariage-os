@@ -32,9 +32,7 @@ function violationsFor(file) {
 }
 
 const files =
-  explicitFiles.length > 0
-    ? explicitFiles
-    : trackedFiles().filter(shouldScan);
+  explicitFiles.length > 0 ? explicitFiles : trackedFiles().filter(shouldScan);
 const violations = files.flatMap(violationsFor);
 
 if (violations.length > 0) {
