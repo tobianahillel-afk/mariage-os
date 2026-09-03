@@ -17,7 +17,8 @@ Before any material change:
 5. identify the current lot / checkpoint;
 6. identify the Feature ID(s), Requirement ID(s) and Acceptance ID(s) affected;
 7. read only the governing contracts for that task using the routing table below;
-8. if material behavior is unspecified and not explicitly deferred, treat that as a documentation defect — **do not invent semantics silently**.
+8. if implementation is requested for an entire Lot, read `docs/engineering/AI-LOT-ORCHESTRATION.md` **before writing production code**;
+9. if material behavior is unspecified and not explicitly deferred, treat that as a documentation defect — **do not invent semantics silently**.
 
 Chat history is supplementary. The repository is the handoff/source-of-truth mechanism.
 
@@ -75,6 +76,26 @@ Read:
 - relevant domain + security + offline contracts;
 - current lot acceptance criteria;
 - `docs/templates/FEATURE-IMPLEMENTATION-RECORD.md`.
+
+### Whole-Lot implementation request
+
+If the user says `Do Lot N`, `Implement Lot N`, `Fais le Lot N` or equivalent:
+
+1. do **not** implement the Lot as one giant task;
+2. read `docs/engineering/AI-LOT-ORCHESTRATION.md`;
+3. compute the complete current-lot Feature/control responsibility inventory from both Feature Ledgers + cross-cutting Lot controls;
+4. create a dependency-aware bounded Work Packet plan;
+5. prove every required responsibility is assigned;
+6. record the plan/current packet in durable repository state;
+7. default to one packet `IN_PROGRESS` at a time;
+8. execute every packet through **Pass A IMPLEMENT → Pass B ADVERSARIAL REVIEW → Pass C ACCEPTANCE**;
+9. after all packets, perform mechanical Lot reconciliation;
+10. run a separate Lot Integration Pass;
+11. only then apply Lot acceptance and any required Checkpoint.
+
+The user is not required to ask for individual Work Packets. Work Packets are internal execution units, not new product Lots.
+
+Use `docs/templates/WORK-PACKET-RECORD.md` for durable packet evidence.
 
 ### Guest invitation / RSVP / Email / SMS / WhatsApp work
 
@@ -137,6 +158,7 @@ Read all governing files under `docs/import-export/`, including guest-communicat
 
 Read:
 - current Lot 0/quality contracts;
+- `docs/engineering/AI-LOT-ORCHESTRATION.md` when executing/reviewing a Lot;
 - `docs/quality/*` applicable files;
 - `docs/engineering/CI-CD.md`;
 - `docs/engineering/CODING-STANDARDS.md`;
@@ -207,6 +229,8 @@ Every material feature/change must have a Feature Implementation Record (FIR) or
 - public-readiness/project isolation;
 - QIF evidence where applicable;
 - status/limitations.
+
+Every Work Packet additionally has a Work Packet Record and cannot become `ACCEPTED` without the three-pass protocol.
 
 No required `TBD` is allowed outside an explicitly deferred decision.
 
@@ -296,7 +320,7 @@ Before ending material work:
 
 1. update both Feature Ledger files for affected features;
 2. update `docs/roadmap/IMPLEMENTATION-STATUS.md` when progress materially changed;
-3. record blockers and next permitted action;
+3. while a Lot is active, persist current Lot, Work Packet, packet state/pass, accepted packets, blockers and next action;
 4. ensure tests/evidence are committed;
 5. update docs/ADR if behavior or architecture changed;
 6. update release plan/status when release work changed;
@@ -317,6 +341,9 @@ Stop implementation/release and resolve documentation/review first if:
 - a new architecture dependency/boundary is needed without ADR/review;
 - security review is required for a new public endpoint/provider/webhook/attack surface;
 - current lot/checkpoint does not permit the work;
+- a whole-Lot request has not been decomposed/reconciled under `AI-LOT-ORCHESTRATION.md`;
+- a Work Packet is being marked complete without Pass B and Pass C;
+- Lot reconciliation is non-empty or Lot Integration Pass has not succeeded;
 - production migration/compatibility/recovery prerequisites are not green;
 - obsolete client cannot safely coexist with target backend and no update-required path exists;
 - a communication send path cannot prove audience freeze/idempotency/authorization/provider readiness.

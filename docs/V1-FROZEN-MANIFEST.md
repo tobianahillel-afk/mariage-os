@@ -2,7 +2,7 @@
 
 Status: **NORMATIVE PRECEDENCE / NAVIGATION MANIFEST**
 
-Purpose: give a context-free developer/LLM one compact answer to “what exactly constitutes the frozen V1 specification?” after the Invitations/RSVP/Communications scope change.
+Purpose: give a context-free developer/LLM one compact answer to “what exactly constitutes the frozen V1 specification and how is it safely executed?” after the Invitations/RSVP/Communications and AI lot-orchestration reviews.
 
 ## Current V1 feature inventory
 
@@ -58,11 +58,46 @@ Where the guest-communications addendum explicitly promotes guest portal/Email/S
 
 ### Roadmap
 - `roadmap/LOTS.md`
-- normal `LOT-ACCEPTANCE.md` / checkpoints plus guest-communications extensions/review evidence.
+- `roadmap/LOT-ACCEPTANCE.md`
+- `roadmap/LOT-ACCEPTANCE-GUEST-COMMUNICATIONS-ADDENDUM.md`
+- checkpoint contracts/review evidence.
+
+## AI implementation execution governance
+
+A human may simply request `Do Lot N` / `Fais le Lot N`.
+
+That command is governed by:
+
+1. `engineering/AI-LOT-ORCHESTRATION.md`;
+2. `engineering/IMPLEMENTATION-PLAYBOOK.md`;
+3. `engineering/DEFINITION-OF-DONE.md`;
+4. `templates/WORK-PACKET-RECORD.md`;
+5. `roadmap/LOTS.md`;
+6. base + applicable addendum Lot acceptance contracts.
+
+A Lot is a product milestone and user command boundary, **not** the normal AI context/work unit.
+
+The mandatory hierarchy is:
+
+```text
+Feature/FIR
+→ bounded Work Packet
+→ Pass A IMPLEMENT
+→ Pass B ADVERSARIAL REVIEW
+→ Pass C ACCEPTANCE
+→ Lot reconciliation
+→ Lot Integration Pass
+→ Lot acceptance
+→ Checkpoint when applicable
+```
+
+Every required current-lot Feature/control responsibility must be assigned to at least one Work Packet before implementation starts. A non-empty `required - accepted/evidenced` reconciliation blocks Lot closure.
+
+The default is one Work Packet `IN_PROGRESS` at a time. Session state must record current Lot, current packet/pass and next permitted action so a cold-start agent can resume without chat history.
 
 ## QIF
 
-`QIF — Quick & Intuitive Flow` is an internal Mariage OS quality criterion introduced by this V1 scope change.
+`QIF — Quick & Intuitive Flow` is an internal Mariage OS quality criterion introduced by the V1 guest-communications scope change.
 
 It is normative for:
 - couple onboarding;
@@ -92,13 +127,15 @@ Any implementation that collapses those boundaries violates V1.
 
 ## Implementation sequencing
 
-The scope change does not start Lot 0.
+The design freeze does not start Lot 0.
 
 Guest communications implementation ownership:
 - Lot 1: shell/settings/public-capability architectural hooks only;
 - Lot 6: user-visible Invitations/RSVP/communications domain + test/sandbox adapters + seating integration;
 - Lot 11: real provider production hardening/cutover/monitoring/cost caps;
 - Lot 12: real-data/contact reconciliation and representative guest acceptance.
+
+Every Lot is internally decomposed using the AI orchestration contract before production implementation begins.
 
 ## Context-free routing
 
@@ -112,6 +149,7 @@ For any task containing RSVP link, invitation, guest message, email, SMS, WhatsA
 6. read security + authorization for any endpoint/contact/provider work;
 7. read provider ports + operations for integrations;
 8. read acceptance scenarios;
-9. read current Lot/Checkpoint acceptance.
+9. read current Lot/Checkpoint acceptance;
+10. if the request is an entire Lot, apply `engineering/AI-LOT-ORCHESTRATION.md` before coding.
 
 Do not guess from general Guests behavior alone.
