@@ -2,7 +2,7 @@
 
 This is the mandatory onboarding entry point for anyone working on Mariage OS without prior conversation context.
 
-If you remember one rule: **do not invent material behavior from intuition. Read the governing specification first.**
+If you remember one rule: **do not invent material behavior from intuition. Read the governing specification and current implementation status first.**
 
 ## Current gate
 
@@ -16,7 +16,9 @@ Current required work:
 4. merge the documentation PR;
 5. only then may Lot 0 be considered for start.
 
-`FROZEN` means the intended V1 behavior is defined; it does not mean review may be skipped.
+`FROZEN` means intended V1 behavior is defined; it does not mean review may be skipped.
+
+Current progress source: `docs/roadmap/IMPLEMENTATION-STATUS.md`.
 
 ---
 
@@ -30,7 +32,7 @@ It optimizes for:
 2. **Decide** — compare options and know what is missing.
 3. **Act** — know the next useful action, owner and deadline.
 
-It is not a generic PM/CRM/social application.
+It is not a generic PM/CRM/social application and it must not degrade into an admin CRUD interface.
 
 ---
 
@@ -39,74 +41,90 @@ It is not a generic PM/CRM/social application.
 ### Master/freeze layer
 
 1. `README.md`
-2. `docs/PRODUCT-SPECIFICATION.md`
-3. `docs/REQUIREMENTS-CATALOG.md`
-4. `docs/roadmap/V1-SCOPE.md`
-5. `docs/DOCUMENTATION-AUDIT.md`
-6. `docs/FINAL-DESIGN-REVIEW.md` once present
-7. `docs/DEFERRED-DECISIONS.md`
+2. `docs/roadmap/IMPLEMENTATION-STATUS.md` — exact current phase/next permitted action
+3. `docs/PRODUCT-SPECIFICATION.md`
+4. `docs/REQUIREMENTS-CATALOG.md`
+5. `docs/FEATURE-LEDGER.md` — 104 trackable V1 capabilities
+6. `docs/roadmap/V1-SCOPE.md`
+7. `docs/DOCUMENTATION-AUDIT.md`
+8. `docs/FINAL-DESIGN-REVIEW.md` once present
+9. `docs/DEFERRED-DECISIONS.md`
 
 ### Product context
 
-8. `docs/PRODUCT.md`
-9. `docs/PRINCIPLES.md`
-10. `docs/NON-GOALS.md`
-11. `docs/USER-FLOWS.md`
-12. `docs/ACCEPTANCE-SCENARIOS.md`
+10. `docs/PRODUCT.md`
+11. `docs/PRINCIPLES.md`
+12. `docs/NON-GOALS.md`
+13. `docs/USER-FLOWS.md`
+14. `docs/ACCEPTANCE-SCENARIOS.md`
+
+### UX / product navigation
+
+15. `docs/ux/UX-ARCHITECTURE.md` — page taxonomy and anti-mega-page rules
+16. `docs/ux/NAVIGATION.md`
+17. `docs/ux/SCREEN-BLUEPRINTS.md` — major-screen composition
+18. `docs/ux/SCREEN-CONTRACTS.md` — route/action/state contracts
+19. `docs/ux/DESIGN-SYSTEM.md`
+20. `docs/ux/INTERACTION-STATES.md`
+21. `docs/ux/FORMS-AUTOSAVE.md`
+22. `docs/ux/UX-REVIEW-CHECKLIST.md`
+23. `docs/ux/WIREFRAMES.md` — supporting low-fidelity sketches
 
 ### Architecture
 
-13. `docs/architecture/OVERVIEW.md`
-14. `docs/architecture/STACK.md`
-15. `docs/architecture/TRUST-BOUNDARIES.md`
-16. `docs/architecture/DATA-OWNERSHIP.md`
-17. `docs/architecture/LOCAL-FIRST.md`
-18. `docs/architecture/SYNC.md`
-19. `docs/architecture/OFFLINE.md`
-20. `docs/architecture/PWA-LIFECYCLE.md`
-21. `docs/architecture/STORAGE.md`
-22. `docs/architecture/LOCAL-DATA-SCHEMA.md`
-23. `docs/architecture/REPOSITORY-SERVICE-CONTRACTS.md`
-24. `docs/architecture/DEPENDENCY-GRAPH.md`
-25. relevant ADRs.
+24. `docs/architecture/OVERVIEW.md`
+25. `docs/architecture/STACK.md`
+26. `docs/architecture/TRUST-BOUNDARIES.md`
+27. `docs/architecture/DATA-OWNERSHIP.md`
+28. `docs/architecture/LOCAL-FIRST.md`
+29. `docs/architecture/SYNC.md`
+30. `docs/architecture/OFFLINE.md`
+31. `docs/architecture/PWA-LIFECYCLE.md`
+32. `docs/architecture/STORAGE.md`
+33. `docs/architecture/LOCAL-DATA-SCHEMA.md`
+34. `docs/architecture/REPOSITORY-SERVICE-CONTRACTS.md`
+35. `docs/architecture/DEPENDENCY-GRAPH.md`
+36. relevant ADRs.
 
 ### Domain/data
 
-26. `docs/domain/ERD.md`
-27. `docs/domain/PHYSICAL-SCHEMA-V1.md`
-28. `docs/domain/PHYSICAL-SCHEMA-V1-ADDENDUM.md`
-29. `docs/domain/DATA-DICTIONARY.md`
-30. `docs/domain/IDENTIFIERS.md`
-31. `docs/domain/DATES-TIME.md`
-32. `docs/domain/MONEY.md`
-33. `docs/domain/STATE-MACHINES.md`
-34. `docs/domain/INVARIANTS.md`
-35. `docs/domain/FACTS-SOURCES.md`
-36. `docs/domain/FACT-VALUE-TYPES.md`
-37. `docs/domain/CRITERIA-EVALUATION.md`
-38. `docs/domain/DEFAULT-CRITERIA.md`
-39. `docs/domain/CONFIDENCE-FRESHNESS.md`
-40. `docs/domain/DERIVED-DATA.md`
-41. relevant specialized domain document.
+37. `docs/domain/ERD.md`
+38. `docs/domain/PHYSICAL-SCHEMA-V1.md`
+39. `docs/domain/PHYSICAL-SCHEMA-V1-ADDENDUM.md`
+40. `docs/domain/DATA-DICTIONARY.md`
+41. `docs/domain/IDENTIFIERS.md`
+42. `docs/domain/DATES-TIME.md`
+43. `docs/domain/MONEY.md`
+44. `docs/domain/STATE-MACHINES.md`
+45. `docs/domain/INVARIANTS.md`
+46. `docs/domain/FACTS-SOURCES.md`
+47. `docs/domain/FACT-VALUE-TYPES.md`
+48. `docs/domain/CRITERIA-EVALUATION.md`
+49. `docs/domain/DEFAULT-CRITERIA.md`
+50. `docs/domain/CONFIDENCE-FRESHNESS.md`
+51. `docs/domain/DERIVED-DATA.md`
+52. relevant specialized domain document.
 
 ### Security/quality/operations
 
-42. applicable `docs/security/*`.
-43. applicable `docs/quality/*`.
-44. applicable `docs/operations/*`.
-45. `docs/engineering/CODING-STANDARDS.md`.
-46. `docs/engineering/ERROR-HANDLING.md`.
-47. `docs/engineering/MIGRATIONS.md`.
-48. `docs/engineering/DEFINITION-OF-DONE.md`.
+53. applicable `docs/security/*`.
+54. applicable `docs/quality/*`.
+55. applicable `docs/operations/*`.
+56. `docs/engineering/CODING-STANDARDS.md`.
+57. `docs/engineering/ERROR-HANDLING.md`.
+58. `docs/engineering/MIGRATIONS.md`.
+59. `docs/engineering/DEFINITION-OF-DONE.md`.
 
-### Feature/lot
+### Implementation governance / feature / lot
 
-49. relevant `docs/features/<FEATURE>.md`.
-50. `docs/ux/SCREEN-CONTRACTS.md`.
-51. import/export contract if data enters/leaves the system.
-52. `docs/roadmap/LOTS.md`.
-53. `docs/roadmap/LOT-ACCEPTANCE.md`.
-54. `CONTRIBUTING.md`.
+60. `docs/engineering/IMPLEMENTATION-PLAYBOOK.md`.
+61. relevant `docs/features/<FEATURE>.md`.
+62. import/export contract if data enters/leaves the system.
+63. `docs/roadmap/LOTS.md`.
+64. `docs/roadmap/LOT-ACCEPTANCE.md`.
+65. `docs/roadmap/INTEGRATION-CHECKPOINTS.md`.
+66. `docs/reviews/README.md`.
+67. `CONTRIBUTING.md`.
 
 You do not reread every document for every tiny edit, but you must read every governing contract for the behavior being changed.
 
@@ -126,12 +144,15 @@ You do not reread every document for every tiny edit, but you must read every go
 - Financial/date/fact semantics follow their domain contracts.
 - Portable backup/restore is first-class.
 - Required quality/security gates cannot be bypassed.
+- UX must remain summary-first, multi-page where appropriate and mobile-adapted; exposing every available field on one page is not acceptable implementation.
 
 ---
 
 ## 4. Sources of truth
 
 - **Product truth:** frozen/reviewed normative documentation in Git.
+- **Feature implementation truth:** `FEATURE-LEDGER.md` + Feature Implementation Records/evidence.
+- **Development progress truth:** `roadmap/IMPLEMENTATION-STATUS.md`.
 - **Schema/code truth:** migrations and typed contracts in Git.
 - **Production wedding truth:** authorized Supabase project data.
 - **Offline working state:** project-scoped IndexedDB/local queue.
@@ -152,13 +173,13 @@ Fixtures/examples are synthetic.
 
 ## 6. When documentation is insufficient
 
-If a question materially affects user behavior, data semantics, security/privacy, synchronization, import/export, migration/compatibility or V1 scope and the answer is not specified:
+If a question materially affects user behavior, UX/navigation, data semantics, security/privacy, synchronization, import/export, migration/compatibility or V1 scope and the answer is not specified:
 
 1. check `DEFERRED-DECISIONS.md`;
 2. if not intentionally deferred, treat it as a documentation defect;
-3. update the governing specification/requirement;
+3. update the governing specification/requirement/UX contract;
 4. create ADR if architectural;
-5. update acceptance verification.
+5. update Feature Ledger/FIR and acceptance verification.
 
 Do not pick silently.
 
@@ -168,15 +189,18 @@ Do not pick silently.
 
 Only after `FINAL-DESIGN-REVIEW.md` declares **implementation gate OPEN** and the documentation PR is merged:
 
-1. identify current lot;
-2. read its acceptance contract;
-3. create feature branch;
-4. reference requirement IDs;
-5. update spec first when behavior changes;
-6. implement smallest coherent unit;
-7. add required tests/security evidence;
-8. run local/full verification;
-9. merge only with required gates green.
+1. read current `IMPLEMENTATION-STATUS.md`;
+2. identify current lot and eligible Feature IDs;
+3. review lot/checkpoint dependencies;
+4. complete Feature Implementation Record before meaningful implementation;
+5. implement the smallest coherent vertical slice;
+6. update Feature Ledger state;
+7. verify UX as well as technical behavior;
+8. add required tests/security evidence;
+9. run local/full verification;
+10. perform lot acceptance;
+11. every 3–4 lots perform mandatory integration checkpoint;
+12. update status/handoff before stopping work.
 
 The first implementation lot remains **Lot 0 — Repository and tooling**, but this file does not authorize starting it before the final review gate opens.
 
@@ -197,4 +221,4 @@ Either partner can quickly answer:
 - Why did we make an important decision?
 - Is our project synchronized and recoverable?
 
-The interface remains simpler than the underlying model, while critical data remains explainable, secure, portable and recoverable.
+The interface remains simpler and more beautiful than the underlying model: information is divided into purposeful screens, detail is progressively revealed, mobile workflows are adapted rather than compressed, and critical data remains explainable, secure, portable and recoverable.
