@@ -49,9 +49,8 @@ export interface SupabaseAuthClientLike {
 const providerFailure = (): Error =>
   new Error("Authentication provider unavailable.");
 
-const mapAssurance = (
-  level: "aal1" | "aal2" | null,
-): AuthAssuranceLevel => level ?? "unknown";
+const mapAssurance = (level: "aal1" | "aal2" | null): AuthAssuranceLevel =>
+  level ?? "unknown";
 
 export class SupabaseAuthAdapter implements AuthPort {
   public constructor(private readonly client: SupabaseAuthClientLike) {}
