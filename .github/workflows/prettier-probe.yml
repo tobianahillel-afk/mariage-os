@@ -1,0 +1,27 @@
+name: WP-0.5 Prettier canonical output probe
+
+on:
+  push:
+    branches:
+      - lot-0/repository-tooling
+    paths:
+      - .github/workflows/prettier-probe.yml
+
+permissions:
+  contents: read
+
+jobs:
+  print-canonical-output:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Print canonical Prettier output
+        run: npx prettier scripts/run-environment-negative-control.mjs
