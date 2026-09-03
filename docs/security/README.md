@@ -8,68 +8,70 @@ Security work must not start from an isolated UI condition, RLS policy or “we 
 
 1. `SECURITY-ARCHITECTURE.md`
 2. `SECURITY-CONTROL-BASELINE.md`
-3. `THREAT-MODEL.md`
-4. `THREAT-MODEL-AUTHORIZATION-ADDENDUM.md`
-5. `SECURE-CODING-PATTERNS.md`
-6. `INPUT-VALIDATION.md`
-7. `WEB-PROTOCOL-SECURITY.md`
-8. `SECRET-MANAGEMENT.md`
+3. `SECURITY-REQUIREMENTS.md` — stable traceable `SEC-*` requirements for implementation evidence.
+4. `THREAT-MODEL.md`
+5. `THREAT-MODEL-HARDENING-ADDENDUM.md`
+6. `THREAT-MODEL-AUTHORIZATION-ADDENDUM.md`
+7. `SECURE-CODING-PATTERNS.md`
+8. `INPUT-VALIDATION.md`
+9. `WEB-PROTOCOL-SECURITY.md`
+10. `SECRET-MANAGEMENT.md`
 
 ## Authentication / sessions / brute force
 
-9. `AUTHENTICATION.md`
-10. `AUTH-HARDENING.md`
-11. `BOOTSTRAP-INVITATIONS.md`
-12. `PUBLIC-ABUSE-PROTECTION.md` for public-ready/self-service surfaces.
+11. `AUTHENTICATION.md`
+12. `AUTH-HARDENING.md`
+13. `BOOTSTRAP-INVITATIONS.md`
+14. `PUBLIC-ABUSE-PROTECTION.md` for public-ready/self-service surfaces.
 
 ## Authorization / rights
 
-13. `AUTHORIZATION-MODEL.md`
-14. `AUTHORIZATION-REQUIREMENTS.md`
-15. `ROLE-PERMISSION-MATRIX.md`
-16. `AUTHORIZATION-RLS.md`
-17. `RLS-MATRIX-V1.md`
-18. `RLS-PERMISSION-MAPPING.md`
-19. `PRIVILEGED-OPERATIONS.md`
-20. `PLATFORM-ADMIN-ACCESS.md`
-21. `STORAGE-RLS.md`
+15. `AUTHORIZATION-MODEL.md`
+16. `AUTHORIZATION-REQUIREMENTS.md`
+17. `ROLE-PERMISSION-MATRIX.md`
+18. `AUTHORIZATION-RLS.md`
+19. `RLS-MATRIX-V1.md`
+20. `RLS-PERMISSION-MAPPING.md`
+21. `PRIVILEGED-OPERATIONS.md`
+22. `PLATFORM-ADMIN-ACCESS.md`
+23. `STORAGE-RLS.md`
 
 Physical authorization schema: `../domain/PHYSICAL-SCHEMA-AUTHORIZATION-ADDENDUM.md`.
 
 ## Database/query security
 
-22. `SECURE-DATABASE-QUERIES.md`
-23. schema/migration contracts under `../domain/` and `../engineering/MIGRATIONS.md`.
+24. `SECURE-DATABASE-QUERIES.md`
+25. schema/migration contracts under `../domain/` and `../engineering/MIGRATIONS.md`.
 
 ## Browser/frontend
 
-24. `FRONTEND-SECURITY.md`
-25. UX/image/private SEO contracts where external media/navigation is involved.
+26. `FRONTEND-SECURITY.md`
+27. UX/image/private SEO contracts where external media/navigation is involved.
 
 ## Files/storage/imports
 
-26. `FILE-SECURITY.md`
-27. `STORAGE-RLS.md`
-28. relevant `../import-export/*` and backup contracts.
+28. `FILE-SECURITY.md`
+29. `STORAGE-RLS.md`
+30. relevant `../import-export/*` and backup contracts.
 
 ## Privacy / platform access
 
-29. `PRIVACY.md`
-30. `PLATFORM-ADMIN-ACCESS.md`
-31. public web/SEO/export privacy contracts where applicable.
+31. `PRIVACY.md`
+32. `PLATFORM-ADMIN-ACCESS.md`
+33. public web/SEO/export privacy contracts where applicable.
 
 ## Supply chain / repository
 
-32. `SUPPLY-CHAIN.md`
-33. `SECRET-MANAGEMENT.md`
-34. CI/CD and quality-gate contracts.
+34. `SUPPLY-CHAIN.md`
+35. `SECRET-MANAGEMENT.md`
+36. CI/CD and quality-gate contracts.
 
 ## Verification
 
-35. `ASVS-MATRIX.md`
-36. `../quality/SECURITY-TESTING.md`
-37. `../reviews/SECURITY-HARDENING-REVIEW.md`
-38. `../reviews/AUTHORIZATION-DESIGN-REVIEW.md`
+37. `ASVS-MATRIX.md`
+38. `../quality/SECURITY-TESTING.md`
+39. `../reviews/SECURITY-HARDENING-REVIEW.md`
+40. `../reviews/AUTHORIZATION-DESIGN-REVIEW.md`
 
 ## Non-negotiable authorization rule
 
