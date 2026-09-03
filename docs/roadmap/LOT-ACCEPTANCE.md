@@ -1,12 +1,12 @@
 # Implementation Lot Acceptance Contracts
 
-Status: **Binding V1 sequencing and exit criteria — implementation gate OPEN; Lot 0 READY / NOT_STARTED**
+Status: **Binding V1 sequencing and exit criteria — current execution permission is controlled by IMPLEMENTATION-STATUS + FINAL-DESIGN-REVIEW**
 
 A lot is complete only when deliverables, tests, security controls, migrations and documentation are complete. “UI appears to work” is never sufficient.
 
 All lots inherit the Definition of Done, Quality Gates, frozen requirements, `engineering/AI-LOT-ORCHESTRATION.md`, and all prior-lot invariants.
 
-Before any implementation lot begins, `FINAL-DESIGN-REVIEW.md` must declare the implementation gate **OPEN**, the current lot must be permitted by `IMPLEMENTATION-STATUS.md`, and the user must explicitly kick off that lot. `OPEN` does not mean a lot has started automatically.
+This document does **not** grant permission to start a Lot. Before any implementation lot begins, `FINAL-DESIGN-REVIEW.md` must declare the implementation gate **OPEN**, the current lot must be permitted by `IMPLEMENTATION-STATUS.md`, and the user must explicitly kick off that lot. A historical/open gate statement elsewhere never overrides the current status board.
 
 The authoritative V1 Feature inventory is the union of `../FEATURE-LEDGER.md` (FTR-001..104) and `../FEATURE-LEDGER-GUEST-COMMUNICATIONS-EXTENSION.md` (FTR-105..120).
 
