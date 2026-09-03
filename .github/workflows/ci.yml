@@ -1,16 +1,17 @@
-name: Lot 0 CI
+name: Mariage OS CI
 
 on:
   push:
     branches:
       - lot-0/repository-tooling
+      - lot-1/identity-project-foundation
   pull_request:
 
 permissions:
   contents: read
 
 concurrency:
-  group: lot-0-ci-${{ github.workflow }}-${{ github.ref }}
+  group: mariage-os-ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -103,7 +104,7 @@ jobs:
           retention-days: 7
 
   full-verify:
-    name: Lot 0 full verify from clean checkout
+    name: Full verify from clean checkout
     needs:
       - core
       - db
