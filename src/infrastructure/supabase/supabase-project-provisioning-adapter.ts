@@ -16,6 +16,12 @@ export interface SupabaseRpcClientLike {
   ): PromiseLike<RpcResult>;
 }
 
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+const isUuid = (value: unknown): value is string =>
+  typeof value === "string" && UUID_PATTERN.test(value);
+
 export class SupabaseProjectProvisioningAdapter implements ProjectProvisioningPort {
   public constructor(private readonly client: SupabaseRpcClientLike) {}
 
@@ -28,11 +34,7 @@ export class SupabaseProjectProvisioningAdapter implements ProjectProvisioningPo
       requested_owner_display_name: normalized.ownerDisplayName,
     });
 
-    if (
-      result.error ||
-      typeof result.data !== "string" ||
-      result.data.length === 0
-    ) {
+    if (result.error || !isUuid(result.data)) {
       throw new Error("Private project provisioning unavailable.");
     }
 
