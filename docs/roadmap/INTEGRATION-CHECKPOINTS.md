@@ -2,11 +2,13 @@
 
 Status: **Normative development governance contract**
 
-Purpose: force periodic full-product reviews during implementation so Mariage OS does not become a collection of individually passing features that no longer form one coherent product.
+Purpose: force periodic full-product reviews during implementation so Mariage OS does not become a collection of individually passing features/Work Packets that no longer form one coherent product.
 
 A checkpoint is stronger than a lot review. It re-checks **all implemented behavior so far** against the frozen V1 architecture, UX, security, data model and product goals.
 
 No checkpoint-closing lot may be considered fully accepted until the checkpoint passes.
+
+AI-executed Lots must already have complete Work Packet A/B/C evidence, empty Lot reconciliation and a green Lot Integration Pass before checkpoint review starts.
 
 ---
 
@@ -34,7 +36,8 @@ Must prove:
 - local pending changes survive restart;
 - no generic “mega-form” has become the default UI pattern;
 - components/patterns introduced so far form a coherent design system;
-- Feature Ledger for Lots 0–3 has no unexplained gap.
+- Feature Ledger for Lots 0–3 has no unexplained gap;
+- all elapsed Lots have accepted packet/reconciliation/integration evidence.
 
 ---
 
@@ -44,23 +47,25 @@ Must prove:
 Scope adds:
 - import/export;
 - budget/payments/scenarios;
-- guests/households/seating basics;
+- guests/households/invitations/RSVP/communications/seating;
 - vendors/caterers;
 - contract/document interactions relevant to these domains.
 
 Primary question:
-> Can the couple bring real planning data into Mariage OS safely, compare commercial options, manage people and money, and avoid returning to parallel spreadsheets for the core wedding domains?
+> Can the couple bring real planning data into Mariage OS safely, compare commercial options, manage people and money, invite guests and collect RSVP safely, and avoid returning to parallel spreadsheets for the core wedding domains?
 
 Must prove:
 - imports cannot silently destroy or duplicate truth;
 - guest spreadsheet-style calculations reproduce expected reference figures;
+- RSVP/communication flows meet the guest-communications checkpoint addendum;
 - money/refund/deposit/tax semantics remain exact;
 - venue/vendor/guest/budget navigation is still understandable rather than becoming table-driven clutter;
-- shared cross-domain links work (vendor↔venue↔budget↔documents↔tasks);
+- shared cross-domain links work (vendor↔venue↔budget↔documents↔tasks and RSVP↔seating↔budget/dashboard invalidation);
 - seating model does not violate RSVP/household integrity;
 - personal data exposure is controlled in search/export/logging;
 - mobile workflows remain usable despite increased domain density;
-- Feature Ledger Lots 0–7 is reconciled.
+- Feature Ledger Lots 0–7 is reconciled;
+- Lot 6 packet plan/review/integration evidence demonstrates that the large guest/communications scope was not compressed into giant pseudo-packets.
 
 ---
 
@@ -88,7 +93,8 @@ Must prove:
 - service-worker/update/local migration paths preserve pending work;
 - conflict UX is understandable without database terminology;
 - key cross-domain derived data is correctly invalidated/recomputed;
-- reference performance and accessibility checks pass across the now-large product.
+- reference performance and accessibility checks pass across the now-large product;
+- high-risk Lot 10 Work Packet decomposition/review did not hide multiple migration/sync/PWA responsibilities in one giant task.
 
 ---
 
@@ -98,24 +104,27 @@ Must prove:
 Scope:
 - backup/restore;
 - production hardening;
+- communication-provider hardening;
 - real-data migration/reconciliation;
 - final device acceptance;
 - operational source-of-truth cutover.
 
 Primary question:
-> Can the couple trust Mariage OS with the real wedding and recover if the cloud, device, import, migration or user action goes wrong?
+> Can the couple trust Mariage OS with the real wedding and recover if the cloud, device, import, provider, migration or user action goes wrong?
 
 Must prove:
 - portable backup→verify→restore succeeds;
 - encrypted backup path succeeds where enabled;
 - no real wedding data exists in public GitHub artifacts;
 - RLS/Storage/security matrices are evidenced, not merely specified;
-- legacy venue/guest/vendor data is reconciled;
+- enabled communication providers have required production evidence;
+- legacy venue/guest/vendor/contact data is reconciled;
 - critical financial/guest/seating figures match trusted sources;
 - both partners accept real phone/tablet/desktop UX;
 - no source-of-truth ambiguity remains;
 - no V1 release blocker remains;
-- rollback/recovery path exists for cutover failure.
+- rollback/recovery path exists for cutover failure;
+- Lot 11/12 packet plans and final integration/cutover evidence are complete and reviewable.
 
 ---
 
@@ -133,7 +142,7 @@ A vague “looks good” is not a result.
 ## 1. Product fidelity
 
 Review:
-- Feature Ledger vs V1 Scope;
+- both Feature Ledgers vs V1 Scope;
 - original Understand → Decide → Act objective;
 - missing P0/P1 requirements;
 - accidental scope growth;
@@ -155,7 +164,8 @@ Review as a UX designer, not only as QA:
 - consistency of common patterns;
 - discoverability of next action;
 - empty/error/offline states;
-- visual calm/readability.
+- visual calm/readability;
+- QIF where applicable.
 
 Any screen that becomes an uncontrolled dump of available fields is a checkpoint finding.
 
@@ -181,19 +191,20 @@ Review:
 - migrations/versioning;
 - Realtime as hint, not durability;
 - storage lifecycle;
-- dependency graph.
+- dependency graph;
+- no packet-level local optimization created a parallel architecture.
 
 ## 5. Security/privacy
 
 Review:
 - RLS allow/deny coverage;
-- same-project constraints;
+- same-project/cross-household constraints;
 - private Storage;
 - privilege transitions/RPCs;
 - secrets/PII;
 - URL/log/export privacy;
 - session/logout/project-switch behavior;
-- external content/file security;
+- external content/file/provider security;
 - supply-chain changes.
 
 Any cross-project data path is immediate `FAIL`.
@@ -226,6 +237,10 @@ Review:
 
 Review:
 - Feature Records have evidence;
+- Work Packet Records show Pass A/B/C where applicable;
+- packet findings/reopens are resolved and affected tests rerun;
+- Lot required-vs-evidenced reconciliation is empty;
+- Lot Integration Pass exists and exercises real cross-packet chains;
 - acceptance IDs exercised;
 - no important behavior covered only by unit tests;
 - RLS deny cases;
@@ -235,11 +250,12 @@ Review:
 - mutation testing where required;
 - migration/restore fixtures where applicable.
 
-## 9. Documentation drift
+## 9. Documentation drift / handoff
 
 Review:
 - README/START-HERE/current phase;
-- Feature Ledger statuses;
+- both Feature Ledger statuses;
+- current Lot/Work Packet/pass/next action while work is active;
 - requirements/acceptance IDs;
 - routes/screens;
 - schema/addenda;
@@ -276,10 +292,13 @@ Findings:
 CHK-A-001 | MAJOR | UX | Venue detail has 4 competing primary CTAs | OPEN
 CHK-A-002 | MINOR | Docs | old route name in NAVIGATION.md | RESOLVED
 
-Feature ledger reconciliation:
-- ACCEPTED: ...
+Feature/packet/lot reconciliation:
+- ACCEPTED Features: ...
 - VERIFIED not integrated: ...
 - BLOCKED: ...
+- Work Packets accepted: ...
+- Lot reconciliation: EMPTY / NON_EMPTY
+- Lot Integration Pass: PASS / FAIL
 
 Required fixes before next group:
 ...
