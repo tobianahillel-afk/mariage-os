@@ -36,7 +36,11 @@ describe("Lot 0 application bootstrap", () => {
 
     await import("./main");
 
-    expect(root.children.map((child) => child.tagName)).toEqual(["H1", "P", "P"]);
+    expect(root.children.map((child) => child.tagName)).toEqual([
+      "H1",
+      "P",
+      "P",
+    ]);
     expect(root.children.map((child) => child.textContent)).toEqual([
       "Mariage OS",
       "Socle d’ingénierie Lot 0 initialisé.",
