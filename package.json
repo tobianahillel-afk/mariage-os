@@ -11,14 +11,19 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b --pretty false",
-    "format": "prettier --write src package.json tsconfig.json tsconfig.app.json tsconfig.node.json vite.config.ts index.html eslint.config.js dependency-cruiser.config.mjs knip.json scripts",
-    "format:check": "prettier --check src package.json tsconfig.json tsconfig.app.json tsconfig.node.json vite.config.ts index.html eslint.config.js dependency-cruiser.config.mjs knip.json scripts",
-    "lint": "eslint src vite.config.ts scripts",
+    "format": "prettier --write src tests package.json tsconfig.json tsconfig.app.json tsconfig.node.json vite.config.ts vitest.config.ts playwright.config.ts stryker.config.mjs index.html eslint.config.js dependency-cruiser.config.mjs knip.json scripts",
+    "format:check": "prettier --check src tests package.json tsconfig.json tsconfig.app.json tsconfig.node.json vite.config.ts vitest.config.ts playwright.config.ts stryker.config.mjs index.html eslint.config.js dependency-cruiser.config.mjs knip.json scripts",
+    "lint": "eslint src tests vite.config.ts vitest.config.ts playwright.config.ts scripts",
     "architecture": "depcruise --config dependency-cruiser.config.mjs --ts-config tsconfig.app.json src",
     "deadcode": "knip --config knip.json",
     "quality:markers": "node scripts/check-forbidden-markers.mjs",
     "quality:negative": "node scripts/run-negative-quality-controls.mjs",
-    "static": "npm run format:check && npm run lint && npm run architecture && npm run deadcode && npm run quality:markers"
+    "static": "npm run format:check && npm run lint && npm run architecture && npm run deadcode && npm run quality:markers",
+    "test": "vitest run",
+    "test:unit": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:mutation": "stryker run",
+    "test:fast": "npm run typecheck && npm run static && npm run test:unit"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
