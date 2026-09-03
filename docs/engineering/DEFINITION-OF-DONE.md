@@ -4,7 +4,9 @@ Status: **Normative implementation completion contract**
 
 This document defines when work is considered complete. “It works on my machine”, “the UI exists”, “coverage is 100%”, “most fields are present” or “the agent says it is done” are not sufficient.
 
-A V1 feature follows the lifecycle and Feature Implementation Record rules in `IMPLEMENTATION-PLAYBOOK.md` and is tracked by `../FEATURE-LEDGER.md`.
+A V1 feature follows the lifecycle and Feature Implementation Record rules in `IMPLEMENTATION-PLAYBOOK.md` and is tracked by the union of `../FEATURE-LEDGER.md` (FTR-001..104) and `../FEATURE-LEDGER-GUEST-COMMUNICATIONS-EXTENSION.md` (FTR-105..120).
+
+AI-executed Lots additionally follow `AI-LOT-ORCHESTRATION.md`. A Lot requested by the user is not one AI work unit; it is decomposed into bounded Work Packets with mandatory three-pass acceptance.
 
 ---
 
@@ -17,8 +19,9 @@ A feature may reach `ACCEPTED` only when all applicable items below are satisfie
 - Feature ID exists and status is accurate;
 - Feature Implementation Record is complete;
 - applicable Requirement/Acceptance/User Flow IDs are linked;
-- applicable `SEC-*` / `AUTHZ-*` IDs are linked;
-- lot assignment is correct;
+- applicable `SEC-*` / `AUTHZ-*` / guest-communication IDs are linked;
+- lot assignment/current-lot responsibility is correct;
+- Work Packet evidence is linked when implementation is AI-orchestrated;
 - no required `TBD` remains outside an explicitly allowed deferred choice;
 - no important implementation rationale exists only in chat/PR comments;
 - a context-free contributor can locate the owning modules/tests from repository records.
@@ -41,7 +44,7 @@ A feature may reach `ACCEPTED` only when all applicable items below are satisfie
 
 - screen pattern matches `UX-ARCHITECTURE.md`;
 - route/navigation matches navigation/route contracts;
-- major screen composition matches `SCREEN-BLUEPRINTS.md` or an approved equivalent pattern;
+- major screen composition matches `SCREEN-BLUEPRINTS.md` or an approved equivalent/addendum pattern;
 - one primary user job is clear;
 - summary/detail/evidence hierarchy is preserved;
 - page is not an uncontrolled mega-form/table/admin CRUD surface;
@@ -54,6 +57,7 @@ A feature may reach `ACCEPTED` only when all applicable items below are satisfie
 - errors are actionable/human-readable;
 - no critical action depends on color alone;
 - frozen visual/domain color identity is respected;
+- QIF passes where applicable;
 - major user-facing PR includes synthetic desktop/mobile visual evidence;
 - UX/visual review has no unresolved BLOCKING/MAJOR finding.
 
@@ -121,6 +125,7 @@ All applicable tests exist and pass:
 - integration;
 - IndexedDB/local migration;
 - database/RLS allow + deny;
+- capability/provider/webhook tests where applicable;
 - security/adversarial;
 - import/export/round-trip;
 - offline/sync;
@@ -139,7 +144,7 @@ Coverage policy is defined separately; in-scope business code targets 100% thres
 - no secret/personal production data added to Git;
 - RLS/storage policies updated and deny tests added when access changes;
 - same-project relational integrity remains enforced;
-- permission/relationship/strong-auth rules remain correct;
+- permission/relationship/strong-auth/capability rules remain correct;
 - input handling follows centralized runtime validation policy;
 - SQL/query construction follows safe parameterization/allowlist rules;
 - file/input handling follows allowlist/validation policy;
@@ -156,7 +161,8 @@ Coverage policy is defined separately; in-scope business code targets 100% thres
 - architecture/ADR updated if needed;
 - schema/import contracts updated if needed;
 - Requirement/Feature/Acceptance/Security matrices remain accurate;
-- Feature Ledger status updated;
+- applicable Feature Ledger status updated;
+- Work Packet/pass status updated while the lot is active;
 - `IMPLEMENTATION-STATUS.md` updated when material progress changes;
 - changelog/release notes updated when user-facing/release-relevant;
 - checkpoint report updated if work closes/affects a checkpoint;
@@ -168,21 +174,44 @@ The complete required verification pipeline passes from a clean environment. Req
 
 ---
 
+## Work Packet Definition of Done
+
+A Work Packet may reach `ACCEPTED` only when:
+
+- its scope/Feature/current-lot responsibilities are explicit;
+- its complexity/sizing review passes `AI-LOT-ORCHESTRATION.md`;
+- Pass A implementation completed the intended vertical slice;
+- Pass B adversarial review reconstructed expectations from repository contracts rather than relying only on the author's summary;
+- all BLOCKING/MAJOR Pass B findings are resolved and affected evidence rerun;
+- Pass C mechanically reconciles `EXPECTED vs IMPLEMENTED vs VERIFIED` for every packet responsibility;
+- applicable FIRs, tests, docs and status records are current;
+- no hidden stub/TODO/temporary architecture remains;
+- downstream prerequisites/next action are explicit.
+
+A packet cannot self-promote directly from `IN_PROGRESS` to `ACCEPTED`.
+
+---
+
 ## Lot Definition of Done
 
-A lot is not complete merely because its main screens exist.
+A lot is not complete merely because its main screens exist or because the implementing agent says the Lot is finished.
 
 Before lot acceptance:
 
-- all required Feature IDs assigned to the lot are reconciled;
-- no required Feature ID remains unexplained `SPECIFIED`, `READY`, `IN_PROGRESS`, `IMPLEMENTED` or `BLOCKED`;
+- a complete Lot Coverage Matrix exists;
+- every required current-lot Feature/control responsibility is assigned to at least one Work Packet;
+- every required Work Packet is `ACCEPTED` through Pass A/B/C;
+- mechanical reconciliation of required vs accepted/evidenced responsibilities is empty;
+- no required Feature ID remains unexplained for responsibility that should have elapsed in the Lot;
 - applicable features are at least `INTEGRATED`, normally `ACCEPTED` according to lot contract;
-- lot-specific tests/exit criteria pass;
-- UX/visual review covers representative screens/workflows;
+- a separate Lot Integration Pass verifies important cross-packet end-to-end/derived/invalidation workflows;
+- lot-specific base + addendum tests/exit criteria pass;
+- UX/QIF/visual review covers representative screens/workflows;
 - code architecture/maintainability metrics show no unexplained drift;
 - security/RLS/data/offline guarantees from prior lots still pass;
+- no unrelated packet remains partially `IN_PROGRESS`;
 - documentation/system scorecard is rechecked when lot closes a checkpoint group;
-- Implementation Status is updated.
+- Implementation Status records the completed packet plan, reconciliation and next permitted action.
 
 If the lot closes a checkpoint group, the lot remains in `CHECKPOINT_REVIEW` until the checkpoint report passes.
 
@@ -193,7 +222,8 @@ If the lot closes a checkpoint group, the lot remains in `CHECKPOINT_REVIEW` unt
 At Checkpoints A/B/C/D:
 
 - checkpoint report exists;
-- all elapsed-lot Feature IDs reconciled;
+- all elapsed-lot Feature IDs/current-lot responsibilities reconciled;
+- relevant Work Packet/Lot acceptance evidence exists;
 - product/UX/architecture/security/data/offline/testing/docs/maintainability dimensions reviewed;
 - `reviews/DOCUMENTATION-SYSTEM-SCORECARD.md` is repeated/updated using implemented evidence;
 - regressions of earlier guarantees rechecked;
@@ -233,20 +263,21 @@ Before V1 becomes operational source of truth for the real wedding:
 
 1. Two separate owners can securely access one project.
 2. Venue data can be created, edited, sourced, compared, rejected/restored and tracked historically.
-3. Tasks, decisions, budget, vendors, guests, seating, planning and timeline meet V1 acceptance criteria.
+3. Tasks, decisions, budget, vendors, guests, invitations/RSVP/communications, seating, planning and timeline meet V1 acceptance criteria.
 4. Import preview/merge/rollback works for supported formats.
 5. Offline supported workflows survive restart and later synchronize safely.
-6. RLS denial tests confirm one project cannot access another.
+6. RLS/capability denial tests confirm one project/household cannot access another.
 7. Complete project backup exports, validates and restores into safe target.
 8. Supported old schema fixtures migrate successfully.
 9. Critical E2E flows pass on supported desktop/mobile browser profiles.
 10. Code architecture/boundary/complexity gates are green with no unexplained systemic exception pattern.
-11. Checkpoints A/B/C pass before production-readiness stage.
-12. Checkpoint D final cutover review passes.
-13. Product is tested with synthetic/beta data before real-data migration.
-14. Real-data migration/reconciliation is complete.
-15. Both partners accept UX on their real supported devices.
-16. A recovery/export exists before Mariage OS becomes the operational source of truth.
+11. Every implementation Lot has complete packet/reconciliation/integration evidence.
+12. Checkpoints A/B/C pass before production-readiness stage.
+13. Checkpoint D final cutover review passes.
+14. Product is tested with synthetic/beta data before real-data migration.
+15. Real-data migration/reconciliation is complete.
+16. Both partners accept UX on their real supported devices.
+17. A recovery/export exists before Mariage OS becomes the operational source of truth.
 
 ---
 
@@ -256,6 +287,7 @@ If a developer/LLM with no conversation history cannot determine from the reposi
 
 - whether work is currently permitted;
 - what a feature should do;
+- which Lot and Work Packet/pass owns the current work;
 - where it lives in UX;
 - where its code should physically live;
 - what that code may depend on;
