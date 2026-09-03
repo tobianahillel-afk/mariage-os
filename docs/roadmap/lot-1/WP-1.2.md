@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-1.2`
 - Lot: `1`
 - Name: Core tenancy schema, membership and RLS baseline
-- State: `IN_PROGRESS`
-- Current pass: `A-IMPLEMENT`
+- State: `REVIEW_PENDING`
+- Current pass: `B-ADVERSARIAL-REVIEW`
 - Primary bounded context: project tenancy / membership authorization
 - Branch/PR: `lot-1/identity-project-foundation`
 
@@ -76,31 +76,35 @@
 
 ### Implementation evidence
 
-- code/modules: pending.
-- migrations/schema: pending.
-- tests added: pending.
-- FIRs updated: not yet; user-facing FTR implementation remains in subsequent packets.
+- migration/schema: `supabase/migrations/20260903221000_create_core_tenancy.sql` creates canonical `profiles`, `projects` and `project_members`, role-catalog FK, active/revoked consistency, active-member index, membership-aware `has_project_permission`, self-profile timestamp trigger, explicit grants and RLS;
+- authorization semantics: `has_project_permission` derives identity from `auth.uid()`, requires a live active membership and delegates the role grant to the accepted migration-controlled permission catalog; it uses `SECURITY DEFINER` with `search_path = pg_catalog` and fully-qualified application relations;
+- generic browser mutation posture: `projects` and `project_members` receive no client insert/update/delete grants; profiles expose only self read plus column-scoped update of `display_name`/`avatar_url` while audit identity/timestamps remain protected;
+- direct tests: `supabase/tests/core_tenancy_rls_test.sql` provides 31 pgTAP assertions covering anonymous denial, owner/editor/viewer behavior, projects A/B/C isolation, multi-project membership, outsider denial, revoked-member immediate denial, generic project/member mutation denial, self-profile constraints and DB integrity constraints;
+- regression evidence: run `33810828047` on exact HEAD `dc7bde6ffba627ffb8fb095e2b16ef7cddd83c7b` completed all five jobs successfully: Core quality/security, Local Supabase DB/RLS, Browser+mutation, privacy-safe preview and clean-checkout `npm run verify`;
+- scope evidence: implementation remains limited to core tenancy/RLS plus packet/status documentation; no first-owner provisioning, invitation lifecycle, route shell, local cache, Storage/Realtime or Lot 2+ domain code was introduced;
+- FIRs updated: not yet; user-facing Feature acceptance remains in subsequent packets.
 
 ### Pass A exit
 
-- [ ] intended vertical slice exists
-- [ ] direct allow/deny and cross-project tests written
-- [ ] no known untracked stub/TODO
-- [ ] exact-head affected/full verification green
-- [ ] packet moved to `REVIEW_PENDING`
+- [x] intended vertical slice exists
+- [x] direct allow/deny and cross-project tests written
+- [x] no known untracked stub/TODO
+- [x] exact-head affected/full verification green
+- [x] packet moved to `REVIEW_PENDING`
 
 ## Pass B — ADVERSARIAL REVIEW
 
-Not started.
+In progress. Review must independently challenge grants, every exposed read/write surface, RLS recursion/bypass, live revocation, cross-project UUID knowledge, client-controllable identity/role state and schema-contract alignment. Green CI alone is not acceptance.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started.
+Not started. Forbidden until Pass B closes without open BLOCKING/MAJOR findings.
 
 ## Handoff
 
-- Current state: `IN_PROGRESS`
-- Current/next pass: `A-IMPLEMENT`
-- Last accepted prerequisite: WP-1.1.
-- Remaining blocker/finding: none.
-- Next permitted action: implement the canonical tenancy migration/RLS/helper and deterministic direct authorization matrix; then verify before Pass B.
+- Current state: `REVIEW_PENDING`
+- Current/next pass: `B-ADVERSARIAL-REVIEW`
+- Last green verification: run `33810828047` on `dc7bde6ffba627ffb8fb095e2b16ef7cddd83c7b`, all five jobs SUCCESS.
+- Remaining blocker/finding: none recorded before Pass B; adversarial review is active.
+- Next permitted action: complete independent Pass B; repair any BLOCKING/MAJOR finding before Pass C.
+- WP-1.3 remains forbidden until WP-1.2 acceptance.
