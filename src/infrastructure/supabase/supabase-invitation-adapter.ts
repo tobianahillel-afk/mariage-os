@@ -28,27 +28,31 @@ function isUuid(value: unknown): value is string {
   return typeof value === "string" && UUID_PATTERN.test(value);
 }
 
+function isRawToken(value: unknown): value is string {
+  return typeof value === "string" && TOKEN_PATTERN.test(value);
+}
+
 function isExpiry(value: unknown): value is string {
   return typeof value === "string" && Number.isFinite(Date.parse(value));
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object";
+}
+
 function parseIssuedInvitation(data: unknown): IssuedProjectInvitation {
-  if (!Array.isArray(data) || data.length !== 1) {
+  if (!Array.isArray(data) || data.length !== 1 || !isRecord(data[0])) {
     throw providerFailure();
   }
 
-  const [row] = data;
-  if (!row || typeof row !== "object") {
+  const record = data[0];
+  if (!isUuid(record.invitation_id)) {
     throw providerFailure();
   }
-
-  const record = row as Record<string, unknown>;
-  if (
-    !isUuid(record.invitation_id) ||
-    typeof record.raw_token !== "string" ||
-    !TOKEN_PATTERN.test(record.raw_token) ||
-    !isExpiry(record.expires_at)
-  ) {
+  if (!isRawToken(record.raw_token)) {
+    throw providerFailure();
+  }
+  if (!isExpiry(record.expires_at)) {
     throw providerFailure();
   }
 
@@ -91,7 +95,7 @@ export class SupabaseProjectInvitationAdapter implements ProjectInvitationPort {
   }
 
   public async accept(rawToken: string): Promise<string> {
-    if (!TOKEN_PATTERN.test(rawToken)) {
+    if (!isRawToken(rawToken)) {
       throw providerFailure();
     }
 
