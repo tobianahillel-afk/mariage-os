@@ -182,15 +182,17 @@ select set_config(
   '{"sub":"81111111-1111-4111-8111-111111111111","role":"authenticated","aal":"aal1"}',
   true
 );
-
-create temp table bootstrap_result as
-select public.provision_private_initial_project(
-  '  Mariage Synthétique  ',
-  '  First Owner  '
-) as project_id;
+select set_config(
+  'app.wp13_bootstrap_project_id',
+  public.provision_private_initial_project(
+    '  Mariage Synthétique  ',
+    '  First Owner  '
+  )::text,
+  true
+);
 
 select isnt(
-  (select project_id from bootstrap_result),
+  current_setting('app.wp13_bootstrap_project_id')::uuid,
   null::uuid,
   'intended verified owner receives a project identifier from atomic bootstrap'
 );
@@ -199,7 +201,7 @@ select is(
   (
     select p.name
     from public.projects p
-    join bootstrap_result r on r.project_id = p.id
+    where p.id = current_setting('app.wp13_bootstrap_project_id')::uuid
   ),
   'Mariage Synthétique',
   'bootstrap creates trimmed project identity'
@@ -219,8 +221,8 @@ select is(
   (
     select pm.role_key || ':' || pm.membership_status
     from public.project_members pm
-    join bootstrap_result r on r.project_id = pm.project_id
-    where pm.user_id = '81111111-1111-4111-8111-111111111111'
+    where pm.project_id = current_setting('app.wp13_bootstrap_project_id')::uuid
+      and pm.user_id = '81111111-1111-4111-8111-111111111111'
   ),
   'owner:active',
   'bootstrap creates exactly an active owner membership'
@@ -230,7 +232,7 @@ select is(
   (
     select count(*)::integer
     from public.project_members pm
-    join bootstrap_result r on r.project_id = pm.project_id
+    where pm.project_id = current_setting('app.wp13_bootstrap_project_id')::uuid
   ),
   1,
   'bootstrap project begins with exactly one membership'
@@ -248,10 +250,9 @@ select ok(
   (
     select p.bootstrap_status = 'claimed'
       and p.claimed_by = '81111111-1111-4111-8111-111111111111'::uuid
-      and p.claimed_project_id = r.project_id
+      and p.claimed_project_id = current_setting('app.wp13_bootstrap_project_id')::uuid
       and p.claimed_at is not null
     from public.deployment_provisioning_policy p
-    cross join bootstrap_result r
     where p.policy_key = 'primary'
   ),
   'successful bootstrap atomically consumes policy state and records claimant/project'
