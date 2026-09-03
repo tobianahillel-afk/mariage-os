@@ -1,21 +1,22 @@
 # Mariage OS Documentation Index
 
-This index maps the frozen V1 design baseline and the final pre-implementation review set.
+This index maps the frozen V1 design baseline, final pre-implementation review set and implementation-governance system.
 
 Start with [`START-HERE.md`](START-HERE.md). Do not browse files randomly and assume equal precedence.
 
 ## Master/freeze layer
 
 - [`START-HERE.md`](START-HERE.md) — mandatory onboarding/read order.
+- [`roadmap/IMPLEMENTATION-STATUS.md`](roadmap/IMPLEMENTATION-STATUS.md) — exact current phase, lot/checkpoint state and next permitted action.
 - [`PRODUCT-SPECIFICATION.md`](PRODUCT-SPECIFICATION.md) — frozen V1 master cahier des charges.
 - [`REQUIREMENTS-CATALOG.md`](REQUIREMENTS-CATALOG.md) — stable P0/P1/P2 requirement IDs.
+- [`FEATURE-LEDGER.md`](FEATURE-LEDGER.md) — 104 V1 capabilities tracked feature by feature through implementation.
 - [`roadmap/V1-SCOPE.md`](roadmap/V1-SCOPE.md) — binding V1/post-V1 boundary.
 - [`DOCUMENTATION-AUDIT.md`](DOCUMENTATION-AUDIT.md) — pre-freeze findings/resolutions.
-- [`FINAL-DESIGN-REVIEW.md`](FINAL-DESIGN-REVIEW.md) — final architecture/product implementation gate once completed.
-- [`DOCUMENTATION-COMPLETENESS-CHECKLIST.md`](DOCUMENTATION-COMPLETENESS-CHECKLIST.md) — coverage checklist.
+- [`FINAL-DESIGN-REVIEW.md`](FINAL-DESIGN-REVIEW.md) — final architecture/product/UX implementation gate once completed.
+- [`DOCUMENTATION-COMPLETENESS-CHECKLIST.md`](DOCUMENTATION-COMPLETENESS-CHECKLIST.md) — documentation/freeze coverage checklist.
 - [`IMPLEMENTATION-READINESS.md`](IMPLEMENTATION-READINESS.md) — readiness/gate assessment.
 - [`DEFERRED-DECISIONS.md`](DEFERRED-DECISIONS.md) — deliberately open implementation choices only.
-- [`engineering/REQUIREMENTS-TRACEABILITY.md`](engineering/REQUIREMENTS-TRACEABILITY.md) — requirements→implementation/test evidence rules.
 
 ## Product context and journeys
 
@@ -24,6 +25,20 @@ Start with [`START-HERE.md`](START-HERE.md). Do not browse files randomly and as
 - [`NON-GOALS.md`](NON-GOALS.md)
 - [`USER-FLOWS.md`](USER-FLOWS.md)
 - [`ACCEPTANCE-SCENARIOS.md`](ACCEPTANCE-SCENARIOS.md)
+
+## UX / navigation / screen design
+
+Read in this order for UI work:
+
+1. [`ux/UX-ARCHITECTURE.md`](ux/UX-ARCHITECTURE.md) — page taxonomy, progressive disclosure, page/tab/drawer/modal rules and anti-admin-CRUD guardrails.
+2. [`ux/NAVIGATION.md`](ux/NAVIGATION.md) — desktop/mobile information architecture and journey continuity.
+3. [`ux/SCREEN-BLUEPRINTS.md`](ux/SCREEN-BLUEPRINTS.md) — detailed visual/cognitive composition of major V1 screens.
+4. [`ux/SCREEN-CONTRACTS.md`](ux/SCREEN-CONTRACTS.md) — routes, actions, screen states and deep-link behavior.
+5. [`ux/DESIGN-SYSTEM.md`](ux/DESIGN-SYSTEM.md) — component/token/status consistency.
+6. [`ux/INTERACTION-STATES.md`](ux/INTERACTION-STATES.md) — loading/empty/offline/conflict/error/edit states.
+7. [`ux/FORMS-AUTOSAVE.md`](ux/FORMS-AUTOSAVE.md) — draft/edit/autosave behavior.
+8. [`ux/UX-REVIEW-CHECKLIST.md`](ux/UX-REVIEW-CHECKLIST.md) — feature/lot/checkpoint UX acceptance procedure.
+9. [`ux/WIREFRAMES.md`](ux/WIREFRAMES.md) — supporting low-fidelity sketches; blueprints control if less complete.
 
 ## Architecture
 
@@ -95,15 +110,6 @@ Start with [`START-HERE.md`](START-HERE.md). Do not browse files randomly and as
 - [`features/IMPORT-EXPORT.md`](features/IMPORT-EXPORT.md)
 - [`features/SETTINGS-DIAGNOSTICS.md`](features/SETTINGS-DIAGNOSTICS.md)
 
-## UX
-
-- [`ux/NAVIGATION.md`](ux/NAVIGATION.md)
-- [`ux/INTERACTION-STATES.md`](ux/INTERACTION-STATES.md)
-- [`ux/SCREEN-CONTRACTS.md`](ux/SCREEN-CONTRACTS.md)
-- [`ux/WIREFRAMES.md`](ux/WIREFRAMES.md)
-- [`ux/DESIGN-SYSTEM.md`](ux/DESIGN-SYSTEM.md)
-- [`ux/FORMS-AUTOSAVE.md`](ux/FORMS-AUTOSAVE.md)
-
 ## Import/export/backup
 
 - [`import-export/FORMATS.md`](import-export/FORMATS.md)
@@ -146,8 +152,10 @@ Start with [`START-HERE.md`](START-HERE.md). Do not browse files randomly and as
 - [`quality/PERFORMANCE.md`](quality/PERFORMANCE.md)
 - [`quality/BROWSER-SUPPORT.md`](quality/BROWSER-SUPPORT.md)
 
-## Engineering/process
+## Engineering/process/governance
 
+- [`engineering/IMPLEMENTATION-PLAYBOOK.md`](engineering/IMPLEMENTATION-PLAYBOOK.md) — feature lifecycle, FIR, Definition of Ready/Verified, vertical slices and anti-drift PR review.
+- [`engineering/REQUIREMENTS-TRACEABILITY.md`](engineering/REQUIREMENTS-TRACEABILITY.md)
 - [`engineering/CODING-STANDARDS.md`](engineering/CODING-STANDARDS.md)
 - [`engineering/ERROR-HANDLING.md`](engineering/ERROR-HANDLING.md)
 - [`engineering/OBSERVABILITY-DIAGNOSTICS.md`](engineering/OBSERVABILITY-DIAGNOSTICS.md)
@@ -166,21 +174,31 @@ Start with [`START-HERE.md`](START-HERE.md). Do not browse files randomly and as
 - [`migration/INITIAL-DATA-MIGRATION.md`](migration/INITIAL-DATA-MIGRATION.md)
 - [`migration/CUTOVER.md`](migration/CUTOVER.md)
 
-## Roadmap
+## Roadmap / implementation control
 
+- [`roadmap/IMPLEMENTATION-STATUS.md`](roadmap/IMPLEMENTATION-STATUS.md) — living progress/handoff board.
 - [`roadmap/V1-SCOPE.md`](roadmap/V1-SCOPE.md)
 - [`roadmap/LOTS.md`](roadmap/LOTS.md)
 - [`roadmap/LOT-ACCEPTANCE.md`](roadmap/LOT-ACCEPTANCE.md)
+- [`roadmap/INTEGRATION-CHECKPOINTS.md`](roadmap/INTEGRATION-CHECKPOINTS.md) — mandatory whole-product reviews after Lots 0–3, 4–7, 8–10 and 11–12.
 - [`roadmap/BACKLOG.md`](roadmap/BACKLOG.md)
+- [`reviews/README.md`](reviews/README.md) — durable review finding/report format.
 
 ## Current status
 
-Runs 1–3 are merged. Run 4 contains the frozen V1 baseline and final audit changes.
+Runs 1–3 are merged. Run 4 contains the frozen V1 baseline and final audit/governance changes.
 
 **Implementation gate is CLOSED** until `FINAL-DESIGN-REVIEW.md` is complete, all BLOCKING/MAJOR findings are resolved, documentation entry points agree, and Run 4 is merged.
 
 After the gate opens, the first implementation lot is Lot 0. No feature coding should be started earlier.
 
+During implementation, the repository must always make it possible to answer:
+- what Feature IDs are complete;
+- what lot/checkpoint is active;
+- what remains blocked;
+- what evidence proves completion;
+- what next action is permitted.
+
 ## Normative rule
 
-A developer with no prior conversation context must be able to implement/test behavior from this repository. Intentional uncertainty belongs only in `DEFERRED-DECISIONS.md`; unlabelled ambiguity is a defect.
+A developer with no prior conversation context must be able to implement/test/resume behavior from this repository. Intentional uncertainty belongs only in `DEFERRED-DECISIONS.md`; unlabelled ambiguity is a defect.
