@@ -2,7 +2,7 @@
 
 Status: **IN PROGRESS — implementation gate CLOSED**
 
-Purpose: final pre-code review of the frozen V1 specification, including product fidelity, UX architecture, data architecture, security, offline behavior, implementation governance and documentation coherence.
+Purpose: final pre-code review of the frozen V1 specification, including product fidelity, UX/visual architecture, data architecture, security, offline behavior, implementation governance and documentation coherence.
 
 This file is the only document allowed to declare the pre-code implementation gate OPEN.
 
@@ -19,7 +19,7 @@ A design area is not considered ready merely because a document exists. It must 
 - traceable to user need and verification;
 - represented in cloud/local architecture where applicable;
 - safe across security/privacy/offline/failure states;
-- coherent with the intended UX/navigation;
+- coherent with intended UX/navigation/visual identity;
 - assigned to implementation lot/Feature ID;
 - reviewable later without relying on chat memory.
 
@@ -33,37 +33,40 @@ Overall PASS requires **zero unresolved BLOCKING or MAJOR findings**.
 |---:|---|---|
 | 1 | Product mission / couple jobs | REVIEWED |
 | 2 | V1 / post-V1 scope | REVIEWED |
-| 3 | Feature inventory / traceability | REVIEW IN PROGRESS |
-| 4 | User flows / acceptance scenarios | REVIEWED, reconciliation pending |
+| 3 | Feature inventory / traceability | REVIEWED / mapped |
+| 4 | User flows / acceptance scenarios | REVIEWED / mapped |
 | 5 | UX information architecture | REVIEWED / strengthened |
-| 6 | Navigation / route discoverability | REVIEWED, final inventory pending |
+| 6 | Navigation / route discoverability | REVIEWED / mapped |
 | 7 | Screen composition / progressive disclosure | REVIEWED / strengthened |
-| 8 | Visual/design-system quality | REVIEWED / strengthened |
-| 9 | Mobile/tablet/desktop behavior | REVIEWED, final route sample audit pending |
-| 10 | Accessibility | REVIEWED, implementation evidence later |
-| 11 | Cloud architecture | REVIEWED |
-| 12 | Local-first / IndexedDB parity | REVIEWED / corrected |
-| 13 | Synchronization / conflicts | REVIEWED |
-| 14 | Offline capability classification | REVIEWED / corrected |
-| 15 | Database / same-project integrity | REVIEWED / corrected |
-| 16 | Facts/evidence/criteria | REVIEWED / corrected |
-| 17 | Money / budget / payments | REVIEWED / corrected |
-| 18 | Guests / households / seating | REVIEWED |
-| 19 | Venues / access / vendors | REVIEWED |
-| 20 | Tasks / decisions / Inbox / Search | REVIEWED |
-| 21 | Planning / timeline | REVIEWED / corrected |
-| 22 | Documents / contract readiness / media | REVIEWED / corrected |
-| 23 | Import / external IDs / rollback | REVIEWED / corrected |
-| 24 | Backup / restore / encryption | REVIEWED |
-| 25 | Auth / invitation / RLS | REVIEWED / corrected |
-| 26 | Privacy / external content / files | REVIEWED / corrected |
-| 27 | Testing / quality gates | REVIEWED |
-| 28 | Free-tier / operations / recovery | REVIEWED |
-| 29 | Development anti-drift governance | REVIEWED / newly strengthened |
-| 30 | Lot/checkpoint sequencing | REVIEWED / newly strengthened |
-| 31 | Documentation precedence / stale wording | FINAL SCAN PENDING |
-| 32 | PR review threads / mergeability | PENDING |
-| 33 | Public repository hygiene | FINAL SCAN PENDING |
+| 8 | Visual identity / color system | REVIEWED / frozen |
+| 9 | Motion / dynamic table-list behavior | REVIEWED / frozen |
+| 10 | Image delivery / metadata / private SEO | REVIEWED / frozen |
+| 11 | Mobile/tablet/desktop behavior | REVIEWED; implementation evidence later |
+| 12 | Accessibility | REVIEWED; implementation evidence later |
+| 13 | Cloud architecture | REVIEWED |
+| 14 | Local-first / IndexedDB parity | REVIEWED / corrected |
+| 15 | Synchronization / conflicts | REVIEWED |
+| 16 | Offline capability classification | REVIEWED / corrected |
+| 17 | Database / same-project integrity | REVIEWED / corrected |
+| 18 | Facts/evidence/criteria | REVIEWED / corrected |
+| 19 | Money / budget / payments | REVIEWED / corrected |
+| 20 | Guests / households / seating | REVIEWED |
+| 21 | Venues / access / vendors | REVIEWED |
+| 22 | Tasks / decisions / Inbox / Search | REVIEWED |
+| 23 | Planning / timeline | REVIEWED / corrected |
+| 24 | Documents / contract readiness / media | REVIEWED / corrected |
+| 25 | Import / external IDs / rollback | REVIEWED / corrected |
+| 26 | Backup / restore / encryption | REVIEWED |
+| 27 | Auth / invitation / RLS | REVIEWED / corrected |
+| 28 | Privacy / external content / files | REVIEWED / corrected |
+| 29 | Testing / quality gates | REVIEWED |
+| 30 | Free-tier / operations / recovery | REVIEWED |
+| 31 | Development anti-drift governance | REVIEWED / strengthened |
+| 32 | Lot/checkpoint sequencing | REVIEWED / strengthened |
+| 33 | Documentation precedence / stale wording | FINAL SCAN IN PROGRESS |
+| 34 | PR review threads | REVIEWED / resolved |
+| 35 | PR mergeability | BLOCKED / investigation required |
+| 36 | Public repository hygiene | FINAL SCAN PENDING |
 
 ---
 
@@ -72,199 +75,171 @@ Overall PASS requires **zero unresolved BLOCKING or MAJOR findings**.
 ## FDR-001 — No durable feature-by-feature implementation ledger
 
 - Severity: **MAJOR**
-- Area: Implementation governance
 - Status: **RESOLVED**
-- Problem: lots/requirements existed, but implementation could still lose track of individual user capabilities or call partially implemented behavior “done”.
-- Resolution:
-  - added `FEATURE-LEDGER.md` with 104 V1 capabilities;
-  - standardized feature lifecycle;
-  - added Feature Implementation Record requirements;
-  - added living `IMPLEMENTATION-STATUS.md`.
-- Verification: `IMPLEMENTATION-PLAYBOOK.md`, `FEATURE-LEDGER.md`, `IMPLEMENTATION-STATUS.md`.
+- Resolution: `FEATURE-LEDGER.md` with 104 V1 capabilities, lifecycle states, Feature Implementation Record template and living `IMPLEMENTATION-STATUS.md`.
 
 ## FDR-002 — No mandatory reset/integration review every few lots
 
 - Severity: **MAJOR**
-- Area: Development process / architecture drift
 - Status: **RESOLVED**
-- Problem: lots could individually pass while cross-feature architecture/UX gradually drifted.
-- Resolution:
-  - Checkpoint A after Lots 0–3;
-  - Checkpoint B after Lots 4–7;
-  - Checkpoint C after Lots 8–10;
-  - Checkpoint D after Lots 11–12;
-  - downstream groups blocked until checkpoint PASS.
-- Verification: `roadmap/INTEGRATION-CHECKPOINTS.md`, `roadmap/LOTS.md`, `templates/CHECKPOINT-REPORT.md`.
+- Resolution: mandatory Checkpoints A/B/C/D after Lots 0–3 / 4–7 / 8–10 / 11–12, with blocking finding policy and report template.
 
-## FDR-003 — UX contracts allowed too much freedom in actual page composition
+## FDR-003 — UX contracts allowed too much freedom in page composition
 
 - Severity: **MAJOR**
-- Area: UX
 - Status: **RESOLVED**
-- Problem: route contracts/wireframes named content but did not sufficiently prevent giant forms/tables, poor page boundaries or generic CRUD implementation.
-- Resolution:
-  - `UX-ARCHITECTURE.md` defines screen taxonomy, one-screen/one-job, progressive disclosure, page/tab/drawer/dialog rules and anti-patterns;
-  - `SCREEN-BLUEPRINTS.md` defines major page composition;
-  - `UX-REVIEW-CHECKLIST.md` makes UX a blocking acceptance dimension;
-  - `NAVIGATION.md` and `WIREFRAMES.md` reconciled.
+- Resolution: `UX-ARCHITECTURE.md`, `SCREEN-BLUEPRINTS.md`, route/job matrix, screen contracts and UX review gate now prohibit mega-pages/generic CRUD and define page/tab/drawer/dialog/table/mobile patterns.
 
 ## FDR-004 — Visual quality bar too abstract
 
 - Severity: **MAJOR**
-- Area: Visual design
 - Status: **RESOLVED**
-- Problem: “calm/elegant” alone was insufficient to prevent a technically correct but generic interface.
 - Resolution:
-  - strengthened `DESIGN-SYSTEM.md` with surface hierarchy, density, photography, typography, action hierarchy, tables/cards, motion and visual evidence rules;
-  - major screen PRs require synthetic desktop/mobile review evidence.
+  - `VISUAL-SYSTEM.md` becomes visual entry point;
+  - `VISUAL-IDENTITY.md` freezes brand direction;
+  - `COLOR-SYSTEM.md` freezes warm neutral, brand, domain and semantic palette architecture;
+  - `DESIGN-SYSTEM.md` reconciled to frozen palette;
+  - `VISUAL-REVIEW-CHECKLIST.md` makes commercial visual quality blockable;
+  - major UI PRs require synthetic desktop/mobile visual evidence.
 
 ## FDR-005 — Requirements traceability did not include a stable Feature layer
 
 - Severity: **MAJOR**
-- Area: Traceability
 - Status: **RESOLVED**
-- Problem: requirement→lot→test existed conceptually, but user capability progress could still be ambiguous.
-- Resolution:
-  - explicit Requirement → Feature → Evidence model;
-  - updated `REQUIREMENTS-TRACEABILITY.md`;
-  - Feature IDs required in PRs and checkpoint reconciliation.
+- Resolution: Requirement → Feature → Acceptance/Evidence model, `REQUIREMENT-FEATURE-MATRIX.md`, `ACCEPTANCE-FEATURE-MATRIX.md`, Feature IDs in PR/checkpoint process.
 
 ## FDR-006 — Cloud/local model parity had gaps for later V1 objects
 
 - Severity: **MAJOR**
-- Area: Architecture/offline
 - Status: **RESOLVED**
-- Problem: frozen cloud model had objects not fully represented in local/offline architecture.
-- Resolution: local schema reconciled for date options, origins/routes, personal state, scenarios, seating, Inbox, timeline, tags, mapping/evidence and document review metadata.
+- Resolution: local schema reconciled for late-added V1 objects and offline classes.
 
-## FDR-007 — Dependency graph did not cover all late-added V1 dependencies
+## FDR-007 — Dependency graph did not cover late V1 dependencies
 
 - Severity: **MAJOR**
-- Area: Derived data
 - Status: **RESOLVED**
 - Resolution: dependency/invalidation contract expanded for dates/origins/criteria/scenarios/seating/timeline/contracts.
 
 ## FDR-008 — Offline behavior insufficiently classified per action
 
 - Severity: **MAJOR**
-- Area: Offline/security/data integrity
 - Status: **RESOLVED**
-- Resolution: explicit distinction between cached read, queueable edit, server-required protected action and degraded behavior.
+- Resolution: explicit cached-read / queueable-edit / server-required / degraded behavior classification.
 
 ## FDR-009 — Trust/session/logout wording conflicted across docs
 
 - Severity: **MAJOR**
-- Area: Security/offline UX
 - Status: **RESOLVED**
-- Resolution: explicit session-expiry vs explicit logout model and cache rules.
+- Resolution: session expiry vs explicit logout/cache-purge semantics reconciled.
 
 ## FDR-010 — External ID rules could reintroduce nested-child collisions
 
 - Severity: **MAJOR**
-- Area: Import/data identity
 - Status: **RESOLVED**
-- Resolution: type + namespace + parent-scoped nested external IDs made normative across schema/identifier/import docs.
+- Resolution: type + namespace + parent-scoped nested external IDs normative across schema/import/identifier docs and acceptance tests.
 
-## FDR-011 — Money representation had more than one permitted authoritative strategy
+## FDR-011 — Money representation had multiple authoritative strategies
 
 - Severity: **MAJOR**
-- Area: Finance/data semantics
 - Status: **RESOLVED**
-- Resolution: V1 authoritative money frozen to integer minor units + explicit currency.
+- Resolution: integer minor units + explicit currency frozen for authoritative V1 money.
 
-## FDR-012 — Null/missing/unknown semantics could diverge across forms/imports
+## FDR-012 — Null/missing/unknown semantics could diverge
 
 - Severity: **MAJOR**
-- Area: Data semantics
 - Status: **RESOLVED**
 - Resolution: data dictionary aligned with canonical import/fact-state semantics.
 
-## FDR-013 — Final Requirement ↔ Feature ↔ Acceptance reconciliation not yet mechanically reviewed
+## FDR-013 — Requirement ↔ Feature ↔ Acceptance reconciliation
 
 - Severity: **MAJOR**
-- Area: Traceability
-- Status: **OPEN**
-- Required work:
-  1. verify every P0/P1 maps to Feature IDs or a documented cross-cutting control;
-  2. verify every Feature ID has at least one requirement/flow/acceptance or explicit engineering-control justification;
-  3. identify missing acceptance coverage;
-  4. resolve orphan/duplicate mappings before gate opens.
+- Status: **RESOLVED**
+- Resolution: requirement/feature matrix plus acceptance/feature matrix added. Cross-cutting controls are represented explicitly rather than forced into arbitrary user features.
+- Remaining implementation-time requirement: populate code/test evidence as features move through lifecycle.
 
-## FDR-014 — Final route / blueprint / feature inventory reconciliation pending
+## FDR-014 — Route / blueprint / feature inventory reconciliation
 
 - Severity: **MAJOR**
-- Area: UX/product discoverability
-- Status: **OPEN**
-- Required work:
-  - enumerate every V1 primary route;
-  - map route → primary user job → Feature IDs → feature contract → blueprint pattern;
-  - ensure no feature is reachable only through an obscure route;
-  - ensure no duplicate route creates parallel truth;
-  - ensure mobile path exists.
+- Status: **RESOLVED**
+- Resolution: route→job→Feature→UX-pattern mapping added; screen blueprints and auth blueprints cover primary V1 surfaces and mobile paths.
 
-## FDR-015 — Detailed onboarding/auth screen composition still less rich than core planning screens
+## FDR-015 — Onboarding/auth composition under-specified
 
 - Severity: **MINOR**
-- Area: UX
-- Status: **OPEN**
-- Required work: add/review blueprint-level composition for login, partner invite acceptance, first-owner setup, MFA/recovery and safe logout/pending-work sheet.
-- Rationale for MINOR: functional/auth/security contract is already detailed; this is visual/flow refinement rather than missing security semantics.
+- Status: **RESOLVED**
+- Resolution: blueprint-level flows now cover first owner, invitation acceptance, wrong identity/expiry, MFA/recovery, session expiry and safe logout with pending work.
 
-## FDR-016 — Final stale-wording / precedence scan pending
+## FDR-016 — Final stale-wording / precedence scan
 
 - Severity: **MAJOR**
-- Area: Documentation coherence
 - Status: **OPEN**
-- Required work: scan branch for obsolete normative phrases such as old V1 deferrals, “future” docs that now exist, outdated lot-next wording, old navigation names, old scenario counts and superseded schema statements.
+- Progress:
+  - old 40-scenario wording removed;
+  - old future-threat wording removed;
+  - old immediate `merge → Lot 0` wording removed from normative entry points;
+  - old seating/timeline deferrals corrected;
+  - palette deferral corrected.
+- Known remaining exception: `PHYSICAL-SCHEMA-V1.md` header still contains historical `freeze candidate`; normative precedence of schema + addendum must be explicitly finalized without risking accidental schema rewrite.
+- Required work: finish branch-wide sentry scan and record acceptable non-semantic exceptions.
 
-## FDR-017 — Existing GitHub PR review threads not yet formally closed/responded
+## FDR-017 — Existing GitHub P1 review threads
 
 - Severity: **MAJOR**
-- Area: Review governance
-- Status: **OPEN**
-- Required work: verify each P1 review finding is covered by committed correction, reply with evidence, resolve thread if appropriate.
+- Status: **RESOLVED**
+- Resolution: all five P1 threads (same-project FKs, weekday mapping, payment model, nested external IDs, named scenarios) were rechecked, answered with normative evidence and marked resolved.
 
-## FDR-018 — PR mergeability / branch state final verification pending
+## FDR-018 — PR mergeability / branch state
 
 - Severity: **MAJOR**
-- Area: Repository readiness
 - Status: **OPEN**
-- Required work: determine why PR currently reports non-mergeable if still true, resolve conflicts/branch divergence, then re-run final review against actual head SHA.
+- Current evidence: GitHub reports PR #4 `mergeable: false`.
+- Required work: diagnose branch/base divergence or conflict, resolve it, then re-run final review against actual resulting head.
 
-## FDR-019 — Public repository final secret/private-data scan pending
+## FDR-019 — Public repository final secret/private-data scan
 
 - Severity: **BLOCKING**
-- Area: Privacy/repository hygiene
 - Status: **OPEN**
-- Required work: inspect final branch/public diff for real names/guest data/private files/secrets/tokens/backups/production identifiers that must not be public; any such artifact must be removed safely before merge.
+- Required work: inspect final branch/diff for real names, guest data, private screenshots/files, secrets/tokens/backups/production identifiers. Any prohibited artifact must be removed before merge.
 
-## FDR-020 — Implementation governance documents not yet reflected in every secondary process doc
+## FDR-020 — Implementation governance not reflected in secondary docs
 
 - Severity: **MINOR**
-- Area: Documentation integration
-- Status: **PARTIALLY RESOLVED**
-- Already integrated into README, START-HERE, INDEX, CONTRIBUTING, LOTS, completeness and readiness.
-- Remaining check: Definition of Done / Lot Acceptance / CI-CD references where useful, without duplicating entire contracts.
+- Status: **RESOLVED**
+- Resolution: README, START-HERE, CONTRIBUTING, LOTS, completeness/readiness, Definition of Done and traceability now reference Feature Ledger/Playbook/checkpoints/UX review.
 
-## FDR-021 — Exact visual palette/font remains intentionally deferred
+## FDR-021 — Exact visual palette previously deferred
 
-- Severity: **NOTE**
-- Area: Visual design
-- Status: **ACCEPTED DEFERRED**
-- Reason: choosing exact accessible tokens after implementation begins is legitimate as long as `DESIGN-SYSTEM.md`, UX architecture and review criteria remain binding.
+- Severity: **MAJOR**
+- Status: **RESOLVED**
+- Resolution: palette architecture and concrete core tokens are frozen in `COLOR-SYSTEM.md`; `DEFERRED-DECISIONS.md` now defers only font family and implementation-level tonal mechanics, not the V1 color identity.
+
+## FDR-022 — Motion/table dynamics were not sufficiently specified
+
+- Severity: **MAJOR**
+- Status: **RESOLVED**
+- Resolution: `MOTION-INTERACTION.md` defines timing roles, route continuity, table/list sort/filter behavior, optimistic/sync transitions, image transitions, reduced-motion requirements and performance constraints.
+
+## FDR-023 — SEO/image requirements risked being interpreted as public dynamic indexing
+
+- Severity: **MAJOR**
+- Status: **RESOLVED**
+- Resolution: `SEO-METADATA-IMAGES.md` explicitly separates private app from optional public landing, keeps private routes non-index-oriented, forbids private OG metadata, and defines responsive image/privacy/performance behavior.
+
+## FDR-024 — Visual benchmarking not documented
+
+- Severity: **MINOR**
+- Status: **RESOLVED**
+- Resolution: `VISUAL-BENCHMARKS.md` records lessons from wedding products and strong data/productivity interfaces, with explicit originality/no-copy rule.
 
 ---
 
 # 4. Current gate blockers
 
-Implementation gate remains CLOSED because the following unresolved findings are not MINOR-only:
+Implementation gate remains CLOSED because:
 
-- FDR-013 — full traceability reconciliation;
-- FDR-014 — full route/blueprint/feature reconciliation;
-- FDR-016 — stale wording/precedence scan;
-- FDR-017 — PR review threads;
-- FDR-018 — mergeability;
-- FDR-019 — repository privacy/secret scan.
+- **FDR-016** — branch-wide stale wording/precedence scan not fully closed;
+- **FDR-018** — PR #4 currently non-mergeable;
+- **FDR-019** — public repository privacy/secret scan not yet closed.
 
 Lot 0 must not start while any remains OPEN.
 
@@ -277,11 +252,12 @@ Before this document may state `IMPLEMENTATION GATE: OPEN`:
 - [ ] all BLOCKING findings RESOLVED;
 - [ ] all MAJOR findings RESOLVED;
 - [ ] any remaining MINOR finding explicitly non-semantic/safe with owner/follow-up;
-- [ ] Requirement ↔ Feature ↔ Acceptance map reconciled;
-- [ ] Route ↔ UX blueprint ↔ Feature map reconciled;
-- [ ] master spec/scope/schema/local schema/security/lots agree;
+- [x] Requirement ↔ Feature ↔ Acceptance map reconciled;
+- [x] Route ↔ UX blueprint ↔ Feature map reconciled;
+- [x] visual identity/color/motion/image rules frozen enough to prevent generic implementation drift;
+- [ ] master spec/scope/schema/local schema/security/lots final sentry scan agrees;
 - [ ] public branch contains no prohibited private artifact/secret;
-- [ ] PR review threads resolved/responded;
+- [x] PR review threads resolved/responded;
 - [ ] PR mergeability verified;
 - [ ] final reviewed head SHA recorded;
 - [ ] Run 4 merged into `main`.
