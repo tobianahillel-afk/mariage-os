@@ -38,7 +38,7 @@ Packets:
 - Review-failed/blocked packets: **none**
 - Lot Integration Pass: **PASS**
 - Acceptance evidence: **GitHub Actions run 33805776513 — Core, local Supabase DB/RLS, browser/mutation, privacy-safe preview and clean-checkout single-command full verify all SUCCESS**
-- Final exact-head documentation confirmation: **pending the CI run triggered by these durable acceptance records**
+- Exact-head closure rule: **the branch HEAD must retain a green Lot 0 CI, including the clean-checkout `npm run verify`, before integration/merge**
 - Next permitted action: **no implementation action without an explicit future user kickoff; Lot 1 remains NOT_STARTED**
 
 ## Lot status
