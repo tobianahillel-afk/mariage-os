@@ -17,6 +17,7 @@ The final implementation authorization is separately controlled by `FINAL-DESIGN
 - [x] Frozen V1 definition and explicit post-V1 boundary.
 - [x] Master frozen product specification.
 - [x] Stable P0/P1/P2 requirements catalog.
+- [x] 104 V1 user/system capabilities enumerated in Feature Ledger.
 - [x] 24 critical user flows.
 - [x] 80 critical Given/When/Then acceptance scenarios.
 - [x] Deliberately deferred implementation choices separated from frozen semantics.
@@ -45,10 +46,23 @@ The final implementation authorization is separately controlled by `FINAL-DESIGN
 - [x] Portable/encrypted backup/restore.
 - [x] Settings/security/diagnostics.
 
-## UX/navigation
+## UX/navigation/design
 
+- [x] Product mental model and top-level information architecture.
 - [x] Desktop/mobile navigation.
 - [x] Route/screen matrix for all V1 domains.
+- [x] Screen taxonomy: overview, collection, entity detail, workflow, analysis, operational, settings.
+- [x] One-screen/one-primary-job rule.
+- [x] Progressive disclosure Levels 1/2/3.
+- [x] Page vs tab vs drawer vs dialog selection rules.
+- [x] Cards/lists/tables/comparison usage rules.
+- [x] Explicit anti-mega-page/admin-CRUD guardrails.
+- [x] Desktop/mobile/tablet layout behavior.
+- [x] Detailed Screen Blueprints for major V1 screens.
+- [x] Venue decision journey.
+- [x] Guest→RSVP→Seating journey.
+- [x] Vendor→Quote→Contract→Budget/Timeline journey.
+- [x] Dashboard→next-action→completion journey.
 - [x] Document detail/contract-review route.
 - [x] Seating route/workspace.
 - [x] Timeline route/workspace.
@@ -60,6 +74,8 @@ The final implementation authorization is separately controlled by `FINAL-DESIGN
 - [x] Undo/destructive confirmation.
 - [x] Accessibility/no pointer-only critical feature.
 - [x] Browser/device and performance policies.
+- [x] UX review checklist can reject technically-correct but poor/overloaded screens.
+- [x] Major screen acceptance requires desktop/mobile synthetic visual evidence.
 
 ## Architecture
 
@@ -91,7 +107,7 @@ The final implementation authorization is separately controlled by `FINAL-DESIGN
 - [x] Weekday/date/timezone/after-midnight rules.
 - [x] Exact money/tax semantics.
 - [x] State-machine/transition catalog.
-- [x] 90+ domain/security/recovery invariants.
+- [x] 101 domain/security/recovery invariants.
 - [x] Fact definitions/value types/evaluation rules.
 - [x] Fact observations/multi-source/retained value/confidence/freshness.
 - [x] Default stable venue/vendor/caterer criterion keys.
@@ -164,6 +180,27 @@ The final implementation authorization is separately controlled by `FINAL-DESIGN
 - [x] Accessibility/performance/browser-device gates.
 - [x] Critical/High vulnerability release policy.
 - [x] Requirement traceability.
+- [x] Feature-level traceability from product→requirements→UX→data→tests→evidence.
+
+## Implementation governance / anti-drift
+
+- [x] Feature Ledger enumerates 104 V1 capabilities.
+- [x] Feature lifecycle is standardized (`SPECIFIED`→`ACCEPTED`).
+- [x] Feature Implementation Record defines required implementation metadata/evidence.
+- [x] Definition of Ready prevents guessing unresolved semantics.
+- [x] Definition of Verified requires all applicable layers, not just coverage.
+- [x] Vertical-slice implementation rule.
+- [x] PR anti-drift questions.
+- [x] Current implementation status board exists.
+- [x] End-of-session/handoff update protocol exists.
+- [x] Lot progress is measured using Feature IDs/status, not vague percentages.
+- [x] Mandatory Checkpoint A after Lots 0–3.
+- [x] Mandatory Checkpoint B after Lots 4–7.
+- [x] Mandatory Checkpoint C after Lots 8–10.
+- [x] Mandatory Checkpoint D after Lots 11–12.
+- [x] Checkpoints re-review product, UX, architecture, security, data, offline, testing and docs.
+- [x] Checkpoint review findings use stable IDs/severity/status and remain historically visible.
+- [x] Next normal lot group cannot start while governing checkpoint has BLOCKING/MAJOR findings.
 
 ## Engineering/operations
 
@@ -187,7 +224,7 @@ The following remain deliberately deferred mechanisms:
 - exact lint/formatter/property/mutation libraries;
 - IndexedDB wrapper vs native API;
 - exact supported browser minimum versions after Lot 0/real-device validation;
-- exact accessible visual palette/font stack;
+- exact accessible visual palette/font stack within frozen design/UX direction;
 - exact XLSX/CSV/JSON-schema libraries;
 - manual vs maintained PWA/service-worker helper;
 - exact map/tile library/provider integration;
@@ -196,7 +233,7 @@ The following remain deliberately deferred mechanisms:
 - concrete CI YAML/test source files;
 - production Supabase/Cloudflare identifiers/configuration.
 
-These cannot alter frozen product/security/data semantics without reviewed spec/ADR change.
+These cannot alter frozen product/security/data/UX semantics without reviewed spec/ADR change.
 
 ---
 
@@ -204,9 +241,9 @@ These cannot alter frozen product/security/data semantics without reviewed spec/
 
 Documentation coverage is considered **complete**, but implementation remains CLOSED until all of the following are true:
 
-- [ ] `FINAL-DESIGN-REVIEW.md` completed across all review dimensions.
+- [ ] `FINAL-DESIGN-REVIEW.md` completed across all review dimensions, including UX architecture/design governance.
 - [ ] Every final-review BLOCKING/MAJOR finding resolved.
-- [ ] Master spec, V1 scope, requirements, routes, ERD/schema/local schema, lots and acceptance scenarios agree.
+- [ ] Master spec, V1 scope, requirements, Feature Ledger, routes, UX blueprints, ERD/schema/local schema, lots and acceptance scenarios agree.
 - [ ] Five existing PR P1 review comments have documented responses/resolution.
 - [ ] No stale normative `future/pending/candidate/Lot0 next` wording creates contradictory semantics.
 - [ ] Public repository branch contains no real wedding data/secrets/private artifacts.
