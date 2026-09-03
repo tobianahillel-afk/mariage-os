@@ -251,8 +251,8 @@ No project data has changed yet.
 This changed in two places.
 
 Tables included
-Cloud / Hillel: 20
-Local / Partner: 22
+Cloud / Partner A: 20
+Local / Partner B: 22
 
 [Keep 20] [Keep 22] [Mark to verify]
 ```
