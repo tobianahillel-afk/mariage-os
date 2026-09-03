@@ -47,11 +47,14 @@ Normative contracts:
 - updated `roadmap/LOTS.md` / `roadmap/LOT-ACCEPTANCE.md`;
 - updated root `AGENTS.md`, `CONTRIBUTING.md`, Start Here, frozen manifest, LLM routing and PR/FIR templates.
 
-Dedicated review: `reviews/AI-LOT-ORCHESTRATION-REVIEW.md`.
+Review evidence:
+
+- `reviews/AI-LOT-ORCHESTRATION-REVIEW.md`;
+- `reviews/AI-LOT-ORCHESTRATION-PR-FINDINGS-ADDENDUM.md`.
 
 ## Findings resolved
 
-The review identified and resolved:
+The full review/re-review identified and resolved **13 design/governance findings**:
 
 1. no explicit maximum normal AI execution unit inside a Lot;
 2. no mandatory implementation/adversarial-review/acceptance three-pass packet protocol;
@@ -62,9 +65,14 @@ The review identified and resolved:
 7. stale `CONTRIBUTING.md` gate wording;
 8. stale base Lot 6 acceptance wording that could hide RSVP/communications;
 9. active execution docs referring only to the base Feature Ledger;
-10. PR/FIR lacking Work Packet/pass traceability.
+10. PR/FIR lacking Work Packet/pass traceability;
+11. secondary `LOT-ACCEPTANCE.md` gate wording could contradict the active branch HOLD state;
+12. `REVIEW_FAILED` / `ACCEPTANCE_PENDING` transitions were insufficiently deterministic for cold-start resumption;
+13. `WORK-PACKET-RECORD.md` initially lagged behind the final state-machine/remediation semantics.
 
-All are **RESOLVED at design level**.
+All 13 are **RESOLVED at design/documentation level**.
+
+The two GitHub inline review threads are resolved. The final template consistency issue was discovered during the post-review exhaustive pass and remediated before exact-head sealing.
 
 ## Granularity conclusion
 
@@ -77,6 +85,7 @@ After remediation:
 - 9–10 points requires cohesion review;
 - >10 points normally requires split;
 - default: one Work Packet `IN_PROGRESS` at a time;
+- deterministic Work Packet state/pass transitions include explicit remediation;
 - Lot-level sanity ranges detect implausibly coarse plans;
 - Lot 6 typical range: **15–25 packets**;
 - Lot 11 typical range: **10–15 packets**;
@@ -86,7 +95,7 @@ After remediation:
 
 Authoritative score: `reviews/PRE-LOT0-36-CRITERIA-CERTIFICATION.md`.
 
-Result after orchestration remediation:
+Result after final orchestration remediation:
 
 - **36 / 36 criteria = 100/100 each**;
 - arithmetic mean: **100.0/100**;
@@ -94,7 +103,7 @@ Result after orchestration remediation:
 - zero known unresolved MAJOR design findings;
 - AI lot direct executability from a simple user command: **100/100 design**;
 - feature omission protection: **100/100 design**;
-- session resumability: **100/100 design**;
+- session resumability/state determinism: **100/100 design**;
 - independent review/mechanical completion proof: **100/100 design**.
 
 Runtime-only implementation proof remains explicitly outside this pre-code score.
@@ -104,6 +113,8 @@ Runtime-only implementation proof remains explicitly outside this pre-code score
 Because this governance change is not yet merged to `main`, Lot 0 is **HOLD / NOT_STARTED on this branch**.
 
 Do not start Lot 0 from this branch.
+
+No secondary roadmap/acceptance document may override this current gate. Current execution permission is governed by `IMPLEMENTATION-STATUS.md` + this Final Design Review according to repository precedence.
 
 The only remaining actions are:
 
