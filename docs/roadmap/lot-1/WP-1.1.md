@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-1.1`
 - Lot: `1`
 - Name: Permission catalog and authorization helper foundation
-- State: `REVIEW_FAILED`
-- Current pass: `A-IMPLEMENT-REPAIR`
+- State: `ACCEPTANCE_PENDING`
+- Current pass: `C-ACCEPTANCE`
 - Primary bounded context: authorization metadata / permission evaluation foundation
 - Branch/PR: `lot-1/identity-project-foundation`
 
@@ -75,10 +75,11 @@
 ### Implementation evidence
 
 - migration/schema: `supabase/migrations/20260903213500_create_authorization_catalog.sql` creates the three migration-owned authorization catalogs, seeds all 51 frozen V1 permission keys, seeds owner/editor/viewer templates and provides the internal role-permission lookup scaffold;
-- grants/security posture: ordinary `anon`/`authenticated` table access is revoked and direct client execution of the internal role lookup is revoked;
-- tests: `supabase/tests/authorization_catalog_test.sql` provides 14 direct pgTAP assertions covering catalog existence/counts, representative allow/deny mappings, fail-closed unknown state, client privilege denial and key-format integrity;
-- CI: exact-head run `33809158568` on `b76aa509d84c4aa73f80669faa2c9d6b494c15b8` completed all five jobs successfully, including local Supabase start/reset/test/stop and clean-checkout `npm run verify`;
-- scope: compare against accepted Lot 0 base shows only Lot 1 orchestration docs, the authorization migration/test and CI branch activation; no project/member/product-domain implementation leaked into WP-1.1;
+- grants/security posture: ordinary `PUBLIC`, `anon` and `authenticated` table access is explicitly revoked; direct client execution of the internal role lookup is explicitly revoked;
+- tests: `supabase/tests/authorization_catalog_test.sql` now provides 13 direct pgTAP assertions including exact owner/editor/viewer set equality, fail-closed unknown state, client privilege denial, exact `SECURITY DEFINER` search-path posture and key-format integrity;
+- initial CI before review: run `33809158568` on `b76aa509d84c4aa73f80669faa2c9d6b494c15b8`, all five jobs SUCCESS;
+- repair CI: run `33809855993` on `f0b1e46c46bc3ad5d15bf2191c63ec4e85473507`, all five jobs SUCCESS including local DB/RLS verification and clean-checkout `npm run verify`;
+- scope: only Lot 1 orchestration docs, authorization migration/test and CI branch activation exist beyond the accepted Lot 0 base; no project/member/product-domain implementation leaked into WP-1.1;
 - FIRs updated: not applicable as this packet is a cross-cutting foundation; affected Feature FIRs begin with their first user-facing implementation packet.
 
 ### Pass A exit
@@ -91,42 +92,41 @@
 
 ## Pass B — ADVERSARIAL REVIEW
 
-### Review result
+### First review result
 
-**FAIL — 2 MAJOR findings.** Green CI is not sufficient for acceptance until both findings are repaired and independently re-reviewed.
+**FAIL — 2 MAJOR findings.**
 
-### Findings
+#### WP1-AR-001 — MAJOR — role matrix was not proven exactly
 
-#### WP1-AR-001 — MAJOR — role matrix is not proven exactly
+- Repair: representative mapping assertions were replaced by exact set equality for owner, editor and viewer.
+- Independent re-review: compared the repaired editor/viewer sets directly with `security/ROLE-PERMISSION-MATRIX.md`; editor has exactly 40 normative grants, viewer exactly 12 conservative grants, owner exactly all 51 catalog permissions.
+- Verification: direct DB tests and full verify are green in run `33809855993`.
+- Status: **CLOSED**.
 
-Normative expectation: `PHYSICAL-SCHEMA-AUTHORIZATION-ADDENDUM.md` requires authorization tests to validate the built-in matrix in `security/ROLE-PERMISSION-MATRIX.md`.
+#### WP1-AR-002 — MAJOR — SECURITY DEFINER search path was wider than necessary
 
-Observed implementation: the migration contains a full mapping, but the direct test only samples a handful of editor/viewer allows and denies. An accidental extra privileged grant, such as `backup.restore` to editor, could pass every current assertion.
+- Repair: `public.role_has_permission` now uses `set search_path = pg_catalog`; all application relations remain explicitly schema-qualified.
+- Additional hardening: table/function privileges explicitly revoke `PUBLIC`, `anon` and `authenticated` where applicable.
+- Independent re-review: function still fails closed for unknown role/permission, client roles cannot execute it, and the pgTAP suite directly checks `proconfig = ARRAY['search_path=pg_catalog']`.
+- Verification: direct DB tests and full verify are green in run `33809855993`.
+- Status: **CLOSED**.
 
-Required repair: add exact set-equality evidence for owner, editor and viewer against the complete normative allowed permission sets, proving both missing and extra mappings fail the test.
+### Second review result
 
-#### WP1-AR-002 — MAJOR — SECURITY DEFINER search path is wider than necessary
+**PASS — 0 open BLOCKING/MAJOR findings.**
 
-Normative expectation: the authorization addendum requires a safe search path when a `SECURITY DEFINER` helper is required.
-
-Observed implementation: `public.role_has_permission` uses `set search_path = public, pg_temp`. The referenced application tables are already fully qualified, so writable/non-system schemas do not need to be resolvable through the function search path.
-
-Required repair: restrict the helper search path to trusted system scope (for example `pg_catalog`) while preserving fully qualified application object references; verify the function still fails closed and remains non-executable by ordinary client roles.
-
-### Additional hardening required during repair
-
-- explicitly revoke catalog privileges from `PUBLIC` as well as `anon` and `authenticated`, so the migration records the intended default-deny posture rather than relying only on PostgreSQL table defaults;
-- retain exact direct evidence that ordinary client roles cannot invoke the internal role lookup.
+The re-review independently checked the normative role matrix, helper privilege surface, default-deny catalog posture, fail-closed behavior, migration boundaries and exact-head verification. No new BLOCKING/MAJOR finding was identified.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started. Forbidden while any Pass B MAJOR finding is open.
+In progress.
+
+Acceptance must compare normative expectation, actual implementation and runtime/CI evidence for each WP-1.1 responsibility. No downstream packet may begin until this reconciliation is complete.
 
 ## Handoff
 
-- Current state: `REVIEW_FAILED`
-- Current/next pass: `A-IMPLEMENT-REPAIR`
-- Last green verification before adversarial findings: run `33809158568`, all five jobs SUCCESS.
-- Remaining blockers/findings: `WP1-AR-001` MAJOR open; `WP1-AR-002` MAJOR open.
-- Next permitted action: repair both findings, rerun affected/full verification, then return WP-1.1 to `REVIEW_PENDING` for a fresh independent Pass B.
-- WP-1.2 remains forbidden.
+- Current state: `ACCEPTANCE_PENDING`
+- Current/next pass: `C-ACCEPTANCE`
+- Last green verification: run `33809855993` on `f0b1e46c46bc3ad5d15bf2191c63ec4e85473507`, all five jobs SUCCESS including clean-checkout `npm run verify`.
+- Remaining blockers/findings: none.
+- Next permitted action: perform Pass C responsibility-by-responsibility reconciliation; if complete, mark WP-1.1 accepted and only then open WP-1.2.
