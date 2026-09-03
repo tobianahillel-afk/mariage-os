@@ -20,7 +20,7 @@ const negativeCases = [
       "exec",
       "--",
       "depcruise",
-      "--validate",
+      "--config",
       "dependency-cruiser.config.mjs",
       "tests/fixtures/quality-violations/src",
     ],
