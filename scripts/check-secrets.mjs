@@ -2,10 +2,7 @@ import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 
 const explicitFiles = process.argv.slice(2);
-const excludedPrefixes = [
-  "tests/fixtures/security-violations/",
-  ".git/",
-];
+const excludedPrefixes = ["tests/fixtures/security-violations/", ".git/"];
 
 const patterns = [
   /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/,
