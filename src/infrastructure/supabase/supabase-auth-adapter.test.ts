@@ -5,19 +5,22 @@ import {
   type SupabaseAuthClientLike,
 } from "./supabase-auth-adapter";
 
-type Session = Awaited<
+type SessionResult = Awaited<
   ReturnType<SupabaseAuthClientLike["auth"]["getSession"]>
->["data"]["session"];
+>;
+type Session = SessionResult["data"]["session"];
 type Level = "aal1" | "aal2" | null;
 
-function makeClient(options: {
+type ClientOptions = {
   session?: Session;
   level?: Level;
   sessionError?: boolean;
   signInError?: boolean;
   assuranceError?: boolean;
   signOutError?: boolean;
-} = {}): SupabaseAuthClientLike {
+};
+
+function makeClient(options: ClientOptions = {}): SupabaseAuthClientLike {
   const session = options.session ?? null;
   const level = options.level ?? "aal1";
   return {
@@ -45,6 +48,10 @@ function makeClient(options: {
   };
 }
 
+function authAdapter(options: ClientOptions = {}): SupabaseAuthAdapter {
+  return new SupabaseAuthAdapter(makeClient(options));
+}
+
 const verifiedSession: Session = {
   user: {
     id: "verified-user",
@@ -54,19 +61,15 @@ const verifiedSession: Session = {
 };
 
 it("maps missing provider session to signed out", async () => {
-  await expect(
-    new SupabaseAuthAdapter(makeClient()).getSession(),
-  ).resolves.toEqual({
+  await expect(authAdapter().getSession()).resolves.toEqual({
     kind: "signed_out",
   });
 });
 
 it("maps verified provider identity and assurance", async () => {
-  await expect(
-    new SupabaseAuthAdapter(
-      makeClient({ session: verifiedSession, level: "aal2" }),
-    ).getSession(),
-  ).resolves.toEqual({
+  const adapter = authAdapter({ session: verifiedSession, level: "aal2" });
+
+  await expect(adapter.getSession()).resolves.toEqual({
     kind: "authenticated_verified",
     userId: "verified-user",
     email: "owner@example.invalid",
@@ -84,21 +87,16 @@ it("maps absent and unconfirmed email to unverified states", async () => {
     },
   };
 
-  await expect(
-    new SupabaseAuthAdapter(
-      makeClient({ session: absentEmail, level: null }),
-    ).getSession(),
-  ).resolves.toEqual({
+  const absentAdapter = authAdapter({ session: absentEmail, level: null });
+  await expect(absentAdapter.getSession()).resolves.toEqual({
     kind: "authenticated_unverified",
     userId: "no-email",
     email: null,
     assurance: "unknown",
   });
-  await expect(
-    new SupabaseAuthAdapter(
-      makeClient({ session: unconfirmedEmail }),
-    ).getSession(),
-  ).resolves.toMatchObject({
+
+  const unconfirmedAdapter = authAdapter({ session: unconfirmedEmail });
+  await expect(unconfirmedAdapter.getSession()).resolves.toMatchObject({
     kind: "authenticated_unverified",
     email: "user@example.invalid",
   });
@@ -124,32 +122,33 @@ it("uses the provider password sign-in operation", async () => {
 });
 
 it("fails closed on provider session and sign-in errors", async () => {
+  await expect(authAdapter({ sessionError: true }).getSession()).rejects.toThrow(
+    "Authentication provider unavailable.",
+  );
+
+  const adapter = authAdapter({ signInError: true });
   await expect(
-    new SupabaseAuthAdapter(makeClient({ sessionError: true })).getSession(),
-  ).rejects.toThrow("Authentication provider unavailable.");
-  await expect(
-    new SupabaseAuthAdapter(makeClient({ signInError: true })).signInWithPassword(
-      {
-        email: "owner@example.invalid",
-        password: "password",
-      },
-    ),
+    adapter.signInWithPassword({
+      email: "owner@example.invalid",
+      password: "password",
+    }),
   ).rejects.toThrow("Authentication provider unavailable.");
 });
 
 it("fails closed on provider assurance and sign-out errors", async () => {
-  await expect(
-    new SupabaseAuthAdapter(
-      makeClient({ session: verifiedSession, assuranceError: true }),
-    ).getSession(),
-  ).rejects.toThrow("Authentication provider unavailable.");
-  await expect(
-    new SupabaseAuthAdapter(makeClient({ signOutError: true })).signOut(),
-  ).rejects.toThrow("Authentication provider unavailable.");
+  const assuranceAdapter = authAdapter({
+    session: verifiedSession,
+    assuranceError: true,
+  });
+  await expect(assuranceAdapter.getSession()).rejects.toThrow(
+    "Authentication provider unavailable.",
+  );
+
+  await expect(authAdapter({ signOutError: true }).signOut()).rejects.toThrow(
+    "Authentication provider unavailable.",
+  );
 });
 
 it("signs out successfully when provider accepts the request", async () => {
-  await expect(
-    new SupabaseAuthAdapter(makeClient()).signOut(),
-  ).resolves.toBeUndefined();
+  await expect(authAdapter().signOut()).resolves.toBeUndefined();
 });
