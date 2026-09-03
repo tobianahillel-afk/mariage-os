@@ -25,21 +25,21 @@ Packets:
 1. `WP-0.1` — reproducible TypeScript/Vite bootstrap — **ACCEPTED**;
 2. `WP-0.2` — static architecture and maintainability gates — **ACCEPTED**;
 3. `WP-0.3` — unit/property/coverage/E2E/mutation harnesses — **ACCEPTED**;
-4. `WP-0.4` — Supabase local / DB security-test foundation — **IN_PROGRESS**;
-5. `WP-0.5` — CI, preview, secret/dependency security — PLANNED;
+4. `WP-0.4` — Supabase local / DB security-test foundation — **ACCEPTED**;
+5. `WP-0.5` — CI, preview, secret/dependency security — **IN_PROGRESS**;
 6. `WP-0.6` — Lot integration, adversarial review, reconciliation and acceptance — PLANNED.
 
 ### Durable cursor
 
 - Current Lot: **0**
 - Lot state: **IN_PROGRESS**
-- Current packet: **WP-0.4**
+- Current packet: **WP-0.5**
 - Packet state: **IN_PROGRESS**
 - Current pass: **A-IMPLEMENT**
-- Accepted packets: **WP-0.1, WP-0.2, WP-0.3**
+- Accepted packets: **WP-0.1, WP-0.2, WP-0.3, WP-0.4**
 - Review-failed/blocked packets: **none**
-- Latest green verification: **WP-0.3 GitHub Actions run 33798036361 — npm ci + no-emit strict typecheck + static gates + negative controls + 100% scaffold coverage + 4-browser Playwright + 8/8 mutation kills + production build**
-- Next permitted action: **implement WP-0.4 Supabase local / DB security-test foundation only**
+- Latest green verification: **WP-0.4 exact-head runs 33802976963 (local Supabase reset/seed/direct RLS) and 33802977112 (full packet verification) — SUCCESS**
+- Next permitted action: **implement WP-0.5 CI, preview, secret/dependency security only**
 
 ## Lot status
 
@@ -66,8 +66,8 @@ Packets:
 
 ```text
 Current Lot: 0
-Accepted: WP-0.1, WP-0.2, WP-0.3
-Current: WP-0.4 / IN_PROGRESS / A-IMPLEMENT
-Next: implement and prove Supabase local, synthetic seed and direct DB/RLS harness
+Accepted: WP-0.1, WP-0.2, WP-0.3, WP-0.4
+Current: WP-0.5 / IN_PROGRESS / A-IMPLEMENT
+Next: implement and prove clean-checkout CI, environment/secret/dependency safeguards and privacy-safe preview artifact
 Lot 1: forbidden until Lot 0 acceptance and explicit future kickoff
 ```
