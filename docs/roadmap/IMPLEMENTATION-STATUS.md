@@ -23,8 +23,8 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 Packets:
 
 1. `WP-0.1` — reproducible TypeScript/Vite bootstrap — **ACCEPTED**;
-2. `WP-0.2` — static architecture and maintainability gates — **IN_PROGRESS**;
-3. `WP-0.3` — unit/property/coverage/E2E/mutation harnesses — PLANNED;
+2. `WP-0.2` — static architecture and maintainability gates — **ACCEPTED**;
+3. `WP-0.3` — unit/property/coverage/E2E/mutation harnesses — **IN_PROGRESS**;
 4. `WP-0.4` — Supabase local / DB security-test foundation — PLANNED;
 5. `WP-0.5` — CI, preview, secret/dependency security — PLANNED;
 6. `WP-0.6` — Lot integration, adversarial review, reconciliation and acceptance — PLANNED.
@@ -33,13 +33,13 @@ Packets:
 
 - Current Lot: **0**
 - Lot state: **IN_PROGRESS**
-- Current packet: **WP-0.2**
+- Current packet: **WP-0.3**
 - Packet state: **IN_PROGRESS**
 - Current pass: **A-IMPLEMENT**
-- Accepted packets: **WP-0.1**
+- Accepted packets: **WP-0.1, WP-0.2**
 - Review-failed/blocked packets: **none**
-- Latest green verification: **WP-0.1 GitHub Actions run 33794596050 — full npm ci + strict typecheck + Vite production build**
-- Next permitted action: **implement WP-0.2 static quality gates; do not start WP-0.3 until WP-0.2 Pass B/C acceptance**
+- Latest green verification: **WP-0.2 GitHub Actions run 33796660783 — full npm ci + strict typecheck + static gates + negative controls + production build**
+- Next permitted action: **implement WP-0.3 test harnesses; do not start WP-0.4 until WP-0.3 Pass B/C acceptance**
 
 ## Lot status
 
@@ -66,8 +66,8 @@ Packets:
 
 ```text
 Current Lot: 0
-Accepted: WP-0.1
-Current: WP-0.2 / IN_PROGRESS / A-IMPLEMENT
-Next: build static architecture/maintainability gates and negative controls
+Accepted: WP-0.1, WP-0.2
+Current: WP-0.3 / IN_PROGRESS / A-IMPLEMENT
+Next: implement and prove unit/property/coverage/E2E/mutation harnesses
 Lot 1: forbidden until Lot 0 acceptance and explicit future kickoff
 ```
