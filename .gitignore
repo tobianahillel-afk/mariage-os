@@ -1,0 +1,52 @@
+# Dependencies / build
+node_modules/
+dist/
+coverage/
+.playwright/
+playwright-report/
+test-results/
+.stryker-tmp/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Local Supabase/runtime
+.supabase/
+
+# Mariage OS private/runtime data
+*.mariage
+*.mariage.zip
+/backups/
+/private/
+/local-data/
+/exports/
+/uploads/
+/runtime-data/
+production-dump*
+*.sql.dump
+*.dump
+
+# User/import working files (templates belong under versioned /templates later)
+/imports-private/
+/*.xlsx
+/*.xls
+/*.csv
+
+# Local diagnostics
+/diagnostics-private/
+*.private.log
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/*.local.json
+.idea/
+
+# Never rely on .gitignore as the only secret/PII protection.
+# CI secret scanning + review remain required.

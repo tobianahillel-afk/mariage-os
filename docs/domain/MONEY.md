@@ -1,49 +1,65 @@
 # Money and Financial Semantics
 
+Status: **Normative V1 finance value contract**
+
 ## Currency
 
-Each project has a primary currency, initially expected to be `EUR`.
+Project has primary currency, V1 default EUR. Every authoritative monetary amount carries currency explicitly or inherits it from a documented same-currency parent context without ambiguity.
 
-Every monetary amount must carry or inherit a currency unambiguously.
+Cross-currency arithmetic/conversion is not implicit V1 behavior.
 
-## Representation
+## Authoritative representation
 
-Do not use JavaScript floating-point numbers as the authoritative representation for money calculations.
+V1 money is **integer minor units** plus ISO-4217 currency code.
 
-Preferred options:
+Example:
 
-- integer minor units for simple currencies such as EUR cents; or
-- exact PostgreSQL numeric/decimal with a matching exact application abstraction.
+```json
+{ "minor": 950050, "currency": "EUR" }
+```
 
-The chosen implementation must be consistent across calculations, imports, exports and tests.
+represents €9,500.50.
+
+Rules:
+
+- PostgreSQL authoritative amount columns use integer minor units (`bigint`) where frozen schema defines them;
+- TypeScript/domain uses exact integer semantics, not binary floating-point decimal currency;
+- canonical JSON uses `{minor,currency}`;
+- localized display strings are formatting only;
+- parser decimal input converts once under explicit locale/currency rules and reports ambiguity.
+
+No implementation may switch core V1 money to a different representation merely as a library preference without reviewed schema/format migration.
 
 ## Amount categories
 
-Financial UI must distinguish:
+Distinguish:
 
-- estimate;
+- estimated amount;
 - quoted amount;
 - negotiated/approved amount;
 - contracted amount;
-- amount paid;
+- payment/cash movement;
 - refund/credit;
-- refundable caution/deposit where it is not expected to become cost.
+- refundable security deposit/caution;
+- returned deposit;
+- remaining contractual balance (derived).
+
+These are semantically different and cannot collapse into one editable “price”.
 
 ## Cost versus cash flow
 
-A refundable €2,000 caution may be a cash outflow but should not inflate the expected final wedding cost if expected to be returned.
-
-Therefore budget reporting separates:
+A refundable €2,000 caution is cash outflow/exposure but is excluded from expected final wedding cost while expected refundable. Reporting separates:
 
 - expected final cost;
 - contractual commitments;
-- cash already paid;
-- upcoming cash due;
+- confirmed amount paid;
+- local pending financial mutations where applicable;
+- upcoming due cash;
 - refundable cash temporarily immobilized.
 
 ## Calculation types
 
-Budget components may use:
+V1 supports at least:
 
 - fixed;
 - per_guest;
@@ -52,83 +68,106 @@ Budget components may use:
 - per_table;
 - per_hour;
 - quantity × unit price;
-- tiered/minimum-charge rules;
-- optional/manual amount.
+- minimum-plus-variable/tiered rule where specified;
+- explicit quoted/manual total.
 
-Each pricing component must state its calculation type explicitly.
+Each component declares formula/basis rather than hiding it in label text.
 
-## Guest-variable costs
+## Guest-variable basis
 
-A per-guest cost recalculates from the scenario/input guest population appropriate to the component. Do not assume every guest is billed at the same rate.
+A variable component uses the scenario/basis explicitly assigned to it. Adults/children or other supported counted groups are not assumed equal automatically.
 
-Future-supported distinctions may include adults, children, babies, vendor meals or complimentary places.
+Changing planning guest count recalculates eligible scenario components and never silently rewrites a historical quote/contract quantity.
 
 ## Rounding
 
-Rounding behavior must be explicit and testable. Do not repeatedly round intermediate calculations unless the underlying commercial rule requires it.
+Authoritative conversion/calculation rounding is explicit and deterministic.
 
-Display rounding and authoritative calculation rounding are separate concerns.
+Principles:
+
+- integer minor-unit fixed amounts need no decimal currency rounding;
+- multiplication/division that can create fractional minor units defines a rounding rule at the correct commercial boundary;
+- do not repeatedly round intermediate values unless contract formula requires it;
+- display rounding never changes authoritative stored amount.
+
+Lot 5 must document/test concrete rounding for every formula that can produce fractional minor units.
 
 ## Taxes
 
-An amount must state whether tax is included, excluded, unknown or not applicable when relevant.
+Relevant commercial amounts carry tax treatment:
 
-Do not infer VAT status from display formatting alone.
+- `included`;
+- `excluded`;
+- `unknown`;
+- `not_applicable`.
 
-## Deposits and installments
+When tax rate is known and computation is supported, rate is explicit. Unknown treatment remains unknown; VAT cannot be inferred from currency symbol/display or vendor type.
 
-Payments are separate records linked to a budget/contractual item.
+## Deposits/installments/final balance
+
+Payments are separate cash-movement records tied to budget/contractual context.
 
 Example:
 
 ```text
-Venue contracted total: €10,000
-Deposit paid: €3,000
-Second installment: €2,000
-Remaining contractual balance: €5,000
+Contracted total: 1,000,000 cents (€10,000)
+Deposit paid: 300,000
+Second installment paid: 200,000
+Remaining contractual balance: 500,000
 ```
 
-## Refunds and credits
+Remaining value is derived from validated movements/contract semantics.
 
-Refund/credit records have explicit semantics rather than being represented as unexplained negative ordinary payments.
+## Refunds/credits/deposit returns
 
-## Currency formatting
+Do not encode as unexplained negative ordinary payments. Use explicit movement type and link/reference to source movement/item where required.
 
-Machine representation is locale-neutral. UI display follows project locale, e.g. `9 500,00 €` for `fr-FR` where appropriate.
+Partial refunds remain distinguishable from full refunds. Refund rules cannot produce invalid refundable amount without explicit credit/adjustment semantics.
 
-## Imports
+## Named scenarios
 
-Import parser must understand common French forms:
+Multiple scenarios may use distinct date/venue/guest/package/component assumptions. Scenario totals are derived and inspectable.
 
-- `9 500 €`
-- `9 500,50 €`
-- `9500,50`
+Changing/activating one scenario does not mutate:
 
-Preview must flag values whose currency or decimal interpretation is ambiguous.
+- another scenario;
+- historical quote;
+- signed contract;
+- actual payment records.
 
-## Scenarios
+Minimum/probable/high are scenario/reporting assumptions, not payment lifecycle states.
 
-Scenario totals may expose:
+## Locale/input parsing
 
-- minimum known cost;
-- probable cost;
-- reasonable high scenario.
+Machine storage is locale-neutral. UI `fr-FR` may display `9 500,50 €`.
 
-The calculation assumptions must be inspectable.
+Importer may encounter:
 
-## Tests
+- `9 500 €`;
+- `9 500,50 €`;
+- `9500,50`.
 
-At minimum test:
+Mapping/preview establishes locale/currency. Ambiguous decimal/currency is flagged, never guessed into authoritative amount.
 
-- zero;
-- large values;
-- fractional euros/cents;
-- fixed and variable calculations;
-- minimum charges;
-- discounts/credits;
-- deposits and refunds;
-- child/adult variants where supported;
-- guest-count changes;
-- tax-inclusive/exclusive rules;
-- imported French numeric formats;
-- no floating-point cent drift.
+## Pending offline financial mutation
+
+An offline-created payment/refund can be stored locally as pending intent. Until remote acknowledgement it is not cloud-confirmed truth. UI can show projected effect separately from confirmed shared totals.
+
+## Required tests
+
+At minimum:
+
+- zero/max practical values;
+- cents/fractional input conversion;
+- fixed/per-person/per-table/hour/quantity/minimum-variable formulas;
+- adult/child bases;
+- rounding boundaries;
+- tax included/excluded/unknown;
+- deposits/installments/final balance;
+- refundable caution/exposure;
+- partial/full refunds/credits/returns;
+- scenario independence/switching;
+- French import formats/ambiguity;
+- no floating-point cent drift;
+- offline pending vs confirmed totals;
+- property/mutation tests for critical financial engine.

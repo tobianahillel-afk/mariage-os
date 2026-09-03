@@ -1,101 +1,140 @@
 # Privacy by Design
 
+Status: **Normative V1 privacy contract**
+
 ## Principle
 
-Mariage OS stores only information genuinely useful to planning the wedding. More data is not automatically better.
+Mariage OS stores only information genuinely useful to wedding planning. More data is not automatically better.
 
 ## Data classes
 
-### PUBLIC_REFERENCE
+### `PUBLIC_REFERENCE`
+Already-public reference such as venue name, official website/address or public marketing source URL.
 
-Information already public and used as reference, e.g. venue name, official website, public address.
+### `PRIVATE_PROJECT`
+Couple-only planning data: ratings, private notes, rejection reasons, tasks, decisions, Inbox.
 
-### PRIVATE_PROJECT
+### `PERSONAL`
+Invitee/contact information: names, email, phone, address and logistics.
 
-Couple-only planning information: ratings, private notes, rejection reasons, tasks, decisions.
+### `SENSITIVE_LOGISTICS`
+Dietary/allergy/accessibility/transport/accommodation details whose disclosure could affect privacy and which should be cleaned when no longer needed.
 
-### PERSONAL
+### `FINANCIAL`
+Budgets, quotes, negotiated prices, scenarios, payments.
 
-Information about invitees/contacts: names, email, phone, address, logistics.
-
-### FINANCIAL
-
-Budget, quote amounts, payments, negotiated prices.
-
-### SENSITIVE_DOCUMENT
-
-Contracts, invoices, payment evidence and other private documents.
+### `SENSITIVE_DOCUMENT`
+Contracts, invoices, payment evidence and other private uploaded files.
 
 ## Collection minimization
 
-Do not collect fields without a planning purpose.
+Do not collect fields without a real planning purpose.
 
-Examples normally unnecessary:
+Normally unnecessary:
 
 - identity documents;
-- full birth dates for ordinary guests;
+- full guest birth dates;
 - unrelated personal history;
-- payment-card credentials.
+- payment-card credentials;
+- identity/gender inference from seating section choices.
 
-## Sensitive logistics
+The seating model stores operational table/section placement only; it must not infer broader personal attributes from labels such as “Men”/“Women”.
 
-Dietary/allergy/accessibility information may be operationally useful but deserves restricted presentation and post-event cleanup options.
+## Public repository
 
-## Public GitHub
-
-No production/private data. Synthetic fixtures only.
+No production/private data, private screenshots or real wedding exports. Synthetic fixtures only.
 
 ## Logs/diagnostics
 
-Default diagnostics exclude personal names, contact data, auth tokens, document contents and raw financial/private notes.
+Exclude by default:
 
-A diagnostic export should use opaque entity IDs and technical state where possible.
+- names/contact details;
+- auth/session data;
+- invite raw tokens;
+- document contents;
+- raw private notes;
+- full financial payloads.
+
+Diagnostics use opaque IDs, safe status/error code/version and sanitized metadata.
 
 ## Export profiles
 
-Data sharing uses allowlists.
+Sharing uses **allowlists**, never “export everything then blacklist”.
 
 Examples:
 
-### Couple full export
+- Couple full export — all owner-authorized requested project data.
+- Vendor packet — only relevant schedule/access/requirements/contact data.
+- Guest packet — only intended event/address/transport/public instructions.
+- Research completion export — only chosen facts/unknowns/source references, excluding unrelated guests/finance.
 
-All authorized project data requested by owners.
-
-### Vendor packet
-
-Only schedule/access/requirements/contact items relevant to that vendor.
-
-### Guest information
-
-Only event/address/transport/accommodation/public instructions needed by guests.
-
-Never implement privacy by “export everything then blacklist a few fields.”
+Automated tests verify restricted exports cannot leak unrelated private fields.
 
 ## Post-wedding cleanup
 
-The product should offer a guided review of personal information no longer necessary.
-
-Possible cleanup categories:
+Provide guided cleanup of no-longer-useful personal data:
 
 - guest phone/email/address;
 - dietary/accessibility logistics;
-- temporary transport/hotel assignments;
-- temporary access/share data.
+- transport/accommodation data;
+- temporary share/access information;
+- obsolete cached external media.
 
-Decision history/photos may be retained separately according to couple preference.
+Decision history/photos can be retained independently by couple choice.
 
-## Device privacy
+## Local device privacy
 
-Offline cache means an authorized device may retain project data. Account logout/revocation and local-data removal behavior must be clearly defined.
+IndexedDB/offline cache means an authorized device stores private bytes.
 
-## Third-party resources
+Frozen logout behavior:
 
-Opening external websites/maps can expose normal browser/network metadata to those services. Do not embed unnecessary third-party trackers or scripts.
+- pending work is handled explicitly first;
+- safe logout purges private project local database/cached media from that browser profile;
+- non-sensitive app shell may remain cached;
+- remote revocation cannot guarantee deletion from a stolen device that is permanently offline.
+
+The residual lost-device risk depends on device OS/browser profile security and should be included in recovery guidance.
+
+## Remote images
+
+An external marketing image URL is not private Storage. Loading it directly can reveal the viewer's IP/network metadata to the third-party host even if no private wedding fields are transmitted.
+
+V1 rules:
+
+- remote promotional images are nonessential reference content;
+- render with `referrerpolicy="no-referrer"` (or equivalent) to avoid sending the Mariage OS page URL as referrer;
+- lazy-load where appropriate;
+- never append project/guest/private query parameters to remote media URLs;
+- remote media failure never breaks venue data;
+- important/finalist images can be deliberately archived privately while retaining original source/provenance;
+- no third-party image proxy is introduced unless separately privacy/security reviewed.
+
+UI/documentation should not imply that direct remote image loading hides the user's IP from the image host.
+
+## External maps/websites
+
+Opening Google Maps, venue sites or other services exposes ordinary browser/network metadata to those services. Navigation is explicit/user-triggered and sends only what is required for the requested route/location.
+
+No guest list, budget, private note or project token is inserted into external URLs.
+
+## Search
+
+Guest/vendor/project search is local or first-party Supabase project-scoped. Search terms containing private names are not sent to advertising/analytics/third-party semantic-search providers.
 
 ## Analytics
 
-No advertising trackers, Meta Pixel, Hotjar or equivalent. Product analytics are not required for V1. If future telemetry is introduced, it requires explicit privacy review/ADR and minimization.
+No advertising trackers, Meta Pixel, Hotjar or equivalent. Product telemetry is not required in V1. Any future telemetry requires explicit privacy ADR, minimization and disclosure.
 
 ## Tests
 
-Privacy tests include export allowlists, no PII in diagnostics, deleted-member access revocation, post-cleanup behavior and no real data in public test fixtures.
+Privacy suite includes:
+
+- export allowlists;
+- no PII/secrets/raw invitation token in diagnostics/logs;
+- removed-member authorization denial;
+- safe logout clears private cache after pending-work handling;
+- external URL construction contains no unrelated private data;
+- remote images use no-referrer policy;
+- search terms are not emitted to third-party analytics;
+- post-cleanup behavior;
+- no real data in public fixtures/repository.

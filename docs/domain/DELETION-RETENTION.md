@@ -1,100 +1,118 @@
 # Deletion, Retention and Archival
 
+Status: **Normative V1 deletion/retention contract**
+
 ## Principle
 
-The default behavior favors recoverability and data minimization. “Delete” is not one universal operation.
+Default behavior favors recoverability and privacy minimization. Rejection, archival, soft deletion and permanent purge are distinct operations.
 
 ## Soft deletion
 
-Most user-created entities first move to a recoverable deleted/archived state.
+Most user-created entities first receive `deleted_at` and disappear from ordinary views while remaining recoverable.
 
 Examples:
 
-- venue;
-- vendor;
-- task;
-- note;
-- media/document metadata.
+- venue/vendor;
+- task/Inbox item;
+- media/document metadata;
+- custom category/tag where safe.
 
-Soft-deleted entities are excluded from normal views but remain recoverable until purge.
+Domain-specific rows whose historical value matters may use archive/superseded status instead of deletion.
 
-## Rejection versus deletion
+## Rejection is not deletion
 
-A rejected venue/vendor is not deleted. Rejection is meaningful planning history and preserves reason, comparison context and alternatives.
+A rejected venue/vendor remains searchable planning history with rejection reason, sources and decision context.
 
-## Corbeille / trash
+## Trash
 
-V1 should provide a trash view for recoverable deletions.
+V1 provides a recoverable trash view for applicable soft-deleted entities.
 
-Initial retention target: 30 days unless domain/security policy requires otherwise.
+### Retention rule
+
+Default purge-eligibility threshold: **30 days after `deleted_at`** unless a stricter domain/privacy rule applies.
+
+Thirty days means “eligible for permanent purge”, **not** a promise that a server daemon deletes the row at the exact second the period expires.
+
+Because V1 intentionally has no always-on custom backend/scheduler, purge can occur through:
+
+- explicit owner `Empty trash` / permanent-delete action;
+- safe opportunistic maintenance invoked during authenticated application use;
+- project-deletion workflow;
+- future scheduled mechanism only if later added without violating zero-cost constraints.
+
+No core correctness/privacy assumption depends on an exact background cron execution time.
+
+## Restore
+
+Restore clears soft-delete state only if required unique/integrity constraints still permit restoration. If a conflicting replacement entity now exists, UI must present conflict rather than corrupt or merge silently.
 
 ## Permanent purge
 
-Permanent purge must:
+Purge must:
 
-- require explicit high-impact confirmation;
-- respect authorization requirements;
-- clean dependent rows safely;
-- clean private storage objects/derivatives;
-- preserve only the minimum audit metadata legally/operationally justified, if any;
-- never leave cross-project orphaned private objects.
+- require appropriate authorization;
+- require strong confirmation for high-impact scopes;
+- delete dependent/link rows in a controlled order;
+- delete private Storage originals/derivatives when no retained relationship requires them;
+- clear orphaned external identifiers/mappings according to import-history policy;
+- preserve only minimal audit information explicitly justified by the product/security design;
+- never cross project boundaries.
 
-## Project deletion
+## Project destruction
 
-Project destruction is a separate critical workflow.
-
-Requirements:
+Separate critical workflow:
 
 - recent strong authentication/MFA;
-- explicit confirmation;
-- recommendation/export option before deletion;
-- no accidental trigger from ordinary settings;
-- removal of project-scoped database data and Storage objects according to implementation plan;
-- no last-owner removal shortcut that bypasses this workflow.
+- explicit typed/strong confirmation;
+- recommend/create portable backup before deletion;
+- no shortcut via owner removal;
+- delete all project-scoped database rows and Storage objects;
+- revoke/delete project invitations/memberships;
+- report completion/fail-safe state;
+- test that no project data remains accessible afterward.
 
-## User/member removal
+Downloaded backups remain outside cloud control and are not deleted automatically.
 
-Removing a member revokes future cloud access but does not rewrite historical authorship. Historical records may preserve a stable author identity reference/display snapshot as appropriate.
+## Member removal
+
+Revocation stops future cloud access but does not rewrite historical authorship. Personal UI preferences/opinions belonging to removed member are retained or removed according to explicit owner/privacy cleanup policy; history can preserve a stable author display snapshot where necessary.
 
 ## Post-wedding privacy cleanup
 
-The product should eventually support a guided cleanup of personal data that no longer serves a purpose.
-
-Examples that may be candidates for deletion/anonymization after the event:
+Provide guided cleanup/archive after event for data no longer operationally useful, especially:
 
 - guest addresses;
-- phone numbers;
+- phone/email where no longer needed;
 - dietary/health-related logistics;
-- transport details;
-- temporary access information.
+- transport/accommodation details;
+- temporary access instructions;
+- obsolete remote media copies.
 
-The couple chooses what to archive versus remove.
+The couple explicitly chooses archive vs deletion where legitimate personal value remains.
 
-## Media retention
+## Evidence/history
 
-Remote promotional references and private archived copies are separate. Purging a venue can optionally preserve decision-history metadata while removing large nonessential private media.
+Fact observations, contractual history, payments and locked decision evidence are not treated like disposable notes. Corrections use supersession/audit semantics rather than silent deletion unless project-level permanent destruction occurs.
+
+## Media/document retention
+
+Remote URL reference and private archived copy are separate. Removing one must not accidentally destroy the other. Purging an eliminated venue may offer cleanup of bulky nonessential archived media while preserving rejection history/source metadata.
 
 ## Import rollback retention
 
-Rollback metadata must survive long enough to support the documented rollback window. Later changes must not be overwritten blindly.
-
-## Activity history
-
-Human-meaningful decision history should generally survive ordinary entity archiving/rejection. Permanent project destruction removes project history according to the destruction policy.
-
-## Backup retention
-
-Portable backups are outside application-controlled cloud retention after download. The application should clearly tell the user that deleting a project does not delete copies they previously downloaded.
+Import/change records remain long enough for documented rollback/recovery. Rollback may not overwrite later independent user changes.
 
 ## Tests
 
-Deletion tests must verify:
-
-- soft delete and restore;
-- rejection preserved separately;
-- dependent entity behavior;
-- storage cleanup;
-- no orphan authorization path;
-- project deletion boundaries;
-- rollback interaction;
-- permanent purge cannot cross project boundaries.
+- soft delete → hidden ordinary view;
+- restore;
+- restore with uniqueness conflict;
+- 30-day eligibility calculation;
+- explicit/opportunistic purge idempotence;
+- storage derivative cleanup;
+- no orphan/cross-project authorization path;
+- rejection distinct from deletion;
+- evidence/financial history protections;
+- project permanent destruction;
+- deleted project inaccessible to former owners;
+- rollback/deletion interactions.

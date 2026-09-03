@@ -1,0 +1,301 @@
+# Feature Implementation Record — FTR-XXX
+
+Status: `READY | IN_PROGRESS | IMPLEMENTED | VERIFIED | INTEGRATED | ACCEPTED | BLOCKED`
+
+> Copy this template for each implemented V1 capability or maintain equivalent structured content in a PR/issue that remains durably linked from the Feature Ledger.
+
+## Identity
+
+- Feature ID: `FTR-XXX`
+- Name:
+- Lot:
+- Owner/reviewer:
+- Branch/PR:
+- Current status:
+- Last updated:
+
+## User purpose
+
+- Primary user job:
+- Entry point(s):
+- Success outcome:
+- Next natural user step after completion:
+
+## Product traceability
+
+- Requirement IDs:
+- Acceptance scenario IDs:
+- User Flow IDs:
+- Public-readiness `PUB-*` IDs if applicable:
+- Security `SEC-*` IDs:
+- Authorization `AUTHZ-*` IDs if applicable:
+- Product spec section:
+- Feature contract:
+- V1 scope section:
+
+## UX contract
+
+- Screen type from `UX-ARCHITECTURE.md`:
+- Route(s):
+- Project-scoped route/context behavior:
+- Blueprint section:
+- Primary action:
+- Secondary actions:
+- Information Level 1:
+- Information Level 2:
+- Information Level 3:
+- Desktop behavior:
+- Mobile behavior:
+- Tablet behavior if materially different:
+- Empty state:
+- Loading/cached state:
+- Offline/pending state:
+- Error state:
+- Permission/not-found state:
+- Conflict state if applicable:
+- Destructive/undo behavior:
+- UX review result/evidence:
+
+## Domain/data
+
+- Domain entities:
+- Invariant IDs/numbers:
+- State-machine transitions:
+- Source vs derived data:
+- Derived-data invalidations:
+- Date/time semantics:
+- Money semantics:
+- Null/unknown/conflict semantics:
+
+## Application architecture
+
+- Expected owning module/folder(s):
+- Application/domain service(s):
+- Pure engine(s):
+- Repository/port interface(s):
+- Read model(s):
+- Provider adapter(s):
+- Composition-root wiring:
+- External dependency/provider:
+- Cross-context dependency/public API used:
+
+### Code-structure review
+
+- [ ] Files follow `CODEBASE-STRUCTURE.md`.
+- [ ] No duplicate/parallel architectural path created.
+- [ ] Layer dependency direction is valid.
+- [ ] No circular dependency introduced.
+- [ ] Domain/application do not depend on concrete infrastructure.
+- [ ] UI does not directly own provider persistence/business truth.
+- [ ] File/function size and complexity comply with `MODULE-SIZE-COMPLEXITY.md`.
+- [ ] No vague dumping-ground module (`utils.ts`, `helpers.ts`, etc.).
+- [ ] No untracked TODO/FIXME/HACK/TEMP.
+
+Size/complexity exception: `NONE` expected or explicit rationale + reviewer approval.
+
+## Cloud persistence
+
+- PostgreSQL tables/views:
+- RPC/privileged command(s):
+- Storage objects/buckets:
+- Realtime subscription(s):
+- Migration(s):
+
+## Local/offline
+
+- IndexedDB store(s):
+- Account/project cache partition:
+- Offline capability class:
+- Pending mutation type(s):
+- Merge class:
+- Conflict behavior:
+- Restart behavior:
+- Session-expiry behavior:
+- Project-switch behavior:
+- PWA/update impact:
+
+## Authorization/security/privacy
+
+- Applicable `SEC-*` controls:
+- Applicable `AUTHZ-*` controls:
+- Allowed role/user/permission:
+- RLS/GRANT policies/tests:
+- Same-project constraints:
+- Protected fields/transitions:
+- Strong/recent-auth requirement:
+- Data classification:
+- PII/financial/sensitive-document impact:
+- Runtime input boundaries/schemas:
+- SQL/query construction impact:
+- DOM/XSS/rich-content impact:
+- URL/open-redirect/external-request impact:
+- CSRF/CORS/cookie impact:
+- File/archive/import impact:
+- Prototype-pollution/ReDoS/resource-abuse impact:
+- Secret/token impact:
+- New third-party dependency/script impact:
+- Threat-model items:
+- Security test evidence:
+
+## Security review triggers
+
+Mark each:
+
+- [ ] new/changed Auth/OAuth flow
+- [ ] raw/dynamic SQL or `SECURITY DEFINER` RPC
+- [ ] rich HTML/Markdown rendering
+- [ ] server-side arbitrary URL fetch / webhook callback
+- [ ] new file/archive parser
+- [ ] cryptography
+- [ ] public API/webhook
+- [ ] runtime third-party script/CDN
+- [ ] custom Worker/backend security boundary
+- [ ] platform support/admin access
+- [ ] payment integration
+- [ ] runtime process/command execution
+- [ ] none of the above
+
+If any trigger except `none` is checked, link the dedicated security review/design decision.
+
+## Public-readiness / anti-single-couple review
+
+- Project-owned? `YES / NO`
+- If project-owned, is `projectId` explicit in route/service/repository/local context?
+- Does implementation assume authenticated user has only one project?
+- Does it create a global unscoped cache/query/subscription?
+- Can same synthetic user use this feature in two projects without collision?
+- Cross-project denial test required/result:
+- Storage/Realtime tenant impact:
+- Entitlement/quota impact centralized or `N/A`:
+- Public/private SEO/metadata impact:
+- Would future `public_saas` activation require changing this domain implementation? `NO` expected; explain any unavoidable exception.
+
+## Import/export/recovery
+
+- Import support:
+- Export support:
+- External ID semantics:
+- Merge/protected truth behavior:
+- Backup inclusion:
+- Migration compatibility impact:
+- Rollback/recovery:
+
+## Tests/evidence
+
+### Unit/domain
+- [ ]
+
+### Property/mutation where applicable
+- [ ]
+
+### Runtime validation / injection security
+- [ ] boundary schema tests
+- [ ] invalid/overlong/edge input
+- [ ] SQL/query injection cases if database/search/filter affected
+- [ ] XSS/DOM/URL cases if rendered/navigated input affected
+- [ ] object/prototype/resource-abuse cases if structured input affected
+
+### Integration/local persistence
+- [ ]
+
+### Database/RLS/authorization
+- [ ] allow cases
+- [ ] deny cases
+- [ ] protected-field/cross-project cases
+
+### Public-readiness tenancy regression where project-owned
+- [ ] same feature works in two synthetic projects
+- [ ] unauthorized tenant denied
+- [ ] local/realtime/storage scope checked as applicable
+
+### Sync/offline
+- [ ]
+
+### Import/export/migration/backup where applicable
+- [ ]
+
+### Authentication/session/rate-limit where applicable
+- [ ]
+
+### File/archive/Storage security where applicable
+- [ ]
+
+### E2E
+- [ ]
+
+### Accessibility
+- [ ]
+
+### Performance/reference dataset
+- [ ]
+
+### Supply-chain/build security if dependency/config changed
+- [ ]
+
+### Static maintainability/boundary checks
+- [ ] max-lines / function-lines policy
+- [ ] complexity / params / nesting policy
+- [ ] dependency boundary / cycle check
+- [ ] TypeScript strict / no unsafe escape review
+- [ ] dead code / TODO policy
+
+### Visual evidence
+- [ ] desktop synthetic screenshot
+- [ ] mobile synthetic screenshot
+- [ ] important empty/error/offline state screenshot where applicable
+
+## Dependency check
+
+Depends on Feature IDs:
+- ...
+
+Features/read models affected by this change:
+- Dashboard:
+- Search:
+- Activity:
+- Planning/progress:
+- Budget:
+- Guest/seating:
+- Timeline:
+- Import/export/backup:
+- Diagnostics:
+- Public-readiness/tenancy:
+
+## Deviations / decisions
+
+- Spec deviation: `NONE` or linked approved change/ADR
+- Architecture/code-structure deviation: `NONE` expected or linked approved ADR/review
+- Security deviation/exception: `NONE` expected or linked approved security decision
+- Deferred choice used:
+- New dependency justified:
+- Known limitation:
+
+## Verification summary
+
+- `npm run verify` / equivalent:
+- static architecture/complexity result:
+- RLS/authorization result:
+- security `SEC-*` result:
+- Public-readiness result:
+- UX review result:
+- Checkpoint impact:
+
+## Acceptance checklist
+
+- [ ] No required `TBD` remains outside approved deferred decisions.
+- [ ] Requirements/Feature/Acceptance/PUB/SEC/AUTHZ IDs agree where applicable.
+- [ ] UX blueprint/route implemented.
+- [ ] Code modules are in canonical ownership paths and within maintainability guardrails.
+- [ ] Cloud/local semantics agree.
+- [ ] Security/RLS/input/injection evidence exists for applicable attack surfaces.
+- [ ] No security review trigger is left unreviewed.
+- [ ] Public-ready project isolation is not weakened.
+- [ ] Offline behavior matches matrix.
+- [ ] All applicable tests pass.
+- [ ] Documentation updated.
+- [ ] Feature Ledger status updated.
+- [ ] Implementation Status updated if materially changing progress.
+
+Final status:
+Evidence links:
+Reviewer:

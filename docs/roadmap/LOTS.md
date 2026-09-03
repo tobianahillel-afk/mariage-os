@@ -1,197 +1,265 @@
 # Development Lots
 
-This roadmap organizes delivery by dependency and risk. Each lot must satisfy the Definition of Done before the next dependent lot is considered complete.
+Status: **Frozen V1 implementation sequence — not yet authorized to start**
 
-## Documentation Runs
+Detailed exit criteria live in `LOT-ACCEPTANCE.md`. Binding scope lives in `V1-SCOPE.md`. Feature-level progress lives in `../FEATURE-LEDGER.md`. Cross-lot reviews live in `INTEGRATION-CHECKPOINTS.md`.
 
-The current design/documentation phase is executed in four review runs of roughly 20–25 areas each.
+A later lot cannot weaken security, integrity, UX, code architecture, maintainability, import, offline or recovery guarantees established earlier.
 
-### Run 1 — Foundation
+## Documentation/design phase
 
-- product definition;
-- principles and non-goals;
-- architecture overview;
-- chosen stack;
-- trust boundaries;
-- data ownership;
-- local-first interaction;
-- synchronization model;
-- offline model;
-- navigation and interaction states;
-- Definition of Done;
-- initial delivery structure.
+Runs 1–3 are merged. Run 4 contains the frozen V1 specification plus final pre-implementation review.
 
-### Run 2 — Data and domain specification
+**No implementation lot starts until `FINAL-DESIGN-REVIEW.md` declares the gate OPEN and Run 4 is merged.**
 
-Planned:
+---
 
-- ERD;
-- data dictionary;
-- money/date/time rules;
-- state machines;
-- domain invariants;
-- venue/vender/guest/task/decision/budget models;
-- facts/provenance model;
-- freshness/confidence model;
-- derived-data dependency graph;
-- deletion/retention semantics.
+## Lot 0 — Repository and tooling
 
-### Run 3 — Security, quality and operations
+Build the reproducible engineering environment only:
 
-Planned:
+- Vite + strict TypeScript;
+- canonical `src/` / `tests/` / `supabase/` structure from `engineering/CODEBASE-STRUCTURE.md`;
+- path aliases/composition-root convention without bypassing dependency boundaries;
+- lint/format tooling;
+- automated layer/import-cycle enforcement;
+- automated file/function/complexity/parameter/dead-code/TODO guardrails equivalent to `engineering/MODULE-SIZE-COMPLEXITY.md` where tooling is reliable;
+- unit/property/coverage harness using frozen test-placement convention;
+- Playwright;
+- mutation-test harness;
+- local Supabase;
+- direct DB/RLS test harness;
+- synthetic/golden multi-project seed project;
+- CI/preview build;
+- documentation/link validation;
+- environment/secret safeguards;
+- `npm run dev`, `npm run test:fast`, `npm run verify` or documented equivalents.
 
-- threat model;
-- ASVS matrix;
-- auth/MFA/session policy;
-- RLS authorization matrix;
-- storage/file security;
-- frontend security/CSP;
-- test strategy;
-- coverage/mutation policy;
-- E2E/accessibility/performance testing;
-- CI/CD quality gates;
-- backups/disaster recovery;
-- free-tier/quota operations;
-- incident/release process.
+Lot 0 acceptance must prove a deliberately violating fixture/example is caught by the relevant architecture/complexity check where practical (for example forbidden cross-layer import or cycle), so the rules are not merely configured but ineffective.
 
-### Run 4 — Feature contracts and implementation readiness
+No production wedding feature/data.
 
-Planned:
+## Lot 1 — Identity, project and secure foundation
 
-- feature specifications for dashboard, venues, map, vendors, guests, budget, tasks, decisions, planning, documents;
-- import/export contracts;
-- wireframe/state specifications;
-- initial migration plan from existing wedding data;
-- acceptance criteria and requirement traceability;
-- ADR set;
-- developer bootstrap/contributing docs;
-- finalized implementation backlog.
+- Supabase Auth integration;
+- controlled single-couple bootstrap;
+- secure partner invitation flow;
+- profiles/projects/members/invitations;
+- permission/role model foundation;
+- RLS + same-project relational integrity baseline;
+- protected shell/navigation;
+- IndexedDB/repository/service foundations;
+- sync operation/status primitives;
+- diagnostics/security setup shell;
+- safe logout/cache policy.
 
-## Implementation Lots
+No later domain may bypass these primitives.
 
-The implementation roadmap is separate from the four documentation runs.
+## Lot 2 — Venues core
 
-### Lot 0 — Repository and tooling
+- venue CRUD/quick add;
+- code/status/rejection/history;
+- member ratings/favorites;
+- spaces/capacity/dimensions;
+- facts/observations/sources/value typing;
+- criterion evaluation/missing information;
+- offers/availability basics;
+- photos/documents basics;
+- access origins/routes basics;
+- gallery/table/detail/compare/visit;
+- deep links.
 
-- TypeScript/Vite project;
-- lint/format/typecheck;
-- testing harness;
-- local Supabase bootstrap;
-- CI skeleton;
-- synthetic seed project.
+## Lot 3 — Tasks, decisions and Inbox
 
-### Lot 1 — Identity, project and secure foundation
+- tasks/owners/status/dependencies/waiting/blockers;
+- joint decisions/approvals/rationale/history;
+- discuss-together queue;
+- Inbox capture and idempotent conversion;
+- deterministic next-action inputs;
+- links to existing project entities.
 
-- authentication;
-- project membership;
-- RLS baseline;
-- application shell/navigation;
-- local store;
-- sync primitives;
-- diagnostics skeleton.
+### Mandatory Checkpoint A after Lot 3
 
-### Lot 2 — Venues core
+Before normal Lot 4 work starts, perform `INTEGRATION-CHECKPOINTS.md` **Checkpoint A — Foundation & Core Decision Loop**.
 
-- venue CRUD;
-- status/history;
-- facts/sources;
-- spaces;
-- photos/remote references;
-- gallery/table/detail;
-- basic compare;
-- quick add.
+Review all Lots 0–3 together for product fidelity, UX architecture, code architecture/complexity, data/security boundaries, offline behavior, cross-feature coherence and Feature Ledger completeness.
 
-This lot is intentionally early because existing venue research provides realistic product validation.
+Repeat/update `reviews/DOCUMENTATION-SYSTEM-SCORECARD.md` using implementation evidence.
 
-### Lot 3 — Tasks and decisions
+Checkpoint A must PASS with no unresolved BLOCKING/MAJOR finding.
 
-- owners;
-- waiting/blocked states;
-- joint decisions;
-- next-action primitives;
-- links to venues/vendors/etc.
+---
 
-### Lot 4 — Import/export foundation
+## Lot 4 — Import/export foundation
 
-- canonical JSON;
-- CSV/XLSX basic import;
-- preview/mapping;
-- duplicate detection;
-- provenance;
-- rollback;
-- export.
+- canonical JSON v1 + addendum machine schema;
+- CSV/XLSX/clipboard/pasted JSON;
+- parent-scoped nested external IDs;
+- mapping profiles;
+- validation/dedup/merge/preview;
+- provenance/history/rollback;
+- categories/tags import behavior;
+- research-missing-data export;
+- round-trip/hostile-file tests.
 
-### Lot 5 — Budget and payments
+## Lot 5 — Budget, scenarios and payments
 
-- fixed/variable pricing;
-- estimates/quotes/contracts;
-- payments and due dates;
-- scenario calculations;
-- cash-flow summary.
+- budget categories/items;
+- exact pricing engine;
+- estimate/quote/approved/contracted semantics;
+- named scenarios with date/venue/guest/package assumptions;
+- tax treatment;
+- payment/deposit/refund/credit/final-balance semantics;
+- cash-flow views;
+- financial links and exports.
 
-### Lot 6 — Guests and households
+## Lot 6 — Guests, households and structured seating
 
-- Excel migration support;
-- priorities/probabilities;
-- RSVP;
-- cumulative statistics;
-- household model.
+- household/person/category model;
+- priority/probability/RSVP;
+- relationships/logistics;
+- expected/cumulative statistics;
+- bulk actions and legacy spreadsheet migration;
+- seating sections/tables/capacity/assignments;
+- seating validation/export.
 
-### Lot 7 — Vendors
+Graphical drag/drop seating remains post-V1.
 
-- generic vendor model;
-- caterer-specific facts;
-- quotes/contacts/documents;
-- follow-up workflow.
+## Lot 7 — Vendors, commercial documents and contract readiness
 
-### Lot 8 — Dashboard and planning
+- generic vendor/types;
+- contacts/interactions;
+- quote lifecycle/offers/packages/components;
+- caterer-specific facts/inclusions;
+- venue compatibility;
+- document supersession/version links;
+- contract readiness checklist;
+- waiting/follow-up integration.
 
-- next best action;
-- blockers;
-- waiting items;
+### Mandatory Checkpoint B after Lot 7
+
+Before normal Lot 8 work starts, perform **Checkpoint B — Data Intake & Operational Planning Core** across Lots 0–7.
+
+This checkpoint verifies especially that Import, Budget, Guests, Seating and Vendors form one usable workflow rather than separate tables/modules, and that feature growth has not produced god services/files or architectural boundary erosion.
+
+Repeat/update the systematic scorecard with implemented evidence.
+
+Checkpoint B must PASS with no unresolved BLOCKING/MAJOR finding.
+
+---
+
+## Lot 8 — Dashboard, planning, timeline and search
+
+- phases/milestones/dependencies;
 - weighted progress;
-- milestones;
+- blockers/waiting/joint decisions;
+- partner activity cursor;
+- next-action ranking;
+- structured wedding-day timeline;
+- frozen timeline export;
+- global authorized search;
 - phase-aware dashboard.
 
-### Lot 9 — Map and access
+Dedicated advanced live day-of mode remains post-V1.
+
+## Lot 9 — Map and access
 
 - venue coordinates;
-- map pins/status filters;
-- routing links;
-- graceful offline/map failure.
+- pins/status filters;
+- selected venue card;
+- external directions;
+- multi-origin access presentation/TGV facts;
+- external-content privacy safeguards;
+- graceful map failure/offline fallback.
 
-### Lot 10 — Offline/PWA hardening
+## Lot 10 — Offline/PWA hardening
 
-- offline pinning;
-- queue/reconnect conflict UX;
 - service-worker lifecycle;
-- real-device testing.
+- IndexedDB migrations;
+- durable queue/reconnect;
+- conflict UX;
+- media queue separation;
+- offline venue pinning;
+- install/update UX;
+- cross-project cache isolation;
+- real-device tests.
 
-### Lot 11 — Backup, recovery and production readiness
+### Mandatory Checkpoint C after Lot 10
 
-- `.mariage` backup;
-- restore/integrity verification;
-- migrations from old fixtures;
-- security hardening;
-- full release gates;
-- beta with synthetic data.
+Before production-readiness Lot 11 proceeds normally, perform **Checkpoint C — Product Control, Spatial UX & Offline Hardening** across the complete implemented product.
 
-### Lot 12 — Existing-data migration and V1 cutover
+Checkpoint C must prove Mariage OS now behaves as one coherent wedding OS: Dashboard/Search/Inbox/Planning/Timeline/Map/offline navigation must simplify rather than fragment the product, while code/module boundaries remain navigable and maintainable.
 
-- import existing venue research;
-- import existing guest spreadsheet;
-- import initial vendor research;
-- reconcile inconsistencies;
-- export pre-cutover backup;
-- declare Mariage OS source of truth only after verification.
+Repeat/update the systematic scorecard with implemented evidence.
 
-## Post-V1 candidates
+Checkpoint C must PASS with no unresolved BLOCKING/MAJOR finding.
 
-- visual seating plan;
+---
+
+## Lot 11 — Backup, recovery and production readiness
+
+- structured/full `.mariage` export;
+- encrypted backup format implementation;
+- checksums/integrity verification;
+- restore/migrations;
+- production headers/security hardening;
+- complete RLS/security evidence;
+- quota protection;
+- incident diagnostics;
+- release candidate gates.
+
+## Lot 12 — Existing-data migration and V1 cutover
+
+- venue research migration/reconciliation;
+- guest spreadsheet migration/reconciliation;
+- vendor initial-data migration/reconciliation;
+- budget/statistical validation;
+- real-device partner acceptance;
+- legacy archival exports;
+- recovery export/restore drill;
+- formal source-of-truth declaration.
+
+### Mandatory Checkpoint D after Lot 12
+
+Perform **Checkpoint D — Recovery, Real Data & V1 Cutover**.
+
+This is the final cutover gate. The final scorecard/review uses actual implementation, devices and recovery evidence rather than documentation-only scores.
+
+No declaration that Mariage OS is the operational source of truth occurs before Checkpoint D PASS.
+
+---
+
+## Per-lot progress rule
+
+Every lot uses `engineering/IMPLEMENTATION-PLAYBOOK.md`:
+
+- implement feature by feature;
+- maintain Feature Implementation Records;
+- follow canonical code structure/complexity rules;
+- update `FEATURE-LEDGER.md` states;
+- update `IMPLEMENTATION-STATUS.md`;
+- perform UX review for user-facing features;
+- no unexplained `IN_PROGRESS`/`IMPLEMENTED` rows at lot acceptance;
+- no unexplained maintainability/architecture exception accumulation.
+
+Lot completion is not measured by file count, LOC or percentage of UI mocked. It is measured by accepted Feature IDs and objective lot criteria.
+
+---
+
+## Explicit post-V1 examples
+
+- graphical/automatic seating optimization;
 - advanced transport/hotel allocation;
-- day-of mode;
-- controlled sharing;
-- optional push notifications;
-- optional assisted document extraction.
+- live wedding-day command-center mode;
+- guest portal/vendor temporary sharing;
+- push notifications;
+- AI/OCR document extraction;
+- automatic Internet venue research inside app;
+- internal messaging;
+- native mobile app;
+- banking/payment integration;
+- automated email/calendar-provider sync.
 
-Nothing enters an implementation lot without specification, acceptance criteria and test/security implications.
+## Scope-change rule
+
+Nothing moves into/out of V1 silently. Scope changes require product/spec/requirement update, Feature Ledger impact, dependency/security/data/UX/code-architecture/test review and updated lot/cutover criteria.
