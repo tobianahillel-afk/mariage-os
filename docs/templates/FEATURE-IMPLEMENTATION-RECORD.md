@@ -26,6 +26,7 @@ Status: `READY | IN_PROGRESS | IMPLEMENTED | VERIFIED | INTEGRATED | ACCEPTED | 
 - Requirement IDs:
 - Acceptance scenario IDs:
 - User Flow IDs:
+- Public-readiness `PUB-*` IDs if applicable:
 - Product spec section:
 - Feature contract:
 - V1 scope section:
@@ -34,6 +35,7 @@ Status: `READY | IN_PROGRESS | IMPLEMENTED | VERIFIED | INTEGRATED | ACCEPTED | 
 
 - Screen type from `UX-ARCHITECTURE.md`:
 - Route(s):
+- Project-scoped route/context behavior:
 - Blueprint section:
 - Primary action:
 - Secondary actions:
@@ -83,12 +85,14 @@ Status: `READY | IN_PROGRESS | IMPLEMENTED | VERIFIED | INTEGRATED | ACCEPTED | 
 ## Local/offline
 
 - IndexedDB store(s):
+- Account/project cache partition:
 - Offline capability class:
 - Pending mutation type(s):
 - Merge class:
 - Conflict behavior:
 - Restart behavior:
 - Session-expiry behavior:
+- Project-switch behavior:
 - PWA/update impact:
 
 ## Authorization/security/privacy
@@ -102,6 +106,19 @@ Status: `READY | IN_PROGRESS | IMPLEMENTED | VERIFIED | INTEGRATED | ACCEPTED | 
 - External-link/content/file risks:
 - Threat-model items:
 - Security test evidence:
+
+## Public-readiness / anti-single-couple review
+
+- Project-owned? `YES / NO`
+- If project-owned, is `projectId` explicit in route/service/repository/local context?
+- Does implementation assume authenticated user has only one project?
+- Does it create a global unscoped cache/query/subscription?
+- Can same synthetic user use this feature in two projects without collision?
+- Cross-project denial test required/result:
+- Storage/Realtime tenant impact:
+- Entitlement/quota impact centralized or `N/A`:
+- Public/private SEO/metadata impact:
+- Would future `public_saas` activation require changing this domain implementation? `NO` expected; explain any unavoidable exception.
 
 ## Import/export/recovery
 
@@ -126,6 +143,11 @@ Status: `READY | IN_PROGRESS | IMPLEMENTED | VERIFIED | INTEGRATED | ACCEPTED | 
 
 ### Database/RLS
 - [ ]
+
+### Public-readiness tenancy regression where project-owned
+- [ ] same feature works in two synthetic projects
+- [ ] unauthorized tenant denied
+- [ ] local/realtime/storage scope checked as applicable
 
 ### Sync/offline
 - [ ]
@@ -162,6 +184,7 @@ Features/read models affected by this change:
 - Timeline:
 - Import/export/backup:
 - Diagnostics:
+- Public-readiness/tenancy:
 
 ## Deviations / decisions
 
@@ -174,16 +197,18 @@ Features/read models affected by this change:
 
 - `npm run verify` / equivalent:
 - RLS/security result:
+- Public-readiness result:
 - UX review result:
 - Checkpoint impact:
 
 ## Acceptance checklist
 
 - [ ] No required `TBD` remains outside approved deferred decisions.
-- [ ] Requirements/Feature/Acceptance IDs agree.
+- [ ] Requirements/Feature/Acceptance/PUB IDs agree where applicable.
 - [ ] UX blueprint/route implemented.
 - [ ] Cloud/local semantics agree.
 - [ ] Security/RLS evidence exists.
+- [ ] Public-ready project isolation is not weakened.
 - [ ] Offline behavior matches matrix.
 - [ ] All applicable tests pass.
 - [ ] Documentation updated.
