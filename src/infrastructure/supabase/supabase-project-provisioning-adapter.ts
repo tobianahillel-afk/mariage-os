@@ -16,9 +16,7 @@ export interface SupabaseRpcClientLike {
   ): PromiseLike<RpcResult>;
 }
 
-export class SupabaseProjectProvisioningAdapter
-  implements ProjectProvisioningPort
-{
+export class SupabaseProjectProvisioningAdapter implements ProjectProvisioningPort {
   public constructor(private readonly client: SupabaseRpcClientLike) {}
 
   public async provisionPrivateInitialProject(
