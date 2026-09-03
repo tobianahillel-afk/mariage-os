@@ -21,7 +21,7 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci --no-audit --no-fund
-      - name: Generate canonical local config in isolated temp directory
+      - name: Generate canonical local config in isolated runner directory
         shell: bash
         run: |
           mkdir -p "$RUNNER_TEMP/supabase-probe"
