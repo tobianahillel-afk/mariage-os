@@ -69,12 +69,29 @@ Status: `READY | IN_PROGRESS | IMPLEMENTED | VERIFIED | INTEGRATED | ACCEPTED | 
 
 ## Application architecture
 
+- Expected owning module/folder(s):
 - Application/domain service(s):
 - Pure engine(s):
-- Repository interface(s):
+- Repository/port interface(s):
 - Read model(s):
 - Provider adapter(s):
+- Composition-root wiring:
 - External dependency/provider:
+- Cross-context dependency/public API used:
+
+### Code-structure review
+
+- [ ] Files follow `CODEBASE-STRUCTURE.md`.
+- [ ] No duplicate/parallel architectural path created.
+- [ ] Layer dependency direction is valid.
+- [ ] No circular dependency introduced.
+- [ ] Domain/application do not depend on concrete infrastructure.
+- [ ] UI does not directly own provider persistence/business truth.
+- [ ] File/function size and complexity comply with `MODULE-SIZE-COMPLEXITY.md`.
+- [ ] No vague dumping-ground module (`utils.ts`, `helpers.ts`, etc.).
+- [ ] No untracked TODO/FIXME/HACK/TEMP.
+
+Size/complexity exception: `NONE` expected or explicit rationale + reviewer approval.
 
 ## Cloud persistence
 
@@ -215,6 +232,13 @@ If any trigger except `none` is checked, link the dedicated security review/desi
 ### Supply-chain/build security if dependency/config changed
 - [ ]
 
+### Static maintainability/boundary checks
+- [ ] max-lines / function-lines policy
+- [ ] complexity / params / nesting policy
+- [ ] dependency boundary / cycle check
+- [ ] TypeScript strict / no unsafe escape review
+- [ ] dead code / TODO policy
+
 ### Visual evidence
 - [ ] desktop synthetic screenshot
 - [ ] mobile synthetic screenshot
@@ -240,6 +264,7 @@ Features/read models affected by this change:
 ## Deviations / decisions
 
 - Spec deviation: `NONE` or linked approved change/ADR
+- Architecture/code-structure deviation: `NONE` expected or linked approved ADR/review
 - Security deviation/exception: `NONE` expected or linked approved security decision
 - Deferred choice used:
 - New dependency justified:
@@ -248,6 +273,7 @@ Features/read models affected by this change:
 ## Verification summary
 
 - `npm run verify` / equivalent:
+- static architecture/complexity result:
 - RLS/authorization result:
 - security `SEC-*` result:
 - Public-readiness result:
@@ -259,6 +285,7 @@ Features/read models affected by this change:
 - [ ] No required `TBD` remains outside approved deferred decisions.
 - [ ] Requirements/Feature/Acceptance/PUB/SEC/AUTHZ IDs agree where applicable.
 - [ ] UX blueprint/route implemented.
+- [ ] Code modules are in canonical ownership paths and within maintainability guardrails.
 - [ ] Cloud/local semantics agree.
 - [ ] Security/RLS/input/injection evidence exists for applicable attack surfaces.
 - [ ] No security review trigger is left unreviewed.
