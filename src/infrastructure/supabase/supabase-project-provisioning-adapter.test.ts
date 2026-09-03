@@ -34,30 +34,31 @@ describe("SupabaseProjectProvisioningAdapter", () => {
     );
   });
 
-  it("fails closed on provider error, non-string data and empty id", async () => {
+  it("fails closed on provider errors and malformed identifiers", async () => {
+    const request = {
+      projectName: "Mariage",
+      ownerDisplayName: "Owner",
+    };
+
     await expect(
       new SupabaseProjectProvisioningAdapter(
         makeClient(null, true),
-      ).provisionPrivateInitialProject({
-        projectName: "Mariage",
-        ownerDisplayName: "Owner",
-      }),
+      ).provisionPrivateInitialProject(request),
     ).rejects.toThrow("Private project provisioning unavailable.");
     await expect(
       new SupabaseProjectProvisioningAdapter(
         makeClient(42),
-      ).provisionPrivateInitialProject({
-        projectName: "Mariage",
-        ownerDisplayName: "Owner",
-      }),
+      ).provisionPrivateInitialProject(request),
     ).rejects.toThrow("Private project provisioning unavailable.");
     await expect(
       new SupabaseProjectProvisioningAdapter(
-        makeClient(""),
-      ).provisionPrivateInitialProject({
-        projectName: "Mariage",
-        ownerDisplayName: "Owner",
-      }),
+        makeClient("not-a-uuid"),
+      ).provisionPrivateInitialProject(request),
+    ).rejects.toThrow("Private project provisioning unavailable.");
+    await expect(
+      new SupabaseProjectProvisioningAdapter(
+        makeClient("aaaaaaaa-aaaa-0aaa-8aaa-aaaaaaaaaaaa"),
+      ).provisionPrivateInitialProject(request),
     ).rejects.toThrow("Private project provisioning unavailable.");
   });
 });
