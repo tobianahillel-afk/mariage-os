@@ -37,16 +37,23 @@ function issuedRow(overrides: Record<string, unknown> = {}): unknown[] {
   ];
 }
 
-describe("SupabaseProjectInvitationAdapter", () => {
-  it("issues one normalized invitation without persisting token client-side", async () => {
+function issueRequest() {
+  return {
+    projectId: PROJECT_ID,
+    intendedEmail: "partner@example.invalid",
+    role: "owner" as const,
+  };
+}
+
+describe("SupabaseProjectInvitationAdapter issue", () => {
+  it("issues one normalized invitation", async () => {
     const client = makeClient({ data: issuedRow() });
     const adapter = new SupabaseProjectInvitationAdapter(client);
 
     await expect(
       adapter.issue({
-        projectId: PROJECT_ID,
+        ...issueRequest(),
         intendedEmail: "  Partner@Example.Invalid  ",
-        role: "owner",
       }),
     ).resolves.toEqual({
       invitationId: INVITATION_ID,
@@ -64,14 +71,9 @@ describe("SupabaseProjectInvitationAdapter", () => {
     const adapter = new SupabaseProjectInvitationAdapter(
       makeClient({ fail: true }),
     );
-
-    await expect(
-      adapter.issue({
-        projectId: PROJECT_ID,
-        intendedEmail: "partner@example.invalid",
-        role: "owner",
-      }),
-    ).rejects.toThrow("Invitation service unavailable.");
+    await expect(adapter.issue(issueRequest())).rejects.toThrow(
+      "Invitation service unavailable.",
+    );
   });
 
   it.each([
@@ -84,16 +86,13 @@ describe("SupabaseProjectInvitationAdapter", () => {
     issuedRow({ expires_at: "not-a-date" }),
   ])("rejects malformed creation response %#", async (data) => {
     const adapter = new SupabaseProjectInvitationAdapter(makeClient({ data }));
-
-    await expect(
-      adapter.issue({
-        projectId: PROJECT_ID,
-        intendedEmail: "partner@example.invalid",
-        role: "viewer",
-      }),
-    ).rejects.toThrow("Invitation service unavailable.");
+    await expect(adapter.issue(issueRequest())).rejects.toThrow(
+      "Invitation service unavailable.",
+    );
   });
+});
 
+describe("SupabaseProjectInvitationAdapter revoke", () => {
   it("revokes only when provider confirms success", async () => {
     const client = makeClient({ data: true });
     const adapter = new SupabaseProjectInvitationAdapter(client);
@@ -108,14 +107,15 @@ describe("SupabaseProjectInvitationAdapter", () => {
     "fails closed on revocation result %#",
     async (options) => {
       const adapter = new SupabaseProjectInvitationAdapter(makeClient(options));
-
       await expect(adapter.revoke(INVITATION_ID)).rejects.toThrow(
         "Invitation service unavailable.",
       );
     },
   );
+});
 
-  it("accepts a valid capability and returns only validated project UUID", async () => {
+describe("SupabaseProjectInvitationAdapter accept", () => {
+  it("returns only a validated project UUID", async () => {
     const client = makeClient({ data: PROJECT_ID });
     const adapter = new SupabaseProjectInvitationAdapter(client);
 
@@ -139,7 +139,6 @@ describe("SupabaseProjectInvitationAdapter", () => {
     "fails closed on malformed acceptance result %#",
     async (options) => {
       const adapter = new SupabaseProjectInvitationAdapter(makeClient(options));
-
       await expect(adapter.accept(RAW_TOKEN)).rejects.toThrow(
         "Invitation service unavailable.",
       );
