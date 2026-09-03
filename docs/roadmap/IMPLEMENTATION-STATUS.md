@@ -33,8 +33,8 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 Packets:
 
 1. `WP-1.1` — permission catalog and authorization helper foundation — **ACCEPTED**;
-2. `WP-1.2` — core tenancy schema, membership and RLS baseline — **REVIEW_FAILED / REPAIR**;
-3. `WP-1.3` — Supabase Auth/session and controlled first-owner provisioning — **PLANNED**;
+2. `WP-1.2` — core tenancy schema, membership and RLS baseline — **ACCEPTED**;
+3. `WP-1.3` — Supabase Auth/session and controlled first-owner provisioning — **IN_PROGRESS**;
 4. `WP-1.4` — partner invitation and protected membership lifecycle — **PLANNED**;
 5. `WP-1.5` — project configuration, dates, origins, preferences and RSVP-intent hooks — **PLANNED**;
 6. `WP-1.6` — protected app shell/navigation and public RSVP trust boundary — **PLANNED**;
@@ -46,15 +46,15 @@ Packets:
 
 - Current Lot: **1**
 - Lot state: **IN_PROGRESS**
-- Current packet: **WP-1.2**
-- Packet state: **REVIEW_FAILED**
-- Current pass: **A-IMPLEMENT-REPAIR**
-- Accepted packets: **WP-1.1**
-- Review-failed/blocked packets: **WP-1.2 — `WP12-AR-001` MAJOR open**
-- WP-1.1 acceptance evidence: **run `33809855993` on `f0b1e46c46bc3ad5d15bf2191c63ec4e85473507`, all five jobs including clean-checkout `npm run verify` SUCCESS; both Pass B MAJOR findings repaired and closed**
-- WP-1.2 Pass A evidence before review: **run `33810828047` on `dc7bde6ffba627ffb8fb095e2b16ef7cddd83c7b`, all five jobs including 31 direct tenancy/RLS assertions and clean-checkout `npm run verify` SUCCESS**
+- Current packet: **WP-1.3**
+- Packet state: **IN_PROGRESS**
+- Current pass: **A-IMPLEMENT**
+- Accepted packets: **WP-1.1, WP-1.2**
+- Review-failed/blocked packets: **none open**
+- WP-1.1 acceptance evidence: run `33809855993` on `f0b1e46c46bc3ad5d15bf2191c63ec4e85473507`, all five jobs SUCCESS.
+- WP-1.2 acceptance evidence: run `33811568440` on `fa96228bcd8a0b7671fcb561f8f7668eaf5851dc`, all five jobs SUCCESS; repaired 41-assertion grant/RLS matrix; `WP12-AR-001` closed.
 - Current branch: **`lot-1/identity-project-foundation`**
-- Next permitted action: **repair WP12-AR-001 by proving the exact table/column/RPC grant and denied-operation matrix; rerun full verification; then fresh Pass B**
+- Next permitted action: **implement WP-1.3 only: browser-safe Supabase Auth/session boundary, controlled private first-owner provisioning, verified-identity enforcement and recent-auth/MFA assurance hook**.
 
 ## Lot status
 
@@ -68,18 +68,17 @@ Packets:
 
 - V1 Feature IDs: 120 SPECIFIED inventory rows total.
 - Lot 1 foundations are in implementation; no Lot 2+ Feature may start.
-- ACCEPTED product Features remain 0; accepted WP-1.1 is a cross-cutting authorization foundation rather than a complete user-facing Feature.
+- WP-1.1 and WP-1.2 are accepted foundations; user-facing Feature acceptance remains pending broader Lot 1 slices.
 
 ## Current blockers / forward maintenance
 
-**1 open MAJOR finding in WP-1.2:**
+**0 open BLOCKING/MAJOR findings at WP-1.3 kickoff.**
 
-- `WP12-AR-001`: direct security evidence does not yet exhaustively prove the intended grant/operation-denial surface for all exposed core tenancy tables and `has_project_permission`; accidental broad grants could escape the current tests.
+Closed adversarial findings:
 
-Closed WP-1.1 adversarial findings:
-
-- `WP1-AR-001`: closed after exact set-equality tests for owner/editor/viewer against the normative matrix;
-- `WP1-AR-002`: closed after restricting the internal `SECURITY DEFINER` helper to `search_path = pg_catalog` and proving client-execution denial.
+- `WP1-AR-001`: exact built-in role matrix evidence completed;
+- `WP1-AR-002`: internal SECURITY DEFINER search path hardened;
+- `WP12-AR-001`: core tenancy table/column/RPC grant and denied-operation matrix expanded to direct exhaustive evidence.
 
 Inherited reviewed non-blocking maintenance:
 
@@ -92,10 +91,9 @@ Inherited reviewed non-blocking maintenance:
 Lot 0: ACCEPTED
 Lot 1: IN_PROGRESS
 Coverage: required - assigned = ∅
-Accepted: WP-1.1
-Current: WP-1.2 / REVIEW_FAILED / A-IMPLEMENT-REPAIR
-Open finding: WP12-AR-001 MAJOR — incomplete exact grant/operation negative evidence
-Next: strengthen pgTAP privilege + denied-operation matrix; exact-head full verify; fresh Pass B
-WP-1.3+: forbidden until WP-1.2 acceptance
+Accepted: WP-1.1, WP-1.2
+Current: WP-1.3 / IN_PROGRESS / A-IMPLEMENT
+Next: implement verified Supabase Auth/session boundary + controlled one-time private first-owner provisioning + assurance hook
+WP-1.4+: forbidden until WP-1.3 acceptance
 Lot 2+: forbidden
 ```
