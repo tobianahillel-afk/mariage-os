@@ -1,4 +1,4 @@
-name: Bootstrap npm lockfile
+name: WP-0.1 bootstrap verification
 
 on:
   push:
@@ -6,41 +6,38 @@ on:
       - lot-0/repository-tooling
     paths:
       - package.json
+      - package-lock.json
       - .nvmrc
+      - tsconfig.json
+      - tsconfig.app.json
+      - tsconfig.node.json
+      - vite.config.ts
+      - index.html
+      - src/**
       - .github/workflows/bootstrap-lock.yml
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  lockfile:
+  bootstrap:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - name: Checkout branch
         uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
           cache: npm
-          cache-dependency-path: package.json
 
-      - name: Generate lockfile
-        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+      - name: Clean reproducible install
+        run: npm ci --ignore-scripts --no-audit --no-fund
 
-      - name: Commit generated lockfile when changed
-        shell: bash
-        run: |
-          git add package-lock.json
-          if git diff --cached --quiet; then
-            echo "package-lock.json already current"
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "build: generate npm lockfile"
-          git push origin "HEAD:${GITHUB_REF_NAME}"
+      - name: Strict TypeScript
+        run: npm run typecheck
+
+      - name: Production build
+        run: npm run build
