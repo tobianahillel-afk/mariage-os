@@ -34,7 +34,7 @@ jobs:
           cache: npm
 
       - name: Clean reproducible install
-        run: npm ci --ignore-scripts --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
 
       - name: Strict TypeScript
         run: npm run typecheck
