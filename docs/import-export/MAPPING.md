@@ -68,9 +68,9 @@ Only certain/high unambiguous mappings may be auto-selected; the user can review
 
 After user validates a recurring spreadsheet structure, save a mapping profile scoped to project/user/template signature.
 
-Example:
+Synthetic example:
 
-`Guest Excel Hillel v2`
+`Guest Excel Owner-A v2`
 
 A future import with compatible headers applies the profile automatically but still previews changes.
 
