@@ -12,7 +12,6 @@ type ProviderUser = {
 };
 
 type ProviderSession = { readonly user: ProviderUser };
-
 type ProviderError = { readonly message: string } | null;
 
 type ProviderResult<T> = {
@@ -30,7 +29,6 @@ type ProviderPasswordInput = {
 };
 
 type ProviderSignOutResult = { readonly error: ProviderError };
-
 type ProviderAssuranceResult = ProviderResult<{
   readonly currentLevel: "aal1" | "aal2" | null;
 }>;
@@ -38,7 +36,9 @@ type ProviderAssuranceResult = ProviderResult<{
 export interface SupabaseAuthClientLike {
   readonly auth: {
     getSession(): Promise<ProviderSessionResult>;
-    signInWithPassword(input: ProviderPasswordInput): Promise<ProviderSessionResult>;
+    signInWithPassword(
+      input: ProviderPasswordInput,
+    ): Promise<ProviderSessionResult>;
     signOut(): Promise<ProviderSignOutResult>;
     readonly mfa: {
       getAuthenticatorAssuranceLevel(): Promise<ProviderAssuranceResult>;
