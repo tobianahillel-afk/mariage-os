@@ -76,7 +76,7 @@ select throws_ok(
     values ('Invalid Permission', 'invalid key fixture', 'ordinary')
   $$,
   '23514',
-  null,
+  'new row for relation "app_permissions" violates check constraint "app_permissions_key_format"',
   'invalid permission-key syntax is rejected by the database'
 );
 
