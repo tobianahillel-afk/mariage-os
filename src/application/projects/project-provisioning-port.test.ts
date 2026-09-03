@@ -14,7 +14,10 @@ describe("normalizePrivateProvisioningRequest", () => {
 
   it("rejects empty and oversized project names", () => {
     expect(() =>
-      normalizePrivateProvisioningRequest({ projectName: " ", ownerDisplayName: "Owner" }),
+      normalizePrivateProvisioningRequest({
+        projectName: " ",
+        ownerDisplayName: "Owner",
+      }),
     ).toThrow("Project name must contain between 1 and 160 characters.");
     expect(() =>
       normalizePrivateProvisioningRequest({
@@ -26,7 +29,10 @@ describe("normalizePrivateProvisioningRequest", () => {
 
   it("rejects empty and oversized owner display names", () => {
     expect(() =>
-      normalizePrivateProvisioningRequest({ projectName: "Mariage", ownerDisplayName: " " }),
+      normalizePrivateProvisioningRequest({
+        projectName: "Mariage",
+        ownerDisplayName: " ",
+      }),
     ).toThrow("Owner display name must contain between 1 and 120 characters.");
     expect(() =>
       normalizePrivateProvisioningRequest({
