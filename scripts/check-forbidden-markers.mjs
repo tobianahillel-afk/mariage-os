@@ -2,7 +2,10 @@ import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 
 const forbiddenTerms = ["TO" + "DO", "FIX" + "ME", "HA" + "CK", "TE" + "MP"];
-const forbiddenPattern = new RegExp(`\\b(?:${forbiddenTerms.join("|")})\\b`, "i");
+const forbiddenPattern = new RegExp(
+  `\\b(?:${forbiddenTerms.join("|")})\\b`,
+  "i",
+);
 const explicitFiles = process.argv.slice(2);
 
 function trackedFiles() {
@@ -28,13 +31,20 @@ function isNormallyScanned(file) {
 function findViolations(files) {
   return files.flatMap((file) => {
     const content = readFileSync(file, "utf8");
-    return content.split("\n").flatMap((line, index) =>
-      forbiddenPattern.test(line) ? [`${file}:${index + 1}: ${line.trim()}`] : [],
-    );
+    return content
+      .split("\n")
+      .flatMap((line, index) =>
+        forbiddenPattern.test(line)
+          ? [`${file}:${index + 1}: ${line.trim()}`]
+          : [],
+      );
   });
 }
 
-const files = explicitFiles.length > 0 ? explicitFiles : trackedFiles().filter(isNormallyScanned);
+const files =
+  explicitFiles.length > 0
+    ? explicitFiles
+    : trackedFiles().filter(isNormallyScanned);
 const violations = findViolations(files);
 
 if (violations.length > 0) {

@@ -6,7 +6,12 @@ const negativeCases = [
   {
     name: "ESLint complexity/parameter violation",
     command: npmCommand,
-    args: ["exec", "--", "eslint", "tests/fixtures/quality-violations/over-complex.ts"],
+    args: [
+      "exec",
+      "--",
+      "eslint",
+      "tests/fixtures/quality-violations/over-complex.ts",
+    ],
   },
   {
     name: "dependency-cruiser cycle/layer violation",
@@ -23,7 +28,10 @@ const negativeCases = [
   {
     name: "forbidden marker violation",
     command: process.execPath,
-    args: ["scripts/check-forbidden-markers.mjs", "tests/fixtures/quality-violations/forbidden-marker.ts"],
+    args: [
+      "scripts/check-forbidden-markers.mjs",
+      "tests/fixtures/quality-violations/forbidden-marker.ts",
+    ],
   },
 ];
 

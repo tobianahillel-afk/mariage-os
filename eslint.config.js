@@ -4,7 +4,10 @@ import tseslint from "typescript-eslint";
 const maintainabilityRules = {
   complexity: ["error", 8],
   "max-depth": ["error", 3],
-  "max-lines": ["error", { max: 400, skipBlankLines: true, skipComments: true }],
+  "max-lines": [
+    "error",
+    { max: 400, skipBlankLines: true, skipComments: true },
+  ],
   "max-lines-per-function": [
     "error",
     { max: 60, skipBlankLines: true, skipComments: true, IIFEs: true },
