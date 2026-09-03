@@ -4,7 +4,9 @@ export interface PrivateProjectProvisioningRequest {
 }
 
 export interface ProjectProvisioningPort {
-  provisionPrivateInitialProject(request: PrivateProjectProvisioningRequest): Promise<string>;
+  provisionPrivateInitialProject(
+    request: PrivateProjectProvisioningRequest,
+  ): Promise<string>;
 }
 
 export function normalizePrivateProvisioningRequest(
