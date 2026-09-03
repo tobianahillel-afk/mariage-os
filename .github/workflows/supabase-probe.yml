@@ -1,0 +1,32 @@
+name: WP-0.4 Supabase CLI probe
+
+on:
+  push:
+    branches:
+      - lot-0/repository-tooling
+    paths:
+      - .github/workflows/supabase-probe.yml
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Generate canonical local config in isolated temp directory
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/supabase-probe"
+          cd "$RUNNER_TEMP/supabase-probe"
+          "$GITHUB_WORKSPACE/node_modules/.bin/supabase" init
+          cat supabase/config.toml
+      - name: Show supported DB test command
+        run: npx supabase test db --help
