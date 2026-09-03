@@ -1,11 +1,13 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const ciOptions = process.env.CI ? { workers: 1 } : {};
+
 export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: 0,
-  workers: process.env.CI ? 1 : undefined,
+  ...ciOptions,
   reporter: process.env.CI
     ? [["line"], ["html", { open: "never" }]]
     : [["list"]],
