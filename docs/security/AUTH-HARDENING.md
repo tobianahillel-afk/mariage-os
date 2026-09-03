@@ -44,14 +44,15 @@ Before public self-service activation, add CAPTCHA/Turnstile or equivalent provi
 If password sign-in is chosen for V1/public product:
 
 - email verification required;
-- provider minimum password length configured to a strong value appropriate to current guidance/product UX (do not accept the provider minimum merely because it exists);
+- provider minimum password length configured to a strong value appropriate to current guidance/product UX rather than simply accepting a weak minimum;
+- for the two private V1 owners, if password mode is chosen, target a long unique passphrase/password-manager generated secret (recommended product configuration target: at least 14 characters unless Lot 1 security review selects a stronger current provider-compatible policy);
 - support long passwords/passphrases/password managers;
 - do not impose arbitrary periodic password rotation absent compromise;
 - no custom complexity checker that encourages predictable patterns unless required by provider policy;
 - leaked-password screening may be enabled when supported by the active provider plan, but security architecture must remain acceptable without a paid-only feature;
 - password reset/change uses provider verified/recent-auth flows.
 
-The exact numeric password policy is captured in production configuration evidence rather than hard-coded permanently into domain code.
+The final numeric password policy and Auth mode are recorded in production configuration evidence, because provider capabilities and public-product UX can evolve.
 
 ## 4. PKCE / redirect flows
 
@@ -76,14 +77,16 @@ For the two real V1 owners:
 - sensitive privileged commands verify strong assurance server-side where provider data permits;
 - UI showing “MFA verified” is not authoritative;
 - factor enrollment/removal is itself security-sensitive and logged/audited safely;
-- recovery/lost-factor procedure is tested before cutover.
+- recovery/lost-factor procedure is tested before cutover;
+- because Supabase does not rely on classic recovery codes for Auth MFA and supports multiple factors, each owner should enroll/test a **separate backup TOTP factor** before real-data cutover where provider/browser flow supports it; backup factor/device/secret must not be stored in the same failure domain as the primary factor.
 
 For future public users, MFA policy may vary by plan/use case but owner/account-security architecture remains ready for it.
 
-## 6. Session behavior
+## 6. Session / refresh-token behavior
 
 - access token lifetime/refresh behavior uses provider-supported SDK/session handling;
 - application code does not implement token refresh cryptography manually;
+- Supabase refresh-token rotation/reuse-detection security defaults are preserved unless an explicit security review demonstrates a reason to change them;
 - retry logic avoids refresh storms across tabs/devices;
 - logout stops realtime/cloud mutation flow before local purge;
 - session expiry never silently discards offline work;
@@ -91,6 +94,8 @@ For future public users, MFA policy may vary by plan/use case but owner/account-
 - account password/security changes that invalidate sessions are handled as a normal reauthentication path.
 
 Provider features for maximum session lifetime/single-session enforcement may depend on plan and are not assumed available on the free V1 tier.
+
+A pure browser SPA necessarily has JavaScript-accessible session material through the provider client architecture. Therefore XSS prevention (safe DOM, CSP, Trusted Types where compatible, minimal third-party script surface) is a critical token-theft control. If a future risk review requires HttpOnly server-managed session cookies, that would be a deliberate architecture change with CSRF/BFF implications rather than an ad hoc patch.
 
 ## 7. Token storage
 
@@ -122,7 +127,8 @@ Where provider behavior reveals unavoidable information to the email owner, the 
 Before production cutover:
 
 - both owners test recovery from ordinary sign-in loss;
-- both owners test MFA-factor recovery according to provider-supported options;
+- both owners test primary-TOTP-loss using the configured backup factor/recovery path;
+- backup TOTP factor is independent from the primary failure domain;
 - owner/project access cannot be restored by a custom secret question, project name, wedding date or support-only backdoor;
 - platform support/admin cannot silently bypass membership/authentication rules.
 
@@ -148,7 +154,9 @@ Security evidence records:
 - signup/provisioning mode;
 - chosen flow type (password / PKCE link / OAuth etc.);
 - configured redirect allowlist;
-- MFA configuration;
+- password policy if applicable;
+- MFA configuration + backup factor result;
+- refresh-token rotation/reuse-detection configuration review;
 - rate-limit review results;
 - CAPTCHA/Turnstile state where applicable;
 - recovery test result;
@@ -164,7 +172,9 @@ Security evidence records:
 - malicious/open redirect;
 - invite replay/wrong identity;
 - MFA bypass attempt;
+- primary-factor-loss/backup-factor recovery drill;
 - stale JWT after membership revoke;
+- refresh-token replay/reuse behavior follows provider-supported security model;
 - old session after role downgrade;
 - explicit logout with pending offline work;
 - raw token search in logs/build/URLs/diagnostic output.
