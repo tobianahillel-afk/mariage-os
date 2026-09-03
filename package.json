@@ -34,7 +34,7 @@
     "security:secrets": "node scripts/check-secrets.mjs",
     "security:negative": "node scripts/run-security-negative-control.mjs",
     "security:dependencies": "npm audit --audit-level=high",
-    "verify": "npm run security:env && npm run security:env:negative && npm run security:secrets && npm run test:fast && npm run quality:negative && npm run security:negative && npm run test:e2e && npm run test:mutation && npm run build"
+    "verify": "node scripts/run-full-verification.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
