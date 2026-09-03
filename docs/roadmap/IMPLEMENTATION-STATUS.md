@@ -2,8 +2,6 @@
 
 Status: **Living repository source of truth for development progress**
 
-Purpose: answer “where exactly are we?” without relying on chat history, memory or interpretation of recent commits.
-
 ## Current phase
 
 - V1 documentation/design: **COMPLETE / FROZEN**.
@@ -11,134 +9,65 @@ Purpose: answer “where exactly are we?” without relying on chat history, mem
 - AI Lot Orchestration governance: **MERGED / FROZEN**.
 - Final Design Review: **PASS**.
 - Implementation gate: **OPEN**.
-- **Lot 0: IN_PROGRESS** — explicitly kicked off by the user on 2026-09-03.
+- **Lot 0: IN_PROGRESS** — explicitly kicked off 2026-09-03.
 - Lots 1–12: **NOT_STARTED**.
 
-Lot 0 is the only permitted implementation scope. No wedding-domain Feature implementation from Lots 1–12 may begin.
+Lot 0 is the only permitted implementation scope. Product Feature implementation remains 0.
 
-## Frozen V1 feature inventory
+## Lot 0 orchestration
 
-Authoritative V1 inventory:
+Coverage plan: `lot-0/LOT-0-COVERAGE-MATRIX.md`.
 
-- `../FEATURE-LEDGER.md` — `FTR-001..104`;
-- `../FEATURE-LEDGER-GUEST-COMMUNICATIONS-EXTENSION.md` — `FTR-105..120`.
+Required current-lot responsibilities minus assigned packet responsibilities: **∅**.
 
-Total: **120 V1 capabilities**.
+Packets:
 
-Feature implementation counts remain:
-
-- `IN_PROGRESS`: 0 product Feature IDs;
-- `IMPLEMENTED`: 0;
-- `VERIFIED`: 0;
-- `INTEGRATED`: 0;
-- `ACCEPTED`: 0;
-- `BLOCKED`: 0.
-
-Lot 0 is engineering foundation work and does not falsely mark product Features implemented.
-
-## Current Lot 0 orchestration
-
-Coverage/packet plan:
-
-`lot-0/LOT-0-COVERAGE-MATRIX.md`
-
-Required-current-lot-responsibilities minus assigned packet responsibilities: **∅**.
-
-Planned packets:
-
-1. `WP-0.1` — reproducible TypeScript/Vite bootstrap;
-2. `WP-0.2` — static architecture and maintainability gates;
-3. `WP-0.3` — unit/property/coverage/E2E/mutation harnesses;
-4. `WP-0.4` — Supabase local / DB security-test foundation;
-5. `WP-0.5` — CI, preview, secret/dependency security;
-6. `WP-0.6` — Lot integration, adversarial review, reconciliation and acceptance.
+1. `WP-0.1` — reproducible TypeScript/Vite bootstrap — **ACCEPTED**;
+2. `WP-0.2` — static architecture and maintainability gates — **IN_PROGRESS**;
+3. `WP-0.3` — unit/property/coverage/E2E/mutation harnesses — PLANNED;
+4. `WP-0.4` — Supabase local / DB security-test foundation — PLANNED;
+5. `WP-0.5` — CI, preview, secret/dependency security — PLANNED;
+6. `WP-0.6` — Lot integration, adversarial review, reconciliation and acceptance — PLANNED.
 
 ### Durable cursor
 
 - Current Lot: **0**
 - Lot state: **IN_PROGRESS**
-- Current packet: **WP-0.1**
+- Current packet: **WP-0.2**
 - Packet state: **IN_PROGRESS**
 - Current pass: **A-IMPLEMENT**
-- Accepted packets: **none yet**
+- Accepted packets: **WP-0.1**
 - Review-failed/blocked packets: **none**
-- Latest relevant verification: **pre-code design gate PASS; runtime verification begins in Lot 0**
-- Next permitted action: **implement WP-0.1 only, then move it to REVIEW_PENDING and perform Pass B**
-
-Default rule remains one unrelated packet `IN_PROGRESS` at a time.
-
-## Lot 0 acceptance target
-
-Lot 0 must produce and prove, from a clean checkout:
-
-- Vite + framework-light TypeScript skeleton;
-- strict TypeScript;
-- stable aliases and frozen architecture roots;
-- reproducible npm install/lockfile;
-- lint/format;
-- layer/cycle/module-size/function-complexity/parameter/TODO/dead-code safeguards;
-- Vitest unit + coverage;
-- property-test harness;
-- Playwright;
-- mutation-test harness;
-- Supabase local config/migration/test/seed foundation;
-- isolated synthetic golden project/test data;
-- direct DB/RLS test-harness foundation;
-- environment/no-secret safeguards;
-- `dev`, `test:fast`, `verify` command contracts;
-- GitHub Actions clean-checkout CI;
-- privacy-safe build/preview artifact;
-- deliberate violating fixture/example caught by an architecture/complexity guardrail;
-- all packet A/B/C evidence;
-- empty Lot reconciliation;
-- separate Lot Integration Pass;
-- base Lot 0 acceptance criteria green.
+- Latest green verification: **WP-0.1 GitHub Actions run 33794596050 — full npm ci + strict typecheck + Vite production build**
+- Next permitted action: **implement WP-0.2 static quality gates; do not start WP-0.3 until WP-0.2 Pass B/C acceptance**
 
 ## Lot status
 
-| Lot | Name | State |
-|---:|---|---|
-| 0 | Repository & tooling | **IN_PROGRESS** |
-| 1 | Identity/project foundation | NOT_STARTED |
-| 2 | Venues core | NOT_STARTED |
-| 3 | Tasks/decisions/Inbox | NOT_STARTED |
-| 4 | Import/export foundation | NOT_STARTED |
-| 5 | Budget/payments | NOT_STARTED |
-| 6 | Guests/invitations/RSVP/communications/seating | NOT_STARTED |
-| 7 | Vendors/contracts | NOT_STARTED |
-| 8 | Dashboard/planning/timeline/search | NOT_STARTED |
-| 9 | Map/access | NOT_STARTED |
-| 10 | Offline/PWA hardening | NOT_STARTED |
-| 11 | Backup/recovery/providers/production | NOT_STARTED |
-| 12 | Existing data/cutover | NOT_STARTED |
+| Lot | State |
+|---:|---|
+| 0 | **IN_PROGRESS** |
+| 1–12 | NOT_STARTED |
 
-## Cross-lot checkpoints
+## Product Feature counts
 
-| Checkpoint | Lots | State |
-|---|---|---|
-| A | 0–3 | NOT_STARTED |
-| B | 4–7 | NOT_STARTED |
-| C | 8–10 | NOT_STARTED |
-| D | 11–12 | NOT_STARTED |
-
-Lot 0 acceptance does not by itself complete Checkpoint A; Lots 1–3 must also be accepted before that checkpoint.
+- V1 Feature IDs: 120 SPECIFIED
+- IN_PROGRESS: 0
+- IMPLEMENTED: 0
+- VERIFIED: 0
+- INTEGRATED: 0
+- ACCEPTED: 0
+- BLOCKED: 0
 
 ## Current blockers
 
-**Known blockers: 0 at Lot kickoff.**
+**0 open BLOCKING/MAJOR findings.** Runtime/tooling findings are repaired and recorded rather than bypassed.
 
-New runtime/tooling findings must be recorded rather than hidden or bypassed.
-
-## Handoff summary
+## Handoff
 
 ```text
-V1 design: COMPLETE / FROZEN
-Implementation gate: OPEN
-Current Lot: 0 — IN_PROGRESS
-Current Work Packet: WP-0.1
-Current pass: A-IMPLEMENT
-Product Features implemented: 0
-Next action: implement/review/accept WP-0.1; do not start Lot 1
+Current Lot: 0
+Accepted: WP-0.1
+Current: WP-0.2 / IN_PROGRESS / A-IMPLEMENT
+Next: build static architecture/maintainability gates and negative controls
+Lot 1: forbidden until Lot 0 acceptance and explicit future kickoff
 ```
-
-The repository is the canonical handoff. Chat history is supplementary only.
