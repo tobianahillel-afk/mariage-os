@@ -26,20 +26,20 @@ Packets:
 2. `WP-0.2` — static architecture and maintainability gates — **ACCEPTED**;
 3. `WP-0.3` — unit/property/coverage/E2E/mutation harnesses — **ACCEPTED**;
 4. `WP-0.4` — Supabase local / DB security-test foundation — **ACCEPTED**;
-5. `WP-0.5` — CI, preview, secret/dependency security — **IN_PROGRESS**;
-6. `WP-0.6` — Lot integration, adversarial review, reconciliation and acceptance — PLANNED.
+5. `WP-0.5` — CI, preview, secret/dependency security — **ACCEPTED**;
+6. `WP-0.6` — Lot integration, adversarial review, reconciliation and acceptance — **IN_PROGRESS**.
 
 ### Durable cursor
 
 - Current Lot: **0**
 - Lot state: **IN_PROGRESS**
-- Current packet: **WP-0.5**
+- Current packet: **WP-0.6**
 - Packet state: **IN_PROGRESS**
 - Current pass: **A-IMPLEMENT**
-- Accepted packets: **WP-0.1, WP-0.2, WP-0.3, WP-0.4**
+- Accepted packets: **WP-0.1, WP-0.2, WP-0.3, WP-0.4, WP-0.5**
 - Review-failed/blocked packets: **none**
-- Latest green verification: **WP-0.4 exact-head runs 33802976963 (local Supabase reset/seed/direct RLS) and 33802977112 (full packet verification) — SUCCESS**
-- Next permitted action: **implement WP-0.5 CI, preview, secret/dependency security only**
+- Latest green verification: **WP-0.5 exact-head run 33804821176 — Core, local Supabase DB/RLS, browser/mutation and privacy-safe preview all SUCCESS**
+- Next permitted action: **execute WP-0.6 full-verify integration, adversarial review, reconciliation and Lot 0 acceptance only**
 
 ## Lot status
 
@@ -66,8 +66,8 @@ Packets:
 
 ```text
 Current Lot: 0
-Accepted: WP-0.1, WP-0.2, WP-0.3, WP-0.4
-Current: WP-0.5 / IN_PROGRESS / A-IMPLEMENT
-Next: implement and prove clean-checkout CI, environment/secret/dependency safeguards and privacy-safe preview artifact
+Accepted: WP-0.1, WP-0.2, WP-0.3, WP-0.4, WP-0.5
+Current: WP-0.6 / IN_PROGRESS / A-IMPLEMENT
+Next: prove single-command full verify from clean CI, reconcile Lot 0 responsibilities, run independent Lot Integration Pass, then decide Lot acceptance
 Lot 1: forbidden until Lot 0 acceptance and explicit future kickoff
 ```
