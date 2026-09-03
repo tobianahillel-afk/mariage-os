@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-1.1`
 - Lot: `1`
 - Name: Permission catalog and authorization helper foundation
-- State: `REVIEW_PENDING`
-- Current pass: `B-ADVERSARIAL-REVIEW`
+- State: `REVIEW_FAILED`
+- Current pass: `A-IMPLEMENT-REPAIR`
 - Primary bounded context: authorization metadata / permission evaluation foundation
 - Branch/PR: `lot-1/identity-project-foundation`
 
@@ -91,16 +91,42 @@
 
 ## Pass B — ADVERSARIAL REVIEW
 
-In progress. Pass B must independently challenge the security contract, exact role mapping, fail-closed behavior, privilege surface and migration/test evidence rather than relying on the green Pass A CI conclusion.
+### Review result
+
+**FAIL — 2 MAJOR findings.** Green CI is not sufficient for acceptance until both findings are repaired and independently re-reviewed.
+
+### Findings
+
+#### WP1-AR-001 — MAJOR — role matrix is not proven exactly
+
+Normative expectation: `PHYSICAL-SCHEMA-AUTHORIZATION-ADDENDUM.md` requires authorization tests to validate the built-in matrix in `security/ROLE-PERMISSION-MATRIX.md`.
+
+Observed implementation: the migration contains a full mapping, but the direct test only samples a handful of editor/viewer allows and denies. An accidental extra privileged grant, such as `backup.restore` to editor, could pass every current assertion.
+
+Required repair: add exact set-equality evidence for owner, editor and viewer against the complete normative allowed permission sets, proving both missing and extra mappings fail the test.
+
+#### WP1-AR-002 — MAJOR — SECURITY DEFINER search path is wider than necessary
+
+Normative expectation: the authorization addendum requires a safe search path when a `SECURITY DEFINER` helper is required.
+
+Observed implementation: `public.role_has_permission` uses `set search_path = public, pg_temp`. The referenced application tables are already fully qualified, so writable/non-system schemas do not need to be resolvable through the function search path.
+
+Required repair: restrict the helper search path to trusted system scope (for example `pg_catalog`) while preserving fully qualified application object references; verify the function still fails closed and remains non-executable by ordinary client roles.
+
+### Additional hardening required during repair
+
+- explicitly revoke catalog privileges from `PUBLIC` as well as `anon` and `authenticated`, so the migration records the intended default-deny posture rather than relying only on PostgreSQL table defaults;
+- retain exact direct evidence that ordinary client roles cannot invoke the internal role lookup.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started.
+Not started. Forbidden while any Pass B MAJOR finding is open.
 
 ## Handoff
 
-- Current state: `REVIEW_PENDING`
-- Current/next pass: `B-ADVERSARIAL-REVIEW`
-- Last green verification: exact-head run `33809158568`, all five jobs SUCCESS including clean-checkout `npm run verify`.
-- Remaining blocker/finding: none recorded yet; adversarial review is active.
-- Next permitted action: complete independent Pass B, repair any BLOCKING/MAJOR finding, then and only then consider `ACCEPTANCE_PENDING`.
+- Current state: `REVIEW_FAILED`
+- Current/next pass: `A-IMPLEMENT-REPAIR`
+- Last green verification before adversarial findings: run `33809158568`, all five jobs SUCCESS.
+- Remaining blockers/findings: `WP1-AR-001` MAJOR open; `WP1-AR-002` MAJOR open.
+- Next permitted action: repair both findings, rerun affected/full verification, then return WP-1.1 to `REVIEW_PENDING` for a fresh independent Pass B.
+- WP-1.2 remains forbidden.
