@@ -1,456 +1,174 @@
 # Mariage OS — Exact 100% / 300-of-300 Gap Plan
 
-Status: **Normative completion roadmap**
+Status: **Normative maturity roadmap**
 
-Purpose: answer exactly what remains before Mariage OS may honestly claim 100% at each maturity level and eventually `300/300` against `ABSOLUTE-300-CONTROL-CHECKLIST.md`.
+Purpose: define exactly what `100%` means at each maturity level without falsely treating unimplemented behavior as verified.
 
 ## Core rule
 
-There is no single honest “100%” before code exists. The project has five cumulative completion gates:
+Mariage OS has five cumulative completion gates:
 
-1. **Documentation 100%** — no material design ambiguity or unresolved pre-code review blocker.
-2. **Engineering foundation 100%** — Lot 0 turns documented rules into executable CI/tooling/release foundations.
-3. **V1 implementation verification 100%** — Lots 1–11 implement and objectively verify the product.
-4. **V1 production/cutover 100%** — Lot 12 + Checkpoint D prove real-data operation/recovery/device acceptance.
-5. **300/300 / future-major readiness** — all applicable controls have evidence, including a rehearsable V1.x→V2 upgrade path when V2 exists.
+1. **Pre-Lot 0 design 100%** — 36/36 pre-code criteria at 10/10, no unresolved BLOCKING/MAJOR design issue.
+2. **Engineering foundation 100%** — Lot 0 turns design rules into executable tooling/CI/release foundations.
+3. **V1 implementation 100%** — feature lots implement and verify all V1 behavior.
+4. **V1 production/cutover 100%** — real deployment, real-device acceptance and recovery are proven.
+5. **300/300 / future-major 100%** — every applicable control in the absolute checklist has objective evidence, including V1.x→V2 rehearsal once V2 exists.
 
-A lower phase can be 100% while later-phase controls intentionally remain `NOT YET APPLICABLE/PROVABLE`.
-
----
-
-# Gate A — Documentation 100% before Lot 0
-
-These are the only remaining steps that belong to the current documentation phase.
-
-## A1. Final stale-wording / precedence sentry
-
-Current result:
-
-- old unconditional `merge → Lot 0` wording has been removed from governing entry points;
-- old seating/timeline/color deferrals were reconciled;
-- private-first vs public-ready precedence is explicit;
-- agent/engineering/release precedence is explicit;
-- only known sentry string is the historical words `freeze candidate` inside the header of `PHYSICAL-SCHEMA-V1.md`.
-
-Required closure:
-
-- [ ] record that this historical phrase is non-decision-bearing and cannot override the same header's `Normative schema design for implementation`, schema addenda or current gate state;
-- [ ] preferably replace the phrase in a future direct file cleanup with `frozen V1 implementation reference` for literal textual cleanliness;
-- [ ] rerun sentry search after any final doc edit.
-
-Normative ambiguity is already removed by root `AGENTS.md`; literal string cleanup remains desirable for cosmetic 100% consistency.
-
-## A2. Final public-repository privacy/secret scan
-
-Current final-diff evidence:
-
-- changed-file inventory contains text documentation/config only; no wedding XLSX, backup, private photo or production dump;
-- real-name examples found during review (`Hillel`) were removed/replaced with synthetic partner/owner labels;
-- sentry scans currently return no matches for `Hillel`, `Tobiana`, `Gabay`, `ghp_`, `github_pat_`, `AKIA`, `BEGIN PRIVATE KEY`, `AIza` and other tested high-signal token prefixes;
-- `.gitignore` rejects runtime/private imports, exports, backups, env files, keys and dumps.
-
-Required closure:
-
-- [ ] rerun exact final-diff scan against the last HEAD after all documentation edits;
-- [ ] run repository secret scanner in Lot 0 and continuously afterward (documentation-time text search is not a substitute for an executable scanner);
-- [ ] if any real personal/private fixture appears, remove it before merge and regenerate evidence.
-
-## A3. Review threads and PR state
-
-Current evidence:
-
-- all five historical P1 review findings have documented resolutions;
-- branch is based directly on current `main` merge base, ahead with no behind divergence;
-- raw GitHub PR state on audited HEAD reports `mergeable: true`, `mergeable_state: clean`.
-
-Required closure:
-
-- [ ] after the **last** documentation commit, re-read raw PR mergeability once more;
-- [ ] confirm no new unresolved blocking review thread appeared;
-- [ ] record the exact final reviewed HEAD SHA.
-
-## A4. Final Design Review closure
-
-- [ ] close FDR-016 with final sentry evidence / controlled historical-label exception;
-- [ ] close FDR-019 with final privacy/secret scan evidence;
-- [ ] add the version/update/release-system review as resolved design scope;
-- [ ] make all FDR BLOCKING/MAJOR findings `RESOLVED`;
-- [ ] record final reviewed SHA and review date;
-- [ ] mark documentation design review `PASS`, while still stating that Lot 0 starts only after Run 4 merge.
-
-## A5. Merge and canonical main-state transition
-
-- [ ] merge PR #4 Run 4 into `main`;
-- [ ] verify merged `main` contains the reviewed SHA/content;
-- [ ] update `FINAL-DESIGN-REVIEW.md`/status on `main` as required by the frozen gate process;
-- [ ] move `IMPLEMENTATION-STATUS.md` from documentation phase to Lot 0 `READY`;
-- [ ] do **not** mark any feature `IMPLEMENTED` merely because docs merged.
-
-### Documentation 100% definition
-
-Documentation becomes 100% only when A1–A5 are all closed and no unresolved BLOCKING/MAJOR documentation finding remains.
+A lower maturity gate may be 100% while later controls remain intentionally `NOT YET PROVABLE`.
 
 ---
 
-# Gate B — Lot 0 Engineering Foundation 100%
+# Gate A — Pre-Lot 0 design 100%
 
-This is where the current 9.5–9.8 design scores can become **10/10 executable evidence**.
+Authoritative certificate: `PRE-LOT0-36-CRITERIA-CERTIFICATION.md`.
 
-## B1. Reproducible toolchain
+Gate A requires:
 
-- [ ] choose/document maintained Node/npm versions;
-- [ ] create Vite + strict TypeScript no-React skeleton;
-- [ ] commit lockfile;
-- [ ] `npm ci` works from clean clone;
-- [ ] provide `.env.example` with fake placeholders only;
-- [ ] implement environment validation;
-- [ ] provide deterministic `npm run dev`, `npm run test:fast`, `npm run verify`.
+- [x] product mission and V1/post-V1 scope frozen;
+- [x] public-ready multi-tenant core separated from private first deployment policy;
+- [x] complete Feature/Requirement/Acceptance traceability;
+- [x] user flows, UX architecture, screen composition and visual system frozen enough to prevent generic implementation drift;
+- [x] cloud/local/offline/sync/data/invariant contracts explicit;
+- [x] Auth/RLS/security/privacy/file/external-content design explicit;
+- [x] import/export/backup/migration semantics explicit;
+- [x] testing/quality/recovery/operations design explicit;
+- [x] codebase structure, naming, dependency and complexity rules explicit;
+- [x] context-free LLM routing/precedence/handoff explicit;
+- [x] Lots 0–12 and Checkpoints A/B/C/D explicit;
+- [x] release/version/update/V1→V2 architecture explicit;
+- [x] known P1 design-review findings resolved;
+- [x] no unresolved BLOCKING/MAJOR design finding remains;
+- [ ] exact final-HEAD sentry clean;
+- [ ] raw PR mergeability `true/clean` on exact final HEAD;
+- [ ] exact final HEAD sealed in PR metadata;
+- [ ] Run 4 merged;
+- [ ] post-merge gate-state docs updated on `main` to `Lot 0 = READY / NOT_STARTED`.
 
-## B2. Canonical physical architecture
-
-- [ ] implement canonical `src/`, `tests/`, `supabase/` directories;
-- [ ] implement import/path aliases only if they preserve boundaries;
-- [ ] create composition-root convention;
-- [ ] create representative empty/skeleton domain/application/infrastructure/UI ownership paths;
-- [ ] document exceptions if platform configuration requires special roots.
-
-## B3. Automated maintainability enforcement
-
-- [ ] formatter;
-- [ ] ESLint/static rules;
-- [ ] dependency-layer enforcement;
-- [ ] circular-dependency detector;
-- [ ] source-file max/review thresholds;
-- [ ] function-length thresholds;
-- [ ] cyclomatic complexity threshold;
-- [ ] nesting/parameter threshold where tooling is reliable;
-- [ ] dead-code/unused import checks;
-- [ ] tracked/forbidden TODO/FIXME/HACK/TEMP checks;
-- [ ] forbid vague dumping-ground production modules by review/static convention.
-
-## B4. Test harnesses
-
-- [ ] Vitest/unit harness;
-- [ ] property-test library/harness;
-- [ ] 100%-gate coverage config for defined in-scope business code;
-- [ ] mutation-test harness;
-- [ ] Playwright/browser harness;
-- [ ] accessibility automation;
-- [ ] performance/reference-data harness;
-- [ ] deterministic synthetic fixtures/golden project.
-
-## B5. Supabase / DB / RLS harness
-
-- [ ] local Supabase configuration;
-- [ ] migration directory and clean-reset procedure;
-- [ ] deterministic synthetic projects/users/roles seed;
-- [ ] direct DB constraint tests;
-- [ ] RLS allow/deny/adversarial harness;
-- [ ] migration-from-zero test;
-- [ ] historical migration fixture architecture.
-
-## B6. Local/PWA/update harness
-
-- [ ] IndexedDB schema/version harness;
-- [ ] local migration fixture harness;
-- [ ] pending-mutation preservation fixtures;
-- [ ] service-worker/PWA test harness;
-- [ ] version/release manifest generator;
-- [ ] app/backend compatibility test helper;
-- [ ] old-client/update-required test fixture;
-- [ ] multi-tab update/migration test strategy.
-
-## B7. Pull-request CI
-
-- [ ] clean install job;
-- [ ] format/lint/typecheck;
-- [ ] architecture/complexity job;
-- [ ] unit/property/coverage;
-- [ ] DB/RLS;
-- [ ] local migration;
-- [ ] security/secret/dependency scans;
-- [ ] import/backup/offline jobs when affected;
-- [ ] browser/accessibility/build jobs;
-- [ ] docs/traceability/staleness checks;
-- [ ] version/schema-impact validator;
-- [ ] privacy-safe preview deployment.
-
-## B8. GitHub / environment governance
-
-- [ ] protect `main` appropriately;
-- [ ] create/protect production release ref/branch strategy;
-- [ ] configure required status checks once workflows exist;
-- [ ] configure least-privilege Actions permissions;
-- [ ] create protected staging/production environments;
-- [ ] keep production credentials only in protected environment secrets;
-- [ ] ensure forks/untrusted PRs cannot receive them;
-- [ ] configure release/deployment concurrency lock.
-
-## B9. Release-pipeline skeleton
-
-- [ ] immutable release artifact/manifest from exact SHA;
-- [ ] SemVer consistency checker;
-- [ ] release-plan validator;
-- [ ] staging migration workflow skeleton;
-- [ ] staging exact-candidate deployment;
-- [ ] production migration gate workflow;
-- [ ] protected production-ref promotion step;
-- [ ] Cloudflare production deployment wiring;
-- [ ] post-deployment smoke hook;
-- [ ] release-status/evidence artifact.
-
-## B10. Lot 0 acceptance
-
-- [ ] fresh clone passes bootstrap without production credentials;
-- [ ] complete `verify` from clean state is green;
-- [ ] preview pipeline is green;
-- [ ] synthetic migration/RLS/security smoke is green;
-- [ ] release manifest is generated and validated;
-- [ ] update/PWA harness can simulate previous→current build;
-- [ ] no production wedding feature/data required yet;
-- [ ] Lot 0 checkpoint evidence is committed and status updated.
-
-### Engineering foundation 100% definition
-
-Gate B is 100% only when the documented engineering rules are executable and failing rules block CI instead of relying on memory/review prose alone.
+The last five items are administrative/SHA-specific closure and do not require or permit Lot 0 implementation work.
 
 ---
 
-# Gate C — V1 Implementation / Lots 1–11 100%
+# Gate B — Lot 0 engineering foundation 100%
 
-For every Feature ID, repeat the same lifecycle instead of treating this as one giant checklist.
+Lot 0 must implement, execute and enforce the rules already designed.
 
-## C1. Before feature implementation
+Required proof includes:
 
-- [ ] Feature ID/status/lot correct;
-- [ ] FIR complete;
-- [ ] Requirements/Acceptance/User Flow linked;
-- [ ] UX route/blueprint known;
-- [ ] domain entities/invariants known;
-- [ ] cloud/local ownership known;
-- [ ] offline/sync classification known;
-- [ ] permission/RLS/security impact known;
-- [ ] migration/import/backup impact known;
-- [ ] affected cross-feature/read-model interfaces known;
-- [ ] test strategy known;
-- [ ] no unresolved semantic TBD.
+- clean reproducible Vite + strict TypeScript bootstrap;
+- committed lockfile and clean `npm ci`;
+- lint/format/typecheck;
+- automated architecture/dependency/cycle rules;
+- file/function/complexity/TODO/dead-code guardrails;
+- unit/property/coverage/mutation/Playwright/accessibility/performance harnesses;
+- local Supabase reset/migration/constraint/RLS test harness;
+- IndexedDB schema/migration/pending-operation harness;
+- PWA/service-worker/update compatibility harness;
+- secret/dependency/static security scanning;
+- privacy-safe preview deployment;
+- immutable release manifest/version consistency;
+- staging/production release-workflow skeleton with migration-before-dependent-frontend sequencing;
+- protected environment/least-privilege design translated into repository configuration where available;
+- full clean verification green from fresh clone.
 
-## C2. During implementation
-
-- [ ] smallest coherent vertical slice;
-- [ ] domain/application/infrastructure/UI boundaries respected;
-- [ ] code-size/complexity rules stay green;
-- [ ] migrations are versioned;
-- [ ] local changes preserve pending work;
-- [ ] no duplicated business truth;
-- [ ] security deny paths implemented alongside allow paths;
-- [ ] mobile/desktop/error/offline/conflict states implemented;
-- [ ] docs/FIR/Feature Ledger evolve with implementation.
-
-## C3. Feature verification
-
-- [ ] unit/domain;
-- [ ] boundary/error;
-- [ ] property/mutation where applicable;
-- [ ] integration;
-- [ ] DB constraints/RLS allow+deny;
-- [ ] security/adversarial;
-- [ ] IndexedDB/local migration;
-- [ ] offline/sync/conflict;
-- [ ] import/export/migration/backup where applicable;
-- [ ] E2E;
-- [ ] accessibility;
-- [ ] performance/reference data;
-- [ ] desktop/mobile visual review;
-- [ ] full `verify` green;
-- [ ] feature status moves through `VERIFIED`→`INTEGRATED`→`ACCEPTED` only with evidence.
-
-## C4. Cross-feature integration
-
-For every material change verify affected:
-
-- [ ] Dashboard;
-- [ ] Search;
-- [ ] Inbox;
-- [ ] activity/history;
-- [ ] missing-information engine;
-- [ ] budget/scenarios;
-- [ ] guest/capacity/seating;
-- [ ] planning/progress/next action;
-- [ ] timeline;
-- [ ] imports/exports/backups;
-- [ ] permissions/RLS;
-- [ ] offline/cache/sync;
-- [ ] Settings/Diagnostics;
-- [ ] mobile/desktop representations.
-
-## C5. Mandatory checkpoints
-
-- [ ] Checkpoint A after Lots 0–3;
-- [ ] Checkpoint B after Lots 4–7;
-- [ ] Checkpoint C after Lots 8–10;
-- [ ] production-readiness review during Lot 11;
-- [ ] rerun 300-control applicable subset and scorecard at each checkpoint;
-- [ ] zero unresolved BLOCKING/MAJOR before dependent group continues.
-
-### V1 implementation 100% definition
-
-All V1 Feature IDs through production-readiness scope are accepted, all elapsed-lot requirements objectively verified, and Checkpoints A/B/C pass.
+Gate B is 100% only when failure of these rules blocks CI instead of depending on developer memory.
 
 ---
 
-# Gate D — V1 Production / Real-data Cutover 100%
+# Gate C — V1 implementation 100%
 
-## D1. Production release infrastructure
+For every V1 Feature ID:
 
-- [ ] actual staging and protected production environments configured;
-- [ ] production migration credentials safely installed;
-- [ ] production ref/Cloudflare deployment integrated;
-- [ ] release lock tested;
-- [ ] migration failure stops frontend promotion;
-- [ ] production smoke executes automatically;
-- [ ] monitoring/diagnostics observation works;
-- [ ] compatible frontend rollback is tested.
+1. identify Feature/Requirement/Acceptance/User Flow IDs;
+2. complete/update its FIR;
+3. implement the smallest coherent vertical slice;
+4. preserve domain/application/infrastructure/UI boundaries;
+5. implement cloud/local/offline/security behavior together;
+6. add migrations and compatibility handling where required;
+7. prove unit/boundary/property/mutation/integration/RLS/security/offline/import/backup/E2E/accessibility/performance behavior as applicable;
+8. reconcile Dashboard/Search/Inbox/history/budget/planning/timeline/settings/mobile/desktop/read-model impacts;
+9. move lifecycle status only with evidence;
+10. pass the relevant integration checkpoint.
 
-## D2. Real-data migration/reconciliation
+Mandatory checkpoints:
 
-- [ ] venue research migrated/reconciled;
-- [ ] guest spreadsheet migrated/reconciled;
-- [ ] vendor data migrated/reconciled;
-- [ ] budget/guest/statistics independently reconciled;
-- [ ] provenance retained;
-- [ ] no stronger evidence silently overwritten;
-- [ ] legacy sources archived/read-only after cutover.
+- Checkpoint A after Lots 0–3;
+- Checkpoint B after Lots 4–7;
+- Checkpoint C after Lots 8–10;
+- production-readiness review through Lot 11.
 
-## D3. Security/identity readiness
-
-- [ ] two independent owner accounts;
-- [ ] MFA configured/tested;
-- [ ] recovery tested;
-- [ ] complete RLS/Storage tenant evidence;
-- [ ] no production secret/private data in Git/CI artifacts;
-- [ ] production headers/CSP/security posture reviewed.
-
-## D4. Recovery
-
-- [ ] final full `.mariage` backup produced;
-- [ ] integrity/encryption verified;
-- [ ] restore drill into safe target succeeds;
-- [ ] historical migration tests remain green;
-- [ ] incident/recovery procedure usable without chat memory.
-
-## D5. Owner/device acceptance
-
-- [ ] both partners complete critical workflows on their real supported devices;
-- [ ] mobile/desktop PWA/update flows accepted;
-- [ ] offline/reconnect accepted;
-- [ ] imports/exports and recovery understood;
-- [ ] major usability/blocking defects closed.
-
-## D6. Checkpoint D
-
-- [ ] all 300 controls applicable to V1 production evaluated;
-- [ ] no unresolved BLOCKING/MAJOR;
-- [ ] final cutover report PASS;
-- [ ] source-of-truth declaration made only then.
-
-### V1 production 100% definition
-
-Mariage OS is the operational source of truth only after Gate D passes. Before it, legacy spreadsheets/research remain authoritative.
+No dependent lot continues with unresolved BLOCKING/MAJOR checkpoint findings.
 
 ---
 
-# Gate E — V1.x → V2 / Future Major-Version 100%
+# Gate D — V1 production/cutover 100%
 
-This gate becomes applicable when an actual V2 scope exists.
+Required proof includes:
 
-## E1. V2 product delta
-
-- [ ] V2 specification approved;
-- [ ] V1→V2 scope delta explicit;
-- [ ] every V1 feature classified unchanged/changed/deprecated/replaced/removed;
-- [ ] historical IDs retained rather than rewritten;
-- [ ] V2 requirements/acceptance added;
-- [ ] user migration/communication impact defined.
-
-## E2. Cross-layer migration design
-
-- [ ] PostgreSQL/RLS/RPC V1.x→V2;
-- [ ] IndexedDB V1.x→V2;
-- [ ] pending sync-operation V1.x→V2;
-- [ ] canonical import V1.x→V2;
-- [ ] `.mariage` backup V1.x→V2;
-- [ ] persisted settings/preferences V1.x→V2;
-- [ ] service-worker/cache V1.x→V2;
-- [ ] every changed route/interface state V1→V2;
-- [ ] minimum safe client/forced-update boundary.
-
-## E3. Historical upgrade tests
-
-- [ ] fresh V2 install;
-- [ ] V1.0.x→V2 where supported;
-- [ ] V1.1.x→V2;
-- [ ] latest V1.x→V2;
-- [ ] skipped intermediate frontend versions;
-- [ ] old pending offline mutations;
-- [ ] V1 backup restore into V2;
-- [ ] V1 import fixtures into V2;
-- [ ] downgrade/old-client incompatible path safely blocked.
-
-## E4. UI-wide V2 reconciliation
-
-- [ ] Dashboard;
-- [ ] Search;
-- [ ] Inbox;
-- [ ] Venues;
-- [ ] Vendors;
-- [ ] Guests;
-- [ ] Seating;
-- [ ] Budget;
-- [ ] Tasks;
-- [ ] Decisions;
-- [ ] Planning;
-- [ ] Timeline;
-- [ ] Documents;
-- [ ] Map;
-- [ ] Import/export;
-- [ ] Settings/Diagnostics;
-- [ ] mobile/tablet/desktop;
-- [ ] loading/error/offline/conflict/update-required states;
-- [ ] accessibility/help/release notes.
-
-## E5. V2 rehearsal / release
-
-- [ ] representative complete synthetic V1 project upgraded in place in staging;
-- [ ] exact production-like migration rehearsal;
-- [ ] backup/recovery rehearsal;
-- [ ] major security/threat-model review;
-- [ ] complete UX/accessibility/performance review;
-- [ ] V2 release plan PASS;
-- [ ] production expand/migrate/promote sequence;
-- [ ] V2 post-release monitoring HEALTHY;
-- [ ] irreversible V1 cleanup delayed until proven safe.
-
-### V2-upgrade 100% definition
-
-A future V2 is 100% migration-ready only when a supported V1 project, local state, pending work and backup can be upgraded with objective evidence and without silent data loss.
+- protected production deployment path operational;
+- migration failure blocks dependent frontend promotion;
+- release lock/concurrency protection works;
+- post-deployment smoke/health observation works;
+- compatible rollback/forward-fix procedure tested;
+- real existing wedding data imported/reconciled without silent loss of provenance or stronger evidence;
+- two owner identities/MFA/recovery accepted;
+- production RLS/Storage isolation evidence complete;
+- verified encrypted backup and restore drill;
+- both owners complete critical workflows on supported real devices;
+- offline/reconnect/update behavior accepted;
+- Checkpoint D PASS;
+- only then is Mariage OS declared operational source of truth.
 
 ---
 
-# The exact score interpretation
+# Gate E — 300/300 and V1.x→V2
 
-Do **not** average an unimplemented control into a fake 100.
+This becomes fully applicable once V2 has an approved product scope.
 
-Use these states per control:
+V2 requires:
 
-- `PASS — documented design evidence` (pre-code design control);
-- `PASS — automated evidence`;
-- `PASS — manual/device evidence`;
-- `N/A — genuinely not applicable with reason`;
-- `NOT YET PROVABLE — later phase`;
-- `FAIL`;
-- `BLOCKED`.
+- explicit V1→V2 product delta;
+- every V1 feature classified `unchanged`, `changed`, `deprecated`, `replaced` or `removed`;
+- historical IDs preserved;
+- PostgreSQL/RLS/RPC migration path;
+- IndexedDB migration path;
+- pending offline-operation migration path;
+- canonical import and `.mariage` backup migration path;
+- persisted settings/preferences migration path;
+- Service Worker/cache migration path;
+- minimum-safe-client / forced-update boundary;
+- reconciliation of all changed UI surfaces and read models;
+- historical upgrade fixtures for supported V1.x versions;
+- skipped-version upgrade tests;
+- V1 backup restore into V2;
+- old incompatible client safely prevented from unsafe writes;
+- production rehearsal using a complete synthetic V1 project upgraded to V2;
+- full 300-control applicable set re-evaluated with objective evidence.
 
-Numerical score for a phase is 100% only when every control required **for that phase** is `PASS` or justified `N/A`, with zero `FAIL/BLOCKED/NOT YET PROVABLE` among phase-required controls.
+A major version is a migration program, not one ordinary feature PR.
 
-The final product-level `300/300` claim requires every applicable `C001..C300` to have its final required evidence, not merely documentation.
+---
+
+# How the 300 controls are used
+
+`ABSOLUTE-300-CONTROL-CHECKLIST.md` is the durable control inventory.
+
+For each control use one state:
+
+- `PASS — evidence linked`;
+- `FAIL — remediation required`;
+- `NOT YET PROVABLE — assigned to future gate`;
+- `NOT APPLICABLE — rationale documented`.
+
+Rules:
+
+- documentation prose alone is not evidence for a runtime control;
+- a green happy-path UI is not evidence for security, data integrity or recovery;
+- any BLOCKING/MAJOR defect overrides numerical completion percentages;
+- every checkpoint reruns the controls whose evidence could have changed;
+- a control can regress from PASS to FAIL after a later change and must be treated accordingly.
+
+## Current state
+
+**Gate A design content: 36/36 = 100%.**
+
+The remaining pre-Lot 0 work is only the exact-HEAD sentry/merge seal, Run 4 merge and post-merge status transition. None of that starts Lot 0.
