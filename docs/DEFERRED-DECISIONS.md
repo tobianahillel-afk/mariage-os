@@ -2,9 +2,9 @@
 
 Status: **Normative implementation-choice register**
 
-This file lists choices intentionally left to named implementation lots. Anything already fixed by the frozen V1 product/domain/security/visual contracts must not be reinterpreted as deferred.
+This file lists choices intentionally left to named implementation lots or future public activation. Anything already fixed by the frozen V1 product/domain/security/public-readiness contracts must not be reinterpreted as deferred.
 
-A deferred implementation choice may change mechanism, not product/data/security/UX/visual semantics.
+A deferred implementation choice may change mechanism, not product/data/security semantics.
 
 ## Lot 0
 
@@ -26,26 +26,18 @@ Choose exact scripts/commands for migrations, seed and isolated test reset.
 Choose native IndexedDB vs a small maintained wrapper based on transaction ergonomics, migrations, bundle size, typing and maintenance/security. Repository/local-first abstractions and frozen local-data semantics must remain unchanged.
 
 ### Auth UX mechanism
-Choose the current supported Supabase browser-safe sign-in UX (for example password and/or provider-supported email flow) while preserving controlled single-couple bootstrap, identity-bound invitation, MFA and recovery rules.
+Choose the current supported Supabase browser-safe sign-in UX (for example password and/or provider-supported email flow) while preserving controlled private bootstrap, identity-bound invitation, MFA/recovery, project membership separation and future public-readiness rules.
 
 ### Session configuration
 Choose concrete ordinary-session values compatible with provider capability and usability. Critical operations still require recent/strong authentication.
 
 ## UI implementation
 
-### Font stack
-Choose the exact accessible/licensed type families that implement the frozen two-role typography direction in `VISUAL-IDENTITY.md`/`DESIGN-SYSTEM.md`. No proprietary font dependency is required for correct operation.
-
-### Color palette
-**Not deferred:** V1 color architecture, neutral foundation, brand family, domain accents and semantic roles are frozen in `docs/ux/COLOR-SYSTEM.md`.
-
-Implementation may create additional tonal derivatives only when they preserve the frozen hue/role relationship and pass accessibility review. It may not replace the palette with a simpler one-accent theme without reviewed visual/spec change.
+### Typography stack
+Choose the exact accessible UI/display font stack within `VISUAL-IDENTITY.md` and `DESIGN-SYSTEM.md`. Palette/domain color architecture is **not deferred**; it is frozen by `COLOR-SYSTEM.md`.
 
 ### Data-table implementation
 Start semantic/simple. Add virtualization only if measured performance budgets require it.
-
-### Motion implementation mechanism
-The behavior and reduced-motion semantics in `docs/ux/MOTION-INTERACTION.md` are frozen. Exact CSS/Web Animations/View Transition implementation details may use progressive enhancement and browser support as appropriate without changing the interaction meaning.
 
 ### Seating presentation
 **Not deferred:** structured seating sections/tables/assignments are V1.
@@ -84,6 +76,38 @@ Implement only provider usage values that can be safely and accurately measured.
 
 The backup format, authenticated encryption semantics and algorithm/KDF parameter storage are frozen. Implementation may benchmark device UX and choose supported runtime tuning only within the versioned format/security contract; any algorithm/format change requires explicit version/spec review.
 
+## Public SaaS activation — deliberately post-V1
+
+The **public-facing activation work** is deferred, but **public-ready core architecture is not deferred**.
+
+Deferred public product/operations work includes:
+
+- public self-service signup UI;
+- public project-provisioning control plane;
+- Turnstile/CAPTCHA rollout for public Auth flows;
+- public provisioning/invite anti-abuse limits;
+- production transactional SMTP suitable for public scale;
+- public Privacy Policy/Terms/consent capture;
+- public marketing/help site beyond private deployment needs;
+- project chooser UI for multi-project users;
+- public account lifecycle/support flows;
+- entitlement/plan UI and future billing integration;
+- public observability/abuse/support operations;
+- public-launch capacity/commercial tier decisions.
+
+Not deferred and required in private V1 architecture/tests:
+
+- multi-project-capable schema;
+- one user may belong to multiple synthetic projects;
+- project-scoped routes/services/local state;
+- project-membership RLS;
+- same-project referential integrity;
+- Storage/Realtime tenant isolation;
+- deployment-policy provisioning abstraction;
+- public/private SEO boundary;
+- `PUB-*` regression tests at checkpoints;
+- no single-couple assumptions in core domain code.
+
 ## Explicitly post-V1
 
 - graphical drag/drop seating canvas and automatic seating optimization;
@@ -96,8 +120,9 @@ The backup format, authenticated encryption semantics and algorithm/KDF paramete
 - internal messaging;
 - native App Store/Play Store app;
 - banking/payment integration;
-- automated email sending;
-- full calendar-provider synchronization.
+- automated ordinary wedding email sending;
+- full calendar-provider synchronization;
+- public self-service SaaS activation listed above.
 
 ## Not allowed as “implementation discretion”
 
@@ -106,7 +131,9 @@ The following are **not** deferred:
 - V1 feature boundary;
 - project isolation/RLS;
 - same-project referential integrity;
-- controlled single-couple bootstrap;
+- public-ready multi-tenant core;
+- project-scoped authenticated routes/context;
+- controlled private provisioning policy;
 - invitation security semantics;
 - local pending-edit durability;
 - logout safe-purge semantics;
@@ -121,9 +148,7 @@ The following are **not** deferred:
 - event timeline structured data;
 - contract version/readiness semantics;
 - portable backup/recovery requirements;
-- visual thesis and multi-color domain architecture;
-- semantic/domain color separation;
-- visual/UX acceptance gates.
+- frozen color/domain visual architecture.
 
 ## Closing a deferred item
 
@@ -131,5 +156,7 @@ When a choice is made:
 
 1. record it in code/config or ADR if architectural;
 2. update/remove this item;
-3. add relevant tests/review evidence;
+3. add relevant tests;
 4. verify no normative requirement is weakened.
+
+Before public self-service activation, `operations/PUBLIC-LAUNCH-GATE.md` must pass; merely deleting public items from this file is not sufficient authorization.
