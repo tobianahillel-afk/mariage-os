@@ -76,6 +76,8 @@ Any older text that classified guest portal/automatic email as post-V1 is supers
 5. `engineering/LLM-TASK-ROUTING.md`
 6. only the governing contracts for the specific task.
 
+If the request is `Do/Fais Lot N`, additionally read `engineering/AI-LOT-ORCHESTRATION.md` before implementation.
+
 Do not load the entire documentation corpus by default.
 
 ### Human product/design onboarding
@@ -93,6 +95,26 @@ Read:
 ---
 
 ## 4. Task routing
+
+### Whole-Lot implementation
+
+A user may simply request `Do Lot N` / `Fais le Lot N`.
+
+The agent then owns the internal decomposition. Read:
+
+1. `engineering/AI-LOT-ORCHESTRATION.md`
+2. `engineering/IMPLEMENTATION-PLAYBOOK.md`
+3. `engineering/DEFINITION-OF-DONE.md`
+4. `roadmap/LOTS.md`
+5. base + applicable addendum Lot acceptance contracts
+6. both Feature Ledgers
+7. `templates/WORK-PACKET-RECORD.md`.
+
+Do not treat the entire Lot as one AI context. Required execution is:
+
+`inventory → Work Packets → Pass A Implement → Pass B adversarial review → Pass C acceptance → Lot reconciliation → Lot Integration Pass → Lot acceptance → Checkpoint if applicable`.
+
+The user does not need to request individual Work Packets.
 
 ### Product / feature
 
@@ -194,6 +216,7 @@ A V2 migration must account for guest-link schema, campaign/history, webhook com
 - Multi-tenant/public-ready architecture cannot be weakened for the private deployment.
 - The frozen multi-color visual system cannot be simplified into a generic one-accent admin theme.
 - Code architecture/naming/complexity rules cannot be ignored for speed.
+- A whole Lot cannot be executed as one uncontrolled AI pass; Work Packet planning/review/reconciliation is mandatory.
 
 ---
 
@@ -230,7 +253,8 @@ QIF evidence is reviewed again at Checkpoint B and final cutover.
 
 - Product/scope: frozen manifest + product spec/addenda + current V1 scope.
 - Feature inventory: both Feature Ledger files.
-- Development progress/gate: `roadmap/IMPLEMENTATION-STATUS.md`.
+- Development progress/gate/current packet: `roadmap/IMPLEMENTATION-STATUS.md`.
+- AI whole-Lot execution: `engineering/AI-LOT-ORCHESTRATION.md`.
 - UX/visual: `ux/VISUAL-SYSTEM.md` + governing UX/blueprint contracts.
 - Security: `security/README.md` reading graph.
 - Code organization: engineering structure/complexity/coding standards.
@@ -262,18 +286,22 @@ Do not pick silently.
 
 The implementation gate/status is whatever `roadmap/IMPLEMENTATION-STATUS.md` currently says.
 
-When a lot is explicitly started:
+When a Lot is explicitly started:
 
-1. identify eligible Feature IDs;
-2. create/update FIR;
-3. identify routes/jobs/data/security/offline/provider impacts;
-4. implement smallest coherent vertical slice;
-5. respect code/layer/complexity limits;
-6. add required tests/evidence;
-7. update Feature Ledgers/status;
-8. perform lot acceptance;
-9. perform mandatory checkpoints after defined lot groups;
-10. leave durable handoff in Git.
+1. inventory every current-lot Feature/control responsibility from both ledgers + Lot contracts;
+2. create dependency-aware bounded Work Packets and prove coverage is complete;
+3. persist current Lot/packet/pass/next action;
+4. execute one packet at a time by default;
+5. run each packet through Pass A Implement, Pass B adversarial review, Pass C acceptance;
+6. maintain FIR + Work Packet Records;
+7. implement vertical slices with correct code/data/security/offline ownership;
+8. run required tests/evidence and code-quality gates;
+9. update Feature Ledgers/status continuously;
+10. after all packets, make `required - accepted/evidenced = ∅`;
+11. run a separate Lot Integration Pass;
+12. perform base + addendum Lot acceptance;
+13. perform mandatory checkpoints after defined lot groups;
+14. leave durable handoff in Git.
 
 This documentation does not itself start Lot 0.
 
@@ -305,7 +333,10 @@ For a guest:
 For a context-free developer/LLM:
 
 - task ownership/priority/lot is discoverable;
+- whole-Lot requests are automatically decomposed safely;
+- current packet/pass is resumable from repository state;
 - governing docs are routed;
 - implementation boundaries are explicit;
 - missing semantics trigger a stop rather than invention;
+- Lot completion is mechanically reconciled rather than inferred from impression;
 - status/evidence can be resumed from Git alone.
