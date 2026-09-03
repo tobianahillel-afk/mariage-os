@@ -64,7 +64,7 @@ Planning complexity: **9/10**. Cohesion rationale: the three catalog tables, map
 
 ### WP-1.2 — Core tenancy schema, membership and RLS baseline
 
-State: **IN_PROGRESS**
+State: **ACCEPTED**
 
 Scope:
 - `profiles`, `projects`, `project_members`;
@@ -74,11 +74,13 @@ Scope:
 - same-project candidate keys/integrity foundation;
 - synthetic projects A/B/C, multi-project member, outsider and revoked member direct tests.
 
+Acceptance evidence: run `33811568440` on `fa96228bcd8a0b7671fcb561f8f7668eaf5851dc`, all five jobs SUCCESS; Pass B expanded direct grant/RLS denial evidence and closed `WP12-AR-001` before acceptance.
+
 Planning complexity: **9/10**. Cohesion rationale: project row, canonical membership relationship and RLS helper must land atomically to avoid an unprotected intermediate tenancy model.
 
 ### WP-1.3 — Supabase Auth/session and controlled first-owner provisioning
 
-State: `PLANNED`
+State: **ACCEPTED**
 
 Scope:
 - browser-safe Supabase Auth adapter/application boundary;
@@ -88,11 +90,13 @@ Scope:
 - unrelated-user project creation denial;
 - recent-auth/MFA assurance hook for later privileged commands.
 
+Acceptance evidence: run `33817932867` on `707b1384fbd370fe88ef7a87ac191aa9645f6db3`, all five jobs SUCCESS including clean-checkout `npm run verify`; Pass B closed `WP13-AR-001` (malformed provider project-ID trust) and `WP13-AR-002` (password minimum hardened to 14).
+
 Planning complexity: **8/10**.
 
 ### WP-1.4 — Partner invitation and protected membership lifecycle
 
-State: `PLANNED`
+State: **IN_PROGRESS**
 
 Scope:
 - `project_invitations`;
@@ -173,12 +177,12 @@ Planning complexity: **7/10**.
 ```text
 WP-1.1 [ACCEPTED]
   ↓
-WP-1.2 [IN_PROGRESS]
-  ├─→ WP-1.3 → WP-1.4
-  ├─→ WP-1.5 → WP-1.6
-  └─→ WP-1.7 → WP-1.8
-              ↘
-                WP-1.9
+WP-1.2 [ACCEPTED]
+  ├─→ WP-1.3 [ACCEPTED] → WP-1.4 [IN_PROGRESS]
+  ├─→ WP-1.5 [PLANNED] → WP-1.6 [PLANNED]
+  └─→ WP-1.7 [PLANNED] → WP-1.8 [PLANNED]
+                              ↘
+                                WP-1.9 [PLANNED]
 ```
 
 Execution remains sequential by default despite independent branches in the dependency graph, so only one packet is `IN_PROGRESS` at a time.
