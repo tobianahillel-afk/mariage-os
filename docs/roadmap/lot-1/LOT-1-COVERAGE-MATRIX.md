@@ -1,0 +1,193 @@
+# Lot 1 — Coverage Matrix and Work Packet Plan
+
+Status: **IN_PROGRESS — user explicitly kicked off Lot 1 on 2026-09-03**
+
+Purpose: decompose Lot 1 into bounded, dependency-aware Work Packets before production implementation, as required by `docs/engineering/AI-LOT-ORCHESTRATION.md`.
+
+## Lot 1 goal
+
+Establish identity, project tenancy and secure collaboration foundations that every later feature must reuse: Supabase Auth, controlled private bootstrap, partner invitation, permission-based authorization, RLS/same-project integrity, protected/public route separation, local project partitioning, sync/session primitives, Storage isolation and security/onboarding hooks.
+
+Lot 1 must remain multi-project/public-ready by construction even though the first real deployment is one couple.
+
+## Required Feature/current-lot responsibilities
+
+| Required item | Owning Feature/control | Packet(s) | Dependencies | Final evidence |
+|---|---|---|---|---|
+| centralized migration-controlled permission catalog and role mapping | FTR-002..012 cross-cutting, AUTHZ-002/003/004 | WP-1.1 | Lot 0 DB harness | direct SQL catalog/helper tests |
+| permission helper fails closed and never trusts client role | AUTHZ-001..004 | WP-1.1 | permission catalog | direct allow/deny SQL tests |
+| profiles/projects/project_members schema and active membership foundation | FTR-002, FTR-003, FTR-004 | WP-1.2 | WP-1.1 | clean migration + RLS allow/deny |
+| project isolation and same-project relational integrity baseline | AUTHZ-001/005/006/007/008/018/020, Lot acceptance | WP-1.2, WP-1.5, WP-1.9 | WP-1.1 | cross-project CRUD/reference denial tests |
+| controlled first-owner private provisioning | FTR-002 | WP-1.3 | WP-1.2 | one-time atomic bootstrap + unrelated-user deny |
+| verified Supabase Auth/session integration and recovery-compatible boundary | FTR-003 | WP-1.3, WP-1.8 | WP-1.2 | auth/session tests + protected route E2E |
+| MFA/recent-auth foundation for privileged operations, production enrollment deferred to cutover evidence where specified | FTR-005 Lot 1 responsibility | WP-1.3, WP-1.8 | Auth integration | assurance/guard tests and setup diagnostics |
+| secure identity-bound partner invitation and idempotent acceptance | FTR-004 | WP-1.4 | WP-1.2, WP-1.3 | wrong identity/replay/expiry/revoke tests |
+| final active owner invariant and protected membership mutation | FTR-004, AUTHZ-014 | WP-1.4 | WP-1.2 | direct DB/RPC tests |
+| project locale/timezone/currency/settings foundation | FTR-006 | WP-1.5 | WP-1.2 | persistence/RLS tests |
+| candidate wedding dates with atomic selected date | FTR-007 | WP-1.5 | WP-1.2 | invariant/transaction tests |
+| reference origins foundation | FTR-008 Lot 1 responsibility | WP-1.5 | WP-1.2 | structured persistence + project isolation |
+| personal cross-device preferences foundation | FTR-012 Lot 1 responsibility | WP-1.5, WP-1.7 | WP-1.2 | author-only/project-scoped tests |
+| Invitations & RSVP onboarding/settings intent hooks only | FTR-119 Lot 1 responsibility | WP-1.5, WP-1.6 | WP-1.2 | settings model + defer/manual intent UI tests |
+| protected `/app/p/:projectId/**` shell/navigation/deep-link trust boundary | FTR-009 | WP-1.6 | WP-1.3 | route E2E member/outsider/session states |
+| distinct public `/rsvp/:token` shell/capability boundary without project membership/provider implementation | FTR-119 cross-cutting addendum | WP-1.6 | WP-1.3 | route/security boundary tests |
+| repository/service/domain boundaries for project-scoped data | Lot acceptance, architecture controls | WP-1.7 | WP-1.2 | architecture/static tests + repository contract tests |
+| local account+project partitioning and no cross-project cache display | FTR-010, FTR-011, FTR-012, AUTHZ-017 | WP-1.7 | WP-1.2 | local partition tests |
+| operation IDs/revisions/sync indicator primitives | FTR-010 | WP-1.7 | Lot 0 harness | unit/property/integration tests |
+| session-expiry preserves pending work but blocks cloud sync until reauth+membership validation | FTR-003, FTR-011 | WP-1.8 | WP-1.7 | session-expiry/pending-work tests |
+| safe explicit logout resolves pending work then purges private cache | FTR-011 | WP-1.8 | WP-1.7 | logout/purge E2E/integration tests |
+| diagnostics/security setup shell | Lot acceptance, FTR-005 | WP-1.8 | WP-1.3 | diagnostics/setup UI tests |
+| project-scoped Storage isolation foundation | AUTHZ-013, Lot acceptance | WP-1.9 | WP-1.2 | direct Storage allow/deny tests |
+| Realtime/project subscription isolation foundation where exposed | AUTHZ-013 | WP-1.9 | WP-1.2 | direct subscription/policy evidence or explicit non-exposure proof |
+| synthetic public-ready matrix: projects A/B/C, multi-project user, outsider, revoked member, owner/editor/viewer | AUTHZ-018 | WP-1.1, WP-1.2, WP-1.9 | Lot 0 seed harness | deterministic direct security tests |
+| synthetic two-owner end-to-end identity/project flow | Lot acceptance | WP-1.3, WP-1.4, WP-1.6, WP-1.8 | prior packets | Playwright E2E |
+| no provider SDK/secret introduced into UI/domain; no guest capability grants membership | Lot 1 guest-communications addendum | WP-1.6, WP-1.9 | architecture gates | static/security negative evidence |
+| Lot reconciliation + separate integration pass | AI-LOT-ORCHESTRATION | after WP-1.1..1.9 | all packets | required - evidenced = ∅ + full verify/integration PASS |
+
+Required current-lot responsibilities minus assigned packet responsibilities: **∅**.
+
+## Work Packet plan
+
+### WP-1.1 — Permission catalog and authorization helper foundation
+
+State: **IN_PROGRESS**
+
+Scope:
+- `app_permissions`, `app_roles`, `app_role_permissions` migration-controlled catalogs;
+- centralized role→permission seed foundation;
+- fail-closed `has_project_permission` helper contract scaffolding compatible with later membership table;
+- deterministic owner/editor/viewer permission fixtures;
+- direct SQL tests for catalog integrity/fail-closed behavior.
+
+Planning complexity: **9/10**. Cohesion rationale: the three catalog tables, mapping seed and helper are one indivisible authorization API; splitting them would leave an unusable partial security boundary. No project/member RLS is implemented in this packet.
+
+### WP-1.2 — Core tenancy schema, membership and RLS baseline
+
+State: `PLANNED`
+
+Scope:
+- `profiles`, `projects`, `project_members`;
+- active/revoked membership semantics;
+- permission helper activation against membership;
+- explicit grants + RLS;
+- same-project candidate keys/integrity foundation;
+- synthetic projects A/B/C, multi-project member, outsider and revoked member direct tests.
+
+Planning complexity: **9/10**. Cohesion rationale: project row, canonical membership relationship and RLS helper must land atomically to avoid an unprotected intermediate tenancy model.
+
+### WP-1.3 — Supabase Auth/session and controlled first-owner provisioning
+
+State: `PLANNED`
+
+Scope:
+- browser-safe Supabase Auth adapter/application boundary;
+- verified identity/session states;
+- private deployment provisioning policy boundary;
+- atomic first project + owner bootstrap command;
+- unrelated-user project creation denial;
+- recent-auth/MFA assurance hook for later privileged commands.
+
+Planning complexity: **8/10**.
+
+### WP-1.4 — Partner invitation and protected membership lifecycle
+
+State: `PLANNED`
+
+Scope:
+- `project_invitations`;
+- cryptographically strong raw token generation outside persistent/logged state and hash-at-rest persistence;
+- create/revoke/accept protected commands;
+- verified-email binding, expiry, replay/idempotency;
+- final-active-owner invariant and narrow membership administration.
+
+Planning complexity: **10/10**. Cohesion rationale: token lifecycle and atomic membership acceptance are one security transaction family and are unsafe to split across independently deployable partial states.
+
+### WP-1.5 — Project configuration, dates, origins, preferences and RSVP-intent data hooks
+
+State: `PLANNED`
+
+Scope:
+- project settings updates;
+- `wedding_date_options` zero-or-one selected invariant;
+- `project_reference_origins` including one-default invariant;
+- `user_project_preferences` author-scoped persistence;
+- provider-neutral Invitations & RSVP intent/settings fields only, with no guest/domain/provider implementation.
+
+Planning complexity: **9/10**. Cohesion rationale: these are the complete Lot-1 project setup/configuration persistence slice used by onboarding; all share the same project/member authorization boundary.
+
+### WP-1.6 — Protected app shell, navigation and public RSVP trust boundary
+
+State: `PLANNED`
+
+Scope:
+- protected `/app/p/:projectId/**` shell and membership-aware routing;
+- safe return/deep-link behavior;
+- separate public `/rsvp/:token` shell boundary with placeholder capability resolution only;
+- onboarding/settings UI hooks for RSVP intent/defer/manual-link plan;
+- no guest domain CRUD, outbound provider SDK or provider secret.
+
+Planning complexity: **7/10**.
+
+### WP-1.7 — Project-scoped repositories, local cache and sync primitives
+
+State: `PLANNED`
+
+Scope:
+- application ports/repositories and infrastructure composition boundaries;
+- local account+project partition key convention;
+- durable operation ID/revision envelope primitives;
+- global sync/local-durability indicator state;
+- cross-project/account cache isolation tests.
+
+Planning complexity: **7/10**.
+
+### WP-1.8 — Session expiry, safe logout, MFA/security diagnostics
+
+State: `PLANNED`
+
+Scope:
+- session-expired vs explicit signed-out state machine;
+- reauth + membership revalidation before cloud resume;
+- pending-work logout resolution contract;
+- purge of private local state after safe logout;
+- MFA/recovery readiness/security diagnostics shell.
+
+Planning complexity: **7/10**.
+
+### WP-1.9 — Storage/Realtime isolation foundation and Lot-1 security matrix closure
+
+State: `PLANNED`
+
+Scope:
+- project-scoped private Storage path/policy foundation where a Lot-1 test resource is required;
+- direct Storage allow/deny evidence;
+- Realtime isolation evidence for any exposed Lot-1 subscriptions, otherwise explicit proof that no client subscription surface is exposed yet;
+- final cross-boundary adversarial fixtures for member vs guest-capability separation;
+- no wedding-domain media/document implementation.
+
+Planning complexity: **7/10**.
+
+## Sequencing
+
+```text
+WP-1.1
+  ↓
+WP-1.2
+  ├─→ WP-1.3 → WP-1.4
+  ├─→ WP-1.5 → WP-1.6
+  └─→ WP-1.7 → WP-1.8
+              ↘
+                WP-1.9
+```
+
+Execution remains sequential by default despite independent branches in the dependency graph, so only one packet is `IN_PROGRESS` at a time.
+
+## Explicitly out of Lot 1
+
+- venue/vendor/guest/budget/task domain implementation;
+- actual household invitation links or RSVP submissions;
+- outbound Email/SMS/WhatsApp provider adapters/credentials/sends;
+- communication campaigns/templates/webhooks;
+- real wedding/customer data;
+- production provider cutover;
+- arbitrary public SaaS self-service project provisioning;
+- Lot 2+ product functionality.
