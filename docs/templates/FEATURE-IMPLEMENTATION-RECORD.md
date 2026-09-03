@@ -27,6 +27,8 @@ Status: `READY | IN_PROGRESS | IMPLEMENTED | VERIFIED | INTEGRATED | ACCEPTED | 
 - Acceptance scenario IDs:
 - User Flow IDs:
 - Public-readiness `PUB-*` IDs if applicable:
+- Security `SEC-*` IDs:
+- Authorization `AUTHZ-*` IDs if applicable:
 - Product spec section:
 - Feature contract:
 - V1 scope section:
@@ -97,15 +99,46 @@ Status: `READY | IN_PROGRESS | IMPLEMENTED | VERIFIED | INTEGRATED | ACCEPTED | 
 
 ## Authorization/security/privacy
 
-- Allowed role/user:
-- RLS policies/tests:
+- Applicable `SEC-*` controls:
+- Applicable `AUTHZ-*` controls:
+- Allowed role/user/permission:
+- RLS/GRANT policies/tests:
 - Same-project constraints:
 - Protected fields/transitions:
+- Strong/recent-auth requirement:
 - Data classification:
 - PII/financial/sensitive-document impact:
-- External-link/content/file risks:
+- Runtime input boundaries/schemas:
+- SQL/query construction impact:
+- DOM/XSS/rich-content impact:
+- URL/open-redirect/external-request impact:
+- CSRF/CORS/cookie impact:
+- File/archive/import impact:
+- Prototype-pollution/ReDoS/resource-abuse impact:
+- Secret/token impact:
+- New third-party dependency/script impact:
 - Threat-model items:
 - Security test evidence:
+
+## Security review triggers
+
+Mark each:
+
+- [ ] new/changed Auth/OAuth flow
+- [ ] raw/dynamic SQL or `SECURITY DEFINER` RPC
+- [ ] rich HTML/Markdown rendering
+- [ ] server-side arbitrary URL fetch / webhook callback
+- [ ] new file/archive parser
+- [ ] cryptography
+- [ ] public API/webhook
+- [ ] runtime third-party script/CDN
+- [ ] custom Worker/backend security boundary
+- [ ] platform support/admin access
+- [ ] payment integration
+- [ ] runtime process/command execution
+- [ ] none of the above
+
+If any trigger except `none` is checked, link the dedicated security review/design decision.
 
 ## Public-readiness / anti-single-couple review
 
@@ -138,11 +171,20 @@ Status: `READY | IN_PROGRESS | IMPLEMENTED | VERIFIED | INTEGRATED | ACCEPTED | 
 ### Property/mutation where applicable
 - [ ]
 
+### Runtime validation / injection security
+- [ ] boundary schema tests
+- [ ] invalid/overlong/edge input
+- [ ] SQL/query injection cases if database/search/filter affected
+- [ ] XSS/DOM/URL cases if rendered/navigated input affected
+- [ ] object/prototype/resource-abuse cases if structured input affected
+
 ### Integration/local persistence
 - [ ]
 
-### Database/RLS
-- [ ]
+### Database/RLS/authorization
+- [ ] allow cases
+- [ ] deny cases
+- [ ] protected-field/cross-project cases
 
 ### Public-readiness tenancy regression where project-owned
 - [ ] same feature works in two synthetic projects
@@ -155,6 +197,12 @@ Status: `READY | IN_PROGRESS | IMPLEMENTED | VERIFIED | INTEGRATED | ACCEPTED | 
 ### Import/export/migration/backup where applicable
 - [ ]
 
+### Authentication/session/rate-limit where applicable
+- [ ]
+
+### File/archive/Storage security where applicable
+- [ ]
+
 ### E2E
 - [ ]
 
@@ -162,6 +210,9 @@ Status: `READY | IN_PROGRESS | IMPLEMENTED | VERIFIED | INTEGRATED | ACCEPTED | 
 - [ ]
 
 ### Performance/reference dataset
+- [ ]
+
+### Supply-chain/build security if dependency/config changed
 - [ ]
 
 ### Visual evidence
@@ -189,6 +240,7 @@ Features/read models affected by this change:
 ## Deviations / decisions
 
 - Spec deviation: `NONE` or linked approved change/ADR
+- Security deviation/exception: `NONE` expected or linked approved security decision
 - Deferred choice used:
 - New dependency justified:
 - Known limitation:
@@ -196,7 +248,8 @@ Features/read models affected by this change:
 ## Verification summary
 
 - `npm run verify` / equivalent:
-- RLS/security result:
+- RLS/authorization result:
+- security `SEC-*` result:
 - Public-readiness result:
 - UX review result:
 - Checkpoint impact:
@@ -204,10 +257,11 @@ Features/read models affected by this change:
 ## Acceptance checklist
 
 - [ ] No required `TBD` remains outside approved deferred decisions.
-- [ ] Requirements/Feature/Acceptance/PUB IDs agree where applicable.
+- [ ] Requirements/Feature/Acceptance/PUB/SEC/AUTHZ IDs agree where applicable.
 - [ ] UX blueprint/route implemented.
 - [ ] Cloud/local semantics agree.
-- [ ] Security/RLS evidence exists.
+- [ ] Security/RLS/input/injection evidence exists for applicable attack surfaces.
+- [ ] No security review trigger is left unreviewed.
 - [ ] Public-ready project isolation is not weakened.
 - [ ] Offline behavior matches matrix.
 - [ ] All applicable tests pass.
