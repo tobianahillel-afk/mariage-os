@@ -17,7 +17,9 @@ if (result.status === 0) {
   process.exit(1);
 }
 
-if (!result.stderr.includes("must not receive production-capable credentials")) {
+if (
+  !result.stderr.includes("must not receive production-capable credentials")
+) {
   process.stderr.write(result.stderr);
   console.error("Environment guard failed for an unexpected reason.");
   process.exit(1);
