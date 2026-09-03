@@ -6,7 +6,7 @@
 - Lot: `1`
 - Name: Supabase Auth/session and controlled first-owner provisioning
 - State: `IN_PROGRESS`
-- Current pass: `A-IMPLEMENT`
+- Current pass: `B-ADVERSARIAL-REMEDIATION`
 - Primary bounded context: authentication / private deployment provisioning
 - Branch/PR: `lot-1/identity-project-foundation`
 
@@ -33,7 +33,7 @@
 
 - FTR-002/003/005 applicable Lot-1 responsibilities.
 - `AUTHZ-001`, `AUTHZ-004`, `AUTHZ-006`, `AUTHZ-007`, `AUTHZ-014`, `AUTHZ-015`, `AUTHZ-016`, `AUTHZ-018`, `AUTHZ-019`, `AUTHZ-020` as applicable.
-- `AUTHENTICATION.md`, `BOOTSTRAP-INVITATIONS.md`, `AUTH-ONBOARDING.md`, `PUBLIC-SAAS-READINESS.md`.
+- `AUTHENTICATION.md`, `BOOTSTRAP-INVITATIONS.md`, `AUTH-HARDENING.md`, `PUBLIC-SAAS-READINESS.md`.
 
 ### Explicitly out of scope
 
@@ -64,29 +64,55 @@ No password hashing, token cryptography or service-role behavior is implemented 
 
 ## Pass A — IMPLEMENT
 
-In progress.
+**COMPLETE.**
 
-Expected evidence:
+Implemented evidence:
 
-- migration/policies/RPC for deployment provisioning state + atomic private bootstrap + assurance helper;
-- direct pgTAP tests for intended verified owner, unrelated user, unverified user, replay/second bootstrap, atomic owner membership and multi-project database compatibility;
-- application/domain unit tests for normalized provider session states and fail-closed semantics;
-- infrastructure adapter tests with a structural browser-safe Supabase client boundary;
-- no production secret or real email;
-- exact-head full verification before Pass B.
+- migration/policies/RPC for deployment provisioning state, atomic private bootstrap and assurance helper;
+- pgTAP coverage for intended verified owner, unrelated verified account, unverified account, replay/second bootstrap denial, atomic owner membership, consumed bootstrap policy and multi-project database compatibility;
+- application Auth port with explicit signed-out, authenticated-unverified and authenticated-verified states;
+- fail-closed Supabase Auth and provisioning adapters with generic provider-facing failures;
+- provider configuration with verified-email password mode, anonymous/manual linking disabled and no production credential;
+- exact-head clean-checkout verification on `0758479222bf777d99cc0e6e855faabf1beef1d5`: GitHub Actions run `33816301733`, all five jobs SUCCESS including `npm run verify` from a clean checkout.
+
+Pass-A repairs before green evidence included SQL role-context corrections, exact Prettier formatting, forbidden-marker collision removal and correction of the Auth fixture so a deliberately absent AAL remains absent.
 
 ## Pass B — ADVERSARIAL REVIEW
 
-Not started.
+**IN_PROGRESS — remediations implemented; exact-head re-verification pending.**
+
+Review areas:
+
+- client/provider trust boundary and malformed provider output;
+- private bootstrap authorization, verified-identity source and one-time consumption;
+- concurrency/transaction boundary around bootstrap policy;
+- exposure of intended bootstrap identity;
+- Security Definer/search-path safety;
+- V1 password/provider configuration;
+- separation between private deployment provisioning policy and future public SaaS tenancy architecture;
+- scope boundary versus later signup-window, route, invitation, MFA and local-session packets.
+
+Findings/remediations:
+
+- `WP13-AR-001` — **MAJOR / CLOSED IN CODE, VERIFY PENDING**: provisioning adapter accepted any non-empty provider string as a project identifier. Remediation validates the RPC response as a canonical UUID before returning it and adds malformed-response negative tests.
+- `WP13-AR-002` — **MAJOR / CLOSED IN CONFIG, VERIFY PENDING**: selected password flow retained the local Supabase default minimum of 8 characters, below the private-owner target in `AUTH-HARDENING.md`. Remediation sets `minimum_password_length = 14` while retaining provider-managed password handling.
+
+Reviewed non-blocking downstream responsibilities:
+
+- the packet contract intentionally requires a **structural browser-safe Supabase client boundary**, not final application composition with `@supabase/supabase-js`; protected-route/application composition remains downstream in WP-1.6 and must use the official provider SDK rather than custom token/session handling;
+- local `enable_signup = false` is fail-closed but is not evidence for the controlled owner/partner account-creation window. Partner invitation/account onboarding is WP-1.4 and the exact provider signup-window/closure behavior must be exercised before Lot-1 acceptance so signup closure cannot block the intended partner;
+- recent-auth timing, MFA enrollment/recovery and pending-work logout/session-expiry behavior remain WP-1.8 responsibilities; WP-1.3 only supplies the fail-closed AAL hook.
+
+No production secrets, real owner email or service-role client path were introduced.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started.
+Not started. Requires a green exact-head run after Pass-B remediations and no open BLOCKING/MAJOR finding.
 
 ## Handoff
 
 - Current state: `IN_PROGRESS`
-- Current/next pass: `A-IMPLEMENT`
+- Current/next pass: `B-ADVERSARIAL-REMEDIATION`
 - Accepted dependencies: WP-1.1, WP-1.2.
-- Remaining blocker/finding: none at kickoff.
-- Next permitted action: implement WP-1.3 only, then run affected/full verification before independent Pass B.
+- Open BLOCKING/MAJOR findings: none awaiting design/code remediation; `WP13-AR-001` and `WP13-AR-002` await exact-head verification.
+- Next permitted action: obtain exact-head full verification, finish independent Pass B, then perform Pass C reconciliation for WP-1.3 only.
