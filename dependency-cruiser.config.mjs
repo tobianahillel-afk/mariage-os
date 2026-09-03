@@ -17,16 +17,32 @@ export default {
       },
     },
     {
-      name: "application-does-not-use-concrete-infrastructure",
+      name: "application-depends-inward-only",
       severity: "error",
       from: { path: `${src}application/` },
-      to: { path: `${src}(ui|infrastructure|app)/` },
+      to: {
+        path: `${src}(app|ui|infrastructure|import-export|pwa|workers)/`,
+      },
     },
     {
-      name: "ui-does-not-use-concrete-infrastructure",
+      name: "ui-does-not-depend-on-outer-technical-layers",
       severity: "error",
       from: { path: `${src}ui/` },
-      to: { path: `${src}infrastructure/` },
+      to: {
+        path: `${src}(app|infrastructure|import-export|pwa|workers)/`,
+      },
+    },
+    {
+      name: "import-export-does-not-use-concrete-infrastructure",
+      severity: "error",
+      from: { path: `${src}import-export/` },
+      to: { path: `${src}(app|ui|infrastructure|pwa|workers)/` },
+    },
+    {
+      name: "infrastructure-does-not-depend-on-ui-or-composition",
+      severity: "error",
+      from: { path: `${src}infrastructure/` },
+      to: { path: `${src}(app|ui)/` },
     },
     {
       name: "shared-does-not-depend-on-higher-layers",
