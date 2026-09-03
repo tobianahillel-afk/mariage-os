@@ -2,13 +2,15 @@
 
 Status: `READY | IN_PROGRESS | IMPLEMENTED | VERIFIED | INTEGRATED | ACCEPTED | BLOCKED`
 
-> Copy this template for each implemented V1 capability or maintain equivalent structured content in a PR/issue that remains durably linked from the Feature Ledger.
+> Copy this template for each implemented V1 capability or maintain equivalent structured content in a PR/issue that remains durably linked from the applicable Feature Ledger. The V1 ledger is the union of FTR-001..104 and FTR-105..120.
 
 ## Identity
 
 - Feature ID: `FTR-XXX`
 - Name:
 - Lot:
+- Work Packet ID(s):
+- Current packet/pass if active:
 - Owner/reviewer:
 - Branch/PR:
 - Current status:
@@ -29,6 +31,7 @@ Status: `READY | IN_PROGRESS | IMPLEMENTED | VERIFIED | INTEGRATED | ACCEPTED | 
 - Public-readiness `PUB-*` IDs if applicable:
 - Security `SEC-*` IDs:
 - Authorization `AUTHZ-*` IDs if applicable:
+- Guest RSVP/communication `RSVP-*`, `COM-*`, `QIF-*`, `COMMOPS-*` IDs if applicable:
 - Product spec section:
 - Feature contract:
 - V1 scope section:
@@ -54,6 +57,7 @@ Status: `READY | IN_PROGRESS | IMPLEMENTED | VERIFIED | INTEGRATED | ACCEPTED | 
 - Permission/not-found state:
 - Conflict state if applicable:
 - Destructive/undo behavior:
+- QIF applicability/result:
 - UX review result/evidence:
 
 ## Domain/data
@@ -96,7 +100,7 @@ Size/complexity exception: `NONE` expected or explicit rationale + reviewer appr
 ## Cloud persistence
 
 - PostgreSQL tables/views:
-- RPC/privileged command(s):
+- RPC/privileged/capability command(s):
 - Storage objects/buckets:
 - Realtime subscription(s):
 - Migration(s):
@@ -118,9 +122,10 @@ Size/complexity exception: `NONE` expected or explicit rationale + reviewer appr
 
 - Applicable `SEC-*` controls:
 - Applicable `AUTHZ-*` controls:
+- Applicable guest capability/provider controls:
 - Allowed role/user/permission:
 - RLS/GRANT policies/tests:
-- Same-project constraints:
+- Same-project/cross-household constraints:
 - Protected fields/transitions:
 - Strong/recent-auth requirement:
 - Data classification:
@@ -147,7 +152,7 @@ Mark each:
 - [ ] server-side arbitrary URL fetch / webhook callback
 - [ ] new file/archive parser
 - [ ] cryptography
-- [ ] public API/webhook
+- [ ] public API/webhook/capability endpoint
 - [ ] runtime third-party script/CDN
 - [ ] custom Worker/backend security boundary
 - [ ] platform support/admin access
@@ -201,7 +206,7 @@ If any trigger except `none` is checked, link the dedicated security review/desi
 ### Database/RLS/authorization
 - [ ] allow cases
 - [ ] deny cases
-- [ ] protected-field/cross-project cases
+- [ ] protected-field/cross-project/cross-household cases
 
 ### Public-readiness tenancy regression where project-owned
 - [ ] same feature works in two synthetic projects
@@ -215,6 +220,9 @@ If any trigger except `none` is checked, link the dedicated security review/desi
 - [ ]
 
 ### Authentication/session/rate-limit where applicable
+- [ ]
+
+### Capability/provider/webhook where applicable
 - [ ]
 
 ### File/archive/Storage security where applicable
@@ -244,6 +252,19 @@ If any trigger except `none` is checked, link the dedicated security review/desi
 - [ ] mobile synthetic screenshot
 - [ ] important empty/error/offline state screenshot where applicable
 
+## Work Packet evidence
+
+For AI-orchestrated Lot work:
+
+- Packet Record path/link:
+- Pass A implementation evidence:
+- Pass B adversarial review result:
+- Pass C `EXPECTED vs IMPLEMENTED vs VERIFIED` result:
+- Packet final state:
+- Lot reconciliation responsibility key(s):
+
+A Feature cannot become `ACCEPTED` merely because Pass A exists.
+
 ## Dependency check
 
 Depends on Feature IDs:
@@ -266,6 +287,7 @@ Features/read models affected by this change:
 - Spec deviation: `NONE` or linked approved change/ADR
 - Architecture/code-structure deviation: `NONE` expected or linked approved ADR/review
 - Security deviation/exception: `NONE` expected or linked approved security decision
+- Work Packet sizing/orchestration exception: `NONE` expected or linked approved rationale
 - Deferred choice used:
 - New dependency justified:
 - Known limitation:
@@ -277,13 +299,14 @@ Features/read models affected by this change:
 - RLS/authorization result:
 - security `SEC-*` result:
 - Public-readiness result:
-- UX review result:
+- UX/QIF review result:
+- Work Packet acceptance result:
 - Checkpoint impact:
 
 ## Acceptance checklist
 
 - [ ] No required `TBD` remains outside approved deferred decisions.
-- [ ] Requirements/Feature/Acceptance/PUB/SEC/AUTHZ IDs agree where applicable.
+- [ ] Requirements/Feature/Acceptance/PUB/SEC/AUTHZ/guest IDs agree where applicable.
 - [ ] UX blueprint/route implemented.
 - [ ] Code modules are in canonical ownership paths and within maintainability guardrails.
 - [ ] Cloud/local semantics agree.
@@ -292,8 +315,9 @@ Features/read models affected by this change:
 - [ ] Public-ready project isolation is not weakened.
 - [ ] Offline behavior matches matrix.
 - [ ] All applicable tests pass.
+- [ ] Work Packet Pass A/B/C evidence is complete where applicable.
 - [ ] Documentation updated.
-- [ ] Feature Ledger status updated.
+- [ ] Applicable Feature Ledger status updated.
 - [ ] Implementation Status updated if materially changing progress.
 
 Final status:
