@@ -1,28 +1,17 @@
-name: WP-0.1 bootstrap verification
+name: Lot 0 packet verification
 
 on:
   push:
     branches:
       - lot-0/repository-tooling
-    paths:
-      - package.json
-      - package-lock.json
-      - .nvmrc
-      - tsconfig.json
-      - tsconfig.app.json
-      - tsconfig.node.json
-      - vite.config.ts
-      - index.html
-      - src/**
-      - .github/workflows/bootstrap-lock.yml
 
 permissions:
   contents: read
 
 jobs:
-  bootstrap:
+  packet-verification:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
       - name: Checkout branch
         uses: actions/checkout@v5
@@ -38,6 +27,12 @@ jobs:
 
       - name: Strict TypeScript
         run: npm run typecheck
+
+      - name: Static quality gates
+        run: npm run static
+
+      - name: Negative quality controls
+        run: npm run quality:negative
 
       - name: Production build
         run: npm run build
