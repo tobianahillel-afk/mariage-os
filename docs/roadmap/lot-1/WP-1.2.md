@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-1.2`
 - Lot: `1`
 - Name: Core tenancy schema, membership and RLS baseline
-- State: `REVIEW_FAILED`
-- Current pass: `A-IMPLEMENT-REPAIR`
+- State: `ACCEPTANCE_PENDING`
+- Current pass: `C-ACCEPTANCE`
 - Primary bounded context: project tenancy / membership authorization
 - Branch/PR: `lot-1/identity-project-foundation`
 
@@ -79,62 +79,65 @@
 - migration/schema: `supabase/migrations/20260903221000_create_core_tenancy.sql` creates canonical `profiles`, `projects` and `project_members`, role-catalog FK, active/revoked consistency, active-member index, membership-aware `has_project_permission`, self-profile timestamp trigger, explicit grants and RLS;
 - authorization semantics: `has_project_permission` derives identity from `auth.uid()`, requires a live active membership and delegates the role grant to the accepted migration-controlled permission catalog; it uses `SECURITY DEFINER` with `search_path = pg_catalog` and fully-qualified application relations;
 - generic browser mutation posture: `projects` and `project_members` receive no client insert/update/delete grants; profiles expose only self read plus column-scoped update of `display_name`/`avatar_url` while audit identity/timestamps remain protected;
-- direct tests: `supabase/tests/core_tenancy_rls_test.sql` initially provided 31 pgTAP assertions covering anonymous denial, owner/editor/viewer behavior, projects A/B/C isolation, multi-project membership, outsider denial, revoked-member immediate denial, representative generic project/member mutation denial, self-profile constraints and DB integrity constraints;
-- regression evidence: run `33810828047` on exact HEAD `dc7bde6ffba627ffb8fb095e2b16ef7cddd83c7b` completed all five jobs successfully, including clean-checkout `npm run verify`;
+- original direct tests: 31 pgTAP assertions established tenancy/RLS semantics and cross-project fixtures;
+- original Pass A verification: run `33810828047` on `dc7bde6ffba627ffb8fb095e2b16ef7cddd83c7b`, all five jobs SUCCESS;
 - scope evidence: no first-owner provisioning, invitation lifecycle, route shell, local cache, Storage/Realtime or Lot 2+ domain code was introduced.
-
-### Pass A exit
-
-- [x] intended vertical slice exists
-- [x] direct allow/deny and cross-project tests written
-- [x] no known untracked stub/TODO
-- [x] exact-head affected/full verification green
-- [x] packet moved to `REVIEW_PENDING`
 
 ## Pass B — ADVERSARIAL REVIEW
 
-### Review result
+### First review
 
-**FAIL — 1 MAJOR finding.** The implementation's grants/RLS posture appears deny-by-default, but the evidence matrix is not exhaustive enough to detect several accidental grant regressions.
+**FAIL — `WP12-AR-001` MAJOR.** The direct evidence did not exhaustively prove the grant/operation-denial surface required by `AUTHZ-006/007`.
 
-### Finding
+### Repair
 
-#### WP12-AR-001 — MAJOR — exposed operation/grant denial matrix is incomplete
+`supabase/tests/core_tenancy_rls_test.sql` was strengthened from 31 to 41 direct assertions without broadening production privileges. The repair now proves:
 
-Normative expectation: `AUTHZ-006` requires every exposed table/view/RPC to declare read/write permission semantics with direct allow/deny tests; `AUTHZ-007` requires explicit PostgreSQL-grant evidence in addition to policy presence.
+- no anonymous SELECT on any core tenancy table;
+- anonymous execute denial and authenticated execute allow for `has_project_permission`;
+- `projects` grant surface is SELECT-only for authenticated;
+- `project_members` grant surface is SELECT-only for authenticated;
+- `profiles` has SELECT plus only column-scoped UPDATE on `display_name` and `avatar_url`;
+- no profile INSERT/DELETE or protected-column update;
+- runtime generic project UPDATE/DELETE denial;
+- runtime membership INSERT/UPDATE/DELETE denial;
+- existing A/B/C, owner/editor/viewer, outsider, multi-project and revoked-member behavior remains intact.
 
-Observed evidence gap:
+Repair verification: exact-head run `33811568440` on `fa96228bcd8a0b7671fcb561f8f7668eaf5851dc` completed all five jobs successfully, including the repaired `db:verify`, dependency/security gates, browser/mutation harnesses, preview build and clean-checkout `npm run verify`.
 
-- `anon` is directly challenged only against `projects`, not `profiles`, `project_members` or the public `has_project_permission` RPC;
-- authenticated generic `DELETE` is not challenged for `projects` or `project_members`;
-- generic profile `INSERT`/`DELETE` are not challenged;
-- the intended column-scoped profile update grant is demonstrated by behavior but not asserted as an exact privilege boundary;
-- authenticated execute permission and anonymous execute denial for `has_project_permission` are not directly asserted.
+### Fresh independent review
 
-Why MAJOR: an accidental broad table/RPC grant could be introduced while the existing 31 assertions remain green. That leaves a required security boundary without objective negative evidence.
+**PASS.** `WP12-AR-001` is closed. Re-review against `AUTHORIZATION-REQUIREMENTS.md`, the authorization addendum and physical schema found no remaining BLOCKING/MAJOR issue:
 
-Required repair: extend direct pgTAP evidence to assert the intended table/column/function privilege surface and execute representative denied `DELETE`/profile `INSERT`/profile `DELETE` operations. Do not weaken or broaden production grants to satisfy tests.
-
-### Other adversarial checks
-
-No additional BLOCKING/MAJOR issue found in the reviewed SQL itself:
-
-- identity comes from `auth.uid()`, not a client role/project claim;
-- revoked membership immediately fails helper evaluation;
-- helper uses `SECURITY DEFINER` with trusted `pg_catalog` search path and fully-qualified application relations;
-- `project_members` RLS avoids self-recursion through the helper;
-- role changes and membership creation remain unavailable through generic browser CRUD;
-- project UUID knowledge alone does not grant access.
+- identity derives from `auth.uid()` and current server-side membership;
+- inactive/revoked membership fails closed immediately without a fresh login;
+- known project UUIDs do not bypass membership or permission checks;
+- ordinary browser roles cannot create, update or delete project/membership security state through generic CRUD;
+- table, column and RPC grants are now directly evidenced alongside RLS behavior;
+- the permission helper keeps a trusted `pg_catalog` search path and fully-qualified relation access;
+- no project/member security responsibility belonging to WP-1.3/WP-1.4 was smuggled into this packet.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started. Forbidden while `WP12-AR-001` remains open.
+### Contract → implementation → evidence
+
+| Responsibility | Normative expectation | Implementation | Objective evidence | Result |
+|---|---|---|---|---|
+| Core identity/tenancy schema | physical schema defines `profiles`, `projects`, `project_members` | ordered migration creates canonical tables/constraints | clean reset + DB tests in run `33811568440` | PASS |
+| Active membership authorization | `AUTHZ-001/004/012`; live active membership required | `has_project_permission` reads current membership via `auth.uid()` | owner/editor/viewer/revoked/outsider assertions | PASS |
+| Permission-based evaluation | `AUTHZ-002/003` | accepted WP-1.1 catalog + membership role FK/helper composition | exact role matrix + WP-1.2 direct tests | PASS |
+| Cross-project isolation | `AUTHZ-005/018` | project-scoped RLS driven by row project ID + helper | A/B/C + multi-project + outsider tests | PASS |
+| Explicit grants and RLS | `AUTHZ-006/007` | revoked defaults, narrow authenticated grants, RLS policies | repaired exact privilege matrix + runtime denies | PASS |
+| Sensitive-column protection | `AUTHZ-008` | membership generic mutation absent; profile ordinary-column UPDATE only | column privilege assertions + denied audit mutation | PASS |
+| Fail-closed client identity | authorization addendum | client does not supply membership role; helper derives `auth.uid()` | wrong/absent membership and revoked tests | PASS |
+| Regression / clean checkout | engineering acceptance | no gate weakening | all five jobs in `33811568440` SUCCESS | PASS |
+
+Acceptance reconciliation: every WP-1.2 responsibility has normative contract, implementation and objective evidence; no open BLOCKING/MAJOR finding remains.
 
 ## Handoff
 
-- Current state: `REVIEW_FAILED`
-- Current/next pass: `A-IMPLEMENT-REPAIR`
-- Last green verification before adversarial finding: run `33810828047` on `dc7bde6ffba627ffb8fb095e2b16ef7cddd83c7b`, all five jobs SUCCESS.
-- Remaining blocker/finding: `WP12-AR-001` MAJOR open.
-- Next permitted action: strengthen exact grant/operation-denial evidence, rerun affected/full verification, then return WP-1.2 to a fresh independent Pass B.
-- WP-1.3 remains forbidden.
+- Current state: `ACCEPTANCE_PENDING`
+- Current/next pass: `C-ACCEPTANCE`
+- Last green verification: run `33811568440` on `fa96228bcd8a0b7671fcb561f8f7668eaf5851dc`, all five jobs SUCCESS.
+- Remaining blocker/finding: none.
+- Next permitted action: record WP-1.2 acceptance and then open WP-1.3; no WP-1.3 implementation before that durable transition.
