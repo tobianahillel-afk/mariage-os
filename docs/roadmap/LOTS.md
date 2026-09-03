@@ -2,9 +2,9 @@
 
 Status: **Frozen V1 implementation sequence — not yet authorized to start**
 
-Detailed exit criteria live in `LOT-ACCEPTANCE.md`. Binding scope lives in `V1-SCOPE.md`.
+Detailed exit criteria live in `LOT-ACCEPTANCE.md`. Binding scope lives in `V1-SCOPE.md`. Feature-level progress lives in `../FEATURE-LEDGER.md`. Cross-lot reviews live in `INTEGRATION-CHECKPOINTS.md`.
 
-A later lot cannot weaken security, integrity, import, offline or recovery guarantees established earlier.
+A later lot cannot weaken security, integrity, UX, import, offline or recovery guarantees established earlier.
 
 ## Documentation/design phase
 
@@ -68,6 +68,16 @@ No later domain may bypass these primitives.
 - deterministic next-action inputs;
 - links to existing project entities.
 
+### Mandatory Checkpoint A after Lot 3
+
+Before normal Lot 4 work starts, perform `INTEGRATION-CHECKPOINTS.md` **Checkpoint A — Foundation & Core Decision Loop**.
+
+Review all Lots 0–3 together for product fidelity, UX architecture, data/security boundaries, offline behavior, cross-feature coherence and Feature Ledger completeness.
+
+Checkpoint A must PASS with no unresolved BLOCKING/MAJOR finding.
+
+---
+
 ## Lot 4 — Import/export foundation
 
 - canonical JSON v1 + addendum machine schema;
@@ -114,6 +124,16 @@ Graphical drag/drop seating remains post-V1.
 - contract readiness checklist;
 - waiting/follow-up integration.
 
+### Mandatory Checkpoint B after Lot 7
+
+Before normal Lot 8 work starts, perform **Checkpoint B — Data Intake & Operational Planning Core** across Lots 0–7.
+
+This checkpoint verifies especially that Import, Budget, Guests, Seating and Vendors form one usable workflow rather than separate tables/modules.
+
+Checkpoint B must PASS with no unresolved BLOCKING/MAJOR finding.
+
+---
+
 ## Lot 8 — Dashboard, planning, timeline and search
 
 - phases/milestones/dependencies;
@@ -150,6 +170,16 @@ Dedicated advanced live day-of mode remains post-V1.
 - cross-project cache isolation;
 - real-device tests.
 
+### Mandatory Checkpoint C after Lot 10
+
+Before production-readiness Lot 11 proceeds normally, perform **Checkpoint C — Product Control, Spatial UX & Offline Hardening** across the complete implemented product.
+
+Checkpoint C must prove Mariage OS now behaves as one coherent wedding OS: Dashboard/Search/Inbox/Planning/Timeline/Map/offline navigation must simplify rather than fragment the product.
+
+Checkpoint C must PASS with no unresolved BLOCKING/MAJOR finding.
+
+---
+
 ## Lot 11 — Backup, recovery and production readiness
 
 - structured/full `.mariage` export;
@@ -173,6 +203,27 @@ Dedicated advanced live day-of mode remains post-V1.
 - recovery export/restore drill;
 - formal source-of-truth declaration.
 
+### Mandatory Checkpoint D after Lot 12
+
+Perform **Checkpoint D — Recovery, Real Data & V1 Cutover**.
+
+This is the final cutover gate. No declaration that Mariage OS is the operational source of truth occurs before Checkpoint D PASS.
+
+---
+
+## Per-lot progress rule
+
+Every lot uses `engineering/IMPLEMENTATION-PLAYBOOK.md`:
+
+- implement feature by feature;
+- maintain Feature Implementation Records;
+- update `FEATURE-LEDGER.md` states;
+- update `IMPLEMENTATION-STATUS.md`;
+- perform UX review for user-facing features;
+- no unexplained `IN_PROGRESS`/`IMPLEMENTED` rows at lot acceptance.
+
+Lot completion is not measured by file count or percentage of UI mocked. It is measured by accepted Feature IDs and objective lot criteria.
+
 ---
 
 ## Explicit post-V1 examples
@@ -191,4 +242,4 @@ Dedicated advanced live day-of mode remains post-V1.
 
 ## Scope-change rule
 
-Nothing moves into/out of V1 silently. Scope changes require product/spec/requirement update, dependency/security/data/test review and updated lot/cutover criteria.
+Nothing moves into/out of V1 silently. Scope changes require product/spec/requirement update, Feature Ledger impact, dependency/security/data/UX/test review and updated lot/cutover criteria.
