@@ -32,8 +32,8 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 
 Packets:
 
-1. `WP-1.1` — permission catalog and authorization helper foundation — **REVIEW_FAILED / REPAIR**;
-2. `WP-1.2` — core tenancy schema, membership and RLS baseline — **PLANNED**;
+1. `WP-1.1` — permission catalog and authorization helper foundation — **ACCEPTED**;
+2. `WP-1.2` — core tenancy schema, membership and RLS baseline — **IN_PROGRESS**;
 3. `WP-1.3` — Supabase Auth/session and controlled first-owner provisioning — **PLANNED**;
 4. `WP-1.4` — partner invitation and protected membership lifecycle — **PLANNED**;
 5. `WP-1.5` — project configuration, dates, origins, preferences and RSVP-intent hooks — **PLANNED**;
@@ -46,14 +46,14 @@ Packets:
 
 - Current Lot: **1**
 - Lot state: **IN_PROGRESS**
-- Current packet: **WP-1.1**
-- Packet state: **REVIEW_FAILED**
-- Current pass: **A-IMPLEMENT-REPAIR**
-- Accepted packets: **none yet**
-- Review-failed/blocked packets: **WP-1.1 — 2 MAJOR adversarial findings open**
-- Latest green verification: **WP-1.1 pre-review exact-head run `33809158568` on `b76aa509d84c4aa73f80669faa2c9d6b494c15b8`, all five jobs including clean-checkout `npm run verify` SUCCESS; this green run does not close the adversarial findings**
+- Current packet: **WP-1.2**
+- Packet state: **IN_PROGRESS**
+- Current pass: **A-IMPLEMENT**
+- Accepted packets: **WP-1.1**
+- Review-failed/blocked packets: **none open**
+- WP-1.1 acceptance evidence: **run `33809855993` on `f0b1e46c46bc3ad5d15bf2191c63ec4e85473507`, all five jobs including clean-checkout `npm run verify` SUCCESS; both Pass B MAJOR findings repaired and closed**
 - Current branch: **`lot-1/identity-project-foundation`**
-- Next permitted action: **repair WP1-AR-001 exact role-matrix evidence and WP1-AR-002 SECURITY DEFINER search-path posture, rerun full verification, then re-enter Pass B**
+- Next permitted action: **implement WP-1.2 only: core tenancy schema, active membership semantics, permission helper activation, grants/RLS and direct multi-project authorization matrix**
 
 ## Lot status
 
@@ -66,15 +66,17 @@ Packets:
 ## Product Feature counts
 
 - V1 Feature IDs: 120 SPECIFIED inventory rows total.
-- Lot 1 feature rows are being transitioned into lifecycle states as their packets begin; no Lot 2+ Feature may start.
-- ACCEPTED product Features: 0 at current cursor.
+- Lot 1 foundations are in implementation; no Lot 2+ Feature may start.
+- ACCEPTED product Features remain 0; WP-1.1 is a cross-cutting authorization foundation rather than a user-facing Feature acceptance.
 
 ## Current blockers / forward maintenance
 
-**2 open MAJOR findings in WP-1.1:**
+**0 open BLOCKING/MAJOR findings at the WP-1.2 kickoff cursor.**
 
-- `WP1-AR-001`: current SQL tests sample the built-in role mappings but do not prove exact set equality against the complete normative role-permission matrix;
-- `WP1-AR-002`: the internal `SECURITY DEFINER` role lookup includes `public` in its search path even though all application relations can be fully qualified.
+Closed WP-1.1 adversarial findings:
+
+- `WP1-AR-001`: closed after exact set-equality tests for owner/editor/viewer against the normative matrix;
+- `WP1-AR-002`: closed after restricting the internal `SECURITY DEFINER` helper to `search_path = pg_catalog` and proving client-execution denial.
 
 Inherited reviewed non-blocking maintenance:
 
@@ -87,9 +89,9 @@ Inherited reviewed non-blocking maintenance:
 Lot 0: ACCEPTED
 Lot 1: IN_PROGRESS
 Coverage: required - assigned = ∅
-Current: WP-1.1 / REVIEW_FAILED / A-IMPLEMENT-REPAIR
-Open findings: WP1-AR-001 MAJOR, WP1-AR-002 MAJOR
-Next: repair exact matrix evidence + SECURITY DEFINER search path + explicit PUBLIC deny posture; rerun exact-head full verify; then fresh Pass B
-WP-1.2: forbidden until WP-1.1 acceptance
+Accepted: WP-1.1
+Current: WP-1.2 / IN_PROGRESS / A-IMPLEMENT
+Next: implement profiles + projects + project_members + membership-aware has_project_permission + explicit grants/RLS + synthetic cross-project allow/deny tests
+WP-1.3+: forbidden until WP-1.2 acceptance
 Lot 2+: forbidden
 ```
