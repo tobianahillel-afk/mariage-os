@@ -30,9 +30,9 @@ create table public.app_role_permissions (
   primary key (role_key, permission_key)
 );
 
-revoke all on table public.app_permissions from anon, authenticated;
-revoke all on table public.app_roles from anon, authenticated;
-revoke all on table public.app_role_permissions from anon, authenticated;
+revoke all on table public.app_permissions from public, anon, authenticated;
+revoke all on table public.app_roles from public, anon, authenticated;
+revoke all on table public.app_role_permissions from public, anon, authenticated;
 
 insert into public.app_roles (role_key, display_name, is_assignable)
 values
@@ -164,7 +164,7 @@ returns boolean
 language sql
 stable
 security definer
-set search_path = public, pg_temp
+set search_path = pg_catalog
 as $$
   select exists (
     select 1
@@ -177,8 +177,7 @@ as $$
   );
 $$;
 
-revoke all on function public.role_has_permission(text, text) from public;
-revoke all on function public.role_has_permission(text, text) from anon, authenticated;
+revoke all on function public.role_has_permission(text, text) from public, anon, authenticated;
 
 comment on function public.role_has_permission(text, text) is
   'Internal migration-controlled role/permission lookup. Client code must not supply a role to authorize itself; WP-1.2 composes this with auth.uid() and active project membership.';
