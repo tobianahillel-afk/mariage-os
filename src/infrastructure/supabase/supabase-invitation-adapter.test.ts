@@ -15,7 +15,9 @@ const PROJECT_ID = "a2222222-2222-4222-8222-222222222222";
 const RAW_TOKEN = "a".repeat(64);
 const EXPIRES_AT = "2026-09-10T12:00:00.000Z";
 
-function makeClient(options: ClientOptions = {}): SupabaseInvitationRpcClientLike {
+function makeClient(
+  options: ClientOptions = {},
+): SupabaseInvitationRpcClientLike {
   return {
     rpc: vi.fn(async () => ({
       data: options.data,
@@ -102,16 +104,16 @@ describe("SupabaseProjectInvitationAdapter", () => {
     });
   });
 
-  it.each([
-    { data: false },
-    { data: true, fail: true },
-  ])("fails closed on revocation result %#", async (options) => {
-    const adapter = new SupabaseProjectInvitationAdapter(makeClient(options));
+  it.each([{ data: false }, { data: true, fail: true }])(
+    "fails closed on revocation result %#",
+    async (options) => {
+      const adapter = new SupabaseProjectInvitationAdapter(makeClient(options));
 
-    await expect(adapter.revoke(INVITATION_ID)).rejects.toThrow(
-      "Invitation service unavailable.",
-    );
-  });
+      await expect(adapter.revoke(INVITATION_ID)).rejects.toThrow(
+        "Invitation service unavailable.",
+      );
+    },
+  );
 
   it("accepts a valid capability and returns only validated project UUID", async () => {
     const client = makeClient({ data: PROJECT_ID });
@@ -133,14 +135,14 @@ describe("SupabaseProjectInvitationAdapter", () => {
     expect(client.rpc).not.toHaveBeenCalled();
   });
 
-  it.each([
-    { data: "not-a-uuid" },
-    { data: PROJECT_ID, fail: true },
-  ])("fails closed on malformed acceptance result %#", async (options) => {
-    const adapter = new SupabaseProjectInvitationAdapter(makeClient(options));
+  it.each([{ data: "not-a-uuid" }, { data: PROJECT_ID, fail: true }])(
+    "fails closed on malformed acceptance result %#",
+    async (options) => {
+      const adapter = new SupabaseProjectInvitationAdapter(makeClient(options));
 
-    await expect(adapter.accept(RAW_TOKEN)).rejects.toThrow(
-      "Invitation service unavailable.",
-    );
-  });
+      await expect(adapter.accept(RAW_TOKEN)).rejects.toThrow(
+        "Invitation service unavailable.",
+      );
+    },
+  );
 });
