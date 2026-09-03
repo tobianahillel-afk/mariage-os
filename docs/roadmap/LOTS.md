@@ -4,15 +4,17 @@ Status: **Frozen V1 implementation sequence — includes Invitations / RSVP / Co
 
 Detailed exit criteria live in `LOT-ACCEPTANCE.md`. Binding scope lives in `V1-SCOPE.md` plus the guest-communications scope addendum. Feature-level progress is the union of `../FEATURE-LEDGER.md` and `../FEATURE-LEDGER-GUEST-COMMUNICATIONS-EXTENSION.md`. Cross-lot reviews live in `INTEGRATION-CHECKPOINTS.md`. AI execution inside a Lot is governed by `../engineering/AI-LOT-ORCHESTRATION.md`.
 
+**This roadmap defines sequence, not current execution permission.** Current HOLD/READY/IN_PROGRESS permission is controlled only by the current `IMPLEMENTATION-STATUS.md` plus `FINAL-DESIGN-REVIEW.md` according to repository precedence.
+
 A later lot cannot weaken security, integrity, UX/QIF, code architecture, maintainability, import, offline, recovery or communication-provider boundaries established earlier.
 
 ## Documentation/design phase
 
-Runs 1–4 and the guest-communications V1 scope change are merged and re-frozen. The pre-Lot 0 design gate is PASS.
+Runs 1–4 and the guest-communications V1 scope change are merged and re-frozen. The AI orchestration enhancement is undergoing its own exact-head re-freeze on the current review branch.
 
-**Lot 0 is READY / NOT_STARTED until explicit kickoff. This orchestration/documentation change does not start implementation.**
+**Lot 0 remains NOT_STARTED. Consult `IMPLEMENTATION-STATUS.md` + `FINAL-DESIGN-REVIEW.md` for whether it is currently HOLD or READY. This orchestration/documentation change does not start implementation.**
 
-A user may simply request `Do Lot N`. The executing AI must internally decompose that Lot into bounded Work Packets, run the mandatory three-pass packet protocol, perform Lot reconciliation and a separate Lot Integration Pass before Lot acceptance.
+A user may simply request `Do Lot N`. When current status permits that Lot, the executing AI must internally decompose it into bounded Work Packets, run the mandatory three-pass packet protocol, perform Lot reconciliation and a separate Lot Integration Pass before Lot acceptance.
 
 ---
 
