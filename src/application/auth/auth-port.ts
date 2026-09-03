@@ -22,7 +22,9 @@ export interface PasswordSignInCredentials {
 
 export interface AuthPort {
   getSession(): Promise<AuthSessionState>;
-  signInWithPassword(credentials: PasswordSignInCredentials): Promise<AuthSessionState>;
+  signInWithPassword(
+    credentials: PasswordSignInCredentials,
+  ): Promise<AuthSessionState>;
   signOut(): Promise<void>;
 }
 
