@@ -186,11 +186,15 @@ Where the execution environment supports it, Pass B should be performed with a f
 
 Findings are classified at least `BLOCKING`, `MAJOR`, `MINOR` or `PASS`.
 
-Any BLOCKING/MAJOR finding returns the packet to `IN_PROGRESS` and invalidates previous acceptance evidence affected by the change.
+- If Pass B finds a BLOCKING/MAJOR defect, record the packet as `REVIEW_FAILED`. The durable next action is remediation; when remediation actively begins, transition back to `IN_PROGRESS`. Affected prior verification is invalidated and must be rerun.
+- If Pass B has no unresolved BLOCKING/MAJOR defect, transition to `ACCEPTANCE_PENDING`. The durable next action is Pass C.
+- MINOR findings may remain only when the governing feature/Lot/DoD permits them, with explicit disposition; they do not silently disappear.
 
 ### Pass C — ACCEPTANCE / RECONCILIATION
 
 Goal: mechanically determine whether the packet is complete.
+
+Pass C begins only from `ACCEPTANCE_PENDING`.
 
 For every covered Feature/current-lot responsibility, compare:
 
@@ -214,11 +218,13 @@ Pass C verifies:
 
 Only Pass C may mark the Work Packet `ACCEPTED`.
 
-If Pass C changes production code to fix a defect, affected verification is rerun and the packet returns through review as necessary.
+If Pass C finds a correctable implementation/evidence defect, transition to `IN_PROGRESS`, fix it, and rerun affected Pass A/B/C evidence as required. If safe progress cannot continue because of an external dependency or unresolved design/security issue, transition to `BLOCKED` with the reason and next resolution condition recorded.
+
+If Pass C changes production code to fix a defect, affected verification is rerun and the packet returns through review rather than being accepted from stale evidence.
 
 ---
 
-## 8. Work Packet states
+## 8. Work Packet states and transitions
 
 Use exactly:
 
@@ -230,6 +236,44 @@ Use exactly:
 - `ACCEPTANCE_PENDING`
 - `ACCEPTED`
 - `BLOCKED`
+
+Canonical normal transition path:
+
+```text
+PLANNED
+→ READY
+→ IN_PROGRESS          # Pass A
+→ REVIEW_PENDING       # Pass A complete; Pass B next
+→ ACCEPTANCE_PENDING   # Pass B passed
+→ ACCEPTED             # Pass C passed
+```
+
+Failure/remediation transitions:
+
+```text
+REVIEW_PENDING
+→ REVIEW_FAILED        # Pass B found BLOCKING/MAJOR
+→ IN_PROGRESS          # remediation starts
+
+ACCEPTANCE_PENDING
+→ IN_PROGRESS          # Pass C found correctable defect
+
+ANY NON-TERMINAL STATE
+→ BLOCKED              # external/design/security dependency prevents safe progress
+
+BLOCKED
+→ READY or IN_PROGRESS # only after recorded blocker is resolved; choose based on whether implementation must resume
+```
+
+`ACCEPTED` is terminal for the packet unless later integration/checkpoint/regression evidence invalidates it. In that case the owning Feature/packet is explicitly reopened to the appropriate non-terminal state; acceptance history is retained rather than rewritten.
+
+The separate `current pass` field must agree with state. Examples:
+
+- `IN_PROGRESS` → `A-IMPLEMENT` or explicit remediation;
+- `REVIEW_PENDING` → `B-ADVERSARIAL-REVIEW` is next/running;
+- `REVIEW_FAILED` → review failed, remediation is next;
+- `ACCEPTANCE_PENDING` → `C-ACCEPTANCE` is next/running;
+- `ACCEPTED` → `COMPLETE`.
 
 Do not use `mostly done`, `almost complete` or similar language as durable state.
 
@@ -247,7 +291,7 @@ The repository must make an interrupted Lot resumable without chat context.
 - current packet;
 - current packet state/pass;
 - accepted packets;
-- blocked packets/findings;
+- blocked/review-failed packets/findings;
 - next permitted action;
 - latest full verification relevant to the current packet/lot.
 
@@ -257,11 +301,12 @@ Example:
 Current Lot: 6
 Current Packet: WP-6.4
 Packet State: REVIEW_PENDING
-Next Action: Pass B — adversarial review of WP-6.4
+Current/Next Pass: B-ADVERSARIAL-REVIEW
+Next Action: perform adversarial review of WP-6.4
 Accepted Packets: WP-6.1, WP-6.2, WP-6.3
 ```
 
-A new agent resumes the recorded pass. It does not restart the Lot and does not skip to the next packet.
+A new agent resumes the recorded state/pass. It does not restart the Lot and does not skip to the next packet.
 
 ---
 
@@ -310,7 +355,7 @@ household/contact
 → budget/next-action invalidation
 ```
 
-Integration failures return the owning packet/Feature to the appropriate lifecycle state and invalidate Lot acceptance until repaired/reverified.
+Integration failures reopen the owning packet/Feature to the appropriate lifecycle state and invalidate Lot acceptance until repaired/reverified.
 
 ---
 
@@ -397,6 +442,7 @@ Stop and repair orchestration before continuing when:
 - packet dependencies form a cycle that prevents safe sequencing;
 - more than one unrelated packet is left IN_PROGRESS;
 - a packet is called complete without Pass B or Pass C;
+- packet state/current-pass combination is inconsistent or cannot tell a cold-start agent what to do next;
 - a reviewer relies only on the implementing agent's summary instead of repository contracts;
 - lot reconciliation is non-empty;
 - Lot acceptance is attempted before integration pass;
