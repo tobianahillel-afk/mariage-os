@@ -236,13 +236,14 @@ select is(
   'bootstrap project begins with exactly one membership'
 );
 
+reset role;
+
 select is(
   (select count(*)::integer from public.projects),
   2,
   'private bootstrap succeeds even when another synthetic project already exists'
 );
 
-reset role;
 select ok(
   (
     select p.bootstrap_status = 'claimed'
