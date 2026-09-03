@@ -1,16 +1,18 @@
 # Development Lots
 
-Status: **Frozen V1 implementation sequence — includes Invitations / RSVP / Communications scope**
+Status: **Frozen V1 implementation sequence — includes Invitations / RSVP / Communications scope and AI Work-Packet orchestration**
 
-Detailed exit criteria live in `LOT-ACCEPTANCE.md`. Binding scope lives in `V1-SCOPE.md` plus the guest-communications scope addendum. Feature-level progress is the union of `../FEATURE-LEDGER.md` and `../FEATURE-LEDGER-GUEST-COMMUNICATIONS-EXTENSION.md`. Cross-lot reviews live in `INTEGRATION-CHECKPOINTS.md`.
+Detailed exit criteria live in `LOT-ACCEPTANCE.md`. Binding scope lives in `V1-SCOPE.md` plus the guest-communications scope addendum. Feature-level progress is the union of `../FEATURE-LEDGER.md` and `../FEATURE-LEDGER-GUEST-COMMUNICATIONS-EXTENSION.md`. Cross-lot reviews live in `INTEGRATION-CHECKPOINTS.md`. AI execution inside a Lot is governed by `../engineering/AI-LOT-ORCHESTRATION.md`.
 
 A later lot cannot weaken security, integrity, UX/QIF, code architecture, maintainability, import, offline, recovery or communication-provider boundaries established earlier.
 
 ## Documentation/design phase
 
-Runs 1–4 are merged. The guest-communications V1 scope change must pass its dedicated change review and refreshed 36-criterion pre-code certification before implementation begins.
+Runs 1–4 and the guest-communications V1 scope change are merged and re-frozen. The pre-Lot 0 design gate is PASS.
 
-**Lot 0 remains READY / NOT_STARTED until explicit kickoff. This documentation change does not start implementation.**
+**Lot 0 is READY / NOT_STARTED until explicit kickoff. This orchestration/documentation change does not start implementation.**
+
+A user may simply request `Do Lot N`. The executing AI must internally decompose that Lot into bounded Work Packets, run the mandatory three-pass packet protocol, perform Lot reconciliation and a separate Lot Integration Pass before Lot acceptance.
 
 ---
 
@@ -84,7 +86,7 @@ No later domain may bypass these primitives.
 
 Before normal Lot 4 work starts, perform `INTEGRATION-CHECKPOINTS.md` **Checkpoint A — Foundation & Core Decision Loop**.
 
-Review all Lots 0–3 together for product fidelity, UX architecture, code architecture/complexity, data/security boundaries, offline behavior, cross-feature coherence and Feature Ledger completeness.
+Review all Lots 0–3 together for product fidelity, UX architecture, code architecture/complexity, data/security boundaries, offline behavior, cross-feature coherence, Feature Ledger completeness and Work-Packet/Lot reconciliation evidence.
 
 Repeat/update `reviews/DOCUMENTATION-SYSTEM-SCORECARD.md` using implementation evidence.
 
@@ -162,6 +164,8 @@ Production sender/domain/provider credentials and real-channel cutover evidence 
 
 Graphical drag/drop seating remains post-V1.
 
+Lot 6 is specifically classified as a **high-risk large Lot** for AI execution and must be decomposed conservatively under `AI-LOT-ORCHESTRATION.md`; it must never be treated as one implementation context.
+
 ## Lot 7 — Vendors, commercial documents and contract readiness
 
 - generic vendor/types;
@@ -182,6 +186,7 @@ This checkpoint verifies especially that Import, Budget, Guests, Invitations/RSV
 Additional mandatory Checkpoint B evidence:
 
 - FTR-105..119 reconciled;
+- Work Packet/Lot reconciliation evidence complete for elapsed Lots;
 - QIF couple-side campaign review PASS;
 - QIF mobile guest RSVP review PASS;
 - token/cross-household/idempotency security tests PASS;
@@ -234,6 +239,8 @@ Dedicated advanced live day-of mode remains post-V1.
 
 Guest-facing public RSVP is network-dependent for authoritative submission in V1 unless a later explicit design adds guest-offline submission. Couple-side communication drafts/previews may be locally durable but provider sends require server connectivity.
 
+Lot 10 is a high-risk systems Lot and must be decomposed into reviewable migration/sync/PWA/security Work Packets rather than one broad implementation pass.
+
 ### Mandatory Checkpoint C after Lot 10
 
 Before production-readiness Lot 11 proceeds normally, perform **Checkpoint C — Product Control, Spatial UX & Offline Hardening** across the complete implemented product.
@@ -268,6 +275,8 @@ Checkpoint C must PASS with no unresolved BLOCKING/MAJOR finding.
 
 A channel not configured for production is shown as unavailable; its absence must not break secure link/QR RSVP.
 
+Lot 11 is a high-risk production/security Lot and must be split aggressively. Backup/recovery, platform security, provider-specific production hardening and release readiness must not be compressed into one AI pass.
+
 ## Lot 12 — Existing-data migration and V1 cutover
 
 - venue research migration/reconciliation;
@@ -280,6 +289,8 @@ A channel not configured for production is shown as unavailable; its absence mus
 - legacy archival exports;
 - recovery export/restore drill;
 - formal source-of-truth declaration.
+
+Lot 12 uses bounded migration/reconciliation/cutover Work Packets and preserves a separate final cutover decision; no AI may infer source-of-truth acceptance merely because migration code ran.
 
 ### Mandatory Checkpoint D after Lot 12
 
@@ -295,18 +306,25 @@ No declaration that Mariage OS is the operational source of truth occurs before 
 
 ## Per-lot progress rule
 
-Every lot uses `engineering/IMPLEMENTATION-PLAYBOOK.md`:
+Every lot uses `engineering/IMPLEMENTATION-PLAYBOOK.md` and `engineering/AI-LOT-ORCHESTRATION.md`:
 
-- implement feature by feature;
-- maintain Feature Implementation Records;
+- compute the complete current-lot Feature/control responsibility inventory;
+- build a dependency-aware Work Packet plan before implementation;
+- prove every required responsibility is packet-assigned;
+- default to one packet `IN_PROGRESS` at a time;
+- execute every packet through Pass A IMPLEMENT → Pass B ADVERSARIAL REVIEW → Pass C ACCEPTANCE;
+- maintain Work Packet Records and Feature Implementation Records;
+- implement feature by feature/vertical slice inside packets;
 - follow canonical code structure/complexity rules;
-- update both V1 Feature Ledger files;
-- update `IMPLEMENTATION-STATUS.md`;
+- update both V1 Feature Ledger files as applicable;
+- persist current Lot/packet/pass/next action in `IMPLEMENTATION-STATUS.md`;
 - perform UX/QIF review for affected user-facing features;
-- no unexplained `IN_PROGRESS`/`IMPLEMENTED` rows at lot acceptance;
+- perform mechanical Lot reconciliation after all packets;
+- perform a separate Lot Integration Pass;
+- no unexplained elapsed `SPECIFIED`/`READY`/`IN_PROGRESS`/`IMPLEMENTED`/`BLOCKED` responsibility at lot acceptance;
 - no unexplained maintainability/architecture exception accumulation.
 
-Lot completion is not measured by file count, LOC or percentage of UI mocked. It is measured by accepted Feature IDs and objective lot criteria.
+Lot completion is not measured by file count, LOC, context consumed or percentage of UI mocked. It is measured by accepted packet responsibilities, Feature IDs, integration evidence and objective lot criteria.
 
 ---
 
