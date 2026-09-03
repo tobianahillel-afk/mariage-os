@@ -1,4 +1,4 @@
-name: WP-0.4 Supabase CLI probe
+name: WP-0.4 Supabase local verification
 
 on:
   push:
@@ -6,27 +6,36 @@ on:
       - lot-0/repository-tooling
     paths:
       - .github/workflows/supabase-probe.yml
+      - package.json
+      - package-lock.json
+      - supabase/**
 
 permissions:
   contents: read
 
 jobs:
-  probe:
+  verify-local-db:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - name: Checkout clean branch state
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
           cache: npm
-      - run: npm ci --no-audit --no-fund
-      - name: Generate canonical local config in isolated runner directory
-        shell: bash
-        run: |
-          mkdir -p "$RUNNER_TEMP/supabase-probe"
-          cd "$RUNNER_TEMP/supabase-probe"
-          "$GITHUB_WORKSPACE/node_modules/.bin/supabase" init
-          cat supabase/config.toml
-      - name: Show supported DB test command
-        run: npx supabase test db --help
+
+      - name: Clean reproducible install
+        run: npm ci --no-audit --no-fund
+
+      - name: Start local Supabase without production credentials
+        run: npm run db:start
+
+      - name: Reset, seed and execute direct DB tests
+        run: npm run db:verify
+
+      - name: Stop local Supabase
+        if: always()
+        run: npm run db:stop
