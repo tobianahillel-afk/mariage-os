@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(7);
+select plan(8);
 
 set local role anon;
 select throws_ok(
@@ -14,6 +14,17 @@ select throws_ok(
 reset role;
 
 set local role authenticated;
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"11111111-1111-4111-8111-111111111111","role":"authenticated"}',
+  true
+);
+select is(
+  (select count(*)::integer from engineering.rls_probe),
+  0,
+  'authenticated principal without tenant claim is denied all rows'
+);
+
 select set_config(
   'request.jwt.claims',
   '{"sub":"11111111-1111-4111-8111-111111111111","role":"authenticated","tenant_id":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"}',
