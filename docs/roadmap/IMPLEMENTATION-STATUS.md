@@ -6,21 +6,21 @@ Purpose: answer “where exactly are we?” without relying on chat history, mem
 
 ## Current phase
 
-**Pre-code V1 documentation/design: COMPLETE / FROZEN.**
+**Pre-code V1 documentation/design: COMPLETE / previously FROZEN.**
 
-**Expanded V1 guest RSVP + Email/SMS/WhatsApp scope: REVIEWED / MERGED / FROZEN.**
+**AI Lot Orchestration governance enhancement: REVIEW / RE-FREEZE IN PROGRESS on this branch.**
 
-**Implementation gate: OPEN.**
+The product V1 scope is unchanged: 120 Feature IDs. This change strengthens how a simple user request such as `Fais le Lot N` is executed safely by AI agents.
 
-**Lot 0: READY / NOT_STARTED.**
+**Implementation gate for starting Lot 0 from this branch: HOLD until orchestration review/re-certification is merged and post-merge status is resealed.**
+
+**Lot 0 remains READY / NOT_STARTED. Do not start it during this documentation re-freeze.**
 
 No application/tooling implementation work has started.
 
-PR #5 merged the reviewed scope change from exact sealed head `96b18f04e6b2af9f21614751096cca7db00a88ea` into `main` (merge commit `7088d4c48aa9043733bbc015235a538ee4c06120`). The post-merge Final Design Review is PASS.
-
 ## Frozen V1 feature inventory
 
-The authoritative V1 feature set is the union of:
+The authoritative V1 feature set remains the union of:
 
 - `../FEATURE-LEDGER.md` — `FTR-001..104`;
 - `../FEATURE-LEDGER-GUEST-COMMUNICATIONS-EXTENSION.md` — `FTR-105..120`.
@@ -39,17 +39,42 @@ Implementation counts:
 
 Documentation completion never counts as feature implementation.
 
-## Final pre-Lot 0 evidence
+## AI Lot Orchestration change under review
 
-- `../FINAL-DESIGN-REVIEW.md` — PASS / gate open;
-- `../V1-FROZEN-MANIFEST.md` — frozen V1 composition/precedence;
-- `../reviews/PRE-LOT0-36-CRITERIA-CERTIFICATION.md` — 36/36 criteria at 100/100 for the expanded V1;
-- `../reviews/V1-GUEST-COMMUNICATIONS-SCOPE-CHANGE-REVIEW.md` — scope-change coherence audit;
-- `../reviews/LLM-GUEST-COMMUNICATIONS-COLD-START-REVIEW.md` — no-context agent takeover review;
-- `../quality/GUEST-COMMUNICATIONS-ACCEPTANCE.md` — 60 dedicated guest-communication acceptance scenarios;
-- PR #5 exact-head sentry comment + successful exact-head merge;
-- `../reviews/ABSOLUTE-300-CONTROL-CHECKLIST.md` — cross-phase maturity controls;
-- `../reviews/100-PERCENT-GAP-PLAN.md` — design → implementation → production → V2 maturity path.
+Normative additions/updates include:
+
+- `../engineering/AI-LOT-ORCHESTRATION.md` — Lot Orchestrator, packet sizing, sanity ranges, three-pass review, reconciliation and integration;
+- `../templates/WORK-PACKET-RECORD.md` — durable packet/pass evidence;
+- `../engineering/IMPLEMENTATION-PLAYBOOK.md` — Work Packets mandatory inside Lots;
+- `../engineering/DEFINITION-OF-DONE.md` — packet/lot completion gates;
+- `LOT-ACCEPTANCE.md` — current gate wording + complete Lot 6 scope + packet closure rules;
+- `LOTS.md` — current frozen state + high-risk Lot decomposition guidance;
+- root `AGENTS.md`, `START-HERE.md`, `V1-FROZEN-MANIFEST.md`, `CONTRIBUTING.md`, LLM routing and PR template — discoverability/handoff enforcement.
+
+## Intended execution model after re-freeze
+
+A user may simply request:
+
+```text
+Fais le Lot N
+```
+
+The AI must internally execute:
+
+```text
+Lot inventory
+→ complete responsibility coverage map
+→ bounded Work Packets
+→ Pass A IMPLEMENT
+→ Pass B ADVERSARIAL REVIEW
+→ Pass C ACCEPTANCE
+→ mechanical Lot reconciliation
+→ Lot Integration Pass
+→ Lot acceptance
+→ Checkpoint if applicable
+```
+
+Default: one Work Packet `IN_PROGRESS` at a time. During an active Lot this status board must persist current Lot, packet, pass, accepted packets, blockers and next action.
 
 ## Lot status
 
@@ -64,7 +89,7 @@ Allowed lot states:
 
 | Lot | Name | State | Feature range / focus |
 |---:|---|---|---|
-| 0 | Repository & tooling | **READY / NOT_STARTED** | engineering foundation |
+| 0 | Repository & tooling | **READY / HOLD / NOT_STARTED** | engineering foundation; explicit kickoff forbidden during re-freeze |
 | 1 | Identity/project foundation | NOT_STARTED | FTR-002..012 + guest-comms foundation hooks |
 | 2 | Venues core | NOT_STARTED | FTR-013..028 + file basics |
 | 3 | Tasks/decisions/Inbox | NOT_STARTED | FTR-029..035 |
@@ -78,54 +103,54 @@ Allowed lot states:
 | 11 | Backup/recovery/providers/production | NOT_STARTED | FTR-094..099 + production provider evidence incl. FTR-120 |
 | 12 | Existing data/cutover | NOT_STARTED | FTR-100..104 + contact/RSVP/provider cutover evidence |
 
-`READY` is permission to start after explicit kickoff, not evidence of work performed.
-
 ## Cross-lot checkpoints
 
 | Checkpoint | Lots | State | Key expanded-V1 focus |
 |---|---|---|---|
-| A | 0–3 | NOT_STARTED | foundations, capability/provider boundaries |
-| B | 4–7 | NOT_STARTED | import + guests + RSVP + communications + seating + QIF/security integration |
-| C | 8–10 | NOT_STARTED | dashboard/search/offline/PWA communication coherence |
+| A | 0–3 | NOT_STARTED | foundations, capability/provider boundaries + packet/lot evidence |
+| B | 4–7 | NOT_STARTED | import + guests + RSVP + communications + seating + QIF/security integration + packet reconciliation |
+| C | 8–10 | NOT_STARTED | dashboard/search/offline/PWA coherence + implementation maintainability |
 | D | 11–12 | NOT_STARTED | real providers, recovery, costs, deliverability, real-device/QIF and cutover evidence |
 
-## Current blockers
+## Current review tasks before orchestration re-freeze
 
-**Pre-Lot 0 design blockers: 0.**
-
-No known unresolved BLOCKING or MAJOR pre-code design finding remains.
-
-Runtime/tooling evidence intentionally does not exist yet because Lot 0 and all implementation lots are still unstarted.
+1. verify user can request only `Fais le Lot N` and agent owns safe decomposition;
+2. verify packet size/complexity limits prevent giant hidden sub-lots;
+3. verify all required Feature/control responsibilities must be covered before code starts;
+4. verify mandatory Pass A/B/C cannot be bypassed;
+5. verify session interruption resumes exact packet/pass;
+6. verify Lot closure requires empty mechanical reconciliation + integration pass;
+7. verify base/addendum Lot acceptance and checkpoints remain higher-level gates;
+8. remove stale gate/ledger/scope wording from active normative docs;
+9. re-run 36-criterion pre-Lot 0 design certification;
+10. final sentry/repository hygiene + exact-head review, then merge/reseal `main`.
 
 ## Next permitted action
 
-**Wait for an explicit Lot 0 kickoff request.**
+**Documentation/review/re-freeze only. Do not start Lot 0.**
 
-Until then, do not:
+Forbidden during this phase:
 
-- initialize Vite/TypeScript;
-- create `package.json`, lockfile or toolchain;
-- create GitHub Actions workflows;
-- implement CI/CD;
-- create Supabase migrations/configuration;
-- create application source code;
-- integrate provider SDKs/webhooks;
-- send real Email/SMS/WhatsApp messages;
-- mark any Feature ID implemented.
+- Vite/TypeScript initialization;
+- package/toolchain creation;
+- GitHub Actions implementation;
+- Supabase migrations/configuration implementation;
+- application source code;
+- provider SDK integration;
+- real Email/SMS/WhatsApp send;
+- Feature ID implementation.
 
 ## Handoff summary
 
 ```text
-V1 design: COMPLETE / FROZEN
-Guest RSVP + communications scope: MERGED / FROZEN
+V1 product design: COMPLETE / scope unchanged
 Frozen Feature IDs: 120
-Final Design Review: PASS
-36 pre-Lot 0 criteria: 36/36 at 100/100
-Implementation gate: OPEN
+Current change: AI Lot Orchestrator + Work Packets + 3-pass execution
+Orchestration review: IN PROGRESS
+Implementation gate for Lot 0 kickoff: HOLD on this branch
 Lot 0: READY / NOT_STARTED
 Features IMPLEMENTED: 0
-Open pre-code BLOCKING/MAJOR findings: 0
-Next permitted action: explicit future Lot 0 kickoff only
+Next permitted action: documentation coherence review + 36-criterion re-certification only
 ```
 
 The repository is the canonical handoff. Chat history is supplementary only.
