@@ -75,18 +75,33 @@ Cohesion rationale: invitation token creation, hash-at-rest persistence, identit
 
 ## Pass A — IMPLEMENT
 
-**IN_PROGRESS.**
+**IN_PROGRESS — implementation landed; exact-head full verification pending.**
 
-Planned evidence:
+Implemented:
 
-- migration-controlled invitation schema/indexes/constraints and protected command surface;
-- application/infrastructure boundary for raw-token creation/acceptance without persistence leakage;
-- direct pgTAP grant/RLS/RPC tests;
-- negative tests for anonymous/unverified/wrong-email/expired/revoked/replay/cross-project attempts;
-- final-active-owner invariant tests for revoke/demotion/removal paths;
-- synthetic two-owner acceptance path using `.invalid` identities only;
-- unit/property tests for token boundary and input normalization where applicable;
-- exact-head GitHub CI including clean-checkout `npm run verify`.
+- `project_invitations` schema with normalized intended identity, role, SHA-256 token hash, expiry, issuer, revoke and acceptance state constraints;
+- no direct browser privileges on invitation persistence;
+- owner-authorized `create_project_invitation` using `pgcrypto` 256-bit random token material, SHA-256 hash-at-rest and seven-day expiry;
+- protected invitation revocation with idempotent already-revoked behavior and accepted-state protection;
+- server-side identity-bound acceptance deriving `auth.uid()` and provider-verified email from `auth.users`, with wrong identity/unverified/expired/revoked/replayed capability handling;
+- idempotent same-identity replay after successful acceptance without duplicate membership;
+- exact-role reactivation of a matching revoked membership;
+- protected role-change and membership-revoke commands reusing `members.manage_roles`;
+- project-row serialization for membership administration so concurrent demotion/revocation commands cannot remove the final active owner;
+- application ports for invitation and membership administration;
+- fail-closed Supabase structural adapters validating provider outputs rather than trusting RPC payloads;
+- 41-assertion pgTAP invitation/membership security matrix using synthetic `.invalid` identities only;
+- unit tests for email normalization, invitation provider trust boundary and membership administration adapter.
+
+Intermediate runtime evidence:
+
+- run `33818752378` on `afc82d7a6c18748b888525f74d5bf450b72fdccf`: Local Supabase DB/RLS **SUCCESS** and Browser/mutation **SUCCESS**; Core failed only at Prettier before later gates;
+- the DB success proves the migration and all 41 direct invitation/membership assertions execute successfully on local Supabase;
+- the three reported TypeScript formatting differences were corrected exactly using the repository-pinned Prettier output; the temporary formatting workflow was deleted afterward.
+
+Remaining Pass-A gate:
+
+- obtain one clean exact-head CI where Core, DB/RLS, Browser/mutation, privacy-safe preview and clean-checkout `npm run verify` are all SUCCESS together.
 
 ## Pass B — ADVERSARIAL REVIEW
 
@@ -101,5 +116,5 @@ Not started. Requires Pass B closure, exact-head evidence and mechanical reconci
 - Current state: `IN_PROGRESS`
 - Current/next pass: `A-IMPLEMENT`
 - Accepted dependencies: WP-1.1, WP-1.2, WP-1.3.
-- Open BLOCKING/MAJOR findings: none at kickoff.
-- Next permitted action: implement WP-1.4 only.
+- Open BLOCKING/MAJOR findings: none currently observed in Pass A.
+- Next permitted action: obtain exact-head full verification for WP-1.4, repair only observed defects, then begin Pass B.
