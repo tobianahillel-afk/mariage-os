@@ -31,6 +31,11 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci --no-audit --no-fund
+      - name: Temporary logout test Prettier diagnostic
+        run: |
+          npx prettier --write src/application/auth/safe-logout.test.ts
+          git diff --no-ext-diff --unified=20 -- src/application/auth/safe-logout.test.ts
+          exit 1
       - run: npm run security:env
       - run: npm run security:env:negative
       - run: npm run security:secrets
