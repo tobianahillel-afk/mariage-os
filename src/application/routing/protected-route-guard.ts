@@ -22,7 +22,7 @@ export type ProtectedRouteDecision =
 export async function resolveProtectedRoute(
   route: Extract<AppRoute, { kind: "protected_project" }>,
   sessionReader: SessionReader,
-  projectAccess: ProjectAccessPort,
+  projectAccess: ProjectAccessPort | null,
 ): Promise<ProtectedRouteDecision> {
   const session = await sessionReader.getSession();
 
@@ -32,6 +32,10 @@ export async function resolveProtectedRoute(
 
   if (session.kind === "authenticated_unverified") {
     return { kind: "verification_required" };
+  }
+
+  if (projectAccess === null) {
+    return { kind: "project_unavailable" };
   }
 
   try {
