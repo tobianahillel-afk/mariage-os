@@ -8,7 +8,11 @@ if (root === null) {
   throw new Error("Mariage OS bootstrap root #app is missing.");
 }
 
-const runtime = createBrowserShellRuntime(import.meta.env);
+const runtime = createBrowserShellRuntime({
+  VITE_SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,
+  VITE_SUPABASE_PUBLISHABLE_KEY:
+    import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+});
 
 await startApplication(root, {
   pathname: window.location.pathname,
