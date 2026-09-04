@@ -18,7 +18,11 @@ type ShellState =
 
 type StaticShellKind = Exclude<
   ShellState["kind"],
-  "project_allowed" | "login_required" | "public_rsvp" | "onboarding"
+  | "project_allowed"
+  | "login_required"
+  | "session_expired"
+  | "public_rsvp"
+  | "onboarding"
 >;
 
 interface NavigationItem {
@@ -308,6 +312,25 @@ function renderLoginRequired(
   shell.append(link);
 }
 
+function renderSessionExpired(
+  root: HTMLElement,
+  state: Extract<ShellState, { kind: "session_expired" }>,
+): void {
+  const shell = renderMessageShell(
+    root,
+    "Session expirée",
+    "Votre travail local reste conservé sur cet appareil. La synchronisation est suspendue jusqu’à votre reconnexion.",
+    "session-expired",
+  );
+  const link = document.createElement("a");
+  link.textContent = "Se reconnecter";
+  link.setAttribute(
+    "href",
+    `/login?returnTo=${encodeURIComponent(state.returnTo)}`,
+  );
+  shell.append(link);
+}
+
 function renderStaticShell(root: HTMLElement, kind: StaticShellKind): void {
   const copy = staticShellCopy[kind];
   const shell = renderMessageShell(
@@ -331,6 +354,10 @@ export function renderShell(root: HTMLElement, state: ShellState): void {
   }
   if (state.kind === "login_required") {
     renderLoginRequired(root, state);
+    return;
+  }
+  if (state.kind === "session_expired") {
+    renderSessionExpired(root, state);
     return;
   }
   if (state.kind === "public_rsvp") {
