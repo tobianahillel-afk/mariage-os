@@ -19,21 +19,32 @@ export type ProtectedRouteDecision =
       readonly projectPath: string;
     };
 
+async function readSessionOrNull(
+  sessionReader: SessionReader,
+): Promise<AuthSessionState | null> {
+  try {
+    return await sessionReader.getSession();
+  } catch {
+    return null;
+  }
+}
+
 export async function resolveProtectedRoute(
   route: Extract<AppRoute, { kind: "protected_project" }>,
   sessionReader: SessionReader,
   projectAccess: ProjectAccessPort | null,
 ): Promise<ProtectedRouteDecision> {
-  const session = await sessionReader.getSession();
+  const session = await readSessionOrNull(sessionReader);
 
+  if (session === null) {
+    return { kind: "project_unavailable" };
+  }
   if (session.kind === "signed_out") {
     return { kind: "login_required", returnTo: protectedRoutePath(route) };
   }
-
   if (session.kind === "authenticated_unverified") {
     return { kind: "verification_required" };
   }
-
   if (projectAccess === null) {
     return { kind: "project_unavailable" };
   }
