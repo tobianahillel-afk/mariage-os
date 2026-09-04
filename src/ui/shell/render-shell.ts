@@ -62,7 +62,7 @@ function renderMessageShell(
   title: string,
   message: string,
   shellKind: string,
-): void {
+): HTMLElement {
   document.title = `${title} · Mariage OS`;
   const shell = document.createElement("section");
   shell.className = "message-shell";
@@ -73,6 +73,7 @@ function renderMessageShell(
     createTextElement("p", message, "lede"),
   );
   root.replaceChildren(shell);
+  return shell;
 }
 
 function projectHref(projectId: string, path: string): string {
@@ -179,22 +180,19 @@ function renderLoginRequired(
   root: HTMLElement,
   state: Extract<ShellState, { kind: "login_required" }>,
 ): void {
-  renderMessageShell(
+  const shell = renderMessageShell(
     root,
     "Connexion requise",
     "Connectez-vous pour continuer vers votre espace privé.",
     "login-required",
   );
-  const shell = root.firstElementChild;
-  if (shell !== null) {
-    const link = document.createElement("a");
-    link.textContent = "Se connecter";
-    link.setAttribute(
-      "href",
-      `/login?returnTo=${encodeURIComponent(state.returnTo)}`,
-    );
-    shell.append(link);
-  }
+  const link = document.createElement("a");
+  link.textContent = "Se connecter";
+  link.setAttribute(
+    "href",
+    `/login?returnTo=${encodeURIComponent(state.returnTo)}`,
+  );
+  shell.append(link);
 }
 
 export function renderShell(root: HTMLElement, state: ShellState): void {
@@ -218,14 +216,37 @@ export function renderShell(root: HTMLElement, state: ShellState): void {
     return;
   }
 
-  const messages: Readonly<Record<Exclude<ShellState["kind"], "project_allowed" | "login_required" | "public_rsvp">, readonly [string, string]>> = {
-    landing: ["Mariage OS", "Votre espace privé pour préparer le mariage ensemble."],
+  const messages: Readonly<
+    Record<
+      Exclude<
+        ShellState["kind"],
+        "project_allowed" | "login_required" | "public_rsvp"
+      >,
+      readonly [string, string]
+    >
+  > = {
+    landing: [
+      "Mariage OS",
+      "Votre espace privé pour préparer le mariage ensemble.",
+    ],
     login: ["Connexion", "Connectez-vous avec votre identité vérifiée."],
-    onboarding: ["Configuration", "Préparez les réglages essentiels de votre projet."],
-    invite: ["Invitation au projet", "Vérifiez votre identité pour traiter cette invitation."],
+    onboarding: [
+      "Configuration",
+      "Préparez les réglages essentiels de votre projet.",
+    ],
+    invite: [
+      "Invitation au projet",
+      "Vérifiez votre identité pour traiter cette invitation.",
+    ],
     not_found: ["Page indisponible", "Cette page n’est pas disponible."],
-    verification_required: ["Vérification requise", "Vérifiez votre adresse e-mail avant d’accéder au projet."],
-    project_unavailable: ["Projet indisponible", "Ce projet n’est pas disponible avec votre accès actuel."],
+    verification_required: [
+      "Vérification requise",
+      "Vérifiez votre adresse e-mail avant d’accéder au projet.",
+    ],
+    project_unavailable: [
+      "Projet indisponible",
+      "Ce projet n’est pas disponible avec votre accès actuel.",
+    ],
   };
   const [title, message] = messages[state.kind];
   renderMessageShell(root, title, message, state.kind);
