@@ -47,7 +47,10 @@ export function deriveSyncSummary(input: SyncSummaryInput): SyncSummary {
     return { kind: "conflict", label: "Conflit de synchronisation à vérifier" };
   }
   if (input.retryableFailureCount + input.permanentFailureCount > 0) {
-    return { kind: "error", label: "Erreur de sync · travail conservé localement" };
+    return {
+      kind: "error",
+      label: "Erreur de sync · travail conservé localement",
+    };
   }
   if (!input.online && input.pendingCount > 0) {
     return {
@@ -65,7 +68,10 @@ export function deriveSyncSummary(input: SyncSummaryInput): SyncSummary {
     };
   }
   if (!input.online) {
-    return { kind: "offline", label: "Hors ligne · aucune modification en attente" };
+    return {
+      kind: "offline",
+      label: "Hors ligne · aucune modification en attente",
+    };
   }
   return { kind: "synced", label: "En ligne · synchronisé" };
 }
