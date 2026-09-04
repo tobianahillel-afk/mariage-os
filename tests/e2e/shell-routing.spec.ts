@@ -167,8 +167,8 @@ test("verified member receives project-scoped navigation only after live access"
   await expect(page.locator('[data-shell="private-project"]')).toBeVisible();
   await expect(page.getByRole("heading", { name: "Réglages" })).toBeVisible();
   await expect(page.locator('[data-rsvp-intent-hook="true"]')).toBeVisible();
-  await expect(page.locator('[data-sync-state="synced"]')).toContainText(
-    "En ligne · synchronisé",
+  await expect(page.locator('[data-sync-state="online_idle"]')).toContainText(
+    "En ligne · aucune modification locale en attente",
   );
   const hrefs = await page
     .locator("nav a")
@@ -194,8 +194,8 @@ test("pending mutation survives reload and remains isolated by account+project n
   );
 
   await renderAllowedProject(page, secondProjectId);
-  await expect(page.locator('[data-sync-state="synced"]')).toContainText(
-    "En ligne · synchronisé",
+  await expect(page.locator('[data-sync-state="online_idle"]')).toContainText(
+    "En ligne · aucune modification locale en attente",
   );
   expect(await projectCanReadOperation(page, secondProjectId)).toBe(false);
 });
