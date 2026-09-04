@@ -6,8 +6,12 @@ async function renderAllowedProject(page: Page): Promise<void> {
   await page.goto("/");
   await page.evaluate(
     async ({ id }) => {
-      const module = await import("/src/app/bootstrap/start-application.ts");
-      const root = document.querySelector<HTMLElement>("#app");
+      const modulePath = "/src/app/bootstrap/start-application.ts";
+      const module = await import(modulePath);
+      const browserGlobal = globalThis as unknown as {
+        document: { querySelector(selector: string): unknown | null };
+      };
+      const root = browserGlobal.document.querySelector("#app");
       if (root === null) {
         throw new Error("Missing application root.");
       }
@@ -74,8 +78,12 @@ test("verified outsider gets the same generic project-unavailable shell", async 
   await page.goto("/");
   await page.evaluate(
     async ({ id }) => {
-      const module = await import("/src/app/bootstrap/start-application.ts");
-      const root = document.querySelector<HTMLElement>("#app");
+      const modulePath = "/src/app/bootstrap/start-application.ts";
+      const module = await import(modulePath);
+      const browserGlobal = globalThis as unknown as {
+        document: { querySelector(selector: string): unknown | null };
+      };
+      const root = browserGlobal.document.querySelector("#app");
       if (root === null) {
         throw new Error("Missing application root.");
       }
