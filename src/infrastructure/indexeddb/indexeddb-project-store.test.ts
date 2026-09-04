@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { expect, it } from "vitest";
 
 import { createLocalProjectScope } from "@application/local-data/local-project-scope";
 import {
@@ -13,19 +13,16 @@ import {
 } from "./indexeddb-project-store";
 
 type Row = Record<string, unknown>;
-
 type FailureMode =
   "none" | "open" | "request" | "transaction_error" | "transaction_abort";
 
-class FakeOpenRequest {
-  result!: IDBDatabase;
-  onupgradeneeded: (() => void) | null = null;
-  onsuccess: (() => void) | null = null;
-  onerror: (() => void) | null = null;
+function missingFixture(): never {
+  throw new Error("IndexedDB test fixture is missing.");
 }
 
 class FakeRequest<T> {
   result!: T;
+  onupgradeneeded: (() => void) | null = null;
   onsuccess: (() => void) | null = null;
   onerror: (() => void) | null = null;
 }
@@ -55,10 +52,8 @@ class FakeDatabase {
   }
 
   transaction(storeName: string): IDBTransaction {
-    return new FakeTransaction(
-      this.stores.get(storeName)!,
-      this.state,
-    ) as unknown as IDBTransaction;
+    const store = this.stores.get(storeName) ?? missingFixture();
+    return new FakeTransaction(store, this.state) as unknown as IDBTransaction;
   }
 
   close(): void {
@@ -112,7 +107,7 @@ class FakeObjectStore {
   private request<T>(result: T, mutate?: () => void): IDBRequest<T> {
     const request = new FakeRequest<T>();
     queueMicrotask(() => {
-      if (this.state.peekFailure() === "request") {
+      if (this.state.failure === "request") {
         this.state.consumeFailure();
         request.onerror?.();
         return;
@@ -162,10 +157,6 @@ class FakeObjectStore {
 class FakeFactoryState {
   failure: FailureMode = "none";
 
-  peekFailure(): FailureMode {
-    return this.failure;
-  }
-
   consumeFailure(): FailureMode {
     const failure = this.failure;
     this.failure = "none";
@@ -179,9 +170,9 @@ class FakeFactory {
   forceUpgrade = false;
 
   open(name: string): IDBOpenDBRequest {
-    const request = new FakeOpenRequest();
+    const request = new FakeRequest<IDBDatabase>();
     queueMicrotask(() => {
-      if (this.state.peekFailure() === "open") {
+      if (this.state.failure === "open") {
         this.state.consumeFailure();
         request.onerror?.();
         return;
@@ -199,7 +190,7 @@ class FakeFactory {
   }
 
   rawDatabase(name: string): FakeDatabase {
-    return this.databases.get(name)!;
+    return this.databases.get(name) ?? missingFixture();
   }
 }
 
@@ -226,235 +217,235 @@ function createMutation(): PendingMutationEnvelope {
 }
 
 function rawStore(factory: FakeFactory, name: string): Map<string, Row> {
-  return factory.rawDatabase(databaseName).stores.get(name)!.rows;
+  const store = factory.rawDatabase(databaseName).stores.get(name);
+  return (store ?? missingFixture()).rows;
 }
 
-describe("IndexedDbProjectStore", () => {
-  it("creates schema metadata and keeps it stable on the same app version", async () => {
-    const factory = new FakeFactory();
-    const store = await IndexedDbProjectStore.open(
-      factory as unknown as IDBFactory,
-      scope,
-      "1.0.0",
-    );
+it("creates schema metadata and keeps it stable on the same app version", async () => {
+  const factory = new FakeFactory();
+  const store = await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "1.0.0",
+  );
 
-    expect(await store.getMetadata()).toEqual({
-      key: "scope",
-      localSchemaVersion: 1,
-      appVersionLastOpened: "1.0.0",
-      projectId,
-      userId,
-      deviceId,
-      lastSuccessfulSyncAt: null,
-      backendSchemaVersionLastSeen: null,
-      serviceWorkerBuildLastSeen: null,
-    });
-
-    factory.forceUpgrade = true;
-    const reopened = await IndexedDbProjectStore.open(
-      factory as unknown as IDBFactory,
-      scope,
-      "1.0.0",
-    );
-    expect(await reopened.getMetadata()).toEqual(await store.getMetadata());
+  expect(await store.getMetadata()).toEqual({
+    key: "scope",
+    localSchemaVersion: 1,
+    appVersionLastOpened: "1.0.0",
+    projectId,
+    userId,
+    deviceId,
+    lastSuccessfulSyncAt: null,
+    backendSchemaVersionLastSeen: null,
+    serviceWorkerBuildLastSeen: null,
   });
 
-  it("updates app-version metadata on reopen", async () => {
-    const factory = new FakeFactory();
-    await IndexedDbProjectStore.open(
-      factory as unknown as IDBFactory,
-      scope,
-      "1",
-    );
-    const store = await IndexedDbProjectStore.open(
-      factory as unknown as IDBFactory,
-      scope,
-      "2",
-    );
-    expect((await store.getMetadata()).appVersionLastOpened).toBe("2");
+  factory.forceUpgrade = true;
+  const reopened = await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "1.0.0",
+  );
+  expect(await reopened.getMetadata()).toEqual(await store.getMetadata());
+});
+
+it("updates app-version metadata on reopen", async () => {
+  const factory = new FakeFactory();
+  await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "1",
+  );
+  const store = await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "2",
+  );
+  expect((await store.getMetadata()).appVersionLastOpened).toBe("2");
+});
+
+it.each([
+  ["localSchemaVersion", 2],
+  ["projectId", "99999999-9999-4999-8999-999999999999"],
+  ["userId", "99999999-9999-4999-8999-999999999999"],
+  ["deviceId", "99999999-9999-4999-8999-999999999999"],
+] as const)("rejects inconsistent %s metadata", async (field, value) => {
+  const factory = new FakeFactory();
+  const store = await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "1",
+  );
+  const rows = rawStore(factory, "metadata");
+  const metadata = rows.get("scope") ?? missingFixture();
+  rows.set("scope", { ...metadata, [field]: value });
+
+  await expect(store.getMetadata()).rejects.toThrow("scope metadata");
+});
+
+it("rejects missing metadata", async () => {
+  const factory = new FakeFactory();
+  const store = await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "1",
+  );
+  rawStore(factory, "metadata").delete("scope");
+  await expect(store.getMetadata()).rejects.toThrow("metadata is missing");
+});
+
+it("persists and reads scoped cached records", async () => {
+  const factory = new FakeFactory();
+  const store = await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "1",
+  );
+  const record = createCachedRecordEnvelope(scope, {
+    recordType: "project_preferences",
+    entityId,
+    serverRevision: "rev-1",
+    serverUpdatedAt: "2026-09-04T14:00:00.000Z",
+    syncMarker: "synced",
+    payload: { density: "compact" },
   });
 
-  it.each([
-    ["localSchemaVersion", 2],
-    ["projectId", "99999999-9999-4999-8999-999999999999"],
-    ["userId", "99999999-9999-4999-8999-999999999999"],
-    ["deviceId", "99999999-9999-4999-8999-999999999999"],
-  ] as const)("rejects inconsistent %s metadata", async (field, value) => {
-    const factory = new FakeFactory();
-    const store = await IndexedDbProjectStore.open(
-      factory as unknown as IDBFactory,
-      scope,
-      "1",
-    );
-    const rows = rawStore(factory, "metadata");
-    rows.set("scope", { ...rows.get("scope")!, [field]: value });
+  await store.putCachedRecord(record);
+  expect(
+    await store.getCachedRecord("project_preferences", entityId),
+  ).toEqual(record);
+  expect(
+    await store.getCachedRecord("project_preferences", operationId),
+  ).toBeNull();
+});
 
-    await expect(store.getMetadata()).rejects.toThrow("scope metadata");
+it("rejects cached records from another project on write and read", async () => {
+  const factory = new FakeFactory();
+  const store = await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "1",
+  );
+  const record = createCachedRecordEnvelope(scope, {
+    recordType: "project_preferences",
+    entityId,
+    serverRevision: null,
+    serverUpdatedAt: null,
+    syncMarker: "pending",
+    payload: null,
   });
+  const foreign = { ...record, projectId: operationId };
 
-  it("rejects missing metadata", async () => {
-    const factory = new FakeFactory();
-    const store = await IndexedDbProjectStore.open(
-      factory as unknown as IDBFactory,
-      scope,
-      "1",
-    );
-    rawStore(factory, "metadata").delete("scope");
-    await expect(store.getMetadata()).rejects.toThrow("metadata is missing");
-  });
+  await expect(store.putCachedRecord(foreign)).rejects.toThrow(
+    "another project",
+  );
+  rawStore(factory, "cached_records").set(record.key, foreign);
+  await expect(
+    store.getCachedRecord("project_preferences", entityId),
+  ).rejects.toThrow("another project");
+});
 
-  it("persists and reads scoped cached records", async () => {
-    const factory = new FakeFactory();
-    const store = await IndexedDbProjectStore.open(
-      factory as unknown as IDBFactory,
-      scope,
-      "1",
-    );
-    const record = createCachedRecordEnvelope(scope, {
-      recordType: "project_preferences",
-      entityId,
-      serverRevision: "rev-1",
-      serverUpdatedAt: "2026-09-04T14:00:00.000Z",
-      syncMarker: "synced",
-      payload: { density: "compact" },
-    });
+it("persists pending operations once and exposes counters", async () => {
+  const factory = new FakeFactory();
+  const store = await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "1",
+  );
+  const mutation = createMutation();
 
-    await store.putCachedRecord(record);
-    expect(
-      await store.getCachedRecord("project_preferences", entityId),
-    ).toEqual(record);
-    expect(
-      await store.getCachedRecord("project_preferences", operationId),
-    ).toBeNull();
-  });
-
-  it("rejects cached records from another project on write and read", async () => {
-    const factory = new FakeFactory();
-    const store = await IndexedDbProjectStore.open(
-      factory as unknown as IDBFactory,
-      scope,
-      "1",
-    );
-    const record = createCachedRecordEnvelope(scope, {
-      recordType: "project_preferences",
-      entityId,
-      serverRevision: null,
-      serverUpdatedAt: null,
-      syncMarker: "pending",
-      payload: null,
-    });
-    const foreign = { ...record, projectId: operationId };
-
-    await expect(store.putCachedRecord(foreign)).rejects.toThrow(
-      "another project",
-    );
-    rawStore(factory, "cached_records").set(record.key, foreign);
-    await expect(
-      store.getCachedRecord("project_preferences", entityId),
-    ).rejects.toThrow("another project");
-  });
-
-  it("persists pending operations once and exposes counters", async () => {
-    const factory = new FakeFactory();
-    const store = await IndexedDbProjectStore.open(
-      factory as unknown as IDBFactory,
-      scope,
-      "1",
-    );
-    const mutation = createMutation();
-
-    for (const [suffix, status] of [
-      ["5", "pending"],
-      ["6", "sending"],
-      ["7", "conflict"],
-      ["8", "failed_retryable"],
-      ["9", "failed_permanent"],
-    ] as const) {
-      await store.addPendingMutation({
-        ...mutation,
-        operationId: `55555555-5555-4555-8555-55555555555${suffix}`,
-        status,
-      });
-    }
-
-    expect(await store.readSyncCounters()).toEqual({
-      pendingCount: 2,
-      conflictCount: 1,
-      retryableFailureCount: 1,
-      permanentFailureCount: 1,
-    });
-    expect((await store.listPendingMutations()).length).toBe(5);
-    expect(await store.getPendingMutation(operationId)).toEqual(mutation);
-    expect(await store.getPendingMutation(missingOperationId)).toBeNull();
-  });
-
-  it("refuses foreign mutation scope and duplicate operation ids", async () => {
-    const factory = new FakeFactory();
-    const store = await IndexedDbProjectStore.open(
-      factory as unknown as IDBFactory,
-      scope,
-      "1",
-    );
-    const mutation = createMutation();
-
-    await expect(
-      store.addPendingMutation({ ...mutation, projectId: operationId }),
-    ).rejects.toThrow("another local scope");
-    await expect(
-      store.addPendingMutation({ ...mutation, userId: operationId }),
-    ).rejects.toThrow("another local scope");
-    await expect(
-      store.addPendingMutation({ ...mutation, deviceId: operationId }),
-    ).rejects.toThrow("another local scope");
-
-    await store.addPendingMutation(mutation);
-    await expect(store.addPendingMutation(mutation)).rejects.toThrow(
-      "pending_mutations request",
-    );
-  });
-
-  it("fails closed when persisted pending scope is corrupted", async () => {
-    const factory = new FakeFactory();
-    const store = await IndexedDbProjectStore.open(
-      factory as unknown as IDBFactory,
-      scope,
-      "1",
-    );
-    const mutation = createMutation();
-    rawStore(factory, "pending_mutations").set(operationId, {
+  for (const [suffix, status] of [
+    ["5", "pending"],
+    ["6", "sending"],
+    ["7", "conflict"],
+    ["8", "failed_retryable"],
+    ["9", "failed_permanent"],
+  ] as const) {
+    await store.addPendingMutation({
       ...mutation,
-      userId: entityId,
+      operationId: `55555555-5555-4555-8555-55555555555${suffix}`,
+      status,
     });
+  }
 
-    await expect(store.getPendingMutation(operationId)).rejects.toThrow(
-      "another local scope",
-    );
-    await expect(store.listPendingMutations()).rejects.toThrow(
-      "another local scope",
-    );
+  expect(await store.readSyncCounters()).toEqual({
+    pendingCount: 2,
+    conflictCount: 1,
+    retryableFailureCount: 1,
+    permanentFailureCount: 1,
+  });
+  expect((await store.listPendingMutations()).length).toBe(5);
+  expect(await store.getPendingMutation(operationId)).toEqual(mutation);
+  expect(await store.getPendingMutation(missingOperationId)).toBeNull();
+});
+
+it("refuses foreign mutation scope and duplicate operation ids", async () => {
+  const factory = new FakeFactory();
+  const store = await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "1",
+  );
+  const mutation = createMutation();
+
+  await expect(
+    store.addPendingMutation({ ...mutation, projectId: operationId }),
+  ).rejects.toThrow("another local scope");
+  await expect(
+    store.addPendingMutation({ ...mutation, userId: operationId }),
+  ).rejects.toThrow("another local scope");
+  await expect(
+    store.addPendingMutation({ ...mutation, deviceId: operationId }),
+  ).rejects.toThrow("another local scope");
+
+  await store.addPendingMutation(mutation);
+  await expect(store.addPendingMutation(mutation)).rejects.toThrow(
+    "pending_mutations request",
+  );
+});
+
+it("fails closed when persisted pending scope is corrupted", async () => {
+  const factory = new FakeFactory();
+  const store = await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "1",
+  );
+  const mutation = createMutation();
+  rawStore(factory, "pending_mutations").set(operationId, {
+    ...mutation,
+    userId: entityId,
   });
 
-  it.each([
-    ["open", "open"],
-    ["request", "metadata request"],
-    ["transaction_error", "metadata transaction"],
-    ["transaction_abort", "metadata transaction"],
-  ] as const)("surfaces %s failures", async (failure, message) => {
-    const factory = new FakeFactory();
-    factory.state.failure = failure;
+  await expect(store.getPendingMutation(operationId)).rejects.toThrow(
+    "another local scope",
+  );
+  await expect(store.listPendingMutations()).rejects.toThrow(
+    "another local scope",
+  );
+});
 
-    await expect(
-      IndexedDbProjectStore.open(factory as unknown as IDBFactory, scope, "1"),
-    ).rejects.toThrow(message);
-  });
+it.each([
+  ["open", "open"],
+  ["request", "metadata request"],
+  ["transaction_error", "metadata transaction"],
+  ["transaction_abort", "metadata transaction"],
+] as const)("surfaces %s failures", async (failure, message) => {
+  const factory = new FakeFactory();
+  factory.state.failure = failure;
 
-  it("closes the database and factory port opens a scoped store", async () => {
-    const factory = new FakeFactory();
-    const port = new IndexedDbProjectStoreFactory(
-      factory as unknown as IDBFactory,
-    );
-    const store = await port.open(scope, "1");
-    store.close();
-    expect(factory.rawDatabase(databaseName).closed).toBe(true);
-  });
+  await expect(
+    IndexedDbProjectStore.open(factory as unknown as IDBFactory, scope, "1"),
+  ).rejects.toThrow(message);
+});
+
+it("closes the database and factory port opens a scoped store", async () => {
+  const factory = new FakeFactory();
+  const port = new IndexedDbProjectStoreFactory(
+    factory as unknown as IDBFactory,
+  );
+  const store = await port.open(scope, "1");
+  store.close();
+  expect(factory.rawDatabase(databaseName).closed).toBe(true);
 });
