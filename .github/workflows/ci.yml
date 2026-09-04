@@ -31,13 +31,6 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci --no-audit --no-fund
-      - name: Temporary security panel Prettier diagnostic
-        run: |
-          npx prettier --write src/ui/shell/security-settings-panel.ts
-          echo '---FORMATTED-SECURITY-PANEL---'
-          cat src/ui/shell/security-settings-panel.ts
-          echo '---END-FORMATTED-SECURITY-PANEL---'
-          exit 1
       - run: npm run security:env
       - run: npm run security:env:negative
       - run: npm run security:secrets
