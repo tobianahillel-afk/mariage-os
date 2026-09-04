@@ -1,8 +1,20 @@
+import type { SyncSummary } from "@application/local-data/sync-summary";
 import type { AppRoute } from "@application/routing/app-route";
 import type { ProtectedRouteDecision } from "@application/routing/protected-route-guard";
 
+type ProjectAllowedDecision = Extract<
+  ProtectedRouteDecision,
+  { kind: "project_allowed" }
+>;
+
+export type ProjectShellState = ProjectAllowedDecision & {
+  readonly syncSummary: SyncSummary;
+};
+
 type ShellState =
-  Exclude<AppRoute, { kind: "protected_project" }> | ProtectedRouteDecision;
+  | Exclude<AppRoute, { kind: "protected_project" }>
+  | Exclude<ProtectedRouteDecision, { kind: "project_allowed" }>
+  | ProjectShellState;
 
 type StaticShellKind = Exclude<
   ShellState["kind"],
@@ -210,6 +222,13 @@ function createRsvpIntentHook(): HTMLElement {
   return section;
 }
 
+function createSyncStatus(summary: SyncSummary): HTMLElement {
+  const status = createTextElement("p", summary.label, "sync-status");
+  status.setAttribute("role", "status");
+  status.setAttribute("data-sync-state", summary.kind);
+  return status;
+}
+
 function renderMessageShell(
   root: HTMLElement,
   title: string,
@@ -229,10 +248,7 @@ function renderMessageShell(
   return shell;
 }
 
-function renderProjectShell(
-  root: HTMLElement,
-  state: Extract<ShellState, { kind: "project_allowed" }>,
-): void {
+function renderProjectShell(root: HTMLElement, state: ProjectShellState): void {
   const section = currentSection(state.projectPath);
   const title = screenTitles[section] ?? "Espace projet";
   document.title = `${title} · Mariage OS`;
@@ -244,6 +260,7 @@ function renderProjectShell(
   content.className = "project-content";
   content.append(
     createTextElement("p", "Mariage OS", "eyebrow"),
+    createSyncStatus(state.syncSummary),
     createTextElement("h1", title, "page-title"),
     createTextElement(
       "p",
