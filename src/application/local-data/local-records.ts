@@ -3,14 +3,14 @@ import {
   type LocalProjectScope,
 } from "@application/local-data/local-project-scope";
 
-export type JsonPrimitive = boolean | number | string | null;
-export type JsonValue =
+type JsonPrimitive = boolean | number | string | null;
+type JsonValue =
   JsonPrimitive | readonly JsonValue[] | { readonly [key: string]: JsonValue };
 
-export type LocalSyncMarker = "synced" | "pending" | "conflict";
-export type PendingMutationStatus =
+type LocalSyncMarker = "synced" | "pending" | "conflict";
+type PendingMutationStatus =
   "pending" | "sending" | "conflict" | "failed_retryable" | "failed_permanent";
-export type PendingMutationPriority =
+type PendingMutationPriority =
   "essential_structured" | "metadata" | "media_related";
 
 export interface CachedRecordEnvelope {
