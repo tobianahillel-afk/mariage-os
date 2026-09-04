@@ -1,3 +1,4 @@
+import type { LocalProjectPurgePort } from "@application/local-data/local-project-purge-port";
 import {
   parseCachedRecordEnvelope,
   parseLocalProjectMetadata,
@@ -61,6 +62,15 @@ function openDatabase(factory: IDBFactory, name: string): Promise<IDBDatabase> {
       settled = true;
       resolve(database);
     };
+  });
+}
+
+function purgeDatabase(factory: IDBFactory, name: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const request = factory.deleteDatabase(name);
+    request.onblocked = () => reject(storageError("purge blocked"));
+    request.onerror = () => reject(storageError("purge"));
+    request.onsuccess = () => resolve();
   });
 }
 
@@ -305,7 +315,9 @@ export class IndexedDbProjectStore implements LocalProjectStore {
   }
 }
 
-export class IndexedDbProjectStoreFactory implements LocalProjectStoreFactory {
+export class IndexedDbProjectStoreFactory
+  implements LocalProjectStoreFactory, LocalProjectPurgePort
+{
   constructor(private readonly factory: IDBFactory) {}
 
   open(
@@ -313,5 +325,9 @@ export class IndexedDbProjectStoreFactory implements LocalProjectStoreFactory {
     appVersion: string,
   ): Promise<LocalProjectStore> {
     return IndexedDbProjectStore.open(this.factory, scope, appVersion);
+  }
+
+  purge(scope: LocalProjectScope): Promise<void> {
+    return purgeDatabase(this.factory, localProjectDatabaseName(scope));
   }
 }
