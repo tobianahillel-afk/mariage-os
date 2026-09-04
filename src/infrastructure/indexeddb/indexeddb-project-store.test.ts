@@ -312,9 +312,9 @@ it("persists and reads scoped cached records", async () => {
   });
 
   await store.putCachedRecord(record);
-  expect(
-    await store.getCachedRecord("project_preferences", entityId),
-  ).toEqual(record);
+  expect(await store.getCachedRecord("project_preferences", entityId)).toEqual(
+    record,
+  );
   expect(
     await store.getCachedRecord("project_preferences", operationId),
   ).toBeNull();
