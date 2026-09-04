@@ -1,5 +1,6 @@
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
+import { URL } from "node:url";
 
 const npmExecPath = process.env.npm_execpath;
 const maxNpmAttempts = 3;
@@ -108,14 +109,17 @@ function advisoryUrl(affectedPackages, page) {
 }
 
 async function fetchAdvisoryPage(affectedPackages, page) {
-  const response = await fetch(advisoryUrl(affectedPackages, page), {
-    headers: {
-      Accept: "application/vnd.github+json",
-      "User-Agent": "mariage-os-dependency-audit",
-      "X-GitHub-Api-Version": "2026-03-10",
+  const response = await globalThis.fetch(
+    advisoryUrl(affectedPackages, page),
+    {
+      headers: {
+        Accept: "application/vnd.github+json",
+        "User-Agent": "mariage-os-dependency-audit",
+        "X-GitHub-Api-Version": "2026-03-10",
+      },
+      signal: globalThis.AbortSignal.timeout(30000),
     },
-    signal: AbortSignal.timeout(30000),
-  });
+  );
 
   if (!response.ok) {
     throw new Error(
@@ -139,12 +143,7 @@ async function fetchAdvisoriesForChunk(affectedPackages) {
   }
 }
 
-async function runGitHubAdvisoryFallback() {
-  const packages = readLockedPackageVersions();
-  if (packages.length === 0) {
-    throw new Error("No locked npm package versions were available to audit.");
-  }
-
+async function collectGitHubAdvisories(packages) {
   const advisoriesById = new Map();
   for (const affectedPackages of chunkAffects(packages)) {
     const advisories = await fetchAdvisoriesForChunk(affectedPackages);
@@ -154,29 +153,40 @@ async function runGitHubAdvisoryFallback() {
       }
     }
   }
+  return [...advisoriesById.values()];
+}
 
-  const advisories = [...advisoriesById.values()];
-  const blockers = advisories.filter((advisory) =>
+function highCriticalAdvisories(advisories) {
+  return advisories.filter((advisory) =>
     ["critical", "high"].includes(String(advisory.severity).toLowerCase()),
   );
+}
 
-  console.log(
-    `GitHub Advisory Database fallback reviewed ${packages.length} exact locked package versions and found ${advisories.length} matching reviewed advisories.`,
-  );
-
-  if (blockers.length === 0) {
-    console.log(
-      "Dependency vulnerability gate passed: no High/Critical advisory affects the lockfile.",
-    );
-    return;
-  }
-
+function reportBlockingAdvisories(blockers) {
   for (const advisory of blockers) {
     console.error(
       `${advisory.severity}: ${advisory.ghsa_id} ${advisory.summary ?? ""}`,
     );
   }
   throw new Error("High/Critical dependency vulnerability detected.");
+}
+
+async function runGitHubAdvisoryFallback() {
+  const packages = readLockedPackageVersions();
+  if (packages.length === 0) {
+    throw new Error("No locked npm package versions were available to audit.");
+  }
+
+  const advisories = await collectGitHubAdvisories(packages);
+  const blockers = highCriticalAdvisories(advisories);
+  console.log(
+    `GitHub Advisory Database fallback reviewed ${packages.length} exact locked package versions and found ${advisories.length} matching reviewed advisories.`,
+  );
+
+  if (blockers.length > 0) reportBlockingAdvisories(blockers);
+  console.log(
+    "Dependency vulnerability gate passed: no High/Critical advisory affects the lockfile.",
+  );
 }
 
 let finalTransientFailure = null;
