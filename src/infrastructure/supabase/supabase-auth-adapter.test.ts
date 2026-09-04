@@ -37,12 +37,11 @@ function makeClient(options: ClientOptions = {}): SupabaseAuthClientLike {
         error: options.signOutError ? { message: "sign out failed" } : null,
       })),
       mfa: {
-        getAuthenticatorAssuranceLevel: vi.fn(async () => ({
-          data: { currentLevel: level },
-          error: options.assuranceError
-            ? { message: "assurance failed" }
-            : null,
-        })),
+        getAuthenticatorAssuranceLevel: vi.fn(async () =>
+          options.assuranceError
+            ? { data: null, error: { message: "assurance failed" } }
+            : { data: { currentLevel: level }, error: null },
+        ),
       },
     },
   };
@@ -147,7 +146,7 @@ it("fails closed on provider session and sign-in errors", async () => {
   ).rejects.toThrow("Authentication provider unavailable.");
 });
 
-it("fails closed on provider assurance and sign-out errors", async () => {
+it("fails closed on official nullable assurance errors and sign-out errors", async () => {
   const assuranceAdapter = authAdapter({
     session: verifiedSession,
     assuranceError: true,
