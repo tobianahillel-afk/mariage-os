@@ -99,8 +99,9 @@ function successfulFactory(database: LifecycleDatabase): IDBFactory {
 
 it("rejects a blocked open and closes a late successful connection", async () => {
   const database = new LifecycleDatabase();
-  await expect(IndexedDbProjectStore.open(blockedFactory(database), scope, "1"))
-    .rejects.toThrow("open blocked");
+  await expect(
+    IndexedDbProjectStore.open(blockedFactory(database), scope, "1"),
+  ).rejects.toThrow("open blocked");
   await new Promise<void>((resolve) => queueMicrotask(() => resolve()));
   expect(database.closed).toBe(true);
 });

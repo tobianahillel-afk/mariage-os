@@ -47,11 +47,7 @@ it.each([
     "2 modifications en attente · enregistrées localement",
   ],
   [{ online: false }, "offline", "Hors ligne · aucune modification en attente"],
-  [
-    {},
-    "online_idle",
-    "En ligne · aucune modification locale en attente",
-  ],
+  [{}, "online_idle", "En ligne · aucune modification locale en attente"],
   [{ cloudSynchronized: true }, "synced", "En ligne · synchronisé"],
 ])("derives %s", (override, kind, label) => {
   expect(deriveSyncSummary({ ...base, ...override })).toEqual({

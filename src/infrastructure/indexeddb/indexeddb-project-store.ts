@@ -169,7 +169,8 @@ export class IndexedDbProjectStore implements LocalProjectStore {
       "readonly",
       (store) => store.get("scope"),
     );
-    const existing = raw === undefined ? undefined : parseLocalProjectMetadata(raw);
+    const existing =
+      raw === undefined ? undefined : parseLocalProjectMetadata(raw);
 
     if (existing !== undefined) {
       assertScopeMetadata(existing, this.scope);

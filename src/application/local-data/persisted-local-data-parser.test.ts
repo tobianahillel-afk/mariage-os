@@ -86,8 +86,14 @@ it.each([
   [{ ...metadata, localSchemaVersion: -1 }, "metadata schema version"],
   [{ ...metadata, appVersionLastOpened: 1 }, "metadata app version"],
   [{ ...metadata, projectId: "bad" }, "metadata project id"],
-  [{ ...metadata, lastSuccessfulSyncAt: "yesterday" }, "metadata sync timestamp"],
-  [{ ...metadata, backendSchemaVersionLastSeen: 12 }, "metadata backend schema"],
+  [
+    { ...metadata, lastSuccessfulSyncAt: "yesterday" },
+    "metadata sync timestamp",
+  ],
+  [
+    { ...metadata, backendSchemaVersionLastSeen: 12 },
+    "metadata backend schema",
+  ],
 ])("rejects malformed metadata %#", (value, message) => {
   expect(() => parseLocalProjectMetadata(value)).toThrow(message);
 });
@@ -96,14 +102,20 @@ it.each([
   [{ ...cached, recordType: "Project Preferences" }, "cached record type"],
   [{ ...cached, key: `wrong:${entityId}` }, "cached record key"],
   [{ ...cached, syncMarker: "remote" }, "cached record sync marker"],
-  [{ ...cached, serverUpdatedAt: "2026-09-04" }, "cached record server timestamp"],
+  [
+    { ...cached, serverUpdatedAt: "2026-09-04" },
+    "cached record server timestamp",
+  ],
 ])("rejects malformed cached envelope %#", (value, message) => {
   expect(() => parseCachedRecordEnvelope(value)).toThrow(message);
 });
 
 it.each([
   [{ ...mutation, entityId: "bad" }, "pending mutation entity id"],
-  [{ ...mutation, mutationType: "Update Preferences" }, "pending mutation type"],
+  [
+    { ...mutation, mutationType: "Update Preferences" },
+    "pending mutation type",
+  ],
   [{ ...mutation, attemptCount: 0.5 }, "pending mutation attempt count"],
   [{ ...mutation, status: "done" }, "pending mutation status"],
   [{ ...mutation, lastAttemptAt: "later" }, "pending mutation last-attempt"],
@@ -114,10 +126,15 @@ it.each([
 });
 
 it("accepts JSON objects with a null prototype", () => {
-  const payload = Object.assign(Object.create(null) as Record<string, unknown>, {
-    value: 1,
-  });
-  expect(parseCachedRecordEnvelope({ ...cached, payload }).payload).toBe(payload);
+  const payload = Object.assign(
+    Object.create(null) as Record<string, unknown>,
+    {
+      value: 1,
+    },
+  );
+  expect(parseCachedRecordEnvelope({ ...cached, payload }).payload).toBe(
+    payload,
+  );
 });
 
 it.each([
@@ -125,15 +142,17 @@ it.each([
   [undefined, "JSON payload value"],
   [new Date(instant), "JSON payload object"],
 ])("rejects non-JSON payload %#", (payload, message) => {
-  expect(() => parseCachedRecordEnvelope({ ...cached, payload })).toThrow(message);
+  expect(() => parseCachedRecordEnvelope({ ...cached, payload })).toThrow(
+    message,
+  );
 });
 
 it("rejects cyclic and symbol-keyed JSON payloads", () => {
   const cyclic: Record<string, unknown> = {};
   cyclic.self = cyclic;
-  expect(() => parseCachedRecordEnvelope({ ...cached, payload: cyclic })).toThrow(
-    "JSON payload cycle",
-  );
+  expect(() =>
+    parseCachedRecordEnvelope({ ...cached, payload: cyclic }),
+  ).toThrow("JSON payload cycle");
 
   const symbolKeyed = { value: 1 } as Record<PropertyKey, unknown>;
   symbolKeyed[Symbol("hidden")] = 2;

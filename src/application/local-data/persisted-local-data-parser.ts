@@ -112,7 +112,11 @@ function enqueueJsonObject(value: object, state: JsonWalkState): void {
 }
 
 function inspectJsonValue(value: unknown, state: JsonWalkState): void {
-  if (value === null || typeof value === "string" || typeof value === "boolean") {
+  if (
+    value === null ||
+    typeof value === "string" ||
+    typeof value === "boolean"
+  ) {
     return;
   }
   if (typeof value === "number") {
@@ -139,7 +143,9 @@ function jsonValue(value: unknown): PersistedJsonValue {
   return value as PersistedJsonValue;
 }
 
-export function parseLocalProjectMetadata(value: unknown): LocalProjectMetadata {
+export function parseLocalProjectMetadata(
+  value: unknown,
+): LocalProjectMetadata {
   const row = recordValue(value, "metadata");
   return {
     key: enumValue(row.key, ["scope"] as const, "metadata key"),
@@ -169,7 +175,9 @@ export function parseLocalProjectMetadata(value: unknown): LocalProjectMetadata 
   };
 }
 
-export function parseCachedRecordEnvelope(value: unknown): CachedRecordEnvelope {
+export function parseCachedRecordEnvelope(
+  value: unknown,
+): CachedRecordEnvelope {
   const row = recordValue(value, "cached record");
   const recordType = stableName(row.recordType, "cached record type");
   const entityId = uuidValue(row.entityId, "cached record entity id");
@@ -190,7 +198,11 @@ export function parseCachedRecordEnvelope(value: unknown): CachedRecordEnvelope 
       row.serverUpdatedAt,
       "cached record server timestamp",
     ),
-    syncMarker: enumValue(row.syncMarker, syncMarkers, "cached record sync marker"),
+    syncMarker: enumValue(
+      row.syncMarker,
+      syncMarkers,
+      "cached record sync marker",
+    ),
     payload: jsonValue(row.payload),
   };
 }
@@ -207,10 +219,19 @@ export function parsePendingMutationEnvelope(
     entityType: stableName(row.entityType, "pending mutation entity type"),
     entityId: nullableUuid(row.entityId, "pending mutation entity id"),
     mutationType: stableName(row.mutationType, "pending mutation type"),
-    baseRevision: nullableString(row.baseRevision, "pending mutation base revision"),
+    baseRevision: nullableString(
+      row.baseRevision,
+      "pending mutation base revision",
+    ),
     payload: jsonValue(row.payload),
-    createdAt: instantValue(row.createdAt, "pending mutation created timestamp"),
-    attemptCount: integerValue(row.attemptCount, "pending mutation attempt count"),
+    createdAt: instantValue(
+      row.createdAt,
+      "pending mutation created timestamp",
+    ),
+    attemptCount: integerValue(
+      row.attemptCount,
+      "pending mutation attempt count",
+    ),
     lastAttemptAt: nullableInstant(
       row.lastAttemptAt,
       "pending mutation last-attempt timestamp",
