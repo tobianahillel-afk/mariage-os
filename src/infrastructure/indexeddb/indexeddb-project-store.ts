@@ -57,8 +57,10 @@ function runRequest<T>(
       result = request.result;
     };
     request.onerror = () => reject(storageError(`${storeName} request`));
-    transaction.onerror = () => reject(storageError(`${storeName} transaction`));
-    transaction.onabort = () => reject(storageError(`${storeName} transaction`));
+    transaction.onerror = () =>
+      reject(storageError(`${storeName} transaction`));
+    transaction.onabort = () =>
+      reject(storageError(`${storeName} transaction`));
     transaction.oncomplete = () => resolve(result as T);
   });
 }
@@ -127,7 +129,10 @@ export class IndexedDbProjectStore implements LocalProjectStore {
     scope: LocalProjectScope,
     appVersion: string,
   ): Promise<IndexedDbProjectStore> {
-    const database = await openDatabase(factory, localProjectDatabaseName(scope));
+    const database = await openDatabase(
+      factory,
+      localProjectDatabaseName(scope),
+    );
     const store = new IndexedDbProjectStore(database, scope);
     await store.initializeMetadata(appVersion);
     return store;
@@ -145,7 +150,10 @@ export class IndexedDbProjectStore implements LocalProjectStore {
       assertScopeMetadata(existing, this.scope);
     }
 
-    if (existing === undefined || existing.appVersionLastOpened !== appVersion) {
+    if (
+      existing === undefined ||
+      existing.appVersionLastOpened !== appVersion
+    ) {
       const metadata = {
         ...(existing ?? createMetadata(this.scope, appVersion)),
         appVersionLastOpened: appVersion,
@@ -270,7 +278,10 @@ export class IndexedDbProjectStore implements LocalProjectStore {
 export class IndexedDbProjectStoreFactory implements LocalProjectStoreFactory {
   constructor(private readonly factory: IDBFactory) {}
 
-  open(scope: LocalProjectScope, appVersion: string): Promise<LocalProjectStore> {
+  open(
+    scope: LocalProjectScope,
+    appVersion: string,
+  ): Promise<LocalProjectStore> {
     return IndexedDbProjectStore.open(this.factory, scope, appVersion);
   }
 }
