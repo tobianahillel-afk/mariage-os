@@ -96,7 +96,7 @@ Planning complexity: **8/10**.
 
 ### WP-1.4 — Partner invitation and protected membership lifecycle
 
-State: **IN_PROGRESS**
+State: **ACCEPTED**
 
 Scope:
 - `project_invitations`;
@@ -105,15 +105,17 @@ Scope:
 - verified-email binding, expiry, replay/idempotency;
 - final-active-owner invariant and narrow membership administration.
 
+Acceptance evidence: run `33859207161` on `bf0046dc45c318875d349edc2b6327292e2894ea`, all five jobs SUCCESS including clean-checkout `npm run verify`; local DB/RLS suite 6 files / 133 tests PASS; Pass B closed `WP14-AR-001` (AAL2), `WP14-AR-002` (lock-order deadlock) and `WP14-AR-003` (post-lock live authorization TOCTOU).
+
 Planning complexity: **10/10**. Cohesion rationale: token lifecycle and atomic membership acceptance are one security transaction family and are unsafe to split across independently deployable partial states.
 
 ### WP-1.5 — Project configuration, dates, origins, preferences and RSVP-intent data hooks
 
-State: `PLANNED`
+State: **IN_PROGRESS / A-IMPLEMENT**
 
 Scope:
-- project settings updates;
-- `wedding_date_options` zero-or-one selected invariant;
+- protected project settings updates;
+- `wedding_date_options` zero-or-one selected invariant and atomic selection;
 - `project_reference_origins` including one-default invariant;
 - `user_project_preferences` author-scoped persistence;
 - provider-neutral Invitations & RSVP intent/settings fields only, with no guest/domain/provider implementation.
@@ -178,8 +180,8 @@ Planning complexity: **7/10**.
 WP-1.1 [ACCEPTED]
   ↓
 WP-1.2 [ACCEPTED]
-  ├─→ WP-1.3 [ACCEPTED] → WP-1.4 [IN_PROGRESS]
-  ├─→ WP-1.5 [PLANNED] → WP-1.6 [PLANNED]
+  ├─→ WP-1.3 [ACCEPTED] → WP-1.4 [ACCEPTED]
+  ├─→ WP-1.5 [IN_PROGRESS] → WP-1.6 [PLANNED]
   └─→ WP-1.7 [PLANNED] → WP-1.8 [PLANNED]
                               ↘
                                 WP-1.9 [PLANNED]
