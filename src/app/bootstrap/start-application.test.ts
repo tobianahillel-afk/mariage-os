@@ -25,6 +25,8 @@ function rootWithClear(clear = vi.fn()): HTMLElement {
 function baseDependencies() {
   return {
     sessionContext: null,
+    securityDiagnostics: null,
+    logoutCoordinator: null,
     localStoreFactory: null,
     deviceId: null,
     online: true,
@@ -89,6 +91,8 @@ it("renders public RSVP without clearing or consulting project or local authenti
     sessionReader,
     projectAccess,
     sessionContext,
+    securityDiagnostics: null,
+    logoutCoordinator: null,
     localStoreFactory: { open } as LocalProjectStoreFactory,
     deviceId,
     online: true,
@@ -129,14 +133,17 @@ it("clears a protected shell before resolving a signed-out deep link", async () 
 it("renders expired-session recovery without reopening private local data", async () => {
   const sessionContext = establishedContext();
   const open = vi.fn();
+  const root = rootWithClear();
 
-  await startApplication(rootWithClear(), {
+  await startApplication(root, {
     pathname: `/app/p/${projectId}/dashboard`,
     sessionReader: {
       getSession: vi.fn().mockResolvedValue({ kind: "signed_out" }),
     },
     projectAccess: { canReadProject: vi.fn() },
     sessionContext,
+    securityDiagnostics: null,
+    logoutCoordinator: null,
     localStoreFactory: { open } as LocalProjectStoreFactory,
     deviceId,
     online: true,
@@ -145,7 +152,10 @@ it("renders expired-session recovery without reopening private local data", asyn
 
   expect(open).not.toHaveBeenCalled();
   expect(sessionContext.remember).not.toHaveBeenCalled();
-  expect(renderShell).toHaveBeenCalledWith(rootWithClear(), expect.anything());
+  expect(renderShell).toHaveBeenCalledWith(root, {
+    kind: "session_expired",
+    returnTo: `/app/p/${projectId}/dashboard`,
+  });
 });
 
 it("clears stale private content before a failing session lookup", async () => {
@@ -197,6 +207,41 @@ it("renders project shell with explicit degraded durability when local storage i
   });
 });
 
+it("reads bounded security diagnostics only for the security surface", async () => {
+  const diagnostics = {
+    readSecurityDiagnostics: vi.fn().mockResolvedValue({
+      assurance: "aal1" as const,
+      canUpgradeToAal2: true,
+      verifiedTotpFactor: true,
+    }),
+  };
+  const root = rootWithClear();
+
+  await startApplication(root, {
+    pathname: `/app/p/${projectId}/settings/security`,
+    sessionReader: verifiedSession(),
+    projectAccess: successfulProjectAccess(),
+    ...baseDependencies(),
+    securityDiagnostics: diagnostics,
+  });
+
+  expect(diagnostics.readSecurityDiagnostics).toHaveBeenCalledOnce();
+  expect(renderShell.mock.calls.at(-1)?.[1]).toMatchObject({
+    projectPath: "/settings/security",
+    securitySettings: {
+      diagnostics: {
+        kind: "available",
+        snapshot: {
+          assurance: "aal1",
+          canUpgradeToAal2: true,
+          verifiedTotpFactor: true,
+        },
+      },
+      actions: null,
+    },
+  });
+});
+
 it("also degrades when a local factory exists but device identity is unavailable", async () => {
   const open = vi.fn();
 
@@ -204,11 +249,8 @@ it("also degrades when a local factory exists but device identity is unavailable
     pathname: `/app/p/${projectId}/dashboard`,
     sessionReader: verifiedSession(),
     projectAccess: successfulProjectAccess(),
-    sessionContext: null,
+    ...baseDependencies(),
     localStoreFactory: { open } as LocalProjectStoreFactory,
-    deviceId: null,
-    online: true,
-    appVersion: "0.0.0",
   });
 
   expect(open).not.toHaveBeenCalled();
@@ -235,11 +277,8 @@ it("remembers authorized context only after live project access succeeds", async
     pathname: `/app/p/${projectId}/dashboard`,
     sessionReader: verifiedSession(),
     projectAccess,
+    ...baseDependencies(),
     sessionContext,
-    localStoreFactory: null,
-    deviceId: null,
-    online: true,
-    appVersion: "0.0.0",
   });
 
   expect(events).toEqual(["access", "remember"]);
@@ -253,11 +292,8 @@ it("does not remember denied project context", async () => {
     pathname: `/app/p/${projectId}/dashboard`,
     sessionReader: verifiedSession(),
     projectAccess: { canReadProject: vi.fn().mockResolvedValue(false) },
+    ...baseDependencies(),
     sessionContext,
-    localStoreFactory: null,
-    deviceId: null,
-    online: true,
-    appVersion: "0.0.0",
   });
 
   expect(sessionContext.remember).not.toHaveBeenCalled();
@@ -278,11 +314,10 @@ it("opens only the authorized account+project namespace and renders its counters
     pathname: `/app/p/${projectId}/dashboard`,
     sessionReader: verifiedSession(),
     projectAccess: successfulProjectAccess(),
-    sessionContext: null,
+    ...baseDependencies(),
     localStoreFactory: local.factory,
     deviceId,
     online: false,
-    appVersion: "0.0.0",
   });
 
   expect(local.open).toHaveBeenCalledWith(
@@ -310,11 +345,9 @@ it("degrades without exposing data when opening local persistence fails", async 
     pathname: `/app/p/${projectId}/dashboard`,
     sessionReader: verifiedSession(),
     projectAccess: successfulProjectAccess(),
-    sessionContext: null,
+    ...baseDependencies(),
     localStoreFactory: factory,
     deviceId,
-    online: true,
-    appVersion: "0.0.0",
   });
 
   expect(renderShell.mock.calls.at(-1)?.[1]).toMatchObject({
@@ -329,11 +362,9 @@ it("degrades if a provider ever returns a malformed verified user id", async () 
     pathname: `/app/p/${projectId}/dashboard`,
     sessionReader: verifiedSession("malformed-user"),
     projectAccess: successfulProjectAccess(),
-    sessionContext: null,
+    ...baseDependencies(),
     localStoreFactory: { open } as LocalProjectStoreFactory,
     deviceId,
-    online: true,
-    appVersion: "0.0.0",
   });
 
   expect(open).not.toHaveBeenCalled();
