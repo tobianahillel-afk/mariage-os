@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-1.6`
 - Lot: `1`
 - Name: Protected app shell, navigation and public RSVP trust boundary
-- State: `REVIEW_PENDING`
-- Current pass: `B-ADVERSARIAL-REVIEW`
+- State: `REVIEW_FAILED`
+- Current pass: `B-REVIEW-FAILED`
 - Primary bounded context: client routing/session/project-membership shell boundary
 - Branch/PR: `lot-1/identity-project-foundation`
 
@@ -77,7 +77,7 @@ WP-1.1 through WP-1.5 are **ACCEPTED**. WP-1.5 acceptance evidence: run `3386616
 
 ## Pass A — IMPLEMENT
 
-**PASS.** Implementation HEAD `36eff640d8fbeebfcf64023350e6636b3a5ab624` is covered by exact-head CI run `33869860062`; all five jobs are SUCCESS:
+**PASS before adversarial review.** Implementation HEAD `36eff640d8fbeebfcf64023350e6636b3a5ab624` is covered by exact-head CI run `33869860062`; all five jobs are SUCCESS:
 
 - Core quality and security — SUCCESS, including strict typecheck/static checks, negative controls, 100% unit coverage, dependency security gate and build;
 - Local Supabase DB and RLS — SUCCESS;
@@ -89,20 +89,33 @@ Pass-A repairs preserved the repository quality gates: the temporary Prettier di
 
 ## Pass B — ADVERSARIAL REVIEW
 
-**IN_PROGRESS.** Independently attack open redirect/return-route handling, route-project authorization confusion, unverified/session states, stale membership trust, cached-content pre-render risk, token leakage in DOM/metadata/referrer/logging, private/public shell separation, browser-only permission assumptions and scope creep.
+**REVIEW_FAILED.** Independent review attacked open redirect/return-route handling, route-project authorization confusion, unverified/session states, stale membership trust, cached-content pre-render risk, token leakage in DOM/metadata/referrer/logging, private/public shell separation, browser-only permission assumptions and scope creep.
 
-No Pass-B verdict has been recorded yet. Any BLOCKING/MAJOR finding moves the packet to `REVIEW_FAILED`, requires a repair plus fresh exact-head verification, and requires a fresh adversarial review before Pass C.
+Open findings:
+
+- `WP16-AR-001` — **MAJOR / OPEN**: accepted WP-1.3 explicitly deferred official browser `@supabase/supabase-js` application composition to WP-1.6, but the WP-1.6 runtime still hard-codes a synthetic `signed_out` session reader and `projectAccess: null`. Unit/E2E dependency injection proves the guards in isolation but the shipped browser composition cannot restore a real Supabase session or perform the live permission RPC, so no real verified member can reach the protected shell. Repair must compose the official SDK with browser-safe publishable credentials only, reuse accepted Auth/project-access adapters, preserve fail-closed behavior when runtime config is absent/invalid, and introduce no service-role/custom token storage.
+- `WP16-AR-002` — **MAJOR / OPEN**: `resolveProtectedRoute` does not convert session-provider failure into a fail-closed decision and `startApplication` leaves the previous DOM intact while awaiting session/membership resolution. Re-evaluating a protected route after private content was rendered can therefore leave stale protected content visible when session resolution throws or stalls. Repair must clear/replace the previous protected shell before asynchronous authorization and make session-provider failure resolve to generic non-leaking unavailable state; tests must prove stale private content is removed.
+
+Reviewed and currently clean/non-blocking:
+
+- route project ID is treated as context only; live `has_project_permission(..., 'project.read')` remains the authorization decision;
+- verified outsider and project-access provider failure collapse to generic `project_unavailable`;
+- unverified identity never reaches membership evaluation;
+- public `/rsvp/:token` parsing discards raw capability material from application state, renders no project navigation, and global metadata is `no-referrer` plus `noindex, nofollow, noarchive`;
+- safe protected return helper rejects external/protocol-relative/query/fragment/public-capability candidates and generated signed-out return paths originate from a validated protected route;
+- no guest CRUD/capability persistence, provider-send SDK, local repository/cache/sync implementation, Storage/Realtime or Lot 2+ domain implementation leaked into WP-1.6.
+
+Because MAJOR findings are open, Pass C is forbidden. Repair requires fresh exact-head CI followed by a fresh Pass B.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started. Requires clean Pass B and contract → implementation → objective evidence reconciliation.
+Not started. Requires repaired green Pass A, clean fresh Pass B and contract → implementation → objective evidence reconciliation.
 
 ## Handoff
 
-- Current state: `REVIEW_PENDING` / `B-ADVERSARIAL-REVIEW`.
-- Pass-A implementation HEAD: `36eff640d8fbeebfcf64023350e6636b3a5ab624`.
-- Pass-A exact-head CI: run `33869860062`, all five jobs SUCCESS.
-- Accepted dependencies: WP-1.1..WP-1.5.
-- Open BLOCKING/MAJOR at Pass-B start: none.
-- Next permitted action: adversarially review WP-1.6 only.
+- Current state: `REVIEW_FAILED` / `B-REVIEW-FAILED`.
+- Last green pre-review implementation HEAD: `36eff640d8fbeebfcf64023350e6636b3a5ab624`.
+- Last green pre-review CI: run `33869860062`, all five jobs SUCCESS.
+- Open BLOCKING/MAJOR: `WP16-AR-001`, `WP16-AR-002`.
+- Next permitted action: repair WP-1.6 findings only, then fresh exact-head verification and fresh Pass B.
 - WP-1.7+ and Lot 2+ remain forbidden.
