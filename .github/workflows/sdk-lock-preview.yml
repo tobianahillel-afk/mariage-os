@@ -1,0 +1,28 @@
+name: SDK Lock Preview
+
+on:
+  push:
+    branches:
+      - lot-1/identity-project-foundation
+
+permissions:
+  contents: read
+
+jobs:
+  preview:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm install @supabase/supabase-js@2.112.4 --save-exact --package-lock-only --ignore-scripts --no-audit --no-fund
+      - run: git diff -- package.json package-lock.json > supabase-sdk.patch
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: supabase-sdk-patch
+          path: supabase-sdk.patch
+          if-no-files-found: error
