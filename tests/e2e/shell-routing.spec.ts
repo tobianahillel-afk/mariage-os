@@ -1,34 +1,37 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 const projectId = "81111111-1111-4111-8111-111111111111";
 
-async function renderAllowedProject(page: Parameters<typeof test>[0]["page"]) {
+async function renderAllowedProject(page: Page): Promise<void> {
   await page.goto("/");
-  await page.evaluate(async ({ id }) => {
-    const module = await import("/src/app/bootstrap/start-application.ts");
-    const root = document.querySelector<HTMLElement>("#app");
-    if (root === null) {
-      throw new Error("Missing application root.");
-    }
-    await module.startApplication(root, {
-      pathname: `/app/p/${id}/settings`,
-      sessionReader: {
-        async getSession() {
-          return {
-            kind: "authenticated_verified" as const,
-            userId: "browser-member",
-            email: "member@example.invalid",
-            assurance: "aal2" as const,
-          };
+  await page.evaluate(
+    async ({ id }) => {
+      const module = await import("/src/app/bootstrap/start-application.ts");
+      const root = document.querySelector<HTMLElement>("#app");
+      if (root === null) {
+        throw new Error("Missing application root.");
+      }
+      await module.startApplication(root, {
+        pathname: `/app/p/${id}/settings`,
+        sessionReader: {
+          async getSession() {
+            return {
+              kind: "authenticated_verified" as const,
+              userId: "browser-member",
+              email: "member@example.invalid",
+              assurance: "aal2" as const,
+            };
+          },
         },
-      },
-      projectAccess: {
-        async canReadProject() {
-          return true;
+        projectAccess: {
+          async canReadProject() {
+            return true;
+          },
         },
-      },
-    });
-  }, { id: projectId });
+      });
+    },
+    { id: projectId },
+  );
 }
 
 test("signed-out protected deep link renders no private project shell", async ({
@@ -36,7 +39,9 @@ test("signed-out protected deep link renders no private project shell", async ({
 }) => {
   await page.goto(`/app/p/${projectId}/venues/example`);
 
-  await expect(page.getByRole("heading", { name: "Connexion requise" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Connexion requise" }),
+  ).toBeVisible();
   await expect(page.locator('[data-shell="private-project"]')).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Se connecter" })).toHaveAttribute(
     "href",
@@ -67,33 +72,38 @@ test("verified outsider gets the same generic project-unavailable shell", async 
   page,
 }) => {
   await page.goto("/");
-  await page.evaluate(async ({ id }) => {
-    const module = await import("/src/app/bootstrap/start-application.ts");
-    const root = document.querySelector<HTMLElement>("#app");
-    if (root === null) {
-      throw new Error("Missing application root.");
-    }
-    await module.startApplication(root, {
-      pathname: `/app/p/${id}/dashboard`,
-      sessionReader: {
-        async getSession() {
-          return {
-            kind: "authenticated_verified" as const,
-            userId: "browser-outsider",
-            email: "outsider@example.invalid",
-            assurance: "aal1" as const,
-          };
+  await page.evaluate(
+    async ({ id }) => {
+      const module = await import("/src/app/bootstrap/start-application.ts");
+      const root = document.querySelector<HTMLElement>("#app");
+      if (root === null) {
+        throw new Error("Missing application root.");
+      }
+      await module.startApplication(root, {
+        pathname: `/app/p/${id}/dashboard`,
+        sessionReader: {
+          async getSession() {
+            return {
+              kind: "authenticated_verified" as const,
+              userId: "browser-outsider",
+              email: "outsider@example.invalid",
+              assurance: "aal1" as const,
+            };
+          },
         },
-      },
-      projectAccess: {
-        async canReadProject() {
-          return false;
+        projectAccess: {
+          async canReadProject() {
+            return false;
+          },
         },
-      },
-    });
-  }, { id: projectId });
+      });
+    },
+    { id: projectId },
+  );
 
-  await expect(page.getByRole("heading", { name: "Projet indisponible" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Projet indisponible" }),
+  ).toBeVisible();
   await expect(page.locator('[data-shell="private-project"]')).toHaveCount(0);
   await expect(page.locator("body")).not.toContainText(projectId);
 });
@@ -105,7 +115,9 @@ test("public RSVP route is token-minimal and contains no project navigation", as
   await page.goto(`/rsvp/${token}`);
 
   await expect(page.locator('[data-shell="public-rsvp"]')).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Invitation & RSVP" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Invitation & RSVP" }),
+  ).toBeVisible();
   await expect(page.locator("nav")).toHaveCount(0);
   await expect(page.locator("body")).not.toContainText(token);
   await expect(page).toHaveTitle("Invitation & RSVP · Mariage OS");
@@ -119,7 +131,9 @@ test("public RSVP route is token-minimal and contains no project navigation", as
   );
 });
 
-test("navigation switches between desktop and mobile skeletons", async ({ page }) => {
+test("navigation switches between desktop and mobile skeletons", async ({
+  page,
+}) => {
   await renderAllowedProject(page);
 
   await page.setViewportSize({ width: 1280, height: 800 });
