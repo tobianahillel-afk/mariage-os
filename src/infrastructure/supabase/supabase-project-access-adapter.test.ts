@@ -3,9 +3,26 @@ import { SupabaseProjectAccessAdapter } from "./supabase-project-access-adapter"
 
 const projectId = "81111111-1111-4111-8111-111111111111";
 
+type RpcResult = { data: boolean | null; error: unknown };
+
+function thenOnly(result: Promise<RpcResult>): PromiseLike<RpcResult> {
+  return {
+    then<TResult1 = RpcResult, TResult2 = never>(
+      onfulfilled?:
+        | ((value: RpcResult) => TResult1 | PromiseLike<TResult1>)
+        | null,
+      onrejected?:
+        | ((reason: unknown) => TResult2 | PromiseLike<TResult2>)
+        | null,
+    ): PromiseLike<TResult1 | TResult2> {
+      return result.then(onfulfilled, onrejected);
+    },
+  };
+}
+
 function clientReturning(data: boolean | null, error: unknown) {
   return {
-    rpc: vi.fn().mockResolvedValue({ data, error }),
+    rpc: vi.fn(() => thenOnly(Promise.resolve({ data, error }))),
   };
 }
 
@@ -32,9 +49,11 @@ describe("SupabaseProjectAccessAdapter", () => {
     await expect(adapter.canReadProject(projectId)).resolves.toBe(false);
   });
 
-  it("fails closed when the provider call throws", async () => {
+  it("fails closed when the provider thenable rejects", async () => {
     const client = {
-      rpc: vi.fn().mockRejectedValue(new Error("network failure")),
+      rpc: vi.fn(() =>
+        thenOnly(Promise.reject(new Error("network failure"))),
+      ),
     };
     const adapter = new SupabaseProjectAccessAdapter(client);
 
