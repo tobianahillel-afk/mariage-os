@@ -44,10 +44,8 @@ function openDatabase(factory: IDBFactory, name: string): Promise<IDBDatabase> {
     const request = factory.open(name, LOCAL_SCHEMA_VERSION);
     let settled = false;
     const fail = (action: string): void => {
-      if (!settled) {
-        settled = true;
-        reject(storageError(action));
-      }
+      settled = true;
+      reject(storageError(action));
     };
 
     request.onupgradeneeded = () => createSchema(request.result);
