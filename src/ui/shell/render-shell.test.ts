@@ -120,9 +120,9 @@ it("renders degraded local durability as text, not project data", () => {
     }),
   );
 
-  expect(byAttribute(root, "data-sync-state", "durability_unavailable")).toHaveLength(
-    1,
-  );
+  expect(
+    byAttribute(root, "data-sync-state", "durability_unavailable"),
+  ).toHaveLength(1);
   expect(texts(root)).toContain("Stockage local indisponible · mode dégradé");
 });
 
