@@ -23,9 +23,23 @@ function fakeClient(): SupabaseClient {
         error: null,
       }),
       signInWithPassword: vi.fn(),
-      signOut: vi.fn(),
+      signOut: vi.fn().mockResolvedValue({ error: null }),
       mfa: {
-        getAuthenticatorAssuranceLevel: vi.fn(),
+        getAuthenticatorAssuranceLevel: vi.fn().mockResolvedValue({
+          data: {
+            currentLevel: "aal1",
+            nextLevel: "aal2",
+            currentAuthenticationMethods: [],
+          },
+          error: null,
+        }),
+        listFactors: vi.fn().mockResolvedValue({
+          data: {
+            all: [{ factor_type: "totp", status: "verified" }],
+            totp: [{ factor_type: "totp", status: "verified" }],
+          },
+          error: null,
+        }),
       },
     },
     rpc: vi.fn().mockResolvedValue({ data: true, error: null }),
@@ -130,7 +144,11 @@ it("composes accepted adapters around the official client", async () => {
     VITE_SUPABASE_PUBLISHABLE_KEY: publishableKey,
   });
   const access = runtime.projectAccess;
-  if (access === null) throw new Error("Expected project access adapter.");
+  const auth = runtime.auth;
+  const diagnostics = runtime.securityDiagnostics;
+  if (access === null || auth === null || diagnostics === null) {
+    throw new Error("Expected composed runtime ports.");
+  }
 
   expect(officialCreateClient).toHaveBeenCalledWith(
     "https://project.example",
@@ -140,13 +158,21 @@ it("composes accepted adapters around the official client", async () => {
     kind: "signed_out",
   });
   await expect(access.canReadProject(projectId)).resolves.toBe(true);
+  await expect(diagnostics.readSecurityDiagnostics()).resolves.toEqual({
+    assurance: "aal1",
+    canUpgradeToAal2: true,
+    verifiedTotpFactor: true,
+  });
+  await expect(auth.signOut()).resolves.toBeUndefined();
 });
 
 it("fails closed when browser config is absent", async () => {
   const runtime = createBrowserShellRuntime({});
 
   expect(officialCreateClient).not.toHaveBeenCalled();
+  expect(runtime.auth).toBeNull();
   expect(runtime.projectAccess).toBeNull();
+  expect(runtime.securityDiagnostics).toBeNull();
   await expect(runtime.sessionReader.getSession()).resolves.toEqual({
     kind: "signed_out",
   });
@@ -164,7 +190,9 @@ it("fails closed when client construction throws", async () => {
     factory,
   );
 
+  expect(runtime.auth).toBeNull();
   expect(runtime.projectAccess).toBeNull();
+  expect(runtime.securityDiagnostics).toBeNull();
   await expect(runtime.sessionReader.getSession()).resolves.toEqual({
     kind: "signed_out",
   });
