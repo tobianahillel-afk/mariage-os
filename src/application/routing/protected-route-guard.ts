@@ -15,6 +15,7 @@ export type ProtectedRouteDecision =
   | { readonly kind: "project_unavailable" }
   | {
       readonly kind: "project_allowed";
+      readonly userId: string;
       readonly projectId: string;
       readonly projectPath: string;
     };
@@ -59,6 +60,7 @@ export async function resolveProtectedRoute(
 
   return {
     kind: "project_allowed",
+    userId: session.userId,
     projectId: route.projectId,
     projectPath: route.projectPath,
   };
