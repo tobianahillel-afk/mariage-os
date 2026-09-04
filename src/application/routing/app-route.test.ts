@@ -42,6 +42,9 @@ describe("app route classification", () => {
   it.each([
     "/app/p/not-a-uuid/dashboard",
     `/app/p/${projectId}`,
+    `/app/x/${projectId}/dashboard`,
+    "/app/p",
+    "/foo/bar",
     `/app/p/${projectId}/dashboard/`,
     `/app//p/${projectId}/dashboard`,
     "/rsvp/one/two",
