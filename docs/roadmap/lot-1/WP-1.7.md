@@ -5,7 +5,7 @@
 - Work Packet ID: `WP-1.7`
 - Lot: `1`
 - Name: Project-scoped repositories, local cache and sync primitives
-- State: `READY`
+- State: `IN_PROGRESS`
 - Current pass: `A-IMPLEMENT`
 - Primary bounded context: project/account-scoped local durability and synchronization foundation
 - Branch/PR: `lot-1/identity-project-foundation`
@@ -108,8 +108,8 @@ Not started. Requires clean Pass B and mechanical EXPECTED vs IMPLEMENTED vs VER
 
 ## Handoff
 
-- Current state: `READY`.
+- Current state: `IN_PROGRESS`.
 - Current/next pass: `A-IMPLEMENT`.
 - Last green verification: WP-1.6 acceptance run `33880216335` on implementation HEAD `61dca0718f8ff7372609d208050aba6a50271743`.
-- Remaining blocker/finding: none; implementation has not started.
-- Next permitted action: transition WP-1.7 to `IN_PROGRESS` and implement this packet only.
+- Remaining blocker/finding: none; Pass A implementation is active.
+- Next permitted action: implement WP-1.7 local project scope, IndexedDB durability, pending-operation envelope/store and private-shell sync/local-durability indicator only.
