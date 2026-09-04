@@ -24,16 +24,22 @@ function textElement(tag: string, text: string, className: string): HTMLElement 
   return element;
 }
 
-function diagnosticLines(state: SecurityDiagnosticsViewState): readonly string[] {
+function diagnosticLines(
+  state: SecurityDiagnosticsViewState,
+): readonly string[] {
   if (state.kind === "unavailable") {
     return ["État MFA indisponible pour le moment."];
   }
 
   const { snapshot } = state;
+  const totpStatus = snapshot.verifiedTotpFactor ? "oui" : "non";
+  const stepUpStatus = snapshot.canUpgradeToAal2
+    ? "disponible"
+    : "non requise ou indisponible";
   return [
     `Niveau de session : ${snapshot.assurance.toUpperCase()}`,
-    `Facteur TOTP vérifié : ${snapshot.verifiedTotpFactor ? "oui" : "non"}`,
-    `Étape MFA supplémentaire : ${snapshot.canUpgradeToAal2 ? "disponible" : "non requise ou indisponible"}`,
+    `Facteur TOTP vérifié : ${totpStatus}`,
+    `Étape MFA supplémentaire : ${stepUpStatus}`,
   ];
 }
 
@@ -104,10 +110,16 @@ function appendLogoutControls(
         );
         appendDiscardAction(container, actions, status);
       } else if (result.kind === "local_state_unavailable") {
-        setStatus(status, "Impossible de vérifier le travail local sans risque.");
+        setStatus(
+          status,
+          "Impossible de vérifier le travail local sans risque.",
+        );
       }
     } catch {
-      setStatus(status, "Impossible de terminer la déconnexion en toute sécurité.");
+      setStatus(
+        status,
+        "Impossible de terminer la déconnexion en toute sécurité.",
+      );
     } finally {
       button.disabled = false;
     }
