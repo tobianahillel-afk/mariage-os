@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-1.5`
 - Lot: `1`
 - Name: Project configuration, dates, origins, preferences and RSVP-intent data hooks
-- State: `REVIEW_PENDING`
-- Current pass: `B-ADVERSARIAL-REVIEW`
+- State: `IN_PROGRESS`
+- Current pass: `A-REPAIR`
 - Primary bounded context: project setup/configuration persistence
 - Branch/PR: `lot-1/identity-project-foundation`
 
@@ -35,12 +35,8 @@
 
 - FTR-006, FTR-007, FTR-008, FTR-012, FTR-119 applicable Lot-1 responsibilities.
 - AUTHZ-001/002/004/005/006/007/008/009/012/018/019/020 as applicable.
-- `PHYSICAL-SCHEMA-V1.md`.
-- `PHYSICAL-SCHEMA-AUTHORIZATION-ADDENDUM.md`.
-- `DATES-TIME.md`.
-- `STATE-MACHINES.md`.
-- `ROLE-PERMISSION-MATRIX.md`.
-- `AUTH-ONBOARDING.md`.
+- `PHYSICAL-SCHEMA-V1.md`, `PHYSICAL-SCHEMA-AUTHORIZATION-ADDENDUM.md`.
+- `DATES-TIME.md`, `STATE-MACHINES.md`, `ROLE-PERMISSION-MATRIX.md`, `AUTH-ONBOARDING.md`.
 - Guest communications requirements/addendum/blueprints.
 
 ### Explicit FTR-119 refinement
@@ -69,16 +65,17 @@ WP-1.1 through WP-1.4 are **ACCEPTED**. WP-1.6 remains forbidden until this pack
 3. `project.settings.update` remains owner-only.
 4. Wedding dates are civil `date` values and exactly zero or one may be selected.
 5. Selection is a serialized protected transition.
-6. Cross-project IDs fail closed.
-7. Reference origins preserve coordinate-pair validity and at most one default.
-8. Origin reads/writes preserve `access.read` / `access.write` role semantics.
-9. Personal preferences are readable/writable only by `auth.uid()` with active same-project membership.
-10. Preference revision is server-controlled.
-11. RSVP intent is private project configuration and never anonymous guest state.
-12. RSVP intent is provider-neutral and secret-free.
-13. Revoked membership takes effect through live server-side authorization.
-14. Every table/RPC has explicit client grant/RLS evidence.
-15. Every privileged configuration RPC locks the project before evaluating live permission.
+6. Rejected/archived rows preserve historical civil date until explicitly reactivated to candidate.
+7. Cross-project IDs fail closed.
+8. Reference origins preserve coordinate-pair validity and at most one default.
+9. Origin reads/writes preserve `access.read` / `access.write` role semantics.
+10. Personal preferences are readable/writable only by `auth.uid()` with active same-project membership.
+11. Preference revision is server-controlled.
+12. RSVP intent is private project configuration and never anonymous guest state.
+13. RSVP intent is provider-neutral and secret-free.
+14. Revoked membership takes effect through live server-side authorization.
+15. Every table/RPC has explicit client grant/RLS evidence.
+16. Every privileged configuration RPC locks the project before evaluating live permission.
 
 ## Implementation
 
@@ -88,6 +85,7 @@ Migrations:
 - `20260904101500_harden_project_configuration_validation.sql`
 - `20260904104000_harden_project_configuration_transitions.sql`
 - `20260904104500_enforce_rsvp_intent_consistency.sql`
+- `20260904105000_preserve_wedding_date_history.sql`
 
 Resources:
 
@@ -107,54 +105,49 @@ Protected commands:
 - `upsert_user_project_preferences`
 - `upsert_project_rsvp_intent_settings`
 
-Pass-A hardening completed before review:
+Pass-A hardening before first review:
 
 - IANA timezone and null/currency validation tightened;
 - coordinates must be both absent or both present and range-valid;
-- selected date cannot have its civil date/status rewritten through generic metadata editing;
-- only a candidate can enter `selected`; rejected/archived rows must explicitly return to candidate first;
-- automatic-channel setup intent is consistent with whether Email/SMS/WhatsApp is planned, both in RPC validation and a table CHECK constraint;
-- required RSVP selector values fail through controlled validation rather than generic NOT NULL errors;
-- exhaustive anonymous/authenticated grant surface and project-lock-before-live-permission contract tests added.
+- selected date cannot have civil date/status rewritten through generic editing;
+- only a candidate can enter `selected`;
+- automatic-channel setup intent is consistent with planned automatic channels, at RPC and table-constraint levels;
+- required RSVP selector values use controlled validation;
+- anonymous/authenticated grants and project-lock-before-live-permission are directly tested.
 
-## Pass A — IMPLEMENT
+## First Pass A — IMPLEMENT
 
 **COMPLETE.**
 
-Exact-head evidence:
+Evidence before first adversarial review:
 
 - HEAD: `d7f019878c0827e4357e59278a342d5033bca2cb`.
 - CI run: `33863817975`.
-- Core quality/security: SUCCESS.
-- Local Supabase DB/RLS: SUCCESS.
-- Browser + mutation: SUCCESS.
-- Privacy-safe preview: SUCCESS.
-- Full verify from clean checkout: SUCCESS.
-- DB evidence: **12 files / 232 tests / PASS** on a fresh local reset.
+- all five jobs SUCCESS including clean-checkout `npm run verify`.
+- DB: **12 files / 232 tests / PASS**.
 
-Pass A therefore satisfies the packet gate and the packet has transitioned to independent adversarial review.
+## First Pass B — ADVERSARIAL REVIEW
 
-## Pass B — ADVERSARIAL REVIEW
+**REVIEW_FAILED.**
 
-**IN_PROGRESS.**
+Review matrix challenged exact role grants, anon/outsider/revoked/cross-project access, authorization order, date lifecycle/concurrency/history, origin default concurrency, preference authorship, RSVP scope/secret absence/semantic consistency, audit protection and Lot scope.
 
-Review matrix:
+Finding:
 
-- exact owner/editor/viewer permission behavior;
-- anon/outsider/revoked/cross-project denial;
-- project-lock-before-live-permission authorization order;
-- selected-date lifecycle, atomicity and historical preservation;
-- one-default-origin concurrency;
-- preference self-authorship/revision and no member impersonation;
-- RSVP intent provider-neutral scope, secret absence and semantic consistency;
-- audit/system-column protection;
-- no Lot-2+/guest/provider scope creep.
+- `WP15-AR-001` — **MAJOR**: a row already `rejected` or `archived` could change its civil `event_date` through generic update, contrary to the frozen lifecycle requirement that rejected/archive states preserve date history.
 
-Open finding:
+## Repair A — current cycle
 
-- `WP15-AR-001` — **MAJOR / OPEN**: `update_wedding_date_option` currently permits a row already in `rejected` or `archived` state to change its civil `event_date` while remaining historical or while being reactivated. `STATE-MACHINES.md` requires rejected/archive states to preserve date history. Repair must keep reactivation reversible but require the historical civil date to remain unchanged until the row has explicitly returned to `candidate`.
+**IMPLEMENTED / AWAITING EXACT-HEAD VERIFICATION.**
 
-No Pass C acceptance is permitted while this finding is open.
+Repair:
+
+- `20260904105000_preserve_wedding_date_history.sql` prevents civil-date mutation while current status is `selected`, `rejected` or `archived`;
+- rejected/archived rows remain reversible by returning to `candidate` with the same historical date;
+- once explicitly reactivated to candidate, a later edit may change the civil date normally;
+- `project_configuration_history_test.sql` adds six direct assertions covering rejected and archived preservation plus reversible reactivation.
+
+A fresh exact-head CI must pass before `WP15-AR-001` can be closed. After that, a fresh independent Pass B is mandatory; the prior review cannot be reused.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
@@ -162,9 +155,9 @@ Not started. Requires a clean fresh Pass B after repair, then responsibility-by-
 
 ## Handoff
 
-- Current state: `REVIEW_PENDING`.
-- Current pass: `B-ADVERSARIAL-REVIEW`.
+- Current state: `IN_PROGRESS`.
+- Current pass: `A-REPAIR`.
 - Accepted dependencies: WP-1.1..WP-1.4.
-- Open BLOCKING/MAJOR: `WP15-AR-001`.
-- Next permitted action: repair `WP15-AR-001`, rerun exact-head verification, then perform a fresh Pass B.
+- `WP15-AR-001`: repair implemented, closure pending exact-head verification and fresh Pass B.
+- Next permitted action: verify repair, conduct fresh Pass B, then Pass C only if clean.
 - WP-1.6+: forbidden until WP-1.5 acceptance.
