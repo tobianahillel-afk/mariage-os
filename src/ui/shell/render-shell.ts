@@ -1,6 +1,11 @@
 import type { SyncSummary } from "@application/local-data/sync-summary";
 import type { AppRoute } from "@application/routing/app-route";
 import type { ProtectedRouteDecision } from "@application/routing/protected-route-guard";
+import {
+  createSecurityDiagnosticsPanel,
+  createSecuritySettingsPanel,
+  type SecuritySettingsState,
+} from "./security-settings-panel";
 
 type ProjectAllowedDecision = Extract<
   ProtectedRouteDecision,
@@ -9,6 +14,7 @@ type ProjectAllowedDecision = Extract<
 
 export type ProjectShellState = ProjectAllowedDecision & {
   readonly syncSummary: SyncSummary;
+  readonly securitySettings?: SecuritySettingsState;
 };
 
 type ShellState =
@@ -150,6 +156,12 @@ function currentSection(projectPath: string): string {
   return section === undefined ? "dashboard" : section;
 }
 
+function projectTitle(projectPath: string): string {
+  if (projectPath === "/settings/security") return "Sécurité";
+  if (projectPath === "/settings/diagnostics") return "Diagnostics";
+  return screenTitles[currentSection(projectPath)] ?? "Espace projet";
+}
+
 function createNavigationLink(
   projectId: string,
   activeSection: string,
@@ -252,9 +264,29 @@ function renderMessageShell(
   return shell;
 }
 
+function appendSettingsContent(
+  content: HTMLElement,
+  state: ProjectShellState,
+): void {
+  if (state.projectPath === "/settings/security" && state.securitySettings) {
+    content.append(createSecuritySettingsPanel(state.securitySettings));
+    return;
+  }
+  if (
+    state.projectPath === "/settings/diagnostics" &&
+    state.securitySettings
+  ) {
+    content.append(
+      createSecurityDiagnosticsPanel(state.securitySettings.diagnostics),
+    );
+    return;
+  }
+  content.append(createRsvpIntentHook());
+}
+
 function renderProjectShell(root: HTMLElement, state: ProjectShellState): void {
   const section = currentSection(state.projectPath);
-  const title = screenTitles[section] ?? "Espace projet";
+  const title = projectTitle(state.projectPath);
   document.title = `${title} · Mariage OS`;
 
   const shell = document.createElement("div");
@@ -273,7 +305,7 @@ function renderProjectShell(root: HTMLElement, state: ProjectShellState): void {
     ),
   );
   if (section === "settings") {
-    content.append(createRsvpIntentHook());
+    appendSettingsContent(content, state);
   }
   shell.append(
     createDesktopNav(state.projectId, state.projectPath),
