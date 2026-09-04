@@ -17,7 +17,11 @@ export interface SecuritySettingsState {
   readonly actions: SecuritySettingsActions | null;
 }
 
-function textElement(tag: string, text: string, className: string): HTMLElement {
+function textElement(
+  tag: string,
+  text: string,
+  className: string,
+): HTMLElement {
   const element = document.createElement(tag);
   element.textContent = text;
   element.className = className;
@@ -65,11 +69,13 @@ function appendDiscardAction(
   actions: SecuritySettingsActions,
   status: HTMLElement,
 ): void {
-  if (container.querySelector('[data-action="discard-logout"]') !== null) return;
+  if (container.querySelector('[data-action="discard-logout"]') !== null)
+    return;
 
   const discard = document.createElement("button");
   discard.type = "button";
-  discard.textContent = "Abandonner les modifications locales et se déconnecter";
+  discard.textContent =
+    "Abandonner les modifications locales et se déconnecter";
   discard.className = "danger-action";
   discard.setAttribute("data-action", "discard-logout");
   discard.addEventListener("click", async () => {
