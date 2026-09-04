@@ -12,7 +12,7 @@
     "build": "npm run typecheck && vite build",
     "typecheck": "tsc --noEmit -p tsconfig.app.json --pretty false && tsc --noEmit -p tsconfig.node.json --pretty false",
     "format": "prettier --write src tests package.json tsconfig.json tsconfig.app.json tsconfig.node.json vite.config.ts vitest.config.ts playwright.config.ts stryker.config.mjs index.html eslint.config.js dependency-cruiser.config.mjs knip.json scripts",
-    "format:check": "prettier --write src/application/local-data/sync-summary.test.ts src/infrastructure/indexeddb/indexeddb-project-store.test.ts && git diff -- src/application/local-data/sync-summary.test.ts src/infrastructure/indexeddb/indexeddb-project-store.test.ts && exit 1",
+    "format:check": "prettier --check src tests package.json tsconfig.json tsconfig.app.json tsconfig.node.json vite.config.ts vitest.config.ts playwright.config.ts stryker.config.mjs index.html eslint.config.js dependency-cruiser.config.mjs knip.json scripts",
     "lint": "eslint src tests vite.config.ts vitest.config.ts playwright.config.ts scripts --ignore-pattern 'tests/fixtures/quality-violations/**'",
     "architecture": "depcruise --config dependency-cruiser.config.mjs --ts-config tsconfig.app.json src",
     "deadcode": "knip --config knip.json",
