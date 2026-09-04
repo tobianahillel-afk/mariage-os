@@ -4,6 +4,10 @@ import type {
   AuthSessionState,
   PasswordSignInCredentials,
 } from "@application/auth/auth-port";
+import type {
+  SecurityDiagnosticsPort,
+  SecurityDiagnosticsSnapshot,
+} from "@application/auth/security-diagnostics-port";
 
 type ProviderUser = {
   readonly id: string;
@@ -29,10 +33,25 @@ type ProviderPasswordInput = {
 };
 
 type ProviderSignOutResult = { readonly error: ProviderError };
-type ProviderAssuranceResult = {
-  readonly data: { readonly currentLevel: string | null } | null;
-  readonly error: ProviderError;
+type ProviderAssuranceData = {
+  readonly currentLevel: string | null;
+  readonly nextLevel: string | null;
+  readonly currentAuthenticationMethods: readonly unknown[];
 };
+type ProviderAssuranceResult =
+  | { readonly data: ProviderAssuranceData; readonly error: null }
+  | { readonly data: null; readonly error: { readonly message: string } };
+type ProviderFactor = {
+  readonly factor_type: string;
+  readonly status: string;
+};
+type ProviderFactorsData = {
+  readonly all: readonly ProviderFactor[];
+  readonly totp: readonly ProviderFactor[];
+};
+type ProviderFactorsResult =
+  | { readonly data: ProviderFactorsData; readonly error: null }
+  | { readonly data: null; readonly error: { readonly message: string } };
 
 export interface SupabaseAuthClientLike {
   readonly auth: {
@@ -43,6 +62,7 @@ export interface SupabaseAuthClientLike {
     signOut(): Promise<ProviderSignOutResult>;
     readonly mfa: {
       getAuthenticatorAssuranceLevel(): Promise<ProviderAssuranceResult>;
+      listFactors(): Promise<ProviderFactorsResult>;
     };
   };
 }
@@ -55,7 +75,9 @@ function mapAssurance(level: string | null): AuthAssuranceLevel {
   return "unknown";
 }
 
-export class SupabaseAuthAdapter implements AuthPort {
+export class SupabaseAuthAdapter
+  implements AuthPort, SecurityDiagnosticsPort
+{
   public constructor(private readonly client: SupabaseAuthClientLike) {}
 
   public async getSession(): Promise<AuthSessionState> {
@@ -75,6 +97,29 @@ export class SupabaseAuthAdapter implements AuthPort {
   public async signOut(): Promise<void> {
     const result = await this.client.auth.signOut();
     if (result.error) throw providerFailure();
+  }
+
+  public async readSecurityDiagnostics(): Promise<SecurityDiagnosticsSnapshot> {
+    const [assuranceResult, factorsResult] = await Promise.all([
+      this.client.auth.mfa.getAuthenticatorAssuranceLevel(),
+      this.client.auth.mfa.listFactors(),
+    ]);
+    if (
+      assuranceResult.error ||
+      assuranceResult.data === null ||
+      factorsResult.error ||
+      factorsResult.data === null
+    ) {
+      throw providerFailure();
+    }
+
+    const assurance = mapAssurance(assuranceResult.data.currentLevel);
+    return {
+      assurance,
+      canUpgradeToAal2:
+        assurance !== "aal2" && assuranceResult.data.nextLevel === "aal2",
+      verifiedTotpFactor: factorsResult.data.totp.length > 0,
+    };
   }
 
   private async mapSession(
