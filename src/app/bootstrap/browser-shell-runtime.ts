@@ -1,4 +1,6 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { AuthPort } from "@application/auth/auth-port";
+import type { SecurityDiagnosticsPort } from "@application/auth/security-diagnostics-port";
 import type { ProjectAccessPort } from "@application/projects/project-access-port";
 import type { SessionReader } from "@application/routing/protected-route-guard";
 import { SupabaseAuthAdapter } from "@infra/supabase/supabase-auth-adapter";
@@ -12,8 +14,10 @@ export interface BrowserSupabaseEnvironment {
 }
 
 export interface BrowserShellRuntime {
+  readonly auth: AuthPort | null;
   readonly sessionReader: SessionReader;
   readonly projectAccess: ProjectAccessPort | null;
+  readonly securityDiagnostics: SecurityDiagnosticsPort | null;
 }
 
 interface BrowserSupabaseConfig {
@@ -81,12 +85,14 @@ export function readBrowserSupabaseConfig(
 
 function failClosedRuntime(): BrowserShellRuntime {
   return {
+    auth: null,
     sessionReader: {
       async getSession() {
         return { kind: "signed_out" };
       },
     },
     projectAccess: null,
+    securityDiagnostics: null,
   };
 }
 
@@ -99,9 +105,12 @@ export function createBrowserShellRuntime(
 
   try {
     const client = clientFactory(config.url, config.publishableKey);
+    const auth = new SupabaseAuthAdapter(client);
     return {
-      sessionReader: new SupabaseAuthAdapter(client),
+      auth,
+      sessionReader: auth,
       projectAccess: new SupabaseProjectAccessAdapter(client),
+      securityDiagnostics: auth,
     };
   } catch {
     return failClosedRuntime();
