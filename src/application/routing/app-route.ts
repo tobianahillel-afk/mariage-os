@@ -14,8 +14,18 @@ export type AppRoute =
     }
   | { readonly kind: "not_found" };
 
+function isCanonicalPathname(pathname: string): boolean {
+  if (!pathname.startsWith("/")) {
+    return false;
+  }
+  if (pathname === "/") {
+    return true;
+  }
+  return !pathname.endsWith("/") && !pathname.includes("//");
+}
+
 function pathSegments(pathname: string): string[] {
-  return pathname.split("/").filter((segment) => segment.length > 0);
+  return pathname.slice(1).split("/");
 }
 
 function parseProtectedProjectRoute(segments: string[]): AppRoute | null {
@@ -39,28 +49,26 @@ function parseProtectedProjectRoute(segments: string[]): AppRoute | null {
 }
 
 export function parseAppRoute(pathname: string): AppRoute {
+  if (!isCanonicalPathname(pathname)) {
+    return { kind: "not_found" };
+  }
   if (pathname === "/") {
     return { kind: "landing" };
   }
-
   if (pathname === "/login") {
     return { kind: "login" };
   }
-
   if (pathname === "/onboarding") {
     return { kind: "onboarding" };
   }
 
   const segments = pathSegments(pathname);
-
   if (segments[0] === "invite" && segments.length === 2) {
     return { kind: "invite" };
   }
-
   if (segments[0] === "rsvp" && segments.length === 2) {
     return { kind: "public_rsvp" };
   }
-
   return parseProtectedProjectRoute(segments) ?? { kind: "not_found" };
 }
 
