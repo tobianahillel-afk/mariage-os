@@ -108,6 +108,40 @@ it("renders project navigation with explicit project context, sync status and RS
   expect(byAttribute(root, "aria-current", "page").length).toBeGreaterThan(0);
 });
 
+it("renders security and diagnostics only inside the protected settings shell", () => {
+  const fakeDocument = installDocument();
+  const root = new FakeElement("div");
+  const securitySettings = {
+    diagnostics: {
+      kind: "available" as const,
+      snapshot: {
+        assurance: "aal2" as const,
+        canUpgradeToAal2: false,
+        verifiedTotpFactor: true,
+      },
+    },
+    actions: null,
+  };
+
+  renderShell(root as unknown as HTMLElement, {
+    ...projectState("/settings/security"),
+    securitySettings,
+  });
+  expect(fakeDocument.title).toBe("Sécurité · Mariage OS");
+  expect(byAttribute(root, "data-security-settings", "true")).toHaveLength(1);
+  expect(byAttribute(root, "data-shell", "private-project")).toHaveLength(1);
+
+  renderShell(root as unknown as HTMLElement, {
+    ...projectState("/settings/diagnostics"),
+    securitySettings,
+  });
+  expect(fakeDocument.title).toBe("Diagnostics · Mariage OS");
+  expect(byAttribute(root, "data-security-diagnostics", "true")).toHaveLength(
+    1,
+  );
+  expect(byAttribute(root, "data-rsvp-intent-hook", "true")).toHaveLength(0);
+});
+
 it("renders degraded local durability as text, not project data", () => {
   installDocument();
   const root = new FakeElement("div");
@@ -150,6 +184,31 @@ it("renders a local encoded login return path without protected content", () => 
 
   expect(byAttribute(root, "data-shell", "login-required")).toHaveLength(1);
   expect(byAttribute(root, "data-shell", "private-project")).toHaveLength(0);
+  expect(
+    byAttribute(
+      root,
+      "href",
+      `/login?returnTo=${encodeURIComponent(returnTo)}`,
+    ),
+  ).toHaveLength(1);
+});
+
+it("renders expired-session recovery without private project content", () => {
+  const fakeDocument = installDocument();
+  const root = new FakeElement("div");
+  const returnTo = `/app/p/${projectId}/dashboard`;
+
+  renderShell(root as unknown as HTMLElement, {
+    kind: "session_expired",
+    returnTo,
+  });
+
+  expect(fakeDocument.title).toBe("Session expirée · Mariage OS");
+  expect(byAttribute(root, "data-shell", "session-expired")).toHaveLength(1);
+  expect(byAttribute(root, "data-shell", "private-project")).toHaveLength(0);
+  expect(texts(root)).toContain(
+    "Votre travail local reste conservé sur cet appareil. La synchronisation est suspendue jusqu’à votre reconnexion.",
+  );
   expect(
     byAttribute(
       root,
