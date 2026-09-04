@@ -142,7 +142,9 @@ it("keeps the public RSVP shell separate from private navigation", () => {
 
   expect(fakeDocument.title).toBe("Invitation & RSVP · Mariage OS");
   expect(byAttribute(root, "data-shell", "public-rsvp")).toHaveLength(1);
-  expect(byAttribute(root, "aria-label", "Navigation du projet")).toHaveLength(0);
+  expect(byAttribute(root, "aria-label", "Navigation du projet")).toHaveLength(
+    0,
+  );
 });
 
 it("shows the nontechnical RSVP intent hook during onboarding", () => {
