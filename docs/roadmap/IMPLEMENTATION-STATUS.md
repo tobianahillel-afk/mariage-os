@@ -38,7 +38,7 @@ Packets:
 4. `WP-1.4` — partner invitation and protected membership lifecycle — **ACCEPTED**;
 5. `WP-1.5` — project configuration, dates, origins, preferences and RSVP-intent hooks — **ACCEPTED**;
 6. `WP-1.6` — protected app shell/navigation and public RSVP trust boundary — **ACCEPTED**;
-7. `WP-1.7` — project-scoped repositories, local cache and sync primitives — **IN_PROGRESS**;
+7. `WP-1.7` — project-scoped repositories, local cache and sync primitives — **REVIEW_PENDING**;
 8. `WP-1.8` — session expiry, safe logout, MFA/security diagnostics — **PLANNED**;
 9. `WP-1.9` — Storage/Realtime isolation foundation and security-matrix closure — **PLANNED**.
 
@@ -47,8 +47,8 @@ Packets:
 - Current Lot: **1**
 - Lot state: **IN_PROGRESS**
 - Current packet: **WP-1.7**
-- Packet state: **IN_PROGRESS**
-- Current/next pass: **A-IMPLEMENT**
+- Packet state: **REVIEW_PENDING**
+- Current/next pass: **B-ADVERSARIAL-REVIEW**
 - Accepted packets: **WP-1.1, WP-1.2, WP-1.3, WP-1.4, WP-1.5, WP-1.6**
 - Review-failed/blocked packets: **none**
 - WP-1.1 acceptance evidence: run `33809855993` on `f0b1e46c46bc3ad5d15bf2191c63ec4e85473507`, all five jobs SUCCESS.
@@ -57,8 +57,9 @@ Packets:
 - WP-1.4 acceptance evidence: run `33859207161` on `bf0046dc45c318875d349edc2b6327292e2894ea`, all five jobs SUCCESS including clean-checkout `npm run verify`; DB 133/133; `WP14-AR-001..003` closed.
 - WP-1.5 acceptance evidence: run `33866160626` on implementation HEAD `15e477a9ca75efbc98594000c190180e24226229`, all five jobs SUCCESS including clean-checkout `npm run verify`; DB **13 files / 239 tests / PASS**; `WP15-AR-001` and `WP15-AR-002` closed; Pass C required-minus-evidenced = ∅.
 - WP-1.6 acceptance evidence: run `33880216335` on implementation HEAD `61dca0718f8ff7372609d208050aba6a50271743`, all five jobs SUCCESS including clean-checkout `npm run verify`; fresh Pass B PASS; Pass C required-minus-evidenced = ∅; `WP16-AR-001` and `WP16-AR-002` closed; final recovery observation repaired/re-reviewed.
+- WP-1.7 Pass A evidence: run `33890804064` on implementation HEAD `413405b5ab5c560d5246955d394f11f0ef2f8a17`, all five jobs SUCCESS including clean-checkout `npm run verify`.
 - Current branch: **`lot-1/identity-project-foundation`**
-- Next permitted action: **continue WP-1.7 Pass A only: explicit account+project local scope, IndexedDB durability/pending-operation primitives and the private-shell sync/local-durability indicator**.
+- Next permitted action: **perform fresh WP-1.7 Pass B adversarial review only; WP-1.8 remains blocked until WP-1.7 acceptance**.
 
 ## Lot status
 
@@ -76,7 +77,7 @@ Packets:
 
 ## Current blockers / forward maintenance
 
-Open adversarial findings: **none for the current cursor**.
+Open adversarial findings: **none recorded before fresh WP-1.7 Pass B**.
 
 Closed/adversarial findings:
 
@@ -108,10 +109,10 @@ Lot 0: ACCEPTED
 Lot 1: IN_PROGRESS
 Coverage: required - assigned = ∅
 Accepted: WP-1.1, WP-1.2, WP-1.3, WP-1.4, WP-1.5, WP-1.6
-WP-1.6 acceptance: run 33880216335 on 61dca0718f8ff7372609d208050aba6a50271743, 5/5 SUCCESS; Pass B PASS; Pass C required-evidenced = ∅
-Current: WP-1.7 / IN_PROGRESS / A-IMPLEMENT
-Open findings: none
-Next: continue WP-1.7 Pass A only
+WP-1.7 Pass A: run 33890804064 on 413405b5ab5c560d5246955d394f11f0ef2f8a17, 5/5 SUCCESS including clean-checkout npm run verify
+Current: WP-1.7 / REVIEW_PENDING / B-ADVERSARIAL-REVIEW
+Open findings: none recorded before fresh Pass B
+Next: fresh WP-1.7 adversarial review only
 WP-1.8/1.9 remain sequenced behind dependencies
 Lot 2+: forbidden
 ```

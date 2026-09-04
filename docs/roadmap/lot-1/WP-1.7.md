@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-1.7`
 - Lot: `1`
 - Name: Project-scoped repositories, local cache and sync primitives
-- State: `IN_PROGRESS`
-- Current pass: `A-IMPLEMENT`
+- State: `REVIEW_PENDING`
+- Current pass: `B-ADVERSARIAL-REVIEW`
 - Primary bounded context: project/account-scoped local durability and synchronization foundation
 - Branch/PR: `lot-1/identity-project-foundation`
 
@@ -80,27 +80,27 @@
 
 ## Pass A — IMPLEMENT
 
-### Planned implementation evidence
+### Implementation evidence
 
-- pure tests for scope/UUID/envelope/sync-summary invariants;
-- property tests for account+project partition keys and stable operation identity where useful;
-- local-store contract tests with deterministic test doubles for application semantics;
-- real Playwright IndexedDB tests proving persistence across reopen/reload and account/project isolation;
-- private shell indicator tests and public-shell non-exposure regression;
-- static/architecture/size/dead-code/security gates;
-- full exact-head CI including clean-checkout `npm run verify` before Pass B.
+- pure tests cover scope/UUID/envelope/sync-summary invariants;
+- native IndexedDB adapter and deterministic contract tests cover scoped cached-record and pending-mutation persistence semantics;
+- Playwright real-browser evidence covers reload/reopen persistence plus account/project isolation;
+- private-shell sync/local-durability indicator and public-shell non-exposure regressions are covered;
+- static/architecture/size/dead-code/security gates pass;
+- exact implementation HEAD `413405b5ab5c560d5246955d394f11f0ef2f8a17` retained full CI run `33890804064`: Core, Local Supabase DB/RLS, Browser+mutation, privacy-safe preview and clean-checkout Full Verify all **SUCCESS**;
+- clean-checkout Full Verify executed `npm run verify` successfully.
 
 ### Pass A exit
 
-- [ ] intended vertical slice exists
-- [ ] applicable tests written
-- [ ] no known untracked stub/TODO
-- [ ] packet moved from `IN_PROGRESS` to `REVIEW_PENDING`
-- [ ] current/next pass recorded as `B-ADVERSARIAL-REVIEW`
+- [x] intended vertical slice exists
+- [x] applicable tests written
+- [x] no known untracked stub/TODO
+- [x] packet moved from `IN_PROGRESS` to `REVIEW_PENDING`
+- [x] current/next pass recorded as `B-ADVERSARIAL-REVIEW`
 
 ## Pass B — ADVERSARIAL REVIEW
 
-Not started. Fresh review must attack cross-account/project cache leakage, operation-ID collisions/reuse, malformed persisted data, IndexedDB failures/version behavior, misleading durability/sync UI, provider/auth-boundary drift, overreach into Lot 10 and test doubles that do not prove browser persistence.
+Ready for fresh review. Review must attack cross-account/project cache leakage, operation-ID collisions/reuse, malformed persisted data, IndexedDB failures/version behavior, misleading durability/sync UI, provider/auth-boundary drift, overreach into Lot 10 and test doubles that do not prove browser persistence.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
@@ -108,8 +108,8 @@ Not started. Requires clean Pass B and mechanical EXPECTED vs IMPLEMENTED vs VER
 
 ## Handoff
 
-- Current state: `IN_PROGRESS`.
-- Current/next pass: `A-IMPLEMENT`.
-- Last green verification: WP-1.6 acceptance run `33880216335` on implementation HEAD `61dca0718f8ff7372609d208050aba6a50271743`.
-- Remaining blocker/finding: none; Pass A implementation is active.
-- Next permitted action: implement WP-1.7 local project scope, IndexedDB durability, pending-operation envelope/store and private-shell sync/local-durability indicator only.
+- Current state: `REVIEW_PENDING`.
+- Current/next pass: `B-ADVERSARIAL-REVIEW`.
+- Last green verification: WP-1.7 Pass A run `33890804064` on implementation HEAD `413405b5ab5c560d5246955d394f11f0ef2f8a17`, all five jobs SUCCESS including clean-checkout `npm run verify`.
+- Remaining blocker/finding: none recorded before fresh Pass B.
+- Next permitted action: perform fresh WP-1.7 adversarial review only; WP-1.8 remains blocked until WP-1.7 acceptance.
