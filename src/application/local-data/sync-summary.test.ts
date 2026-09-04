@@ -19,11 +19,7 @@ describe("deriveSyncSummary", () => {
       "durability_unavailable",
       "Stockage local indisponible · mode dégradé",
     ],
-    [
-      { conflictCount: 1 },
-      "conflict",
-      "Conflit de synchronisation à vérifier",
-    ],
+    [{ conflictCount: 1 }, "conflict", "Conflit de synchronisation à vérifier"],
     [
       { retryableFailureCount: 1 },
       "error",
@@ -57,7 +53,10 @@ describe("deriveSyncSummary", () => {
     ],
     [{}, "synced", "En ligne · synchronisé"],
   ])("derives %s", (override, kind, label) => {
-    expect(deriveSyncSummary({ ...base, ...override })).toEqual({ kind, label });
+    expect(deriveSyncSummary({ ...base, ...override })).toEqual({
+      kind,
+      label,
+    });
   });
 
   it("prioritizes conflict over failures and pending state", () => {
