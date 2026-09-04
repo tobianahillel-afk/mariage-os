@@ -124,17 +124,19 @@ class FakeObjectStore {
   }
 
   get(key: IDBValidKey): IDBRequest<unknown> {
-    return this.request(this.store.rows.get(String(key)));
+    return this.request(this.store.rows.get(String(key))) as unknown as IDBRequest<unknown>;
   }
 
   getAll(): IDBRequest<unknown[]> {
-    return this.request([...this.store.rows.values()]);
+    return this.request([...this.store.rows.values()]) as unknown as IDBRequest<
+      unknown[]
+    >;
   }
 
   put(value: unknown): IDBRequest<IDBValidKey> {
     const row = value as Row;
     const key = this.keyFor(row);
-    return this.request(key, () => this.store.rows.set(key, row));
+    return this.request<IDBValidKey>(key, () => this.store.rows.set(key, row));
   }
 
   add(value: unknown): IDBRequest<IDBValidKey> {
@@ -143,7 +145,7 @@ class FakeObjectStore {
     if (this.store.rows.has(key)) {
       return this.requestFailure<IDBValidKey>();
     }
-    return this.request(key, () => this.store.rows.set(key, row));
+    return this.request<IDBValidKey>(key, () => this.store.rows.set(key, row));
   }
 
   private requestFailure<T>(): IDBRequest<T> {
