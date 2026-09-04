@@ -103,7 +103,7 @@ Planning complexity: **7/10**.
 
 ### WP-1.7 — Project-scoped repositories, local cache and sync primitives
 
-State: **IN_PROGRESS**
+State: **ACCEPTED**
 
 Scope:
 - application ports/repositories and infrastructure composition boundaries;
@@ -111,6 +111,8 @@ Scope:
 - durable operation ID/revision envelope primitives;
 - global sync/local-durability indicator state;
 - cross-project/account cache isolation tests.
+
+Acceptance evidence: run `33895516028` on implementation/review HEAD `46548702f304dbabcf4bd673a33afb1c0ec96a3d`, all five jobs SUCCESS including 28/28 Playwright E2E, mutation and clean-checkout `npm run verify`; `WP17-AR-001..003` closed; fresh Pass B PASS; Pass C required-minus-evidenced = ∅.
 
 Planning complexity: **7/10**.
 
@@ -148,12 +150,12 @@ WP-1.1 [ACCEPTED]
 WP-1.2 [ACCEPTED]
   ├─→ WP-1.3 [ACCEPTED] → WP-1.4 [ACCEPTED]
   ├─→ WP-1.5 [ACCEPTED] → WP-1.6 [ACCEPTED]
-  └─→ WP-1.7 [IN_PROGRESS] → WP-1.8 [PLANNED]
-                               ↘
-                                 WP-1.9 [PLANNED]
+  └─→ WP-1.7 [ACCEPTED] → WP-1.8 [PLANNED]
+                              ↘
+                                WP-1.9 [PLANNED]
 ```
 
-Execution remains sequential by default. WP-1.7 is now the only permitted implementation packet. WP-1.8 and WP-1.9 remain sequenced behind their dependencies; Lot 2+ remains forbidden.
+Execution remains sequential by default. WP-1.8 is now the next permitted packet once its bounded Work Packet record is created and moved through the normal three-pass protocol. WP-1.9 remains sequenced behind its dependencies; Lot 2+ remains forbidden.
 
 ## Explicitly out of Lot 1
 
