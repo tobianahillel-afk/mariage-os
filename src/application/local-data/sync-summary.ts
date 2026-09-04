@@ -31,6 +31,16 @@ function assertCount(value: number, field: string): void {
   }
 }
 
+function settledConnectivitySummary(online: boolean): SyncSummary {
+  if (!online) {
+    return {
+      kind: "offline",
+      label: "Hors ligne · aucune modification en attente",
+    };
+  }
+  return { kind: "synced", label: "En ligne · synchronisé" };
+}
+
 export function deriveSyncSummary(input: SyncSummaryInput): SyncSummary {
   assertCount(input.pendingCount, "pendingCount");
   assertCount(input.conflictCount, "conflictCount");
@@ -67,11 +77,5 @@ export function deriveSyncSummary(input: SyncSummaryInput): SyncSummary {
       label: `${pendingLabel(input.pendingCount)} · enregistrées localement`,
     };
   }
-  if (!input.online) {
-    return {
-      kind: "offline",
-      label: "Hors ligne · aucune modification en attente",
-    };
-  }
-  return { kind: "synced", label: "En ligne · synchronisé" };
+  return settledConnectivitySummary(input.online);
 }
