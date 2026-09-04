@@ -1,7 +1,9 @@
 import type { AppRoute } from "@application/routing/app-route";
 import type { ProtectedRouteDecision } from "@application/routing/protected-route-guard";
 
-type ShellState = Exclude<AppRoute, { kind: "protected_project" }> | ProtectedRouteDecision;
+type ShellState =
+  | Exclude<AppRoute, { kind: "protected_project" }>
+  | ProtectedRouteDecision;
 
 interface NavigationItem {
   readonly label: string;
@@ -18,20 +20,39 @@ const desktopNavigation: readonly NavigationItem[] = [
   { label: "Décisions", path: "decisions" },
   { label: "Budget", path: "budget" },
   { label: "Planning", path: "planning" },
+  { label: "Chronologie", path: "timeline" },
+  { label: "Carte", path: "map" },
   { label: "Documents", path: "documents" },
+  { label: "Boîte de réception", path: "inbox" },
+  { label: "Import / Export", path: "import" },
   { label: "Réglages", path: "settings" },
 ];
 
-const mobileNavigation: readonly NavigationItem[] = [
+const mobilePrimaryNavigation: readonly NavigationItem[] = [
   { label: "Accueil", path: "dashboard" },
   { label: "Salles", path: "venues" },
   { label: "Tâches", path: "tasks" },
   { label: "Budget", path: "budget" },
-  { label: "Plus", path: "settings" },
+];
+
+const mobileMoreNavigation: readonly NavigationItem[] = [
+  { label: "Prestataires", path: "vendors" },
+  { label: "Invités", path: "guests" },
+  { label: "Plan de table", path: "seating" },
+  { label: "Décisions", path: "decisions" },
+  { label: "Planning", path: "planning" },
+  { label: "Chronologie", path: "timeline" },
+  { label: "Carte", path: "map" },
+  { label: "Documents", path: "documents" },
+  { label: "Boîte de réception", path: "inbox" },
+  { label: "Import / Export", path: "import" },
+  { label: "Réglages", path: "settings" },
 ];
 
 const screenTitles: Readonly<Record<string, string>> = {
   dashboard: "Tableau de bord",
+  search: "Recherche",
+  inbox: "Boîte de réception",
   venues: "Salles",
   vendors: "Prestataires",
   guests: "Invités",
@@ -43,18 +64,107 @@ const screenTitles: Readonly<Record<string, string>> = {
   timeline: "Chronologie",
   map: "Carte",
   documents: "Documents",
-  inbox: "Boîte de réception",
+  import: "Import",
+  export: "Export",
+  backup: "Sauvegarde",
   settings: "Réglages",
   diagnostics: "Diagnostics",
 };
 
-function createTextElement(tag: string, text: string, className?: string): HTMLElement {
+function createTextElement(
+  tag: string,
+  text: string,
+  className: string,
+): HTMLElement {
   const element = document.createElement(tag);
   element.textContent = text;
-  if (className !== undefined) {
-    element.className = className;
-  }
+  element.className = className;
   return element;
+}
+
+function projectHref(projectId: string, path: string): string {
+  return `/app/p/${projectId}/${path}`;
+}
+
+function currentSection(projectPath: string): string {
+  const section = projectPath.split("/").filter(Boolean)[0];
+  return section === undefined ? "dashboard" : section;
+}
+
+function createNavigationLink(
+  projectId: string,
+  activeSection: string,
+  item: NavigationItem,
+): HTMLAnchorElement {
+  const link = document.createElement("a");
+  link.textContent = item.label;
+  link.setAttribute("href", projectHref(projectId, item.path));
+  if (item.path === activeSection) {
+    link.setAttribute("aria-current", "page");
+  }
+  return link;
+}
+
+function createDesktopNav(projectId: string, projectPath: string): HTMLElement {
+  const nav = document.createElement("nav");
+  nav.className = "desktop-nav";
+  nav.setAttribute("aria-label", "Navigation du projet");
+  const activeSection = currentSection(projectPath);
+
+  for (const item of desktopNavigation) {
+    nav.append(createNavigationLink(projectId, activeSection, item));
+  }
+  return nav;
+}
+
+function createMobileNav(projectId: string, projectPath: string): HTMLElement {
+  const nav = document.createElement("nav");
+  nav.className = "mobile-nav";
+  nav.setAttribute("aria-label", "Navigation mobile du projet");
+  const activeSection = currentSection(projectPath);
+
+  for (const item of mobilePrimaryNavigation) {
+    nav.append(createNavigationLink(projectId, activeSection, item));
+  }
+
+  const more = document.createElement("details");
+  more.className = "mobile-more";
+  const summary = document.createElement("summary");
+  summary.textContent = "Plus";
+  const menu = document.createElement("div");
+  menu.className = "mobile-more-menu";
+  for (const item of mobileMoreNavigation) {
+    menu.append(createNavigationLink(projectId, activeSection, item));
+  }
+  more.append(summary, menu);
+  nav.append(more);
+  return nav;
+}
+
+function createRsvpIntentHook(): HTMLElement {
+  const section = document.createElement("section");
+  section.className = "settings-hook";
+  section.setAttribute("data-rsvp-intent-hook", "true");
+  section.append(
+    createTextElement("h2", "Invitations & RSVP", "section-title"),
+    createTextElement(
+      "p",
+      "Choisissez simplement comment vous souhaitez gérer les réponses. Rien n’est envoyé depuis cette étape.",
+      "section-copy",
+    ),
+  );
+
+  const options = document.createElement("ul");
+  options.className = "intent-options";
+  for (const text of [
+    "Utiliser les liens RSVP Mariage OS",
+    "Je gérerai les réponses manuellement",
+    "Je déciderai plus tard",
+  ]) {
+    options.append(createTextElement("li", text, "intent-option"));
+  }
+  section.append(options);
+  return section;
 }
 
 function renderMessageShell(
@@ -69,63 +179,11 @@ function renderMessageShell(
   shell.setAttribute("data-shell", shellKind);
   shell.append(
     createTextElement("p", "Mariage OS", "eyebrow"),
-    createTextElement("h1", title),
+    createTextElement("h1", title, "page-title"),
     createTextElement("p", message, "lede"),
   );
   root.replaceChildren(shell);
   return shell;
-}
-
-function projectHref(projectId: string, path: string): string {
-  return `/app/p/${projectId}/${path}`;
-}
-
-function currentSection(projectPath: string): string {
-  return projectPath.split("/").filter(Boolean)[0] ?? "dashboard";
-}
-
-function createProjectNav(
-  projectId: string,
-  projectPath: string,
-  items: readonly NavigationItem[],
-  className: string,
-  label: string,
-): HTMLElement {
-  const nav = document.createElement("nav");
-  nav.className = className;
-  nav.setAttribute("aria-label", label);
-  const activeSection = currentSection(projectPath);
-
-  for (const item of items) {
-    const link = document.createElement("a");
-    link.textContent = item.label;
-    link.setAttribute("href", projectHref(projectId, item.path));
-    if (item.path === activeSection) {
-      link.setAttribute("aria-current", "page");
-    }
-    nav.append(link);
-  }
-
-  return nav;
-}
-
-function createRsvpSettingsHook(): HTMLElement {
-  const section = document.createElement("section");
-  section.className = "settings-hook";
-  section.setAttribute("data-rsvp-intent-hook", "true");
-  section.append(
-    createTextElement("h2", "Invitations & RSVP"),
-    createTextElement(
-      "p",
-      "Préparez le mode de réponse maintenant, manuellement, ou décidez plus tard sans envoyer de message pendant l’onboarding.",
-    ),
-    createTextElement(
-      "p",
-      "Options prévues : lien Mariage OS, suivi manuel ou décision différée.",
-      "muted",
-    ),
-  );
-  return section;
 }
 
 function renderProjectShell(
@@ -139,41 +197,36 @@ function renderProjectShell(
   const shell = document.createElement("div");
   shell.className = "project-shell";
   shell.setAttribute("data-shell", "private-project");
-
-  const main = document.createElement("main");
-  main.className = "project-content";
-  main.append(
+  const content = document.createElement("main");
+  content.className = "project-content";
+  content.append(
     createTextElement("p", "Mariage OS", "eyebrow"),
-    createTextElement("h1", title),
+    createTextElement("h1", title, "page-title"),
     createTextElement(
       "p",
       "Le shell sécurisé est prêt. Les données métier de cette section arriveront dans leur lot dédié.",
       "lede",
     ),
   );
-
   if (section === "settings") {
-    main.append(createRsvpSettingsHook());
+    content.append(createRsvpIntentHook());
   }
-
   shell.append(
-    createProjectNav(
-      state.projectId,
-      state.projectPath,
-      desktopNavigation,
-      "desktop-nav",
-      "Navigation du projet",
-    ),
-    main,
-    createProjectNav(
-      state.projectId,
-      state.projectPath,
-      mobileNavigation,
-      "mobile-nav",
-      "Navigation mobile du projet",
-    ),
+    createDesktopNav(state.projectId, state.projectPath),
+    content,
+    createMobileNav(state.projectId, state.projectPath),
   );
   root.replaceChildren(shell);
+}
+
+function renderOnboardingShell(root: HTMLElement): void {
+  const shell = renderMessageShell(
+    root,
+    "Configuration",
+    "Préparez les réglages essentiels de votre projet, puis complétez le reste plus tard.",
+    "onboarding",
+  );
+  shell.append(createRsvpIntentHook());
 }
 
 function renderLoginRequired(
@@ -196,58 +249,70 @@ function renderLoginRequired(
 }
 
 export function renderShell(root: HTMLElement, state: ShellState): void {
-  if (state.kind === "project_allowed") {
-    renderProjectShell(root, state);
-    return;
+  switch (state.kind) {
+    case "project_allowed":
+      renderProjectShell(root, state);
+      return;
+    case "login_required":
+      renderLoginRequired(root, state);
+      return;
+    case "public_rsvp":
+      renderMessageShell(
+        root,
+        "Invitation & RSVP",
+        "Ce lien sécurisé ouvre uniquement l’espace de réponse invité.",
+        "public-rsvp",
+      );
+      return;
+    case "onboarding":
+      renderOnboardingShell(root);
+      return;
+    case "landing":
+      renderMessageShell(
+        root,
+        "Mariage OS",
+        "Votre espace privé pour préparer le mariage ensemble.",
+        "landing",
+      );
+      return;
+    case "login":
+      renderMessageShell(
+        root,
+        "Connexion",
+        "Connectez-vous avec votre identité vérifiée.",
+        "login",
+      );
+      return;
+    case "invite":
+      renderMessageShell(
+        root,
+        "Invitation au projet",
+        "Vérifiez votre identité pour traiter cette invitation.",
+        "invite",
+      );
+      return;
+    case "verification_required":
+      renderMessageShell(
+        root,
+        "Vérification requise",
+        "Vérifiez votre adresse e-mail avant d’accéder au projet.",
+        "verification-required",
+      );
+      return;
+    case "project_unavailable":
+      renderMessageShell(
+        root,
+        "Projet indisponible",
+        "Ce projet n’est pas disponible avec votre accès actuel.",
+        "project-unavailable",
+      );
+      return;
+    case "not_found":
+      renderMessageShell(
+        root,
+        "Page indisponible",
+        "Cette page n’est pas disponible.",
+        "not-found",
+      );
   }
-
-  if (state.kind === "login_required") {
-    renderLoginRequired(root, state);
-    return;
-  }
-
-  if (state.kind === "public_rsvp") {
-    renderMessageShell(
-      root,
-      "Invitation & RSVP",
-      "Ce lien sécurisé ouvre uniquement l’espace de réponse invité.",
-      "public-rsvp",
-    );
-    return;
-  }
-
-  const messages: Readonly<
-    Record<
-      Exclude<
-        ShellState["kind"],
-        "project_allowed" | "login_required" | "public_rsvp"
-      >,
-      readonly [string, string]
-    >
-  > = {
-    landing: [
-      "Mariage OS",
-      "Votre espace privé pour préparer le mariage ensemble.",
-    ],
-    login: ["Connexion", "Connectez-vous avec votre identité vérifiée."],
-    onboarding: [
-      "Configuration",
-      "Préparez les réglages essentiels de votre projet.",
-    ],
-    invite: [
-      "Invitation au projet",
-      "Vérifiez votre identité pour traiter cette invitation.",
-    ],
-    not_found: ["Page indisponible", "Cette page n’est pas disponible."],
-    verification_required: [
-      "Vérification requise",
-      "Vérifiez votre adresse e-mail avant d’accéder au projet.",
-    ],
-    project_unavailable: [
-      "Projet indisponible",
-      "Ce projet n’est pas disponible avec votre accès actuel.",
-    ],
-  };
-  const [title, message] = messages[state.kind];
-  renderMessageShell(root, title, message, state.kind);
 }
