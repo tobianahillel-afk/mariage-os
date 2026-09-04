@@ -47,7 +47,9 @@ test("signed-out protected deep link renders no private project shell", async ({
     page.getByRole("heading", { name: "Connexion requise" }),
   ).toBeVisible();
   await expect(page.locator('[data-shell="private-project"]')).toHaveCount(0);
-  await expect(page.getByRole("link", { name: "Se connecter" })).toHaveAttribute(
+  await expect(
+    page.getByRole("link", { name: "Se connecter" }),
+  ).toHaveAttribute(
     "href",
     `/login?returnTo=${encodeURIComponent(`/app/p/${projectId}/venues/example`)}`,
   );
@@ -61,9 +63,9 @@ test("verified member receives project-scoped navigation only after live access"
   await expect(page.locator('[data-shell="private-project"]')).toBeVisible();
   await expect(page.getByRole("heading", { name: "Réglages" })).toBeVisible();
   await expect(page.locator('[data-rsvp-intent-hook="true"]')).toBeVisible();
-  const hrefs = await page.locator("nav a").evaluateAll((links) =>
-    links.map((link) => link.getAttribute("href")),
-  );
+  const hrefs = await page
+    .locator("nav a")
+    .evaluateAll((links) => links.map((link) => link.getAttribute("href")));
   expect(hrefs.length).toBeGreaterThan(10);
   expect(
     hrefs.every(
@@ -119,15 +121,15 @@ test("verified outsider gets the same generic project-unavailable shell", async 
 test("public RSVP route is token-minimal and contains no project navigation", async ({
   page,
 }) => {
-  const token = "browser-secret-capability-value";
-  await page.goto(`/rsvp/${token}`);
+  const capability = "browser-opaque-capability-value";
+  await page.goto(`/rsvp/${capability}`);
 
   await expect(page.locator('[data-shell="public-rsvp"]')).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Invitation & RSVP" }),
   ).toBeVisible();
   await expect(page.locator("nav")).toHaveCount(0);
-  await expect(page.locator("body")).not.toContainText(token);
+  await expect(page.locator("body")).not.toContainText(capability);
   await expect(page).toHaveTitle("Invitation & RSVP · Mariage OS");
   await expect(page.locator('meta[name="referrer"]')).toHaveAttribute(
     "content",
