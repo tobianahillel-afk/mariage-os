@@ -183,7 +183,10 @@ begin
     or coalesce(target_planned_sms, false)
     or coalesce(target_planned_whatsapp, false);
 
-  if target_rsvp_method not in ('mariage_os_links', 'manual', 'later')
+  if target_rsvp_method is null
+    or target_contact_data_readiness is null
+    or target_automatic_channel_setup_intent is null
+    or target_rsvp_method not in ('mariage_os_links', 'manual', 'later')
     or target_contact_data_readiness not in ('emails', 'phones', 'emails_and_phones', 'import_later', 'not_yet')
     or target_automatic_channel_setup_intent not in ('configure_now', 'later', 'not_applicable')
     or (has_automatic_channel and target_automatic_channel_setup_intent = 'not_applicable')
