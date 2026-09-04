@@ -21,7 +21,10 @@ interface BrowserSupabaseConfig {
   readonly publishableKey: string;
 }
 
-type BrowserClientFactory = (url: string, publishableKey: string) => SupabaseClient;
+type BrowserClientFactory = (
+  url: string,
+  publishableKey: string,
+) => SupabaseClient;
 
 function nonEmpty(value: string | undefined): string | null {
   if (value === undefined) return null;
