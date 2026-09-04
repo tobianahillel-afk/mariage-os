@@ -1,4 +1,4 @@
-import { expect, it, vi } from "vitest";
+import { afterEach, expect, it, vi } from "vitest";
 
 import {
   createBrowserLocalRuntime,
@@ -17,6 +17,10 @@ function storage(existing: string | null = null): Storage {
     length: 0,
   };
 }
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 it("composes IndexedDB and stable device identity when browser storage exists", () => {
   const target = storage();
@@ -78,6 +82,21 @@ it("fails closed when browser identity persistence throws", () => {
       appVersion: "1",
     }),
   ).toMatchObject({ localStoreFactory: null, deviceId: null });
+});
+
+it("default composition uses platform UUID and persists device identity", () => {
+  const target = storage();
+  vi.stubGlobal("indexedDB", {} as IDBFactory);
+  vi.stubGlobal("localStorage", target);
+  vi.stubGlobal("navigator", { onLine: true });
+  vi.stubGlobal("crypto", { randomUUID: vi.fn(() => deviceId) });
+
+  const runtime = createDefaultBrowserLocalRuntime("1");
+
+  expect(runtime.localStoreFactory).not.toBeNull();
+  expect(runtime.deviceId).toBe(deviceId);
+  expect(runtime.online).toBe(true);
+  expect(target.setItem).toHaveBeenCalledWith("mariage-os.device-id", deviceId);
 });
 
 it("default composition degrades when the platform globals are unavailable", () => {
