@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(41);
+select plan(43);
 
 select has_table(
   'public',
@@ -514,14 +514,44 @@ select throws_ok(
   'invitation unavailable',
   'owner cannot issue invitation for unrelated project'
 );
+select throws_ok(
+  $$
+    select public.change_project_member_role(
+      '9aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+      '92222222-2222-4222-8222-222222222222',
+      'editor'
+    )
+  $$,
+  '42501',
+  'membership change unavailable',
+  'aal1 owner cannot mutate a member role'
+);
+select throws_ok(
+  $$
+    select public.revoke_project_member(
+      '9aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+      '94444444-4444-4444-8444-444444444444'
+    )
+  $$,
+  '42501',
+  'membership change unavailable',
+  'aal1 owner cannot revoke a member'
+);
+reset role;
 
+set local role authenticated;
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"91111111-1111-4111-8111-111111111111","role":"authenticated","aal":"aal2"}',
+  true
+);
 select ok(
   public.change_project_member_role(
     '9aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
     '92222222-2222-4222-8222-222222222222',
     'editor'
   ),
-  'owner can demote another owner while one owner remains'
+  'aal2 owner can demote another owner while one owner remains'
 );
 select throws_ok(
   $$
@@ -552,7 +582,7 @@ select ok(
     '92222222-2222-4222-8222-222222222222',
     'owner'
   ),
-  'owner can promote active member to owner'
+  'aal2 owner can promote active member to owner'
 );
 select ok(
   public.revoke_project_member(
@@ -565,7 +595,10 @@ reset role;
 
 select is(
   (
-    select string_agg(user_id::text || ':' || membership_status || ':' || role_key, ',' order by user_id)
+    select string_agg(
+      user_id::text || ':' || membership_status || ':' || role_key,
+      ',' order by user_id
+    )
     from public.project_members
     where project_id = '9aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
       and user_id in (
@@ -580,7 +613,7 @@ select is(
 set local role authenticated;
 select set_config(
   'request.jwt.claims',
-  '{"sub":"91111111-1111-4111-8111-111111111111","role":"authenticated","aal":"aal1"}',
+  '{"sub":"91111111-1111-4111-8111-111111111111","role":"authenticated","aal":"aal2"}',
   true
 );
 select throws_ok(
@@ -600,7 +633,7 @@ reset role;
 set local role authenticated;
 select set_config(
   'request.jwt.claims',
-  '{"sub":"92222222-2222-4222-8222-222222222222","role":"authenticated","aal":"aal1"}',
+  '{"sub":"92222222-2222-4222-8222-222222222222","role":"authenticated","aal":"aal2"}',
   true
 );
 select throws_ok(
