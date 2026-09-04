@@ -57,7 +57,7 @@ function dependencies(counters: LocalSyncCounters = emptyCounters) {
 }
 
 describe("SafeLogoutCoordinator", () => {
-  it("signs out, purges the scoped database and clears the marker when no work is pending", async () => {
+  it("completes safe logout when no work is pending", async () => {
     const target = dependencies();
     const coordinator = new SafeLogoutCoordinator({
       auth: target.auth,
@@ -79,7 +79,7 @@ describe("SafeLogoutCoordinator", () => {
     );
   });
 
-  it("requires explicit resolution before pending work can be discarded", async () => {
+  it("requires explicit resolution before discarding pending work", async () => {
     const target = dependencies({
       ...emptyCounters,
       pendingCount: 2,
@@ -107,7 +107,7 @@ describe("SafeLogoutCoordinator", () => {
     expect(target.localPurge.purge).toHaveBeenCalledOnce();
   });
 
-  it("counts retryable and permanent failures as unresolved local work", async () => {
+  it("counts failed mutations as unresolved local work", async () => {
     const target = dependencies({
       pendingCount: 0,
       conflictCount: 0,
@@ -165,7 +165,7 @@ describe("SafeLogoutCoordinator", () => {
     expect(target.store.close).toHaveBeenCalledOnce();
   });
 
-  it("does not start logout when required local/auth capabilities are unavailable", async () => {
+  it("does not start without required capabilities", async () => {
     const target = dependencies();
     const coordinator = new SafeLogoutCoordinator({
       auth: null,
@@ -198,7 +198,7 @@ describe("SafeLogoutCoordinator", () => {
     expect(target.sessionContext.clear).not.toHaveBeenCalled();
   });
 
-  it("keeps the context marker when scoped purge cannot complete", async () => {
+  it("keeps the context marker when scoped purge fails", async () => {
     const target = dependencies();
     vi.mocked(target.localPurge.purge).mockRejectedValue(
       new Error("purge blocked"),
@@ -217,7 +217,7 @@ describe("SafeLogoutCoordinator", () => {
     expect(target.sessionContext.clear).not.toHaveBeenCalled();
   });
 
-  it("reports marker cleanup failure after provider logout and local purge", async () => {
+  it("reports marker cleanup failure after logout and purge", async () => {
     const target = dependencies();
     vi.mocked(target.sessionContext.clear).mockImplementation(() => {
       throw new Error("storage blocked");
