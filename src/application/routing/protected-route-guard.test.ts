@@ -64,6 +64,18 @@ it("does not treat an unverified identity as a project session", async () => {
   expect(access.canReadProject).not.toHaveBeenCalled();
 });
 
+it("fails closed when session evaluation throws", async () => {
+  const access = projectAccess(true);
+  const reader: SessionReader = {
+    getSession: vi.fn().mockRejectedValue(new Error("session unavailable")),
+  };
+
+  await expect(
+    resolveProtectedRoute(protectedRoute(), reader, access),
+  ).resolves.toEqual({ kind: "project_unavailable" });
+  expect(access.canReadProject).not.toHaveBeenCalled();
+});
+
 it("fails closed when project access composition is unavailable", async () => {
   await expect(
     resolveProtectedRoute(
