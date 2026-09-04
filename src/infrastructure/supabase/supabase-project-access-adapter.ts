@@ -7,7 +7,7 @@ interface SupabaseProjectAccessClientLike {
       target_project_id: string;
       requested_permission: "project.read";
     },
-  ): Promise<{ data: boolean | null; error: unknown }>;
+  ): PromiseLike<{ data: boolean | null; error: unknown }>;
 }
 
 export class SupabaseProjectAccessAdapter implements ProjectAccessPort {
