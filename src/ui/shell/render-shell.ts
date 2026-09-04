@@ -293,7 +293,13 @@ function renderLoginRequired(
 
 function renderStaticShell(root: HTMLElement, kind: StaticShellKind): void {
   const copy = staticShellCopy[kind];
-  renderMessageShell(root, copy.title, copy.message, copy.shellKind);
+  const shell = renderMessageShell(root, copy.title, copy.message, copy.shellKind);
+  if (kind === "project_unavailable") {
+    const link = document.createElement("a");
+    link.textContent = "Retour à l’accueil";
+    link.setAttribute("href", "/");
+    shell.append(link);
+  }
 }
 
 export function renderShell(root: HTMLElement, state: ShellState): void {
