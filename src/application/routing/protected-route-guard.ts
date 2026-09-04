@@ -44,6 +44,18 @@ function hasEstablishedContext(
   }
 }
 
+async function hasLiveProjectAccess(
+  projectAccess: ProjectAccessPort | null,
+  projectId: string,
+): Promise<boolean> {
+  if (projectAccess === null) return false;
+  try {
+    return await projectAccess.canReadProject(projectId);
+  } catch {
+    return false;
+  }
+}
+
 export async function resolveProtectedRoute(
   route: Extract<AppRoute, { kind: "protected_project" }>,
   sessionReader: SessionReader,
@@ -64,15 +76,7 @@ export async function resolveProtectedRoute(
   if (session.kind === "authenticated_unverified") {
     return { kind: "verification_required" };
   }
-  if (projectAccess === null) {
-    return { kind: "project_unavailable" };
-  }
-
-  try {
-    if (!(await projectAccess.canReadProject(route.projectId))) {
-      return { kind: "project_unavailable" };
-    }
-  } catch {
+  if (!(await hasLiveProjectAccess(projectAccess, route.projectId))) {
     return { kind: "project_unavailable" };
   }
 
