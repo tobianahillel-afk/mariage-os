@@ -81,7 +81,10 @@ function chunkAffects(packages) {
 
   for (const packageVersion of packages) {
     const encodedLength = encodeURIComponent(packageVersion).length + 1;
-    if (current.length > 0 && currentLength + encodedLength > maxAffectsLength) {
+    if (
+      current.length > 0 &&
+      currentLength + encodedLength > maxAffectsLength
+    ) {
       chunks.push(current);
       current = [];
       currentLength = 0;
@@ -115,7 +118,9 @@ async function fetchAdvisoryPage(affectedPackages, page) {
   });
 
   if (!response.ok) {
-    throw new Error(`GitHub Advisory Database returned HTTP ${response.status}.`);
+    throw new Error(
+      `GitHub Advisory Database returned HTTP ${response.status}.`,
+    );
   }
 
   const advisories = await response.json();
@@ -160,12 +165,16 @@ async function runGitHubAdvisoryFallback() {
   );
 
   if (blockers.length === 0) {
-    console.log("Dependency vulnerability gate passed: no High/Critical advisory affects the lockfile.");
+    console.log(
+      "Dependency vulnerability gate passed: no High/Critical advisory affects the lockfile.",
+    );
     return;
   }
 
   for (const advisory of blockers) {
-    console.error(`${advisory.severity}: ${advisory.ghsa_id} ${advisory.summary ?? ""}`);
+    console.error(
+      `${advisory.severity}: ${advisory.ghsa_id} ${advisory.summary ?? ""}`,
+    );
   }
   throw new Error("High/Critical dependency vulnerability detected.");
 }
@@ -191,7 +200,9 @@ for (let attempt = 1; attempt <= maxNpmAttempts; attempt += 1) {
   }
 }
 
-console.warn("npm audit remained unavailable after bounded retries; using the GitHub Advisory Database fallback.");
+console.warn(
+  "npm audit remained unavailable after bounded retries; using the GitHub Advisory Database fallback.",
+);
 if (finalTransientFailure?.error) {
   console.warn(finalTransientFailure.error.message);
 }
