@@ -53,7 +53,10 @@ class FakeDatabase {
   }
 
   transaction(storeName: string): IDBTransaction {
-    return new FakeTransaction(this.stores.get(storeName)!, this.state) as unknown as IDBTransaction;
+    return new FakeTransaction(
+      this.stores.get(storeName)!,
+      this.state,
+    ) as unknown as IDBTransaction;
   }
 
   close(): void {
@@ -72,14 +75,14 @@ class FakeTransaction {
   ) {}
 
   objectStore(): IDBObjectStore {
-    return new FakeObjectStore(this.store, this, this.state) as unknown as IDBObjectStore;
+    return new FakeObjectStore(
+      this.store,
+      this,
+      this.state,
+    ) as unknown as IDBObjectStore;
   }
 
-  finishSuccess(): void {
-    queueMicrotask(() => this.oncomplete?.());
-  }
-
-  finishFailure(): void {
+  finish(): void {
     const mode = this.state.consumeFailure();
     queueMicrotask(() => {
       if (mode === "transaction_error") {
@@ -115,7 +118,7 @@ class FakeObjectStore {
       mutate?.();
       request.result = result;
       request.onsuccess?.();
-      this.transaction.finishFailure();
+      this.transaction.finish();
     });
     return request as unknown as IDBRequest<T>;
   }
@@ -172,7 +175,8 @@ class FakeFactory {
   open(name: string): IDBOpenDBRequest {
     const request = new FakeOpenRequest();
     queueMicrotask(() => {
-      if (this.state.consumeFailure() === "open") {
+      if (this.state.peekFailure() === "open") {
+        this.state.consumeFailure();
         request.onerror?.();
         return;
       }
@@ -198,6 +202,7 @@ const projectId = "22222222-2222-4222-8222-222222222222";
 const deviceId = "33333333-3333-4333-8333-333333333333";
 const entityId = "44444444-4444-4444-8444-444444444444";
 const operationId = "55555555-5555-4555-8555-555555555555";
+const missingOperationId = "59999999-9999-4999-8999-999999999999";
 const scope = createLocalProjectScope(userId, projectId, deviceId);
 const databaseName = `mariage-os:project:${userId}:${projectId}`;
 
@@ -305,8 +310,12 @@ describe("IndexedDbProjectStore", () => {
     });
 
     await store.putCachedRecord(record);
-    expect(await store.getCachedRecord("project_preferences", entityId)).toEqual(record);
-    expect(await store.getCachedRecord("project_preferences", operationId)).toBeNull();
+    expect(await store.getCachedRecord("project_preferences", entityId)).toEqual(
+      record,
+    );
+    expect(
+      await store.getCachedRecord("project_preferences", operationId),
+    ).toBeNull();
   });
 
   it("rejects cached records from another project on write and read", async () => {
@@ -363,10 +372,8 @@ describe("IndexedDbProjectStore", () => {
       permanentFailureCount: 1,
     });
     expect((await store.listPendingMutations()).length).toBe(5);
-    expect(await store.getPendingMutation("55555555-5555-4555-8555-555555555555")).toEqual(
-      mutation,
-    );
-    expect(await store.getPendingMutation(operationId)).toBeNull();
+    expect(await store.getPendingMutation(operationId)).toEqual(mutation);
+    expect(await store.getPendingMutation(missingOperationId)).toBeNull();
   });
 
   it("refuses foreign mutation scope and duplicate operation ids", async () => {
