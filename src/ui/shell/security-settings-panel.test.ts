@@ -29,10 +29,7 @@ class FakeElement {
     this.children.push(...children);
   }
 
-  addEventListener(
-    type: string,
-    listener: () => Promise<void> | void,
-  ): void {
+  addEventListener(type: string, listener: () => Promise<void> | void): void {
     const listeners = this.listeners.get(type) ?? [];
     listeners.push(listener);
     this.listeners.set(type, listeners);
