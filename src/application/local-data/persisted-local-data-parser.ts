@@ -2,7 +2,6 @@ import { isUuid } from "@application/local-data/local-project-scope";
 import type { LocalProjectMetadata } from "@application/local-data/local-project-store";
 import type {
   CachedRecordEnvelope,
-  JsonValue,
   PendingMutationEnvelope,
 } from "@application/local-data/local-records";
 
@@ -23,6 +22,7 @@ const mutationPriorities = [
 ] as const;
 
 type RawRecord = Record<string, unknown>;
+type PersistedJsonValue = CachedRecordEnvelope["payload"];
 
 function invalid(label: string): never {
   throw new Error(`Invalid persisted local ${label}.`);
@@ -127,7 +127,7 @@ function inspectJsonValue(value: unknown, state: JsonWalkState): void {
   enqueueJsonObject(value, state);
 }
 
-function jsonValue(value: unknown): JsonValue {
+function jsonValue(value: unknown): PersistedJsonValue {
   const state: JsonWalkState = { queue: [value], seen: new Set(), nodes: 0 };
   while (state.queue.length > 0) {
     state.nodes += 1;
@@ -136,7 +136,7 @@ function jsonValue(value: unknown): JsonValue {
     }
     inspectJsonValue(state.queue.pop(), state);
   }
-  return value as JsonValue;
+  return value as PersistedJsonValue;
 }
 
 export function parseLocalProjectMetadata(value: unknown): LocalProjectMetadata {
