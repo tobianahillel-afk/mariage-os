@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { expect, it, vi } from "vitest";
 import type { AuthSessionState } from "@application/auth/auth-port";
 import type { ProjectAccessPort } from "@application/projects/project-access-port";
 import { parseAppRoute } from "./app-route";
@@ -22,91 +22,83 @@ function projectAccess(result: boolean): ProjectAccessPort {
   return { canReadProject: vi.fn().mockResolvedValue(result) };
 }
 
-describe("resolveProtectedRoute", () => {
-  it("sends signed-out users to login with a local protected return path", async () => {
-    const access = projectAccess(true);
-    await expect(
-      resolveProtectedRoute(
-        protectedRoute(),
-        sessionReader({ kind: "signed_out" }),
-        access,
-      ),
-    ).resolves.toEqual({
-      kind: "login_required",
-      returnTo: `/app/p/${projectId}/dashboard`,
-    });
-    expect(access.canReadProject).not.toHaveBeenCalled();
-  });
+const verifiedSession: AuthSessionState = {
+  kind: "authenticated_verified",
+  userId: "user-1",
+  email: "user@example.invalid",
+  assurance: "aal2",
+};
 
-  it("does not treat an unverified identity as a project session", async () => {
-    const access = projectAccess(true);
-    await expect(
-      resolveProtectedRoute(
-        protectedRoute(),
-        sessionReader({
-          kind: "authenticated_unverified",
-          userId: "user-1",
-          email: "user@example.invalid",
-          assurance: "aal1",
-        }),
-        access,
-      ),
-    ).resolves.toEqual({ kind: "verification_required" });
-    expect(access.canReadProject).not.toHaveBeenCalled();
+it("sends signed-out users to login with a local protected return path", async () => {
+  const access = projectAccess(true);
+  await expect(
+    resolveProtectedRoute(
+      protectedRoute(),
+      sessionReader({ kind: "signed_out" }),
+      access,
+    ),
+  ).resolves.toEqual({
+    kind: "login_required",
+    returnTo: `/app/p/${projectId}/dashboard`,
   });
+  expect(access.canReadProject).not.toHaveBeenCalled();
+});
 
-  it("allows a verified user only after live project.read succeeds", async () => {
-    const access = projectAccess(true);
-    await expect(
-      resolveProtectedRoute(
-        protectedRoute(),
-        sessionReader({
-          kind: "authenticated_verified",
-          userId: "user-1",
-          email: "user@example.invalid",
-          assurance: "aal2",
-        }),
-        access,
-      ),
-    ).resolves.toEqual({
-      kind: "project_allowed",
-      projectId,
-      projectPath: "/dashboard",
-    });
-    expect(access.canReadProject).toHaveBeenCalledWith(projectId);
+it("does not treat an unverified identity as a project session", async () => {
+  const access = projectAccess(true);
+  await expect(
+    resolveProtectedRoute(
+      protectedRoute(),
+      sessionReader({
+        kind: "authenticated_unverified",
+        userId: "user-1",
+        email: "user@example.invalid",
+        assurance: "aal1",
+      }),
+      access,
+    ),
+  ).resolves.toEqual({ kind: "verification_required" });
+  expect(access.canReadProject).not.toHaveBeenCalled();
+});
+
+it("fails closed when project access composition is unavailable", async () => {
+  await expect(
+    resolveProtectedRoute(protectedRoute(), sessionReader(verifiedSession), null),
+  ).resolves.toEqual({ kind: "project_unavailable" });
+});
+
+it("allows a verified user only after live project.read succeeds", async () => {
+  const access = projectAccess(true);
+  await expect(
+    resolveProtectedRoute(protectedRoute(), sessionReader(verifiedSession), access),
+  ).resolves.toEqual({
+    kind: "project_allowed",
+    projectId,
+    projectPath: "/dashboard",
   });
+  expect(access.canReadProject).toHaveBeenCalledWith(projectId);
+});
 
-  it("returns the same generic unavailable state for denied membership", async () => {
-    await expect(
-      resolveProtectedRoute(
-        protectedRoute(),
-        sessionReader({
-          kind: "authenticated_verified",
-          userId: "outsider",
-          email: "outsider@example.invalid",
-          assurance: "aal1",
-        }),
-        projectAccess(false),
-      ),
-    ).resolves.toEqual({ kind: "project_unavailable" });
-  });
+it("returns the same generic unavailable state for denied membership", async () => {
+  await expect(
+    resolveProtectedRoute(
+      protectedRoute(),
+      sessionReader({
+        ...verifiedSession,
+        userId: "outsider",
+        email: "outsider@example.invalid",
+      }),
+      projectAccess(false),
+    ),
+  ).resolves.toEqual({ kind: "project_unavailable" });
+});
 
-  it("fails closed when live access evaluation throws", async () => {
-    const access: ProjectAccessPort = {
-      canReadProject: vi.fn().mockRejectedValue(new Error("network failure")),
-    };
+it("fails closed when live access evaluation throws", async () => {
+  const access: ProjectAccessPort = {
+    canReadProject: vi.fn().mockRejectedValue(new Error("network failure")),
+  };
 
-    await expect(
-      resolveProtectedRoute(
-        protectedRoute(),
-        sessionReader({
-          kind: "authenticated_verified",
-          userId: "user-1",
-          email: "user@example.invalid",
-          assurance: "aal1",
-        }),
-        access,
-      ),
-    ).resolves.toEqual({ kind: "project_unavailable" });
-  });
+  await expect(
+    resolveProtectedRoute(protectedRoute(), sessionReader(verifiedSession), access),
+  ).resolves.toEqual({ kind: "project_unavailable" });
 });
