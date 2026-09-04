@@ -1,6 +1,7 @@
 import { createDefaultBrowserLocalRuntime } from "@app/bootstrap/browser-local-runtime";
 import { createBrowserShellRuntime } from "@app/bootstrap/browser-shell-runtime";
 import { startApplication } from "@app/bootstrap/start-application";
+import { SafeLogoutCoordinator } from "@application/auth/safe-logout";
 import "./styles.css";
 
 const APP_VERSION = "0.0.0";
@@ -15,12 +16,21 @@ const runtime = createBrowserShellRuntime({
   VITE_SUPABASE_PUBLISHABLE_KEY: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
 });
 const localRuntime = createDefaultBrowserLocalRuntime(APP_VERSION);
+const logoutCoordinator = new SafeLogoutCoordinator({
+  auth: runtime.auth,
+  localStoreFactory: localRuntime.localStoreFactory,
+  localPurge: localRuntime.localPurge,
+  sessionContext: localRuntime.sessionContext,
+  appVersion: localRuntime.appVersion,
+});
 
 await startApplication(root, {
   pathname: window.location.pathname,
   sessionReader: runtime.sessionReader,
   projectAccess: runtime.projectAccess,
   sessionContext: localRuntime.sessionContext,
+  securityDiagnostics: runtime.securityDiagnostics,
+  logoutCoordinator,
   localStoreFactory: localRuntime.localStoreFactory,
   deviceId: localRuntime.deviceId,
   online: localRuntime.online,
