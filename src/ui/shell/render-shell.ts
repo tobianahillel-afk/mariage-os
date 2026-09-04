@@ -272,11 +272,10 @@ function appendSettingsContent(
     content.append(createSecuritySettingsPanel(state.securitySettings));
     return;
   }
-  if (
-    state.projectPath === "/settings/diagnostics" &&
-    state.securitySettings
-  ) {
-    content.append(createSecurityDiagnosticsPanel(state.securitySettings.diagnostics));
+  if (state.projectPath === "/settings/diagnostics" && state.securitySettings) {
+    content.append(
+      createSecurityDiagnosticsPanel(state.securitySettings.diagnostics),
+    );
     return;
   }
   content.append(createRsvpIntentHook());
