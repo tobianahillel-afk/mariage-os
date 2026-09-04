@@ -2,9 +2,7 @@ import { beforeEach, expect, it, vi } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 const officialCreateClient = vi.hoisted(() => vi.fn());
-vi.mock("@supabase/supabase-js", () => ({
-  createClient: officialCreateClient,
-}));
+vi.mock("@supabase/supabase-js", () => ({ createClient: officialCreateClient }));
 
 import {
   createBrowserShellRuntime,
@@ -63,7 +61,7 @@ it.each([
   });
 });
 
-it.each<BrowserSupabaseEnvironment>([
+const invalidBrowserConfigs: BrowserSupabaseEnvironment[] = [
   {},
   { VITE_SUPABASE_URL: "https://project.example/" },
   { VITE_SUPABASE_PUBLISHABLE_KEY: publishableKey },
@@ -115,12 +113,11 @@ it.each<BrowserSupabaseEnvironment>([
     VITE_SUPABASE_URL: "https://:pass@project.example/",
     VITE_SUPABASE_PUBLISHABLE_KEY: publishableKey,
   },
-])(
-  "rejects incomplete, secret or non-origin browser config %#",
-  (environment) => {
-    expect(readBrowserSupabaseConfig(environment)).toBeNull();
-  },
-);
+];
+
+it.each(invalidBrowserConfigs)("rejects invalid browser config %#", (environment) => {
+  expect(readBrowserSupabaseConfig(environment)).toBeNull();
+});
 
 it("composes accepted adapters around the official client", async () => {
   const client = fakeClient();
