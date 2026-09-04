@@ -1,5 +1,6 @@
 import { afterEach, expect, it, vi } from "vitest";
-import { renderShell } from "./render-shell";
+import type { SyncSummary } from "@application/local-data/sync-summary";
+import { renderShell, type ProjectShellState } from "./render-shell";
 
 class FakeElement {
   readonly tagName: string;
@@ -64,24 +65,38 @@ function byAttribute(
 }
 
 const projectId = "81111111-1111-4111-8111-111111111111";
+const userId = "71111111-1111-4111-8111-111111111111";
+const synced: SyncSummary = { kind: "synced", label: "En ligne · synchronisé" };
+
+function projectState(
+  projectPath: string,
+  syncSummary: SyncSummary = synced,
+): ProjectShellState {
+  return {
+    kind: "project_allowed",
+    userId,
+    projectId,
+    projectPath,
+    syncSummary,
+  };
+}
 
 afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-it("renders project navigation with explicit project context and RSVP settings", () => {
+it("renders project navigation with explicit project context, sync status and RSVP settings", () => {
   const fakeDocument = installDocument();
   const root = new FakeElement("div");
 
-  renderShell(root as unknown as HTMLElement, {
-    kind: "project_allowed",
-    projectId,
-    projectPath: "/settings",
-  });
+  renderShell(root as unknown as HTMLElement, projectState("/settings"));
 
   expect(fakeDocument.title).toBe("Réglages · Mariage OS");
   expect(byAttribute(root, "data-shell", "private-project")).toHaveLength(1);
   expect(byAttribute(root, "data-rsvp-intent-hook", "true")).toHaveLength(1);
+  expect(byAttribute(root, "role", "status")).toHaveLength(1);
+  expect(byAttribute(root, "data-sync-state", "synced")).toHaveLength(1);
+  expect(texts(root)).toContain("En ligne · synchronisé");
   expect(texts(root)).toContain("Je déciderai plus tard");
   const hrefs = descendants(root)
     .map((child) => child.getAttribute("href"))
@@ -93,22 +108,32 @@ it("renders project navigation with explicit project context and RSVP settings",
   expect(byAttribute(root, "aria-current", "page").length).toBeGreaterThan(0);
 });
 
+it("renders degraded local durability as text, not project data", () => {
+  installDocument();
+  const root = new FakeElement("div");
+
+  renderShell(
+    root as unknown as HTMLElement,
+    projectState("/dashboard", {
+      kind: "durability_unavailable",
+      label: "Stockage local indisponible · mode dégradé",
+    }),
+  );
+
+  expect(byAttribute(root, "data-sync-state", "durability_unavailable")).toHaveLength(
+    1,
+  );
+  expect(texts(root)).toContain("Stockage local indisponible · mode dégradé");
+});
+
 it("uses safe project title fallbacks without changing tenant context", () => {
   const fakeDocument = installDocument();
   const root = new FakeElement("div");
 
-  renderShell(root as unknown as HTMLElement, {
-    kind: "project_allowed",
-    projectId,
-    projectPath: "",
-  });
+  renderShell(root as unknown as HTMLElement, projectState(""));
   expect(fakeDocument.title).toBe("Tableau de bord · Mariage OS");
 
-  renderShell(root as unknown as HTMLElement, {
-    kind: "project_allowed",
-    projectId,
-    projectPath: "/future-module",
-  });
+  renderShell(root as unknown as HTMLElement, projectState("/future-module"));
   expect(fakeDocument.title).toBe("Espace projet · Mariage OS");
   expect(byAttribute(root, "data-rsvp-intent-hook", "true")).toHaveLength(0);
 });
@@ -134,7 +159,7 @@ it("renders a local encoded login return path without protected content", () => 
   ).toHaveLength(1);
 });
 
-it("keeps the public RSVP shell separate from private navigation", () => {
+it("keeps the public RSVP shell separate from private navigation and sync state", () => {
   const fakeDocument = installDocument();
   const root = new FakeElement("div");
 
@@ -145,6 +170,7 @@ it("keeps the public RSVP shell separate from private navigation", () => {
   expect(byAttribute(root, "aria-label", "Navigation du projet")).toHaveLength(
     0,
   );
+  expect(byAttribute(root, "role", "status")).toHaveLength(0);
 });
 
 it("shows the nontechnical RSVP intent hook during onboarding", () => {
