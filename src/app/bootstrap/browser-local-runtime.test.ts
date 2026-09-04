@@ -27,7 +27,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-it("composes IndexedDB, session context and stable device identity", () => {
+it("composes IndexedDB, scoped purge, session context and stable device identity", () => {
   const target = storage();
   const runtime = createBrowserLocalRuntime({
     indexedDb: {} as IDBFactory,
@@ -38,6 +38,7 @@ it("composes IndexedDB, session context and stable device identity", () => {
   });
 
   expect(runtime.localStoreFactory).not.toBeNull();
+  expect(runtime.localPurge).not.toBeNull();
   expect(runtime.sessionContext).not.toBeNull();
   runtime.sessionContext?.remember(projectId, userId);
   expect(runtime.sessionContext?.readUserId(projectId)).toBe(userId);
@@ -56,6 +57,7 @@ it("retains the safe session marker capability when IndexedDB is unavailable", (
   });
 
   expect(runtime.localStoreFactory).toBeNull();
+  expect(runtime.localPurge).toBeNull();
   expect(runtime.sessionContext).not.toBeNull();
   expect(runtime.deviceId).toBeNull();
   expect(runtime.online).toBe(false);
@@ -72,6 +74,7 @@ it("fails closed when browser storage is unavailable", () => {
     }),
   ).toEqual({
     localStoreFactory: null,
+    localPurge: null,
     sessionContext: null,
     deviceId: null,
     online: true,
@@ -94,6 +97,7 @@ it("keeps only the safe marker adapter when device identity persistence throws",
   });
 
   expect(runtime.localStoreFactory).toBeNull();
+  expect(runtime.localPurge).toBeNull();
   expect(runtime.sessionContext).not.toBeNull();
   expect(runtime.deviceId).toBeNull();
 });
@@ -108,6 +112,7 @@ it("default composition uses platform UUID and persists device identity", () => 
   const runtime = createDefaultBrowserLocalRuntime("1");
 
   expect(runtime.localStoreFactory).not.toBeNull();
+  expect(runtime.localPurge).not.toBeNull();
   expect(runtime.sessionContext).not.toBeNull();
   expect(runtime.deviceId).toBe(deviceId);
   expect(runtime.online).toBe(true);
@@ -130,6 +135,7 @@ it("default composition catches platform getter failures", () => {
   try {
     expect(createDefaultBrowserLocalRuntime("1")).toEqual({
       localStoreFactory: null,
+      localPurge: null,
       sessionContext: null,
       deviceId: null,
       online: false,
