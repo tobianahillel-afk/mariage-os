@@ -32,12 +32,17 @@ export interface LocalProjectStore {
     entityId: string,
   ): Promise<CachedRecordEnvelope | null>;
   addPendingMutation(mutation: PendingMutationEnvelope): Promise<void>;
-  getPendingMutation(operationId: string): Promise<PendingMutationEnvelope | null>;
+  getPendingMutation(
+    operationId: string,
+  ): Promise<PendingMutationEnvelope | null>;
   listPendingMutations(): Promise<readonly PendingMutationEnvelope[]>;
   readSyncCounters(): Promise<LocalSyncCounters>;
   close(): void;
 }
 
 export interface LocalProjectStoreFactory {
-  open(scope: LocalProjectScope, appVersion: string): Promise<LocalProjectStore>;
+  open(
+    scope: LocalProjectScope,
+    appVersion: string,
+  ): Promise<LocalProjectStore>;
 }
