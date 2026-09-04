@@ -37,7 +37,7 @@ Packets:
 3. `WP-1.3` — Supabase Auth/session and controlled first-owner provisioning — **ACCEPTED**;
 4. `WP-1.4` — partner invitation and protected membership lifecycle — **ACCEPTED**;
 5. `WP-1.5` — project configuration, dates, origins, preferences and RSVP-intent hooks — **ACCEPTED**;
-6. `WP-1.6` — protected app shell/navigation and public RSVP trust boundary — **REVIEW_FAILED / B-REVIEW-FAILED**;
+6. `WP-1.6` — protected app shell/navigation and public RSVP trust boundary — **ACCEPTANCE_PENDING / C-ACCEPTANCE**;
 7. `WP-1.7` — project-scoped repositories, local cache and sync primitives — **PLANNED**;
 8. `WP-1.8` — session expiry, safe logout, MFA/security diagnostics — **PLANNED**;
 9. `WP-1.9` — Storage/Realtime isolation foundation and security-matrix closure — **PLANNED**.
@@ -47,19 +47,19 @@ Packets:
 - Current Lot: **1**
 - Lot state: **IN_PROGRESS**
 - Current packet: **WP-1.6**
-- Packet state: **REVIEW_FAILED**
-- Current pass: **B-REVIEW-FAILED / REPAIR**
+- Packet state: **ACCEPTANCE_PENDING**
+- Current pass: **C-ACCEPTANCE**
 - Accepted packets: **WP-1.1, WP-1.2, WP-1.3, WP-1.4, WP-1.5**
-- Review-failed/blocked packets: **WP-1.6 (`WP16-AR-001`, `WP16-AR-002`)**
+- Review-failed/blocked packets: **none**
 - WP-1.1 acceptance evidence: run `33809855993` on `f0b1e46c46bc3ad5d15bf2191c63ec4e85473507`, all five jobs SUCCESS.
 - WP-1.2 acceptance evidence: run `33811568440` on `fa96228bcd8a0b7671fcb561f8f7668eaf5851dc`, all five jobs SUCCESS; `WP12-AR-001` closed.
 - WP-1.3 acceptance evidence: run `33817932867` on `707b1384fbd370fe88ef7a87ac191aa9645f6db3`, all five jobs SUCCESS; `WP13-AR-001` and `WP13-AR-002` closed.
 - WP-1.4 acceptance evidence: run `33859207161` on `bf0046dc45c318875d349edc2b6327292e2894ea`, all five jobs SUCCESS; DB 133/133; `WP14-AR-001..003` closed.
 - WP-1.5 acceptance evidence: run `33866160626` on implementation HEAD `15e477a9ca75efbc98594000c190180e24226229`, all five jobs SUCCESS including clean-checkout `npm run verify`; DB **13 files / 239 tests / PASS**; `WP15-AR-001` and `WP15-AR-002` closed; Pass C required-minus-evidenced = ∅.
-- WP-1.6 pre-review Pass-A evidence: run `33869860062` on implementation HEAD `36eff640d8fbeebfcf64023350e6636b3a5ab624`, all five jobs SUCCESS including clean-checkout `npm run verify`.
+- WP-1.6 final implementation evidence: run `33880216335` on implementation HEAD `61dca0718f8ff7372609d208050aba6a50271743`, all five jobs SUCCESS including clean-checkout `npm run verify`; fresh Pass B PASS; `WP16-AR-001` and `WP16-AR-002` closed and final MINOR recovery observation repaired/re-reviewed.
 - Current branch: **`lot-1/identity-project-foundation`**
 - WP-1.6 kickoff record commit: `8f0be21c3ddf7608f2dec871efa1193ef476d497`.
-- Next permitted action: **repair WP16-AR-001/002 in WP-1.6 only, run fresh exact-head verification, then perform a fresh adversarial review**.
+- Next permitted action: **perform Pass C EXPECTED vs IMPLEMENTED vs VERIFIED reconciliation for WP-1.6 only**.
 
 ## Lot status
 
@@ -73,14 +73,11 @@ Packets:
 
 - V1 Feature IDs: 120 SPECIFIED inventory rows total.
 - Lot 1 foundations are in implementation; no Lot 2+ Feature may start.
-- WP-1.1 through WP-1.5 are accepted foundations; user-facing Feature acceptance remains pending broader Lot 1 slices and Lot integration.
+- WP-1.1 through WP-1.5 are accepted foundations; WP-1.6 is in acceptance reconciliation; user-facing Feature acceptance remains pending broader Lot 1 slices and Lot integration.
 
 ## Current blockers / forward maintenance
 
-Open adversarial findings:
-
-- `WP16-AR-001` — **MAJOR / OPEN**: official browser Supabase SDK composition assigned to WP-1.6 is missing; runtime hard-codes signed-out/null access and therefore cannot authorize a real member.
-- `WP16-AR-002` — **MAJOR / OPEN**: session-provider failure plus asynchronous protected-route resolution can leave stale private shell content visible because the previous DOM is not neutralized before authorization completes.
+Open adversarial findings: **none for the current packet**.
 
 Closed/adversarial findings:
 
@@ -93,7 +90,9 @@ Closed/adversarial findings:
 - `WP14-AR-002`: project-first invitation lifecycle lock ordering removes deadlock risk;
 - `WP14-AR-003`: privileged invitation/membership authorization is evaluated after serialization, closing stale-authorization TOCTOU;
 - `WP15-AR-001`: rejected/archived wedding-date history preserved until explicit candidate reactivation;
-- `WP15-AR-002`: exhaustive WP-1.5 table/column/RPC grant evidence completed.
+- `WP15-AR-002`: exhaustive WP-1.5 table/column/RPC grant evidence completed;
+- `WP16-AR-001`: official browser Supabase client composition now uses browser-safe publishable configuration and accepted Auth/project-access adapters;
+- `WP16-AR-002`: protected DOM is neutralized before asynchronous authorization and provider failures resolve fail-closed to generic recovery.
 
 Inherited reviewed non-blocking maintenance:
 
@@ -110,10 +109,11 @@ Lot 0: ACCEPTED
 Lot 1: IN_PROGRESS
 Coverage: required - assigned = ∅
 Accepted: WP-1.1, WP-1.2, WP-1.3, WP-1.4, WP-1.5
-Current: WP-1.6 / REVIEW_FAILED / REPAIR
-Open: WP16-AR-001, WP16-AR-002
-Pre-review Pass A: run 33869860062 on 36eff640d8fbeebfcf64023350e6636b3a5ab624, 5/5 SUCCESS
-Next: repair findings → fresh exact-head CI → fresh Pass B
+Current: WP-1.6 / ACCEPTANCE_PENDING / C-ACCEPTANCE
+Open BLOCKING/MAJOR/MINOR: none
+Final implementation evidence: run 33880216335 on 61dca0718f8ff7372609d208050aba6a50271743, 5/5 SUCCESS including clean-checkout npm run verify
+Pass B: PASS; WP16-AR-001/002 CLOSED; recovery MINOR repaired/re-reviewed
+Next: Pass C EXPECTED vs IMPLEMENTED vs VERIFIED reconciliation for WP-1.6 only
 WP-1.7+: forbidden until WP-1.6 acceptance
 Lot 2+: forbidden
 ```
