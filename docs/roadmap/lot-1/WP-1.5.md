@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-1.5`
 - Lot: `1`
 - Name: Project configuration, dates, origins, preferences and RSVP-intent data hooks
-- State: `IN_PROGRESS`
-- Current pass: `A-IMPLEMENT`
+- State: `REVIEW_PENDING`
+- Current pass: `B-ADVERSARIAL-REVIEW`
 - Primary bounded context: project setup/configuration persistence
 - Branch/PR: `lot-1/identity-project-foundation`
 
@@ -22,122 +22,149 @@
 
 ### Current-lot responsibilities covered
 
-- protected updates for editable project basics without exposing audit/revision/system fields to generic browser mutation;
-- canonical project locale, IANA timezone string, ISO-style currency and target guest-count persistence;
-- structured `wedding_date_options` with candidate/selected/rejected/archived lifecycle, project-scoped civil dates and zero-or-one selected invariant;
-- atomic selected-date transition that demotes a previous selection in the same transaction;
-- structured `project_reference_origins` with optional address/coordinates, sort order and zero-or-one default origin per project;
-- member-personal `user_project_preferences` with author-only cloud visibility/write semantics and server-controlled revision;
-- provider-neutral Invitations & RSVP intent/settings persistence for onboarding: intended RSVP method, optional deadline, desired question toggles, intended channels and contact-data readiness;
-- explicit project/member RLS/grants and direct cross-project/role/author negative evidence for every new resource/RPC.
+- protected editable project basics with server-controlled audit/revision fields;
+- canonical locale, IANA timezone, three-letter currency and target guest count on `projects`;
+- structured project-scoped `wedding_date_options` with candidate/selected/rejected/archived lifecycle and zero-or-one selected invariant;
+- atomic selected-date command serialized on the project row;
+- structured `project_reference_origins` with optional address/coordinate pair, ordering and zero-or-one default;
+- author-only `user_project_preferences` with live membership checks and server revision;
+- provider-neutral `project_rsvp_intent_settings` for onboarding intent only;
+- explicit grants/RLS plus cross-project/role/revocation/author negative evidence.
 
-### Requirements / Acceptance / Security IDs
+### Normative references
 
-- FTR-006, FTR-007, FTR-008, FTR-012 and FTR-119 applicable Lot-1 responsibilities.
-- `AUTHZ-001`, `AUTHZ-002`, `AUTHZ-004`, `AUTHZ-005`, `AUTHZ-006`, `AUTHZ-007`, `AUTHZ-008`, `AUTHZ-009`, `AUTHZ-012`, `AUTHZ-018`, `AUTHZ-019`, `AUTHZ-020` as applicable.
-- `PHYSICAL-SCHEMA-V1.md`, `PHYSICAL-SCHEMA-AUTHORIZATION-ADDENDUM.md`, `DATES-TIME.md`, `ROLE-PERMISSION-MATRIX.md`, `AUTH-ONBOARDING.md`, `PRODUCT-SPECIFICATION-GUEST-COMMUNICATIONS-ADDENDUM.md`, `GUEST-COMMUNICATIONS-BLUEPRINTS.md`.
+- FTR-006, FTR-007, FTR-008, FTR-012, FTR-119 applicable Lot-1 responsibilities.
+- AUTHZ-001/002/004/005/006/007/008/009/012/018/019/020 as applicable.
+- `PHYSICAL-SCHEMA-V1.md`.
+- `PHYSICAL-SCHEMA-AUTHORIZATION-ADDENDUM.md`.
+- `DATES-TIME.md`.
+- `STATE-MACHINES.md`.
+- `ROLE-PERMISSION-MATRIX.md`.
+- `AUTH-ONBOARDING.md`.
+- Guest communications requirements/addendum/blueprints.
 
-### Explicit physical refinement for FTR-119
+### Explicit FTR-119 refinement
 
-The frozen guest-communications addendum defines later Lot-6 RSVP/question/channel entities but intentionally does not prescribe one physical table for the Lot-1 onboarding intent snapshot. WP-1.5 may introduce one narrowly scoped project-owned intent/settings row so the required onboarding choices persist without creating guest, household, campaign, provider-secret or public-capability data early.
-
-The row must remain provider-neutral and may contain only planning intent/configuration such as:
-
-- RSVP method: Mariage OS link / manual / later;
-- optional RSVP deadline;
-- expected guest-question booleans;
-- planned communication-channel booleans including manual link/QR;
-- contact-data readiness;
-- server audit/revision fields.
-
-No provider API key/access token/webhook secret/provider send state belongs in this packet.
+The Lot-1 RSVP row is only an onboarding/settings intent snapshot. It may contain RSVP method, optional deadline, question toggles, planned channels, contact-data readiness and deferred/configure-now intent. It may not contain guest/household data, public capability tokens, provider credentials, templates, sends or webhook state.
 
 ### Explicitly out of scope
 
-- guest/household/contact-point records;
-- guest invitation capability links, RSVP submissions and public guest DTOs;
-- reusable RSVP question-profile domain implementation;
-- communication channel provider configuration, credentials, templates, campaigns, recipients, webhooks or sends;
-- provider setup task/checklist implementation beyond persisting defer/manual intent (task engine is Lot 3);
-- public `/rsvp/:token` shell — WP-1.6 boundary only;
-- venue access route observations/map UI — Lot 9;
+- guest/household/contact-point domain;
+- guest invitation capabilities and RSVP submissions;
+- outbound provider configuration/credentials/templates/campaigns/webhooks/sends;
+- public `/rsvp/:token` shell — WP-1.6;
+- venue route/map observations — Lot 9;
 - local cache/sync primitives — WP-1.7;
-- dependent venue/budget/milestone recalculation after selected-date change — later owning lots;
+- venue/budget/milestone dependency recalculation after selected-date changes — later owning lots;
 - Lot 2+ wedding-domain implementation or real wedding/customer data.
 
-## Dependency / sequencing
+## Dependencies
 
-- Required prior packets: WP-1.1 through WP-1.4 **ACCEPTED**.
-- WP-1.2 supplies projects/membership/RLS helper.
-- WP-1.3 supplies verified identity/session semantics.
-- WP-1.4 supplies the accepted collaboration membership lifecycle used by authorization tests.
-- WP-1.6 consumes the resulting project/onboarding configuration in protected/public shell UX.
-- WP-1.7 later supplies local partition/cache behavior for personal preferences.
+WP-1.1 through WP-1.4 are **ACCEPTED**. WP-1.6 remains forbidden until this packet is accepted.
 
-## Sizing review
+## Security and data invariants
 
-Planning complexity: **9/10**.
+1. `projects` remains the single truth for project settings; selected wedding date is derived from `wedding_date_options`.
+2. Generic browser mutation cannot alter project/system audit fields.
+3. `project.settings.update` remains owner-only.
+4. Wedding dates are civil `date` values and exactly zero or one may be selected.
+5. Selection is a serialized protected transition.
+6. Cross-project IDs fail closed.
+7. Reference origins preserve coordinate-pair validity and at most one default.
+8. Origin reads/writes preserve `access.read` / `access.write` role semantics.
+9. Personal preferences are readable/writable only by `auth.uid()` with active same-project membership.
+10. Preference revision is server-controlled.
+11. RSVP intent is private project configuration and never anonymous guest state.
+12. RSVP intent is provider-neutral and secret-free.
+13. Revoked membership takes effect through live server-side authorization.
+14. Every table/RPC has explicit client grant/RLS evidence.
+15. Every privileged configuration RPC locks the project before evaluating live permission.
 
-Cohesion rationale: these records form the complete project-setup persistence slice used during onboarding and Settings. They share the same project authorization boundary, revision/audit semantics and cross-project integrity model; splitting them would leave onboarding choices partially durable and make later route/cache work invent temporary storage.
+## Implementation
 
-## Security / data invariants to preserve
+Migrations:
 
-1. `projects` remains the single truth for locale/timezone/currency/guest target; selected wedding date is never duplicated there.
-2. Generic client mutation cannot change project audit actor/revision/project identity or status as a side effect of settings editing.
-3. `project.settings.update` remains owner-only under the frozen permission matrix.
-4. Wedding dates are project-owned civil `date` values; exactly zero or one non-archived option can be selected.
-5. Selecting a date is one protected transaction and cannot leave two selected rows.
-6. Date-option IDs and all project-owned references cannot be used across projects.
-7. Reference origins are project-owned; coordinates are range-validated; exactly zero or one active/default origin exists per project.
-8. Reference-origin reads/writes use `access.read` / `access.write` and therefore preserve owner/editor/viewer semantics.
-9. Personal preferences are visible/writable only for `auth.uid()` with active membership in that same project; owner status does not permit impersonating another member's personal preferences.
-10. Personal preference revision is server-controlled and increments atomically on accepted update.
-11. RSVP intent/settings is private project configuration, never anonymous guest-readable state.
-12. RSVP intent/settings remains provider-neutral and contains no reusable credential/token/secret.
-13. Revoked membership takes effect immediately because every protected read/write evaluates live membership/permission server-side.
-14. All new tables/RPCs declare explicit grants/RLS and direct allow/deny tests.
+- `20260904101000_create_project_configuration.sql`
+- `20260904101500_harden_project_configuration_validation.sql`
+- `20260904104000_harden_project_configuration_transitions.sql`
+- `20260904104500_enforce_rsvp_intent_consistency.sql`
 
-## Planned Pass-A evidence
+Resources:
 
-Direct DB/RLS matrix will include at least:
+- `wedding_date_options`
+- `project_reference_origins`
+- `user_project_preferences`
+- `project_rsvp_intent_settings`
 
-- owner can update allowed project settings; editor/viewer/outsider/revoked member cannot;
-- audit/revision fields remain server-controlled;
-- malformed locale/currency/guest-count inputs fail safely where constrained;
-- owner can add candidate dates and select one atomically;
-- second selection demotes the previous option;
-- duplicate active civil date and cross-project selection are denied;
-- archived/rejected semantics cannot accidentally create a second selected truth;
-- owner/editor can manage origins according to `access.write`, viewer can read but not write, outsider/revoked cannot read/write;
-- second default origin atomically replaces or is otherwise prevented from coexisting with the prior default;
-- invalid latitude/longitude and cross-project operations fail;
-- each active member can read/write only their own preference row, including a multi-project user without partition bleed;
-- another owner/editor cannot impersonate the preference author;
-- preference revision increments server-side;
-- RSVP intent row is member-readable only where authorized, owner-writable via project settings authority, and absent from anonymous/outsider access;
-- RSVP method/channel/contact-readiness constraints reject unsupported values and no provider secret column exists;
-- projects A/B/C, owner/editor/viewer, multi-project user, outsider and revoked-member fixtures remain exercised.
+Protected commands:
 
-Pass A also requires exact-head success for Core, DB/RLS, Browser/mutation, privacy-safe preview and clean-checkout `npm run verify` before Pass B begins.
+- `update_project_settings`
+- `create_wedding_date_option`
+- `update_wedding_date_option`
+- `select_wedding_date_option`
+- `save_project_reference_origin`
+- `delete_project_reference_origin`
+- `upsert_user_project_preferences`
+- `upsert_project_rsvp_intent_settings`
+
+Pass-A hardening completed before review:
+
+- IANA timezone and null/currency validation tightened;
+- coordinates must be both absent or both present and range-valid;
+- selected date cannot have its civil date/status rewritten through generic metadata editing;
+- only a candidate can enter `selected`; rejected/archived rows must explicitly return to candidate first;
+- automatic-channel setup intent is consistent with whether Email/SMS/WhatsApp is planned, both in RPC validation and a table CHECK constraint;
+- required RSVP selector values fail through controlled validation rather than generic NOT NULL errors;
+- exhaustive anonymous/authenticated grant surface and project-lock-before-live-permission contract tests added.
 
 ## Pass A — IMPLEMENT
 
-**IN_PROGRESS.**
+**COMPLETE.**
 
-No WP-1.5 production migration is accepted yet.
+Exact-head evidence:
+
+- HEAD: `d7f019878c0827e4357e59278a342d5033bca2cb`.
+- CI run: `33863817975`.
+- Core quality/security: SUCCESS.
+- Local Supabase DB/RLS: SUCCESS.
+- Browser + mutation: SUCCESS.
+- Privacy-safe preview: SUCCESS.
+- Full verify from clean checkout: SUCCESS.
+- DB evidence: **12 files / 232 tests / PASS** on a fresh local reset.
+
+Pass A therefore satisfies the packet gate and the packet has transitioned to independent adversarial review.
 
 ## Pass B — ADVERSARIAL REVIEW
 
-Not started. Must independently challenge authorization/grants, selected-date atomicity/concurrency, one-default-origin concurrency, preference authorship/revision, RSVP-intent scope leakage, cross-project references and audit/system-column protection after Pass A is green.
+**IN_PROGRESS.**
+
+Review matrix:
+
+- exact owner/editor/viewer permission behavior;
+- anon/outsider/revoked/cross-project denial;
+- project-lock-before-live-permission authorization order;
+- selected-date lifecycle, atomicity and historical preservation;
+- one-default-origin concurrency;
+- preference self-authorship/revision and no member impersonation;
+- RSVP intent provider-neutral scope, secret absence and semantic consistency;
+- audit/system-column protection;
+- no Lot-2+/guest/provider scope creep.
+
+Open finding:
+
+- `WP15-AR-001` — **MAJOR / OPEN**: `update_wedding_date_option` currently permits a row already in `rejected` or `archived` state to change its civil `event_date` while remaining historical or while being reactivated. `STATE-MACHINES.md` requires rejected/archive states to preserve date history. Repair must keep reactivation reversible but require the historical civil date to remain unchanged until the row has explicitly returned to `candidate`.
+
+No Pass C acceptance is permitted while this finding is open.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started. Requires clean Pass B plus responsibility-by-responsibility contract/implementation/runtime reconciliation.
+Not started. Requires a clean fresh Pass B after repair, then responsibility-by-responsibility contract → implementation → exact-head runtime reconciliation.
 
 ## Handoff
 
-- Current state: `IN_PROGRESS`
-- Current/next pass: `A-IMPLEMENT`
-- Accepted dependencies: WP-1.1, WP-1.2, WP-1.3, WP-1.4.
-- Open BLOCKING/MAJOR findings: none at kickoff.
-- Next permitted action: implement WP-1.5 only against this bounded contract.
+- Current state: `REVIEW_PENDING`.
+- Current pass: `B-ADVERSARIAL-REVIEW`.
+- Accepted dependencies: WP-1.1..WP-1.4.
+- Open BLOCKING/MAJOR: `WP15-AR-001`.
+- Next permitted action: repair `WP15-AR-001`, rerun exact-head verification, then perform a fresh Pass B.
+- WP-1.6+: forbidden until WP-1.5 acceptance.
