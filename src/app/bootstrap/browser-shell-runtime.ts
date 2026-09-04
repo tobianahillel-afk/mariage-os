@@ -1,12 +1,8 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import type {
-  ProjectAccessPort,
-} from "@application/projects/project-access-port";
+import type { ProjectAccessPort } from "@application/projects/project-access-port";
 import type { SessionReader } from "@application/routing/protected-route-guard";
 import { SupabaseAuthAdapter } from "@infra/supabase/supabase-auth-adapter";
-import {
-  SupabaseProjectAccessAdapter,
-} from "@infra/supabase/supabase-project-access-adapter";
+import { SupabaseProjectAccessAdapter } from "@infra/supabase/supabase-project-access-adapter";
 
 const PUBLISHABLE_KEY_PREFIX = "sb_publishable_";
 
@@ -69,9 +65,7 @@ export function readBrowserSupabaseConfig(
   environment: BrowserSupabaseEnvironment,
 ): BrowserSupabaseConfig | null {
   const rawUrl = nonEmpty(environment.VITE_SUPABASE_URL);
-  const publishableKey = nonEmpty(
-    environment.VITE_SUPABASE_PUBLISHABLE_KEY,
-  );
+  const publishableKey = nonEmpty(environment.VITE_SUPABASE_PUBLISHABLE_KEY);
 
   if (rawUrl === null || publishableKey === null) return null;
   if (
