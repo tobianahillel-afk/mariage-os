@@ -2,7 +2,10 @@ import { expect, it, vi } from "vitest";
 import type { AuthSessionState } from "@application/auth/auth-port";
 import type { ProjectAccessPort } from "@application/projects/project-access-port";
 import { parseAppRoute } from "./app-route";
-import { resolveProtectedRoute, type SessionReader } from "./protected-route-guard";
+import {
+  resolveProtectedRoute,
+  type SessionReader,
+} from "./protected-route-guard";
 
 const projectId = "81111111-1111-4111-8111-111111111111";
 
@@ -63,14 +66,22 @@ it("does not treat an unverified identity as a project session", async () => {
 
 it("fails closed when project access composition is unavailable", async () => {
   await expect(
-    resolveProtectedRoute(protectedRoute(), sessionReader(verifiedSession), null),
+    resolveProtectedRoute(
+      protectedRoute(),
+      sessionReader(verifiedSession),
+      null,
+    ),
   ).resolves.toEqual({ kind: "project_unavailable" });
 });
 
 it("allows a verified user only after live project.read succeeds", async () => {
   const access = projectAccess(true);
   await expect(
-    resolveProtectedRoute(protectedRoute(), sessionReader(verifiedSession), access),
+    resolveProtectedRoute(
+      protectedRoute(),
+      sessionReader(verifiedSession),
+      access,
+    ),
   ).resolves.toEqual({
     kind: "project_allowed",
     projectId,
@@ -99,6 +110,10 @@ it("fails closed when live access evaluation throws", async () => {
   };
 
   await expect(
-    resolveProtectedRoute(protectedRoute(), sessionReader(verifiedSession), access),
+    resolveProtectedRoute(
+      protectedRoute(),
+      sessionReader(verifiedSession),
+      access,
+    ),
   ).resolves.toEqual({ kind: "project_unavailable" });
 });
