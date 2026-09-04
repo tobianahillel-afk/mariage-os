@@ -88,7 +88,7 @@ Planning complexity: **9/10**.
 
 ### WP-1.6 — Protected app shell, navigation and public RSVP trust boundary
 
-State: **IN_PROGRESS / A-IMPLEMENT**
+State: **REVIEW_PENDING / B-ADVERSARIAL-REVIEW**
 
 Scope:
 - protected `/app/p/:projectId/**` shell and membership-aware routing;
@@ -96,6 +96,8 @@ Scope:
 - separate public `/rsvp/:token` shell boundary with placeholder capability resolution only;
 - onboarding/settings UI hooks for RSVP intent/defer/manual-link plan;
 - no guest domain CRUD, outbound provider SDK or provider secret.
+
+Pass-A evidence: run `33869860062` on implementation HEAD `36eff640d8fbeebfcf64023350e6636b3a5ab624`, all five jobs SUCCESS including clean-checkout `npm run verify`.
 
 Planning complexity: **7/10**.
 
@@ -145,13 +147,13 @@ WP-1.1 [ACCEPTED]
   ↓
 WP-1.2 [ACCEPTED]
   ├─→ WP-1.3 [ACCEPTED] → WP-1.4 [ACCEPTED]
-  ├─→ WP-1.5 [ACCEPTED] → WP-1.6 [IN_PROGRESS]
+  ├─→ WP-1.5 [ACCEPTED] → WP-1.6 [REVIEW_PENDING]
   └─→ WP-1.7 [PLANNED] → WP-1.8 [PLANNED]
                               ↘
                                 WP-1.9 [PLANNED]
 ```
 
-Execution remains sequential by default, so only WP-1.6 is currently permitted to be `IN_PROGRESS`.
+Execution remains sequential by default, so only WP-1.6 is currently permitted to be active; WP-1.7 remains forbidden until WP-1.6 acceptance.
 
 ## Explicitly out of Lot 1
 
