@@ -9,7 +9,7 @@ type SessionResult = Awaited<
   ReturnType<SupabaseAuthClientLike["auth"]["getSession"]>
 >;
 type Session = SessionResult["data"]["session"];
-type Level = "aal1" | "aal2" | null;
+type Level = string | null;
 
 type ClientOptions = {
   session?: Session;
@@ -74,6 +74,18 @@ it("maps verified provider identity and assurance", async () => {
     userId: "verified-user",
     email: "owner@example.invalid",
     assurance: "aal2",
+  });
+});
+
+it("maps future provider assurance values to unknown", async () => {
+  const adapter = authAdapter({
+    session: verifiedSession,
+    level: "future-assurance-level",
+  });
+
+  await expect(adapter.getSession()).resolves.toMatchObject({
+    kind: "authenticated_verified",
+    assurance: "unknown",
   });
 });
 
