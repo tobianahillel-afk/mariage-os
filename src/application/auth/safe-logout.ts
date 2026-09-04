@@ -27,6 +27,12 @@ export interface SafeLogoutDependencies {
   readonly appVersion: string;
 }
 
+interface LogoutCapabilities {
+  readonly auth: Pick<AuthPort, "signOut">;
+  readonly localPurge: LocalProjectPurgePort;
+  readonly sessionContext: ProjectSessionContextPort;
+}
+
 function unresolvedCount(counters: LocalSyncCounters): number {
   return (
     counters.pendingCount +
@@ -34,6 +40,72 @@ function unresolvedCount(counters: LocalSyncCounters): number {
     counters.retryableFailureCount +
     counters.permanentFailureCount
   );
+}
+
+function logoutCapabilities(
+  dependencies: SafeLogoutDependencies,
+): LogoutCapabilities | null {
+  if (dependencies.auth === null) return null;
+  if (dependencies.localPurge === null) return null;
+  if (dependencies.sessionContext === null) return null;
+  return {
+    auth: dependencies.auth,
+    localPurge: dependencies.localPurge,
+    sessionContext: dependencies.sessionContext,
+  };
+}
+
+async function providerSignedOut(
+  auth: Pick<AuthPort, "signOut">,
+): Promise<boolean> {
+  try {
+    await auth.signOut();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function localScopePurged(
+  localPurge: LocalProjectPurgePort,
+  scope: LocalProjectScope,
+): Promise<boolean> {
+  try {
+    await localPurge.purge(scope);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function sessionContextCleared(
+  sessionContext: ProjectSessionContextPort,
+  projectId: string,
+): boolean {
+  try {
+    sessionContext.clear(projectId);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function completeLogout(
+  capabilities: LogoutCapabilities,
+  scope: LocalProjectScope,
+  onSafeTransition: () => void,
+): Promise<LogoutResult> {
+  onSafeTransition();
+  if (!(await providerSignedOut(capabilities.auth))) {
+    return { kind: "auth_failed" };
+  }
+  if (!(await localScopePurged(capabilities.localPurge, scope))) {
+    return { kind: "purge_failed" };
+  }
+  if (!sessionContextCleared(capabilities.sessionContext, scope.projectId)) {
+    return { kind: "context_cleanup_failed" };
+  }
+  return { kind: "completed" };
 }
 
 export class SafeLogoutCoordinator {
@@ -63,10 +135,8 @@ export class SafeLogoutCoordinator {
     discardPending: boolean,
     onSafeTransition: () => void = () => undefined,
   ): Promise<LogoutResult> {
-    const { auth, localPurge, sessionContext } = this.dependencies;
-    if (auth === null || localPurge === null || sessionContext === null) {
-      return { kind: "local_state_unavailable" };
-    }
+    const capabilities = logoutCapabilities(this.dependencies);
+    if (capabilities === null) return { kind: "local_state_unavailable" };
 
     const assessment = await this.inspect(scope);
     if (assessment.kind === "local_state_unavailable") return assessment;
@@ -74,26 +144,6 @@ export class SafeLogoutCoordinator {
       return assessment;
     }
 
-    onSafeTransition();
-
-    try {
-      await auth.signOut();
-    } catch {
-      return { kind: "auth_failed" };
-    }
-
-    try {
-      await localPurge.purge(scope);
-    } catch {
-      return { kind: "purge_failed" };
-    }
-
-    try {
-      sessionContext.clear(scope.projectId);
-    } catch {
-      return { kind: "context_cleanup_failed" };
-    }
-
-    return { kind: "completed" };
+    return completeLogout(capabilities, scope, onSafeTransition);
   }
 }
