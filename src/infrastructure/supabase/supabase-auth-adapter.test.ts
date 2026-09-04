@@ -28,8 +28,7 @@ const providerUnavailable = "Authentication provider unavailable.";
 function makeClient(options: ClientOptions = {}): SupabaseAuthClientLike {
   const session = options.session ?? null;
   const level = options.level === undefined ? "aal1" : options.level;
-  const nextLevel =
-    options.nextLevel === undefined ? level : options.nextLevel;
+  const nextLevel = options.nextLevel === undefined ? level : options.nextLevel;
   const totp = options.verifiedTotp
     ? [{ factor_type: "totp", status: "verified" }]
     : [];
