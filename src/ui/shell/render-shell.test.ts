@@ -158,6 +158,17 @@ it("shows the nontechnical RSVP intent hook during onboarding", () => {
   expect(texts(root)).toContain("Je gérerai les réponses manuellement");
 });
 
+it("offers a generic home recovery action without exposing project context", () => {
+  installDocument();
+  const root = new FakeElement("div");
+
+  renderShell(root as unknown as HTMLElement, { kind: "project_unavailable" });
+
+  expect(byAttribute(root, "href", "/")).toHaveLength(1);
+  expect(texts(root)).toContain("Retour à l’accueil");
+  expect(texts(root).join(" ")).not.toContain(projectId);
+});
+
 it.each([
   ["landing", "landing", "Mariage OS · Mariage OS"],
   ["login", "login", "Connexion · Mariage OS"],
