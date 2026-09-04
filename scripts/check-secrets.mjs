@@ -8,7 +8,7 @@ const patterns = [
   /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/,
   /\bgh[pousr]_[A-Za-z0-9]{30,}\b/,
   /\bAKIA[0-9A-Z]{16}\b/,
-  /\b(?:SUPABASE_SERVICE_ROLE_KEY|SUPABASE_DB_PASSWORD|CLOUDFLARE_API_TOKEN)\s*=\s*[^\s"']{12,}/,
+  /\b(?:(?:VITE_)?SUPABASE_(?:SERVICE_ROLE|SECRET)_KEY|SUPABASE_DB_PASSWORD|CLOUDFLARE_API_TOKEN)\s*=\s*[^\s"']{12,}/,
 ];
 
 function trackedFiles() {
