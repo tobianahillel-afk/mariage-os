@@ -1,12 +1,32 @@
-export function startApplication(root: HTMLElement): void {
-  const heading = document.createElement("h1");
-  heading.textContent = "Mariage OS";
+import type { ProjectAccessPort } from "@application/projects/project-access-port";
+import { parseAppRoute } from "@application/routing/app-route";
+import {
+  resolveProtectedRoute,
+  type SessionReader,
+} from "@application/routing/protected-route-guard";
+import { renderShell } from "@ui/shell/render-shell";
 
-  const status = document.createElement("p");
-  status.textContent = "Socle d’ingénierie Lot 0 initialisé.";
+export interface ApplicationShellDependencies {
+  readonly pathname: string;
+  readonly sessionReader: SessionReader;
+  readonly projectAccess: ProjectAccessPort | null;
+}
 
-  const note = document.createElement("p");
-  note.textContent = "Aucune fonctionnalité métier n’est encore implémentée.";
+export async function startApplication(
+  root: HTMLElement,
+  dependencies: ApplicationShellDependencies,
+): Promise<void> {
+  const route = parseAppRoute(dependencies.pathname);
 
-  root.replaceChildren(heading, status, note);
+  if (route.kind !== "protected_project") {
+    renderShell(root, route);
+    return;
+  }
+
+  const decision = await resolveProtectedRoute(
+    route,
+    dependencies.sessionReader,
+    dependencies.projectAccess,
+  );
+  renderShell(root, decision);
 }
