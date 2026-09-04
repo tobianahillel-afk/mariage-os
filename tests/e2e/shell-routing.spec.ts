@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { renderSecurityProject } from "./security-project-harness";
 
 const projectId = "81111111-1111-4111-8111-111111111111";
 const secondProjectId = "82222222-2222-4222-8222-222222222222";
@@ -63,91 +64,6 @@ async function renderAllowedProject(page: Page, id = projectId): Promise<void> {
       });
     },
     { id, userId, deviceId },
-  );
-}
-
-async function renderSecurityProject(page: Page): Promise<void> {
-  await page.goto("/");
-  await page.evaluate(
-    async ({
-      projectId: targetProjectId,
-      userId: targetUserId,
-      deviceId: targetDeviceId,
-    }) => {
-      const startModulePath = "/src/app/bootstrap/start-application.ts";
-      const logoutModulePath = "/src/application/auth/safe-logout.ts";
-      const storeModulePath =
-        "/src/infrastructure/indexeddb/indexeddb-project-store.ts";
-      const contextModulePath =
-        "/src/infrastructure/browser/browser-project-session-context-store.ts";
-      const startModule = await import(startModulePath);
-      const logoutModule = await import(logoutModulePath);
-      const storeModule = await import(storeModulePath);
-      const contextModule = await import(contextModulePath);
-      const browserGlobal = globalThis as unknown as {
-        document: { querySelector(selector: string): unknown | null };
-        indexedDB: unknown;
-        localStorage: Storage;
-      };
-      const root = browserGlobal.document.querySelector("#app");
-      if (root === null) {
-        throw new Error("Missing application root.");
-      }
-
-      const localStore = new storeModule.IndexedDbProjectStoreFactory(
-        browserGlobal.indexedDB,
-      );
-      const sessionContext =
-        new contextModule.BrowserProjectSessionContextStore(
-          browserGlobal.localStorage,
-        );
-      const logoutCoordinator = new logoutModule.SafeLogoutCoordinator({
-        auth: {
-          async signOut() {
-            return undefined;
-          },
-        },
-        localStoreFactory: localStore,
-        localPurge: localStore,
-        sessionContext,
-        appVersion: "0.0.0",
-      });
-
-      await startModule.startApplication(root, {
-        pathname: `/app/p/${targetProjectId}/settings/security`,
-        sessionReader: {
-          async getSession() {
-            return {
-              kind: "authenticated_verified" as const,
-              userId: targetUserId,
-              email: "member@example.invalid",
-              assurance: "aal2" as const,
-            };
-          },
-        },
-        projectAccess: {
-          async canReadProject() {
-            return true;
-          },
-        },
-        sessionContext,
-        securityDiagnostics: {
-          async readSecurityDiagnostics() {
-            return {
-              assurance: "aal2" as const,
-              canUpgradeToAal2: false,
-              verifiedTotpFactor: true,
-            };
-          },
-        },
-        logoutCoordinator,
-        localStoreFactory: localStore,
-        deviceId: targetDeviceId,
-        online: true,
-        appVersion: "0.0.0",
-      });
-    },
-    { projectId, userId, deviceId },
   );
 }
 
@@ -330,7 +246,7 @@ test("safe logout requires explicit discard and purges only the active project",
   await renderAllowedProject(page);
   await persistPendingMutation(page);
   await persistPendingMutation(page, secondProjectId, secondOperationId);
-  await renderSecurityProject(page);
+  await renderSecurityProject(page, { projectId, userId, deviceId });
 
   await expect(page.locator('[data-security-settings="true"]')).toBeVisible();
   await page.getByRole("button", { name: "Se déconnecter" }).click();
