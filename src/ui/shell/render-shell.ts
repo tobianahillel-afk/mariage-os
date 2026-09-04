@@ -5,9 +5,20 @@ type ShellState =
   | Exclude<AppRoute, { kind: "protected_project" }>
   | ProtectedRouteDecision;
 
+type StaticShellKind = Exclude<
+  ShellState["kind"],
+  "project_allowed" | "login_required" | "public_rsvp" | "onboarding"
+>;
+
 interface NavigationItem {
   readonly label: string;
   readonly path: string;
+}
+
+interface StaticShellCopy {
+  readonly title: string;
+  readonly message: string;
+  readonly shellKind: string;
 }
 
 const desktopNavigation: readonly NavigationItem[] = [
@@ -69,6 +80,39 @@ const screenTitles: Readonly<Record<string, string>> = {
   backup: "Sauvegarde",
   settings: "Réglages",
   diagnostics: "Diagnostics",
+};
+
+const staticShellCopy: Readonly<Record<StaticShellKind, StaticShellCopy>> = {
+  landing: {
+    title: "Mariage OS",
+    message: "Votre espace privé pour préparer le mariage ensemble.",
+    shellKind: "landing",
+  },
+  login: {
+    title: "Connexion",
+    message: "Connectez-vous avec votre identité vérifiée.",
+    shellKind: "login",
+  },
+  invite: {
+    title: "Invitation au projet",
+    message: "Vérifiez votre identité pour traiter cette invitation.",
+    shellKind: "invite",
+  },
+  verification_required: {
+    title: "Vérification requise",
+    message: "Vérifiez votre adresse e-mail avant d’accéder au projet.",
+    shellKind: "verification-required",
+  },
+  project_unavailable: {
+    title: "Projet indisponible",
+    message: "Ce projet n’est pas disponible avec votre accès actuel.",
+    shellKind: "project-unavailable",
+  },
+  not_found: {
+    title: "Page indisponible",
+    message: "Cette page n’est pas disponible.",
+    shellKind: "not-found",
+  },
 };
 
 function createTextElement(
@@ -248,71 +292,32 @@ function renderLoginRequired(
   shell.append(link);
 }
 
+function renderStaticShell(root: HTMLElement, kind: StaticShellKind): void {
+  const copy = staticShellCopy[kind];
+  renderMessageShell(root, copy.title, copy.message, copy.shellKind);
+}
+
 export function renderShell(root: HTMLElement, state: ShellState): void {
-  switch (state.kind) {
-    case "project_allowed":
-      renderProjectShell(root, state);
-      return;
-    case "login_required":
-      renderLoginRequired(root, state);
-      return;
-    case "public_rsvp":
-      renderMessageShell(
-        root,
-        "Invitation & RSVP",
-        "Ce lien sécurisé ouvre uniquement l’espace de réponse invité.",
-        "public-rsvp",
-      );
-      return;
-    case "onboarding":
-      renderOnboardingShell(root);
-      return;
-    case "landing":
-      renderMessageShell(
-        root,
-        "Mariage OS",
-        "Votre espace privé pour préparer le mariage ensemble.",
-        "landing",
-      );
-      return;
-    case "login":
-      renderMessageShell(
-        root,
-        "Connexion",
-        "Connectez-vous avec votre identité vérifiée.",
-        "login",
-      );
-      return;
-    case "invite":
-      renderMessageShell(
-        root,
-        "Invitation au projet",
-        "Vérifiez votre identité pour traiter cette invitation.",
-        "invite",
-      );
-      return;
-    case "verification_required":
-      renderMessageShell(
-        root,
-        "Vérification requise",
-        "Vérifiez votre adresse e-mail avant d’accéder au projet.",
-        "verification-required",
-      );
-      return;
-    case "project_unavailable":
-      renderMessageShell(
-        root,
-        "Projet indisponible",
-        "Ce projet n’est pas disponible avec votre accès actuel.",
-        "project-unavailable",
-      );
-      return;
-    case "not_found":
-      renderMessageShell(
-        root,
-        "Page indisponible",
-        "Cette page n’est pas disponible.",
-        "not-found",
-      );
+  if (state.kind === "project_allowed") {
+    renderProjectShell(root, state);
+    return;
   }
+  if (state.kind === "login_required") {
+    renderLoginRequired(root, state);
+    return;
+  }
+  if (state.kind === "public_rsvp") {
+    renderMessageShell(
+      root,
+      "Invitation & RSVP",
+      "Ce lien sécurisé ouvre uniquement l’espace de réponse invité.",
+      "public-rsvp",
+    );
+    return;
+  }
+  if (state.kind === "onboarding") {
+    renderOnboardingShell(root);
+    return;
+  }
+  renderStaticShell(root, state.kind);
 }
