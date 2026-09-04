@@ -15,11 +15,7 @@ import {
 type Row = Record<string, unknown>;
 
 type FailureMode =
-  | "none"
-  | "open"
-  | "request"
-  | "transaction_error"
-  | "transaction_abort";
+  "none" | "open" | "request" | "transaction_error" | "transaction_abort";
 
 class FakeOpenRequest {
   result!: IDBDatabase;
@@ -35,7 +31,10 @@ class FakeRequest<T> {
 }
 
 class FakeDatabase {
-  readonly stores = new Map<string, { keyPath: string; rows: Map<string, Row> }>();
+  readonly stores = new Map<
+    string,
+    { keyPath: string; rows: Map<string, Row> }
+  >();
   closed = false;
 
   readonly objectStoreNames = {
@@ -44,7 +43,10 @@ class FakeDatabase {
 
   constructor(private readonly state: FakeFactoryState) {}
 
-  createObjectStore(name: string, options: IDBObjectStoreParameters): IDBObjectStore {
+  createObjectStore(
+    name: string,
+    options: IDBObjectStoreParameters,
+  ): IDBObjectStore {
     this.stores.set(name, {
       keyPath: String(options.keyPath),
       rows: new Map(),
@@ -124,7 +126,9 @@ class FakeObjectStore {
   }
 
   get(key: IDBValidKey): IDBRequest<unknown> {
-    return this.request(this.store.rows.get(String(key))) as unknown as IDBRequest<unknown>;
+    return this.request(
+      this.store.rows.get(String(key)),
+    ) as unknown as IDBRequest<unknown>;
   }
 
   getAll(): IDBRequest<unknown[]> {
@@ -257,7 +261,11 @@ describe("IndexedDbProjectStore", () => {
 
   it("updates app-version metadata on reopen", async () => {
     const factory = new FakeFactory();
-    await IndexedDbProjectStore.open(factory as unknown as IDBFactory, scope, "1");
+    await IndexedDbProjectStore.open(
+      factory as unknown as IDBFactory,
+      scope,
+      "1",
+    );
     const store = await IndexedDbProjectStore.open(
       factory as unknown as IDBFactory,
       scope,
@@ -312,9 +320,9 @@ describe("IndexedDbProjectStore", () => {
     });
 
     await store.putCachedRecord(record);
-    expect(await store.getCachedRecord("project_preferences", entityId)).toEqual(
-      record,
-    );
+    expect(
+      await store.getCachedRecord("project_preferences", entityId),
+    ).toEqual(record);
     expect(
       await store.getCachedRecord("project_preferences", operationId),
     ).toBeNull();
@@ -337,7 +345,9 @@ describe("IndexedDbProjectStore", () => {
     });
     const foreign = { ...record, projectId: operationId };
 
-    await expect(store.putCachedRecord(foreign)).rejects.toThrow("another project");
+    await expect(store.putCachedRecord(foreign)).rejects.toThrow(
+      "another project",
+    );
     rawStore(factory, "cached_records").set(record.key, foreign);
     await expect(
       store.getCachedRecord("project_preferences", entityId),
@@ -440,7 +450,9 @@ describe("IndexedDbProjectStore", () => {
 
   it("closes the database and factory port opens a scoped store", async () => {
     const factory = new FakeFactory();
-    const port = new IndexedDbProjectStoreFactory(factory as unknown as IDBFactory);
+    const port = new IndexedDbProjectStoreFactory(
+      factory as unknown as IDBFactory,
+    );
     const store = await port.open(scope, "1");
     store.close();
     expect(factory.rawDatabase(databaseName).closed).toBe(true);
