@@ -56,9 +56,7 @@ type ProviderFactorsResult =
 export interface SupabaseAuthClientLike {
   readonly auth: {
     getSession(): Promise<ProviderSessionResult>;
-    signInWithPassword(
-      input: ProviderPasswordInput,
-    ): Promise<ProviderSessionResult>;
+    signInWithPassword(input: ProviderPasswordInput): Promise<ProviderSessionResult>;
     signOut(): Promise<ProviderSignOutResult>;
     readonly mfa: {
       getAuthenticatorAssuranceLevel(): Promise<ProviderAssuranceResult>;
@@ -75,9 +73,7 @@ function mapAssurance(level: string | null): AuthAssuranceLevel {
   return "unknown";
 }
 
-export class SupabaseAuthAdapter
-  implements AuthPort, SecurityDiagnosticsPort
-{
+export class SupabaseAuthAdapter implements AuthPort, SecurityDiagnosticsPort {
   public constructor(private readonly client: SupabaseAuthClientLike) {}
 
   public async getSession(): Promise<AuthSessionState> {
