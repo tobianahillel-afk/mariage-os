@@ -90,9 +90,9 @@ describe("SafeLogoutCoordinator", () => {
       appVersion: "1",
     });
 
-    await expect(
-      coordinator.logout(scope, false, transition),
-    ).resolves.toEqual({ kind: "completed" });
+    await expect(coordinator.logout(scope, false, transition)).resolves.toEqual({
+      kind: "completed",
+    });
     expect(transition).toHaveBeenCalledOnce();
     expect(transition.mock.invocationCallOrder[0]).toBeLessThan(
       vi.mocked(target.auth.signOut).mock.invocationCallOrder[0] ?? 0,
