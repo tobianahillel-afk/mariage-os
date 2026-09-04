@@ -35,8 +35,8 @@ Packets:
 1. `WP-1.1` — permission catalog and authorization helper foundation — **ACCEPTED**;
 2. `WP-1.2` — core tenancy schema, membership and RLS baseline — **ACCEPTED**;
 3. `WP-1.3` — Supabase Auth/session and controlled first-owner provisioning — **ACCEPTED**;
-4. `WP-1.4` — partner invitation and protected membership lifecycle — **IN_PROGRESS / A-IMPLEMENT**;
-5. `WP-1.5` — project configuration, dates, origins, preferences and RSVP-intent hooks — **PLANNED**;
+4. `WP-1.4` — partner invitation and protected membership lifecycle — **ACCEPTED**;
+5. `WP-1.5` — project configuration, dates, origins, preferences and RSVP-intent hooks — **IN_PROGRESS / A-IMPLEMENT**;
 6. `WP-1.6` — protected app shell/navigation and public RSVP trust boundary — **PLANNED**;
 7. `WP-1.7` — project-scoped repositories, local cache and sync primitives — **PLANNED**;
 8. `WP-1.8` — session expiry, safe logout, MFA/security diagnostics — **PLANNED**;
@@ -46,16 +46,17 @@ Packets:
 
 - Current Lot: **1**
 - Lot state: **IN_PROGRESS**
-- Current packet: **WP-1.4**
+- Current packet: **WP-1.5**
 - Packet state: **IN_PROGRESS**
 - Current pass: **A-IMPLEMENT**
-- Accepted packets: **WP-1.1, WP-1.2, WP-1.3**
+- Accepted packets: **WP-1.1, WP-1.2, WP-1.3, WP-1.4**
 - Review-failed/blocked packets: **none open**
 - WP-1.1 acceptance evidence: run `33809855993` on `f0b1e46c46bc3ad5d15bf2191c63ec4e85473507`, all five jobs SUCCESS.
 - WP-1.2 acceptance evidence: run `33811568440` on `fa96228bcd8a0b7671fcb561f8f7668eaf5851dc`, all five jobs SUCCESS; repaired 41-assertion grant/RLS matrix; `WP12-AR-001` closed.
 - WP-1.3 acceptance evidence: run `33817932867` on `707b1384fbd370fe88ef7a87ac191aa9645f6db3`, all five jobs SUCCESS including clean-checkout `npm run verify`; `WP13-AR-001` and `WP13-AR-002` closed.
+- WP-1.4 acceptance evidence: run `33859207161` on `bf0046dc45c318875d349edc2b6327292e2894ea`, all five jobs SUCCESS including clean-checkout `npm run verify`; local DB suite 6 files / 133 tests PASS; `WP14-AR-001`, `WP14-AR-002` and `WP14-AR-003` closed.
 - Current branch: **`lot-1/identity-project-foundation`**
-- Next permitted action: **implement WP-1.4 only: secure partner invitation, token hash-at-rest lifecycle, identity-bound acceptance and final active-owner invariant**.
+- Next permitted action: **implement WP-1.5 only: protected project settings, wedding-date options, reference origins, personal preferences and provider-neutral RSVP-intent persistence**.
 
 ## Lot status
 
@@ -69,11 +70,11 @@ Packets:
 
 - V1 Feature IDs: 120 SPECIFIED inventory rows total.
 - Lot 1 foundations are in implementation; no Lot 2+ Feature may start.
-- WP-1.1 through WP-1.3 are accepted foundations; user-facing Feature acceptance remains pending broader Lot 1 slices.
+- WP-1.1 through WP-1.4 are accepted foundations; user-facing Feature acceptance remains pending broader Lot 1 slices and Lot integration.
 
 ## Current blockers / forward maintenance
 
-**0 open BLOCKING/MAJOR findings at WP-1.4 kickoff.**
+**0 open BLOCKING/MAJOR findings at WP-1.5 kickoff.**
 
 Closed/adversarial findings:
 
@@ -81,14 +82,19 @@ Closed/adversarial findings:
 - `WP1-AR-002`: internal SECURITY DEFINER search path hardened;
 - `WP12-AR-001`: core tenancy table/column/RPC grant and denied-operation matrix expanded to direct exhaustive evidence;
 - `WP13-AR-001`: provisioning adapter validates provider-returned project IDs as UUIDs before crossing the infrastructure boundary;
-- `WP13-AR-002`: selected V1 password flow minimum hardened from 8 to 14 characters in Supabase configuration.
+- `WP13-AR-002`: selected V1 password flow minimum hardened from 8 to 14 characters in Supabase configuration;
+- `WP14-AR-001`: privileged role/revoke membership commands now require server-side AAL2;
+- `WP14-AR-002`: invitation lifecycle lock ordering standardized project-first to remove deadlock risk;
+- `WP14-AR-003`: privileged invitation/membership permission checks now occur after project serialization, closing stale-authorization TOCTOU.
 
 Inherited reviewed non-blocking maintenance:
 
 - dependency audit reports two Moderate transitive advisories in development tooling; Critical/High accepted-known count remains zero under the normative vulnerability gate, and the Moderate findings must be re-evaluated on the relevant dependency/toolchain update;
+- dependency auditing keeps `npm audit` as primary and may use exact-lockfile GitHub Advisory Database review only after bounded transient npm-provider failures; both providers unavailable remains fail-closed;
 - external container registries may transiently rate-limit clean Supabase image pulls; bounded retry is permitted only when it does not skip DB/RLS verification;
 - exact provider signup-window behavior remains a downstream Lot-1 onboarding requirement: private configuration must prove the intended partner can establish the invited verified identity before unrestricted signup is closed;
-- official Supabase browser SDK composition remains downstream from the structural WP-1.3 adapter boundary and must not introduce custom token/session handling.
+- invitation create/accept rate-limit/abuse evidence remains required before public/self-service exposure or real production cutover;
+- official Supabase browser SDK composition remains downstream from the structural Auth adapter boundary and must not introduce custom token/session handling.
 
 ## Handoff
 
@@ -96,10 +102,10 @@ Inherited reviewed non-blocking maintenance:
 Lot 0: ACCEPTED
 Lot 1: IN_PROGRESS
 Coverage: required - assigned = ∅
-Accepted: WP-1.1, WP-1.2, WP-1.3
-Current: WP-1.4 / IN_PROGRESS / A-IMPLEMENT
-WP-1.3: ACCEPTED — run 33817932867
-Next: implement secure invitation + membership lifecycle + final-owner invariant
-WP-1.5+: forbidden until WP-1.4 acceptance
+Accepted: WP-1.1, WP-1.2, WP-1.3, WP-1.4
+Current: WP-1.5 / IN_PROGRESS / A-IMPLEMENT
+WP-1.4: ACCEPTED — run 33859207161, DB 133/133
+Next: implement project settings + dates + origins + personal preferences + RSVP intent
+WP-1.6+: forbidden until WP-1.5 acceptance
 Lot 2+: forbidden
 ```
