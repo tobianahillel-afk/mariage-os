@@ -4,33 +4,39 @@ create extension if not exists pgtap with schema extensions;
 
 select plan(3);
 
+with target_tables(table_name) as (
+  values
+    ('public.wedding_date_options'),
+    ('public.project_reference_origins'),
+    ('public.user_project_preferences'),
+    ('public.project_rsvp_intent_settings')
+),
+client_roles(role_name) as (
+  values ('anon'), ('authenticated')
+),
+table_privileges(privilege_name) as (
+  values
+    ('select'),
+    ('insert'),
+    ('update'),
+    ('delete'),
+    ('truncate'),
+    ('references'),
+    ('trigger')
+)
 select ok(
-  has_table_privilege('authenticated', 'public.wedding_date_options', 'select')
-  and has_table_privilege('authenticated', 'public.project_reference_origins', 'select')
-  and has_table_privilege('authenticated', 'public.user_project_preferences', 'select')
-  and has_table_privilege('authenticated', 'public.project_rsvp_intent_settings', 'select')
-  and not has_table_privilege('anon', 'public.wedding_date_options', 'select')
-  and not has_table_privilege('anon', 'public.project_reference_origins', 'select')
-  and not has_table_privilege('anon', 'public.user_project_preferences', 'select')
-  and not has_table_privilege('anon', 'public.project_rsvp_intent_settings', 'select')
-  and not has_table_privilege('authenticated', 'public.wedding_date_options', 'insert')
-  and not has_table_privilege('authenticated', 'public.wedding_date_options', 'update')
-  and not has_table_privilege('authenticated', 'public.wedding_date_options', 'delete')
-  and not has_table_privilege('authenticated', 'public.project_reference_origins', 'insert')
-  and not has_table_privilege('authenticated', 'public.project_reference_origins', 'update')
-  and not has_table_privilege('authenticated', 'public.project_reference_origins', 'delete')
-  and not has_table_privilege('authenticated', 'public.user_project_preferences', 'insert')
-  and not has_table_privilege('authenticated', 'public.user_project_preferences', 'update')
-  and not has_table_privilege('authenticated', 'public.user_project_preferences', 'delete')
-  and not has_table_privilege('authenticated', 'public.project_rsvp_intent_settings', 'insert')
-  and not has_table_privilege('authenticated', 'public.project_rsvp_intent_settings', 'update')
-  and not has_table_privilege('authenticated', 'public.project_rsvp_intent_settings', 'delete')
-  and not has_table_privilege('anon', 'public.wedding_date_options', 'insert')
-  and not has_table_privilege('anon', 'public.project_reference_origins', 'insert')
-  and not has_table_privilege('anon', 'public.user_project_preferences', 'insert')
-  and not has_table_privilege('anon', 'public.project_rsvp_intent_settings', 'insert'),
-  'configuration tables expose authenticated reads only and no anonymous or direct client writes'
-);
+  bool_and(
+    case
+      when role_name = 'authenticated' and privilege_name = 'select'
+        then has_table_privilege(role_name, table_name, privilege_name)
+      else not has_table_privilege(role_name, table_name, privilege_name)
+    end
+  ),
+  'configuration tables expose only authenticated SELECT across the complete PostgreSQL table-privilege matrix'
+)
+from target_tables
+cross join client_roles
+cross join table_privileges;
 
 select ok(
   has_function_privilege('authenticated', 'public.update_project_settings(uuid,text,text,text,text,integer)', 'execute')
