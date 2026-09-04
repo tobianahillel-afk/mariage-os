@@ -14,9 +14,12 @@ describe("app route classification", () => {
     ["/onboarding", { kind: "onboarding" }],
     ["/invite/opaque-capability", { kind: "invite" }],
     ["/rsvp/opaque-capability", { kind: "public_rsvp" }],
-  ])("classifies %s without retaining capability material", (path, expected) => {
-    expect(parseAppRoute(path)).toEqual(expected);
-  });
+  ])(
+    "classifies %s without retaining capability material",
+    (path, expected) => {
+      expect(parseAppRoute(path)).toEqual(expected);
+    },
+  );
 
   it("keeps explicit project context for protected deep links", () => {
     const route = parseAppRoute(`/app/p/${projectId}/venues/example`);
