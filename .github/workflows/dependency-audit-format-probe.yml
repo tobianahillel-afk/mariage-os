@@ -1,0 +1,26 @@
+name: Dependency audit format probe
+
+on:
+  push:
+    branches:
+      - lot-1/identity-project-foundation
+
+permissions:
+  contents: read
+
+jobs:
+  prettier-diff:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Print canonical formatting diff
+        run: |
+          npx prettier --write scripts/run-dependency-audit.mjs
+          git diff -- scripts/run-dependency-audit.mjs
