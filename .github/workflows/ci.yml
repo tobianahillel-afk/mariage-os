@@ -31,23 +31,6 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci --no-audit --no-fund
-      - name: Temporary exact Prettier diagnostic
-        run: |
-          npx prettier --write \
-            src/application/auth/safe-logout.test.ts \
-            src/infrastructure/supabase/supabase-auth-adapter.test.ts \
-            src/infrastructure/supabase/supabase-auth-adapter.ts \
-            src/ui/shell/render-shell.ts \
-            src/ui/shell/security-settings-panel.test.ts \
-            src/ui/shell/security-settings-panel.ts
-          git diff --no-ext-diff --unified=30 -- \
-            src/application/auth/safe-logout.test.ts \
-            src/infrastructure/supabase/supabase-auth-adapter.test.ts \
-            src/infrastructure/supabase/supabase-auth-adapter.ts \
-            src/ui/shell/render-shell.ts \
-            src/ui/shell/security-settings-panel.test.ts \
-            src/ui/shell/security-settings-panel.ts
-          exit 1
       - run: npm run security:env
       - run: npm run security:env:negative
       - run: npm run security:secrets
