@@ -51,80 +51,44 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 
 State: **ACCEPTED**
 
-Scope:
-- `app_permissions`, `app_roles`, `app_role_permissions` migration-controlled catalogs;
-- centralized role→permission seed foundation;
-- fail-closed internal role-permission helper contract;
-- deterministic owner/editor/viewer permission fixtures;
-- direct SQL tests for exact catalog/matrix integrity and fail-closed behavior.
-
 Acceptance evidence: run `33809855993` on `f0b1e46c46bc3ad5d15bf2191c63ec4e85473507`, all five jobs SUCCESS; Pass B repaired and closed two MAJOR findings before Pass C acceptance.
-
-Planning complexity: **9/10**. Cohesion rationale: the three catalog tables, mapping seed and helper are one indivisible authorization API; splitting them would leave an unusable partial security boundary. No project/member RLS is implemented in this packet.
 
 ### WP-1.2 — Core tenancy schema, membership and RLS baseline
 
 State: **ACCEPTED**
 
-Scope:
-- `profiles`, `projects`, `project_members`;
-- active/revoked membership semantics;
-- permission helper activation against membership;
-- explicit grants + RLS;
-- same-project candidate keys/integrity foundation;
-- synthetic projects A/B/C, multi-project member, outsider and revoked member direct tests.
-
 Acceptance evidence: run `33811568440` on `fa96228bcd8a0b7671fcb561f8f7668eaf5851dc`, all five jobs SUCCESS; Pass B expanded direct grant/RLS denial evidence and closed `WP12-AR-001` before acceptance.
-
-Planning complexity: **9/10**. Cohesion rationale: project row, canonical membership relationship and RLS helper must land atomically to avoid an unprotected intermediate tenancy model.
 
 ### WP-1.3 — Supabase Auth/session and controlled first-owner provisioning
 
 State: **ACCEPTED**
 
-Scope:
-- browser-safe Supabase Auth adapter/application boundary;
-- verified identity/session states;
-- private deployment provisioning policy boundary;
-- atomic first project + owner bootstrap command;
-- unrelated-user project creation denial;
-- recent-auth/MFA assurance hook for later privileged commands.
-
-Acceptance evidence: run `33817932867` on `707b1384fbd370fe88ef7a87ac191aa9645f6db3`, all five jobs SUCCESS including clean-checkout `npm run verify`; Pass B closed `WP13-AR-001` (malformed provider project-ID trust) and `WP13-AR-002` (password minimum hardened to 14).
-
-Planning complexity: **8/10**.
+Acceptance evidence: run `33817932867` on `707b1384fbd370fe88ef7a87ac191aa9645f6db3`, all five jobs SUCCESS including clean-checkout `npm run verify`; `WP13-AR-001` and `WP13-AR-002` closed.
 
 ### WP-1.4 — Partner invitation and protected membership lifecycle
 
 State: **ACCEPTED**
 
-Scope:
-- `project_invitations`;
-- cryptographically strong raw token generation outside persistent/logged state and hash-at-rest persistence;
-- create/revoke/accept protected commands;
-- verified-email binding, expiry, replay/idempotency;
-- final-active-owner invariant and narrow membership administration.
-
-Acceptance evidence: run `33859207161` on `bf0046dc45c318875d349edc2b6327292e2894ea`, all five jobs SUCCESS including clean-checkout `npm run verify`; local DB/RLS suite 6 files / 133 tests PASS; Pass B closed `WP14-AR-001` (AAL2), `WP14-AR-002` (lock-order deadlock) and `WP14-AR-003` (post-lock live authorization TOCTOU).
-
-Planning complexity: **10/10**. Cohesion rationale: token lifecycle and atomic membership acceptance are one security transaction family and are unsafe to split across independently deployable partial states.
+Acceptance evidence: run `33859207161` on `bf0046dc45c318875d349edc2b6327292e2894ea`, all five jobs SUCCESS including clean-checkout `npm run verify`; DB 133/133; `WP14-AR-001..003` closed.
 
 ### WP-1.5 — Project configuration, dates, origins, preferences and RSVP-intent data hooks
 
-State: **IN_PROGRESS / A-IMPLEMENT**
+State: **ACCEPTED**
 
 Scope:
 - protected project settings updates;
-- `wedding_date_options` zero-or-one selected invariant and atomic selection;
+- `wedding_date_options` zero-or-one selected invariant and atomic selection/history;
 - `project_reference_origins` including one-default invariant;
 - `user_project_preferences` author-scoped persistence;
 - provider-neutral Invitations & RSVP intent/settings fields only, with no guest/domain/provider implementation.
 
-Planning complexity: **9/10**. Cohesion rationale: these are the complete Lot-1 project setup/configuration persistence slice used by onboarding; all share the same project/member authorization boundary.
+Acceptance evidence: run `33866160626` on implementation HEAD `15e477a9ca75efbc98594000c190180e24226229`, all five jobs SUCCESS including clean-checkout `npm run verify`; DB 13 files / 239 tests PASS; `WP15-AR-001` and `WP15-AR-002` closed; Pass C required-minus-evidenced = ∅.
+
+Planning complexity: **9/10**.
 
 ### WP-1.6 — Protected app shell, navigation and public RSVP trust boundary
 
-State: `PLANNED`
+State: **IN_PROGRESS / A-IMPLEMENT**
 
 Scope:
 - protected `/app/p/:projectId/**` shell and membership-aware routing;
@@ -181,13 +145,13 @@ WP-1.1 [ACCEPTED]
   ↓
 WP-1.2 [ACCEPTED]
   ├─→ WP-1.3 [ACCEPTED] → WP-1.4 [ACCEPTED]
-  ├─→ WP-1.5 [IN_PROGRESS] → WP-1.6 [PLANNED]
+  ├─→ WP-1.5 [ACCEPTED] → WP-1.6 [IN_PROGRESS]
   └─→ WP-1.7 [PLANNED] → WP-1.8 [PLANNED]
                               ↘
                                 WP-1.9 [PLANNED]
 ```
 
-Execution remains sequential by default despite independent branches in the dependency graph, so only one packet is `IN_PROGRESS` at a time.
+Execution remains sequential by default, so only WP-1.6 is currently permitted to be `IN_PROGRESS`.
 
 ## Explicitly out of Lot 1
 
