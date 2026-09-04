@@ -36,7 +36,7 @@ Packets:
 2. `WP-1.2` — core tenancy schema, membership and RLS baseline — **ACCEPTED**;
 3. `WP-1.3` — Supabase Auth/session and controlled first-owner provisioning — **ACCEPTED**;
 4. `WP-1.4` — partner invitation and protected membership lifecycle — **ACCEPTED**;
-5. `WP-1.5` — project configuration, dates, origins, preferences and RSVP-intent hooks — **REVIEW_PENDING / B-ADVERSARIAL-REVIEW**;
+5. `WP-1.5` — project configuration, dates, origins, preferences and RSVP-intent hooks — **IN_PROGRESS / A-REPAIR**;
 6. `WP-1.6` — protected app shell/navigation and public RSVP trust boundary — **PLANNED**;
 7. `WP-1.7` — project-scoped repositories, local cache and sync primitives — **PLANNED**;
 8. `WP-1.8` — session expiry, safe logout, MFA/security diagnostics — **PLANNED**;
@@ -47,17 +47,18 @@ Packets:
 - Current Lot: **1**
 - Lot state: **IN_PROGRESS**
 - Current packet: **WP-1.5**
-- Packet state: **REVIEW_PENDING**
-- Current pass: **B-ADVERSARIAL-REVIEW**
+- Packet state: **IN_PROGRESS**
+- Current pass: **A-REPAIR**
 - Accepted packets: **WP-1.1, WP-1.2, WP-1.3, WP-1.4**
-- Review-failed/blocked packets: **WP-1.5 has one open MAJOR finding under repair**
+- Review-failed/blocked packets: **WP-1.5 has one open MAJOR evidence finding under repair**
 - WP-1.1 acceptance evidence: run `33809855993` on `f0b1e46c46bc3ad5d15bf2191c63ec4e85473507`, all five jobs SUCCESS.
 - WP-1.2 acceptance evidence: run `33811568440` on `fa96228bcd8a0b7671fcb561f8f7668eaf5851dc`, all five jobs SUCCESS; `WP12-AR-001` closed.
 - WP-1.3 acceptance evidence: run `33817932867` on `707b1384fbd370fe88ef7a87ac191aa9645f6db3`, all five jobs SUCCESS; `WP13-AR-001` and `WP13-AR-002` closed.
 - WP-1.4 acceptance evidence: run `33859207161` on `bf0046dc45c318875d349edc2b6327292e2894ea`, all five jobs SUCCESS; DB 133/133; `WP14-AR-001..003` closed.
-- WP-1.5 Pass-A evidence: run `33863817975` on `d7f019878c0827e4357e59278a342d5033bca2cb`, all five jobs SUCCESS including clean-checkout `npm run verify`; DB **12 files / 232 tests / PASS**.
+- WP-1.5 initial Pass-A evidence: run `33863817975` on `d7f019878c0827e4357e59278a342d5033bca2cb`, all five jobs SUCCESS; DB 232/232.
+- WP-1.5 history repair evidence: run `33864486707` on `63506b9aa240ec47a04a1eb32450b209329ccaaa`, all five jobs SUCCESS including clean-checkout `npm run verify`; DB **13 files / 238 tests / PASS**; `WP15-AR-001` closed.
 - Current branch: **`lot-1/identity-project-foundation`**
-- Next permitted action: **repair `WP15-AR-001`, rerun exact-head verification and conduct a fresh Pass B**.
+- Next permitted action: **verify `WP15-AR-002` exhaustive grant evidence repair, then conduct a fresh full Pass B**.
 
 ## Lot status
 
@@ -77,7 +78,7 @@ Packets:
 
 Open adversarial finding:
 
-- `WP15-AR-001` — **MAJOR**: rejected/archived wedding-date rows can still rewrite their civil date through generic update; repair must preserve historical date until explicit reactivation to candidate.
+- `WP15-AR-002` — **MAJOR / evidence completeness**: direct grant evidence for the four WP-1.5 tables must cover `SELECT`, `INSERT`, `UPDATE`, `DELETE`, `TRUNCATE`, `REFERENCES` and `TRIGGER` for both `anon` and `authenticated`. The intended matrix is authenticated SELECT only; production grants already enforce this through explicit revocation.
 
 Closed/adversarial findings:
 
@@ -88,9 +89,10 @@ Closed/adversarial findings:
 - `WP13-AR-002`: password minimum hardened to 14 characters;
 - `WP14-AR-001`: privileged membership role/revoke commands require AAL2;
 - `WP14-AR-002`: project-first invitation lifecycle lock ordering removes deadlock risk;
-- `WP14-AR-003`: privileged invitation/membership authorization is evaluated after serialization, closing stale-authorization TOCTOU.
+- `WP14-AR-003`: privileged invitation/membership authorization is evaluated after serialization, closing stale-authorization TOCTOU;
+- `WP15-AR-001`: rejected/archived wedding-date history is preserved until explicit candidate reactivation; closed by run `33864486707`, DB 238/238.
 
-WP-1.5 Pass-A hardening before formal review also closed selected-date generic-transition bypass, RSVP channel/setup inconsistency, null selector validation gaps, anonymous grant-surface gaps and lock-order evidence gaps before the Pass-A gate.
+WP-1.5 Pass-A hardening before formal review also closed selected-date generic-transition bypass, RSVP channel/setup inconsistency, null selector validation gaps and lock-order evidence gaps before the first Pass-A gate.
 
 Inherited reviewed non-blocking maintenance:
 
@@ -108,10 +110,10 @@ Lot 0: ACCEPTED
 Lot 1: IN_PROGRESS
 Coverage: required - assigned = ∅
 Accepted: WP-1.1, WP-1.2, WP-1.3, WP-1.4
-Current: WP-1.5 / REVIEW_PENDING / B-ADVERSARIAL-REVIEW
-WP-1.5 Pass A: run 33863817975, DB 232/232, 5/5 CI
-Open: WP15-AR-001 MAJOR
-Next: repair finding → exact-head verify → fresh Pass B
+Current: WP-1.5 / IN_PROGRESS / A-REPAIR
+WP15-AR-001: CLOSED — run 33864486707, DB 238/238
+WP15-AR-002: MAJOR evidence finding, repair implemented
+Next: exact-head verify → fresh complete Pass B
 WP-1.6+: forbidden until WP-1.5 acceptance
 Lot 2+: forbidden
 ```
