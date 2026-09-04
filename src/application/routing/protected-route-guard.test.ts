@@ -1,5 +1,6 @@
 import { expect, it, vi } from "vitest";
 import type { AuthSessionState } from "@application/auth/auth-port";
+import type { ProjectSessionContextPort } from "@application/auth/project-session-context-port";
 import type { ProjectAccessPort } from "@application/projects/project-access-port";
 import { parseAppRoute } from "./app-route";
 import {
@@ -26,6 +27,16 @@ function projectAccess(result: boolean): ProjectAccessPort {
   return { canReadProject: vi.fn().mockResolvedValue(result) };
 }
 
+function sessionContext(
+  establishedUserId: string | null,
+): ProjectSessionContextPort {
+  return {
+    readUserId: vi.fn().mockReturnValue(establishedUserId),
+    remember: vi.fn(),
+    clear: vi.fn(),
+  };
+}
+
 const verifiedSession: AuthSessionState = {
   kind: "authenticated_verified",
   userId,
@@ -33,19 +44,55 @@ const verifiedSession: AuthSessionState = {
   assurance: "aal2",
 };
 
-it("sends signed-out users to login with a local protected return path", async () => {
+it("sends a fresh signed-out user to login with a local protected return path", async () => {
   const access = projectAccess(true);
   await expect(
     resolveProtectedRoute(
       protectedRoute(),
       sessionReader({ kind: "signed_out" }),
       access,
+      sessionContext(null),
     ),
   ).resolves.toEqual({
     kind: "login_required",
     returnTo: `/app/p/${projectId}/dashboard`,
   });
   expect(access.canReadProject).not.toHaveBeenCalled();
+});
+
+it("distinguishes a signed-out provider from an established local project context", async () => {
+  const access = projectAccess(true);
+  await expect(
+    resolveProtectedRoute(
+      protectedRoute(),
+      sessionReader({ kind: "signed_out" }),
+      access,
+      sessionContext(userId),
+    ),
+  ).resolves.toEqual({
+    kind: "session_expired",
+    returnTo: `/app/p/${projectId}/dashboard`,
+  });
+  expect(access.canReadProject).not.toHaveBeenCalled();
+});
+
+it("fails marker lookup closed to ordinary signed-out behavior", async () => {
+  const context = sessionContext(userId);
+  vi.mocked(context.readUserId).mockImplementation(() => {
+    throw new Error("storage unavailable");
+  });
+
+  await expect(
+    resolveProtectedRoute(
+      protectedRoute(),
+      sessionReader({ kind: "signed_out" }),
+      projectAccess(true),
+      context,
+    ),
+  ).resolves.toEqual({
+    kind: "login_required",
+    returnTo: `/app/p/${projectId}/dashboard`,
+  });
 });
 
 it("does not treat an unverified identity as a project session", async () => {
