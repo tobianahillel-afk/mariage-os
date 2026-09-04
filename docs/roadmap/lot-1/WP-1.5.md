@@ -113,7 +113,7 @@ Pass-A hardening before first review:
 - only a candidate can enter `selected`;
 - automatic-channel setup intent is consistent with planned automatic channels, at RPC and table-constraint levels;
 - required RSVP selector values use controlled validation;
-- anonymous/authenticated grants and project-lock-before-live-permission are directly tested.
+- project-lock-before-live-permission is directly tested.
 
 ## First Pass A — IMPLEMENT
 
@@ -130,15 +130,13 @@ Evidence before first adversarial review:
 
 **REVIEW_FAILED.**
 
-Review matrix challenged exact role grants, anon/outsider/revoked/cross-project access, authorization order, date lifecycle/concurrency/history, origin default concurrency, preference authorship, RSVP scope/secret absence/semantic consistency, audit protection and Lot scope.
-
 Finding:
 
 - `WP15-AR-001` — **MAJOR**: a row already `rejected` or `archived` could change its civil `event_date` through generic update, contrary to the frozen lifecycle requirement that rejected/archive states preserve date history.
 
-## Repair A — current cycle
+## Repair A
 
-**IMPLEMENTED / AWAITING EXACT-HEAD VERIFICATION.**
+**VERIFIED.**
 
 Repair:
 
@@ -147,17 +145,48 @@ Repair:
 - once explicitly reactivated to candidate, a later edit may change the civil date normally;
 - `project_configuration_history_test.sql` adds six direct assertions covering rejected and archived preservation plus reversible reactivation.
 
-A fresh exact-head CI must pass before `WP15-AR-001` can be closed. After that, a fresh independent Pass B is mandatory; the prior review cannot be reused.
+Exact-head evidence:
+
+- HEAD: `63506b9aa240ec47a04a1eb32450b209329ccaaa`.
+- CI run: `33864486707`.
+- all five jobs SUCCESS including clean-checkout `npm run verify`.
+- DB: **13 files / 238 tests / PASS**.
+
+`WP15-AR-001` is **CLOSED**.
+
+## Second Pass B — ADVERSARIAL REVIEW
+
+**REVIEW_FAILED.**
+
+The fresh review re-ran the full packet matrix rather than only reviewing the prior patch. Authorization implementation remains fail-closed, but the direct grant evidence is not yet exhaustive enough for `AUTHZ-006` / `AUTHZ-007`.
+
+Open finding:
+
+- `WP15-AR-002` — **MAJOR / OPEN**: `project_configuration_grants_test.sql` proves authenticated SELECT plus several denied write privileges, but does not directly enumerate the complete PostgreSQL table privilege surface for both browser client roles. The four configuration tables must have objective tests for `SELECT`, `INSERT`, `UPDATE`, `DELETE`, `TRUNCATE`, `REFERENCES` and `TRIGGER` for both `anon` and `authenticated`, with only authenticated SELECT allowed. Production migrations already use explicit `REVOKE ALL`; this is an evidence-completeness finding, not a request to broaden grants.
+
+## Repair B — current cycle
+
+**IMPLEMENTED / AWAITING EXACT-HEAD VERIFICATION.**
+
+Repair:
+
+- `project_configuration_grants_test.sql` now evaluates a Cartesian matrix of all four configuration tables × both browser client roles × all seven PostgreSQL table privileges;
+- expected matrix is exactly authenticated SELECT allowed and every other client table privilege denied;
+- authenticated-only RPC execute and hardened SECURITY DEFINER search-path assertions remain intact;
+- no production permission, grant, RLS policy or RPC behavior was broadened.
+
+A fresh exact-head CI must pass before `WP15-AR-002` can be closed. A further fresh independent Pass B remains mandatory after that verification.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started. Requires a clean fresh Pass B after repair, then responsibility-by-responsibility contract → implementation → exact-head runtime reconciliation.
+Not started. Requires a clean fresh Pass B after all repairs, then responsibility-by-responsibility contract → implementation → exact-head runtime reconciliation.
 
 ## Handoff
 
 - Current state: `IN_PROGRESS`.
 - Current pass: `A-REPAIR`.
 - Accepted dependencies: WP-1.1..WP-1.4.
-- `WP15-AR-001`: repair implemented, closure pending exact-head verification and fresh Pass B.
-- Next permitted action: verify repair, conduct fresh Pass B, then Pass C only if clean.
+- `WP15-AR-001`: **CLOSED** after run `33864486707`, DB 238/238.
+- `WP15-AR-002`: **MAJOR / OPEN**, repair implemented, exact-head verification pending.
+- Next permitted action: verify grant-evidence repair, conduct a fresh complete Pass B, then Pass C only if clean.
 - WP-1.6+: forbidden until WP-1.5 acceptance.
