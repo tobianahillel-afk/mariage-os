@@ -64,15 +64,14 @@ async function persistPendingMutation(page: Page): Promise<void> {
       deviceId: targetDeviceId,
       operationId: targetOperationId,
     }) => {
-      const scopeModule = await import(
-        "/src/application/local-data/local-project-scope.ts"
-      );
-      const recordsModule = await import(
-        "/src/application/local-data/local-records.ts"
-      );
-      const storeModule = await import(
-        "/src/infrastructure/indexeddb/indexeddb-project-store.ts"
-      );
+      const scopeModulePath =
+        "/src/application/local-data/local-project-scope.ts";
+      const recordsModulePath = "/src/application/local-data/local-records.ts";
+      const storeModulePath =
+        "/src/infrastructure/indexeddb/indexeddb-project-store.ts";
+      const scopeModule = await import(scopeModulePath);
+      const recordsModule = await import(recordsModulePath);
+      const storeModule = await import(storeModulePath);
       const browserGlobal = globalThis as unknown as { indexedDB: unknown };
       const scope = scopeModule.createLocalProjectScope(
         targetUserId,
@@ -107,13 +106,18 @@ async function projectCanReadOperation(
   targetProjectId: string,
 ): Promise<boolean> {
   return page.evaluate(
-    async ({ projectId: targetProject, userId: targetUser, deviceId: targetDevice, operationId: targetOperation }) => {
-      const scopeModule = await import(
-        "/src/application/local-data/local-project-scope.ts"
-      );
-      const storeModule = await import(
-        "/src/infrastructure/indexeddb/indexeddb-project-store.ts"
-      );
+    async ({
+      projectId: targetProject,
+      userId: targetUser,
+      deviceId: targetDevice,
+      operationId: targetOperation,
+    }) => {
+      const scopeModulePath =
+        "/src/application/local-data/local-project-scope.ts";
+      const storeModulePath =
+        "/src/infrastructure/indexeddb/indexeddb-project-store.ts";
+      const scopeModule = await import(scopeModulePath);
+      const storeModule = await import(storeModulePath);
       const browserGlobal = globalThis as unknown as { indexedDB: unknown };
       const scope = scopeModule.createLocalProjectScope(
         targetUser,
