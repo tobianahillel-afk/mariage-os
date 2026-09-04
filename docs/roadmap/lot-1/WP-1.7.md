@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-1.7`
 - Lot: `1`
 - Name: Project-scoped repositories, local cache and sync primitives
-- State: `ACCEPTANCE_PENDING`
-- Current pass: `C-ACCEPTANCE-RECONCILIATION`
+- State: `ACCEPTED`
+- Current pass: `C-ACCEPTED`
 - Primary bounded context: project/account-scoped local durability and synchronization foundation
 - Branch/PR: `lot-1/identity-project-foundation`
 
@@ -52,7 +52,7 @@
 ## Dependency / sequencing
 
 - Required prior packets/features: WP-1.2 tenancy baseline, WP-1.5 project/preferences persistence foundation and WP-1.6 protected shell are **ACCEPTED**.
-- Downstream packets blocked by this packet: WP-1.8; WP-1.9 remains separately sequenced by Lot-1 orchestration.
+- Downstream packet unblocked by acceptance: WP-1.8. WP-1.9 remains separately sequenced by Lot-1 orchestration.
 - Shared interfaces/contracts relied on: explicit project context, Auth session user identity, native browser IndexedDB, UUID identity strategy, existing private shell composition.
 
 ## Sizing review
@@ -169,18 +169,42 @@ Non-blocking observation retained for later hardening: browser device identity c
 - `WP17-AR-002`: **CLOSED**.
 - `WP17-AR-003`: **CLOSED**.
 - Fresh Pass B: **PASS**.
-- Packet state: `ACCEPTANCE_PENDING`.
-- Current pass: `C-ACCEPTANCE-RECONCILIATION`.
 - Exact repaired evidence: run `33895516028` on `46548702f304dbabcf4bd673a33afb1c0ec96a3d`, all five jobs SUCCESS including clean-checkout `npm run verify`.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-In progress. Required next action is the mechanical EXPECTED vs IMPLEMENTED vs VERIFIED reconciliation against this packet, the Lot-1 coverage matrix and applicable frozen contracts. WP-1.8 remains blocked until this reconciliation is complete and WP-1.7 is durably accepted.
+### Mechanical reconciliation
+
+| Expected responsibility | Implemented | Verified evidence | Result |
+|---|---|---|---|
+| explicit project/account repository/store boundary | `LocalProjectScope`, `LocalProjectStore` and account+project IndexedDB namespace | architecture/static gates; scope/store unit tests | PASS |
+| local account+project partitioning with no cross-scope cache/queue reads | namespace includes authenticated account+project; metadata plus cached-record/mutation scope assertions fail closed | unit corruption/foreign-scope tests; real-browser project-switch isolation E2E | PASS |
+| durable operation IDs, revision/sync envelopes and reload persistence | UUID operation/device IDs, cached revision metadata, pending mutation envelope, IndexedDB `add` uniqueness and durable queue | unit/property tests; duplicate operation test; reload/reopen Playwright scenario | PASS |
+| truthful global local-durability/sync primitive | deterministic `SyncSummary`, explicit degraded/pending/conflict/error/online-idle/synced states, `synced` gated by cloud proof | summary/unit tests; protected/public shell tests; 28/28 E2E | PASS |
+| runtime safety for persisted local boundary | centralized strict parser before persisted metadata/cache/mutation values enter application logic | adversarial parser tests; 100% global coverage; mutation SUCCESS | PASS |
+| blocked/version-change storage lifecycle degrades safely without reset | explicit `onblocked`, late-success close and `onversionchange` close | lifecycle tests; clean Full Verify | PASS |
+| no local state used as cloud authorization authority | protected route resolves verified session + live project access before local store is opened/rendered | route/unit tests and member/outsider E2E | PASS |
+| no Lot-10 sync engine or Lot-2+ business scope introduced | only foundations/counters/status/queue durability are implemented; remote replay/refresh/conflict orchestration remains absent | diff review from accepted WP-1.6 baseline; architecture/static gates | PASS |
+
+Mechanical set result:
+
+`required WP-1.7 responsibilities − implemented/evidenced responsibilities = ∅`
+
+### Acceptance decision
+
+- all expected WP-1.7 responsibilities are implemented or explicitly deferred by packet scope;
+- all three Pass-B MAJOR findings are closed;
+- fresh Pass B contains no unresolved BLOCKING/MAJOR;
+- exact repaired implementation run `33895516028` is 5/5 SUCCESS including clean-checkout `npm run verify`;
+- no out-of-scope Lot-10 synchronization coordinator or Lot-2+ feature implementation was introduced.
+
+Result: **ACCEPTED**.
 
 ## Handoff
 
-- Current state: `ACCEPTANCE_PENDING`.
-- Current/next pass: `C-ACCEPTANCE-RECONCILIATION`.
-- Exact repaired implementation/review evidence: run `33895516028` on `46548702f304dbabcf4bd673a33afb1c0ec96a3d`, all five jobs SUCCESS including clean-checkout `npm run verify`.
+- Current state: `ACCEPTED`.
+- Current/last pass: `C-ACCEPTED`.
+- Acceptance implementation evidence: run `33895516028` on `46548702f304dbabcf4bd673a33afb1c0ec96a3d`, all five jobs SUCCESS including clean-checkout `npm run verify`.
 - Findings: `WP17-AR-001`, `WP17-AR-002`, `WP17-AR-003` — all **CLOSED**; fresh Pass B **PASS**.
-- Next permitted action: Pass C mechanical reconciliation for WP-1.7 only; WP-1.8 remains blocked until WP-1.7 acceptance.
+- Pass C: `required − implemented/evidenced = ∅`.
+- Next permitted packet: WP-1.8, subject to its bounded Work Packet record and normal Pass A → B → C protocol. WP-1.9 and Lot 2+ remain forbidden until their sequencing gates are met.
