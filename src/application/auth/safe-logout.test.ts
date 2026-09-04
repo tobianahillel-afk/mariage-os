@@ -23,9 +23,7 @@ const emptyCounters: LocalSyncCounters = {
   permanentFailureCount: 0,
 };
 
-function storeFactory(
-  counters: LocalSyncCounters = emptyCounters,
-): {
+function storeFactory(counters: LocalSyncCounters = emptyCounters): {
   readonly factory: LocalProjectStoreFactory;
   readonly store: LocalProjectStore;
 } {
@@ -74,7 +72,9 @@ describe("SafeLogoutCoordinator", () => {
     expect(target.auth.signOut).toHaveBeenCalledOnce();
     expect(target.localPurge.purge).toHaveBeenCalledWith(scope);
     expect(target.sessionContext.clear).toHaveBeenCalledWith(scope.projectId);
-    expect(vi.mocked(target.auth.signOut).mock.invocationCallOrder[0]).toBeLessThan(
+    expect(
+      vi.mocked(target.auth.signOut).mock.invocationCallOrder[0],
+    ).toBeLessThan(
       vi.mocked(target.localPurge.purge).mock.invocationCallOrder[0] ?? 0,
     );
   });
