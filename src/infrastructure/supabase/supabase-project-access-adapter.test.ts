@@ -1,7 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import {
-  SupabaseProjectAccessAdapter,
-} from "./supabase-project-access-adapter";
+import { SupabaseProjectAccessAdapter } from "./supabase-project-access-adapter";
 
 const projectId = "81111111-1111-4111-8111-111111111111";
 
@@ -18,19 +16,16 @@ function clientReturning(data: boolean | null, error: unknown) {
 }
 
 describe("SupabaseProjectAccessAdapter", () => {
-  it(
-    "asks the accepted permission helper for live project.read access",
-    async () => {
-      const client = clientReturning(true, null);
-      const adapter = new SupabaseProjectAccessAdapter(client);
+  it("asks the accepted permission helper for live project.read access", async () => {
+    const client = clientReturning(true, null);
+    const adapter = new SupabaseProjectAccessAdapter(client);
 
-      await expect(adapter.canReadProject(projectId)).resolves.toBe(true);
-      expect(client.rpc).toHaveBeenCalledWith("has_project_permission", {
-        target_project_id: projectId,
-        requested_permission: "project.read",
-      });
-    },
-  );
+    await expect(adapter.canReadProject(projectId)).resolves.toBe(true);
+    expect(client.rpc).toHaveBeenCalledWith("has_project_permission", {
+      target_project_id: projectId,
+      requested_permission: "project.read",
+    });
+  });
 
   it.each([
     [false, null],
