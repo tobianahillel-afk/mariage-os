@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(3);
+select plan(4);
 
 insert into auth.users (
   instance_id,
@@ -105,6 +105,27 @@ select throws_ok(
   '22023',
   'RSVP settings unavailable',
   'null automatic-channel setup intent fails through controlled validation'
+);
+
+reset role;
+select throws_ok(
+  $$
+    insert into public.project_rsvp_intent_settings (
+      project_id,
+      rsvp_method,
+      contact_data_readiness,
+      automatic_channel_setup_intent
+    )
+    values (
+      '9bbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+      'manual',
+      'not_yet',
+      'later'
+    )
+  $$,
+  '23514',
+  'new row for relation "project_rsvp_intent_settings" violates check constraint "project_rsvp_intent_settings_channel_setup_consistency"',
+  'table constraint prevents contradictory provider-setup intent even below the RPC layer'
 );
 
 select * from finish();
