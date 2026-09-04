@@ -5,21 +5,13 @@ import {
 
 export type JsonPrimitive = boolean | number | string | null;
 export type JsonValue =
-  | JsonPrimitive
-  | readonly JsonValue[]
-  | { readonly [key: string]: JsonValue };
+  JsonPrimitive | readonly JsonValue[] | { readonly [key: string]: JsonValue };
 
 export type LocalSyncMarker = "synced" | "pending" | "conflict";
 export type PendingMutationStatus =
-  | "pending"
-  | "sending"
-  | "conflict"
-  | "failed_retryable"
-  | "failed_permanent";
+  "pending" | "sending" | "conflict" | "failed_retryable" | "failed_permanent";
 export type PendingMutationPriority =
-  | "essential_structured"
-  | "metadata"
-  | "media_related";
+  "essential_structured" | "metadata" | "media_related";
 
 export interface CachedRecordEnvelope {
   readonly key: string;
