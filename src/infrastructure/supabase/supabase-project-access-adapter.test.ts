@@ -8,18 +8,7 @@ const projectId = "81111111-1111-4111-8111-111111111111";
 type RpcResult = { data: boolean | null; error: unknown };
 
 function thenOnly(result: Promise<RpcResult>): PromiseLike<RpcResult> {
-  return {
-    then<TResult1 = RpcResult, TResult2 = never>(
-      onfulfilled?:
-        | ((value: RpcResult) => TResult1 | PromiseLike<TResult1>)
-        | null,
-      onrejected?:
-        | ((reason: unknown) => TResult2 | PromiseLike<TResult2>)
-        | null,
-    ): PromiseLike<TResult1 | TResult2> {
-      return result.then(onfulfilled, onrejected);
-    },
-  };
+  return { then: result.then.bind(result) };
 }
 
 function clientReturning(data: boolean | null, error: unknown) {
@@ -56,9 +45,7 @@ describe("SupabaseProjectAccessAdapter", () => {
 
   it("fails closed when the provider thenable rejects", async () => {
     const client = {
-      rpc: vi.fn(() =>
-        thenOnly(Promise.reject(new Error("network failure"))),
-      ),
+      rpc: vi.fn(() => thenOnly(Promise.reject(new Error("network failure")))),
     };
     const adapter = new SupabaseProjectAccessAdapter(client);
 
