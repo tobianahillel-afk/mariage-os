@@ -23,6 +23,7 @@ export async function startApplication(
     return;
   }
 
+  root.replaceChildren();
   const decision = await resolveProtectedRoute(
     route,
     dependencies.sessionReader,
