@@ -26,7 +26,9 @@ describe("SupabaseProjectAccessAdapter", () => {
     [null, null],
     [true, new Error("provider failure")],
   ])("fails closed for data=%s error=%s", async (data, error) => {
-    const adapter = new SupabaseProjectAccessAdapter(clientReturning(data, error));
+    const adapter = new SupabaseProjectAccessAdapter(
+      clientReturning(data, error),
+    );
     await expect(adapter.canReadProject(projectId)).resolves.toBe(false);
   });
 
