@@ -13,7 +13,9 @@ for (const fixture of fixtures) {
   );
 
   if (result.status === 0) {
-    console.error(`Secret guard negative control unexpectedly passed: ${fixture}`);
+    console.error(
+      `Secret guard negative control unexpectedly passed: ${fixture}`,
+    );
     process.exit(1);
   }
 
