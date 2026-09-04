@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-1.6`
 - Lot: `1`
 - Name: Protected app shell, navigation and public RSVP trust boundary
-- State: `IN_PROGRESS`
-- Current pass: `A-IMPLEMENT`
+- State: `REVIEW_PENDING`
+- Current pass: `B-ADVERSARIAL-REVIEW`
 - Primary bounded context: client routing/session/project-membership shell boundary
 - Branch/PR: `lot-1/identity-project-foundation`
 
@@ -77,11 +77,21 @@ WP-1.1 through WP-1.5 are **ACCEPTED**. WP-1.5 acceptance evidence: run `3386616
 
 ## Pass A — IMPLEMENT
 
-**IN_PROGRESS.**
+**PASS.** Implementation HEAD `36eff640d8fbeebfcf64023350e6636b3a5ab624` is covered by exact-head CI run `33869860062`; all five jobs are SUCCESS:
+
+- Core quality and security — SUCCESS, including strict typecheck/static checks, negative controls, 100% unit coverage, dependency security gate and build;
+- Local Supabase DB and RLS — SUCCESS;
+- Browser and mutation harnesses — SUCCESS, including Playwright protected/public shell coverage and mutation gate;
+- Privacy-safe preview artifact — SUCCESS;
+- Full verify from clean checkout — SUCCESS with `npm run verify`.
+
+Pass-A repairs preserved the repository quality gates: the temporary Prettier diagnostic workflow was removed, formatting was made canonical, and route parsing was decomposed to satisfy the existing complexity maximum without weakening lint or behavior.
 
 ## Pass B — ADVERSARIAL REVIEW
 
-Not started. Must independently attack open redirect/return-route handling, route-project authorization confusion, unverified/session states, stale membership trust, cached-content pre-render risk, token leakage in DOM/metadata/referrer/logging, private/public shell separation, browser-only permission assumptions and scope creep.
+**IN_PROGRESS.** Independently attack open redirect/return-route handling, route-project authorization confusion, unverified/session states, stale membership trust, cached-content pre-render risk, token leakage in DOM/metadata/referrer/logging, private/public shell separation, browser-only permission assumptions and scope creep.
+
+No Pass-B verdict has been recorded yet. Any BLOCKING/MAJOR finding moves the packet to `REVIEW_FAILED`, requires a repair plus fresh exact-head verification, and requires a fresh adversarial review before Pass C.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
@@ -89,8 +99,10 @@ Not started. Requires clean Pass B and contract → implementation → objective
 
 ## Handoff
 
-- Current state: `IN_PROGRESS` / `A-IMPLEMENT`.
+- Current state: `REVIEW_PENDING` / `B-ADVERSARIAL-REVIEW`.
+- Pass-A implementation HEAD: `36eff640d8fbeebfcf64023350e6636b3a5ab624`.
+- Pass-A exact-head CI: run `33869860062`, all five jobs SUCCESS.
 - Accepted dependencies: WP-1.1..WP-1.5.
-- Open BLOCKING/MAJOR: none at kickoff.
-- Next permitted action: implement WP-1.6 only.
+- Open BLOCKING/MAJOR at Pass-B start: none.
+- Next permitted action: adversarially review WP-1.6 only.
 - WP-1.7+ and Lot 2+ remain forbidden.
