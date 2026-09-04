@@ -28,6 +28,32 @@ function pathSegments(pathname: string): string[] {
   return pathname.slice(1).split("/");
 }
 
+function parseGlobalRoute(pathname: string): AppRoute | null {
+  switch (pathname) {
+    case "/":
+      return { kind: "landing" };
+    case "/login":
+      return { kind: "login" };
+    case "/onboarding":
+      return { kind: "onboarding" };
+    default:
+      return null;
+  }
+}
+
+function parseCapabilityRoute(segments: string[]): AppRoute | null {
+  if (segments.length !== 2) {
+    return null;
+  }
+  if (segments[0] === "invite") {
+    return { kind: "invite" };
+  }
+  if (segments[0] === "rsvp") {
+    return { kind: "public_rsvp" };
+  }
+  return null;
+}
+
 function parseProtectedProjectRoute(segments: string[]): AppRoute | null {
   const projectId = segments[2];
 
@@ -52,24 +78,17 @@ export function parseAppRoute(pathname: string): AppRoute {
   if (!isCanonicalPathname(pathname)) {
     return { kind: "not_found" };
   }
-  if (pathname === "/") {
-    return { kind: "landing" };
-  }
-  if (pathname === "/login") {
-    return { kind: "login" };
-  }
-  if (pathname === "/onboarding") {
-    return { kind: "onboarding" };
+
+  const globalRoute = parseGlobalRoute(pathname);
+  if (globalRoute !== null) {
+    return globalRoute;
   }
 
   const segments = pathSegments(pathname);
-  if (segments[0] === "invite" && segments.length === 2) {
-    return { kind: "invite" };
-  }
-  if (segments[0] === "rsvp" && segments.length === 2) {
-    return { kind: "public_rsvp" };
-  }
-  return parseProtectedProjectRoute(segments) ?? { kind: "not_found" };
+  return (
+    parseCapabilityRoute(segments) ??
+    parseProtectedProjectRoute(segments) ?? { kind: "not_found" }
+  );
 }
 
 export function protectedRoutePath(
