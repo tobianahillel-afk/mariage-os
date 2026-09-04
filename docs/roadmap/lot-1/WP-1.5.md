@@ -5,14 +5,14 @@
 - Work Packet ID: `WP-1.5`
 - Lot: `1`
 - Name: Project configuration, dates, origins, preferences and RSVP-intent data hooks
-- State: `IN_PROGRESS`
-- Current pass: `A-REPAIR`
+- State: `ACCEPTED`
+- Current pass: `C-ACCEPTANCE-COMPLETE`
 - Primary bounded context: project setup/configuration persistence
 - Branch/PR: `lot-1/identity-project-foundation`
 
 ## Scope
 
-### Primary Feature IDs
+Primary Feature IDs:
 
 - FTR-006 — project settings locale/timezone/currency.
 - FTR-007 — candidate wedding dates and atomic selected date.
@@ -20,64 +20,19 @@
 - FTR-012 — personal cross-device UI preferences, Lot-1 persistence foundation.
 - FTR-119 — Invitations & RSVP onboarding/settings intent hooks only.
 
-### Current-lot responsibilities covered
+Explicitly out of scope and not implemented here: guest/household/contact-point domain, guest invitation capability links/RSVP submissions, outbound communication-provider configuration/credentials/templates/campaigns/webhooks/sends, public `/rsvp/:token` shell, local cache/sync, venue route/map observations, downstream selected-date recalculation and all Lot-2+ wedding-domain implementation.
 
-- protected editable project basics with server-controlled audit/revision fields;
-- canonical locale, IANA timezone, three-letter currency and target guest count on `projects`;
-- structured project-scoped `wedding_date_options` with candidate/selected/rejected/archived lifecycle and zero-or-one selected invariant;
-- atomic selected-date command serialized on the project row;
-- structured `project_reference_origins` with optional address/coordinate pair, ordering and zero-or-one default;
-- author-only `user_project_preferences` with live membership checks and server revision;
-- provider-neutral `project_rsvp_intent_settings` for onboarding intent only;
-- explicit grants/RLS plus cross-project/role/revocation/author negative evidence.
+## Normative references reconciled
 
-### Normative references
-
-- FTR-006, FTR-007, FTR-008, FTR-012, FTR-119 applicable Lot-1 responsibilities.
-- AUTHZ-001/002/004/005/006/007/008/009/012/018/019/020 as applicable.
-- `PHYSICAL-SCHEMA-V1.md`, `PHYSICAL-SCHEMA-AUTHORIZATION-ADDENDUM.md`.
-- `DATES-TIME.md`, `STATE-MACHINES.md`, `ROLE-PERMISSION-MATRIX.md`, `AUTH-ONBOARDING.md`.
+- `PHYSICAL-SCHEMA-V1.md` and authorization addendum.
+- `DATES-TIME.md`.
+- `STATE-MACHINES.md`.
+- `ROLE-PERMISSION-MATRIX.md`.
+- `AUTHORIZATION-REQUIREMENTS.md`.
+- `features/AUTH-ONBOARDING.md`.
 - Guest communications requirements/addendum/blueprints.
 
-### Explicit FTR-119 refinement
-
-The Lot-1 RSVP row is only an onboarding/settings intent snapshot. It may contain RSVP method, optional deadline, question toggles, planned channels, contact-data readiness and deferred/configure-now intent. It may not contain guest/household data, public capability tokens, provider credentials, templates, sends or webhook state.
-
-### Explicitly out of scope
-
-- guest/household/contact-point domain;
-- guest invitation capabilities and RSVP submissions;
-- outbound provider configuration/credentials/templates/campaigns/webhooks/sends;
-- public `/rsvp/:token` shell — WP-1.6;
-- venue route/map observations — Lot 9;
-- local cache/sync primitives — WP-1.7;
-- venue/budget/milestone dependency recalculation after selected-date changes — later owning lots;
-- Lot 2+ wedding-domain implementation or real wedding/customer data.
-
-## Dependencies
-
-WP-1.1 through WP-1.4 are **ACCEPTED**. WP-1.6 remains forbidden until this packet is accepted.
-
-## Security and data invariants
-
-1. `projects` remains the single truth for project settings; selected wedding date is derived from `wedding_date_options`.
-2. Generic browser mutation cannot alter project/system audit fields.
-3. `project.settings.update` remains owner-only.
-4. Wedding dates are civil `date` values and exactly zero or one may be selected.
-5. Selection is a serialized protected transition.
-6. Rejected/archived rows preserve historical civil date until explicitly reactivated to candidate.
-7. Cross-project IDs fail closed.
-8. Reference origins preserve coordinate-pair validity and at most one default.
-9. Origin reads/writes preserve `access.read` / `access.write` role semantics.
-10. Personal preferences are readable/writable only by `auth.uid()` with active same-project membership.
-11. Preference revision is server-controlled.
-12. RSVP intent is private project configuration and never anonymous guest state.
-13. RSVP intent is provider-neutral and secret-free.
-14. Revoked membership takes effect through live server-side authorization.
-15. Every table/RPC has explicit client grant/RLS evidence.
-16. Every privileged configuration RPC locks the project before evaluating live permission.
-
-## Implementation
+## Accepted implementation
 
 Migrations:
 
@@ -105,88 +60,113 @@ Protected commands:
 - `upsert_user_project_preferences`
 - `upsert_project_rsvp_intent_settings`
 
-Pass-A hardening before first review:
+Accepted security/data invariants:
 
-- IANA timezone and null/currency validation tightened;
-- coordinates must be both absent or both present and range-valid;
-- selected date cannot have civil date/status rewritten through generic editing;
-- only a candidate can enter `selected`;
-- automatic-channel setup intent is consistent with planned automatic channels, at RPC and table-constraint levels;
-- required RSVP selector values use controlled validation;
-- project-lock-before-live-permission is directly tested.
+1. `projects` is the single truth for project settings; selected wedding date is derived from date options.
+2. Project audit/system fields remain server-controlled; `project.settings.update` remains owner-only.
+3. Wedding dates are civil `date` values with zero-or-one selected option and serialized atomic selection.
+4. Selected/rejected/archived date history cannot have its civil date silently rewritten; rejected/archived remain explicitly reversible through candidate.
+5. Cross-project IDs/references fail closed.
+6. Reference origins require a valid coordinate pair when coordinates are present and have at most one project default.
+7. Origins use `access.read` / `access.write`, preserving owner/editor/viewer semantics.
+8. Personal preferences are author-only for `auth.uid()` with active same-project membership and server-controlled revision.
+9. RSVP intent remains private, provider-neutral, secret-free onboarding/settings configuration only.
+10. Revocation is evaluated live server-side.
+11. Every configuration RPC locks its project before live permission evaluation.
+12. Browser roles have only the explicitly accepted table/column/RPC grant surface; all SECURITY DEFINER commands use `search_path=pg_catalog`.
 
-## First Pass A — IMPLEMENT
+## Pass A — IMPLEMENT
 
-**COMPLETE.**
+Initial exact-head gate:
 
-Evidence before first adversarial review:
+- HEAD `d7f019878c0827e4357e59278a342d5033bca2cb`
+- run `33863817975`
+- five jobs SUCCESS
+- DB 12 files / 232 tests / PASS
 
-- HEAD: `d7f019878c0827e4357e59278a342d5033bca2cb`.
-- CI run: `33863817975`.
-- all five jobs SUCCESS including clean-checkout `npm run verify`.
-- DB: **12 files / 232 tests / PASS**.
+## Pass B — adversarial review history
 
-## First Pass B — ADVERSARIAL REVIEW
+### First review — REVIEW_FAILED
 
-**REVIEW_FAILED.**
+`WP15-AR-001` — **MAJOR**: rejected/archived date rows could rewrite historical `event_date`.
 
-Finding:
+Repair added `20260904105000_preserve_wedding_date_history.sql` and six direct lifecycle assertions.
 
-- `WP15-AR-001` — **MAJOR**: a row already `rejected` or `archived` could change its civil `event_date` through generic update, contrary to the frozen lifecycle requirement that rejected/archive states preserve date history.
+Repair evidence:
 
-## Repair A
+- HEAD `63506b9aa240ec47a04a1eb32450b209329ccaaa`
+- run `33864486707`
+- five jobs SUCCESS
+- DB 13 files / 238 tests / PASS
 
-**VERIFIED.**
+`WP15-AR-001`: **CLOSED**.
 
-Repair:
+### Second review — REVIEW_FAILED
 
-- `20260904105000_preserve_wedding_date_history.sql` prevents civil-date mutation while current status is `selected`, `rejected` or `archived`;
-- rejected/archived rows remain reversible by returning to `candidate` with the same historical date;
-- once explicitly reactivated to candidate, a later edit may change the civil date normally;
-- `project_configuration_history_test.sql` adds six direct assertions covering rejected and archived preservation plus reversible reactivation.
+`WP15-AR-002` — **MAJOR / evidence completeness**: direct grant evidence did not exhaustively enumerate every PostgreSQL client table privilege and possible column-grant bypass for the four new tables.
 
-Exact-head evidence:
+Repair strengthened `project_configuration_grants_test.sql` to prove:
 
-- HEAD: `63506b9aa240ec47a04a1eb32450b209329ccaaa`.
-- CI run: `33864486707`.
-- all five jobs SUCCESS including clean-checkout `npm run verify`.
-- DB: **13 files / 238 tests / PASS**.
+- all four tables × `anon`/`authenticated` × table privileges `SELECT`, `INSERT`, `UPDATE`, `DELETE`, `TRUNCATE`, `REFERENCES`, `TRIGGER`;
+- all columns × both client roles × column privileges `SELECT`, `INSERT`, `UPDATE`, `REFERENCES`;
+- only authenticated read access is granted;
+- all eight RPCs remain authenticated-only;
+- all eight SECURITY DEFINER RPCs retain trusted `pg_catalog` search path.
 
-`WP15-AR-001` is **CLOSED**.
+No production grant/RLS permission was broadened.
 
-## Second Pass B — ADVERSARIAL REVIEW
+Repair exact-head evidence:
 
-**REVIEW_FAILED.**
+- HEAD `15e477a9ca75efbc98594000c190180e24226229`
+- CI run `33866160626`
+- Core quality/security: SUCCESS
+- Local Supabase DB/RLS: SUCCESS
+- Browser/mutation: SUCCESS
+- Privacy-safe preview: SUCCESS
+- Full verify from clean checkout: SUCCESS
+- DB: **13 files / 239 tests / PASS**
 
-The fresh review re-ran the full packet matrix rather than only reviewing the prior patch. Authorization implementation remains fail-closed, but the direct grant evidence is not yet exhaustive enough for `AUTHZ-006` / `AUTHZ-007`.
+`WP15-AR-002`: **CLOSED**.
 
-Open finding:
+### Third fresh Pass B — PASS
 
-- `WP15-AR-002` — **MAJOR / OPEN**: `project_configuration_grants_test.sql` proves authenticated SELECT plus several denied write privileges, but does not directly enumerate the complete PostgreSQL table privilege surface for both browser client roles. The four configuration tables must have objective tests for `SELECT`, `INSERT`, `UPDATE`, `DELETE`, `TRUNCATE`, `REFERENCES` and `TRIGGER` for both `anon` and `authenticated`, with only authenticated SELECT allowed. Production migrations already use explicit `REVOKE ALL`; this is an evidence-completeness finding, not a request to broaden grants.
+The complete packet was re-reviewed after the second repair, not merely the patched test. No open BLOCKING/MAJOR finding remains.
 
-## Repair B — current cycle
+Re-reviewed attack matrix included:
 
-**IMPLEMENTED / AWAITING EXACT-HEAD VERIFICATION.**
-
-Repair:
-
-- `project_configuration_grants_test.sql` now evaluates a Cartesian matrix of all four configuration tables × both browser client roles × all seven PostgreSQL table privileges;
-- expected matrix is exactly authenticated SELECT allowed and every other client table privilege denied;
-- authenticated-only RPC execute and hardened SECURITY DEFINER search-path assertions remain intact;
-- no production permission, grant, RLS policy or RPC behavior was broadened.
-
-A fresh exact-head CI must pass before `WP15-AR-002` can be closed. A further fresh independent Pass B remains mandatory after that verification.
+- owner/editor/viewer, anon, outsider, revoked and multi-project behavior;
+- cross-project UUID/reference denial;
+- project-lock-before-live-permission ordering;
+- date selection uniqueness, transition/history and concurrency structure;
+- one-default-origin uniqueness and role semantics;
+- preference authorship/revision and no owner impersonation;
+- RSVP intent scope, validation, semantic consistency and secret absence;
+- table/column/RPC grants and hardened SECURITY DEFINER search paths;
+- audit/system-column protection;
+- diff-based scope review showing no guest/provider/public-route/cache-sync/Lot-2+ implementation.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started. Requires a clean fresh Pass B after all repairs, then responsibility-by-responsibility contract → implementation → exact-head runtime reconciliation.
+**PASS / COMPLETE.**
 
-## Handoff
+| Responsibility | Normative contract | Accepted implementation | Objective evidence |
+|---|---|---|---|
+| FTR-006 project settings | project single truth; locale/IANA timezone/currency/guest target; protected system fields | `projects` + `update_project_settings` validation/audit revision | owner success; editor/viewer/outsider/revoked denial; timezone/currency/guest-count negatives; grant/RPC tests |
+| FTR-007 wedding dates | civil dates; zero/one selected; atomic selection; preserved history | `wedding_date_options`, partial UNIQUE indexes, protected create/update/select, transition/history hardening | base configuration, transition, history and concurrency-contract tests |
+| FTR-008 origins | structured project origins; optional address/coordinate pair; at most one default | `project_reference_origins`, coordinate checks, protected save/delete, `access.*` permission mapping | owner/editor/default replacement, viewer read/no-write, outsider/revoked/cross-project/invalid-coordinate tests |
+| FTR-012 preferences | member-personal, project-scoped, cross-device foundation, author-only | `(project_id,user_id)` row, self RLS/upsert, server revision | own read/write; other-owner isolation; multi-project partition; outsider/revoked denial; revision increment |
+| FTR-119 Lot-1 intent hooks | skippable provider-neutral RSVP/onboarding intent; no external send/provider secret | `project_rsvp_intent_settings` + protected owner upsert + structural consistency CHECK | owner write/viewer read/editor deny; outsider/revoked denial; selector/consistency negatives; no secret/token/provider-key schema fields |
+| AUTHZ cross-cutting | active membership, permissions, RLS+grants, fail-closed cross-project/revocation | project-scoped RLS and protected serialized RPCs | projects A/B/C role matrix; exhaustive table+column grants; RPC execute/search-path tests; lock-order contract tests |
+| Scope boundary | no guest/provider/public shell/cache-sync/Lot-2+ implementation | DB persistence slice only | compare from accepted WP-1.4 head `bf0046...` to accepted code head shows only WP-1.5 migrations/tests plus governance docs |
 
-- Current state: `IN_PROGRESS`.
-- Current pass: `A-REPAIR`.
-- Accepted dependencies: WP-1.1..WP-1.4.
-- `WP15-AR-001`: **CLOSED** after run `33864486707`, DB 238/238.
-- `WP15-AR-002`: **MAJOR / OPEN**, repair implemented, exact-head verification pending.
-- Next permitted action: verify grant-evidence repair, conduct a fresh complete Pass B, then Pass C only if clean.
-- WP-1.6+: forbidden until WP-1.5 acceptance.
+Contract → implementation → objective evidence is present for every WP-1.5 responsibility. Required packet responsibilities minus accepted/evidenced responsibilities: **∅**.
+
+## Acceptance
+
+**WP-1.5 is ACCEPTED.**
+
+Acceptance evidence is run `33866160626` on exact implementation HEAD `15e477a9ca75efbc98594000c190180e24226229`, with all five CI jobs successful and the fresh database suite at 239/239 PASS.
+
+Closed findings: `WP15-AR-001`, `WP15-AR-002`.
+
+WP-1.6 may now open. WP-1.7+ and Lot 2+ remain forbidden until their normal sequencing gates permit them.
