@@ -61,6 +61,7 @@ export class SafeLogoutCoordinator {
   public async logout(
     scope: LocalProjectScope,
     discardPending: boolean,
+    onSafeTransition: () => void = () => undefined,
   ): Promise<LogoutResult> {
     const { auth, localPurge, sessionContext } = this.dependencies;
     if (auth === null || localPurge === null || sessionContext === null) {
@@ -72,6 +73,8 @@ export class SafeLogoutCoordinator {
     if (assessment.kind === "resolution_required" && !discardPending) {
       return assessment;
     }
+
+    onSafeTransition();
 
     try {
       await auth.signOut();
