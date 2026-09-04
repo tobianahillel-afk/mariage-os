@@ -1,4 +1,5 @@
 import type { ProjectSessionContextPort } from "@application/auth/project-session-context-port";
+import type { LocalProjectPurgePort } from "@application/local-data/local-project-purge-port";
 import type { LocalProjectStoreFactory } from "@application/local-data/local-project-store";
 import { BrowserProjectSessionContextStore } from "@infra/browser/browser-project-session-context-store";
 import { getOrCreateBrowserDeviceId } from "@infra/indexeddb/browser-device-id";
@@ -6,6 +7,7 @@ import { IndexedDbProjectStoreFactory } from "@infra/indexeddb/indexeddb-project
 
 export interface BrowserLocalRuntime {
   readonly localStoreFactory: LocalProjectStoreFactory | null;
+  readonly localPurge: LocalProjectPurgePort | null;
   readonly sessionContext: ProjectSessionContextPort | null;
   readonly deviceId: string | null;
   readonly online: boolean;
@@ -26,6 +28,7 @@ function unavailableRuntime(
 ): BrowserLocalRuntime {
   return {
     localStoreFactory: null,
+    localPurge: null,
     sessionContext,
     deviceId: null,
     online: input.online,
@@ -46,8 +49,10 @@ export function createBrowserLocalRuntime(
   }
 
   try {
+    const localStore = new IndexedDbProjectStoreFactory(input.indexedDb);
     return {
-      localStoreFactory: new IndexedDbProjectStoreFactory(input.indexedDb),
+      localStoreFactory: localStore,
+      localPurge: localStore,
       sessionContext,
       deviceId: getOrCreateBrowserDeviceId(input.storage, input.createUuid),
       online: input.online,
