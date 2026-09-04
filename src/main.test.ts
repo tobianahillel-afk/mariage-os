@@ -1,58 +1,42 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
-class FakeElement {
-  readonly tagName: string;
-  textContent: string | null = null;
-  children: FakeElement[] = [];
+const startApplication = vi.hoisted(() => vi.fn());
+vi.mock("@app/bootstrap/start-application", () => ({ startApplication }));
 
-  constructor(tagName: string) {
-    this.tagName = tagName.toUpperCase();
-  }
+beforeEach(() => {
+  vi.resetModules();
+  startApplication.mockReset();
+  startApplication.mockResolvedValue(undefined);
+});
 
-  replaceChildren(...children: FakeElement[]): void {
-    this.children = children;
-  }
-}
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
-function createFakeDocument(root: FakeElement | null) {
-  return {
-    querySelector: () => root,
-    createElement: (tagName: string) => new FakeElement(tagName),
-  };
-}
+it("composes the browser shell as signed out until provider runtime exists", async () => {
+  const root = {} as HTMLElement;
+  vi.stubGlobal("document", { querySelector: () => root });
+  vi.stubGlobal("window", { location: { pathname: "/rsvp/example" } });
 
-describe("Lot 0 application bootstrap", () => {
-  beforeEach(() => {
-    vi.resetModules();
+  await import("./main");
+
+  expect(startApplication).toHaveBeenCalledTimes(1);
+  const [receivedRoot, dependencies] = startApplication.mock.calls[0] ?? [];
+  expect(receivedRoot).toBe(root);
+  expect(dependencies).toMatchObject({
+    pathname: "/rsvp/example",
+    projectAccess: null,
   });
-
-  afterEach(() => {
-    vi.unstubAllGlobals();
+  await expect(dependencies.sessionReader.getSession()).resolves.toEqual({
+    kind: "signed_out",
   });
+});
 
-  it("renders the engineering bootstrap into the application root", async () => {
-    const root = new FakeElement("main");
-    vi.stubGlobal("document", createFakeDocument(root));
+it("fails fast when the application root is missing", async () => {
+  vi.stubGlobal("document", { querySelector: () => null });
 
-    await import("./main");
-
-    expect(root.children.map((child) => child.tagName)).toEqual([
-      "H1",
-      "P",
-      "P",
-    ]);
-    expect(root.children.map((child) => child.textContent)).toEqual([
-      "Mariage OS",
-      "Socle d’ingénierie Lot 0 initialisé.",
-      "Aucune fonctionnalité métier n’est encore implémentée.",
-    ]);
-  });
-
-  it("fails fast when the application root is missing", async () => {
-    vi.stubGlobal("document", createFakeDocument(null));
-
-    await expect(import("./main")).rejects.toThrow(
-      "Mariage OS bootstrap root #app is missing.",
-    );
-  });
+  await expect(import("./main")).rejects.toThrow(
+    "Mariage OS bootstrap root #app is missing.",
+  );
+  expect(startApplication).not.toHaveBeenCalled();
 });
