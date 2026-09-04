@@ -2,7 +2,9 @@ import { beforeEach, expect, it, vi } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 const officialCreateClient = vi.hoisted(() => vi.fn());
-vi.mock("@supabase/supabase-js", () => ({ createClient: officialCreateClient }));
+vi.mock("@supabase/supabase-js", () => ({
+  createClient: officialCreateClient,
+}));
 
 import {
   createBrowserShellRuntime,
@@ -115,7 +117,7 @@ const invalidBrowserConfigs: BrowserSupabaseEnvironment[] = [
   },
 ];
 
-it.each(invalidBrowserConfigs)("rejects invalid browser config %#", (environment) => {
+it.each(invalidBrowserConfigs)("rejects invalid config %#", (environment) => {
   expect(readBrowserSupabaseConfig(environment)).toBeNull();
 });
 
