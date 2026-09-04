@@ -88,7 +88,7 @@ Planning complexity: **9/10**.
 
 ### WP-1.6 — Protected app shell, navigation and public RSVP trust boundary
 
-State: **ACCEPTANCE_PENDING / C-ACCEPTANCE**
+State: **ACCEPTED**
 
 Scope:
 - protected `/app/p/:projectId/**` shell and membership-aware routing;
@@ -97,15 +97,13 @@ Scope:
 - onboarding/settings UI hooks for RSVP intent/defer/manual-link plan;
 - no guest domain CRUD, outbound provider SDK or provider secret.
 
-Final implementation evidence: run `33880216335` on implementation HEAD `61dca0718f8ff7372609d208050aba6a50271743`, all five jobs SUCCESS including clean-checkout `npm run verify`.
-
-Fresh Pass B: **PASS**. `WP16-AR-001` and `WP16-AR-002` are CLOSED; the final non-blocking unavailable-recovery UX observation was also repaired and re-reviewed. No unresolved BLOCKING/MAJOR/MINOR finding remains. Pass C reconciliation is the only permitted next action.
+Acceptance evidence: run `33880216335` on implementation HEAD `61dca0718f8ff7372609d208050aba6a50271743`, all five jobs SUCCESS including clean-checkout `npm run verify`; fresh Pass B PASS; `WP16-AR-001`/`002` closed; final recovery observation repaired/re-reviewed; Pass C required-minus-evidenced = ∅.
 
 Planning complexity: **7/10**.
 
 ### WP-1.7 — Project-scoped repositories, local cache and sync primitives
 
-State: `PLANNED`
+State: **READY**
 
 Scope:
 - application ports/repositories and infrastructure composition boundaries;
@@ -149,13 +147,13 @@ WP-1.1 [ACCEPTED]
   ↓
 WP-1.2 [ACCEPTED]
   ├─→ WP-1.3 [ACCEPTED] → WP-1.4 [ACCEPTED]
-  ├─→ WP-1.5 [ACCEPTED] → WP-1.6 [ACCEPTANCE_PENDING]
-  └─→ WP-1.7 [PLANNED] → WP-1.8 [PLANNED]
-                              ↘
-                                WP-1.9 [PLANNED]
+  ├─→ WP-1.5 [ACCEPTED] → WP-1.6 [ACCEPTED]
+  └─→ WP-1.7 [READY] → WP-1.8 [PLANNED]
+                         ↘
+                           WP-1.9 [PLANNED]
 ```
 
-Execution remains sequential by default, so only WP-1.6 Pass C is currently permitted; WP-1.7 remains forbidden until WP-1.6 acceptance.
+Execution remains sequential by default. WP-1.7 is now the only permitted implementation packet. WP-1.8 and WP-1.9 remain sequenced behind their dependencies; Lot 2+ remains forbidden.
 
 ## Explicitly out of Lot 1
 
