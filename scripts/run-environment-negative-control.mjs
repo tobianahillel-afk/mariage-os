@@ -21,7 +21,9 @@ for (const variable of credentialVariables) {
   );
 
   if (result.status === 0) {
-    console.error(`Environment negative control unexpectedly passed: ${variable}`);
+    console.error(
+      `Environment negative control unexpectedly passed: ${variable}`,
+    );
     process.exit(1);
   }
 
