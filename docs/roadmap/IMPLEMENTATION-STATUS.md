@@ -39,7 +39,7 @@ Packets:
 5. `WP-1.5` — project configuration, dates, origins, preferences and RSVP-intent hooks — **ACCEPTED**;
 6. `WP-1.6` — protected app shell/navigation and public RSVP trust boundary — **ACCEPTED**;
 7. `WP-1.7` — project-scoped repositories, local cache and sync primitives — **ACCEPTED**;
-8. `WP-1.8` — session expiry, safe logout, MFA/security diagnostics — **PLANNED / NEXT**;
+8. `WP-1.8` — session expiry, safe logout, MFA/security diagnostics — **IN_PROGRESS**;
 9. `WP-1.9` — Storage/Realtime isolation foundation and security-matrix closure — **PLANNED**.
 
 ### Durable cursor
@@ -47,8 +47,8 @@ Packets:
 - Current Lot: **1**
 - Lot state: **IN_PROGRESS**
 - Current packet: **WP-1.8**
-- Packet state: **PLANNED**
-- Current/next pass: **A-IMPLEMENT / packet record + bounded implementation**
+- Packet state: **IN_PROGRESS**
+- Current/next pass: **A-IMPLEMENT**
 - Accepted packets: **WP-1.1, WP-1.2, WP-1.3, WP-1.4, WP-1.5, WP-1.6, WP-1.7**
 - Review-failed/blocked packets: **none**
 - WP-1.1 acceptance evidence: run `33809855993` on `f0b1e46c46bc3ad5d15bf2191c63ec4e85473507`, all five jobs SUCCESS.
@@ -59,7 +59,7 @@ Packets:
 - WP-1.6 acceptance evidence: run `33880216335` on implementation HEAD `61dca0718f8ff7372609d208050aba6a50271743`, all five jobs SUCCESS including clean-checkout `npm run verify`; fresh Pass B PASS; Pass C required-minus-evidenced = ∅; `WP16-AR-001` and `WP16-AR-002` closed; final recovery observation repaired/re-reviewed.
 - WP-1.7 acceptance evidence: run `33895516028` on implementation/review HEAD `46548702f304dbabcf4bd673a33afb1c0ec96a3d`, all five jobs SUCCESS including 28/28 Playwright E2E, mutation and clean-checkout `npm run verify`; `WP17-AR-001..003` closed; fresh Pass B PASS; Pass C required-minus-evidenced = ∅.
 - Current branch: **`lot-1/identity-project-foundation`**
-- Next permitted action: **inventory/freeze bounded WP-1.8 record, then implement WP-1.8 only; WP-1.9 remains blocked by sequencing**.
+- Next permitted action: **implement WP-1.8 only according to `lot-1/WP-1.8.md`; WP-1.9 remains blocked by sequencing**.
 
 ## Lot status
 
@@ -73,7 +73,7 @@ Packets:
 
 - V1 Feature IDs: 120 SPECIFIED inventory rows total.
 - Lot 1 foundations are in implementation; no Lot 2+ Feature may start.
-- WP-1.1 through WP-1.7 are accepted foundations; WP-1.8 is next; user-facing Feature acceptance remains pending broader Lot 1 slices and Lot integration.
+- WP-1.1 through WP-1.7 are accepted foundations; WP-1.8 is in Pass A; user-facing Feature acceptance remains pending broader Lot 1 slices and Lot integration.
 
 ## Current blockers / forward maintenance
 
@@ -116,8 +116,8 @@ Lot 1: IN_PROGRESS
 Coverage: required - assigned = ∅
 Accepted: WP-1.1, WP-1.2, WP-1.3, WP-1.4, WP-1.5, WP-1.6, WP-1.7
 WP-1.7 acceptance: run 33895516028 on 46548702f304dbabcf4bd673a33afb1c0ec96a3d, 5/5 SUCCESS; fresh Pass B PASS; Pass C required-minus-evidenced = ∅
-Current: WP-1.8 / PLANNED / A-IMPLEMENT
-Next: create bounded WP-1.8 record -> implement WP-1.8 only -> exact-head evidence -> fresh Pass B -> Pass C
+Current: WP-1.8 / IN_PROGRESS / A-IMPLEMENT
+Next: implement WP-1.8 only -> exact-head evidence -> fresh Pass B -> Pass C
 WP-1.9 remains sequenced behind dependencies
 Lot 2+: forbidden
 ```
