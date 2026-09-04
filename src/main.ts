@@ -20,6 +20,7 @@ await startApplication(root, {
   pathname: window.location.pathname,
   sessionReader: runtime.sessionReader,
   projectAccess: runtime.projectAccess,
+  sessionContext: localRuntime.sessionContext,
   localStoreFactory: localRuntime.localStoreFactory,
   deviceId: localRuntime.deviceId,
   online: localRuntime.online,
