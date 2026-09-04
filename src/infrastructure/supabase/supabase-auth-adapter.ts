@@ -29,9 +29,10 @@ type ProviderPasswordInput = {
 };
 
 type ProviderSignOutResult = { readonly error: ProviderError };
-type ProviderAssuranceResult = ProviderResult<{
-  readonly currentLevel: string | null;
-}>;
+type ProviderAssuranceResult = {
+  readonly data: { readonly currentLevel: string | null } | null;
+  readonly error: ProviderError;
+};
 
 export interface SupabaseAuthClientLike {
   readonly auth: {
@@ -83,7 +84,9 @@ export class SupabaseAuthAdapter implements AuthPort {
 
     const assuranceResult =
       await this.client.auth.mfa.getAuthenticatorAssuranceLevel();
-    if (assuranceResult.error) throw providerFailure();
+    if (assuranceResult.error || assuranceResult.data === null) {
+      throw providerFailure();
+    }
 
     const assurance = mapAssurance(assuranceResult.data.currentLevel);
     const email = session.user.email ?? null;
