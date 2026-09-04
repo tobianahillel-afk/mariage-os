@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import { SafeLogoutCoordinator } from "@application/auth/safe-logout";
 
 const startApplication = vi.hoisted(() => vi.fn());
 const createBrowserShellRuntime = vi.hoisted(() => vi.fn());
@@ -23,14 +24,29 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-it("composes provider and local-durability browser runtimes", async () => {
+it("composes provider, local durability, diagnostics and safe logout runtimes", async () => {
   const root = {} as HTMLElement;
+  const auth = { signOut: vi.fn() };
   const sessionReader = { getSession: vi.fn() };
   const projectAccess = { canReadProject: vi.fn() };
+  const securityDiagnostics = { readSecurityDiagnostics: vi.fn() };
+  const sessionContext = {
+    readUserId: vi.fn(),
+    remember: vi.fn(),
+    clear: vi.fn(),
+  };
   const localStoreFactory = { open: vi.fn() };
-  createBrowserShellRuntime.mockReturnValue({ sessionReader, projectAccess });
+  const localPurge = { purge: vi.fn() };
+  createBrowserShellRuntime.mockReturnValue({
+    auth,
+    sessionReader,
+    projectAccess,
+    securityDiagnostics,
+  });
   createDefaultBrowserLocalRuntime.mockReturnValue({
     localStoreFactory,
+    localPurge,
+    sessionContext,
     deviceId: "61111111-1111-4111-8111-111111111111",
     online: true,
     appVersion: "0.0.0",
@@ -42,15 +58,19 @@ it("composes provider and local-durability browser runtimes", async () => {
 
   expect(createBrowserShellRuntime).toHaveBeenCalledTimes(1);
   expect(createDefaultBrowserLocalRuntime).toHaveBeenCalledWith("0.0.0");
-  expect(startApplication).toHaveBeenCalledWith(root, {
+  const dependencies = startApplication.mock.calls[0]?.[1];
+  expect(dependencies).toMatchObject({
     pathname: "/rsvp/example",
     sessionReader,
     projectAccess,
+    sessionContext,
+    securityDiagnostics,
     localStoreFactory,
     deviceId: "61111111-1111-4111-8111-111111111111",
     online: true,
     appVersion: "0.0.0",
   });
+  expect(dependencies.logoutCoordinator).toBeInstanceOf(SafeLogoutCoordinator);
 });
 
 it("fails fast before runtime composition when the application root is missing", async () => {
