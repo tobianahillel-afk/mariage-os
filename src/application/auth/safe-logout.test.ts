@@ -79,6 +79,31 @@ describe("SafeLogoutCoordinator", () => {
     );
   });
 
+  it("runs the safe transition before provider sign-out and scoped purge", async () => {
+    const target = dependencies();
+    const transition = vi.fn();
+    const coordinator = new SafeLogoutCoordinator({
+      auth: target.auth,
+      localStoreFactory: target.factory,
+      localPurge: target.localPurge,
+      sessionContext: target.sessionContext,
+      appVersion: "1",
+    });
+
+    await expect(
+      coordinator.logout(scope, false, transition),
+    ).resolves.toEqual({ kind: "completed" });
+    expect(transition).toHaveBeenCalledOnce();
+    expect(transition.mock.invocationCallOrder[0]).toBeLessThan(
+      vi.mocked(target.auth.signOut).mock.invocationCallOrder[0] ?? 0,
+    );
+    expect(
+      vi.mocked(target.auth.signOut).mock.invocationCallOrder[0],
+    ).toBeLessThan(
+      vi.mocked(target.localPurge.purge).mock.invocationCallOrder[0] ?? 0,
+    );
+  });
+
   it("requires explicit resolution before discarding pending work", async () => {
     const target = dependencies({
       ...emptyCounters,
