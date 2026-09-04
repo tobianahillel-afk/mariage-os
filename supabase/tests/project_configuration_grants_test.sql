@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(3);
+select plan(4);
 
 with target_tables(table_name) as (
   values
@@ -37,6 +37,37 @@ select ok(
 from target_tables
 cross join client_roles
 cross join table_privileges;
+
+with target_columns(table_name, column_name) as (
+  select format('%I.%I', table_schema, table_name), column_name
+  from information_schema.columns
+  where table_schema = 'public'
+    and table_name in (
+      'wedding_date_options',
+      'project_reference_origins',
+      'user_project_preferences',
+      'project_rsvp_intent_settings'
+    )
+),
+client_roles(role_name) as (
+  values ('anon'), ('authenticated')
+),
+column_privileges(privilege_name) as (
+  values ('select'), ('insert'), ('update'), ('references')
+)
+select ok(
+  bool_and(
+    case
+      when role_name = 'authenticated' and privilege_name = 'select'
+        then has_column_privilege(role_name, table_name, column_name, privilege_name)
+      else not has_column_privilege(role_name, table_name, column_name, privilege_name)
+    end
+  ),
+  'configuration columns expose no client grant that bypasses the table-level authenticated-read-only matrix'
+)
+from target_columns
+cross join client_roles
+cross join column_privileges;
 
 select ok(
   has_function_privilege('authenticated', 'public.update_project_settings(uuid,text,text,text,text,integer)', 'execute')
