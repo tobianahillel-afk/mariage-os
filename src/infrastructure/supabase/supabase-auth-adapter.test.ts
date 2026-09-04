@@ -14,15 +14,24 @@ type Level = string | null;
 type ClientOptions = {
   session?: Session;
   level?: Level;
+  nextLevel?: Level;
+  verifiedTotp?: boolean;
   sessionError?: boolean;
   signInError?: boolean;
   assuranceError?: boolean;
+  factorsError?: boolean;
   signOutError?: boolean;
 };
 
 function makeClient(options: ClientOptions = {}): SupabaseAuthClientLike {
   const session = options.session ?? null;
   const level = options.level === undefined ? "aal1" : options.level;
+  const nextLevel =
+    options.nextLevel === undefined ? level : options.nextLevel;
+  const totp = options.verifiedTotp
+    ? [{ factor_type: "totp", status: "verified" }]
+    : [];
+
   return {
     auth: {
       getSession: vi.fn(async () => ({
@@ -40,7 +49,19 @@ function makeClient(options: ClientOptions = {}): SupabaseAuthClientLike {
         getAuthenticatorAssuranceLevel: vi.fn(async () =>
           options.assuranceError
             ? { data: null, error: { message: "assurance failed" } }
-            : { data: { currentLevel: level }, error: null },
+            : {
+                data: {
+                  currentLevel: level,
+                  nextLevel,
+                  currentAuthenticationMethods: [],
+                },
+                error: null,
+              },
+        ),
+        listFactors: vi.fn(async () =>
+          options.factorsError
+            ? { data: null, error: { message: "factors failed" } }
+            : { data: { all: totp, totp }, error: null },
         ),
       },
     },
@@ -132,6 +153,34 @@ it("uses the provider password sign-in operation", async () => {
   });
 });
 
+it("exposes only bounded MFA readiness diagnostics", async () => {
+  const adapter = authAdapter({
+    level: "aal1",
+    nextLevel: "aal2",
+    verifiedTotp: true,
+  });
+
+  await expect(adapter.readSecurityDiagnostics()).resolves.toEqual({
+    assurance: "aal1",
+    canUpgradeToAal2: true,
+    verifiedTotpFactor: true,
+  });
+});
+
+it("does not claim an AAL2 upgrade when the session is already AAL2", async () => {
+  await expect(
+    authAdapter({
+      level: "aal2",
+      nextLevel: "aal2",
+      verifiedTotp: true,
+    }).readSecurityDiagnostics(),
+  ).resolves.toEqual({
+    assurance: "aal2",
+    canUpgradeToAal2: false,
+    verifiedTotpFactor: true,
+  });
+});
+
 it("fails closed on provider session and sign-in errors", async () => {
   await expect(
     authAdapter({ sessionError: true }).getSession(),
@@ -146,7 +195,7 @@ it("fails closed on provider session and sign-in errors", async () => {
   ).rejects.toThrow("Authentication provider unavailable.");
 });
 
-it("fails closed on official nullable assurance errors and sign-out errors", async () => {
+it("fails closed on nullable assurance, factor and sign-out errors", async () => {
   const assuranceAdapter = authAdapter({
     session: verifiedSession,
     assuranceError: true,
@@ -154,7 +203,12 @@ it("fails closed on official nullable assurance errors and sign-out errors", asy
   await expect(assuranceAdapter.getSession()).rejects.toThrow(
     "Authentication provider unavailable.",
   );
-
+  await expect(
+    assuranceAdapter.readSecurityDiagnostics(),
+  ).rejects.toThrow("Authentication provider unavailable.");
+  await expect(
+    authAdapter({ factorsError: true }).readSecurityDiagnostics(),
+  ).rejects.toThrow("Authentication provider unavailable.");
   await expect(authAdapter({ signOutError: true }).signOut()).rejects.toThrow(
     "Authentication provider unavailable.",
   );
