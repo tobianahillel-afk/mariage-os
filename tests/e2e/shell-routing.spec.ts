@@ -56,6 +56,88 @@ async function renderAllowedProject(page: Page, id = projectId): Promise<void> {
   );
 }
 
+async function persistPendingMutation(page: Page): Promise<void> {
+  await page.evaluate(
+    async ({
+      projectId: targetProjectId,
+      userId: targetUserId,
+      deviceId: targetDeviceId,
+      operationId: targetOperationId,
+    }) => {
+      const scopeModule = await import(
+        "/src/application/local-data/local-project-scope.ts"
+      );
+      const recordsModule = await import(
+        "/src/application/local-data/local-records.ts"
+      );
+      const storeModule = await import(
+        "/src/infrastructure/indexeddb/indexeddb-project-store.ts"
+      );
+      const browserGlobal = globalThis as unknown as { indexedDB: unknown };
+      const scope = scopeModule.createLocalProjectScope(
+        targetUserId,
+        targetProjectId,
+        targetDeviceId,
+      );
+      const store = await storeModule.IndexedDbProjectStore.open(
+        browserGlobal.indexedDB,
+        scope,
+        "0.0.0",
+      );
+      await store.addPendingMutation(
+        recordsModule.createPendingMutationEnvelope(scope, {
+          operationId: targetOperationId,
+          entityType: "project_preferences",
+          entityId: "44444444-4444-4444-8444-444444444444",
+          mutationType: "update_preferences",
+          baseRevision: "rev-1",
+          payload: { density: "compact" },
+          createdAt: "2026-09-04T14:00:00.000Z",
+          priorityClass: "metadata",
+        }),
+      );
+      store.close();
+    },
+    { projectId, userId, deviceId, operationId },
+  );
+}
+
+async function projectCanReadOperation(
+  page: Page,
+  targetProjectId: string,
+): Promise<boolean> {
+  return page.evaluate(
+    async ({ projectId: targetProject, userId: targetUser, deviceId: targetDevice, operationId: targetOperation }) => {
+      const scopeModule = await import(
+        "/src/application/local-data/local-project-scope.ts"
+      );
+      const storeModule = await import(
+        "/src/infrastructure/indexeddb/indexeddb-project-store.ts"
+      );
+      const browserGlobal = globalThis as unknown as { indexedDB: unknown };
+      const scope = scopeModule.createLocalProjectScope(
+        targetUser,
+        targetProject,
+        targetDevice,
+      );
+      const store = await storeModule.IndexedDbProjectStore.open(
+        browserGlobal.indexedDB,
+        scope,
+        "0.0.0",
+      );
+      const mutation = await store.getPendingMutation(targetOperation);
+      store.close();
+      return mutation !== null;
+    },
+    {
+      projectId: targetProjectId,
+      userId,
+      deviceId,
+      operationId,
+    },
+  );
+}
+
 test("signed-out protected deep link renders no private project shell", async ({
   page,
 }) => {
@@ -99,49 +181,7 @@ test("pending mutation survives reload and remains isolated by account+project n
   page,
 }) => {
   await renderAllowedProject(page);
-
-  await page.evaluate(
-    async ({
-      projectId: targetProjectId,
-      userId: targetUserId,
-      deviceId: targetDeviceId,
-      operationId: targetOperationId,
-    }) => {
-      const scopeModulePath =
-        "/src/application/local-data/local-project-scope.ts";
-      const recordsModulePath = "/src/application/local-data/local-records.ts";
-      const storeModulePath =
-        "/src/infrastructure/indexeddb/indexeddb-project-store.ts";
-      const scopeModule = await import(scopeModulePath);
-      const recordsModule = await import(recordsModulePath);
-      const storeModule = await import(storeModulePath);
-      const browserGlobal = globalThis as unknown as { indexedDB: unknown };
-      const scope = scopeModule.createLocalProjectScope(
-        targetUserId,
-        targetProjectId,
-        targetDeviceId,
-      );
-      const store = await storeModule.IndexedDbProjectStore.open(
-        browserGlobal.indexedDB,
-        scope,
-        "0.0.0",
-      );
-      await store.addPendingMutation(
-        recordsModule.createPendingMutationEnvelope(scope, {
-          operationId: targetOperationId,
-          entityType: "project_preferences",
-          entityId: "44444444-4444-4444-8444-444444444444",
-          mutationType: "update_preferences",
-          baseRevision: "rev-1",
-          payload: { density: "compact" },
-          createdAt: "2026-09-04T14:00:00.000Z",
-          priorityClass: "metadata",
-        }),
-      );
-      store.close();
-    },
-    { projectId, userId, deviceId, operationId },
-  );
+  await persistPendingMutation(page);
 
   await page.reload();
   await renderAllowedProject(page);
@@ -153,38 +193,7 @@ test("pending mutation survives reload and remains isolated by account+project n
   await expect(page.locator('[data-sync-state="synced"]')).toContainText(
     "En ligne · synchronisé",
   );
-
-  const secondProjectCanReadOperation = await page.evaluate(
-    async ({
-      projectId: targetProjectId,
-      userId: targetUserId,
-      deviceId: targetDeviceId,
-      operationId: targetOperationId,
-    }) => {
-      const scopeModulePath =
-        "/src/application/local-data/local-project-scope.ts";
-      const storeModulePath =
-        "/src/infrastructure/indexeddb/indexeddb-project-store.ts";
-      const scopeModule = await import(scopeModulePath);
-      const storeModule = await import(storeModulePath);
-      const browserGlobal = globalThis as unknown as { indexedDB: unknown };
-      const scope = scopeModule.createLocalProjectScope(
-        targetUserId,
-        targetProjectId,
-        targetDeviceId,
-      );
-      const store = await storeModule.IndexedDbProjectStore.open(
-        browserGlobal.indexedDB,
-        scope,
-        "0.0.0",
-      );
-      const mutation = await store.getPendingMutation(targetOperationId);
-      store.close();
-      return mutation !== null;
-    },
-    { projectId: secondProjectId, userId, deviceId, operationId },
-  );
-  expect(secondProjectCanReadOperation).toBe(false);
+  expect(await projectCanReadOperation(page, secondProjectId)).toBe(false);
 });
 
 test("verified outsider gets the same generic project-unavailable shell", async ({
