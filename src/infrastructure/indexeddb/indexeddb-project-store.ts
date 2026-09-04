@@ -1,3 +1,8 @@
+import {
+  parseCachedRecordEnvelope,
+  parseLocalProjectMetadata,
+  parsePendingMutationEnvelope,
+} from "@application/local-data/persisted-local-data-parser";
 import type {
   LocalProjectMetadata,
   LocalProjectStore,
@@ -22,23 +27,42 @@ function storageError(action: string): Error {
   return new Error(`Local IndexedDB ${action} failed.`);
 }
 
+function createSchema(database: IDBDatabase): void {
+  if (!database.objectStoreNames.contains(METADATA_STORE)) {
+    database.createObjectStore(METADATA_STORE, { keyPath: "key" });
+  }
+  if (!database.objectStoreNames.contains(CACHE_STORE)) {
+    database.createObjectStore(CACHE_STORE, { keyPath: "key" });
+  }
+  if (!database.objectStoreNames.contains(MUTATION_STORE)) {
+    database.createObjectStore(MUTATION_STORE, { keyPath: "operationId" });
+  }
+}
+
 function openDatabase(factory: IDBFactory, name: string): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const request = factory.open(name, LOCAL_SCHEMA_VERSION);
-    request.onupgradeneeded = () => {
-      const database = request.result;
-      if (!database.objectStoreNames.contains(METADATA_STORE)) {
-        database.createObjectStore(METADATA_STORE, { keyPath: "key" });
-      }
-      if (!database.objectStoreNames.contains(CACHE_STORE)) {
-        database.createObjectStore(CACHE_STORE, { keyPath: "key" });
-      }
-      if (!database.objectStoreNames.contains(MUTATION_STORE)) {
-        database.createObjectStore(MUTATION_STORE, { keyPath: "operationId" });
+    let settled = false;
+    const fail = (action: string): void => {
+      if (!settled) {
+        settled = true;
+        reject(storageError(action));
       }
     };
-    request.onerror = () => reject(storageError("open"));
-    request.onsuccess = () => resolve(request.result);
+
+    request.onupgradeneeded = () => createSchema(request.result);
+    request.onblocked = () => fail("open blocked");
+    request.onerror = () => fail("open");
+    request.onsuccess = () => {
+      const database = request.result;
+      database.onversionchange = () => database.close();
+      if (settled) {
+        database.close();
+        return;
+      }
+      settled = true;
+      resolve(database);
+    };
   });
 }
 
@@ -139,12 +163,13 @@ export class IndexedDbProjectStore implements LocalProjectStore {
   }
 
   private async initializeMetadata(appVersion: string): Promise<void> {
-    const existing = await runRequest<LocalProjectMetadata | undefined>(
+    const raw = await runRequest<unknown>(
       this.database,
       METADATA_STORE,
       "readonly",
       (store) => store.get("scope"),
     );
+    const existing = raw === undefined ? undefined : parseLocalProjectMetadata(raw);
 
     if (existing !== undefined) {
       assertScopeMetadata(existing, this.scope);
@@ -168,26 +193,28 @@ export class IndexedDbProjectStore implements LocalProjectStore {
   }
 
   async getMetadata(): Promise<LocalProjectMetadata> {
-    const metadata = await runRequest<LocalProjectMetadata | undefined>(
+    const raw = await runRequest<unknown>(
       this.database,
       METADATA_STORE,
       "readonly",
       (store) => store.get("scope"),
     );
-    if (metadata === undefined) {
+    if (raw === undefined) {
       throw new Error("Local IndexedDB scope metadata is missing.");
     }
+    const metadata = parseLocalProjectMetadata(raw);
     assertScopeMetadata(metadata, this.scope);
     return metadata;
   }
 
   async putCachedRecord(record: CachedRecordEnvelope): Promise<void> {
-    assertCachedRecordScope(record, this.scope);
+    const parsed = parseCachedRecordEnvelope(record);
+    assertCachedRecordScope(parsed, this.scope);
     await runRequest<IDBValidKey>(
       this.database,
       CACHE_STORE,
       "readwrite",
-      (store) => store.put(record),
+      (store) => store.put(parsed),
     );
   }
 
@@ -195,56 +222,60 @@ export class IndexedDbProjectStore implements LocalProjectStore {
     recordType: string,
     entityId: string,
   ): Promise<CachedRecordEnvelope | null> {
-    const record = await runRequest<CachedRecordEnvelope | undefined>(
+    const raw = await runRequest<unknown>(
       this.database,
       CACHE_STORE,
       "readonly",
       (store) => store.get(`${recordType}:${entityId}`),
     );
-    if (record === undefined) {
+    if (raw === undefined) {
       return null;
     }
+    const record = parseCachedRecordEnvelope(raw);
     assertCachedRecordScope(record, this.scope);
     return record;
   }
 
   async addPendingMutation(mutation: PendingMutationEnvelope): Promise<void> {
-    assertMutationScope(mutation, this.scope);
+    const parsed = parsePendingMutationEnvelope(mutation);
+    assertMutationScope(parsed, this.scope);
     await runRequest<IDBValidKey>(
       this.database,
       MUTATION_STORE,
       "readwrite",
-      (store) => store.add(mutation),
+      (store) => store.add(parsed),
     );
   }
 
   async getPendingMutation(
     operationId: string,
   ): Promise<PendingMutationEnvelope | null> {
-    const mutation = await runRequest<PendingMutationEnvelope | undefined>(
+    const raw = await runRequest<unknown>(
       this.database,
       MUTATION_STORE,
       "readonly",
       (store) => store.get(operationId),
     );
-    if (mutation === undefined) {
+    if (raw === undefined) {
       return null;
     }
+    const mutation = parsePendingMutationEnvelope(raw);
     assertMutationScope(mutation, this.scope);
     return mutation;
   }
 
   async listPendingMutations(): Promise<readonly PendingMutationEnvelope[]> {
-    const mutations = await runRequest<PendingMutationEnvelope[]>(
+    const raw = await runRequest<unknown[]>(
       this.database,
       MUTATION_STORE,
       "readonly",
       (store) => store.getAll(),
     );
-    for (const mutation of mutations) {
+    return raw.map((value) => {
+      const mutation = parsePendingMutationEnvelope(value);
       assertMutationScope(mutation, this.scope);
-    }
-    return mutations;
+      return mutation;
+    });
   }
 
   async readSyncCounters(): Promise<LocalSyncCounters> {

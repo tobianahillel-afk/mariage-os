@@ -6,6 +6,7 @@ const base: SyncSummaryInput = {
   durability: "available",
   online: true,
   syncing: false,
+  cloudSynchronized: false,
   pendingCount: 0,
   conflictCount: 0,
   retryableFailureCount: 0,
@@ -46,7 +47,12 @@ it.each([
     "2 modifications en attente · enregistrées localement",
   ],
   [{ online: false }, "offline", "Hors ligne · aucune modification en attente"],
-  [{}, "synced", "En ligne · synchronisé"],
+  [
+    {},
+    "online_idle",
+    "En ligne · aucune modification locale en attente",
+  ],
+  [{ cloudSynchronized: true }, "synced", "En ligne · synchronisé"],
 ])("derives %s", (override, kind, label) => {
   expect(deriveSyncSummary({ ...base, ...override })).toEqual({
     kind,

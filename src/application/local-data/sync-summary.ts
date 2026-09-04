@@ -4,6 +4,7 @@ export interface SyncSummaryInput {
   readonly durability: LocalDurability;
   readonly online: boolean;
   readonly syncing: boolean;
+  readonly cloudSynchronized: boolean;
   readonly pendingCount: number;
   readonly conflictCount: number;
   readonly retryableFailureCount: number;
@@ -18,6 +19,7 @@ export type SyncSummary =
   | { readonly kind: "synchronizing"; readonly label: string }
   | { readonly kind: "pending"; readonly label: string }
   | { readonly kind: "offline"; readonly label: string }
+  | { readonly kind: "online_idle"; readonly label: string }
   | { readonly kind: "synced"; readonly label: string };
 
 function pendingLabel(count: number): string {
@@ -31,11 +33,20 @@ function assertCount(value: number, field: string): void {
   }
 }
 
-function settledConnectivitySummary(online: boolean): SyncSummary {
+function settledConnectivitySummary(
+  online: boolean,
+  cloudSynchronized: boolean,
+): SyncSummary {
   if (!online) {
     return {
       kind: "offline",
       label: "Hors ligne · aucune modification en attente",
+    };
+  }
+  if (!cloudSynchronized) {
+    return {
+      kind: "online_idle",
+      label: "En ligne · aucune modification locale en attente",
     };
   }
   return { kind: "synced", label: "En ligne · synchronisé" };
@@ -77,5 +88,5 @@ export function deriveSyncSummary(input: SyncSummaryInput): SyncSummary {
       label: `${pendingLabel(input.pendingCount)} · enregistrées localement`,
     };
   }
-  return settledConnectivitySummary(input.online);
+  return settledConnectivitySummary(input.online, input.cloudSynchronized);
 }

@@ -28,6 +28,7 @@ function unavailableDurabilitySummary(): SyncSummary {
     durability: "unavailable",
     online: false,
     syncing: false,
+    cloudSynchronized: false,
     pendingCount: 0,
     conflictCount: 0,
     retryableFailureCount: 0,
@@ -64,6 +65,7 @@ async function projectShellState(
           durability: "available",
           online: dependencies.online,
           syncing: false,
+          cloudSynchronized: false,
           ...counters,
         }),
       };
