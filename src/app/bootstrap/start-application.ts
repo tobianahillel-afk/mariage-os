@@ -108,7 +108,10 @@ async function readSecurityState(
 ): Promise<SecuritySettingsState["diagnostics"]> {
   if (port === null) return { kind: "unavailable" };
   try {
-    return { kind: "available", snapshot: await port.readSecurityDiagnostics() };
+    return {
+      kind: "available",
+      snapshot: await port.readSecurityDiagnostics(),
+    };
   } catch {
     return { kind: "unavailable" };
   }
