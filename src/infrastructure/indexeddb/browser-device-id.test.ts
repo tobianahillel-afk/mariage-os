@@ -21,16 +21,22 @@ describe("getOrCreateBrowserDeviceId", () => {
     expect(target.setItem).not.toHaveBeenCalled();
   });
 
-  it.each([null, "malformed"])("creates and persists a UUID for %s", (initial) => {
-    const target = storage(initial);
+  it.each([null, "malformed"])(
+    "creates and persists a UUID for %s",
+    (initial) => {
+      const target = storage(initial);
 
-    expect(getOrCreateBrowserDeviceId(target, () => deviceId)).toBe(deviceId);
-    expect(target.setItem).toHaveBeenCalledWith("mariage-os.device-id", deviceId);
-  });
+      expect(getOrCreateBrowserDeviceId(target, () => deviceId)).toBe(deviceId);
+      expect(target.setItem).toHaveBeenCalledWith(
+        "mariage-os.device-id",
+        deviceId,
+      );
+    },
+  );
 
   it("rejects a malformed UUID factory result", () => {
-    expect(() => getOrCreateBrowserDeviceId(storage(null), () => "bad")).toThrow(
-      "must return a UUID",
-    );
+    expect(() =>
+      getOrCreateBrowserDeviceId(storage(null), () => "bad"),
+    ).toThrow("must return a UUID");
   });
 });
