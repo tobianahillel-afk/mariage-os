@@ -39,9 +39,13 @@ describe("app route classification", () => {
   it.each([
     "/app/p/not-a-uuid/dashboard",
     `/app/p/${projectId}`,
+    `/app/p/${projectId}/dashboard/`,
+    `/app//p/${projectId}/dashboard`,
     "/rsvp/one/two",
+    "/rsvp//opaque-capability",
     "/invite",
     "/unknown",
+    "app/p/81111111-1111-4111-8111-111111111111/dashboard",
   ])("fails closed for malformed route %s", (path) => {
     expect(parseAppRoute(path)).toEqual({ kind: "not_found" });
   });
@@ -59,6 +63,7 @@ describe("safe protected return paths", () => {
     "//example.invalid/app/p/81111111-1111-4111-8111-111111111111/dashboard",
     `/app/p/${projectId}/dashboard?next=https://example.invalid`,
     `/app/p/${projectId}/dashboard#private-fragment`,
+    `/app/p/${projectId}/dashboard/`,
     "/rsvp/opaque-capability",
     "/login",
   ])("rejects unsafe or non-protected candidate %s", (candidate) => {
