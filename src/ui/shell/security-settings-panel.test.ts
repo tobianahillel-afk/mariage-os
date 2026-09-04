@@ -12,7 +12,10 @@ class FakeElement {
   disabled = false;
   readonly attributes = new Map<string, string>();
   readonly children: FakeElement[] = [];
-  private readonly listeners = new Map<string, Array<() => Promise<void> | void>>();
+  private readonly listeners = new Map<
+    string,
+    Array<() => Promise<void> | void>
+  >();
 
   setAttribute(name: string, value: string): void {
     this.attributes.set(name, value);
@@ -39,9 +42,11 @@ class FakeElement {
     const match = selector.match(/^\[data-action="([^"]+)"\]$/);
     if (match === null) return null;
     const value = match[1];
-    return descendants(this).find(
-      (element) => element.getAttribute("data-action") === value,
-    ) ?? null;
+    return (
+      descendants(this).find(
+        (element) => element.getAttribute("data-action") === value,
+      ) ?? null
+    );
   }
 
   async click(): Promise<void> {
