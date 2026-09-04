@@ -109,17 +109,14 @@ function advisoryUrl(affectedPackages, page) {
 }
 
 async function fetchAdvisoryPage(affectedPackages, page) {
-  const response = await globalThis.fetch(
-    advisoryUrl(affectedPackages, page),
-    {
-      headers: {
-        Accept: "application/vnd.github+json",
-        "User-Agent": "mariage-os-dependency-audit",
-        "X-GitHub-Api-Version": "2026-03-10",
-      },
-      signal: globalThis.AbortSignal.timeout(30000),
+  const response = await globalThis.fetch(advisoryUrl(affectedPackages, page), {
+    headers: {
+      Accept: "application/vnd.github+json",
+      "User-Agent": "mariage-os-dependency-audit",
+      "X-GitHub-Api-Version": "2026-03-10",
     },
-  );
+    signal: globalThis.AbortSignal.timeout(30000),
+  });
 
   if (!response.ok) {
     throw new Error(
