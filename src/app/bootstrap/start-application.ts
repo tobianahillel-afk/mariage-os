@@ -1,3 +1,4 @@
+import type { ProjectSessionContextPort } from "@application/auth/project-session-context-port";
 import type { LocalProjectStoreFactory } from "@application/local-data/local-project-store";
 import { createLocalProjectScope } from "@application/local-data/local-project-scope";
 import {
@@ -17,6 +18,7 @@ export interface ApplicationShellDependencies {
   readonly pathname: string;
   readonly sessionReader: SessionReader;
   readonly projectAccess: ProjectAccessPort | null;
+  readonly sessionContext: ProjectSessionContextPort | null;
   readonly localStoreFactory: LocalProjectStoreFactory | null;
   readonly deviceId: string | null;
   readonly online: boolean;
@@ -34,6 +36,18 @@ function unavailableDurabilitySummary(): SyncSummary {
     retryableFailureCount: 0,
     permanentFailureCount: 0,
   });
+}
+
+function rememberAuthorizedContext(
+  decision: Extract<ProtectedRouteDecision, { kind: "project_allowed" }>,
+  sessionContext: ProjectSessionContextPort | null,
+): void {
+  if (sessionContext === null) return;
+  try {
+    sessionContext.remember(decision.projectId, decision.userId);
+  } catch {
+    // Recovery metadata is best-effort and never an authorization boundary.
+  }
 }
 
 async function projectShellState(
@@ -93,8 +107,10 @@ export async function startApplication(
     route,
     dependencies.sessionReader,
     dependencies.projectAccess,
+    dependencies.sessionContext,
   );
   if (decision.kind === "project_allowed") {
+    rememberAuthorizedContext(decision, dependencies.sessionContext);
     renderShell(root, await projectShellState(decision, dependencies));
     return;
   }
