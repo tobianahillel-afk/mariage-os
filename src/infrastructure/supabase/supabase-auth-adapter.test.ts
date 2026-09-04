@@ -23,6 +23,8 @@ type ClientOptions = {
   signOutError?: boolean;
 };
 
+const providerUnavailable = "Authentication provider unavailable.";
+
 function makeClient(options: ClientOptions = {}): SupabaseAuthClientLike {
   const session = options.session ?? null;
   const level = options.level === undefined ? "aal1" : options.level;
@@ -86,7 +88,7 @@ it("maps missing provider session to signed out", async () => {
   });
 });
 
-it("maps verified provider identity and assurance", async () => {
+it("maps verified identity and assurance", async () => {
   const adapter = authAdapter({ session: verifiedSession, level: "aal2" });
 
   await expect(adapter.getSession()).resolves.toEqual({
@@ -97,7 +99,7 @@ it("maps verified provider identity and assurance", async () => {
   });
 });
 
-it("maps future provider assurance values to unknown", async () => {
+it("maps future assurance values to unknown", async () => {
   const adapter = authAdapter({
     session: verifiedSession,
     level: "future-assurance-level",
@@ -153,7 +155,7 @@ it("uses the provider password sign-in operation", async () => {
   });
 });
 
-it("exposes only bounded MFA readiness diagnostics", async () => {
+it("exposes bounded MFA readiness diagnostics", async () => {
   const adapter = authAdapter({
     level: "aal1",
     nextLevel: "aal2",
@@ -167,7 +169,7 @@ it("exposes only bounded MFA readiness diagnostics", async () => {
   });
 });
 
-it("does not claim an AAL2 upgrade when the session is already AAL2", async () => {
+it("does not claim upgrade when already AAL2", async () => {
   await expect(
     authAdapter({
       level: "aal2",
@@ -181,10 +183,10 @@ it("does not claim an AAL2 upgrade when the session is already AAL2", async () =
   });
 });
 
-it("fails closed on provider session and sign-in errors", async () => {
+it("fails closed on session and sign-in errors", async () => {
   await expect(
     authAdapter({ sessionError: true }).getSession(),
-  ).rejects.toThrow("Authentication provider unavailable.");
+  ).rejects.toThrow(providerUnavailable);
 
   const adapter = authAdapter({ signInError: true });
   await expect(
@@ -192,28 +194,28 @@ it("fails closed on provider session and sign-in errors", async () => {
       email: "owner@example.invalid",
       password: "password",
     }),
-  ).rejects.toThrow("Authentication provider unavailable.");
+  ).rejects.toThrow(providerUnavailable);
 });
 
-it("fails closed on nullable assurance, factor and sign-out errors", async () => {
+it("fails closed on assurance, factor and sign-out errors", async () => {
   const assuranceAdapter = authAdapter({
     session: verifiedSession,
     assuranceError: true,
   });
   await expect(assuranceAdapter.getSession()).rejects.toThrow(
-    "Authentication provider unavailable.",
+    providerUnavailable,
+  );
+  await expect(assuranceAdapter.readSecurityDiagnostics()).rejects.toThrow(
+    providerUnavailable,
   );
   await expect(
-    assuranceAdapter.readSecurityDiagnostics(),
-  ).rejects.toThrow("Authentication provider unavailable.");
-  await expect(
     authAdapter({ factorsError: true }).readSecurityDiagnostics(),
-  ).rejects.toThrow("Authentication provider unavailable.");
+  ).rejects.toThrow(providerUnavailable);
   await expect(authAdapter({ signOutError: true }).signOut()).rejects.toThrow(
-    "Authentication provider unavailable.",
+    providerUnavailable,
   );
 });
 
-it("signs out successfully when provider accepts the request", async () => {
+it("signs out successfully when provider accepts", async () => {
   await expect(authAdapter().signOut()).resolves.toBeUndefined();
 });
