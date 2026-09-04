@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-1.7`
 - Lot: `1`
 - Name: Project-scoped repositories, local cache and sync primitives
-- State: `REVIEW_FAILED`
-- Current pass: `B-REVIEW-FAILED / REPAIR`
+- State: `ACCEPTANCE_PENDING`
+- Current pass: `C-ACCEPTANCE-RECONCILIATION`
 - Primary bounded context: project/account-scoped local durability and synchronization foundation
 - Branch/PR: `lot-1/identity-project-foundation`
 
@@ -87,8 +87,8 @@
 - Playwright real-browser evidence covers reload/reopen persistence plus account/project isolation;
 - private-shell sync/local-durability indicator and public-shell non-exposure regressions are covered;
 - static/architecture/size/dead-code/security gates pass;
-- exact implementation HEAD `413405b5ab5c560d5246955d394f11f0ef2f8a17` retained full CI run `33890804064`: Core, Local Supabase DB/RLS, Browser+mutation, privacy-safe preview and clean-checkout Full Verify all **SUCCESS**;
-- clean-checkout Full Verify executed `npm run verify` successfully.
+- original implementation HEAD `413405b5ab5c560d5246955d394f11f0ef2f8a17` retained full CI run `33890804064`: Core, Local Supabase DB/RLS, Browser+mutation, privacy-safe preview and clean-checkout Full Verify all **SUCCESS**;
+- after Pass-B repairs, exact implementation/review HEAD `46548702f304dbabcf4bd673a33afb1c0ec96a3d` retained full CI run `33895516028`: all five jobs **SUCCESS**, 28/28 Playwright E2E scenarios passed across Chromium/Firefox/WebKit/mobile Chromium, mutation passed, and clean-checkout Full Verify executed `npm run verify` successfully.
 
 ### Pass A exit
 
@@ -100,43 +100,87 @@
 
 ## Pass B — ADVERSARIAL REVIEW
 
-Fresh review performed after green Pass A. Result: **FAIL — three MAJOR findings**.
+The first fresh review after green Pass A failed with three MAJOR findings. All three were repaired, re-evidenced on exact implementation HEAD `46548702f304dbabcf4bd673a33afb1c0ec96a3d`, and the complete WP-1.7 surface was then reviewed again from the accepted WP-1.6 baseline through the repaired head.
 
-### `WP17-AR-001` — MAJOR — persisted IndexedDB rows are trusted by TypeScript cast instead of runtime parsing
+### `WP17-AR-001` — CLOSED — runtime parsing of persisted IndexedDB values
 
-`IndexedDbProjectStore` reads metadata, cached records and pending mutations from IndexedDB directly into typed generics and then performs only partial scope checks. Same-project malformed rows can therefore pass the boundary with invalid/missing keys, UUIDs, timestamps, enum values, counters or non-JSON payloads. A malformed mutation status also falls through the counter classifier as ordinary pending work.
+Original finding: `IndexedDbProjectStore` trusted persisted metadata/cached records/pending mutations through TypeScript casts and partial scope checks.
 
-This violates the normative runtime-input contract that explicitly treats IndexedDB/local cache after version/schema evolution as untrusted/version-sensitive input and requires parsing before use. The repair must introduce centralized fail-closed runtime parsers for all WP-1.7 persisted record shapes and adversarial tests for malformed/partial/stale rows. Scope checks remain necessary but are not sufficient.
+Repair and review result:
 
-### `WP17-AR-002` — MAJOR — blocked IndexedDB version/open lifecycle can leave protected startup unresolved indefinitely
+- centralized fail-closed parsers now validate metadata, cached-record and pending-mutation shapes before application use;
+- UUIDs, canonical timestamps, stable identifier names, enum/status/priority values, non-negative integer counters and nullable fields are validated;
+- cached-record composite keys are recomputed/checked;
+- payloads are constrained to bounded JSON-compatible graphs and reject cycles, symbols, exotic prototypes, non-finite numbers and unsupported values;
+- scope checks remain enforced after parsing;
+- malformed/partial/stale persisted-row tests and 100% global coverage are green.
 
-The IndexedDB open wrapper handles `onerror`, `onupgradeneeded` and `onsuccess` but not `onblocked`; opened databases also do not close on `versionchange`. During a schema upgrade with another tab/connection holding the older database, the open request can remain blocked without resolving or rejecting. Protected startup awaits local-store opening before rendering the project shell, so this can leave the application blank indefinitely rather than entering an explicit degraded/recovery state.
+Status: **CLOSED**.
 
-The repair must make blocked/version-change behavior explicit and fail closed without deleting local work: close stale connections on version change and surface blocked upgrade/open as a controlled local-durability failure that the shell can represent. Regression tests must exercise the blocked and version-change paths.
+### `WP17-AR-002` — CLOSED — blocked/version-change IndexedDB lifecycle
 
-### `WP17-AR-003` — MAJOR — global UI can claim “synchronized” without cloud freshness/acknowledgement evidence
+Original finding: an IndexedDB open/upgrade blocked by another tab could remain unresolved, and existing connections did not explicitly close on version change.
 
-`deriveSyncSummary` returns `synced` / “En ligne · synchronisé” whenever the browser is online and local pending/conflict/error counters are zero. Startup does not perform a remote refresh in WP-1.7, and the local metadata checkpoint `lastSuccessfulSyncAt` is not consulted. A cache can therefore be stale or never refreshed and still be represented as synchronized.
+Repair and review result:
 
-The full remote-refresh/replay engine remains correctly deferred to Lot 10; the WP-1.7 repair must not implement it. Instead the foundation must stop asserting cloud synchronization without evidence. It should distinguish “no local changes pending / online” from true acknowledged/fresh synchronization, or require an explicit proven sync/freshness signal before using the `synced` state. Tests must prove a never-synced/stale local store cannot masquerade as cloud-synchronized.
+- `onblocked` rejects as an explicit local-durability failure;
+- a connection that succeeds after the rejected blocked request is immediately closed;
+- every successful connection installs `onversionchange` and closes when a newer schema requests upgrade;
+- startup catches local-store failure only after cloud authorization succeeds and renders explicit degraded local durability rather than hanging or exposing stale project state;
+- lifecycle regression tests exercise blocked-open and version-change paths;
+- no reset/delete fallback was introduced, so pending local work is not silently erased.
 
-### Pass B result
+Status: **CLOSED**.
 
-- `WP17-AR-001`: **OPEN / MAJOR**.
-- `WP17-AR-002`: **OPEN / MAJOR**.
-- `WP17-AR-003`: **OPEN / MAJOR**.
-- Pass B: **FAIL**.
-- Packet state: `REVIEW_FAILED`.
-- Required action: repair these findings only, rerun affected evidence and exact-head full verification, then perform a fresh Pass B review. No Pass C and no WP-1.8 work is permitted yet.
+### `WP17-AR-003` — CLOSED — truthful synchronization indicator
+
+Original finding: online + zero local counters was represented as `synced` without cloud freshness/acknowledgement evidence.
+
+Repair and review result:
+
+- summary derivation now separates `online_idle` from true `synced`;
+- `online_idle` is labelled `En ligne · aucune modification locale en attente` and makes no cloud-freshness claim;
+- true `synced` requires an explicit `cloudSynchronized` signal;
+- WP-1.7 bootstrap deliberately supplies `cloudSynchronized: false`, because no Lot-10 remote refresh/ack coordinator exists yet;
+- E2E expectations were aligned with the truthful state and all 28 browser scenarios pass;
+- no Lot-10 replay/refresh/conflict engine was pulled into this packet.
+
+Status: **CLOSED**.
+
+### Fresh complete Pass B result
+
+Review dimensions rechecked after repair:
+
+- account+project namespace isolation and live cloud authorization precedence;
+- persisted-data parsing and corrupted-row fail-closed behavior;
+- IndexedDB blocked/version-change/transaction failure behavior and local-work preservation;
+- operation-ID uniqueness and pending-mutation reload durability;
+- public RSVP non-exposure and protected-shell sequencing;
+- truthful local durability/sync-state semantics;
+- architecture boundaries and explicit exclusion of Lot-10 synchronization orchestration.
+
+Result: **PASS — no unresolved BLOCKING or MAJOR finding**.
+
+Non-blocking observation retained for later hardening: browser device identity currently lives in `localStorage` while the account+project IndexedDB metadata records that device UUID. If browser storage is selectively reset and those stores diverge, the implementation fails closed/degraded rather than attaching a mismatched queue. A deliberate recovery/re-association UX belongs with later session/local-recovery hardening; current WP-1.7 neither leaks cross-scope data nor deletes the preserved IndexedDB data.
+
+### Pass B exit
+
+- `WP17-AR-001`: **CLOSED**.
+- `WP17-AR-002`: **CLOSED**.
+- `WP17-AR-003`: **CLOSED**.
+- Fresh Pass B: **PASS**.
+- Packet state: `ACCEPTANCE_PENDING`.
+- Current pass: `C-ACCEPTANCE-RECONCILIATION`.
+- Exact repaired evidence: run `33895516028` on `46548702f304dbabcf4bd673a33afb1c0ec96a3d`, all five jobs SUCCESS including clean-checkout `npm run verify`.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started. Requires all three Pass B findings closed by repair/evidence and a fresh clean adversarial review before mechanical EXPECTED vs IMPLEMENTED vs VERIFIED reconciliation.
+In progress. Required next action is the mechanical EXPECTED vs IMPLEMENTED vs VERIFIED reconciliation against this packet, the Lot-1 coverage matrix and applicable frozen contracts. WP-1.8 remains blocked until this reconciliation is complete and WP-1.7 is durably accepted.
 
 ## Handoff
 
-- Current state: `REVIEW_FAILED`.
-- Current/next pass: `B-REVIEW-FAILED / REPAIR`.
-- Last green pre-review implementation verification: WP-1.7 Pass A run `33890804064` on implementation HEAD `413405b5ab5c560d5246955d394f11f0ef2f8a17`, all five jobs SUCCESS including clean-checkout `npm run verify`.
-- Open findings: `WP17-AR-001`, `WP17-AR-002`, `WP17-AR-003` — all MAJOR.
-- Next permitted action: repair WP-1.7 findings only, then fresh exact-head verification and fresh Pass B; WP-1.8 remains blocked until WP-1.7 acceptance.
+- Current state: `ACCEPTANCE_PENDING`.
+- Current/next pass: `C-ACCEPTANCE-RECONCILIATION`.
+- Exact repaired implementation/review evidence: run `33895516028` on `46548702f304dbabcf4bd673a33afb1c0ec96a3d`, all five jobs SUCCESS including clean-checkout `npm run verify`.
+- Findings: `WP17-AR-001`, `WP17-AR-002`, `WP17-AR-003` — all **CLOSED**; fresh Pass B **PASS**.
+- Next permitted action: Pass C mechanical reconciliation for WP-1.7 only; WP-1.8 remains blocked until WP-1.7 acceptance.
