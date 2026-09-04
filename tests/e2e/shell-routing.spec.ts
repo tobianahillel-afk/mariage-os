@@ -17,11 +17,15 @@ async function renderAllowedProject(page: Page, id = projectId): Promise<void> {
       const startModulePath = "/src/app/bootstrap/start-application.ts";
       const storeModulePath =
         "/src/infrastructure/indexeddb/indexeddb-project-store.ts";
+      const contextModulePath =
+        "/src/infrastructure/browser/browser-project-session-context-store.ts";
       const startModule = await import(startModulePath);
       const storeModule = await import(storeModulePath);
+      const contextModule = await import(contextModulePath);
       const browserGlobal = globalThis as unknown as {
         document: { querySelector(selector: string): unknown | null };
         indexedDB: unknown;
+        localStorage: Storage;
       };
       const root = browserGlobal.document.querySelector("#app");
       if (root === null) {
@@ -44,6 +48,9 @@ async function renderAllowedProject(page: Page, id = projectId): Promise<void> {
             return true;
           },
         },
+        sessionContext: new contextModule.BrowserProjectSessionContextStore(
+          browserGlobal.localStorage,
+        ),
         localStoreFactory: new storeModule.IndexedDbProjectStoreFactory(
           browserGlobal.indexedDB,
         ),
@@ -200,6 +207,25 @@ test("pending mutation survives reload and remains isolated by account+project n
   expect(await projectCanReadOperation(page, secondProjectId)).toBe(false);
 });
 
+test("session expiry preserves pending work until live membership is revalidated", async ({
+  page,
+}) => {
+  await renderAllowedProject(page);
+  await persistPendingMutation(page);
+
+  await page.goto(`/app/p/${projectId}/dashboard`);
+
+  await expect(page.locator('[data-shell="session-expired"]')).toBeVisible();
+  await expect(page.locator('[data-shell="private-project"]')).toHaveCount(0);
+  expect(await projectCanReadOperation(page, projectId)).toBe(true);
+
+  await renderAllowedProject(page);
+  await expect(page.locator('[data-shell="private-project"]')).toBeVisible();
+  await expect(page.locator('[data-sync-state="pending"]')).toContainText(
+    "1 modification en attente",
+  );
+});
+
 test("verified outsider gets the same generic project-unavailable shell", async ({
   page,
 }) => {
@@ -232,6 +258,7 @@ test("verified outsider gets the same generic project-unavailable shell", async 
             return false;
           },
         },
+        sessionContext: null,
         localStoreFactory: null,
         deviceId: null,
         online: true,
