@@ -122,22 +122,19 @@ function createLogoutActions(
   decision: Extract<ProtectedRouteDecision, { kind: "project_allowed" }>,
   dependencies: ApplicationShellDependencies,
 ): SecuritySettingsActions | null {
-  if (
-    dependencies.logoutCoordinator === null ||
-    dependencies.deviceId === null
-  ) {
-    return null;
-  }
+  const logoutCoordinator = dependencies.logoutCoordinator;
+  const deviceId = dependencies.deviceId;
+  if (logoutCoordinator === null || deviceId === null) return null;
 
   try {
     const scope = createLocalProjectScope(
       decision.userId,
       decision.projectId,
-      dependencies.deviceId,
+      deviceId,
     );
     return {
       async logout(discardPending) {
-        const result = await dependencies.logoutCoordinator!.logout(
+        const result = await logoutCoordinator.logout(
           scope,
           discardPending,
           () => root.replaceChildren(),
