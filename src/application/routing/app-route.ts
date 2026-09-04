@@ -78,8 +78,14 @@ export function protectedRoutePath(
   return `/app/p/${route.projectId}${route.projectPath}`;
 }
 
-export function safeProtectedReturnPath(candidate: string | null): string | null {
-  if (candidate === null || candidate.includes("?") || candidate.includes("#")) {
+export function safeProtectedReturnPath(
+  candidate: string | null,
+): string | null {
+  if (
+    candidate === null ||
+    candidate.includes("?") ||
+    candidate.includes("#")
+  ) {
     return null;
   }
 
