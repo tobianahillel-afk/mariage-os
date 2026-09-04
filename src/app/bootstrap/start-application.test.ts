@@ -8,13 +8,18 @@ vi.mock("@ui/shell/render-shell", () => ({ renderShell }));
 import { startApplication } from "./start-application";
 
 const projectId = "81111111-1111-4111-8111-111111111111";
-const root = {} as HTMLElement;
+
+function rootWithClear(clear = vi.fn()): HTMLElement {
+  return { replaceChildren: clear } as unknown as HTMLElement;
+}
 
 beforeEach(() => {
   renderShell.mockReset();
 });
 
-it("renders public RSVP without consulting project authentication", async () => {
+it("renders public RSVP without clearing or consulting project authentication", async () => {
+  const clear = vi.fn();
+  const root = rootWithClear(clear);
   const sessionReader: SessionReader = { getSession: vi.fn() };
   const projectAccess: ProjectAccessPort = { canReadProject: vi.fn() };
 
@@ -24,12 +29,15 @@ it("renders public RSVP without consulting project authentication", async () => 
     projectAccess,
   });
 
+  expect(clear).not.toHaveBeenCalled();
   expect(sessionReader.getSession).not.toHaveBeenCalled();
   expect(projectAccess.canReadProject).not.toHaveBeenCalled();
   expect(renderShell).toHaveBeenCalledWith(root, { kind: "public_rsvp" });
 });
 
-it("protects project deep links before rendering project UI", async () => {
+it("clears a protected shell before resolving a signed-out deep link", async () => {
+  const clear = vi.fn();
+  const root = rootWithClear(clear);
   const sessionReader: SessionReader = {
     getSession: vi.fn().mockResolvedValue({ kind: "signed_out" }),
   };
@@ -41,6 +49,7 @@ it("protects project deep links before rendering project UI", async () => {
     projectAccess,
   });
 
+  expect(clear).toHaveBeenCalledTimes(1);
   expect(projectAccess.canReadProject).not.toHaveBeenCalled();
   expect(renderShell).toHaveBeenCalledWith(root, {
     kind: "login_required",
@@ -48,7 +57,32 @@ it("protects project deep links before rendering project UI", async () => {
   });
 });
 
+it("clears stale private content before a failing session lookup", async () => {
+  const events: string[] = [];
+  const clear = vi.fn(() => events.push("clear"));
+  const root = rootWithClear(clear);
+  const sessionReader: SessionReader = {
+    getSession: vi.fn().mockImplementation(() => {
+      events.push("session");
+      return Promise.reject(new Error("session unavailable"));
+    }),
+  };
+  renderShell.mockImplementation(() => events.push("render"));
+
+  await startApplication(root, {
+    pathname: `/app/p/${projectId}/dashboard`,
+    sessionReader,
+    projectAccess: { canReadProject: vi.fn() },
+  });
+
+  expect(events).toEqual(["clear", "session", "render"]);
+  expect(renderShell).toHaveBeenCalledWith(root, {
+    kind: "project_unavailable",
+  });
+});
+
 it("renders project shell only after verified live project access", async () => {
+  const root = rootWithClear();
   const sessionReader: SessionReader = {
     getSession: vi.fn().mockResolvedValue({
       kind: "authenticated_verified",
