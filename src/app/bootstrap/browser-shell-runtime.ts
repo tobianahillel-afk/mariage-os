@@ -33,19 +33,26 @@ function isLocalHostname(hostname: string): boolean {
   return hostname === "localhost" || hostname === "127.0.0.1";
 }
 
+function hasAllowedProtocol(url: URL): boolean {
+  if (url.protocol === "https:") return true;
+  return url.protocol === "http:" && isLocalHostname(url.hostname);
+}
+
+function isOriginOnly(url: URL): boolean {
+  return [
+    url.pathname === "/",
+    url.search === "",
+    url.hash === "",
+    url.username === "",
+    url.password === "",
+  ].every((condition) => condition);
+}
+
 function normalizedSupabaseOrigin(value: string): string | null {
   try {
     const url = new URL(value);
-    const validProtocol =
-      url.protocol === "https:" ||
-      (url.protocol === "http:" && isLocalHostname(url.hostname));
-    const originOnly =
-      url.pathname === "/" &&
-      url.search === "" &&
-      url.hash === "" &&
-      url.username === "" &&
-      url.password === "";
-    return validProtocol && originOnly ? url.origin : null;
+    if (!hasAllowedProtocol(url) || !isOriginOnly(url)) return null;
+    return url.origin;
   } catch {
     return null;
   }
