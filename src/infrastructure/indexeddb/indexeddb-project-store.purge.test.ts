@@ -14,9 +14,10 @@ class DeleteRequest {
   onerror: (() => void) | null = null;
 }
 
-function deleteFactory(
-  outcome: "success" | "blocked" | "error",
-): { readonly factory: IDBFactory; readonly deleteDatabase: ReturnType<typeof vi.fn> } {
+function deleteFactory(outcome: "success" | "blocked" | "error"): {
+  readonly factory: IDBFactory;
+  readonly deleteDatabase: ReturnType<typeof vi.fn>;
+} {
   const deleteDatabase = vi.fn(() => {
     const request = new DeleteRequest();
     queueMicrotask(() => {
