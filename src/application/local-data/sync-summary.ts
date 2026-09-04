@@ -1,4 +1,4 @@
-export type LocalDurability = "available" | "unavailable";
+type LocalDurability = "available" | "unavailable";
 
 export interface SyncSummaryInput {
   readonly durability: LocalDurability;
