@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-1.4`
 - Lot: `1`
 - Name: Partner invitation and protected membership lifecycle
-- State: `IN_PROGRESS`
-- Current pass: `A-IMPLEMENT`
+- State: `ACCEPTED`
+- Current pass: `C-ACCEPTANCE-COMPLETE`
 - Primary bounded context: identity-bound invitation / membership administration
 - Branch/PR: `lot-1/identity-project-foundation`
 
@@ -60,22 +60,24 @@ Planning complexity: **10/10**.
 
 Cohesion rationale: invitation token creation, hash-at-rest persistence, identity-bound atomic acceptance, revocation/replay behavior and the final-owner membership invariant are one security transaction family. Splitting them into independently acceptable partial packets would create unsafe intermediate states where a token can exist without a safe acceptance lifecycle or membership can mutate without owner-preservation guarantees.
 
-## Security invariants to preserve
+## Security invariants preserved
 
-1. Raw invitation token is generated with platform/provider cryptographic randomness; no custom PRNG or token cryptography.
-2. Raw token is returned only at creation boundary and never stored in tables, logs, fixtures or diagnostics.
-3. Persistent invitation stores only a cryptographic hash/digest suitable for exact token lookup/verification.
-4. Acceptance never trusts client-supplied user ID/email/role/project authorization; authenticated identity and verified email are derived server-side.
+1. Raw invitation token uses provider/platform cryptographic randomness; no custom PRNG/token cryptography.
+2. Raw token is returned only at creation boundary and is never persisted in invitation storage.
+3. Persistent invitation stores a SHA-256 digest for exact token lookup/verification.
+4. Acceptance derives authenticated user ID and verified email server-side and does not trust client user/email/role/project authority.
 5. Invitation is project-bound, email-bound, role-bound, expiry-bound, revocable and one-time.
-6. Wrong identity, anonymous caller, unverified identity, expired invite, revoked invite and replay fail closed without leaking project data.
-7. Invitation possession alone never grants project membership; successful server-side acceptance creates/activates membership atomically.
-8. Membership administration reuses centralized permissions and RLS rather than client role text.
-9. A project cannot be left with zero active owners by membership mutation.
-10. No browser service-role/admin secret is introduced.
+6. Wrong identity, anonymous caller, unverified identity, expired invite, revoked invite and invalid/replayed capability states fail closed with generic errors.
+7. Invitation possession alone never grants project membership; successful server-side acceptance creates/reactivates membership atomically.
+8. Membership administration uses centralized live permission checks rather than client role text.
+9. A project cannot be left with zero active owners by role mutation or revocation.
+10. No browser service-role/admin secret was introduced.
+11. Privileged role/revoke membership mutations require server-side `aal2` assurance.
+12. Privileged invitation/membership writers serialize on the project before live authorization/resource mutation so stale-authority and lock-order races fail safely.
 
 ## Pass A — IMPLEMENT
 
-**IN_PROGRESS — implementation landed; exact-head full verification pending.**
+**COMPLETE.**
 
 Implemented:
 
@@ -87,34 +89,83 @@ Implemented:
 - idempotent same-identity replay after successful acceptance without duplicate membership;
 - exact-role reactivation of a matching revoked membership;
 - protected role-change and membership-revoke commands reusing `members.manage_roles`;
-- project-row serialization for membership administration so concurrent demotion/revocation commands cannot remove the final active owner;
+- project-row serialization for invitation/membership administration;
 - application ports for invitation and membership administration;
 - fail-closed Supabase structural adapters validating provider outputs rather than trusting RPC payloads;
-- 41-assertion pgTAP invitation/membership security matrix using synthetic `.invalid` identities only;
+- 43-assertion pgTAP invitation/membership security matrix plus 4-assertion concurrency/authorization-order contract;
 - unit tests for email normalization, invitation provider trust boundary and membership administration adapter.
 
-Intermediate runtime evidence:
+Final Pass-A runtime evidence:
 
-- run `33818752378` on `afc82d7a6c18748b888525f74d5bf450b72fdccf`: Local Supabase DB/RLS **SUCCESS** and Browser/mutation **SUCCESS**; Core failed only at Prettier before later gates;
-- the DB success proves the migration and all 41 direct invitation/membership assertions execute successfully on local Supabase;
-- the three reported TypeScript formatting differences were corrected exactly using the repository-pinned Prettier output; the temporary formatting workflow was deleted afterward.
+- exact-head run `33859207161` on `bf0046dc45c318875d349edc2b6327292e2894ea`: all five CI jobs **SUCCESS**;
+- Core quality/security: typecheck/static/negative controls/unit tests/dependency gate/build all SUCCESS; 38 TypeScript tests pass with 100% measured coverage;
+- Local Supabase DB/RLS: clean reset plus six pgTAP files, **133 tests**, all successful;
+- Browser/mutation harnesses: SUCCESS;
+- privacy-safe preview artifact: SUCCESS;
+- full `npm run verify` from clean checkout: SUCCESS.
 
-Remaining Pass-A gate:
-
-- obtain one clean exact-head CI where Core, DB/RLS, Browser/mutation, privacy-safe preview and clean-checkout `npm run verify` are all SUCCESS together.
+CI resilience maintenance performed during Pass A did not weaken the High/Critical dependency gate: `npm audit` remains primary; only bounded transient provider failures may fall back to exact-lockfile GitHub Advisory Database review, and dual-provider failure remains fail-closed. The final acceptance run used the primary npm audit path successfully and reported only the already-known Moderate transitive `qs` advisories.
 
 ## Pass B — ADVERSARIAL REVIEW
 
-Not started. Must independently review token entropy/hash boundary, replay/concurrency, identity binding, enumeration leakage, privilege escalation, owner invariant, grant surface and scope leakage after Pass A is green.
+**COMPLETE.**
+
+Review areas:
+
+- token entropy and raw-token/hash persistence boundary;
+- verified-identity binding and account-enumeration behavior;
+- invite expiry/revoke/replay/idempotency;
+- invitation possession versus membership authority;
+- final-owner invariant under concurrent role/revoke operations;
+- live permission evaluation after membership revocation/downgrade;
+- lock ordering and stale-authorization races;
+- Security Definer/search-path and grant surface;
+- browser/provider trust boundary;
+- scope leakage into later Lot-1 or Lot-2+ responsibilities.
+
+Findings/remediations:
+
+- `WP14-AR-001` — **MAJOR / CLOSED**: privileged membership role changes and revocations initially accepted `aal1` sessions despite the existing strong-assurance hook and `AUTHZ-014`. Remediation requires `public.has_auth_assurance('aal2')` for both commands and adds direct AAL1-deny/AAL2-allow DB evidence.
+- `WP14-AR-002` — **MAJOR / CLOSED**: invitation acceptance and invitation reissue/revocation initially used inconsistent invitation/project lock ordering, permitting a database deadlock under concurrency. Remediation standardizes project-first serialization before invitation-row locking/mutation.
+- `WP14-AR-003` — **MAJOR / CLOSED**: several privileged commands evaluated permission before taking the project serialization lock, leaving a TOCTOU window where a concurrent revocation/downgrade could occur after authorization but before mutation. Remediation moves the live permission check after project locking and adds a structural concurrency/authorization-order pgTAP contract.
+
+Post-remediation evidence:
+
+- `partner_invitation_test.sql`: 43 direct assertions, including AAL1 denial for privileged membership mutations and AAL2 success paths;
+- `invitation_concurrency_contract_test.sql`: 4 structural assertions preventing regression of project-first locking and post-lock live authorization;
+- total local DB suite: 6 files / 133 tests / PASS on run `33859207161`;
+- exact-head CI run `33859207161` is 5/5 SUCCESS including clean-checkout `npm run verify`.
+
+Reviewed non-blocking downstream responsibilities:
+
+- invitation creation/acceptance anti-abuse/rate-limit review remains mandatory before exposing public/self-service flows or real production cutover; private V1 manual partner onboarding does not convert this packet into a public onboarding surface;
+- exact provider account-creation/signup-window UX, token stripping from browser navigation/history and protected route behavior remain downstream Lot-1 onboarding/route work, especially WP-1.6/WP-1.8;
+- real-owner MFA enrollment/recovery evidence remains a pre-cutover responsibility in WP-1.8; WP-1.4 only consumes the server-side AAL hook for privileged membership administration;
+- no outbound invite email/SMS/WhatsApp provider integration is implemented here.
+
+No production secrets, real owner identity/token or service-role client path were introduced.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started. Requires Pass B closure, exact-head evidence and mechanical reconciliation before acceptance.
+**COMPLETE — ACCEPTED.**
+
+Mechanical reconciliation:
+
+- required WP-1.4 responsibilities − implemented/evidenced WP-1.4 responsibilities = **∅**;
+- accepted dependency requirements are satisfied by WP-1.1, WP-1.2 and WP-1.3;
+- compare against accepted WP-1.3 head `707b1384fbd370fe88ef7a87ac191aa9645f6db3` shows product changes limited to invitation/membership application ports, Supabase adapters/tests, invitation/membership migrations/tests and governance/CI maintenance;
+- no project settings/date/origin/preferences implementation from WP-1.5 landed early;
+- no protected-route/public-RSVP shell, local cache/sync, Storage/Realtime, wedding-domain Lot 2+ code, real wedding/customer data or production credential landed;
+- downstream signup-window, route/token-history cleanup, public abuse protection and real MFA/recovery evidence remain explicitly assigned and are not silently waived.
+
+Acceptance evidence: run `33859207161` on `bf0046dc45c318875d349edc2b6327292e2894ea`, all five jobs SUCCESS after all Pass-B remediations; DB suite reports 133/133 tests successful.
+
+Open BLOCKING/MAJOR findings: **none**.
 
 ## Handoff
 
-- Current state: `IN_PROGRESS`
-- Current/next pass: `A-IMPLEMENT`
+- Final state: `ACCEPTED`
+- Final pass: `C-ACCEPTANCE-COMPLETE`
 - Accepted dependencies: WP-1.1, WP-1.2, WP-1.3.
-- Open BLOCKING/MAJOR findings: none currently observed in Pass A.
-- Next permitted action: obtain exact-head full verification for WP-1.4, repair only observed defects, then begin Pass B.
+- Closed findings: `WP14-AR-001`, `WP14-AR-002`, `WP14-AR-003`.
+- Next permitted packet: **WP-1.5 — project configuration, dates, origins, preferences and RSVP-intent data hooks**.
