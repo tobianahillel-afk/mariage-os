@@ -2,8 +2,7 @@ import type { AppRoute } from "@application/routing/app-route";
 import type { ProtectedRouteDecision } from "@application/routing/protected-route-guard";
 
 type ShellState =
-  | Exclude<AppRoute, { kind: "protected_project" }>
-  | ProtectedRouteDecision;
+  Exclude<AppRoute, { kind: "protected_project" }> | ProtectedRouteDecision;
 
 type StaticShellKind = Exclude<
   ShellState["kind"],
