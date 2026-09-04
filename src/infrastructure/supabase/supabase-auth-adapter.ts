@@ -56,7 +56,9 @@ type ProviderFactorsResult =
 export interface SupabaseAuthClientLike {
   readonly auth: {
     getSession(): Promise<ProviderSessionResult>;
-    signInWithPassword(input: ProviderPasswordInput): Promise<ProviderSessionResult>;
+    signInWithPassword(
+      input: ProviderPasswordInput,
+    ): Promise<ProviderSessionResult>;
     signOut(): Promise<ProviderSignOutResult>;
     readonly mfa: {
       getAuthenticatorAssuranceLevel(): Promise<ProviderAssuranceResult>;
