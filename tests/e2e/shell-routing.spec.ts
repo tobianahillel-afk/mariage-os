@@ -20,7 +20,7 @@ async function renderAllowedProject(
       const storeModule = await import(storeModulePath);
       const browserGlobal = globalThis as unknown as {
         document: { querySelector(selector: string): unknown | null };
-        indexedDB: IDBFactory;
+        indexedDB: unknown;
       };
       const root = browserGlobal.document.querySelector("#app");
       if (root === null) {
@@ -109,13 +109,14 @@ test("pending mutation survives reload and remains isolated by account+project n
       const scopeModule = await import(scopeModulePath);
       const recordsModule = await import(recordsModulePath);
       const storeModule = await import(storeModulePath);
+      const browserGlobal = globalThis as unknown as { indexedDB: unknown };
       const scope = scopeModule.createLocalProjectScope(
         targetUserId,
         targetProjectId,
         targetDeviceId,
       );
       const store = await storeModule.IndexedDbProjectStore.open(
-        globalThis.indexedDB,
+        browserGlobal.indexedDB,
         scope,
         "0.0.0",
       );
@@ -155,13 +156,14 @@ test("pending mutation survives reload and remains isolated by account+project n
         "/src/infrastructure/indexeddb/indexeddb-project-store.ts";
       const scopeModule = await import(scopeModulePath);
       const storeModule = await import(storeModulePath);
+      const browserGlobal = globalThis as unknown as { indexedDB: unknown };
       const scope = scopeModule.createLocalProjectScope(
         targetUserId,
         targetProjectId,
         targetDeviceId,
       );
       const store = await storeModule.IndexedDbProjectStore.open(
-        globalThis.indexedDB,
+        browserGlobal.indexedDB,
         scope,
         "0.0.0",
       );
@@ -179,7 +181,7 @@ test("verified outsider gets the same generic project-unavailable shell", async 
 }) => {
   await page.goto("/");
   await page.evaluate(
-    async ({ id }) => {
+    async ({ id, userId: targetUserId }) => {
       const modulePath = "/src/app/bootstrap/start-application.ts";
       const module = await import(modulePath);
       const browserGlobal = globalThis as unknown as {
@@ -195,7 +197,7 @@ test("verified outsider gets the same generic project-unavailable shell", async 
           async getSession() {
             return {
               kind: "authenticated_verified" as const,
-              userId,
+              userId: targetUserId,
               email: "outsider@example.invalid",
               assurance: "aal1" as const,
             };
@@ -212,7 +214,7 @@ test("verified outsider gets the same generic project-unavailable shell", async 
         appVersion: "0.0.0",
       });
     },
-    { id: projectId },
+    { id: projectId, userId },
   );
 
   await expect(
