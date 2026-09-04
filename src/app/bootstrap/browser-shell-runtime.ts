@@ -2,9 +2,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type {
   ProjectAccessPort,
 } from "@application/projects/project-access-port";
-import type {
-  SessionReader,
-} from "@application/routing/protected-route-guard";
+import type { SessionReader } from "@application/routing/protected-route-guard";
 import { SupabaseAuthAdapter } from "@infra/supabase/supabase-auth-adapter";
 import {
   SupabaseProjectAccessAdapter,
