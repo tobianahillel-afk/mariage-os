@@ -48,20 +48,20 @@ it("accepts HTTPS and normalizes whitespace/origin", () => {
   });
 });
 
-it.each([
-  "http://localhost:54321/",
-  "http://127.0.0.1:54321/",
-])("accepts local HTTP origin %s", (url) => {
-  expect(
-    readBrowserSupabaseConfig({
-      VITE_SUPABASE_URL: url,
-      VITE_SUPABASE_PUBLISHABLE_KEY: publishableKey,
-    }),
-  ).toEqual({
-    url: url.slice(0, -1),
-    publishableKey,
-  });
-});
+it.each(["http://localhost:54321/", "http://127.0.0.1:54321/"])(
+  "accepts local HTTP origin %s",
+  (url) => {
+    expect(
+      readBrowserSupabaseConfig({
+        VITE_SUPABASE_URL: url,
+        VITE_SUPABASE_PUBLISHABLE_KEY: publishableKey,
+      }),
+    ).toEqual({
+      url: url.slice(0, -1),
+      publishableKey,
+    });
+  },
+);
 
 const invalidBrowserConfigs: BrowserSupabaseEnvironment[] = [
   {},
