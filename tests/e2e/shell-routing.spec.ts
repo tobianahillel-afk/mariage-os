@@ -6,13 +6,14 @@ const userId = "71111111-1111-4111-8111-111111111111";
 const deviceId = "61111111-1111-4111-8111-111111111111";
 const operationId = "55555555-5555-4555-8555-555555555555";
 
-async function renderAllowedProject(
-  page: Page,
-  id = projectId,
-): Promise<void> {
+async function renderAllowedProject(page: Page, id = projectId): Promise<void> {
   await page.goto("/");
   await page.evaluate(
-    async ({ id: targetProjectId, userId: targetUserId, deviceId: targetDeviceId }) => {
+    async ({
+      id: targetProjectId,
+      userId: targetUserId,
+      deviceId: targetDeviceId,
+    }) => {
       const startModulePath = "/src/app/bootstrap/start-application.ts";
       const storeModulePath =
         "/src/infrastructure/indexeddb/indexeddb-project-store.ts";
@@ -100,7 +101,12 @@ test("pending mutation survives reload and remains isolated by account+project n
   await renderAllowedProject(page);
 
   await page.evaluate(
-    async ({ projectId: targetProjectId, userId: targetUserId, deviceId: targetDeviceId, operationId: targetOperationId }) => {
+    async ({
+      projectId: targetProjectId,
+      userId: targetUserId,
+      deviceId: targetDeviceId,
+      operationId: targetOperationId,
+    }) => {
       const scopeModulePath =
         "/src/application/local-data/local-project-scope.ts";
       const recordsModulePath = "/src/application/local-data/local-records.ts";
@@ -149,7 +155,12 @@ test("pending mutation survives reload and remains isolated by account+project n
   );
 
   const secondProjectCanReadOperation = await page.evaluate(
-    async ({ projectId: targetProjectId, userId: targetUserId, deviceId: targetDeviceId, operationId: targetOperationId }) => {
+    async ({
+      projectId: targetProjectId,
+      userId: targetUserId,
+      deviceId: targetDeviceId,
+      operationId: targetOperationId,
+    }) => {
       const scopeModulePath =
         "/src/application/local-data/local-project-scope.ts";
       const storeModulePath =
@@ -235,7 +246,7 @@ test("public RSVP route is token-minimal and contains no project navigation", as
     page.getByRole("heading", { name: "Invitation & RSVP" }),
   ).toBeVisible();
   await expect(page.locator("nav")).toHaveCount(0);
-  await expect(page.locator('[data-sync-state]')).toHaveCount(0);
+  await expect(page.locator("[data-sync-state]")).toHaveCount(0);
   await expect(page.locator("body")).not.toContainText(capability);
   await expect(page).toHaveTitle("Invitation & RSVP · Mariage OS");
   await expect(page.locator('meta[name="referrer"]')).toHaveAttribute(
