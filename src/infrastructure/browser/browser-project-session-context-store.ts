@@ -10,9 +10,7 @@ function contextKey(projectId: string): string {
   return `${SESSION_CONTEXT_PREFIX}${projectId}`;
 }
 
-export class BrowserProjectSessionContextStore
-  implements ProjectSessionContextPort
-{
+export class BrowserProjectSessionContextStore implements ProjectSessionContextPort {
   public constructor(private readonly storage: Storage) {}
 
   public readUserId(projectId: string): string | null {
