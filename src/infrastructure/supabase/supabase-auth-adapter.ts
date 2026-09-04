@@ -30,7 +30,7 @@ type ProviderPasswordInput = {
 
 type ProviderSignOutResult = { readonly error: ProviderError };
 type ProviderAssuranceResult = ProviderResult<{
-  readonly currentLevel: "aal1" | "aal2" | null;
+  readonly currentLevel: string | null;
 }>;
 
 export interface SupabaseAuthClientLike {
@@ -49,8 +49,10 @@ export interface SupabaseAuthClientLike {
 const providerFailure = (): Error =>
   new Error("Authentication provider unavailable.");
 
-const mapAssurance = (level: "aal1" | "aal2" | null): AuthAssuranceLevel =>
-  level ?? "unknown";
+function mapAssurance(level: string | null): AuthAssuranceLevel {
+  if (level === "aal1" || level === "aal2") return level;
+  return "unknown";
+}
 
 export class SupabaseAuthAdapter implements AuthPort {
   public constructor(private readonly client: SupabaseAuthClientLike) {}
