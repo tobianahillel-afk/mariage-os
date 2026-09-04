@@ -5,6 +5,7 @@ const secondProjectId = "82222222-2222-4222-8222-222222222222";
 const userId = "71111111-1111-4111-8111-111111111111";
 const deviceId = "61111111-1111-4111-8111-111111111111";
 const operationId = "55555555-5555-4555-8555-555555555555";
+const secondOperationId = "56666666-6666-4666-8666-666666666666";
 
 async function renderAllowedProject(page: Page, id = projectId): Promise<void> {
   await page.goto("/");
@@ -51,6 +52,8 @@ async function renderAllowedProject(page: Page, id = projectId): Promise<void> {
         sessionContext: new contextModule.BrowserProjectSessionContextStore(
           browserGlobal.localStorage,
         ),
+        securityDiagnostics: null,
+        logoutCoordinator: null,
         localStoreFactory: new storeModule.IndexedDbProjectStoreFactory(
           browserGlobal.indexedDB,
         ),
@@ -63,13 +66,102 @@ async function renderAllowedProject(page: Page, id = projectId): Promise<void> {
   );
 }
 
-async function persistPendingMutation(page: Page): Promise<void> {
+async function renderSecurityProject(page: Page): Promise<void> {
+  await page.goto("/");
   await page.evaluate(
     async ({
       projectId: targetProjectId,
       userId: targetUserId,
       deviceId: targetDeviceId,
-      operationId: targetOperationId,
+    }) => {
+      const startModulePath = "/src/app/bootstrap/start-application.ts";
+      const logoutModulePath = "/src/application/auth/safe-logout.ts";
+      const storeModulePath =
+        "/src/infrastructure/indexeddb/indexeddb-project-store.ts";
+      const contextModulePath =
+        "/src/infrastructure/browser/browser-project-session-context-store.ts";
+      const startModule = await import(startModulePath);
+      const logoutModule = await import(logoutModulePath);
+      const storeModule = await import(storeModulePath);
+      const contextModule = await import(contextModulePath);
+      const browserGlobal = globalThis as unknown as {
+        document: { querySelector(selector: string): unknown | null };
+        indexedDB: unknown;
+        localStorage: Storage;
+      };
+      const root = browserGlobal.document.querySelector("#app");
+      if (root === null) {
+        throw new Error("Missing application root.");
+      }
+
+      const localStore = new storeModule.IndexedDbProjectStoreFactory(
+        browserGlobal.indexedDB,
+      );
+      const sessionContext =
+        new contextModule.BrowserProjectSessionContextStore(
+          browserGlobal.localStorage,
+        );
+      const logoutCoordinator = new logoutModule.SafeLogoutCoordinator({
+        auth: {
+          async signOut() {
+            return undefined;
+          },
+        },
+        localStoreFactory: localStore,
+        localPurge: localStore,
+        sessionContext,
+        appVersion: "0.0.0",
+      });
+
+      await startModule.startApplication(root, {
+        pathname: `/app/p/${targetProjectId}/settings/security`,
+        sessionReader: {
+          async getSession() {
+            return {
+              kind: "authenticated_verified" as const,
+              userId: targetUserId,
+              email: "member@example.invalid",
+              assurance: "aal2" as const,
+            };
+          },
+        },
+        projectAccess: {
+          async canReadProject() {
+            return true;
+          },
+        },
+        sessionContext,
+        securityDiagnostics: {
+          async readSecurityDiagnostics() {
+            return {
+              assurance: "aal2" as const,
+              canUpgradeToAal2: false,
+              verifiedTotpFactor: true,
+            };
+          },
+        },
+        logoutCoordinator,
+        localStoreFactory: localStore,
+        deviceId: targetDeviceId,
+        online: true,
+        appVersion: "0.0.0",
+      });
+    },
+    { projectId, userId, deviceId },
+  );
+}
+
+async function persistPendingMutation(
+  page: Page,
+  targetProjectId = projectId,
+  targetOperationId = operationId,
+): Promise<void> {
+  await page.evaluate(
+    async ({
+      projectId: targetProject,
+      userId: targetUserId,
+      deviceId: targetDeviceId,
+      operationId: targetOperation,
     }) => {
       const scopeModulePath =
         "/src/application/local-data/local-project-scope.ts";
@@ -82,7 +174,7 @@ async function persistPendingMutation(page: Page): Promise<void> {
       const browserGlobal = globalThis as unknown as { indexedDB: unknown };
       const scope = scopeModule.createLocalProjectScope(
         targetUserId,
-        targetProjectId,
+        targetProject,
         targetDeviceId,
       );
       const store = await storeModule.IndexedDbProjectStore.open(
@@ -92,7 +184,7 @@ async function persistPendingMutation(page: Page): Promise<void> {
       );
       await store.addPendingMutation(
         recordsModule.createPendingMutationEnvelope(scope, {
-          operationId: targetOperationId,
+          operationId: targetOperation,
           entityType: "project_preferences",
           entityId: "44444444-4444-4444-8444-444444444444",
           mutationType: "update_preferences",
@@ -104,13 +196,19 @@ async function persistPendingMutation(page: Page): Promise<void> {
       );
       store.close();
     },
-    { projectId, userId, deviceId, operationId },
+    {
+      projectId: targetProjectId,
+      userId,
+      deviceId,
+      operationId: targetOperationId,
+    },
   );
 }
 
 async function projectCanReadOperation(
   page: Page,
   targetProjectId: string,
+  targetOperationId = operationId,
 ): Promise<boolean> {
   return page.evaluate(
     async ({
@@ -144,7 +242,7 @@ async function projectCanReadOperation(
       projectId: targetProjectId,
       userId,
       deviceId,
-      operationId,
+      operationId: targetOperationId,
     },
   );
 }
@@ -226,6 +324,53 @@ test("session expiry preserves pending work until live membership is revalidated
   );
 });
 
+test("safe logout requires explicit discard and purges only the active project", async ({
+  page,
+}) => {
+  await renderAllowedProject(page);
+  await persistPendingMutation(page);
+  await persistPendingMutation(page, secondProjectId, secondOperationId);
+  await renderSecurityProject(page);
+
+  await expect(page.locator('[data-security-settings="true"]')).toBeVisible();
+  await page.getByRole("button", { name: "Se déconnecter" }).click();
+
+  await expect(page.locator('[data-shell="private-project"]')).toBeVisible();
+  const discard = page.getByRole("button", {
+    name: "Abandonner les modifications locales et se déconnecter",
+  });
+  await expect(discard).toBeVisible();
+  expect(await projectCanReadOperation(page, projectId)).toBe(true);
+  expect(
+    await projectCanReadOperation(page, secondProjectId, secondOperationId),
+  ).toBe(true);
+
+  await discard.click();
+
+  await expect(page.locator('[data-shell="landing"]')).toBeVisible();
+  await expect(page.locator('[data-shell="private-project"]')).toHaveCount(0);
+  expect(await projectCanReadOperation(page, projectId)).toBe(false);
+  expect(
+    await projectCanReadOperation(page, secondProjectId, secondOperationId),
+  ).toBe(true);
+
+  await page.goto(`/app/p/${projectId}/dashboard`);
+  await expect(
+    page.getByRole("heading", { name: "Connexion requise" }),
+  ).toBeVisible();
+  await expect(page.locator('[data-shell="session-expired"]')).toHaveCount(0);
+
+  await renderAllowedProject(page);
+  await expect(page.locator('[data-sync-state="online_idle"]')).toContainText(
+    "En ligne · aucune modification locale en attente",
+  );
+
+  await renderAllowedProject(page, secondProjectId);
+  await expect(page.locator('[data-sync-state="pending"]')).toContainText(
+    "1 modification en attente",
+  );
+});
+
 test("verified outsider gets the same generic project-unavailable shell", async ({
   page,
 }) => {
@@ -259,6 +404,8 @@ test("verified outsider gets the same generic project-unavailable shell", async 
           },
         },
         sessionContext: null,
+        securityDiagnostics: null,
+        logoutCoordinator: null,
         localStoreFactory: null,
         deviceId: null,
         online: true,
