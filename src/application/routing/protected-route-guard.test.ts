@@ -8,6 +8,7 @@ import {
 } from "./protected-route-guard";
 
 const projectId = "81111111-1111-4111-8111-111111111111";
+const userId = "71111111-1111-4111-8111-111111111111";
 
 function protectedRoute() {
   const route = parseAppRoute(`/app/p/${projectId}/dashboard`);
@@ -27,7 +28,7 @@ function projectAccess(result: boolean): ProjectAccessPort {
 
 const verifiedSession: AuthSessionState = {
   kind: "authenticated_verified",
-  userId: "user-1",
+  userId,
   email: "user@example.invalid",
   assurance: "aal2",
 };
@@ -54,7 +55,7 @@ it("does not treat an unverified identity as a project session", async () => {
       protectedRoute(),
       sessionReader({
         kind: "authenticated_unverified",
-        userId: "user-1",
+        userId,
         email: "user@example.invalid",
         assurance: "aal1",
       }),
@@ -96,6 +97,7 @@ it("allows a verified user only after live project.read succeeds", async () => {
     ),
   ).resolves.toEqual({
     kind: "project_allowed",
+    userId,
     projectId,
     projectPath: "/dashboard",
   });
