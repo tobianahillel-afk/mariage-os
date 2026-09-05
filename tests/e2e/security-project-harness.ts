@@ -21,12 +21,19 @@ async function renderSecurityProjectInBrowser(
       import(storePath),
       import(contextPath),
     ]);
-  const root = document.querySelector("#app");
-  if (!(root instanceof HTMLElement)) throw new Error("Missing application root.");
+  const browserGlobal = globalThis as unknown as {
+    document: { querySelector(selector: string): unknown | null };
+    indexedDB: unknown;
+    localStorage: unknown;
+  };
+  const root = browserGlobal.document.querySelector("#app");
+  if (root === null) throw new Error("Missing application root.");
 
-  const localStore = new storeModule.IndexedDbProjectStoreFactory(indexedDB);
+  const localStore = new storeModule.IndexedDbProjectStoreFactory(
+    browserGlobal.indexedDB,
+  );
   const sessionContext = new contextModule.BrowserProjectSessionContextStore(
-    localStorage,
+    browserGlobal.localStorage,
   );
   const logoutCoordinator = new logoutModule.SafeLogoutCoordinator({
     auth: { async signOut() {} },
@@ -47,7 +54,11 @@ async function renderSecurityProjectInBrowser(
         };
       },
     },
-    projectAccess: { async canReadProject() { return true; } },
+    projectAccess: {
+      async canReadProject() {
+        return true;
+      },
+    },
     sessionContext,
     securityDiagnostics: null,
     logoutCoordinator,
