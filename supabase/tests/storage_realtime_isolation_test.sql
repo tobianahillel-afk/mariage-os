@@ -147,16 +147,11 @@ end;
 $$;
 
 -- The Storage API sets this transaction flag before deleting object metadata.
--- Setting it locally bypasses only Storage's metadata-protection trigger; RLS
--- remains the authorization boundary exercised by every delete assertion below.
+-- It bypasses only metadata protection; RLS still decides every delete below.
 select set_config('storage.allow_delete_query', 'true', true);
 
 set local role authenticated;
-select set_config(
-  'request.jwt.claims',
-  '{"sub":"11111111-1111-4111-8111-111111111111","role":"authenticated"}',
-  true
-);
+select set_config('request.jwt.claims', '{"sub":"11111111-1111-4111-8111-111111111111","role":"authenticated"}', true);
 select ok(
   public.has_project_permission('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'media.read'),
   'owner receives media.read'
@@ -166,11 +161,7 @@ select ok(
   'owner receives media.write'
 );
 
-select set_config(
-  'request.jwt.claims',
-  '{"sub":"22222222-2222-4222-8222-222222222222","role":"authenticated"}',
-  true
-);
+select set_config('request.jwt.claims', '{"sub":"22222222-2222-4222-8222-222222222222","role":"authenticated"}', true);
 select ok(
   public.has_project_permission('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'media.read'),
   'editor receives media.read'
@@ -180,11 +171,7 @@ select ok(
   'editor receives media.write'
 );
 
-select set_config(
-  'request.jwt.claims',
-  '{"sub":"33333333-3333-4333-8333-333333333333","role":"authenticated"}',
-  true
-);
+select set_config('request.jwt.claims', '{"sub":"33333333-3333-4333-8333-333333333333","role":"authenticated"}', true);
 select ok(
   public.has_project_permission('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'media.read'),
   'viewer receives media.read'
@@ -194,11 +181,7 @@ select ok(
   'viewer does not receive media.write'
 );
 
-select set_config(
-  'request.jwt.claims',
-  '{"sub":"11111111-1111-4111-8111-111111111111","role":"authenticated"}',
-  true
-);
+select set_config('request.jwt.claims', '{"sub":"11111111-1111-4111-8111-111111111111","role":"authenticated"}', true);
 select is(
   (select count(*)::integer from storage.objects where bucket_id = 'project-private'),
   1,
@@ -239,11 +222,7 @@ select ok(
   'project A owner may delete project A media because media.write is granted'
 );
 
-select set_config(
-  'request.jwt.claims',
-  '{"sub":"22222222-2222-4222-8222-222222222222","role":"authenticated"}',
-  true
-);
+select set_config('request.jwt.claims', '{"sub":"22222222-2222-4222-8222-222222222222","role":"authenticated"}', true);
 select is(
   (select count(*)::integer from storage.objects where bucket_id = 'project-private'),
   1,
@@ -271,11 +250,7 @@ select ok(
   'editor may delete project A media because media.write is granted'
 );
 
-select set_config(
-  'request.jwt.claims',
-  '{"sub":"33333333-3333-4333-8333-333333333333","role":"authenticated"}',
-  true
-);
+select set_config('request.jwt.claims', '{"sub":"33333333-3333-4333-8333-333333333333","role":"authenticated"}', true);
 select is(
   (select count(*)::integer from storage.objects where bucket_id = 'project-private'),
   1,
@@ -297,11 +272,7 @@ select ok(
   'viewer cannot delete project A media without media.write'
 );
 
-select set_config(
-  'request.jwt.claims',
-  '{"sub":"44444444-4444-4444-8444-444444444444","role":"authenticated"}',
-  true
-);
+select set_config('request.jwt.claims', '{"sub":"44444444-4444-4444-8444-444444444444","role":"authenticated"}', true);
 select is(
   (select count(*)::integer from storage.objects where bucket_id = 'project-private'),
   2,
@@ -326,11 +297,7 @@ select is(
   'exact project C object path knowledge does not make the object readable'
 );
 
-select set_config(
-  'request.jwt.claims',
-  '{"sub":"77777777-7777-4777-8777-777777777777","role":"authenticated"}',
-  true
-);
+select set_config('request.jwt.claims', '{"sub":"77777777-7777-4777-8777-777777777777","role":"authenticated"}', true);
 select is(
   (select count(*)::integer from storage.objects where bucket_id = 'project-private'),
   2,
@@ -347,11 +314,7 @@ select is(
   'project B owner cannot read project A even with its exact namespace known'
 );
 
-select set_config(
-  'request.jwt.claims',
-  '{"sub":"55555555-5555-4555-8555-555555555555","role":"authenticated"}',
-  true
-);
+select set_config('request.jwt.claims', '{"sub":"55555555-5555-4555-8555-555555555555","role":"authenticated"}', true);
 select is(
   (select count(*)::integer from storage.objects where bucket_id = 'project-private'),
   0,
@@ -366,11 +329,7 @@ select ok(
   'authenticated outsider cannot delete a known project A object'
 );
 
-select set_config(
-  'request.jwt.claims',
-  '{"sub":"66666666-6666-4666-8666-666666666666","role":"authenticated"}',
-  true
-);
+select set_config('request.jwt.claims', '{"sub":"66666666-6666-4666-8666-666666666666","role":"authenticated"}', true);
 select is(
   (select count(*)::integer from storage.objects where bucket_id = 'project-private'),
   0,
@@ -401,11 +360,7 @@ select ok(
   not pg_temp.try_storage_delete('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a1000000-0000-4000-8000-000000000001/thumbnail-v1'),
   'anonymous client cannot delete private project Storage objects'
 );
-select set_config(
-  'request.jwt.claims',
-  '{"role":"anon","project_id":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","rsvp_token":"synthetic-capability"}',
-  true
-);
+select set_config('request.jwt.claims', '{"role":"anon","project_id":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","rsvp_token":"synthetic-capability"}', true);
 select is(
   (select count(*)::integer from storage.objects where bucket_id = 'project-private'),
   0,
