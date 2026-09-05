@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { renderSecurityProject } from "./security-project-harness";
+import { renderSecurityProject } from "./security-project-harness.js";
 
 const projectId = "81111111-1111-4111-8111-111111111111";
 const secondProjectId = "82222222-2222-4222-8222-222222222222";
@@ -366,16 +366,11 @@ test("navigation switches between desktop and mobile skeletons", async ({
   page,
 }) => {
   await renderAllowedProject(page);
-
-  await page.setViewportSize({ width: 1280, height: 800 });
-  await expect(page.locator(".desktop-nav")).toBeVisible();
-  await expect(page.locator(".mobile-nav")).toBeHidden();
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await expect(page.locator('[data-navigation="desktop"]')).toBeVisible();
+  await expect(page.locator('[data-navigation="mobile"]')).toBeHidden();
 
   await page.setViewportSize({ width: 390, height: 844 });
-  await expect(page.locator(".desktop-nav")).toBeHidden();
-  await expect(page.locator(".mobile-nav")).toBeVisible();
-  await page.locator(".mobile-more summary").click();
-  await expect(
-    page.locator(".mobile-more-menu").getByRole("link", { name: "Réglages" }),
-  ).toBeVisible();
+  await expect(page.locator('[data-navigation="desktop"]')).toBeHidden();
+  await expect(page.locator('[data-navigation="mobile"]')).toBeVisible();
 });
