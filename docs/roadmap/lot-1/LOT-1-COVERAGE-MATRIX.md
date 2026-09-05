@@ -118,7 +118,7 @@ Planning complexity: **7/10**.
 
 ### WP-1.8 — Session expiry, safe logout, MFA/security diagnostics
 
-State: `PLANNED`
+State: **ACCEPTED**
 
 Scope:
 - session-expired vs explicit signed-out state machine;
@@ -126,6 +126,8 @@ Scope:
 - pending-work logout resolution contract;
 - purge of private local state after safe logout;
 - MFA/recovery readiness/security diagnostics shell.
+
+Acceptance evidence: run `33994961610` on implementation/evidence HEAD `cb7201e2d6dc1a8ca7608bb236f1f79ac84d8d9d`, all five jobs SUCCESS including browser E2E + mutation and clean-checkout `npm run verify`; `WP18-AR-001..003` closed; final fresh Pass B PASS; Pass C required-minus-evidenced = ∅.
 
 Planning complexity: **7/10**.
 
@@ -150,12 +152,12 @@ WP-1.1 [ACCEPTED]
 WP-1.2 [ACCEPTED]
   ├─→ WP-1.3 [ACCEPTED] → WP-1.4 [ACCEPTED]
   ├─→ WP-1.5 [ACCEPTED] → WP-1.6 [ACCEPTED]
-  └─→ WP-1.7 [ACCEPTED] → WP-1.8 [PLANNED]
+  └─→ WP-1.7 [ACCEPTED] → WP-1.8 [ACCEPTED]
                               ↘
                                 WP-1.9 [PLANNED]
 ```
 
-Execution remains sequential by default. WP-1.8 is now the next permitted packet once its bounded Work Packet record is created and moved through the normal three-pass protocol. WP-1.9 remains sequenced behind its dependencies; Lot 2+ remains forbidden.
+Execution remains sequential by default. WP-1.9 is now the next permitted packet, subject to its bounded Work Packet record and normal Pass A → B → C protocol. Lot 2+ remains forbidden pending Lot 1 packet completion, reconciliation, Integration Pass and acceptance.
 
 ## Explicitly out of Lot 1
 
