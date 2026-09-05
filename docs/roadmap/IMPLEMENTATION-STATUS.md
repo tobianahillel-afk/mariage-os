@@ -40,17 +40,17 @@ Packets:
 6. `WP-1.6` — protected app shell/navigation and public RSVP trust boundary — **ACCEPTED**;
 7. `WP-1.7` — project-scoped repositories, local cache and sync primitives — **ACCEPTED**;
 8. `WP-1.8` — session expiry, safe logout, MFA/security diagnostics — **ACCEPTED**;
-9. `WP-1.9` — Storage/Realtime isolation foundation and security-matrix closure — **REVIEW_PENDING**.
+9. `WP-1.9` — Storage/Realtime isolation foundation and security-matrix closure — **REVIEW_FAILED**.
 
 ### Durable cursor
 
 - Current Lot: **1**
 - Lot state: **IN_PROGRESS**
 - Current packet: **WP-1.9**
-- Packet state: **REVIEW_PENDING**
-- Current/next pass: **B-ADVERSARIAL-REVIEW**
+- Packet state: **REVIEW_FAILED**
+- Current/next pass: **B-REVIEW-FAILED; A-REMEDIATION next**
 - Accepted packets: **WP-1.1, WP-1.2, WP-1.3, WP-1.4, WP-1.5, WP-1.6, WP-1.7, WP-1.8**
-- Review-failed/blocked packets: **none**
+- Review-failed/blocked packets: **WP-1.9 — `WP19-AR-001` MAJOR**
 - WP-1.1 acceptance evidence: run `33809855993` on `f0b1e46c46bc3ad5d15bf2191c63ec4e85473507`, all five jobs SUCCESS.
 - WP-1.2 acceptance evidence: run `33811568440` on `fa96228bcd8a0b7671fcb561f8f7668eaf5851dc`, all five jobs SUCCESS; `WP12-AR-001` closed.
 - WP-1.3 acceptance evidence: run `33817932867` on `707b1384fbd370fe88ef7a87ac191aa9645f6db3`, all five jobs SUCCESS; `WP13-AR-001` and `WP13-AR-002` closed.
@@ -59,9 +59,9 @@ Packets:
 - WP-1.6 acceptance evidence: run `33880216335` on implementation HEAD `61dca0718f8ff7372609d208050aba6a50271743`, all five jobs SUCCESS including clean-checkout `npm run verify`; fresh Pass B PASS; Pass C required-minus-evidenced = ∅; `WP16-AR-001` and `WP16-AR-002` closed.
 - WP-1.7 acceptance evidence: run `33895516028` on implementation/review HEAD `46548702f304dbabcf4bd673a33afb1c0ec96a3d`, all five jobs SUCCESS including 28/28 Playwright E2E, mutation and clean-checkout `npm run verify`; `WP17-AR-001..003` closed; fresh Pass B PASS; Pass C required-minus-evidenced = ∅.
 - WP-1.8 acceptance evidence: run `33994961610` on implementation/evidence HEAD `cb7201e2d6dc1a8ca7608bb236f1f79ac84d8d9d`, all five jobs SUCCESS including browser E2E + mutation and clean-checkout `npm run verify`; `WP18-AR-001..003` closed; final fresh Pass B PASS; Pass C required-minus-evidenced = ∅.
-- WP-1.9 Pass A evidence: run `33996464530` on implementation/evidence HEAD `a0e719462b2ea41908e6438a72cac75f11edcf36`, **5/5 SUCCESS** including clean-checkout `npm run verify`; DB **14 files / 277 tests / PASS**, including 38/38 Storage/Realtime matrix assertions.
+- WP-1.9 pre-review Pass A evidence: run `33996464530` on implementation/evidence HEAD `a0e719462b2ea41908e6438a72cac75f11edcf36`, 5/5 SUCCESS including clean-checkout `npm run verify`; DB **14 files / 277 tests / PASS**. Fresh Pass B subsequently found `WP19-AR-001`, so this evidence is historical for acceptance.
 - Current branch: **`lot-1/identity-project-foundation`**
-- Next permitted action: **fresh WP-1.9 Pass B adversarial review; Pass C only if no unresolved BLOCKING/MAJOR finding**.
+- Next permitted action: **remediate `WP19-AR-001` only by adding direct transactional DELETE allow/deny RLS evidence using Supabase's local `storage.allow_delete_query=true` session flag; then fresh exact-head evidence and fresh Pass B**.
 
 ## Lot status
 
@@ -75,17 +75,23 @@ Packets:
 
 - V1 Feature IDs: 120 SPECIFIED inventory rows total.
 - Lot 1 foundations are in implementation; no Lot 2+ Feature may start.
-- WP-1.1 through WP-1.8 are accepted foundations; WP-1.9 is under adversarial review as the final implementation packet before Lot reconciliation/integration/acceptance.
+- WP-1.1 through WP-1.8 are accepted foundations; WP-1.9 is in bounded adversarial-review remediation as the final implementation packet before Lot reconciliation/integration/acceptance.
 
 ## Current blockers / forward maintenance
 
-Open adversarial findings:
+Open adversarial finding:
 
-- none before the fresh WP-1.9 Pass B now in progress.
+- `WP19-AR-001` **MAJOR**: the DELETE policy is structurally present and correctly references `media.write`, but the current green matrix does not behaviorally execute direct DELETE authorization. The repair must set Supabase's transaction-local `storage.allow_delete_query=true` flag inside the pgTAP transaction and then prove allowed and denied DELETE decisions under the existing synthetic roles. No API/service-role credentials are required.
 
-WP-1.9 Pass-A evidence note:
+Reviewed clean in the same Pass B:
 
-- the initial Storage matrix attempted direct SQL deletion from `storage.objects`; current Supabase Storage protects direct metadata deletion and object removal belongs to the Storage API. The test was corrected without weakening the DELETE RLS policy: behavioral SELECT/INSERT/UPDATE isolation remains direct, while DELETE policy command/role/`media.write` structure is explicitly asserted. This must be independently judged in Pass B rather than assumed sufficient.
+- bucket privacy and four expected policy operations;
+- full-path validation and malformed-path fail-closed behavior;
+- live centralized membership/permission authorization;
+- cross-project UPDATE movement denial;
+- owner/editor/viewer/multi-project/outsider/revoked/anon/guest-like isolation for covered operations;
+- Realtime disabled plus empty public application publication and no client Realtime surface;
+- no provider/service-role/domain/Lot-2+ scope leak.
 
 Inherited reviewed non-blocking maintenance:
 
@@ -103,9 +109,8 @@ Lot 0: ACCEPTED
 Lot 1: IN_PROGRESS
 Coverage: required - assigned = ∅
 Accepted: WP-1.1, WP-1.2, WP-1.3, WP-1.4, WP-1.5, WP-1.6, WP-1.7, WP-1.8
-WP-1.9 Pass A: run 33996464530 on a0e719462b2ea41908e6438a72cac75f11edcf36, 5/5 SUCCESS; DB 14 files / 277 tests / PASS
-Current: WP-1.9 / REVIEW_PENDING / B-ADVERSARIAL-REVIEW
-Next: fresh adversarial review -> Pass C only if clean
-After WP-1.9 acceptance: Lot reconciliation + separate Integration Pass + Lot acceptance
-Lot 2+: forbidden
+WP-1.9 historical Pass A: run 33996464530 on a0e719462b2ea41908e6438a72cac75f11edcf36, 5/5 SUCCESS; DB 14 files / 277 tests / PASS
+Current: WP-1.9 / REVIEW_FAILED / WP19-AR-001
+Next: bounded DELETE-RLS evidence remediation -> fresh exact-head verification -> fresh Pass B
+Pass C/Lot closure/Lot 2+: forbidden until gates pass
 ```
