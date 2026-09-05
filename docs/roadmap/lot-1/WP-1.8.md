@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-1.8`
 - Lot: `1`
 - Name: Session expiry, safe logout, MFA/security diagnostics
-- State: `IN_PROGRESS`
-- Current pass: `A-IMPLEMENT`
+- State: `REVIEW_FAILED`
+- Current pass: `B-REVIEW-FAILED`
 - Primary bounded context: authenticated project-session recovery and local privacy lifecycle
 - Branch/PR: `lot-1/identity-project-foundation`
 
@@ -87,30 +87,65 @@ Cohesion rationale: session expiry, safe logout and security diagnostics all gov
 
 ## Pass A — IMPLEMENT
 
-In progress.
+Completed on implementation/review HEAD `c93dd734ff048ea9829c53e147735c433cf8b41e`.
+
+Exact-head evidence: GitHub Actions run `33991620529` completed successfully across Core quality/security, browser E2E + mutation, local Supabase DB/RLS, privacy-safe preview artifact and clean-checkout full verification.
 
 ### Pass A exit criteria
 
-- [ ] bounded vertical slice implemented
-- [ ] runtime validation at new browser/provider trust boundaries
-- [ ] no private project content rendered from an expired/fresh signed-out state
-- [ ] pending local work survives expiry and cannot be silently purged during logout
-- [ ] reauth path still requires live membership validation
-- [ ] safe logout purges only the authenticated account+project private namespace after provider sign-out
-- [ ] MFA/security diagnostics expose safe metadata only and do not weaken server-side strong-auth checks
-- [ ] applicable unit/property/browser/security evidence green
-- [ ] exact-head full CI including clean-checkout `npm run verify` green before Pass B
+- [x] bounded vertical slice implemented
+- [x] runtime validation at new browser/provider trust boundaries
+- [x] no private project content rendered from an expired/fresh signed-out state
+- [x] pending local work survives expiry and cannot be silently purged during logout
+- [x] reauth path still requires live membership validation
+- [x] safe logout purges only the authenticated account+project private namespace after provider sign-out
+- [x] MFA/security diagnostics expose safe metadata only and do not weaken server-side strong-auth checks
+- [x] applicable unit/property/browser/security evidence green
+- [x] exact-head full CI including clean-checkout `npm run verify` green before Pass B
 
 ## Pass B — ADVERSARIAL REVIEW
 
-Not started. Mandatory after exact-head Pass A evidence.
+Fresh adversarial review performed against exact HEAD `c93dd734ff048ea9829c53e147735c433cf8b41e` after green Pass A evidence.
+
+Result: **REVIEW_FAILED**.
+
+### `WP18-AR-001` — MAJOR — ordinary logout uses provider-global session scope
+
+Observed implementation: `SupabaseAuthAdapter.signOut()` invokes `supabase.auth.signOut()` without options. The pinned `@supabase/supabase-js` `2.112.4` provider contract defaults that call to `scope: 'global'`, which revokes all active refresh-token sessions for the owner rather than only the current browser session.
+
+Why this is material: Mariage OS safe logout is explicitly scoped to the current browser/profile local lifecycle and project cache, while multi-device access is a V1 product requirement and compromised-session/global revocation is a separate security capability. Ordinary logout must not unexpectedly terminate the same owner's unrelated phone/tablet/browser sessions.
+
+Required repair:
+
+- keep the application `AuthPort` provider-neutral;
+- make the Supabase adapter invoke provider logout explicitly with `scope: 'local'` for the ordinary safe-logout path;
+- add a regression test proving the exact provider call uses local scope;
+- rerun exact-head verification and fresh Pass B.
+
+### `WP18-AR-002` — MAJOR — destructive pending-work discard lacks the required separated danger treatment
+
+Observed implementation: after unresolved work is detected, the UI appends `Abandonner les modifications locales et se déconnecter` directly into the same security panel. The element carries class `danger-action`, but the current stylesheet provides no dedicated warning/separation treatment for that class or a surrounding destructive-action zone.
+
+Why this is material: `AUTH-BLUEPRINTS.md` requires a strong warning, explicit confirmation and non-accidental placement for destructive discard; `SETTINGS-DIAGNOSTICS.md` requires destructive actions to be clearly separated from ordinary safe actions. This action can irreversibly purge unsynchronized local work, so the missing warning/separation is part of the WP-1.8 safety contract rather than cosmetic polish.
+
+Required repair:
+
+- retain the existing two-step semantics;
+- render the discard confirmation inside an explicit danger/warning zone with clear irreversible-loss copy and visual separation from ordinary logout;
+- keep the destructive action explicit and non-primary;
+- extend unit/browser evidence for the warning zone and mobile-safe interaction;
+- rerun exact-head verification and fresh Pass B.
+
+No other BLOCKING/MAJOR finding was identified in the reviewed WP-1.8 surfaces. The existing documented degraded behavior for selective browser-storage divergence remains inherited non-blocking maintenance and does not weaken authorization or silently delete work.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started. Forbidden until fresh Pass B has no unresolved BLOCKING/MAJOR finding.
+Not started. Forbidden until a repaired exact HEAD has green verification and a fresh Pass B with no unresolved BLOCKING/MAJOR finding.
 
 ## Handoff
 
-- Current state: `IN_PROGRESS`.
-- Current/next pass: `A-IMPLEMENT`.
-- Next permitted action: implement WP-1.8 only, then exact-head evidence; WP-1.9 and Lot 2+ remain forbidden.
+- Current state: `REVIEW_FAILED`.
+- Current/next pass: `B-REVIEW-FAILED` → remediation.
+- Open findings: `WP18-AR-001`, `WP18-AR-002`.
+- Next permitted action: repair those two WP-1.8 findings only, rerun exact-head evidence, then perform a fresh Pass B.
+- WP-1.9 and Lot 2+ remain forbidden.
