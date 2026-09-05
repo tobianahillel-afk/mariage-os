@@ -43,7 +43,7 @@ function makeClient(options: ClientOptions = {}): SupabaseAuthClientLike {
         data: { session },
         error: options.signInError ? { message: "sign in failed" } : null,
       })),
-      signOut: vi.fn(async () => ({
+      signOut: vi.fn(async (_input: { readonly scope: "local" }) => ({
         error: options.signOutError ? { message: "sign out failed" } : null,
       })),
       mfa: {
@@ -215,6 +215,10 @@ it("fails closed on assurance, factor and sign-out errors", async () => {
   );
 });
 
-it("signs out successfully when provider accepts", async () => {
-  await expect(authAdapter().signOut()).resolves.toBeUndefined();
+it("signs out only the current provider session", async () => {
+  const client = makeClient();
+  const adapter = new SupabaseAuthAdapter(client);
+
+  await expect(adapter.signOut()).resolves.toBeUndefined();
+  expect(client.auth.signOut).toHaveBeenCalledWith({ scope: "local" });
 });
