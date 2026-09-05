@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-1.8`
 - Lot: `1`
 - Name: Session expiry, safe logout, MFA/security diagnostics
-- State: `REVIEW_PENDING`
-- Current pass: `B-ADVERSARIAL-REVIEW`
+- State: `REVIEW_FAILED`
+- Current pass: `B-REVIEW-FAILED`
 - Primary bounded context: authenticated project-session recovery and local privacy lifecycle
 - Branch/PR: `lot-1/identity-project-foundation`
 
@@ -132,7 +132,7 @@ Repair implemented:
 - regression evidence asserts the exact provider call;
 - TypeScript composition against the real pinned SDK and the complete exact-head verification are green.
 
-Repair status: **implemented and verified; closure pending this fresh Pass B**.
+Repair status: **implemented and verified; no new defect found in the fresh review of this repair**.
 
 ### `WP18-AR-002` — MAJOR — destructive pending-work discard lacks the required separated danger treatment
 
@@ -143,24 +143,34 @@ Repair implemented:
 - the existing two-step semantics remain intact;
 - the discard action is now nested in a dedicated `logout-danger-zone` with an explicit `Abandon irréversible` warning and concrete irreversible-loss copy;
 - styling visually separates the danger zone and destructive action from ordinary logout;
-- tests cover warning presence, duplicate prevention, explicit `logout(true)`, local-state-unavailable and unexpected-rejection recovery;
-- the existing real-browser safe-logout scenario executes the flow under Chromium, Firefox, WebKit and mobile-Chromium.
+- unit tests cover warning presence, duplicate prevention, explicit `logout(true)`, local-state-unavailable and unexpected-rejection recovery.
 
-Repair status: **implemented and verified; closure pending this fresh Pass B**.
+Repair status: **implementation is correct, but closure remains blocked by `WP18-AR-003` below**.
 
-### Fresh review cursor
+### `WP18-AR-003` — MAJOR — real-browser regression does not prove the repaired danger warning
 
-A fresh adversarial review must now re-evaluate the repaired exact code plus the surrounding WP-1.8 session/logout/MFA/local-isolation surfaces. No finding is considered closed until that review completes with no unresolved BLOCKING/MAJOR defect.
+Fresh review observation on HEAD `6d69f8cf80c5a08114fc7d171043cf49cffb3ed2`: the existing Playwright safe-logout scenario reaches and clicks `Abandonner les modifications locales et se déconnecter`, but it does not assert the dedicated `logout-danger-zone`, the `Abandon irréversible` warning, or the irreversible-loss copy. That scenario would therefore still pass if the browser-visible warning/separation regressed while the button remained available.
+
+Why this is material: `WP18-AR-002` was specifically a destructive-action safety/UX defect, and `SEC-VER-005` requires reproducible security defects to gain regression evidence. The packet's own repair record also requires browser evidence for the warning zone and mobile-safe interaction. Unit DOM evidence alone does not prove the warning is rendered/visible in the real browser/CSS path.
+
+Required repair:
+
+- extend the existing Playwright safe-logout scenario to assert the browser-visible danger zone and irreversible warning before destructive discard;
+- keep the scenario in the existing multi-profile Playwright matrix so the same assertion runs under Chromium, Firefox, WebKit and mobile-Chromium;
+- rerun exact-head verification and perform another fresh Pass B.
+
+Fresh Pass B result: **REVIEW_FAILED** because `WP18-AR-003` is unresolved. No additional BLOCKING/MAJOR defect was identified in the surrounding session-expiry, live-membership revalidation, scoped purge, context-marker, MFA diagnostics or logout failure paths reviewed on this HEAD.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started. Forbidden until fresh Pass B completes with no unresolved BLOCKING/MAJOR finding.
+Not started. Forbidden until a repaired exact HEAD has green verification and a fresh Pass B with no unresolved BLOCKING/MAJOR finding.
 
 ## Handoff
 
-- Current state: `REVIEW_PENDING`.
-- Current/next pass: `B-ADVERSARIAL-REVIEW`.
-- Fresh repaired evidence: run `33993111405` on `68dbb4be3c7407758168b573ddbcf10120ef7298`, 5/5 SUCCESS including clean-checkout `npm run verify`.
-- Findings awaiting fresh review closure: `WP18-AR-001`, `WP18-AR-002`.
-- Next permitted action: fresh Pass B on repaired WP-1.8 only.
-- Pass C, WP-1.9 and Lot 2+ remain forbidden until the required predecessor gate passes.
+- Current state: `REVIEW_FAILED`.
+- Current/next pass: `B-REVIEW-FAILED`.
+- `WP18-AR-001`: repaired and clean under fresh review.
+- `WP18-AR-002`: implementation repaired; closure blocked only by missing browser-specific regression evidence.
+- Open finding: `WP18-AR-003`.
+- Next permitted action: remediate `WP18-AR-003` in WP-1.8 only, rerun exact-head evidence, then perform another fresh Pass B.
+- Pass C, WP-1.9 and Lot 2+ remain forbidden.
