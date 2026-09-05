@@ -6,6 +6,12 @@ export interface SecurityProjectInput {
   readonly deviceId: string;
 }
 
+interface BrowserGlobals {
+  readonly document: { querySelector(selector: string): unknown | null };
+  readonly indexedDB: unknown;
+  readonly localStorage: unknown;
+}
+
 async function renderSecurityProjectInBrowser(
   input: SecurityProjectInput,
 ): Promise<void> {
@@ -21,11 +27,7 @@ async function renderSecurityProjectInBrowser(
       import(storePath),
       import(contextPath),
     ]);
-  const browserGlobal = globalThis as unknown as {
-    document: { querySelector(selector: string): unknown | null };
-    indexedDB: unknown;
-    localStorage: unknown;
-  };
+  const browserGlobal = globalThis as unknown as BrowserGlobals;
   const root = browserGlobal.document.querySelector("#app");
   if (root === null) throw new Error("Missing application root.");
 
