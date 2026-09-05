@@ -130,7 +130,7 @@ it("renders negative and unavailable diagnostic branches safely", () => {
   expect(texts(unavailable)).toContain("État MFA indisponible pour le moment.");
 });
 
-it("requires explicit discard when unresolved local work blocks logout", async () => {
+it("separates explicit discard behind an irreversible warning", async () => {
   installDocument();
   const target = actions({ kind: "resolution_required", unresolvedCount: 3 });
   const root = createSecuritySettingsPanel({
@@ -139,10 +139,19 @@ it("requires explicit discard when unresolved local work blocks logout", async (
   }) as unknown as FakeElement;
 
   await actionElement(root, "safe-logout").click();
+  expect(texts(root)).toContain("Abandon irréversible");
   expect(texts(root)).toContain(
-    "Synchronisez ou récupérez votre travail avant de réessayer, ou confirmez explicitement son abandon.",
+    "Les modifications locales non synchronisées de ce projet seront supprimées de cet appareil et ne pourront pas être récupérées depuis Mariage OS.",
   );
+  expect(
+    descendants(root).some(
+      (element) =>
+        element.getAttribute("data-logout-danger-zone") === "true" &&
+        element.className === "logout-danger-zone",
+    ),
+  ).toBe(true);
   const discard = actionElement(root, "discard-logout");
+
   await actionElement(root, "safe-logout").click();
   expect(
     descendants(root).filter(
@@ -153,6 +162,44 @@ it("requires explicit discard when unresolved local work blocks logout", async (
   target.logout.mockResolvedValueOnce({ kind: "completed" });
   await discard.click();
   expect(target.logout).toHaveBeenLastCalledWith(true);
+});
+
+it("reenables destructive confirmation when local inspection becomes unavailable", async () => {
+  installDocument();
+  const target = actions({ kind: "resolution_required", unresolvedCount: 1 });
+  const root = createSecuritySettingsPanel({
+    diagnostics: { kind: "unavailable" },
+    actions: target.target,
+  }) as unknown as FakeElement;
+
+  await actionElement(root, "safe-logout").click();
+  const discard = actionElement(root, "discard-logout");
+  target.logout.mockResolvedValueOnce({ kind: "local_state_unavailable" });
+  await discard.click();
+
+  expect(discard.disabled).toBe(false);
+  expect(texts(root)).toContain(
+    "Impossible de vérifier le travail local sans risque.",
+  );
+});
+
+it("reenables destructive confirmation after an unexpected rejection", async () => {
+  installDocument();
+  const target = actions({ kind: "resolution_required", unresolvedCount: 1 });
+  const root = createSecuritySettingsPanel({
+    diagnostics: { kind: "unavailable" },
+    actions: target.target,
+  }) as unknown as FakeElement;
+
+  await actionElement(root, "safe-logout").click();
+  const discard = actionElement(root, "discard-logout");
+  target.logout.mockRejectedValueOnce(new Error("unexpected"));
+  await discard.click();
+
+  expect(discard.disabled).toBe(false);
+  expect(texts(root)).toContain(
+    "Impossible de terminer la déconnexion en toute sécurité.",
+  );
 });
 
 it("reports unavailable local inspection without destructive fallback", async () => {
