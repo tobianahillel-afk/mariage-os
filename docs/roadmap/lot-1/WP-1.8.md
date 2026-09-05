@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-1.8`
 - Lot: `1`
 - Name: Session expiry, safe logout, MFA/security diagnostics
-- State: `IN_PROGRESS`
-- Current pass: `A-REMEDIATION`
+- State: `REVIEW_PENDING`
+- Current pass: `B-ADVERSARIAL-REVIEW`
 - Primary bounded context: authenticated project-session recovery and local privacy lifecycle
 - Branch/PR: `lot-1/identity-project-foundation`
 
@@ -89,9 +89,19 @@ Cohesion rationale: session expiry, safe logout and security diagnostics all gov
 
 Initial implementation completed on implementation/review HEAD `c93dd734ff048ea9829c53e147735c433cf8b41e`.
 
-Initial exact-head evidence: GitHub Actions run `33991620529` completed successfully across Core quality/security, browser E2E + mutation, local Supabase DB/RLS, privacy-safe preview artifact and clean-checkout full verification.
+Initial exact-head evidence: GitHub Actions run `33991620529` completed successfully across Core quality/security, browser E2E + mutation, local Supabase DB/RLS, privacy-safe preview artifact and clean-checkout full verification. Fresh Pass B subsequently identified two MAJOR findings, so that evidence became historical.
 
-Current activity: remediate fresh Pass B findings `WP18-AR-001` and `WP18-AR-002`; the prior verification remains historical evidence only and must be replaced by fresh exact-head verification after the fixes.
+Remediation completed for `WP18-AR-001` and `WP18-AR-002`.
+
+Fresh repaired Pass A implementation/evidence HEAD: `68dbb4be3c7407758168b573ddbcf10120ef7298`.
+
+Fresh exact-head evidence: GitHub Actions run `33993111405` completed **5/5 SUCCESS**:
+
+- Core quality/security SUCCESS, including format/lint/architecture/deadcode/markers, negative quality/security controls, unit tests with required coverage, dependency audit and build;
+- Browser and mutation harnesses SUCCESS, including Playwright Chromium/Firefox/WebKit/mobile-Chromium and Stryker;
+- Local Supabase DB/RLS SUCCESS;
+- Privacy-safe preview artifact SUCCESS;
+- Full verify from clean checkout SUCCESS with `npm run verify`.
 
 ### Pass A exit criteria
 
@@ -102,52 +112,55 @@ Current activity: remediate fresh Pass B findings `WP18-AR-001` and `WP18-AR-002
 - [x] reauth path still requires live membership validation
 - [x] safe logout purges only the authenticated account+project private namespace after provider sign-out
 - [x] MFA/security diagnostics expose safe metadata only and do not weaken server-side strong-auth checks
-- [x] applicable unit/property/browser/security evidence green on initial Pass A head
-- [ ] fresh exact-head full CI including clean-checkout `npm run verify` green after review remediation
+- [x] applicable unit/property/browser/security evidence green
+- [x] fresh exact-head full CI including clean-checkout `npm run verify` green after review remediation
 
 ## Pass B — ADVERSARIAL REVIEW
 
-Fresh adversarial review was performed against exact HEAD `c93dd734ff048ea9829c53e147735c433cf8b41e` after green initial Pass A evidence.
+Initial fresh adversarial review was performed against exact HEAD `c93dd734ff048ea9829c53e147735c433cf8b41e` after green initial Pass A evidence.
 
-Result: **REVIEW_FAILED**; remediation is now in progress.
+Initial result: **REVIEW_FAILED**.
 
 ### `WP18-AR-001` — MAJOR — ordinary logout uses provider-global session scope
 
-Observed implementation: `SupabaseAuthAdapter.signOut()` invokes `supabase.auth.signOut()` without options. The pinned `@supabase/supabase-js` `2.112.4` provider contract defaults that call to `scope: 'global'`, which revokes all active refresh-token sessions for the owner rather than only the current browser session.
+Initial observation: `SupabaseAuthAdapter.signOut()` invoked `supabase.auth.signOut()` without options. The pinned `@supabase/supabase-js` `2.112.4` provider contract defaults that call to `scope: 'global'`, which can revoke unrelated active sessions for the same owner.
 
-Why this is material: Mariage OS safe logout is explicitly scoped to the current browser/profile local lifecycle and project cache, while multi-device access is a V1 product requirement and compromised-session/global revocation is a separate security capability. Ordinary logout must not unexpectedly terminate the same owner's unrelated phone/tablet/browser sessions.
+Repair implemented:
 
-Required repair:
+- application `AuthPort` remains provider-neutral;
+- Supabase adapter now invokes `signOut({ scope: 'local' })` explicitly for ordinary safe logout;
+- regression evidence asserts the exact provider call;
+- TypeScript composition against the real pinned SDK and the complete exact-head verification are green.
 
-- keep the application `AuthPort` provider-neutral;
-- make the Supabase adapter invoke provider logout explicitly with `scope: 'local'` for the ordinary safe-logout path;
-- add a regression test proving the exact provider call uses local scope;
-- rerun exact-head verification and fresh Pass B.
+Repair status: **implemented and verified; closure pending this fresh Pass B**.
 
 ### `WP18-AR-002` — MAJOR — destructive pending-work discard lacks the required separated danger treatment
 
-Observed implementation: after unresolved work is detected, the UI appends `Abandonner les modifications locales et se déconnecter` directly into the same security panel. The element carries class `danger-action`, but the current stylesheet provides no dedicated warning/separation treatment for that class or a surrounding destructive-action zone.
+Initial observation: the second-step destructive discard button was appended into the ordinary security panel without a dedicated warning/separation treatment.
 
-Why this is material: `AUTH-BLUEPRINTS.md` requires a strong warning, explicit confirmation and non-accidental placement for destructive discard; `SETTINGS-DIAGNOSTICS.md` requires destructive actions to be clearly separated from ordinary safe actions. This action can irreversibly purge unsynchronized local work, so the missing warning/separation is part of the WP-1.8 safety contract rather than cosmetic polish.
+Repair implemented:
 
-Required repair:
+- the existing two-step semantics remain intact;
+- the discard action is now nested in a dedicated `logout-danger-zone` with an explicit `Abandon irréversible` warning and concrete irreversible-loss copy;
+- styling visually separates the danger zone and destructive action from ordinary logout;
+- tests cover warning presence, duplicate prevention, explicit `logout(true)`, local-state-unavailable and unexpected-rejection recovery;
+- the existing real-browser safe-logout scenario executes the flow under Chromium, Firefox, WebKit and mobile-Chromium.
 
-- retain the existing two-step semantics;
-- render the discard confirmation inside an explicit danger/warning zone with clear irreversible-loss copy and visual separation from ordinary logout;
-- keep the destructive action explicit and non-primary;
-- extend unit/browser evidence for the warning zone and mobile-safe interaction;
-- rerun exact-head verification and fresh Pass B.
+Repair status: **implemented and verified; closure pending this fresh Pass B**.
 
-No other BLOCKING/MAJOR finding was identified in the reviewed WP-1.8 surfaces. The existing documented degraded behavior for selective browser-storage divergence remains inherited non-blocking maintenance and does not weaken authorization or silently delete work.
+### Fresh review cursor
+
+A fresh adversarial review must now re-evaluate the repaired exact code plus the surrounding WP-1.8 session/logout/MFA/local-isolation surfaces. No finding is considered closed until that review completes with no unresolved BLOCKING/MAJOR defect.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started. Forbidden until a repaired exact HEAD has green verification and a fresh Pass B with no unresolved BLOCKING/MAJOR finding.
+Not started. Forbidden until fresh Pass B completes with no unresolved BLOCKING/MAJOR finding.
 
 ## Handoff
 
-- Current state: `IN_PROGRESS`.
-- Current/next pass: `A-REMEDIATION`.
-- Open findings under repair: `WP18-AR-001`, `WP18-AR-002`.
-- Next permitted action: repair those two WP-1.8 findings only, rerun exact-head evidence, then perform a fresh Pass B.
-- WP-1.9 and Lot 2+ remain forbidden.
+- Current state: `REVIEW_PENDING`.
+- Current/next pass: `B-ADVERSARIAL-REVIEW`.
+- Fresh repaired evidence: run `33993111405` on `68dbb4be3c7407758168b573ddbcf10120ef7298`, 5/5 SUCCESS including clean-checkout `npm run verify`.
+- Findings awaiting fresh review closure: `WP18-AR-001`, `WP18-AR-002`.
+- Next permitted action: fresh Pass B on repaired WP-1.8 only.
+- Pass C, WP-1.9 and Lot 2+ remain forbidden until the required predecessor gate passes.
