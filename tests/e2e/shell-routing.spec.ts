@@ -367,10 +367,10 @@ test("navigation switches between desktop and mobile skeletons", async ({
 }) => {
   await renderAllowedProject(page);
   await page.setViewportSize({ width: 1440, height: 900 });
-  await expect(page.locator('[data-navigation="desktop"]')).toBeVisible();
-  await expect(page.locator('[data-navigation="mobile"]')).toBeHidden();
+  await expect(page.locator(".desktop-nav")).toBeVisible();
+  await expect(page.locator(".mobile-nav")).toBeHidden();
 
   await page.setViewportSize({ width: 390, height: 844 });
-  await expect(page.locator('[data-navigation="desktop"]')).toBeHidden();
-  await expect(page.locator('[data-navigation="mobile"]')).toBeVisible();
+  await expect(page.locator(".desktop-nav")).toBeHidden();
+  await expect(page.locator(".mobile-nav")).toBeVisible();
 });
