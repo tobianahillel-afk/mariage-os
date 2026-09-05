@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-1.9`
 - Lot: `1`
 - Name: Storage/Realtime isolation foundation and Lot-1 security-matrix closure
-- State: `IN_PROGRESS`
-- Current pass: `A-IMPLEMENT`
+- State: `REVIEW_PENDING`
+- Current pass: `B-ADVERSARIAL-REVIEW`
 - Primary bounded context: Supabase project-scoped cloud side-channel isolation
 - Branch/PR: `lot-1/identity-project-foundation`
 
@@ -116,22 +116,34 @@
 
 Implementation started from readiness HEAD `89c771b6b2014bde2741618cee6edc5cf54f2267`.
 
+Implementation/evidence HEAD: `a0e719462b2ea41908e6438a72cac75f11edcf36`.
+
+Exact-head evidence: GitHub Actions run `33996464530` completed **5/5 SUCCESS**, including Core quality/security, browser E2E + mutation, local Supabase DB/RLS, privacy-safe preview and clean-checkout `npm run verify`.
+
+Direct DB/Storage evidence on that HEAD: **14 pgTAP files / 277 tests / PASS**; `storage_realtime_isolation_test.sql` contributes **38/38 PASS** covering the private bucket, operation policies, role matrix, A/B/C isolation, malformed/cross-project paths, revoked/outsider/anon/guest-like denial and empty public Realtime publication.
+
+Historical test-harness correction retained for traceability: initial run `33996218749` reached 35/38 in the new matrix because it attempted a direct SQL `DELETE` from `storage.objects`. Current Supabase Storage deliberately protects direct metadata deletion and requires object removal through the Storage API. No product policy was weakened; the repaired evidence keeps behavioral SELECT/INSERT/UPDATE RLS tests and verifies the DELETE policy structure plus the live `media.write` permission requirement without using an unsupported SQL object-removal path.
+
+Diff from readiness HEAD is limited to the packet/status records, `supabase/config.toml`, one Storage migration and one pgTAP file. No `src/`, UI, provider or client Realtime surface was introduced.
+
 ### Pass A exit criteria
 
-- [ ] private Storage foundation is migration-controlled and project-namespaced
-- [ ] policies use live centralized permissions rather than client role/path trust
-- [ ] anonymous/guest-like/outsider/other-project/revoked access denied directly
-- [ ] owner/editor/viewer/multi-project permission behavior proved across A/B/C
-- [ ] malformed/cross-project object namespaces fail closed
-- [ ] Realtime service remains disabled and no application project table is published/exposed
-- [ ] no Storage/Realtime secret/provider SDK leaks into UI/domain/public artifacts
-- [ ] no domain media/document/guest/provider scope introduced
-- [ ] direct DB/Storage security evidence green
-- [ ] exact-head full CI including clean-checkout `npm run verify` green before Pass B
+- [x] private Storage foundation is migration-controlled and project-namespaced
+- [x] policies use live centralized permissions rather than client role/path trust
+- [x] anonymous/guest-like/outsider/other-project/revoked access denied directly
+- [x] owner/editor/viewer/multi-project permission behavior proved across A/B/C
+- [x] malformed/cross-project object namespaces fail closed
+- [x] Realtime service remains disabled and no application project table is published/exposed
+- [x] no Storage/Realtime secret/provider SDK leaks into UI/domain/public artifacts
+- [x] no domain media/document/guest/provider scope introduced
+- [x] direct DB/Storage security evidence green
+- [x] exact-head full CI including clean-checkout `npm run verify` green before Pass B
 
 ## Pass B — ADVERSARIAL REVIEW
 
-Not started. Mandatory after exact-head Pass A evidence.
+Fresh adversarial review is now required against implementation/evidence HEAD `a0e719462b2ea41908e6438a72cac75f11edcf36`. Pass A conclusions are not treated as review evidence by themselves.
+
+Review focus includes bucket privacy, policy operation semantics, malformed-path fail-closed behavior, current-membership authorization, update cross-project movement, role/revocation/capability isolation, Realtime non-exposure, DELETE evidence validity under the Storage API contract, scope leakage and the 375-line security matrix test file.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
@@ -139,8 +151,10 @@ Not started. Forbidden until fresh Pass B has no unresolved BLOCKING/MAJOR findi
 
 ## Handoff
 
-- Current state: `IN_PROGRESS`.
-- Current/next pass: `A-IMPLEMENT`.
-- Active scope: Storage foundation + Realtime non-exposure only.
+- Current state: `REVIEW_PENDING`.
+- Current/next pass: `B-ADVERSARIAL-REVIEW`.
+- Pass A evidence: run `33996464530` on `a0e719462b2ea41908e6438a72cac75f11edcf36`, 5/5 SUCCESS; DB 14 files / 277 tests / PASS.
+- Active scope remains Storage foundation + Realtime non-exposure only.
+- Next permitted action: fresh adversarial Pass B; Pass C only if no unresolved BLOCKING/MAJOR finding.
 - After WP-1.9 acceptance: Lot-1 reconciliation + separate Integration Pass + Lot acceptance.
 - Lot 2+ remains forbidden.
