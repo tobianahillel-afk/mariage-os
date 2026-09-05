@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-1.9`
 - Lot: `1`
 - Name: Storage/Realtime isolation foundation and Lot-1 security-matrix closure
-- State: `READY`
-- Current pass: `A-READY`
+- State: `IN_PROGRESS`
+- Current pass: `A-IMPLEMENT`
 - Primary bounded context: Supabase project-scoped cloud side-channel isolation
 - Branch/PR: `lot-1/identity-project-foundation`
 
@@ -114,7 +114,7 @@
 
 ## Pass A — IMPLEMENT
 
-Ready to begin.
+Implementation started from readiness HEAD `89c771b6b2014bde2741618cee6edc5cf54f2267`.
 
 ### Pass A exit criteria
 
@@ -139,8 +139,8 @@ Not started. Forbidden until fresh Pass B has no unresolved BLOCKING/MAJOR findi
 
 ## Handoff
 
-- Current state: `READY`.
-- Current/next pass: `A-READY`.
-- Next permitted action: start Pass A for WP-1.9 only.
+- Current state: `IN_PROGRESS`.
+- Current/next pass: `A-IMPLEMENT`.
+- Active scope: Storage foundation + Realtime non-exposure only.
 - After WP-1.9 acceptance: Lot-1 reconciliation + separate Integration Pass + Lot acceptance.
 - Lot 2+ remains forbidden.
