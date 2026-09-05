@@ -39,7 +39,7 @@ Packets:
 5. `WP-1.5` — project configuration, dates, origins, preferences and RSVP-intent hooks — **ACCEPTED**;
 6. `WP-1.6` — protected app shell/navigation and public RSVP trust boundary — **ACCEPTED**;
 7. `WP-1.7` — project-scoped repositories, local cache and sync primitives — **ACCEPTED**;
-8. `WP-1.8` — session expiry, safe logout, MFA/security diagnostics — **REVIEW_PENDING**;
+8. `WP-1.8` — session expiry, safe logout, MFA/security diagnostics — **ACCEPTANCE_PENDING**;
 9. `WP-1.9` — Storage/Realtime isolation foundation and security-matrix closure — **PLANNED**.
 
 ### Durable cursor
@@ -47,10 +47,10 @@ Packets:
 - Current Lot: **1**
 - Lot state: **IN_PROGRESS**
 - Current packet: **WP-1.8**
-- Packet state: **REVIEW_PENDING**
-- Current/next pass: **B-ADVERSARIAL-REVIEW**
+- Packet state: **ACCEPTANCE_PENDING**
+- Current/next pass: **C-ACCEPTANCE-RECONCILIATION**
 - Accepted packets: **WP-1.1, WP-1.2, WP-1.3, WP-1.4, WP-1.5, WP-1.6, WP-1.7**
-- Review-failed/blocked packets: **none currently; `WP18-AR-001..003` are repaired and await final fresh Pass B closure**
+- Review-failed/blocked packets: **none**
 - WP-1.1 acceptance evidence: run `33809855993` on `f0b1e46c46bc3ad5d15bf2191c63ec4e85473507`, all five jobs SUCCESS.
 - WP-1.2 acceptance evidence: run `33811568440` on `fa96228bcd8a0b7671fcb561f8f7668eaf5851dc`, all five jobs SUCCESS; `WP12-AR-001` closed.
 - WP-1.3 acceptance evidence: run `33817932867` on `707b1384fbd370fe88ef7a87ac191aa9645f6db3`, all five jobs SUCCESS; `WP13-AR-001` and `WP13-AR-002` closed.
@@ -58,11 +58,10 @@ Packets:
 - WP-1.5 acceptance evidence: run `33866160626` on implementation HEAD `15e477a9ca75efbc98594000c190180e24226229`, all five jobs SUCCESS including clean-checkout `npm run verify`; DB **13 files / 239 tests / PASS**; `WP15-AR-001` and `WP15-AR-002` closed; Pass C required-minus-evidenced = ∅.
 - WP-1.6 acceptance evidence: run `33880216335` on implementation HEAD `61dca0718f8ff7372609d208050aba6a50271743`, all five jobs SUCCESS including clean-checkout `npm run verify`; fresh Pass B PASS; Pass C required-minus-evidenced = ∅; `WP16-AR-001` and `WP16-AR-002` closed; final recovery observation repaired/re-reviewed.
 - WP-1.7 acceptance evidence: run `33895516028` on implementation/review HEAD `46548702f304dbabcf4bd673a33afb1c0ec96a3d`, all five jobs SUCCESS including 28/28 Playwright E2E, mutation and clean-checkout `npm run verify`; `WP17-AR-001..003` closed; fresh Pass B PASS; Pass C required-minus-evidenced = ∅.
-- WP-1.8 initial Pass A evidence: run `33991620529` on `c93dd734ff048ea9829c53e147735c433cf8b41e`, all five jobs SUCCESS; fresh Pass B found `WP18-AR-001` and `WP18-AR-002` MAJOR.
-- WP-1.8 first repaired Pass A evidence: run `33993111405` on `68dbb4be3c7407758168b573ddbcf10120ef7298`, 5/5 SUCCESS; fresh Pass B then found `WP18-AR-003` MAJOR because the real-browser regression did not assert the repaired danger warning.
-- WP-1.8 final repaired Pass A evidence: run `33994961610` on implementation/evidence HEAD `cb7201e2d6dc1a8ca7608bb236f1f79ac84d8d9d`, **5/5 SUCCESS** including Core quality/security, browser E2E + mutation, local Supabase DB/RLS, privacy-safe preview and clean-checkout `npm run verify`. The safe-logout Playwright scenario now asserts the visible danger zone, `Abandon irréversible` heading and irreversible-loss copy under the standard Chromium/Firefox/WebKit/mobile-Chromium matrix.
+- WP-1.8 final repaired Pass A evidence: run `33994961610` on implementation/evidence HEAD `cb7201e2d6dc1a8ca7608bb236f1f79ac84d8d9d`, **5/5 SUCCESS** including Core quality/security, browser E2E + mutation, local Supabase DB/RLS, privacy-safe preview and clean-checkout `npm run verify`.
+- WP-1.8 final fresh Pass B: **PASS**; `WP18-AR-001`, `WP18-AR-002` and `WP18-AR-003` closed. The final review delta from `6d69f8cf80c5a08114fc7d171043cf49cffb3ed2` contained only durable docs and the browser regression; no production-code change.
 - Current branch: **`lot-1/identity-project-foundation`**
-- Next permitted action: **perform the final fresh Pass B on repaired WP-1.8 only; Pass C and WP-1.9 remain blocked until that review is clean**.
+- Next permitted action: **perform WP-1.8 Pass C acceptance/reconciliation only; WP-1.9 remains blocked until WP-1.8 is accepted**.
 
 ## Lot status
 
@@ -76,15 +75,19 @@ Packets:
 
 - V1 Feature IDs: 120 SPECIFIED inventory rows total.
 - Lot 1 foundations are in implementation; no Lot 2+ Feature may start.
-- WP-1.1 through WP-1.7 are accepted foundations; final-repaired WP-1.8 is awaiting fresh adversarial review; user-facing Feature acceptance remains pending broader Lot 1 slices and Lot integration.
+- WP-1.1 through WP-1.7 are accepted foundations; WP-1.8 is in Pass C reconciliation; user-facing Feature acceptance remains pending broader Lot 1 slices and Lot integration.
 
 ## Current blockers / forward maintenance
 
-Adversarial findings awaiting final fresh-review closure:
+Open adversarial findings:
 
-- `WP18-AR-001` **MAJOR, repaired**: ordinary safe logout previously inherited Supabase global session scope. The adapter explicitly invokes provider-local sign-out while `AuthPort` stays provider-neutral; regression evidence pins `{ scope: "local" }`.
-- `WP18-AR-002` **MAJOR, repaired**: irreversible pending-work discard previously lacked separated danger treatment. The UI now uses a dedicated warning zone with irreversible-loss copy and separated destructive control; unit evidence covers the warning and recovery branches.
-- `WP18-AR-003` **MAJOR, repaired**: the Playwright safe-logout scenario now asserts the browser-visible danger zone, `Abandon irréversible` warning and irreversible-loss copy before destructive discard, and the assertion runs in the standard four-profile matrix. Closure requires the final fresh Pass B.
+- none.
+
+Closed WP-1.8 findings:
+
+- `WP18-AR-001`: ordinary safe logout now explicitly uses provider-local Supabase sign-out while `AuthPort` remains provider-neutral; exact provider-call regression is green.
+- `WP18-AR-002`: destructive pending-work discard now uses a dedicated warning/danger zone with irreversible-loss copy and separated destructive action; unit/error evidence is green.
+- `WP18-AR-003`: Playwright now proves the browser-visible danger zone, warning heading and loss copy before destructive discard across the standard Chromium/Firefox/WebKit/mobile-Chromium matrix.
 
 Closed/adversarial findings from prior packets:
 
@@ -120,10 +123,9 @@ Lot 0: ACCEPTED
 Lot 1: IN_PROGRESS
 Coverage: required - assigned = ∅
 Accepted: WP-1.1, WP-1.2, WP-1.3, WP-1.4, WP-1.5, WP-1.6, WP-1.7
-WP-1.8 final repaired Pass A: run 33994961610 on cb7201e2d6dc1a8ca7608bb236f1f79ac84d8d9d, 5/5 SUCCESS including clean-checkout npm run verify
-Current: WP-1.8 / REVIEW_PENDING / B-ADVERSARIAL-REVIEW
-Repaired findings awaiting final closure: WP18-AR-001, WP18-AR-002, WP18-AR-003
-Next: final fresh Pass B -> Pass C only if clean
+WP-1.8 evidence: run 33994961610 on cb7201e2d6dc1a8ca7608bb236f1f79ac84d8d9d, 5/5 SUCCESS; final fresh Pass B PASS; WP18-AR-001..003 closed
+Current: WP-1.8 / ACCEPTANCE_PENDING / C-ACCEPTANCE-RECONCILIATION
+Next: reconcile WP-1.8 expected vs implemented vs verified -> accept only if required-minus-evidenced = ∅
 WP-1.9 remains sequenced behind WP-1.8 acceptance
 Lot 2+: forbidden
 ```
