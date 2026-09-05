@@ -43,7 +43,7 @@ function makeClient(options: ClientOptions = {}): SupabaseAuthClientLike {
         data: { session },
         error: options.signInError ? { message: "sign in failed" } : null,
       })),
-      signOut: vi.fn(async (_input: { readonly scope: "local" }) => ({
+      signOut: vi.fn(async () => ({
         error: options.signOutError ? { message: "sign out failed" } : null,
       })),
       mfa: {
