@@ -145,6 +145,42 @@ a {
   background: #f5efeb;
 }
 
+.logout-danger-zone {
+  margin-top: 24px;
+  padding: 20px;
+  border: 1px solid #9b5960;
+  border-radius: 16px;
+  background: #fff4f2;
+}
+
+.danger-title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.danger-copy {
+  max-width: 58ch;
+  margin: 10px 0 0;
+  line-height: 1.55;
+}
+
+.danger-action {
+  margin-top: 18px;
+  padding: 11px 14px;
+  border: 1px solid #7b3941;
+  border-radius: 10px;
+  background: #fffaf7;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.danger-action:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
 .mobile-nav {
   display: none;
 }
