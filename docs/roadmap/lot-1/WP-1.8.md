@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-1.8`
 - Lot: `1`
 - Name: Session expiry, safe logout, MFA/security diagnostics
-- State: `REVIEW_FAILED`
-- Current pass: `B-REVIEW-FAILED`
+- State: `IN_PROGRESS`
+- Current pass: `A-REMEDIATION`
 - Primary bounded context: authenticated project-session recovery and local privacy lifecycle
 - Branch/PR: `lot-1/identity-project-foundation`
 
@@ -87,9 +87,11 @@ Cohesion rationale: session expiry, safe logout and security diagnostics all gov
 
 ## Pass A — IMPLEMENT
 
-Completed on implementation/review HEAD `c93dd734ff048ea9829c53e147735c433cf8b41e`.
+Initial implementation completed on implementation/review HEAD `c93dd734ff048ea9829c53e147735c433cf8b41e`.
 
-Exact-head evidence: GitHub Actions run `33991620529` completed successfully across Core quality/security, browser E2E + mutation, local Supabase DB/RLS, privacy-safe preview artifact and clean-checkout full verification.
+Initial exact-head evidence: GitHub Actions run `33991620529` completed successfully across Core quality/security, browser E2E + mutation, local Supabase DB/RLS, privacy-safe preview artifact and clean-checkout full verification.
+
+Current activity: remediate fresh Pass B findings `WP18-AR-001` and `WP18-AR-002`; the prior verification remains historical evidence only and must be replaced by fresh exact-head verification after the fixes.
 
 ### Pass A exit criteria
 
@@ -100,14 +102,14 @@ Exact-head evidence: GitHub Actions run `33991620529` completed successfully acr
 - [x] reauth path still requires live membership validation
 - [x] safe logout purges only the authenticated account+project private namespace after provider sign-out
 - [x] MFA/security diagnostics expose safe metadata only and do not weaken server-side strong-auth checks
-- [x] applicable unit/property/browser/security evidence green
-- [x] exact-head full CI including clean-checkout `npm run verify` green before Pass B
+- [x] applicable unit/property/browser/security evidence green on initial Pass A head
+- [ ] fresh exact-head full CI including clean-checkout `npm run verify` green after review remediation
 
 ## Pass B — ADVERSARIAL REVIEW
 
-Fresh adversarial review performed against exact HEAD `c93dd734ff048ea9829c53e147735c433cf8b41e` after green Pass A evidence.
+Fresh adversarial review was performed against exact HEAD `c93dd734ff048ea9829c53e147735c433cf8b41e` after green initial Pass A evidence.
 
-Result: **REVIEW_FAILED**.
+Result: **REVIEW_FAILED**; remediation is now in progress.
 
 ### `WP18-AR-001` — MAJOR — ordinary logout uses provider-global session scope
 
@@ -144,8 +146,8 @@ Not started. Forbidden until a repaired exact HEAD has green verification and a 
 
 ## Handoff
 
-- Current state: `REVIEW_FAILED`.
-- Current/next pass: `B-REVIEW-FAILED` → remediation.
-- Open findings: `WP18-AR-001`, `WP18-AR-002`.
+- Current state: `IN_PROGRESS`.
+- Current/next pass: `A-REMEDIATION`.
+- Open findings under repair: `WP18-AR-001`, `WP18-AR-002`.
 - Next permitted action: repair those two WP-1.8 findings only, rerun exact-head evidence, then perform a fresh Pass B.
 - WP-1.9 and Lot 2+ remain forbidden.
