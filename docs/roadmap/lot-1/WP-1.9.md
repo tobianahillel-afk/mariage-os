@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-1.9`
 - Lot: `1`
 - Name: Storage/Realtime isolation foundation and Lot-1 security-matrix closure
-- State: `REVIEW_FAILED`
-- Current pass: `B-REVIEW-FAILED`
+- State: `IN_PROGRESS`
+- Current pass: `A-REMEDIATION`
 - Primary bounded context: Supabase project-scoped cloud side-channel isolation
 - Branch/PR: `lot-1/identity-project-foundation`
 
@@ -116,15 +116,13 @@
 
 Implementation started from readiness HEAD `89c771b6b2014bde2741618cee6edc5cf54f2267`.
 
-Implementation/evidence HEAD: `a0e719462b2ea41908e6438a72cac75f11edcf36`.
+Implementation/evidence HEAD before review: `a0e719462b2ea41908e6438a72cac75f11edcf36`.
 
-Exact-head evidence: GitHub Actions run `33996464530` completed **5/5 SUCCESS**, including Core quality/security, browser E2E + mutation, local Supabase DB/RLS, privacy-safe preview and clean-checkout `npm run verify`.
+Historical exact-head evidence: GitHub Actions run `33996464530` completed **5/5 SUCCESS**, including Core quality/security, browser E2E + mutation, local Supabase DB/RLS, privacy-safe preview and clean-checkout `npm run verify`. Fresh Pass B subsequently found `WP19-AR-001`, so this evidence is no longer sufficient for acceptance.
 
-Direct DB/Storage evidence on that HEAD: **14 pgTAP files / 277 tests / PASS**; `storage_realtime_isolation_test.sql` contributes **38/38 PASS** covering the private bucket, operation policies, role matrix, A/B/C isolation, malformed/cross-project paths, revoked/outsider/anon/guest-like denial and empty public Realtime publication.
+Historical direct DB/Storage evidence on that HEAD: **14 pgTAP files / 277 tests / PASS**; `storage_realtime_isolation_test.sql` contributed **38/38 PASS**. The matrix was correct for SELECT/INSERT/UPDATE and boundary isolation but did not behaviorally execute DELETE authorization.
 
-Historical test-harness correction retained for traceability: initial run `33996218749` reached 35/38 because a direct SQL DELETE was rejected by current Supabase Storage metadata protection. The repaired Pass-A evidence replaced that unsupported operation with a structural DELETE-policy assertion; fresh Pass B below found that this still did not satisfy the repository's direct allow/deny requirement for delete behavior.
-
-Diff from readiness HEAD is limited to the packet/status records, `supabase/config.toml`, one Storage migration and one pgTAP file. No `src/`, UI, provider or client Realtime surface was introduced.
+Current remediation activity: repair `WP19-AR-001` only by using Supabase's transaction-local `storage.allow_delete_query=true` flag in the existing pgTAP transaction, then execute DELETE under the existing synthetic roles. No Storage policy, application code, credential or domain scope change is permitted by this remediation.
 
 ### Pass A exit criteria before review
 
@@ -136,8 +134,8 @@ Diff from readiness HEAD is limited to the packet/status records, `supabase/conf
 - [x] Realtime service remains disabled and no application project table is published/exposed
 - [x] no Storage/Realtime secret/provider SDK leaks into UI/domain/public artifacts
 - [x] no domain media/document/guest/provider scope introduced
-- [x] direct DB/Storage evidence green on the covered assertions
-- [x] exact-head full CI including clean-checkout `npm run verify` green before Pass B
+- [ ] direct DELETE allow/deny evidence repaired under the Storage API-equivalent transaction flag
+- [ ] fresh exact-head full CI including clean-checkout `npm run verify` green after remediation
 
 ## Pass B — ADVERSARIAL REVIEW
 
@@ -177,9 +175,9 @@ Not started. Forbidden until `WP19-AR-001` is repaired, exact-head evidence is g
 
 ## Handoff
 
-- Current state: `REVIEW_FAILED`.
-- Current/next pass: `B-REVIEW-FAILED`; remediation is next.
-- Open finding: `WP19-AR-001` MAJOR — DELETE RLS policy lacks direct behavioral allow/deny evidence.
-- Last green pre-finding evidence: run `33996464530` on `a0e719462b2ea41908e6438a72cac75f11edcf36`, 5/5 SUCCESS; now historical for acceptance.
+- Current state: `IN_PROGRESS`.
+- Current/next pass: `A-REMEDIATION`.
+- Open finding under active repair: `WP19-AR-001` MAJOR.
+- Last green pre-finding evidence: run `33996464530` on `a0e719462b2ea41908e6438a72cac75f11edcf36`, now historical for acceptance.
 - Next permitted action: bounded pgTAP DELETE evidence repair -> fresh exact-head verification -> fresh Pass B.
 - Pass C, Lot reconciliation/integration/acceptance and Lot 2+ remain forbidden until sequencing gates are met.
