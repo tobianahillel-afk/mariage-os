@@ -252,7 +252,15 @@ test("safe logout requires explicit discard and purges only the active project",
   await page.getByRole("button", { name: "Se déconnecter" }).click();
 
   await expect(page.locator('[data-shell="private-project"]')).toBeVisible();
-  const discard = page.getByRole("button", {
+  const dangerZone = page.locator('[data-logout-danger-zone="true"]');
+  await expect(dangerZone).toBeVisible();
+  await expect(
+    dangerZone.getByRole("heading", { name: "Abandon irréversible" }),
+  ).toBeVisible();
+  await expect(dangerZone).toContainText(
+    "Les modifications locales non synchronisées de ce projet seront supprimées de cet appareil et ne pourront pas être récupérées depuis Mariage OS.",
+  );
+  const discard = dangerZone.getByRole("button", {
     name: "Abandonner les modifications locales et se déconnecter",
   });
   await expect(discard).toBeVisible();
