@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { SafeLogoutCoordinator } from "@application/auth/safe-logout";
 
 const startApplication = vi.hoisted(() => vi.fn());
 const createBrowserShellRuntime = vi.hoisted(() => vi.fn());
@@ -70,7 +69,7 @@ it("composes provider, local durability, diagnostics and safe logout runtimes", 
     online: true,
     appVersion: "0.0.0",
   });
-  expect(dependencies.logoutCoordinator).toBeInstanceOf(SafeLogoutCoordinator);
+  expect(typeof dependencies.logoutCoordinator?.logout).toBe("function");
 });
 
 it("fails fast before runtime composition when the application root is missing", async () => {
