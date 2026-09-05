@@ -32,6 +32,7 @@ type ProviderPasswordInput = {
   readonly password: string;
 };
 
+type ProviderSignOutInput = { readonly scope: "local" };
 type ProviderSignOutResult = { readonly error: ProviderError };
 type ProviderAssuranceData = {
   readonly currentLevel: string | null;
@@ -59,7 +60,7 @@ export interface SupabaseAuthClientLike {
     signInWithPassword(
       input: ProviderPasswordInput,
     ): Promise<ProviderSessionResult>;
-    signOut(): Promise<ProviderSignOutResult>;
+    signOut(input: ProviderSignOutInput): Promise<ProviderSignOutResult>;
     readonly mfa: {
       getAuthenticatorAssuranceLevel(): Promise<ProviderAssuranceResult>;
       listFactors(): Promise<ProviderFactorsResult>;
@@ -93,7 +94,7 @@ export class SupabaseAuthAdapter implements AuthPort, SecurityDiagnosticsPort {
   }
 
   public async signOut(): Promise<void> {
-    const result = await this.client.auth.signOut();
+    const result = await this.client.auth.signOut({ scope: "local" });
     if (result.error) throw providerFailure();
   }
 
