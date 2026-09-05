@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(38);
+select plan(45);
 
 select has_table('storage', 'buckets', 'Supabase Storage buckets table exists');
 select is(
@@ -129,6 +129,28 @@ exception
 end;
 $$;
 
+create function pg_temp.try_storage_delete(object_name text)
+returns boolean
+language plpgsql
+as $$
+declare
+  changed_rows integer;
+begin
+  delete from storage.objects
+  where bucket_id = 'project-private'
+    and name = object_name;
+  get diagnostics changed_rows = row_count;
+  return changed_rows = 1;
+exception
+  when insufficient_privilege then return false;
+end;
+$$;
+
+-- The Storage API sets this transaction flag before deleting object metadata.
+-- Setting it locally bypasses only Storage's metadata-protection trigger; RLS
+-- remains the authorization boundary exercised by every delete assertion below.
+select set_config('storage.allow_delete_query', 'true', true);
+
 set local role authenticated;
 select set_config(
   'request.jwt.claims',
@@ -208,6 +230,14 @@ select ok(
   ),
   'update WITH CHECK prevents moving an authorized object into project B'
 );
+select ok(
+  not pg_temp.try_storage_delete('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/media/b1000000-0000-4000-8000-000000000001/original'),
+  'project A owner cannot delete a known project B object'
+);
+select ok(
+  pg_temp.try_storage_delete('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a2000000-0000-4000-8000-000000000002/original'),
+  'project A owner may delete project A media because media.write is granted'
+);
 
 select set_config(
   'request.jwt.claims',
@@ -216,8 +246,8 @@ select set_config(
 );
 select is(
   (select count(*)::integer from storage.objects where bucket_id = 'project-private'),
-  2,
-  'editor sees the two project A objects and no other project objects'
+  1,
+  'editor sees the remaining project A object and no other project objects'
 );
 select ok(
   pg_temp.try_storage_insert('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a3000000-0000-4000-8000-000000000003/original'),
@@ -236,6 +266,10 @@ select ok(
   ),
   'delete policy is bound to authenticated clients and live media.write authorization'
 );
+select ok(
+  pg_temp.try_storage_delete('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a3000000-0000-4000-8000-000000000003/original'),
+  'editor may delete project A media because media.write is granted'
+);
 
 select set_config(
   'request.jwt.claims',
@@ -244,7 +278,7 @@ select set_config(
 );
 select is(
   (select count(*)::integer from storage.objects where bucket_id = 'project-private'),
-  3,
+  1,
   'viewer may read project A media'
 );
 select ok(
@@ -253,14 +287,14 @@ select ok(
 );
 select ok(
   not pg_temp.try_storage_rename(
-    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a2000000-0000-4000-8000-000000000002/original',
-    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a2000000-0000-4000-8000-000000000002/thumbnail-v1'
+    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a1000000-0000-4000-8000-000000000001/thumbnail-v1',
+    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a1000000-0000-4000-8000-000000000001/thumbnail-v2'
   ),
   'viewer cannot update project A media without media.write'
 );
 select ok(
-  not public.has_project_permission('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'media.write'),
-  'viewer cannot satisfy the media.write permission required by the delete policy'
+  not pg_temp.try_storage_delete('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a1000000-0000-4000-8000-000000000001/thumbnail-v1'),
+  'viewer cannot delete project A media without media.write'
 );
 
 select set_config(
@@ -270,7 +304,7 @@ select set_config(
 );
 select is(
   (select count(*)::integer from storage.objects where bucket_id = 'project-private'),
-  4,
+  2,
   'multi-project member sees only projects A and B, not project C'
 );
 select ok(
@@ -327,6 +361,10 @@ select ok(
   not pg_temp.try_storage_insert('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a5000000-0000-4000-8000-000000000005/original'),
   'authenticated outsider cannot insert into a known project A path'
 );
+select ok(
+  not pg_temp.try_storage_delete('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a1000000-0000-4000-8000-000000000001/thumbnail-v1'),
+  'authenticated outsider cannot delete a known project A object'
+);
 
 select set_config(
   'request.jwt.claims',
@@ -342,6 +380,10 @@ select ok(
   not pg_temp.try_storage_insert('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a6000000-0000-4000-8000-000000000006/original'),
   'revoked member cannot insert using stale project knowledge'
 );
+select ok(
+  not pg_temp.try_storage_delete('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a1000000-0000-4000-8000-000000000001/thumbnail-v1'),
+  'revoked member cannot delete using stale project knowledge'
+);
 
 reset role;
 set local role anon;
@@ -354,6 +396,10 @@ select is(
 select ok(
   not pg_temp.try_storage_insert('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a7000000-0000-4000-8000-000000000007/original'),
   'anonymous client cannot insert into private project Storage'
+);
+select ok(
+  not pg_temp.try_storage_delete('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a1000000-0000-4000-8000-000000000001/thumbnail-v1'),
+  'anonymous client cannot delete private project Storage objects'
 );
 select set_config(
   'request.jwt.claims',
@@ -368,6 +414,10 @@ select is(
 select ok(
   not pg_temp.try_storage_insert('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a8000000-0000-4000-8000-000000000008/original'),
   'guest-like capability claims do not grant private Storage writes'
+);
+select ok(
+  not pg_temp.try_storage_delete('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a1000000-0000-4000-8000-000000000001/thumbnail-v1'),
+  'guest-like capability claims do not grant private Storage deletes'
 );
 
 reset role;
