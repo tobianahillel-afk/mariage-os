@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-1.8`
 - Lot: `1`
 - Name: Session expiry, safe logout, MFA/security diagnostics
-- State: `IN_PROGRESS`
-- Current pass: `A-REMEDIATION`
+- State: `REVIEW_PENDING`
+- Current pass: `B-ADVERSARIAL-REVIEW`
 - Primary bounded context: authenticated project-session recovery and local privacy lifecycle
 - Branch/PR: `lot-1/identity-project-foundation`
 
@@ -89,15 +89,19 @@ Cohesion rationale: session expiry, safe logout and security diagnostics all gov
 
 Initial implementation completed on implementation/review HEAD `c93dd734ff048ea9829c53e147735c433cf8b41e`.
 
-Initial exact-head evidence: GitHub Actions run `33991620529` completed successfully across Core quality/security, browser E2E + mutation, local Supabase DB/RLS, privacy-safe preview artifact and clean-checkout full verification. Fresh Pass B subsequently identified two MAJOR findings, so that evidence became historical.
+Initial exact-head evidence: GitHub Actions run `33991620529` completed successfully across Core quality/security, browser E2E + mutation, local Supabase DB/RLS, privacy-safe preview artifact and clean-checkout full verification. Fresh Pass B subsequently identified `WP18-AR-001` and `WP18-AR-002` MAJOR, so that evidence became historical.
 
-Remediation completed for `WP18-AR-001` and the implementation portion of `WP18-AR-002`.
+The first repair implementation/evidence HEAD `68dbb4be3c7407758168b573ddbcf10120ef7298` received run `33993111405`, 5/5 SUCCESS. Fresh Pass B then identified `WP18-AR-003`, a missing real-browser regression assertion for the repaired destructive-warning behavior.
 
-Fresh repaired Pass A implementation/evidence HEAD: `68dbb4be3c7407758168b573ddbcf10120ef7298`.
+`WP18-AR-003` remediation is now implemented on exact implementation/evidence HEAD `cb7201e2d6dc1a8ca7608bb236f1f79ac84d8d9d`: the existing safe-logout Playwright scenario asserts the browser-visible danger zone, `Abandon irréversible` heading and irreversible-loss copy before locating and activating the destructive action. The scenario remains in the standard four-profile Playwright matrix (Chromium, Firefox, WebKit and mobile-Chromium).
 
-Fresh exact-head evidence: GitHub Actions run `33993111405` completed **5/5 SUCCESS** across Core quality/security, browser E2E + mutation, local Supabase DB/RLS, privacy-safe preview and clean-checkout `npm run verify`.
+Fresh exact-head evidence: GitHub Actions run `33994961610` completed **5/5 SUCCESS**:
 
-Current remediation activity: add the missing real-browser warning-zone regression required by `WP18-AR-003`, then replace the prior evidence with a fresh exact-head run.
+- Core quality/security SUCCESS, including format/lint/architecture/deadcode/markers, negative quality/security controls, unit tests with required coverage, dependency audit and build;
+- Browser and mutation harnesses SUCCESS, including the repaired warning-zone regression under the standard Playwright matrix and Stryker;
+- Local Supabase DB/RLS SUCCESS;
+- Privacy-safe preview artifact SUCCESS;
+- Full verify from clean checkout SUCCESS with `npm run verify`.
 
 ### Pass A exit criteria
 
@@ -108,8 +112,8 @@ Current remediation activity: add the missing real-browser warning-zone regressi
 - [x] reauth path still requires live membership validation
 - [x] safe logout purges only the authenticated account+project private namespace after provider sign-out
 - [x] MFA/security diagnostics expose safe metadata only and do not weaken server-side strong-auth checks
-- [x] applicable unit/property/browser/security evidence green before `WP18-AR-003`
-- [ ] fresh exact-head full CI including clean-checkout `npm run verify` green after `WP18-AR-003` remediation
+- [x] applicable unit/property/browser/security evidence green
+- [x] fresh exact-head full CI including clean-checkout `npm run verify` green after `WP18-AR-003` remediation
 
 ## Pass B — ADVERSARIAL REVIEW
 
@@ -117,36 +121,31 @@ Initial fresh adversarial review against `c93dd734ff048ea9829c53e147735c433cf8b4
 
 ### `WP18-AR-001` — MAJOR — ordinary logout uses provider-global session scope
 
-Repair implemented and verified: application `AuthPort` remains provider-neutral; Supabase adapter now invokes `signOut({ scope: 'local' })`; regression evidence asserts the exact provider call. Fresh review found no new defect in this repair.
+Repair implemented and verified: application `AuthPort` remains provider-neutral; Supabase adapter invokes `signOut({ scope: 'local' })`; regression evidence asserts the exact provider call. Prior fresh review found no new defect in this repair.
 
 ### `WP18-AR-002` — MAJOR — destructive pending-work discard lacks the required separated danger treatment
 
-Implementation repair is correct: the two-step semantics remain intact and the discard action is nested in a dedicated `logout-danger-zone` with `Abandon irréversible` and concrete irreversible-loss copy. Unit tests cover the warning and recovery branches.
-
-Closure remains blocked by `WP18-AR-003`.
+Implementation repair is present: the two-step semantics remain intact and the discard action is nested in a dedicated `logout-danger-zone` with `Abandon irréversible` and concrete irreversible-loss copy. Unit tests cover the warning and recovery branches.
 
 ### `WP18-AR-003` — MAJOR — real-browser regression does not prove the repaired danger warning
 
-Fresh review observation on HEAD `6d69f8cf80c5a08114fc7d171043cf49cffb3ed2`: the existing Playwright safe-logout scenario reaches and clicks the destructive button but does not assert the dedicated danger zone, warning title or irreversible-loss copy. It could therefore remain green if the browser-visible safety warning regressed while the button stayed present.
+Repair implemented and verified on `cb7201e2d6dc1a8ca7608bb236f1f79ac84d8d9d`: the Playwright safe-logout scenario now asserts the visible danger zone, warning heading and irreversible-loss copy before discard, and the standard matrix executes the scenario under Chromium, Firefox, WebKit and mobile-Chromium.
 
-Required repair:
+Repair status: **implemented and verified; closure pending this fresh Pass B**.
 
-- assert the browser-visible danger zone and irreversible warning in the existing Playwright safe-logout scenario before destructive discard;
-- keep that assertion in the existing multi-profile Playwright matrix (Chromium, Firefox, WebKit, mobile-Chromium);
-- rerun exact-head verification and another fresh Pass B.
+### Fresh review cursor
 
-Fresh Pass B result: **REVIEW_FAILED**. No additional BLOCKING/MAJOR defect was identified in the surrounding session-expiry, live-membership revalidation, scoped purge, context-marker, MFA diagnostics or logout failure paths reviewed on that HEAD.
+A fresh adversarial review must now re-evaluate the final repaired delta plus the surrounding WP-1.8 session/logout/MFA/local-isolation surfaces. No finding is considered closed until that review completes with no unresolved BLOCKING/MAJOR defect.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started. Forbidden until a repaired exact HEAD has green verification and a fresh Pass B with no unresolved BLOCKING/MAJOR finding.
+Not started. Forbidden until fresh Pass B completes with no unresolved BLOCKING/MAJOR finding.
 
 ## Handoff
 
-- Current state: `IN_PROGRESS`.
-- Current/next pass: `A-REMEDIATION`.
-- `WP18-AR-001`: repaired and clean under fresh review.
-- `WP18-AR-002`: implementation repaired; closure blocked only by browser-specific regression evidence.
-- Open finding under active remediation: `WP18-AR-003`.
-- Next permitted action: add the bounded Playwright warning-zone assertions, rerun exact-head evidence, then fresh Pass B.
-- Pass C, WP-1.9 and Lot 2+ remain forbidden.
+- Current state: `REVIEW_PENDING`.
+- Current/next pass: `B-ADVERSARIAL-REVIEW`.
+- Fresh repaired evidence: run `33994961610` on `cb7201e2d6dc1a8ca7608bb236f1f79ac84d8d9d`, 5/5 SUCCESS including clean-checkout `npm run verify`.
+- Findings awaiting final fresh-review closure: `WP18-AR-001`, `WP18-AR-002`, `WP18-AR-003`.
+- Next permitted action: fresh Pass B on repaired WP-1.8 only.
+- Pass C, WP-1.9 and Lot 2+ remain forbidden until the required predecessor gate passes.
