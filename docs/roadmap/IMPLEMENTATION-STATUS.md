@@ -39,7 +39,7 @@ Packets:
 5. `WP-1.5` — project configuration, dates, origins, preferences and RSVP-intent hooks — **ACCEPTED**;
 6. `WP-1.6` — protected app shell/navigation and public RSVP trust boundary — **ACCEPTED**;
 7. `WP-1.7` — project-scoped repositories, local cache and sync primitives — **ACCEPTED**;
-8. `WP-1.8` — session expiry, safe logout, MFA/security diagnostics — **IN_PROGRESS**;
+8. `WP-1.8` — session expiry, safe logout, MFA/security diagnostics — **REVIEW_PENDING**;
 9. `WP-1.9` — Storage/Realtime isolation foundation and security-matrix closure — **PLANNED**.
 
 ### Durable cursor
@@ -47,10 +47,10 @@ Packets:
 - Current Lot: **1**
 - Lot state: **IN_PROGRESS**
 - Current packet: **WP-1.8**
-- Packet state: **IN_PROGRESS**
-- Current/next pass: **A-REMEDIATION**
+- Packet state: **REVIEW_PENDING**
+- Current/next pass: **B-ADVERSARIAL-REVIEW**
 - Accepted packets: **WP-1.1, WP-1.2, WP-1.3, WP-1.4, WP-1.5, WP-1.6, WP-1.7**
-- Review-failed/blocked packets: **none currently; WP-1.8 is actively remediating prior Pass B findings `WP18-AR-001` and `WP18-AR-002`**
+- Review-failed/blocked packets: **none currently; prior WP-1.8 findings `WP18-AR-001` and `WP18-AR-002` are repaired and await fresh Pass B closure**
 - WP-1.1 acceptance evidence: run `33809855993` on `f0b1e46c46bc3ad5d15bf2191c63ec4e85473507`, all five jobs SUCCESS.
 - WP-1.2 acceptance evidence: run `33811568440` on `fa96228bcd8a0b7671fcb561f8f7668eaf5851dc`, all five jobs SUCCESS; `WP12-AR-001` closed.
 - WP-1.3 acceptance evidence: run `33817932867` on `707b1384fbd370fe88ef7a87ac191aa9645f6db3`, all five jobs SUCCESS; `WP13-AR-001` and `WP13-AR-002` closed.
@@ -58,9 +58,10 @@ Packets:
 - WP-1.5 acceptance evidence: run `33866160626` on implementation HEAD `15e477a9ca75efbc98594000c190180e24226229`, all five jobs SUCCESS including clean-checkout `npm run verify`; DB **13 files / 239 tests / PASS**; `WP15-AR-001` and `WP15-AR-002` closed; Pass C required-minus-evidenced = ∅.
 - WP-1.6 acceptance evidence: run `33880216335` on implementation HEAD `61dca0718f8ff7372609d208050aba6a50271743`, all five jobs SUCCESS including clean-checkout `npm run verify`; fresh Pass B PASS; Pass C required-minus-evidenced = ∅; `WP16-AR-001` and `WP16-AR-002` closed; final recovery observation repaired/re-reviewed.
 - WP-1.7 acceptance evidence: run `33895516028` on implementation/review HEAD `46548702f304dbabcf4bd673a33afb1c0ec96a3d`, all five jobs SUCCESS including 28/28 Playwright E2E, mutation and clean-checkout `npm run verify`; `WP17-AR-001..003` closed; fresh Pass B PASS; Pass C required-minus-evidenced = ∅.
-- WP-1.8 initial Pass A evidence: run `33991620529` on implementation/review HEAD `c93dd734ff048ea9829c53e147735c433cf8b41e`, all five jobs SUCCESS including browser E2E, mutation, DB/RLS, privacy-safe preview and clean-checkout `npm run verify`; fresh Pass B then found `WP18-AR-001` and `WP18-AR-002` MAJOR. Prior green evidence is historical until remediation receives a fresh exact-head run.
+- WP-1.8 initial Pass A evidence: run `33991620529` on `c93dd734ff048ea9829c53e147735c433cf8b41e`, all five jobs SUCCESS; fresh Pass B found `WP18-AR-001` and `WP18-AR-002` MAJOR.
+- WP-1.8 repaired Pass A evidence: run `33993111405` on implementation HEAD `68dbb4be3c7407758168b573ddbcf10120ef7298`, **5/5 SUCCESS** including Core quality/security, browser E2E + mutation, local Supabase DB/RLS, privacy-safe preview and clean-checkout `npm run verify`.
 - Current branch: **`lot-1/identity-project-foundation`**
-- Next permitted action: **repair `WP18-AR-001` and `WP18-AR-002` in WP-1.8 only, then rerun exact-head evidence and fresh Pass B; WP-1.9 remains blocked by sequencing**.
+- Next permitted action: **perform a fresh Pass B on repaired WP-1.8 only; Pass C and WP-1.9 remain blocked until that review is clean**.
 
 ## Lot status
 
@@ -74,14 +75,14 @@ Packets:
 
 - V1 Feature IDs: 120 SPECIFIED inventory rows total.
 - Lot 1 foundations are in implementation; no Lot 2+ Feature may start.
-- WP-1.1 through WP-1.7 are accepted foundations; WP-1.8 is in adversarial-review remediation; user-facing Feature acceptance remains pending broader Lot 1 slices and Lot integration.
+- WP-1.1 through WP-1.7 are accepted foundations; repaired WP-1.8 is awaiting fresh adversarial review; user-facing Feature acceptance remains pending broader Lot 1 slices and Lot integration.
 
 ## Current blockers / forward maintenance
 
-Open adversarial findings under active remediation:
+Adversarial findings awaiting fresh review closure:
 
-- `WP18-AR-001` **MAJOR**: ordinary safe logout calls Supabase `signOut()` without an explicit scope; pinned provider behavior defaults to global session revocation, so the browser-local logout flow can terminate unrelated owner sessions on other devices. Repair must use explicit provider-local scope while keeping `AuthPort` provider-neutral and add regression evidence.
-- `WP18-AR-002` **MAJOR**: the irreversible pending-work discard action is logically two-step but lacks the separated strong-warning/danger treatment required by Auth/Settings UX contracts. Repair must preserve explicit discard semantics while rendering a clearly separated irreversible-loss warning zone with unit/browser evidence.
+- `WP18-AR-001` **MAJOR, repaired**: ordinary safe logout previously inherited Supabase global session scope. The adapter now explicitly invokes provider-local sign-out while `AuthPort` stays provider-neutral; regression evidence pins `{ scope: "local" }`. Closure requires fresh Pass B.
+- `WP18-AR-002` **MAJOR, repaired**: irreversible pending-work discard previously lacked separated danger treatment. The UI now uses a dedicated warning zone with irreversible-loss copy and separated destructive control; unit evidence covers the warning/error states and real-browser evidence exercises the flow on desktop and mobile profiles. Closure requires fresh Pass B.
 
 Closed/adversarial findings:
 
@@ -117,11 +118,10 @@ Lot 0: ACCEPTED
 Lot 1: IN_PROGRESS
 Coverage: required - assigned = ∅
 Accepted: WP-1.1, WP-1.2, WP-1.3, WP-1.4, WP-1.5, WP-1.6, WP-1.7
-WP-1.7 acceptance: run 33895516028 on 46548702f304dbabcf4bd673a33afb1c0ec96a3d, 5/5 SUCCESS; fresh Pass B PASS; Pass C required-minus-evidenced = ∅
-WP-1.8 initial Pass A: run 33991620529 on c93dd734ff048ea9829c53e147735c433cf8b41e, 5/5 SUCCESS; later review failed
-Current: WP-1.8 / IN_PROGRESS / A-REMEDIATION
-Open under repair: WP18-AR-001, WP18-AR-002
-Next: repair findings only -> fresh exact-head evidence -> fresh Pass B -> Pass C if clean
+WP-1.8 repaired Pass A: run 33993111405 on 68dbb4be3c7407758168b573ddbcf10120ef7298, 5/5 SUCCESS including clean-checkout npm run verify
+Current: WP-1.8 / REVIEW_PENDING / B-ADVERSARIAL-REVIEW
+Repaired findings awaiting closure: WP18-AR-001, WP18-AR-002
+Next: fresh Pass B -> Pass C only if clean
 WP-1.9 remains sequenced behind WP-1.8 acceptance
 Lot 2+: forbidden
 ```
