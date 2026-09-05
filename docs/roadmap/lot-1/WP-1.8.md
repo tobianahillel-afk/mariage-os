@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-1.8`
 - Lot: `1`
 - Name: Session expiry, safe logout, MFA/security diagnostics
-- State: `REVIEW_FAILED`
-- Current pass: `B-REVIEW-FAILED`
+- State: `IN_PROGRESS`
+- Current pass: `A-REMEDIATION`
 - Primary bounded context: authenticated project-session recovery and local privacy lifecycle
 - Branch/PR: `lot-1/identity-project-foundation`
 
@@ -91,17 +91,13 @@ Initial implementation completed on implementation/review HEAD `c93dd734ff048ea9
 
 Initial exact-head evidence: GitHub Actions run `33991620529` completed successfully across Core quality/security, browser E2E + mutation, local Supabase DB/RLS, privacy-safe preview artifact and clean-checkout full verification. Fresh Pass B subsequently identified two MAJOR findings, so that evidence became historical.
 
-Remediation completed for `WP18-AR-001` and `WP18-AR-002`.
+Remediation completed for `WP18-AR-001` and the implementation portion of `WP18-AR-002`.
 
 Fresh repaired Pass A implementation/evidence HEAD: `68dbb4be3c7407758168b573ddbcf10120ef7298`.
 
-Fresh exact-head evidence: GitHub Actions run `33993111405` completed **5/5 SUCCESS**:
+Fresh exact-head evidence: GitHub Actions run `33993111405` completed **5/5 SUCCESS** across Core quality/security, browser E2E + mutation, local Supabase DB/RLS, privacy-safe preview and clean-checkout `npm run verify`.
 
-- Core quality/security SUCCESS, including format/lint/architecture/deadcode/markers, negative quality/security controls, unit tests with required coverage, dependency audit and build;
-- Browser and mutation harnesses SUCCESS, including Playwright Chromium/Firefox/WebKit/mobile-Chromium and Stryker;
-- Local Supabase DB/RLS SUCCESS;
-- Privacy-safe preview artifact SUCCESS;
-- Full verify from clean checkout SUCCESS with `npm run verify`.
+Current remediation activity: add the missing real-browser warning-zone regression required by `WP18-AR-003`, then replace the prior evidence with a fresh exact-head run.
 
 ### Pass A exit criteria
 
@@ -112,54 +108,34 @@ Fresh exact-head evidence: GitHub Actions run `33993111405` completed **5/5 SUCC
 - [x] reauth path still requires live membership validation
 - [x] safe logout purges only the authenticated account+project private namespace after provider sign-out
 - [x] MFA/security diagnostics expose safe metadata only and do not weaken server-side strong-auth checks
-- [x] applicable unit/property/browser/security evidence green
-- [x] fresh exact-head full CI including clean-checkout `npm run verify` green after review remediation
+- [x] applicable unit/property/browser/security evidence green before `WP18-AR-003`
+- [ ] fresh exact-head full CI including clean-checkout `npm run verify` green after `WP18-AR-003` remediation
 
 ## Pass B — ADVERSARIAL REVIEW
 
-Initial fresh adversarial review was performed against exact HEAD `c93dd734ff048ea9829c53e147735c433cf8b41e` after green initial Pass A evidence.
-
-Initial result: **REVIEW_FAILED**.
+Initial fresh adversarial review against `c93dd734ff048ea9829c53e147735c433cf8b41e` found `WP18-AR-001` and `WP18-AR-002` MAJOR.
 
 ### `WP18-AR-001` — MAJOR — ordinary logout uses provider-global session scope
 
-Initial observation: `SupabaseAuthAdapter.signOut()` invoked `supabase.auth.signOut()` without options. The pinned `@supabase/supabase-js` `2.112.4` provider contract defaults that call to `scope: 'global'`, which can revoke unrelated active sessions for the same owner.
-
-Repair implemented:
-
-- application `AuthPort` remains provider-neutral;
-- Supabase adapter now invokes `signOut({ scope: 'local' })` explicitly for ordinary safe logout;
-- regression evidence asserts the exact provider call;
-- TypeScript composition against the real pinned SDK and the complete exact-head verification are green.
-
-Repair status: **implemented and verified; no new defect found in the fresh review of this repair**.
+Repair implemented and verified: application `AuthPort` remains provider-neutral; Supabase adapter now invokes `signOut({ scope: 'local' })`; regression evidence asserts the exact provider call. Fresh review found no new defect in this repair.
 
 ### `WP18-AR-002` — MAJOR — destructive pending-work discard lacks the required separated danger treatment
 
-Initial observation: the second-step destructive discard button was appended into the ordinary security panel without a dedicated warning/separation treatment.
+Implementation repair is correct: the two-step semantics remain intact and the discard action is nested in a dedicated `logout-danger-zone` with `Abandon irréversible` and concrete irreversible-loss copy. Unit tests cover the warning and recovery branches.
 
-Repair implemented:
-
-- the existing two-step semantics remain intact;
-- the discard action is now nested in a dedicated `logout-danger-zone` with an explicit `Abandon irréversible` warning and concrete irreversible-loss copy;
-- styling visually separates the danger zone and destructive action from ordinary logout;
-- unit tests cover warning presence, duplicate prevention, explicit `logout(true)`, local-state-unavailable and unexpected-rejection recovery.
-
-Repair status: **implementation is correct, but closure remains blocked by `WP18-AR-003` below**.
+Closure remains blocked by `WP18-AR-003`.
 
 ### `WP18-AR-003` — MAJOR — real-browser regression does not prove the repaired danger warning
 
-Fresh review observation on HEAD `6d69f8cf80c5a08114fc7d171043cf49cffb3ed2`: the existing Playwright safe-logout scenario reaches and clicks `Abandonner les modifications locales et se déconnecter`, but it does not assert the dedicated `logout-danger-zone`, the `Abandon irréversible` warning, or the irreversible-loss copy. That scenario would therefore still pass if the browser-visible warning/separation regressed while the button remained available.
-
-Why this is material: `WP18-AR-002` was specifically a destructive-action safety/UX defect, and `SEC-VER-005` requires reproducible security defects to gain regression evidence. The packet's own repair record also requires browser evidence for the warning zone and mobile-safe interaction. Unit DOM evidence alone does not prove the warning is rendered/visible in the real browser/CSS path.
+Fresh review observation on HEAD `6d69f8cf80c5a08114fc7d171043cf49cffb3ed2`: the existing Playwright safe-logout scenario reaches and clicks the destructive button but does not assert the dedicated danger zone, warning title or irreversible-loss copy. It could therefore remain green if the browser-visible safety warning regressed while the button stayed present.
 
 Required repair:
 
-- extend the existing Playwright safe-logout scenario to assert the browser-visible danger zone and irreversible warning before destructive discard;
-- keep the scenario in the existing multi-profile Playwright matrix so the same assertion runs under Chromium, Firefox, WebKit and mobile-Chromium;
-- rerun exact-head verification and perform another fresh Pass B.
+- assert the browser-visible danger zone and irreversible warning in the existing Playwright safe-logout scenario before destructive discard;
+- keep that assertion in the existing multi-profile Playwright matrix (Chromium, Firefox, WebKit, mobile-Chromium);
+- rerun exact-head verification and another fresh Pass B.
 
-Fresh Pass B result: **REVIEW_FAILED** because `WP18-AR-003` is unresolved. No additional BLOCKING/MAJOR defect was identified in the surrounding session-expiry, live-membership revalidation, scoped purge, context-marker, MFA diagnostics or logout failure paths reviewed on this HEAD.
+Fresh Pass B result: **REVIEW_FAILED**. No additional BLOCKING/MAJOR defect was identified in the surrounding session-expiry, live-membership revalidation, scoped purge, context-marker, MFA diagnostics or logout failure paths reviewed on that HEAD.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
@@ -167,10 +143,10 @@ Not started. Forbidden until a repaired exact HEAD has green verification and a 
 
 ## Handoff
 
-- Current state: `REVIEW_FAILED`.
-- Current/next pass: `B-REVIEW-FAILED`.
+- Current state: `IN_PROGRESS`.
+- Current/next pass: `A-REMEDIATION`.
 - `WP18-AR-001`: repaired and clean under fresh review.
-- `WP18-AR-002`: implementation repaired; closure blocked only by missing browser-specific regression evidence.
-- Open finding: `WP18-AR-003`.
-- Next permitted action: remediate `WP18-AR-003` in WP-1.8 only, rerun exact-head evidence, then perform another fresh Pass B.
+- `WP18-AR-002`: implementation repaired; closure blocked only by browser-specific regression evidence.
+- Open finding under active remediation: `WP18-AR-003`.
+- Next permitted action: add the bounded Playwright warning-zone assertions, rerun exact-head evidence, then fresh Pass B.
 - Pass C, WP-1.9 and Lot 2+ remain forbidden.
