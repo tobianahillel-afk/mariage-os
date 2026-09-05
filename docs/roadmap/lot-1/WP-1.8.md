@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-1.8`
 - Lot: `1`
 - Name: Session expiry, safe logout, MFA/security diagnostics
-- State: `ACCEPTANCE_PENDING`
-- Current pass: `C-ACCEPTANCE-RECONCILIATION`
+- State: `ACCEPTED`
+- Current pass: `C-ACCEPTED`
 - Primary bounded context: authenticated project-session recovery and local privacy lifecycle
 - Branch/PR: `lot-1/identity-project-foundation`
 
@@ -59,8 +59,8 @@
 ## Dependency / sequencing
 
 - Required prior packets: WP-1.3 Auth/session adapter, WP-1.6 protected shell, WP-1.7 durable local project store are **ACCEPTED**.
-- WP-1.9 remains blocked until WP-1.8 acceptance.
-- Lot 2+ remains forbidden.
+- WP-1.9 becomes the next permitted packet after this acceptance.
+- Lot 2+ remains forbidden pending Lot 1 completion/acceptance.
 
 ## Sizing review
 
@@ -87,17 +87,17 @@ Cohesion rationale: session expiry, safe logout and security diagnostics all gov
 
 ## Pass A — IMPLEMENT
 
-Initial implementation HEAD `c93dd734ff048ea9829c53e147735c433cf8b41e` received run `33991620529`, 5/5 SUCCESS; subsequent review found `WP18-AR-001` and `WP18-AR-002`.
+Final repaired implementation/evidence HEAD: `cb7201e2d6dc1a8ca7608bb236f1f79ac84d8d9d`.
 
-First repair HEAD `68dbb4be3c7407758168b573ddbcf10120ef7298` received run `33993111405`, 5/5 SUCCESS; subsequent review found `WP18-AR-003` because browser evidence did not assert the repaired warning behavior.
-
-Final repaired implementation/evidence HEAD `cb7201e2d6dc1a8ca7608bb236f1f79ac84d8d9d` received GitHub Actions run `33994961610`, **5/5 SUCCESS**:
+GitHub Actions run `33994961610`: **5/5 SUCCESS**:
 
 - Core quality/security SUCCESS;
-- Browser E2E + mutation SUCCESS, including warning-zone assertions in the standard Chromium/Firefox/WebKit/mobile-Chromium matrix;
+- Browser E2E + mutation SUCCESS, including warning-zone assertions in Chromium, Firefox, WebKit and mobile-Chromium;
 - Local Supabase DB/RLS SUCCESS;
 - Privacy-safe preview artifact SUCCESS;
 - clean-checkout `npm run verify` SUCCESS.
+
+Earlier implementation/review cycles remain recorded historically: initial run `33991620529` led to `WP18-AR-001/002`; first repair run `33993111405` led to `WP18-AR-003`.
 
 ### Pass A exit criteria
 
@@ -113,29 +113,57 @@ Final repaired implementation/evidence HEAD `cb7201e2d6dc1a8ca7608bb236f1f79ac84
 
 ## Pass B — ADVERSARIAL REVIEW
 
-Final fresh review performed after run `33994961610`, using final repaired delta from prior review HEAD `6d69f8cf80c5a08114fc7d171043cf49cffb3ed2`.
-
-Result: **PASS — no unresolved BLOCKING/MAJOR finding**.
+Final result: **PASS — no unresolved BLOCKING/MAJOR finding**.
 
 ### Closed findings
 
-- `WP18-AR-001` — **CLOSED**: ordinary safe logout explicitly uses Supabase `signOut({ scope: 'local' })`; `AuthPort` remains provider-neutral; regression test pins the exact provider call.
-- `WP18-AR-002` — **CLOSED**: destructive pending-work discard is a two-step flow inside a dedicated danger zone with `Abandon irréversible`, concrete loss copy and separated destructive control; unit/error recovery evidence is green.
-- `WP18-AR-003` — **CLOSED**: real-browser safe-logout regression now asserts the visible danger zone, warning heading and irreversible-loss copy before discard; the scenario runs in Chromium, Firefox, WebKit and mobile-Chromium and remains green in run `33994961610`.
+- `WP18-AR-001` — **CLOSED**: ordinary safe logout explicitly uses Supabase `signOut({ scope: 'local' })`; application `AuthPort` remains provider-neutral; exact-call regression is green.
+- `WP18-AR-002` — **CLOSED**: destructive pending-work discard remains two-step and is isolated inside a dedicated danger zone with `Abandon irréversible`, irreversible-loss copy and separated destructive control; unit/error recovery evidence is green.
+- `WP18-AR-003` — **CLOSED**: real-browser regression asserts the visible danger zone, warning heading and loss copy before discard across Chromium, Firefox, WebKit and mobile-Chromium.
 
-The final delta from the prior review HEAD contains no production-code change: only the browser regression plus durable status documentation. Review of the surrounding session-expiry, live-membership revalidation, scoped purge, context-marker, MFA diagnostics and logout-failure paths found no additional BLOCKING/MAJOR defect.
+Final review delta from prior review HEAD `6d69f8cf80c5a08114fc7d171043cf49cffb3ed2` contained no production-code change: only the missing browser regression plus durable status documentation. Surrounding session-expiry, live-membership revalidation, scoped purge, context-marker, MFA diagnostics and logout-failure paths were rechecked without additional BLOCKING/MAJOR finding.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-In progress.
+### Mechanical reconciliation
 
-Pass C must mechanically reconcile all WP-1.8 responsibilities/IDs against implementation and final green evidence. No production modification is permitted during acceptance without returning through implementation/review.
+| Expected responsibility | Implemented | Verified evidence | Result |
+|---|---|---|---|
+| fresh signed-out vs established-context session-expiry distinction | protected-route guard uses validated local context marker only to choose `login_required` vs `session_expired`; marker is never cloud authorization | protected-route unit tests; signed-out/session-expiry Playwright scenarios | PASS |
+| pending local work survives session expiry | account+project IndexedDB queue is not purged on expiry; expired shell states sync is suspended and work retained | durable IndexedDB/reload tests; ACC-008 Playwright scenario | PASS |
+| cloud/project access resumes only after reauth + live membership validation | verified session must pass live `canReadProject(projectId)` before private shell/local project state opens | route/startup tests; member vs outsider E2E | PASS |
+| minimal local established-context marker is safe and scoped | browser store persists only validated project→user UUID mapping; malformed/storage failures fail closed; no auth token/project content copied | marker unit tests; secret/static controls | PASS |
+| logout inspects all unresolved local work before destructive completion | pending, conflict, retryable failure and permanent failure counters contribute to resolution requirement | safe-logout unit tests | PASS |
+| explicit logout never silently discards pending work | unresolved work returns `resolution_required`; discard requires separate explicit second action and irreversible warning | safe-logout + security-panel unit tests; ACC-009 Playwright scenario | PASS |
+| logout transition clears visible private context before provider/purge work | application passes root-neutralization callback before sign-out; failures render generic unavailable recovery state | coordinator ordering tests; startup/logout tests | PASS |
+| ordinary provider logout is current-session scoped | Supabase adapter uses explicit `{ scope: 'local' }` while application port remains provider-neutral | adapter regression; real SDK typecheck; full verify | PASS |
+| private local purge is account+project scoped and ordered after provider sign-out | IndexedDB deletion targets only scoped namespace; context marker clears only after successful purge | purge/coordinator unit tests; two-project Playwright isolation scenario | PASS |
+| sign-out/purge/context-cleanup failures fail safely | sign-out failure preserves local cache; purge failure preserves context marker; typed generic recovery outcomes | safe-logout failure tests; UI recovery tests | PASS |
+| bounded MFA/security diagnostics expose no secret/factor identifier | diagnostics model contains only assurance, AAL2-upgrade readiness and verified-TOTP boolean; provider errors fail closed | Supabase adapter diagnostics tests; security settings/diagnostics UI tests | PASS |
+| no UI assurance substitutes for server-side privileged-command enforcement | diagnostics copy explicitly informational; existing privileged RPC AAL2 controls from accepted prior packet remain unchanged | architecture/security review; existing DB/RPC evidence; final diff review | PASS |
+| no WP-1.9/Lot-10/Lot-2+ scope pulled forward | no Storage/Realtime policy work, remote sync coordinator, business domain or provider token crypto introduced | final diff review; architecture/static gates | PASS |
+
+Mechanical set result:
+
+`required WP-1.8 responsibilities − implemented/evidenced responsibilities = ∅`
+
+### Acceptance decision
+
+- all WP-1.8 current-lot responsibilities are implemented or explicitly deferred by packet scope;
+- `WP18-AR-001`, `WP18-AR-002` and `WP18-AR-003` are closed;
+- final fresh Pass B has no unresolved BLOCKING/MAJOR finding;
+- final implementation/evidence run `33994961610` on `cb7201e2d6dc1a8ca7608bb236f1f79ac84d8d9d` is 5/5 SUCCESS including clean-checkout `npm run verify`;
+- architecture/complexity/security gates are green;
+- no out-of-scope WP-1.9, Lot-10 or Lot-2+ functionality was introduced.
+
+Result: **ACCEPTED**.
 
 ## Handoff
 
-- Current state: `ACCEPTANCE_PENDING`.
-- Current/next pass: `C-ACCEPTANCE-RECONCILIATION`.
-- Final repaired evidence: run `33994961610` on `cb7201e2d6dc1a8ca7608bb236f1f79ac84d8d9d`, 5/5 SUCCESS including clean-checkout `npm run verify`.
-- Fresh Pass B: PASS; `WP18-AR-001..003` closed.
-- Next permitted action: Pass C reconciliation for WP-1.8 only.
-- WP-1.9 and Lot 2+ remain forbidden until WP-1.8 acceptance.
+- Current state: `ACCEPTED`.
+- Current/last pass: `C-ACCEPTED`.
+- Acceptance implementation evidence: run `33994961610` on `cb7201e2d6dc1a8ca7608bb236f1f79ac84d8d9d`, all five jobs SUCCESS including clean-checkout `npm run verify`.
+- Findings: `WP18-AR-001`, `WP18-AR-002`, `WP18-AR-003` — all **CLOSED**; final fresh Pass B **PASS**.
+- Pass C: `required − implemented/evidenced = ∅`.
+- Next permitted packet: WP-1.9, subject to its bounded packet record and normal Pass A → B → C protocol.
+- Lot 2+ remains forbidden pending Lot 1 closure.
