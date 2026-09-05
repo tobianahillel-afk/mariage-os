@@ -89,11 +89,9 @@ it("runs the safe transition before provider sign-out and scoped purge", async (
     appVersion: "1",
   });
 
-  await expect(coordinator.logout(scope, false, transition)).resolves.toEqual(
-    {
-      kind: "completed",
-    },
-  );
+  await expect(coordinator.logout(scope, false, transition)).resolves.toEqual({
+    kind: "completed",
+  });
   expect(transition).toHaveBeenCalledOnce();
   expect(transition.mock.invocationCallOrder[0]).toBeLessThan(
     vi.mocked(target.auth.signOut).mock.invocationCallOrder[0] ?? 0,
@@ -226,7 +224,9 @@ it("preserves local data when provider sign-out fails", async () => {
 
 it("keeps the context marker when scoped purge fails", async () => {
   const target = dependencies();
-  vi.mocked(target.localPurge.purge).mockRejectedValue(new Error("purge blocked"));
+  vi.mocked(target.localPurge.purge).mockRejectedValue(
+    new Error("purge blocked"),
+  );
   const coordinator = new SafeLogoutCoordinator({
     auth: target.auth,
     localStoreFactory: target.factory,
