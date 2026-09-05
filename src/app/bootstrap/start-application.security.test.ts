@@ -1,5 +1,8 @@
 import { beforeEach, expect, it, vi } from "vitest";
-import type { SafeLogoutCoordinator, LogoutResult } from "@application/auth/safe-logout";
+import type {
+  SafeLogoutCoordinator,
+  LogoutResult,
+} from "@application/auth/safe-logout";
 import type { LocalProjectScope } from "@application/local-data/local-project-scope";
 import type { ProjectShellState } from "@ui/shell/render-shell";
 
@@ -69,8 +72,7 @@ function fakeLogoutCoordinator(
 
 function lastProjectState(): ProjectShellState {
   const state = renderShell.mock.calls.at(-1)?.[1] as
-    | ProjectShellState
-    | undefined;
+    ProjectShellState | undefined;
   if (state?.kind !== "project_allowed") {
     throw new Error("Expected a rendered project shell state.");
   }
