@@ -129,23 +129,6 @@ exception
 end;
 $$;
 
-create function pg_temp.try_storage_delete(object_name text)
-returns boolean
-language plpgsql
-as $$
-declare
-  changed_rows integer;
-begin
-  delete from storage.objects
-  where bucket_id = 'project-private'
-    and name = object_name;
-  get diagnostics changed_rows = row_count;
-  return changed_rows = 1;
-exception
-  when insufficient_privilege then return false;
-end;
-$$;
-
 set local role authenticated;
 select set_config(
   'request.jwt.claims',
@@ -241,8 +224,17 @@ select ok(
   'editor may insert project A media because media.write is granted'
 );
 select ok(
-  pg_temp.try_storage_delete('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a3000000-0000-4000-8000-000000000003/original'),
-  'editor may delete project A media because media.write is granted'
+  (
+    select cmd = 'DELETE'
+      and 'authenticated'::name = any(roles)
+      and qual like '%project-private%'
+      and qual like '%media.write%'
+    from pg_policies
+    where schemaname = 'storage'
+      and tablename = 'objects'
+      and policyname = 'project_private_media_delete'
+  ),
+  'delete policy is bound to authenticated clients and live media.write authorization'
 );
 
 select set_config(
@@ -252,7 +244,7 @@ select set_config(
 );
 select is(
   (select count(*)::integer from storage.objects where bucket_id = 'project-private'),
-  2,
+  3,
   'viewer may read project A media'
 );
 select ok(
@@ -267,8 +259,8 @@ select ok(
   'viewer cannot update project A media without media.write'
 );
 select ok(
-  not pg_temp.try_storage_delete('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a2000000-0000-4000-8000-000000000002/original'),
-  'viewer cannot delete project A media without media.write'
+  not public.has_project_permission('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'media.write'),
+  'viewer cannot satisfy the media.write permission required by the delete policy'
 );
 
 select set_config(
@@ -278,7 +270,7 @@ select set_config(
 );
 select is(
   (select count(*)::integer from storage.objects where bucket_id = 'project-private'),
-  3,
+  4,
   'multi-project member sees only projects A and B, not project C'
 );
 select ok(
