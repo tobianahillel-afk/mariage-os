@@ -64,6 +64,23 @@ function setStatus(status: HTMLElement, text: string): void {
   status.setAttribute("role", "status");
 }
 
+function createDiscardWarning(): HTMLElement {
+  const warning = document.createElement("div");
+  warning.className = "logout-danger-zone";
+  warning.setAttribute("data-logout-danger-zone", "true");
+  warning.setAttribute("role", "group");
+  warning.setAttribute("aria-label", "Abandon du travail local");
+  warning.append(
+    textElement("h4", "Abandon irréversible", "danger-title"),
+    textElement(
+      "p",
+      "Les modifications locales non synchronisées de ce projet seront supprimées de cet appareil et ne pourront pas être récupérées depuis Mariage OS.",
+      "danger-copy",
+    ),
+  );
+  return warning;
+}
+
 function appendDiscardAction(
   container: HTMLElement,
   actions: SecuritySettingsActions,
@@ -72,6 +89,7 @@ function appendDiscardAction(
   if (container.querySelector('[data-action="discard-logout"]') !== null)
     return;
 
+  const warning = createDiscardWarning();
   const discard = document.createElement("button");
   discard.type = "button";
   discard.textContent =
@@ -80,12 +98,28 @@ function appendDiscardAction(
   discard.setAttribute("data-action", "discard-logout");
   discard.addEventListener("click", async () => {
     discard.disabled = true;
-    await actions.logout(true);
+    try {
+      const result = await actions.logout(true);
+      if (result.kind === "local_state_unavailable") {
+        setStatus(
+          status,
+          "Impossible de vérifier le travail local sans risque.",
+        );
+        discard.disabled = false;
+      }
+    } catch {
+      setStatus(
+        status,
+        "Impossible de terminer la déconnexion en toute sécurité.",
+      );
+      discard.disabled = false;
+    }
   });
-  container.append(discard);
+  warning.append(discard);
+  container.append(warning);
   setStatus(
     status,
-    "Synchronisez ou récupérez votre travail avant de réessayer, ou confirmez explicitement son abandon.",
+    "Travail local non résolu. Utilisez l’abandon ci-dessous uniquement si vous acceptez sa suppression définitive sur cet appareil.",
   );
 }
 
