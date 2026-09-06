@@ -120,7 +120,7 @@ function normalizeText(
 function hasCanonicalUrlSyntax(raw: string): boolean {
   const matched = CANONICAL_HTTP_URL_PATTERN.exec(raw);
   if (matched === null) return false;
-  const host = matched[1] ?? "";
+  const host = matched[1] as string;
   const port = matched[2];
   if (/^[0-9.]+$/.test(host)) return false;
   return port === undefined || Number(port) <= 65_535;
@@ -161,7 +161,7 @@ function daysInMonth(year: number, month: number): number {
     30,
     31,
   ];
-  return monthLengths[month - 1] ?? 0;
+  return monthLengths[month - 1] as number;
 }
 
 function normalizeDate(
