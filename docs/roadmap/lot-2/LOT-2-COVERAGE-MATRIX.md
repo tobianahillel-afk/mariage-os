@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1 and WP-2.2 ACCEPTED; no packet active until WP-2.2 governance exact-head verification completes**
+Status: **IN_PROGRESS — WP-2.1 and WP-2.2 ACCEPTED; WP-2.3 is the only active packet**
 
 Purpose: durable responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`.
 
@@ -77,17 +77,20 @@ Dependencies: WP-2.1 **ACCEPTED**.
 Acceptance record: `WP-2.2.md`.  
 Reviewed implementation head: `241daa01e069a6cbaec4d0ebc09ddf5ca982a385`.  
 Exact implementation CI run `34046985956`: **5/5 SUCCESS**; 473 unit tests / 47 files with 100% statements/branches/functions/lines, 20 DB files / 442 pgTAP tests, 40/40 E2E, clean-checkout `npm run verify` PASS.  
+Governance exact-head CI run `34048565452` on `480b0bcc168d7789bf2bee07a75c8f04200f5cb7`: **5/5 SUCCESS**.  
 Fresh Pass B: **PASS** after MAJOR `WP2.2-B-001` was resolved across domain/provider/RPC/PostgreSQL numeric boundaries.  
 Required WP-2.2 responsibilities minus accepted/evidenced WP-2.2 responsibilities: **∅**.  
 Boundary retained: sourced wedding-specific fit remains WP-2.3..2.5; table/gallery UI preferences remain WP-2.11 and reuse `user_project_preferences`.
 
 ### WP-2.3 — Fact definitions, typed retained facts and value validation
 
-State: **PLANNED**
+State: **IN_PROGRESS**  
+Current pass: **A-IMPLEMENT**
 
 Primary Feature: FTR-019.  
-Dependencies: WP-2.1.  
-Next permitted packet after the WP-2.2 governance exact-head CI is green.
+Dependencies: WP-2.1 and WP-2.2 **ACCEPTED**.  
+Record: `WP-2.3.md`.  
+Boundary: owns Venue fact definitions + retained fact state/value/type validation only. Observations/sources/conflict-resolution provenance remain WP-2.4; compatibility execution/readiness remains WP-2.5; no full default-criteria seeding is activated here.
 
 ### WP-2.4 — Observations, sources, evidence/confidence/freshness and conflicts
 
@@ -163,7 +166,7 @@ Provides the complete visit workflow and the final packet-owned synthetic venue 
 ```text
 WP-2.1 [ACCEPTED]
   ├─→ WP-2.2 [ACCEPTED]
-  ├─→ WP-2.3 → WP-2.4 → WP-2.5
+  ├─→ WP-2.3 [IN_PROGRESS] → WP-2.4 → WP-2.5
   ├─→ WP-2.6
   ├─→ WP-2.7
   └─→ WP-2.8 → WP-2.9
@@ -183,7 +186,7 @@ separate Lot 2 Integration Pass
 Lot 2 acceptance
 ```
 
-Default execution remains one packet `IN_PROGRESS` at a time. No packet is active while the WP-2.2 acceptance-governance commit is awaiting exact-head verification; after that gate, WP-2.3 is next.
+Default execution remains one packet `IN_PROGRESS` at a time. WP-2.3 is currently the only active packet.
 
 ## Explicitly out of Lot 2
 
