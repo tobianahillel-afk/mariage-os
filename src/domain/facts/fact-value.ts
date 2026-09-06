@@ -33,8 +33,7 @@ function plainRecord(value: unknown): UnknownRecord | null {
 function exactKeys(record: UnknownRecord, keys: readonly string[]): boolean {
   const actual = Object.keys(record);
   return (
-    actual.length === keys.length &&
-    actual.every((key) => keys.includes(key))
+    actual.length === keys.length && actual.every((key) => keys.includes(key))
   );
 }
 
@@ -62,7 +61,10 @@ function maximumMatches(value: number, maximum: number | undefined): boolean {
   return value <= maximum;
 }
 
-function numberMatches(value: unknown, options: NumericFactOptions): value is number {
+function numberMatches(
+  value: unknown,
+  options: NumericFactOptions,
+): value is number {
   if (!finiteNumber(value)) return false;
   if (!integerMatches(value, options.integer)) return false;
   if (!minimumMatches(value, options.min)) return false;
@@ -203,7 +205,8 @@ function normalizeMultiselect(
   if (select === null || !Array.isArray(raw)) return INVALID;
   const requested = new Set<string>();
   for (const candidate of raw) {
-    if (typeof candidate !== "string" || requested.has(candidate)) return INVALID;
+    if (typeof candidate !== "string" || requested.has(candidate))
+      return INVALID;
     requested.add(candidate);
   }
   const known = new Set(select.options.map((option) => option.key));
