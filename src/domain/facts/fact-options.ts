@@ -1,4 +1,5 @@
 import { isCanonicalFactNumber } from "./fact-number";
+import { hasCodePointLengthBetween } from "./fact-text-length";
 import type {
   FactOption,
   FactOptions,
@@ -20,6 +21,7 @@ const NUMERIC_TYPES: readonly FactValueType[] = [
   "duration",
   "distance",
 ];
+const INTEGER_QUANTITY_TYPES: readonly FactValueType[] = ["duration", "distance"];
 const INVALID_OPTIONS: FactOptionsResult = {
   ok: false,
   error: "invalid_options",
@@ -62,6 +64,53 @@ function validNumericBounds(
   return min <= max;
 }
 
+function intervalContainsSafeInteger(
+  min: number | undefined,
+  max: number | undefined,
+): boolean {
+  const lower = Math.max(min ?? Number.MIN_SAFE_INTEGER, Number.MIN_SAFE_INTEGER);
+  const upper = Math.min(max ?? Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER);
+  return Math.ceil(lower) <= Math.floor(upper);
+}
+
+function ratingSemanticsValid(
+  record: UnknownRecord,
+  min: number | undefined,
+  max: number | undefined,
+): boolean {
+  const lower = min ?? 0;
+  const upper = max ?? 10;
+  if (lower > upper) return false;
+  return record.integer === true
+    ? intervalContainsSafeInteger(lower, upper)
+    : true;
+}
+
+function integerQuantitySemanticsValid(
+  record: UnknownRecord,
+  min: number | undefined,
+  max: number | undefined,
+): boolean {
+  if (record.integer === false) return false;
+  const lower = Math.max(min ?? 0, 0);
+  const upper = Math.min(max ?? Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER);
+  return Math.ceil(lower) <= Math.floor(upper);
+}
+
+function numericSemanticsValid(
+  valueType: FactValueType,
+  record: UnknownRecord,
+  min: number | undefined,
+  max: number | undefined,
+): boolean {
+  if (valueType === "rating") return ratingSemanticsValid(record, min, max);
+  if (INTEGER_QUANTITY_TYPES.includes(valueType)) {
+    return integerQuantitySemanticsValid(record, min, max);
+  }
+  if (record.integer === true) return intervalContainsSafeInteger(min, max);
+  return true;
+}
+
 function buildNumericOptions(
   record: UnknownRecord,
   min: number | undefined,
@@ -76,7 +125,10 @@ function buildNumericOptions(
   };
 }
 
-function normalizeNumericOptions(raw: unknown): FactOptionsResult {
+function normalizeNumericOptions(
+  valueType: FactValueType,
+  raw: unknown,
+): FactOptionsResult {
   if (raw === null) return { ok: true, value: null };
   const record = numericRecord(raw);
   if (record === null) return INVALID_OPTIONS;
@@ -85,6 +137,7 @@ function normalizeNumericOptions(raw: unknown): FactOptionsResult {
   if (min === null || max === null) return INVALID_OPTIONS;
   if (!validIntegerOption(record.integer)) return INVALID_OPTIONS;
   if (!validNumericBounds(min, max)) return INVALID_OPTIONS;
+  if (!numericSemanticsValid(valueType, record, min, max)) return INVALID_OPTIONS;
   return { ok: true, value: buildNumericOptions(record, min, max) };
 }
 
@@ -102,7 +155,7 @@ function normalizeOption(value: unknown): FactOption | null {
   const key = record.key.trim();
   const labelKey = record.labelKey.trim();
   if (!validOptionKey(key)) return null;
-  if (labelKey.length < 1 || labelKey.length > 160) return null;
+  if (!hasCodePointLengthBetween(labelKey, 1, 160)) return null;
   return { key, labelKey };
 }
 
@@ -142,7 +195,9 @@ export function normalizeFactOptions(
   valueType: FactValueType,
   raw: unknown,
 ): FactOptionsResult {
-  if (NUMERIC_TYPES.includes(valueType)) return normalizeNumericOptions(raw);
+  if (NUMERIC_TYPES.includes(valueType)) {
+    return normalizeNumericOptions(valueType, raw);
+  }
   if (valueType === "select" || valueType === "multiselect") {
     return normalizeSelectOptions(raw);
   }

@@ -1,10 +1,12 @@
 import { isCanonicalFactNumber } from "./fact-number";
+import { hasCodePointLengthBetween } from "./fact-text-length";
 import type {
   FactOptions,
   FactValueType,
   NumericFactOptions,
   SelectFactOptions,
 } from "./fact-types";
+import { isCanonicalFactUrl } from "./fact-url";
 
 export interface FactValueDefinition {
   readonly valueType: FactValueType;
@@ -23,8 +25,6 @@ type ValueNormalizer = (
 ) => FactValueResult;
 
 const INVALID: FactValueResult = { ok: false, error: "invalid_fact_value" };
-const CANONICAL_HTTP_URL_PATTERN =
-  /^https?:\/\/([A-Za-z0-9._~-]+)(?::([0-9]{1,5}))?(?:[/?#][^\s]*)?$/i;
 
 function plainRecord(value: unknown): UnknownRecord | null {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
@@ -105,44 +105,29 @@ function normalizeMoney(
     (record.minor as number) >= 0 &&
     typeof record.currency === "string" &&
     /^[A-Z]{3}$/.test(record.currency);
-  return valid ? { ok: true, value: raw } : INVALID;
+  if (!valid) return INVALID;
+  return {
+    ok: true,
+    value: Object.freeze({ minor: record.minor, currency: record.currency }),
+  };
 }
 
 function normalizeText(
   _definition: FactValueDefinition,
   raw: unknown,
 ): FactValueResult {
-  return typeof raw === "string" && raw.length <= 5000
+  return typeof raw === "string" && hasCodePointLengthBetween(raw, 0, 5000)
     ? { ok: true, value: raw }
     : INVALID;
-}
-
-function hasCanonicalUrlSyntax(raw: string): boolean {
-  const matched = CANONICAL_HTTP_URL_PATTERN.exec(raw);
-  if (matched === null) return false;
-  const host = matched[1] as string;
-  const port = matched[2];
-  if (/^[0-9.]+$/.test(host)) return false;
-  return port === undefined || Number(port) <= 65_535;
-}
-
-function parsesAsHttpUrl(raw: string): boolean {
-  try {
-    const parsed = new URL(raw);
-    return parsed.protocol === "http:" || parsed.protocol === "https:";
-  } catch {
-    return false;
-  }
 }
 
 function normalizeUrl(
   _definition: FactValueDefinition,
   raw: unknown,
 ): FactValueResult {
-  if (typeof raw !== "string" || raw.length > 2048) return INVALID;
-  const syntaxValid = hasCanonicalUrlSyntax(raw);
-  const parserValid = parsesAsHttpUrl(raw);
-  return syntaxValid && parserValid ? { ok: true, value: raw } : INVALID;
+  return typeof raw === "string" && isCanonicalFactUrl(raw)
+    ? { ok: true, value: raw }
+    : INVALID;
 }
 
 function daysInMonth(year: number, month: number): number {
@@ -197,7 +182,11 @@ function normalizeTime(
     Number.isSafeInteger(record.dayOffset) &&
     (record.dayOffset as number) >= 0 &&
     (record.dayOffset as number) <= 2;
-  return valid ? { ok: true, value: raw } : INVALID;
+  if (!valid) return INVALID;
+  return {
+    ok: true,
+    value: Object.freeze({ time: record.time, dayOffset: record.dayOffset }),
+  };
 }
 
 function normalizeIntegerQuantity(
@@ -229,6 +218,11 @@ function normalizeSelect(
     : INVALID;
 }
 
+function stableKeyOrder(left: string, right: string): number {
+  if (left < right) return -1;
+  return left > right ? 1 : 0;
+}
+
 function normalizeMultiselect(
   definition: FactValueDefinition,
   raw: unknown,
@@ -246,9 +240,7 @@ function normalizeMultiselect(
   if ([...requested].some((key) => !known.has(key))) return INVALID;
   return {
     ok: true,
-    value: select.options
-      .map((option) => option.key)
-      .filter((key) => requested.has(key)),
+    value: Object.freeze([...requested].sort(stableKeyOrder)),
   };
 }
 

@@ -3,6 +3,7 @@ import {
   type FactEvaluationRule,
 } from "./fact-evaluation-rule";
 import { normalizeFactOptions } from "./fact-options";
+import { hasCodePointLengthBetween } from "./fact-text-length";
 import {
   isFactPriority,
   isFactValueType,
@@ -66,8 +67,7 @@ interface MetadataFields {
 function normalizeRequiredText(value: unknown, maximum: number): string | null {
   if (typeof value !== "string") return null;
   const normalized = value.trim();
-  if (normalized.length < 1 || normalized.length > maximum) return null;
-  return normalized;
+  return hasCodePointLengthBetween(normalized, 1, maximum) ? normalized : null;
 }
 
 function normalizeOptionalText(
@@ -77,8 +77,9 @@ function normalizeOptionalText(
   if (value === null) return null;
   if (typeof value !== "string") return undefined;
   const normalized = value.trim();
-  if (normalized.length < 1 || normalized.length > maximum) return undefined;
-  return normalized;
+  return hasCodePointLengthBetween(normalized, 1, maximum)
+    ? normalized
+    : undefined;
 }
 
 function normalizeWeight(value: unknown): number | null | undefined {
