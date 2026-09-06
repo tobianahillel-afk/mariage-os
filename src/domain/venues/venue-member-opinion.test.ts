@@ -33,8 +33,24 @@ describe("normalizeVenueMemberPreference", () => {
     });
   });
 
-  it.each([undefined, null, "   "])(
-    "normalizes absent or blank personal note %# to null",
+  it("normalizes an omitted personal note to null", () => {
+    expect(
+      normalizeVenueMemberPreference({
+        favorite: false,
+        expectedRevision: 0,
+      }),
+    ).toEqual({
+      ok: true,
+      value: {
+        favorite: false,
+        personalNote: null,
+        expectedRevision: 0,
+      },
+    });
+  });
+
+  it.each([null, "   "])(
+    "normalizes null or blank personal note %# to null",
     (personalNote) => {
       const result = normalizeVenueMemberPreference({
         favorite: false,
