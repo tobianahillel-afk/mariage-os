@@ -117,25 +117,32 @@ function normalizeText(
     : INVALID;
 }
 
+function hasCanonicalUrlSyntax(raw: string): boolean {
+  const matched = CANONICAL_HTTP_URL_PATTERN.exec(raw);
+  if (matched === null) return false;
+  const host = matched[1] ?? "";
+  const port = matched[2];
+  if (/^[0-9.]+$/.test(host)) return false;
+  return port === undefined || Number(port) <= 65_535;
+}
+
+function parsesAsHttpUrl(raw: string): boolean {
+  try {
+    const parsed = new URL(raw);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 function normalizeUrl(
   _definition: FactValueDefinition,
   raw: unknown,
 ): FactValueResult {
   if (typeof raw !== "string" || raw.length > 2048) return INVALID;
-  const matched = CANONICAL_HTTP_URL_PATTERN.exec(raw);
-  if (matched === null) return INVALID;
-  const host = matched[1] ?? "";
-  const port = matched[2];
-  if (/^[0-9.]+$/.test(host)) return INVALID;
-  if (port !== undefined && Number(port) > 65_535) return INVALID;
-  try {
-    const parsed = new URL(raw);
-    return parsed.protocol === "http:" || parsed.protocol === "https:"
-      ? { ok: true, value: raw }
-      : INVALID;
-  } catch {
-    return INVALID;
-  }
+  const syntaxValid = hasCanonicalUrlSyntax(raw);
+  const parserValid = parsesAsHttpUrl(raw);
+  return syntaxValid && parserValid ? { ok: true, value: raw } : INVALID;
 }
 
 function daysInMonth(year: number, month: number): number {
