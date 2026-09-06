@@ -3,8 +3,10 @@ name: Mariage OS CI
 on:
   push:
     branches:
+      - main
       - lot-0/repository-tooling
       - lot-1/identity-project-foundation
+      - lot-2/venues-core
   pull_request:
 
 permissions:

@@ -9,11 +9,12 @@ Status: **Living repository source of truth for development progress**
 - AI Lot Orchestration governance: **MERGED / FROZEN**.
 - Final Design Review: **PASS**.
 - Implementation gate: **OPEN**.
-- Lot 0: **ACCEPTED** — implementation/integration completed 2026-09-03.
-- **Lot 1: ACCEPTED — identity, project and secure foundation completed 2026-09-06.**
-- Lots 2–12: **NOT_STARTED**.
+- Lot 0: **ACCEPTED** — repository/tooling foundation completed 2026-09-03.
+- Lot 1: **ACCEPTED** — identity/project/security foundation completed 2026-09-06.
+- **Lot 2: IN_PROGRESS — Venues core explicitly kicked off 2026-09-06.**
+- Lots 3–12: **NOT_STARTED**.
 
-No Lot 2+ product implementation is currently permitted. Lot 2 requires a future explicit user kickoff before implementation begins.
+`main` is integration truth again after PR #7 promoted the accepted Lot 0 + Lot 1 state. Promotion merge commit: `f6da05626f024431230ae46ca1ec8a4becc72a1f`. PR #7 CI run `34030211097`: **5/5 SUCCESS**, including clean-checkout `npm run verify`.
 
 ## Lot 0 closure
 
@@ -22,52 +23,65 @@ Coverage/reconciliation: `lot-0/LOT-0-COVERAGE-MATRIX.md`.
 - WP-0.1 through WP-0.6: **ACCEPTED**.
 - Required Lot 0 responsibilities minus accepted/evidenced responsibilities: **∅**.
 - Lot Integration Pass: **PASS**.
-- Exact-head closure: branch `lot-0/repository-tooling` at `3dccc801a38929c6dfda7ecb06626d9c5143ec76` retained a green Lot 0 CI including clean-checkout `npm run verify`.
+- Accepted Lot 0 branch head: `3dccc801a38929c6dfda7ecb06626d9c5143ec76`.
 
 ## Lot 1 closure
 
 Coverage/reconciliation: `lot-1/LOT-1-COVERAGE-MATRIX.md`.
 Integration record: `lot-1/LOT-1-INTEGRATION-PASS.md`.
 
+- WP-1.1 through WP-1.9: **ACCEPTED**.
+- Required current-lot responsibilities minus assigned packet responsibilities: **∅**.
+- Required packet-owned current-lot responsibilities minus accepted/evidenced packet responsibilities: **∅**.
+- Required current-lot responsibilities minus accepted/evidenced responsibilities after Integration Pass: **∅**.
+- Lot Integration Pass: **PASS**.
+- Open Lot Integration findings: **none; `LOT1-IP-001` CLOSED**.
+- Integration evidence: run `34026968380` on `c7594e6cd15e33602411b810aad7f89ee732ba57`, 5/5 SUCCESS; DB 15 files / 294 tests PASS; Playwright 40/40 PASS.
+- Final Lot 1 branch head before promotion: `c27021fe739b52811e5c219439a0c5c7e8db8049`; exact-head push CI run `34027354049` SUCCESS.
+- Promotion to `main`: PR #7 / merge commit `f6da05626f024431230ae46ca1ec8a4becc72a1f`; PR CI run `34030211097` 5/5 SUCCESS.
+
+## Lot 2 kickoff
+
+Coverage/work-packet plan: `lot-2/LOT-2-COVERAGE-MATRIX.md`.
+
 Required current-lot responsibilities minus assigned packet responsibilities: **∅**.
-Required packet-owned current-lot responsibilities minus accepted/evidenced packet responsibilities: **∅**.
-Required current-lot responsibilities minus accepted/evidenced responsibilities after Integration Pass: **∅**.
 
-Packets:
+Planned packets:
 
-1. `WP-1.1` — permission catalog and authorization helper foundation — **ACCEPTED**;
-2. `WP-1.2` — core tenancy schema, membership and RLS baseline — **ACCEPTED**;
-3. `WP-1.3` — Supabase Auth/session and controlled first-owner provisioning — **ACCEPTED**;
-4. `WP-1.4` — partner invitation and protected membership lifecycle — **ACCEPTED**;
-5. `WP-1.5` — project configuration, dates, origins, preferences and RSVP-intent hooks — **ACCEPTED**;
-6. `WP-1.6` — protected app shell/navigation and public RSVP trust boundary — **ACCEPTED**;
-7. `WP-1.7` — project-scoped repositories, local cache and sync primitives — **ACCEPTED**;
-8. `WP-1.8` — session expiry, safe logout, MFA/security diagnostics — **ACCEPTED**;
-9. `WP-1.9` — Storage/Realtime isolation foundation and security-matrix closure — **ACCEPTED**.
+1. `WP-2.1` — venue identity, authorized persistence and lifecycle-history foundation — **IN_PROGRESS**;
+2. `WP-2.2` — spaces, capacity and member ratings/preferences — **PLANNED**;
+3. `WP-2.3` — fact definitions, typed retained facts and value validation — **PLANNED**;
+4. `WP-2.4` — observations, sources, evidence/confidence/freshness and conflicts — **PLANNED**;
+5. `WP-2.5` — deterministic criteria, blockers, score/readiness and missing information — **PLANNED**;
+6. `WP-2.6` — venue offers, availability, contacts and interactions basics — **PLANNED**;
+7. `WP-2.7` — contextual venue access-route observations — **PLANNED**;
+8. `WP-2.8` — venue media/photo foundation and private/remote media safety — **PLANNED**;
+9. `WP-2.9` — venue document and tag/link basics — **PLANNED**;
+10. `WP-2.10` — venue repositories, local cache and pending/offline mutation integration — **PLANNED**;
+11. `WP-2.11` — gallery/table/detail/compare/deep-link workspace — **PLANNED**;
+12. `WP-2.12` — mobile/offline venue-visit workflow and packet-level end-to-end completion — **PLANNED**.
 
 ### Durable cursor
 
-- Current Lot: **none — Lot 1 terminal/ACCEPTED**
-- Lot state: **ACCEPTED**
-- Current packet: **none — WP-1.1 through WP-1.9 terminal/ACCEPTED**
-- Current Lot activity: **NONE — awaiting future explicit Lot 2 kickoff**
-- Accepted packets: **WP-1.1 through WP-1.9**
-- Mechanical Lot reconciliation: **PASS — required packet-owned responsibilities minus accepted/evidenced = ∅**
-- Lot Integration Pass: **PASS**
-- Open Lot Integration findings: **none; `LOT1-IP-001` CLOSED**
-- Open packet adversarial findings: **none; all historical packet MAJOR findings are closed**
-- WP-1.1 acceptance evidence: run `33809855993` on `f0b1e46c46bc3ad5d15bf2191c63ec4e85473507`, all five jobs SUCCESS.
-- WP-1.2 acceptance evidence: run `33811568440` on `fa96228bcd8a0b7671fcb561f8f7668eaf5851dc`, all five jobs SUCCESS; `WP12-AR-001` closed.
-- WP-1.3 acceptance evidence: run `33817932867` on `707b1384fbd370fe88ef7a87ac191aa9645f6db3`, all five jobs SUCCESS; `WP13-AR-001` and `WP13-AR-002` closed.
-- WP-1.4 acceptance evidence: run `33859207161` on `bf0046dc45c318875d349edc2b6327292e2894ea`, all five jobs SUCCESS including clean-checkout `npm run verify`; DB 133/133; `WP14-AR-001..003` closed.
-- WP-1.5 acceptance evidence: run `33866160626` on implementation HEAD `15e477a9ca75efbc98594000c190180e24226229`, all five jobs SUCCESS including clean-checkout `npm run verify`; DB **13 files / 239 tests / PASS**; `WP15-AR-001` and `WP15-AR-002` closed; Pass C required-minus-evidenced = ∅.
-- WP-1.6 acceptance evidence: run `33880216335` on implementation HEAD `61dca0718f8ff7372609d208050aba6a50271743`, all five jobs SUCCESS including clean-checkout `npm run verify`; fresh Pass B PASS; Pass C required-minus-evidenced = ∅; `WP16-AR-001` and `WP16-AR-002` closed.
-- WP-1.7 acceptance evidence: run `33895516028` on implementation/review HEAD `46548702f304dbabcf4bd673a33afb1c0ec96a3d`, all five jobs SUCCESS including 28/28 Playwright E2E, mutation and clean-checkout `npm run verify`; `WP17-AR-001..003` closed; fresh Pass B PASS; Pass C required-minus-evidenced = ∅.
-- WP-1.8 acceptance evidence: run `33994961610` on implementation/evidence HEAD `cb7201e2d6dc1a8ca7608bb236f1f79ac84d8d9d`, all five jobs SUCCESS including browser E2E + mutation and clean-checkout `npm run verify`; `WP18-AR-001..003` closed; final fresh Pass B PASS; Pass C required-minus-evidenced = ∅.
-- WP-1.9 acceptance evidence: run `33999832455` on implementation/review HEAD `1c8331de918e82e1dc40beb96e6ac08343b861d7`, **5/5 SUCCESS** including clean-checkout `npm run verify`; DB **14 files / 284 tests / PASS**; Storage/Realtime matrix **45/45 PASS**; `WP19-AR-001` closed; fresh Pass B PASS; Pass C expected-minus-implemented/verified = ∅.
-- Lot 1 Integration/acceptance evidence: run `34026968380` on technical HEAD `c7594e6cd15e33602411b810aad7f89ee732ba57`, **5/5 SUCCESS** including clean-checkout `npm run verify`; DB **15 files / 294 tests / PASS**; Playwright **40/40 PASS** across Chromium, Firefox, WebKit and mobile Chromium; fresh separate Integration Pass PASS; `LOT1-IP-001` CLOSED.
-- Current branch: **`lot-1/identity-project-foundation`**
-- Next permitted action: **none until a future explicit user kickoff of Lot 2**.
+- Current Lot: **2 — Venues core**
+- Lot state: **IN_PROGRESS**
+- Current branch: **`lot-2/venues-core`**
+- Current packet: **WP-2.1**
+- Packet state: **IN_PROGRESS**
+- Current pass: **A-IMPLEMENT**
+- Accepted packets: **none yet**
+- Review-failed/blocked packets: **none**
+- Open packet BLOCKING/MAJOR findings: **none**
+- Latest inherited full verification: PR #7 run `34030211097`, **5/5 SUCCESS** on the exact accepted Lot 0+1 content promoted to `main`.
+- Next permitted action: **implement WP-2.1 Pass A only; do not start WP-2.2 concurrently.**
+
+## Known localized specification repairs
+
+These are recorded stop-conditions for the owning later packets, not permission to invent behavior and not blockers for WP-2.1:
+
+- before WP-2.4 implements `fact_observations`, reconcile the normative distinction between `evidence_level` and the separate `confidence = high|medium|low|unknown` field;
+- before WP-2.5 implements `evidenceReadiness`, document its deterministic formula in `domain/CRITERIA-EVALUATION.md`;
+- before WP-2.8 relies on the security reading graph, repair the missing `docs/security/STORAGE-RLS.md` reference using the already frozen Storage/RLS rules and tested Lot-1 policies.
 
 ## Lot status
 
@@ -75,23 +89,21 @@ Packets:
 |---:|---|
 | 0 | **ACCEPTED** |
 | 1 | **ACCEPTED** |
-| 2–12 | NOT_STARTED |
+| 2 | **IN_PROGRESS** |
+| 3–12 | NOT_STARTED |
 
-## Product Feature counts
+## Product Feature inventory
 
-- V1 Feature IDs: 120 SPECIFIED inventory rows total.
-- Lot 1 identity/project/secure-foundation responsibilities are implemented, reconciled, integration-reviewed and accepted.
-- No Lot 2+ Feature may start without a future explicit kickoff.
+- V1 Feature IDs: 120 total across both ledgers.
+- Lot 2 primary Feature IDs: `FTR-013..FTR-028`.
+- Current-lot partial responsibilities also include `FTR-012`, `FTR-089`, `FTR-092`, `FTR-093` and Lot-acceptance cross-cutting access/offline/security responsibilities.
+- Feature-level whole-capability status and current-lot responsibility are not conflated; Lot Coverage Matrices are the durable responsibility-level reconciliation source.
 
 ## Current blockers / forward maintenance
 
-Open Lot Integration findings:
+Open Lot 2 packet findings:
 
-- none. `LOT1-IP-001` is **CLOSED** by integrated DB/RPC lifecycle evidence plus explicit two-owner Playwright evidence.
-
-Open packet adversarial findings:
-
-- none; all historical packet MAJOR findings are closed.
+- none at kickoff.
 
 Inherited reviewed non-blocking maintenance:
 
@@ -100,18 +112,24 @@ Inherited reviewed non-blocking maintenance:
 - external container registries may transiently rate-limit clean Supabase pulls; retry cannot skip DB/RLS verification;
 - exact provider signup-window behavior remains a downstream onboarding/cutover requirement;
 - invitation create/accept rate-limit/abuse evidence remains required before public/self-service exposure or real production cutover;
-- browser device identity recovery after selective localStorage/IndexedDB divergence remains later session/local-recovery hardening; current behavior fails closed/degraded without cross-scope attachment or silent deletion.
+- browser device identity recovery after selective localStorage/IndexedDB divergence remains later session/local-recovery hardening;
+- root `README.md` still contains historical pre-Lot-0 status wording and should be reconciled during Lot 2 governance cleanup without overriding this status board.
 
 ## Handoff
 
 ```text
+main integration truth: f6da05626f024431230ae46ca1ec8a4becc72a1f
+PR #7 promotion CI: 34030211097 — 5/5 SUCCESS
 Lot 0: ACCEPTED
 Lot 1: ACCEPTED
-Coverage/reconciliation: required - assigned = ∅; packet-owned required - accepted/evidenced = ∅; final required - accepted/evidenced = ∅
-Accepted packets: WP-1.1 through WP-1.9
-Lot Integration Pass: PASS
-Integration evidence: run 34026968380 on c7594e6cd15e33602411b810aad7f89ee732ba57, 5/5 SUCCESS; DB 15 files / 294 tests / PASS; Playwright 40/40 PASS
+Lot 2: IN_PROGRESS
+Lot 2 branch: lot-2/venues-core
+Coverage: required current-lot responsibilities - assigned packet responsibilities = ∅
+Current packet: WP-2.1
+Packet state: IN_PROGRESS
+Current pass: A-IMPLEMENT
+Accepted Lot 2 packets: none
 Open BLOCKING/MAJOR: none
-Next: no implementation until the user explicitly kicks off Lot 2
-Lot 2–12: NOT_STARTED
+Next: implement WP-2.1 only
+Lots 3–12: NOT_STARTED
 ```
