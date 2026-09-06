@@ -144,7 +144,7 @@ describe("WP-2.3 canonical URL parity", () => {
     "https://example.invalid:65536",
     "https://user@example.invalid",
     "https://[::1]",
-    "https://example.invalid/\u0000bad",
+    "https://example.invalid/\0bad",
     `https://${"a".repeat(64)}.invalid`,
     `https://${"a.".repeat(126)}a.invalid`,
   ])("rejects noncanonical URL %s", (value) => {

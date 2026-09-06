@@ -46,13 +46,13 @@ describe("canonical fact values", () => {
     });
   });
 
-  it("canonicalizes multiselect values by definition order", () => {
+  it("canonicalizes multiselect values by stable key order", () => {
     expect(
       normalizeFactValue(definition("multiselect", selectMetadata), [
         "high",
         "low",
       ]),
-    ).toEqual({ ok: true, value: ["low", "high"] });
+    ).toEqual({ ok: true, value: ["high", "low"] });
     expect(
       normalizeFactValue(definition("multiselect", selectMetadata), []),
     ).toEqual({
