@@ -5,11 +5,11 @@
 - Work Packet ID: `WP-2.1`
 - Lot: `2`
 - Name: Venue identity, authorized persistence and lifecycle-history foundation
-- State: `REVIEW_PENDING`
-- Current pass: `B-ADVERSARIAL-REVIEW`
+- State: `REVIEW_FAILED`
+- Current pass: `REMEDIATION`
 - Primary bounded context: `venues`
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
-- Implementer/reviewer if relevant: Pass A implemented in the current AI development session; Pass B reconstructs expectations from repository contracts rather than trusting implementation intent
+- Implementer/reviewer if relevant: Pass A implemented in the current AI development session; Pass B reconstructed expectations from repository contracts rather than trusting implementation intent
 
 ## Scope
 
@@ -110,9 +110,9 @@
   - `supabase/migrations/20260906115400_harden_activity_log_event_time.sql` — event-time ordering hardened to use real event timestamps for lifecycle history.
 - tests added:
   - `supabase/tests/venue_core_rls_test.sql` — 44 direct pgTAP assertions covering grants, RLS, anon/owner/editor/viewer/outsider/revoked/project-B behavior, protected lifecycle, no hard delete, direct status-update denial, revision increment, reject/restore/history/idempotent same-state retry;
-  - domain/application/infrastructure unit/adversarial tests including malformed provider rows and cross-project response rejection;
+  - domain/application/infrastructure unit/adversarial tests including malformed provider rows and cross-project repository response rejection;
   - exact-head CI run `34034349485` on `00144dfb70b901fb7c05f2d71ad032a68b2a16bd`: **5/5 SUCCESS**, including Core quality/security, local Supabase DB/RLS, browser+mutation, privacy-safe preview and clean-checkout `npm run verify`;
-  - unit suite remains at mandatory **100% global statements/branches/functions/lines** on this reviewed Pass-A head.
+  - unit suite remains at mandatory **100% global statements/branches/functions/lines** on the Pass-A head.
 - FIRs updated: Lot Coverage Matrix + this Work Packet record are the durable equivalent structure; Feature Ledger whole-capability status remains intentionally separate from packet responsibility status.
 - docs/status updated: kickoff recorded before implementation; Pass-A evidence and review cursor recorded after the exact-head 5/5 green verification.
 
@@ -140,24 +140,30 @@ Findings:
 
 | Severity | Finding | Owning Feature/Control | Resolution |
 |---|---|---|---|
-| pending | Pass B is now the active pass; findings must be reconstructed from contracts rather than implementation assumptions | WP-2.1 | review in progress |
+| **MAJOR** `WP2.1-B-001` | Revisioned ordinary update and lifecycle command do not carry/enforce a base/expected server revision. A stale client can therefore overwrite a newer ordinary field or reapply an old lifecycle intent instead of failing closed for re-evaluation. | PHYSICAL-SCHEMA §1.3; SYNC mutation envelope/protected-command conflict; invariants 82/85; WP-2.1 reusable mutation boundary | **OPEN — remediation required**: add expected-revision preconditions at application/adapter/DB boundaries and direct stale-write tests before re-review. |
+| **MAJOR** `WP2.1-B-002` | `operationId` is already exposed/persisted by the lifecycle command but no receipt/replay contract exists. A retry after an intervening lifecycle change can execute the old semantic operation again with the same operation ID. The frozen schema already defines generic `sync_mutation_receipts` for the later full sync layer. | SYNC server idempotence; invariant 84; PHYSICAL-SCHEMA `sync_mutation_receipts` | **OPEN — remediation required**: do not claim operation-ID semantics prematurely. Remove the incomplete WP-2.1 operation-ID surface or implement an in-scope receipt contract without duplicating Lot 10; combine with expected-revision protection so stale retries cannot mutate current truth. |
+| **MAJOR** `WP2.1-B-003` | `website_url` is validated in the TypeScript quick-add path but direct authenticated INSERT/UPDATE grants can store unsupported schemes because the DB constraint checks length only. That makes form/direct-API bypass capable of persisting canonical URL data that violates the allowlist contract. | INPUT-VALIDATION §§2/3/8/12; PHYSICAL-SCHEMA §1.9; FRONTEND-SECURITY direct-API mutation control | **OPEN — remediation required**: enforce the security-relevant scheme allowlist at the database boundary and add direct pgTAP bypass tests; keep standards-aware URL parsing at the application boundary. |
+| **MAJOR** `WP2.1-B-004` | Quick-add provider response parsing validates that returned `project_id` is a UUID but does not bind it to the requested project. A valid-but-different project ID is accepted, unlike the newer repository-row parser. Network/API responses are explicitly untrusted boundaries. | AUTHZ project isolation; INPUT-VALIDATION trust revalidation; architecture fail-closed provider boundary | **OPEN — remediation required**: parse creation response against expected project ID and add a valid cross-project response regression test. |
+| **MODERATE** `WP2.1-B-005` | Natural-code numeric comparison converts numeric segments to JavaScript `Number`; long legal code segments can exceed integer precision and compare distinct numeric suffixes as equal. | VEN-002 deterministic natural numeric code ordering | **OPEN — remediate with arbitrary-precision/string-safe numeric comparison and regression tests.** |
 
 Review checks:
 
-- [ ] missing requirement/acceptance behavior searched
-- [ ] auth/RLS/cross-project/capability abuse searched
-- [ ] edge/error/offline/conflict/race paths searched
-- [ ] import/export/backup/version impacts searched
-- [ ] mobile/accessibility/QIF searched
-- [ ] architecture/provider/layer drift searched
-- [ ] size/complexity/god-file drift searched
-- [ ] weak/mirroring tests searched
-- [ ] undocumented stubs/TODOs searched
+- [x] missing requirement/acceptance behavior searched
+- [x] auth/RLS/cross-project/capability abuse searched
+- [x] edge/error/offline/conflict/race paths searched
+- [x] import/export/backup/version impacts searched
+- [x] mobile/accessibility/QIF searched; no user-facing UI is accepted in this packet and local durable success remains explicitly deferred
+- [x] architecture/provider/layer drift searched
+- [x] size/complexity/god-file drift searched
+- [x] weak/mirroring tests searched
+- [x] undocumented stubs/TODOs searched
 
 ### Pass B decision
 
 - [ ] `PASS` — no unresolved BLOCKING/MAJOR finding; packet moved to `ACCEPTANCE_PENDING`; current/next pass is `C-ACCEPTANCE`.
-- [ ] `FAIL` — BLOCKING/MAJOR finding exists; packet moved to `REVIEW_FAILED`; current/next pass is `REMEDIATION`.
+- [x] `FAIL` — BLOCKING/MAJOR finding exists; packet moved to `REVIEW_FAILED`; current/next pass is `REMEDIATION`.
+
+Pass B decision: **FAIL**. Four MAJOR findings are open. A fresh adversarial re-review is required after remediation; prior Pass-A CI success is not acceptance evidence for these semantic/security gaps.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
@@ -169,11 +175,11 @@ Review checks:
 
 | Responsibility | Expected | Implemented evidence | Verified evidence | Result |
 |---|---|---|---|---|
-| venue identity/persistence | project-scoped canonical venue row with safe minimal fields | pending reconciliation | pending | pending |
-| lifecycle/reject/restore | protected valid transitions, reversible rejection | pending reconciliation | pending | pending |
-| lifecycle history | meaningful retained status/rejection history | pending reconciliation | pending | pending |
-| authorization | venues.read/write + direct cross-project/anon/revoked deny | pending reconciliation | pending | pending |
-| architecture | domain/application/infra layering, no direct UI provider access | pending reconciliation | pending | pending |
+| venue identity/persistence | project-scoped canonical venue row with safe minimal fields | pending remediation/reconciliation | pending | pending |
+| lifecycle/reject/restore | protected valid transitions, reversible rejection | pending remediation/reconciliation | pending | pending |
+| lifecycle history | meaningful retained status/rejection history | pending remediation/reconciliation | pending | pending |
+| authorization | venues.read/write + direct cross-project/anon/revoked deny | pending remediation/reconciliation | pending | pending |
+| architecture | domain/application/infra layering, no direct UI provider access | pending remediation/reconciliation | pending | pending |
 
 Acceptance checks:
 
@@ -185,12 +191,12 @@ Acceptance checks:
 - [ ] documentation/status/handoff updated
 - [ ] downstream prerequisites clearly recorded
 
-Final packet decision: `REVIEW_PENDING` until Pass B/C complete.
+Final packet decision: `REVIEW_FAILED` until remediation, fresh re-review and Pass C complete.
 
 ## Handoff
 
-- Current state: `REVIEW_PENDING`
-- Current/next pass: `B-ADVERSARIAL-REVIEW`
-- Last green verification: run `34034349485`, 5/5 SUCCESS on exact Pass-A head `00144dfb70b901fb7c05f2d71ad032a68b2a16bd`, including clean-checkout `npm run verify`
-- Remaining blocker/finding: Pass B not yet decided; no implementation finding may be waived merely because Pass A CI is green
-- Next permitted action: perform WP-2.1 Pass B adversarial review only; do not begin WP-2.2 concurrently
+- Current state: `REVIEW_FAILED`
+- Current/next pass: `REMEDIATION`
+- Last green verification before review: run `34034349485`, 5/5 SUCCESS on Pass-A head `00144dfb70b901fb7c05f2d71ad032a68b2a16bd`, including clean-checkout `npm run verify`
+- Remaining blocker/finding: `WP2.1-B-001` through `WP2.1-B-004` MAJOR open; `WP2.1-B-005` MODERATE open
+- Next permitted action: remediate WP-2.1 findings only, rerun exact-head evidence, then perform fresh Pass B re-review; do not begin WP-2.2 concurrently
