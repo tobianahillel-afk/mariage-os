@@ -5,11 +5,11 @@
 - Work Packet ID: `WP-2.1`
 - Lot: `2`
 - Name: Venue identity, authorized persistence and lifecycle-history foundation
-- State: `IN_PROGRESS`
-- Current pass: `A-IMPLEMENT`
+- State: `REVIEW_PENDING`
+- Current pass: `B-ADVERSARIAL-REVIEW`
 - Primary bounded context: `venues`
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
-- Implementer/reviewer if relevant: current AI implementation session; Pass B must reconstruct expectations from repository contracts
+- Implementer/reviewer if relevant: Pass A implemented in the current AI development session; Pass B reconstructs expectations from repository contracts rather than trusting implementation intent
 
 ## Scope
 
@@ -96,19 +96,33 @@
 
 ### Implementation evidence
 
-- code/modules: pending
-- migrations/schema: pending
-- tests added: pending
-- FIRs updated: Lot Coverage Matrix + this Work Packet record are the durable equivalent structure; Feature Ledger status will be updated when whole Feature responsibility reaches the applicable state.
-- docs/status updated: kickoff state recorded before implementation.
+- code/modules:
+  - `src/domain/venues/venue-status.ts` + tests — frozen status vocabulary and rejection semantics;
+  - `src/domain/venues/venue-code.ts` + tests — deterministic natural human-code ordering with 100% coverage;
+  - `src/domain/venues/venue-quick-add.ts` + tests — centralized minimal input normalization/URL scheme validation/length bounds;
+  - `src/application/venues/venue-command-port.ts`, `quick-add-venue.ts`, `change-venue-status.ts` + tests — provider-neutral create/lifecycle command boundary;
+  - `src/application/venues/venue-repository-port.ts`, `update-venue-core.ts` + tests — project-scoped list/get/ordinary-edit boundary;
+  - `src/infrastructure/supabase/supabase-venue-command-adapter.ts` + tests — safe-field insert and protected lifecycle RPC adapter with fail-closed provider response parsing;
+  - `src/infrastructure/supabase/parse-venue-core-row.ts` + tests — runtime validation including expected-project check and rejection/status consistency;
+  - `src/infrastructure/supabase/supabase-venue-repository-adapter.ts` + tests — project-scoped read/list and safe ordinary-field update payload.
+- migrations/schema:
+  - `supabase/migrations/20260906114000_create_venue_core.sql` — canonical `venues`, generic `activity_log`, grants/RLS/audit revision trigger and `transition_venue_status` command;
+  - `supabase/migrations/20260906115400_harden_activity_log_event_time.sql` — event-time ordering hardened to use real event timestamps for lifecycle history.
+- tests added:
+  - `supabase/tests/venue_core_rls_test.sql` — 44 direct pgTAP assertions covering grants, RLS, anon/owner/editor/viewer/outsider/revoked/project-B behavior, protected lifecycle, no hard delete, direct status-update denial, revision increment, reject/restore/history/idempotent same-state retry;
+  - domain/application/infrastructure unit/adversarial tests including malformed provider rows and cross-project response rejection;
+  - exact-head CI run `34034349485` on `00144dfb70b901fb7c05f2d71ad032a68b2a16bd`: **5/5 SUCCESS**, including Core quality/security, local Supabase DB/RLS, browser+mutation, privacy-safe preview and clean-checkout `npm run verify`;
+  - unit suite remains at mandatory **100% global statements/branches/functions/lines** on this reviewed Pass-A head.
+- FIRs updated: Lot Coverage Matrix + this Work Packet record are the durable equivalent structure; Feature Ledger whole-capability status remains intentionally separate from packet responsibility status.
+- docs/status updated: kickoff recorded before implementation; Pass-A evidence and review cursor recorded after the exact-head 5/5 green verification.
 
 ### Pass A exit
 
-- [ ] intended vertical slice exists
-- [ ] applicable tests written
-- [ ] no known untracked stub/TODO
-- [ ] packet moved from `IN_PROGRESS` to `REVIEW_PENDING`
-- [ ] current/next pass recorded as `B-ADVERSARIAL-REVIEW`
+- [x] intended vertical slice exists
+- [x] applicable tests written
+- [x] no known untracked stub/TODO
+- [x] packet moved from `IN_PROGRESS` to `REVIEW_PENDING`
+- [x] current/next pass recorded as `B-ADVERSARIAL-REVIEW`
 
 ## Pass B — ADVERSARIAL REVIEW
 
@@ -118,6 +132,7 @@ Review source of truth used:
 - `REQUIREMENTS-CATALOG.md` VEN/IAM/AUTHZ responsibilities;
 - `features/VENUES.md`;
 - `domain/VENUES.md`, `STATE-MACHINES.md`, `PHYSICAL-SCHEMA-V1.md`, `INVARIANTS.md`;
+- `architecture/SYNC.md` and runtime-input validation contracts where current commands expose operation/retry or URL semantics;
 - security RLS/permission mapping and testing contracts;
 - Lot 2 acceptance contract.
 
@@ -125,7 +140,7 @@ Findings:
 
 | Severity | Finding | Owning Feature/Control | Resolution |
 |---|---|---|---|
-| pending | Pass B has not started | WP-2.1 | complete Pass A first |
+| pending | Pass B is now the active pass; findings must be reconstructed from contracts rather than implementation assumptions | WP-2.1 | review in progress |
 
 Review checks:
 
@@ -154,11 +169,11 @@ Review checks:
 
 | Responsibility | Expected | Implemented evidence | Verified evidence | Result |
 |---|---|---|---|---|
-| venue identity/persistence | project-scoped canonical venue row with safe minimal fields | pending | pending | pending |
-| lifecycle/reject/restore | protected valid transitions, reversible rejection | pending | pending | pending |
-| lifecycle history | meaningful retained status/rejection history | pending | pending | pending |
-| authorization | venues.read/write + direct cross-project/anon/revoked deny | pending | pending | pending |
-| architecture | domain/application/infra layering, no direct UI provider access | pending | pending | pending |
+| venue identity/persistence | project-scoped canonical venue row with safe minimal fields | pending reconciliation | pending | pending |
+| lifecycle/reject/restore | protected valid transitions, reversible rejection | pending reconciliation | pending | pending |
+| lifecycle history | meaningful retained status/rejection history | pending reconciliation | pending | pending |
+| authorization | venues.read/write + direct cross-project/anon/revoked deny | pending reconciliation | pending | pending |
+| architecture | domain/application/infra layering, no direct UI provider access | pending reconciliation | pending | pending |
 
 Acceptance checks:
 
@@ -170,12 +185,12 @@ Acceptance checks:
 - [ ] documentation/status/handoff updated
 - [ ] downstream prerequisites clearly recorded
 
-Final packet decision: `IN_PROGRESS` until Pass C completes.
+Final packet decision: `REVIEW_PENDING` until Pass B/C complete.
 
 ## Handoff
 
-- Current state: `IN_PROGRESS`
-- Current/next pass: `A-IMPLEMENT`
-- Last green verification: inherited PR #7 run `34030211097`, 5/5 SUCCESS on the exact Lot 0+1 integration base
-- Remaining blocker/finding: none for WP-2.1
-- Next permitted action: implement WP-2.1 only; do not begin WP-2.2 concurrently
+- Current state: `REVIEW_PENDING`
+- Current/next pass: `B-ADVERSARIAL-REVIEW`
+- Last green verification: run `34034349485`, 5/5 SUCCESS on exact Pass-A head `00144dfb70b901fb7c05f2d71ad032a68b2a16bd`, including clean-checkout `npm run verify`
+- Remaining blocker/finding: Pass B not yet decided; no implementation finding may be waived merely because Pass A CI is green
+- Next permitted action: perform WP-2.1 Pass B adversarial review only; do not begin WP-2.2 concurrently
