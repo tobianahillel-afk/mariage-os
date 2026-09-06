@@ -156,6 +156,10 @@ const unsafeMutationCases = [
   },
   {
     key: "saveRating",
+    value: { data: null, error: { message: "denied" } },
+  },
+  {
+    key: "saveRating",
     value: { data: { ...ratingA, rating: 4.555 }, error: null },
   },
 ] as const;

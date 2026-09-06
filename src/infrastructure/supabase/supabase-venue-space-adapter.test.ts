@@ -188,6 +188,7 @@ describe("SupabaseVenueSpaceAdapter mutations", () => {
       key: "create",
       value: { data: { ...row, project_id: otherProjectId }, error: null },
     },
+    { key: "update", value: { data: null, error: { message: "denied" } } },
     { key: "update", value: { data: { ...row, revision: 0 }, error: null } },
   ] as const)(
     "fails closed for unsafe mutation response %#",
