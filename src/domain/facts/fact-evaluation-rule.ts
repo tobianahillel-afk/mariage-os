@@ -170,6 +170,23 @@ const RULE_VALIDATORS: Readonly<Record<string, RuleValidator>> = {
   custom_manual_assessment: typeOnlyRule(["boolean", "select", "rating"]),
 };
 
+function freezeCanonicalValue(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return Object.freeze(value.map((item) => freezeCanonicalValue(item)));
+  }
+  const record = plainRecord(value);
+  if (record === null) return value;
+  return freezeCanonicalRecord(record);
+}
+
+function freezeCanonicalRecord(record: UnknownRecord): FactEvaluationRule {
+  const copy: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(record)) {
+    copy[key] = freezeCanonicalValue(value);
+  }
+  return Object.freeze(copy);
+}
+
 export function normalizeFactEvaluationRule(
   valueType: FactValueType,
   options: FactOptions,
@@ -184,5 +201,5 @@ export function normalizeFactEvaluationRule(
   if (validator === undefined || !validator(valueType, options, record)) {
     return { ok: false, error: "invalid_evaluation_rule" };
   }
-  return { ok: true, value: Object.freeze({ ...record }) };
+  return { ok: true, value: freezeCanonicalRecord(record) };
 }

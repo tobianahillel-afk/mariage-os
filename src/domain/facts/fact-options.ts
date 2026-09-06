@@ -128,13 +128,13 @@ function buildNumericOptions(
   min: number | undefined,
   max: number | undefined,
 ): NumericFactOptions {
-  return {
+  return Object.freeze({
     ...(min === undefined ? {} : { min }),
     ...(max === undefined ? {} : { max }),
     ...(record.integer === undefined
       ? {}
       : { integer: record.integer as boolean }),
-  };
+  });
 }
 
 function normalizeNumericOptions(
@@ -170,7 +170,7 @@ function normalizeOption(value: unknown): FactOption | null {
   const labelKey = record.labelKey.trim();
   if (!validOptionKey(key)) return null;
   if (!hasCodePointLengthBetween(labelKey, 1, 160)) return null;
-  return { key, labelKey };
+  return Object.freeze({ key, labelKey });
 }
 
 function optionCandidates(raw: unknown): readonly unknown[] | null {
@@ -183,7 +183,7 @@ function optionCandidates(raw: unknown): readonly unknown[] | null {
 
 function normalizeOptionList(
   candidates: readonly unknown[],
-): FactOption[] | null {
+): readonly FactOption[] | null {
   const options: FactOption[] = [];
   const keys = new Set<string>();
   for (const candidate of candidates) {
@@ -193,7 +193,7 @@ function normalizeOptionList(
     keys.add(option.key);
     options.push(option);
   }
-  return options;
+  return Object.freeze(options);
 }
 
 function normalizeSelectOptions(raw: unknown): FactOptionsResult {
@@ -201,7 +201,7 @@ function normalizeSelectOptions(raw: unknown): FactOptionsResult {
   if (candidates === null) return INVALID_OPTIONS;
   const options = normalizeOptionList(candidates);
   if (options === null) return INVALID_OPTIONS;
-  const value: SelectFactOptions = { options };
+  const value: SelectFactOptions = Object.freeze({ options });
   return { ok: true, value };
 }
 
