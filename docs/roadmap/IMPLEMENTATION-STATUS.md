@@ -14,7 +14,7 @@ Status: **Living repository source of truth for development progress**
 - **Lot 2: IN_PROGRESS — Venues core explicitly kicked off 2026-09-06.**
 - Lots 3–12: **NOT_STARTED**.
 
-`main` is integration truth again after PR #7 promoted the accepted Lot 0 + Lot 1 state. Promotion merge commit: `f6da05626f024431230ae46ca1ec8a4becc72a1f`. PR #7 CI run `34030211097`: **5/5 SUCCESS**, including clean-checkout `npm run verify`.
+`main` is integration truth after PR #7 promoted the accepted Lot 0 + Lot 1 state. Promotion merge commit: `f6da05626f024431230ae46ca1ec8a4becc72a1f`. PR #7 CI run `34030211097`: **5/5 SUCCESS**, including clean-checkout `npm run verify`.
 
 ## Lot 0 closure
 
@@ -40,16 +40,16 @@ Integration record: `lot-1/LOT-1-INTEGRATION-PASS.md`.
 - Final Lot 1 branch head before promotion: `c27021fe739b52811e5c219439a0c5c7e8db8049`; exact-head push CI run `34027354049` SUCCESS.
 - Promotion to `main`: PR #7 / merge commit `f6da05626f024431230ae46ca1ec8a4becc72a1f`; PR CI run `34030211097` 5/5 SUCCESS.
 
-## Lot 2 kickoff
+## Lot 2 progress
 
 Coverage/work-packet plan: `lot-2/LOT-2-COVERAGE-MATRIX.md`.
 
 Required current-lot responsibilities minus assigned packet responsibilities: **∅**.
 
-Planned packets:
+Packets:
 
-1. `WP-2.1` — venue identity, authorized persistence and lifecycle-history foundation — **REVIEW_FAILED / REMEDIATION**;
-2. `WP-2.2` — spaces, capacity and member ratings/preferences — **PLANNED**;
+1. `WP-2.1` — venue identity, authorized persistence and lifecycle-history foundation — **ACCEPTED**;
+2. `WP-2.2` — spaces, capacity and member ratings/preferences — **PLANNED / NEXT**;
 3. `WP-2.3` — fact definitions, typed retained facts and value validation — **PLANNED**;
 4. `WP-2.4` — observations, sources, evidence/confidence/freshness and conflicts — **PLANNED**;
 5. `WP-2.5` — deterministic criteria, blockers, score/readiness and missing information — **PLANNED**;
@@ -61,27 +61,49 @@ Planned packets:
 11. `WP-2.11` — gallery/table/detail/compare/deep-link workspace — **PLANNED**;
 12. `WP-2.12` — mobile/offline venue-visit workflow and packet-level end-to-end completion — **PLANNED**.
 
+### WP-2.1 acceptance evidence
+
+Record: `lot-2/WP-2.1.md`.
+
+- State: **ACCEPTED**.
+- Required WP-2.1 responsibilities minus accepted/evidenced responsibilities: **∅**.
+- Original Pass B findings `WP2.1-B-001..005`: **RESOLVED**.
+- Fresh re-review findings `WP2.1-B-006..008`: **RESOLVED**.
+- Fresh Pass B: **PASS**.
+- Pass C reconciliation: **PASS**.
+- Open WP-2.1 BLOCKING/MAJOR findings: **none**.
+- Reviewed implementation head: `3418659d94d35f61183f0a20c367c74e38e86802`.
+- Exact implementation CI run `34039296392`: **5/5 SUCCESS**.
+- Unit: **39 files / 350 tests PASS**, measured in-scope coverage **100% statements/branches/functions/lines**.
+- DB/RLS: **17 files / 359 pgTAP tests PASS**.
+- Browser: **40/40 Playwright PASS** across Chromium, Firefox, WebKit and mobile Chromium.
+- Privacy-safe preview: **PASS**.
+- Full verify from clean checkout: **PASS**.
+- Mutation job is green but currently mutates `start-application.ts`; it is not claimed as Venue mutation evidence for WP-2.1.
+
 ### Durable cursor
 
 - Current Lot: **2 — Venues core**
 - Lot state: **IN_PROGRESS**
 - Current branch: **`lot-2/venues-core`**
-- Current packet: **WP-2.1**
-- Packet state: **REVIEW_FAILED**
-- Current pass: **REMEDIATION**
-- Accepted packets: **none yet**
-- Review-failed/blocked packets: **WP-2.1**
-- Open packet BLOCKING/MAJOR findings: **4 MAJOR (`WP2.1-B-001..004`) plus 1 MODERATE (`WP2.1-B-005`) recorded in `lot-2/WP-2.1.md`**
-- Latest exact implementation verification before review: run `34034349485`, **5/5 SUCCESS** on Pass-A head `00144dfb70b901fb7c05f2d71ad032a68b2a16bd`, including clean-checkout `npm run verify`.
-- Next permitted action: **remediate WP-2.1 findings, rerun exact-head verification, then perform a fresh Pass B re-review; do not start WP-2.2 concurrently.**
+- Current packet: **none between packets; WP-2.1 accepted, WP-2.2 next**
+- Packet state: **none active**
+- Current pass: **none active**
+- Accepted packets: **WP-2.1**
+- Review-failed/blocked packets: **none**
+- Open packet BLOCKING/MAJOR findings: **none**
+- Latest accepted packet implementation verification: run `34039296392` on `3418659d94d35f61183f0a20c367c74e38e86802`, **5/5 SUCCESS**, including clean-checkout `npm run verify`.
+- Next permitted action: **after governance-only exact-head CI remains green, open WP-2.2 as the single `IN_PROGRESS` packet and execute Pass A; do not start another packet concurrently.**
 
 ## Known localized specification repairs
 
-These are recorded stop-conditions for the owning later packets, not permission to invent behavior and not blockers for WP-2.1:
+These are recorded stop-conditions for the owning later packets, not permission to invent behavior and not blockers for WP-2.2:
 
 - before WP-2.4 implements `fact_observations`, reconcile the normative distinction between `evidence_level` and the separate `confidence = high|medium|low|unknown` field;
 - before WP-2.5 implements `evidenceReadiness`, document its deterministic formula in `domain/CRITERIA-EVALUATION.md`;
 - before WP-2.8 relies on the security reading graph, repair the missing `docs/security/STORAGE-RLS.md` reference using the already frozen Storage/RLS rules and tested Lot-1 policies.
+
+The Venue lifecycle documentation conflict discovered during WP-2.1 is closed by `docs/domain/STATE-MACHINES-VENUE-LIFECYCLE-ADDENDUM.md`: `reserve` is a non-contractual backup-candidate state; protected commitment/terminal states require dedicated future commands and are unavailable through the generic lifecycle command.
 
 ## Lot status
 
@@ -98,16 +120,11 @@ These are recorded stop-conditions for the owning later packets, not permission 
 - Lot 2 primary Feature IDs: `FTR-013..FTR-028`.
 - Current-lot partial responsibilities also include `FTR-012`, `FTR-089`, `FTR-092`, `FTR-093` and Lot-acceptance cross-cutting access/offline/security responsibilities.
 - Feature-level whole-capability status and current-lot responsibility are not conflated; Lot Coverage Matrices are the durable responsibility-level reconciliation source.
+- `FTR-013` and `FTR-014` are now feature-level **IN_PROGRESS**, not ACCEPTED: WP-2.1 packet responsibilities are accepted while their remaining Lot-2 UI/local/duplicate-guard/deep-link responsibilities are still planned.
 
 ## Current blockers / forward maintenance
 
-Open Lot 2 packet findings:
-
-- `WP2.1-B-001` MAJOR — revisioned ordinary/lifecycle mutation lacks expected-revision precondition;
-- `WP2.1-B-002` MAJOR — lifecycle `operationId` surface has no frozen receipt/replay semantics and must not pre-implement Lot-10 sync incorrectly;
-- `WP2.1-B-003` MAJOR — direct API can persist unsupported `website_url` scheme despite canonical URL allowlist contract;
-- `WP2.1-B-004` MAJOR — quick-add provider response does not bind returned project ID to requested project;
-- `WP2.1-B-005` MODERATE — natural numeric code comparison can lose precision for long legal numeric segments.
+Open Lot 2 packet findings: **none**.
 
 Inherited reviewed non-blocking maintenance:
 
@@ -129,13 +146,14 @@ Lot 1: ACCEPTED
 Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Coverage: required current-lot responsibilities - assigned packet responsibilities = ∅
-Current packet: WP-2.1
-Packet state: REVIEW_FAILED
-Current pass: REMEDIATION
-Pass-A exact implementation head: 00144dfb70b901fb7c05f2d71ad032a68b2a16bd
-Pass-A CI: 34034349485 — 5/5 SUCCESS, clean-checkout verify PASS
-Accepted Lot 2 packets: none
-Open BLOCKING/MAJOR: WP2.1-B-001..004 MAJOR; WP2.1-B-005 MODERATE
-Next: remediate WP-2.1, exact-head verify, fresh Pass B re-review
+Accepted Lot 2 packets: WP-2.1
+WP-2.1: ACCEPTED
+WP-2.1 reviewed implementation head: 3418659d94d35f61183f0a20c367c74e38e86802
+WP-2.1 CI: 34039296392 — 5/5 SUCCESS, clean-checkout verify PASS
+WP-2.1 responsibility gap: ∅
+Open WP-2.1 BLOCKING/MAJOR: none
+Current packet: none between packets
+Next packet: WP-2.2 — spaces, capacity and member ratings/preferences
+Next: exact-head governance CI, then open WP-2.2 as the only IN_PROGRESS packet
 Lots 3–12: NOT_STARTED
 ```
