@@ -28,15 +28,6 @@ function hasCanonicalHostLabels(host: string): boolean {
   return labels.length === 1 || FINAL_DNS_LABEL_PATTERN.test(finalLabel);
 }
 
-function parsesAsHttpUrl(raw: string): boolean {
-  try {
-    const parsed = new URL(raw);
-    return parsed.protocol === "http:" || parsed.protocol === "https:";
-  } catch {
-    return false;
-  }
-}
-
 export function isCanonicalFactUrl(raw: string): boolean {
   if (!hasCodePointLengthBetween(raw, 1, 2048)) return false;
   if (hasAsciiControlCharacter(raw)) return false;
@@ -46,5 +37,5 @@ export function isCanonicalFactUrl(raw: string): boolean {
   if (!hasCanonicalHostLabels(host)) return false;
   const port = matched[2];
   if (port !== undefined && Number(port) > 65_535) return false;
-  return parsesAsHttpUrl(raw);
+  return URL.canParse(raw);
 }
