@@ -33,7 +33,9 @@ describe("venue status", () => {
   });
 
   it("rejects an overlong rejection reason", () => {
-    expect(validateVenueTransitionInput("rejected", "x".repeat(1_001))).toEqual({
+    expect(
+      validateVenueTransitionInput("rejected", "x".repeat(1_001)),
+    ).toEqual({
       ok: false,
       error: "rejection_reason_too_long",
     });
