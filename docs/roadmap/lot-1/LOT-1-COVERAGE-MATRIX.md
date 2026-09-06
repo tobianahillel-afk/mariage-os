@@ -1,6 +1,6 @@
 # Lot 1 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — user explicitly kicked off Lot 1 on 2026-09-03**
+Status: **IN_PROGRESS — all planned Work Packets accepted; Lot reconciliation/integration/acceptance next**
 
 Purpose: decompose Lot 1 into bounded, dependency-aware Work Packets before production implementation, as required by `docs/engineering/AI-LOT-ORCHESTRATION.md`.
 
@@ -37,13 +37,17 @@ Lot 1 must remain multi-project/public-ready by construction even though the fir
 | safe explicit logout resolves pending work then purges private cache | FTR-011 | WP-1.8 | WP-1.7 | logout/purge E2E/integration tests |
 | diagnostics/security setup shell | Lot acceptance, FTR-005 | WP-1.8 | WP-1.3 | diagnostics/setup UI tests |
 | project-scoped Storage isolation foundation | AUTHZ-013, Lot acceptance | WP-1.9 | WP-1.2 | direct Storage allow/deny tests |
-| Realtime/project subscription isolation foundation where exposed | AUTHZ-013 | WP-1.9 | WP-1.2 | direct subscription/policy evidence or explicit non-exposure proof |
+| Realtime/project subscription isolation foundation where exposed | AUTHZ-013 | WP-1.9 | WP-1.2 | explicit non-exposure proof; Realtime disabled and no public application publication/client subscription surface |
 | synthetic public-ready matrix: projects A/B/C, multi-project user, outsider, revoked member, owner/editor/viewer | AUTHZ-018 | WP-1.1, WP-1.2, WP-1.9 | Lot 0 seed harness | deterministic direct security tests |
 | synthetic two-owner end-to-end identity/project flow | Lot acceptance | WP-1.3, WP-1.4, WP-1.6, WP-1.8 | prior packets | Playwright E2E |
 | no provider SDK/secret introduced into UI/domain; no guest capability grants membership | Lot 1 guest-communications addendum | WP-1.6, WP-1.9 | architecture gates | static/security negative evidence |
 | Lot reconciliation + separate integration pass | AI-LOT-ORCHESTRATION | after WP-1.1..1.9 | all packets | required - evidenced = ∅ + full verify/integration PASS |
 
 Required current-lot responsibilities minus assigned packet responsibilities: **∅**.
+
+After WP-1.9 Pass C, required packet-owned current-lot responsibilities minus accepted/evidenced packet responsibilities: **∅**.
+
+The remaining row is the explicit Lot-level closure activity itself: separate Lot reconciliation, Lot Integration Pass and Lot acceptance. It is not an unassigned implementation responsibility.
 
 ## Work Packet plan
 
@@ -133,14 +137,16 @@ Planning complexity: **7/10**.
 
 ### WP-1.9 — Storage/Realtime isolation foundation and Lot-1 security matrix closure
 
-State: `PLANNED`
+State: **ACCEPTED**
 
 Scope:
-- project-scoped private Storage path/policy foundation where a Lot-1 test resource is required;
-- direct Storage allow/deny evidence;
-- Realtime isolation evidence for any exposed Lot-1 subscriptions, otherwise explicit proof that no client subscription surface is exposed yet;
-- final cross-boundary adversarial fixtures for member vs guest-capability separation;
-- no wedding-domain media/document implementation.
+- private `project-private` Storage foundation with project-derived validated media namespace;
+- live `media.read` / `media.write` authorization for SELECT/INSERT/UPDATE/DELETE;
+- direct role/cross-project/revoked/anonymous/guest-like allow/deny evidence;
+- Realtime remains disabled with explicit non-exposure proof;
+- no wedding-domain media/document, client subscription or provider implementation.
+
+Acceptance evidence: run `33999832455` on implementation/review HEAD `1c8331de918e82e1dc40beb96e6ac08343b861d7`, **5/5 SUCCESS** including clean-checkout `npm run verify`; DB **14 files / 284 tests / PASS**; Storage/Realtime matrix **45/45 PASS**. `WP19-AR-001` was found as MAJOR in the first Pass B, remediated with direct behavioral DELETE-RLS evidence, reverified, then closed by a fresh Pass B. Pass C expected-minus-implemented/verified = **∅**.
 
 Planning complexity: **7/10**.
 
@@ -154,10 +160,10 @@ WP-1.2 [ACCEPTED]
   ├─→ WP-1.5 [ACCEPTED] → WP-1.6 [ACCEPTED]
   └─→ WP-1.7 [ACCEPTED] → WP-1.8 [ACCEPTED]
                               ↘
-                                WP-1.9 [PLANNED]
+                                WP-1.9 [ACCEPTED]
 ```
 
-Execution remains sequential by default. WP-1.9 is now the next permitted packet, subject to its bounded Work Packet record and normal Pass A → B → C protocol. Lot 2+ remains forbidden pending Lot 1 packet completion, reconciliation, Integration Pass and acceptance.
+All planned Work Packets are accepted. Next sequencing gate: mechanical Lot reconciliation, then a separate Lot Integration Pass, then Lot acceptance if all base/addendum criteria and full verification remain green. Lot 2+ remains forbidden pending Lot 1 closure.
 
 ## Explicitly out of Lot 1
 
