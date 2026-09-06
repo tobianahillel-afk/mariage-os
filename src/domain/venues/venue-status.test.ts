@@ -25,9 +25,7 @@ describe("venue status", () => {
   });
 
   it("normalizes an accepted rejection reason", () => {
-    expect(
-      validateVenueTransitionInput("rejected", "  too small  "),
-    ).toEqual({
+    expect(validateVenueTransitionInput("rejected", "  too small  ")).toEqual({
       ok: true,
       status: "rejected",
       rejectionReason: "too small",
@@ -35,18 +33,14 @@ describe("venue status", () => {
   });
 
   it("rejects an overlong rejection reason", () => {
-    expect(
-      validateVenueTransitionInput("rejected", "x".repeat(1_001)),
-    ).toEqual({
+    expect(validateVenueTransitionInput("rejected", "x".repeat(1_001))).toEqual({
       ok: false,
       error: "rejection_reason_too_long",
     });
   });
 
   it("does not carry a rejection reason into an active status", () => {
-    expect(
-      validateVenueTransitionInput("shortlist", "old reason"),
-    ).toEqual({
+    expect(validateVenueTransitionInput("shortlist", "old reason")).toEqual({
       ok: false,
       error: "rejection_reason_not_allowed",
     });
