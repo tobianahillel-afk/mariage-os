@@ -117,9 +117,7 @@ describe("Supabase Venue fact provider error mapping", () => {
   });
 
   it("maps malformed successful responses as provider response failures", async () => {
-    const adapter = new SupabaseVenueFactAdapter(
-      rpcErrorClient(null),
-    );
+    const adapter = new SupabaseVenueFactAdapter(rpcErrorClient(null));
     await expect(adapter.createDefinition(createInput)).rejects.toMatchObject({
       code: "provider_response_invalid",
       message: "Venue fact definition mutation failed.",
