@@ -8,7 +8,7 @@ const selectOptions = {
   ],
 };
 
-describe("numeric fact options", () => {
+describe("accepted numeric fact options", () => {
   it("accepts null and normalized numeric bounds", () => {
     expect(normalizeFactOptions("number", null)).toEqual({
       ok: true,
@@ -49,7 +49,9 @@ describe("numeric fact options", () => {
     expect(minInteger.ok).toBe(true);
     expect(maxInteger.ok).toBe(true);
   });
+});
 
+describe("rejected numeric fact options", () => {
   it.each([
     ["number", []],
     ["number", { extra: true }],
