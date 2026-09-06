@@ -54,6 +54,12 @@ describe("canonical fact values", () => {
       ]),
     ).toEqual({ ok: true, value: ["high", "low"] });
     expect(
+      normalizeFactValue(definition("multiselect", selectMetadata), [
+        "low",
+        "high",
+      ]),
+    ).toEqual({ ok: true, value: ["high", "low"] });
+    expect(
       normalizeFactValue(definition("multiselect", selectMetadata), []),
     ).toEqual({
       ok: true,
@@ -163,6 +169,12 @@ describe("money, time, date and URL validation", () => {
     ).toBe(false);
     expect(normalizeFactValue(definition("url"), "not a url").ok).toBe(false);
     expect(normalizeFactValue(definition("url"), 1).ok).toBe(false);
+    expect(
+      normalizeFactValue(
+        definition("url"),
+        "https://example.invalid/\u0000bad",
+      ).ok,
+    ).toBe(false);
     expect(
       normalizeFactValue(
         definition("url"),
