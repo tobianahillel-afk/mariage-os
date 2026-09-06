@@ -248,6 +248,9 @@ describe("SupabaseVenueFactAdapter retained facts", () => {
     definitionClient.queryResult = { data: null, error: { message: "hidden" } };
     await expect(
       new SupabaseVenueFactAdapter(definitionClient).setRetainedFact(factInput),
-    ).rejects.toThrow("Venue fact mutation failed.");
+    ).rejects.toMatchObject({
+      code: "persistence_failed",
+      message: "Venue fact definition query failed.",
+    });
   });
 });
