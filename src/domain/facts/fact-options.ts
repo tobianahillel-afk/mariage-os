@@ -1,3 +1,4 @@
+import { isCanonicalFactNumber } from "./fact-number";
 import type {
   FactOption,
   FactOptions,
@@ -40,8 +41,7 @@ function hasOnlyKeys(
 
 function optionalFiniteNumber(value: unknown): number | undefined | null {
   if (value === undefined) return undefined;
-  if (typeof value !== "number" || !Number.isFinite(value)) return null;
-  return value;
+  return isCanonicalFactNumber(value) ? value : null;
 }
 
 function numericRecord(raw: unknown): UnknownRecord | null {

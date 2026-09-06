@@ -1,3 +1,4 @@
+import { isCanonicalFactNumber } from "./fact-number";
 import type {
   FactOptions,
   FactValueType,
@@ -29,10 +30,6 @@ function exactKeys(record: UnknownRecord, keys: readonly string[]): boolean {
   return (
     actual.length === keys.length && actual.every((key) => keys.includes(key))
   );
-}
-
-function finiteNumber(value: unknown): value is number {
-  return typeof value === "number" && Number.isFinite(value);
 }
 
 function validClock(value: unknown): value is string {
@@ -90,7 +87,7 @@ function numericRule(field: "minimum" | "maximum"): RuleValidator {
   return (valueType, _options, record) =>
     ["number", "duration", "distance"].includes(valueType) &&
     exactKeys(record, ["type", field]) &&
-    finiteNumber(record[field]);
+    isCanonicalFactNumber(record[field]);
 }
 
 function numberRangeRule(
@@ -101,8 +98,8 @@ function numberRangeRule(
   return (
     ["number", "duration", "distance"].includes(valueType) &&
     exactKeys(record, ["type", "minimum", "maximum"]) &&
-    finiteNumber(record.minimum) &&
-    finiteNumber(record.maximum) &&
+    isCanonicalFactNumber(record.minimum) &&
+    isCanonicalFactNumber(record.maximum) &&
     record.minimum <= record.maximum
   );
 }
@@ -115,7 +112,7 @@ function ratingRule(
   return (
     valueType === "rating" &&
     exactKeys(record, ["type", "minimum"]) &&
-    finiteNumber(record.minimum)
+    isCanonicalFactNumber(record.minimum)
   );
 }
 

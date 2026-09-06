@@ -1,3 +1,4 @@
+import { isCanonicalFactNumber } from "./fact-number";
 import type {
   FactOptions,
   FactValueType,
@@ -22,6 +23,8 @@ type ValueNormalizer = (
 ) => FactValueResult;
 
 const INVALID: FactValueResult = { ok: false, error: "invalid_fact_value" };
+const CANONICAL_HTTP_URL_PATTERN =
+  /^https?:\/\/([A-Za-z0-9._~-]+)(?::([0-9]{1,5}))?(?:[/?#][^\s]*)?$/i;
 
 function plainRecord(value: unknown): UnknownRecord | null {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
@@ -40,10 +43,6 @@ function exactKeys(record: UnknownRecord, keys: readonly string[]): boolean {
 function numericOptions(options: FactOptions): NumericFactOptions {
   if (options === null || "options" in options) return {};
   return options;
-}
-
-function finiteNumber(value: unknown): value is number {
-  return typeof value === "number" && Number.isFinite(value);
 }
 
 function integerMatches(value: number, integer: boolean | undefined): boolean {
@@ -65,7 +64,7 @@ function numberMatches(
   value: unknown,
   options: NumericFactOptions,
 ): value is number {
-  if (!finiteNumber(value)) return false;
+  if (!isCanonicalFactNumber(value)) return false;
   if (!integerMatches(value, options.integer)) return false;
   if (!minimumMatches(value, options.min)) return false;
   if (!maximumMatches(value, options.max)) return false;
@@ -123,6 +122,12 @@ function normalizeUrl(
   raw: unknown,
 ): FactValueResult {
   if (typeof raw !== "string" || raw.length > 2048) return INVALID;
+  const matched = CANONICAL_HTTP_URL_PATTERN.exec(raw);
+  if (matched === null) return INVALID;
+  const host = matched[1] ?? "";
+  const port = matched[2];
+  if (/^[0-9.]+$/.test(host)) return INVALID;
+  if (port !== undefined && Number(port) > 65_535) return INVALID;
   try {
     const parsed = new URL(raw);
     return parsed.protocol === "http:" || parsed.protocol === "https:"
@@ -131,6 +136,26 @@ function normalizeUrl(
   } catch {
     return INVALID;
   }
+}
+
+function daysInMonth(year: number, month: number): number {
+  const leapYear =
+    year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  const monthLengths = [
+    31,
+    leapYear ? 29 : 28,
+    31,
+    30,
+    31,
+    30,
+    31,
+    31,
+    30,
+    31,
+    30,
+    31,
+  ];
+  return monthLengths[month - 1] ?? 0;
 }
 
 function normalizeDate(
@@ -144,11 +169,12 @@ function normalizeDate(
   const year = Number(yearText);
   const month = Number(monthText);
   const day = Number(dayText);
-  const parsed = new Date(Date.UTC(year, month - 1, day));
   const valid =
-    parsed.getUTCFullYear() === year &&
-    parsed.getUTCMonth() === month - 1 &&
-    parsed.getUTCDate() === day;
+    year >= 1 &&
+    month >= 1 &&
+    month <= 12 &&
+    day >= 1 &&
+    day <= daysInMonth(year, month);
   return valid ? { ok: true, value: raw } : INVALID;
 }
 
@@ -205,8 +231,9 @@ function normalizeMultiselect(
   if (select === null || !Array.isArray(raw)) return INVALID;
   const requested = new Set<string>();
   for (const candidate of raw) {
-    if (typeof candidate !== "string" || requested.has(candidate))
+    if (typeof candidate !== "string" || requested.has(candidate)) {
       return INVALID;
+    }
     requested.add(candidate);
   }
   const known = new Set(select.options.map((option) => option.key));
