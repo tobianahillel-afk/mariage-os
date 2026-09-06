@@ -46,9 +46,7 @@ export interface UpdateVenueSpaceDraft extends CreateVenueSpaceDraft {
 }
 
 type VenueSpaceMutationError =
-  | VenueSpaceError
-  | VenueRevisionError
-  | "persistence_failed";
+  VenueSpaceError | VenueRevisionError | "persistence_failed";
 
 export type VenueSpaceMutationResult =
   | { readonly ok: true; readonly space: VenueSpaceRecord }

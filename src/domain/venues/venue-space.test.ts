@@ -87,7 +87,10 @@ describe("normalizeVenueSpaceDraft", () => {
     [{ ...fullDraft, areaM2: 0 }, "measurement_invalid"],
     [{ ...fullDraft, lengthM: -1 }, "measurement_invalid"],
     [{ ...fullDraft, widthM: 0 }, "measurement_invalid"],
-    [{ ...fullDraft, heightM: Number.POSITIVE_INFINITY }, "measurement_invalid"],
+    [
+      { ...fullDraft, heightM: Number.POSITIVE_INFINITY },
+      "measurement_invalid",
+    ],
   ] as const)("rejects invalid measurements %#", (draft, error) => {
     expect(normalizeVenueSpaceDraft(draft)).toEqual({ ok: false, error });
   });

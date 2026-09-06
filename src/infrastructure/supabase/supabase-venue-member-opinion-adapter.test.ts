@@ -37,7 +37,10 @@ const ratingB = {
   rating: 6,
 };
 
-interface Result { readonly data: unknown; readonly error: unknown }
+interface Result {
+  readonly data: unknown;
+  readonly error: unknown;
+}
 interface Results {
   readonly preference: Result;
   readonly ratings: Result;
@@ -63,13 +66,18 @@ function clientWith(
   return {
     from(table) {
       captures.table = table;
-      const result = table === "member_entity_preferences" ? results.preference : results.ratings;
+      const result =
+        table === "member_entity_preferences"
+          ? results.preference
+          : results.ratings;
       return {
         select(columns) {
           captures.columns = columns;
           const filters: [string, unknown][] = [];
           const target = Object.assign(Promise.resolve(result), {
-            maybeSingle() { return Promise.resolve(result); },
+            maybeSingle() {
+              return Promise.resolve(result);
+            },
           });
           const type = {
             eq(column: "target_id", value: string) {
@@ -118,7 +126,9 @@ function resultsWith(overrides: Partial<Results> = {}): Results {
 describe("SupabaseVenueMemberOpinionAdapter reads", () => {
   it("gets only the RLS-visible own preference with project/venue filters", async () => {
     const captures = emptyCaptures();
-    const adapter = new SupabaseVenueMemberOpinionAdapter(clientWith(resultsWith(), captures));
+    const adapter = new SupabaseVenueMemberOpinionAdapter(
+      clientWith(resultsWith(), captures),
+    );
     const preference = await adapter.getOwnVenuePreference(projectId, venueId);
 
     expect(preference?.userId).toBe(userA);
@@ -132,13 +142,20 @@ describe("SupabaseVenueMemberOpinionAdapter reads", () => {
 
   it("returns null when no own preference row is visible", async () => {
     const adapter = new SupabaseVenueMemberOpinionAdapter(
-      clientWith(resultsWith({ preference: { data: null, error: null } }), emptyCaptures()),
+      clientWith(
+        resultsWith({ preference: { data: null, error: null } }),
+        emptyCaptures(),
+      ),
     );
-    await expect(adapter.getOwnVenuePreference(projectId, venueId)).resolves.toBeNull();
+    await expect(
+      adapter.getOwnVenuePreference(projectId, venueId),
+    ).resolves.toBeNull();
   });
 
   it("lists independent partner ratings", async () => {
-    const adapter = new SupabaseVenueMemberOpinionAdapter(clientWith(resultsWith(), emptyCaptures()));
+    const adapter = new SupabaseVenueMemberOpinionAdapter(
+      clientWith(resultsWith(), emptyCaptures()),
+    );
     const ratings = await adapter.listVenueRatings(projectId, venueId);
     expect(ratings.map((item) => item.rating)).toEqual([9, 6]);
     expect(ratings.map((item) => item.userId)).toEqual([userA, userB]);
@@ -146,24 +163,44 @@ describe("SupabaseVenueMemberOpinionAdapter reads", () => {
 
   it.each([
     { key: "preference", value: { data: null, error: { message: "denied" } } },
-    { key: "preference", value: { data: { ...preferenceRow, project_id: otherProjectId }, error: null } },
+    {
+      key: "preference",
+      value: {
+        data: { ...preferenceRow, project_id: otherProjectId },
+        error: null,
+      },
+    },
     { key: "ratings", value: { data: null, error: null } },
-    { key: "ratings", value: { data: [{ ...ratingA, dimension_key: "typo_score" }], error: null } },
-  ] as const)("fails closed for unsafe read response %#", async ({ key, value }) => {
-    const adapter = new SupabaseVenueMemberOpinionAdapter(
-      clientWith(resultsWith({ [key]: value }), emptyCaptures()),
-    );
-    const operation = key === "ratings"
-      ? adapter.listVenueRatings(projectId, venueId)
-      : adapter.getOwnVenuePreference(projectId, venueId);
-    await expect(operation).rejects.toThrow("Venue member opinion query failed.");
-  });
+    {
+      key: "ratings",
+      value: {
+        data: [{ ...ratingA, dimension_key: "typo_score" }],
+        error: null,
+      },
+    },
+  ] as const)(
+    "fails closed for unsafe read response %#",
+    async ({ key, value }) => {
+      const adapter = new SupabaseVenueMemberOpinionAdapter(
+        clientWith(resultsWith({ [key]: value }), emptyCaptures()),
+      );
+      const operation =
+        key === "ratings"
+          ? adapter.listVenueRatings(projectId, venueId)
+          : adapter.getOwnVenuePreference(projectId, venueId);
+      await expect(operation).rejects.toThrow(
+        "Venue member opinion query failed.",
+      );
+    },
+  );
 });
 
 describe("SupabaseVenueMemberOpinionAdapter writes", () => {
   it("saves preference without accepting an author id", async () => {
     const captures = emptyCaptures();
-    const adapter = new SupabaseVenueMemberOpinionAdapter(clientWith(resultsWith(), captures));
+    const adapter = new SupabaseVenueMemberOpinionAdapter(
+      clientWith(resultsWith(), captures),
+    );
     await adapter.saveVenuePreference({
       projectId,
       venueId,
@@ -184,7 +221,9 @@ describe("SupabaseVenueMemberOpinionAdapter writes", () => {
 
   it("saves rating through the self-authored RPC", async () => {
     const captures = emptyCaptures();
-    const adapter = new SupabaseVenueMemberOpinionAdapter(clientWith(resultsWith(), captures));
+    const adapter = new SupabaseVenueMemberOpinionAdapter(
+      clientWith(resultsWith(), captures),
+    );
     await adapter.saveVenueRating({
       projectId,
       venueId,
@@ -204,16 +243,46 @@ describe("SupabaseVenueMemberOpinionAdapter writes", () => {
   });
 
   it.each([
-    { key: "savePreference", value: { data: null, error: { message: "denied" } } },
-    { key: "savePreference", value: { data: { ...preferenceRow, project_id: otherProjectId }, error: null } },
-    { key: "saveRating", value: { data: { ...ratingA, rating: 4.555 }, error: null } },
-  ] as const)("fails closed for unsafe mutation response %#", async ({ key, value }) => {
-    const adapter = new SupabaseVenueMemberOpinionAdapter(
-      clientWith(resultsWith({ [key]: value }), emptyCaptures()),
-    );
-    const operation = key === "saveRating"
-      ? adapter.saveVenueRating({ projectId, venueId, dimensionKey: "love_score", rating: 9, expectedRevision: 0 })
-      : adapter.saveVenuePreference({ projectId, venueId, favorite: true, personalNote: null, expectedRevision: 0 });
-    await expect(operation).rejects.toThrow("Venue member opinion mutation failed.");
-  });
+    {
+      key: "savePreference",
+      value: { data: null, error: { message: "denied" } },
+    },
+    {
+      key: "savePreference",
+      value: {
+        data: { ...preferenceRow, project_id: otherProjectId },
+        error: null,
+      },
+    },
+    {
+      key: "saveRating",
+      value: { data: { ...ratingA, rating: 4.555 }, error: null },
+    },
+  ] as const)(
+    "fails closed for unsafe mutation response %#",
+    async ({ key, value }) => {
+      const adapter = new SupabaseVenueMemberOpinionAdapter(
+        clientWith(resultsWith({ [key]: value }), emptyCaptures()),
+      );
+      const operation =
+        key === "saveRating"
+          ? adapter.saveVenueRating({
+              projectId,
+              venueId,
+              dimensionKey: "love_score",
+              rating: 9,
+              expectedRevision: 0,
+            })
+          : adapter.saveVenuePreference({
+              projectId,
+              venueId,
+              favorite: true,
+              personalNote: null,
+              expectedRevision: 0,
+            });
+      await expect(operation).rejects.toThrow(
+        "Venue member opinion mutation failed.",
+      );
+    },
+  );
 });

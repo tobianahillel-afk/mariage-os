@@ -42,7 +42,9 @@ function mutationFailure(): never {
   throw new Error("Venue space mutation failed.");
 }
 
-function rpcPayload(input: CreateVenueSpaceInput): Readonly<Record<string, unknown>> {
+function rpcPayload(
+  input: CreateVenueSpaceInput,
+): Readonly<Record<string, unknown>> {
   return {
     target_project_id: input.projectId,
     target_venue_id: input.venueId,
@@ -80,7 +82,9 @@ export class SupabaseVenueSpaceAdapter implements VenueSpacePort {
     }
   }
 
-  async createVenueSpace(input: CreateVenueSpaceInput): Promise<VenueSpaceRecord> {
+  async createVenueSpace(
+    input: CreateVenueSpaceInput,
+  ): Promise<VenueSpaceRecord> {
     try {
       const { data, error } = await this.client.rpc(
         "create_venue_space",
@@ -93,7 +97,9 @@ export class SupabaseVenueSpaceAdapter implements VenueSpacePort {
     }
   }
 
-  async updateVenueSpace(input: UpdateVenueSpaceInput): Promise<VenueSpaceRecord> {
+  async updateVenueSpace(
+    input: UpdateVenueSpaceInput,
+  ): Promise<VenueSpaceRecord> {
     try {
       const { data, error } = await this.client.rpc("update_venue_space", {
         ...rpcPayload(input),

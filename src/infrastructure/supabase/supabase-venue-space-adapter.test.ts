@@ -46,10 +46,20 @@ interface Captures {
 }
 
 function captures(): Captures {
-  return { table: null, columns: null, project: null, venue: null, rpcName: null, rpc: null };
+  return {
+    table: null,
+    columns: null,
+    project: null,
+    venue: null,
+    rpcName: null,
+    rpc: null,
+  };
 }
 
-function clientWith(results: Results, capture: Captures): SupabaseVenueSpaceClientLike {
+function clientWith(
+  results: Results,
+  capture: Captures,
+): SupabaseVenueSpaceClientLike {
   return {
     from(table) {
       capture.table = table;
@@ -74,7 +84,9 @@ function clientWith(results: Results, capture: Captures): SupabaseVenueSpaceClie
     rpc(functionName, args) {
       capture.rpcName = functionName;
       capture.rpc = args;
-      return Promise.resolve(functionName === "create_venue_space" ? results.create : results.update);
+      return Promise.resolve(
+        functionName === "create_venue_space" ? results.create : results.update,
+      );
     },
   };
 }
@@ -107,12 +119,18 @@ const normalizedInput = {
 describe("SupabaseVenueSpaceAdapter list", () => {
   it("queries with both project and Venue scope", async () => {
     const capture = captures();
-    const adapter = new SupabaseVenueSpaceAdapter(clientWith(resultsWith(), capture));
+    const adapter = new SupabaseVenueSpaceAdapter(
+      clientWith(resultsWith(), capture),
+    );
     const spaces = await adapter.listVenueSpaces(projectId, venueId);
 
     expect(spaces).toHaveLength(1);
     expect(spaces[0]?.id).toBe(spaceId);
-    expect(capture).toMatchObject({ table: "venue_spaces", project: projectId, venue: venueId });
+    expect(capture).toMatchObject({
+      table: "venue_spaces",
+      project: projectId,
+      venue: venueId,
+    });
   });
 
   it.each([
@@ -120,7 +138,9 @@ describe("SupabaseVenueSpaceAdapter list", () => {
     { data: null, error: null },
     { data: [{ ...row, project_id: otherProjectId }], error: null },
   ])("fails closed for unsafe list response %#", async (list) => {
-    const adapter = new SupabaseVenueSpaceAdapter(clientWith(resultsWith({ list }), captures()));
+    const adapter = new SupabaseVenueSpaceAdapter(
+      clientWith(resultsWith({ list }), captures()),
+    );
     await expect(adapter.listVenueSpaces(projectId, venueId)).rejects.toThrow(
       "Venue space query failed.",
     );
@@ -130,7 +150,9 @@ describe("SupabaseVenueSpaceAdapter list", () => {
 describe("SupabaseVenueSpaceAdapter mutations", () => {
   it("creates through the protected RPC with normalized payload", async () => {
     const capture = captures();
-    const adapter = new SupabaseVenueSpaceAdapter(clientWith(resultsWith(), capture));
+    const adapter = new SupabaseVenueSpaceAdapter(
+      clientWith(resultsWith(), capture),
+    );
     await adapter.createVenueSpace(normalizedInput);
 
     expect(capture.rpcName).toBe("create_venue_space");
@@ -144,7 +166,9 @@ describe("SupabaseVenueSpaceAdapter mutations", () => {
 
   it("updates through the optimistic-locking RPC", async () => {
     const capture = captures();
-    const adapter = new SupabaseVenueSpaceAdapter(clientWith(resultsWith(), capture));
+    const adapter = new SupabaseVenueSpaceAdapter(
+      clientWith(resultsWith(), capture),
+    );
     await adapter.updateVenueSpace({
       ...normalizedInput,
       spaceId,
@@ -160,16 +184,26 @@ describe("SupabaseVenueSpaceAdapter mutations", () => {
 
   it.each([
     { key: "create", value: { data: null, error: { message: "denied" } } },
-    { key: "create", value: { data: { ...row, project_id: otherProjectId }, error: null } },
+    {
+      key: "create",
+      value: { data: { ...row, project_id: otherProjectId }, error: null },
+    },
     { key: "update", value: { data: { ...row, revision: 0 }, error: null } },
-  ] as const)("fails closed for unsafe mutation response %#", async ({ key, value }) => {
-    const adapter = new SupabaseVenueSpaceAdapter(
-      clientWith(resultsWith({ [key]: value }), captures()),
-    );
-    const operation =
-      key === "create"
-        ? adapter.createVenueSpace(normalizedInput)
-        : adapter.updateVenueSpace({ ...normalizedInput, spaceId, expectedRevision: 1 });
-    await expect(operation).rejects.toThrow("Venue space mutation failed.");
-  });
+  ] as const)(
+    "fails closed for unsafe mutation response %#",
+    async ({ key, value }) => {
+      const adapter = new SupabaseVenueSpaceAdapter(
+        clientWith(resultsWith({ [key]: value }), captures()),
+      );
+      const operation =
+        key === "create"
+          ? adapter.createVenueSpace(normalizedInput)
+          : adapter.updateVenueSpace({
+              ...normalizedInput,
+              spaceId,
+              expectedRevision: 1,
+            });
+      await expect(operation).rejects.toThrow("Venue space mutation failed.");
+    },
+  );
 });

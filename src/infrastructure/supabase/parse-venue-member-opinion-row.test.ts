@@ -44,7 +44,9 @@ function expectRatingRejected(row: unknown): void {
 
 describe("parseVenueMemberPreferenceRow", () => {
   it("maps a project/venue-bound private preference", () => {
-    expect(parseVenueMemberPreferenceRow(preferenceRow, projectId, venueId)).toEqual({
+    expect(
+      parseVenueMemberPreferenceRow(preferenceRow, projectId, venueId),
+    ).toEqual({
       id: preferenceRow.id,
       projectId,
       userId,
