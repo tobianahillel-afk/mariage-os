@@ -50,7 +50,7 @@ Packets:
 
 1. `WP-2.1` — venue identity, authorized persistence and lifecycle-history foundation — **ACCEPTED**;
 2. `WP-2.2` — spaces, capacity and member ratings/preferences — **ACCEPTED**;
-3. `WP-2.3` — fact definitions, typed retained facts and value validation — **PLANNED**;
+3. `WP-2.3` — fact definitions, typed retained facts and value validation — **IN_PROGRESS / A-IMPLEMENT**;
 4. `WP-2.4` — observations, sources, evidence/confidence/freshness and conflicts — **PLANNED**;
 5. `WP-2.5` — deterministic criteria, blockers, score/readiness and missing information — **PLANNED**;
 6. `WP-2.6` — venue offers, availability, contacts and interactions basics — **PLANNED**;
@@ -98,21 +98,34 @@ Record: `lot-2/WP-2.2.md`.
 - Privacy-safe preview: **PASS**.
 - Full verify from clean checkout: **PASS**.
 - Non-blocking observation: simultaneous first-create attempts for the same member opinion may lose on the uniqueness constraint rather than normalize to the existing-row stale/conflict code; no overwrite, impersonation or data loss occurs.
-- Acceptance-governance exact-head CI: **pending on the final documentation-sync head**.
+- Acceptance-governance exact-head CI: run `34048565452` on `480b0bcc168d7789bf2bee07a75c8f04200f5cb7` — **5/5 SUCCESS**, clean-checkout `npm run verify` PASS.
 - No UI/local-offline/facts/criteria completion is claimed by WP-2.2.
+
+### WP-2.3 active scope
+
+Record: `lot-2/WP-2.3.md`.
+
+- State: **IN_PROGRESS**.
+- Current pass: **A-IMPLEMENT**.
+- Primary Feature: `FTR-019`.
+- Scope: Venue `fact_definitions` + retained `facts`, explicit semantic states, all frozen V1 value-shape validation, same-project/RLS and provider-safe boundaries.
+- WP-2.3 non-`known` states store null retained value; provisional conflict-value/resolution behavior waits for WP-2.4 observations/provenance.
+- `evaluation_rule_json` storage shape may be validated, but compatibility execution/scoring remains WP-2.5.
+- Full default-criteria seeding is not activated in WP-2.3; ordinary client commands cannot create/repurpose system-defined definitions.
+- No observation/source, scoring/readiness, UI, offline queue, import/export or Vendor-target implementation is claimed.
 
 ### Durable cursor
 
 - Current Lot: **2 — Venues core**
 - Lot state: **IN_PROGRESS**
 - Current branch: **`lot-2/venues-core`**
-- Current packet: **none — WP-2.2 accepted, governance exact-head verification pending**
-- Packet state: **no active implementation packet**
-- Current pass: **WP-2.2 acceptance-governance verification**
+- Current packet: **WP-2.3**
+- Packet state: **IN_PROGRESS**
+- Current pass: **A-IMPLEMENT**
 - Accepted packets: **WP-2.1, WP-2.2**
 - Review-failed/blocked packets: **none**
-- Open packet BLOCKING/MAJOR findings: **none**
-- Next permitted action: **verify the final WP-2.2 governance head; if green, open WP-2.3 only.**
+- Open packet BLOCKING/MAJOR findings: **none yet; Pass B for WP-2.3 not started**
+- Next permitted action: **implement WP-2.3 only, obtain exact-head verification, then run fresh Pass B; do not start WP-2.4 concurrently.**
 
 ## Known localized specification repairs
 
@@ -141,6 +154,7 @@ The Venue lifecycle documentation conflict discovered during WP-2.1 is closed by
 - Feature-level whole-capability status and current-lot responsibility are not conflated; Lot Coverage Matrices are the durable responsibility-level reconciliation source.
 - `FTR-013` and `FTR-014` remain feature-level **IN_PROGRESS** because later Lot-2 UI/local/deep-link/duplicate responsibilities remain.
 - `FTR-018`, `FTR-023` and `FTR-012` remain feature-level **IN_PROGRESS** after WP-2.2 acceptance because later Lot-2 UI/local/read-model responsibilities remain.
+- `FTR-019` is now **IN_PROGRESS** under WP-2.3; later observation and compatibility responsibilities remain separate FTR-020/FTR-021 packets.
 
 ## Current blockers / forward maintenance
 
@@ -169,12 +183,12 @@ Coverage: required current-lot responsibilities - assigned packet responsibiliti
 Accepted Lot 2 packets: WP-2.1, WP-2.2
 WP-2.1 implementation CI: 34039296392 — 5/5 SUCCESS
 WP-2.1 governance CI: 34040803267 — 5/5 SUCCESS
-WP-2.2 reviewed implementation head: 241daa01e069a6cbaec4d0ebc09ddf5ca982a385
 WP-2.2 implementation CI: 34046985956 — 5/5 SUCCESS
-WP-2.2 fresh Pass B: PASS
-WP-2.2 Pass C: PASS; responsibility gap ∅
-Open WP-2.2 BLOCKING/MAJOR: none
-Current packet: none while WP-2.2 governance exact-head CI is pending
-Next: after that gate is green, open WP-2.3 only
+WP-2.2 governance CI: 34048565452 — 5/5 SUCCESS
+Current packet: WP-2.3
+Packet state: IN_PROGRESS
+Current pass: A-IMPLEMENT
+Open WP-2.3 BLOCKING/MAJOR: none yet; Pass B not started
+Next: implement WP-2.3 only and obtain exact-head verification
 Lots 3–12: NOT_STARTED
 ```
