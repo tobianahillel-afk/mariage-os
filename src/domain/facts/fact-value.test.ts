@@ -18,7 +18,11 @@ describe("canonical fact values", () => {
   it.each([
     [definition("boolean"), false, false],
     [definition("number"), 0, 0],
-    [definition("money"), { minor: 0, currency: "EUR" }, { minor: 0, currency: "EUR" }],
+    [
+      definition("money"),
+      { minor: 0, currency: "EUR" },
+      { minor: 0, currency: "EUR" },
+    ],
     [definition("text"), "", ""],
     [definition("date"), "2028-02-29", "2028-02-29"],
     [
@@ -44,9 +48,14 @@ describe("canonical fact values", () => {
 
   it("canonicalizes multiselect values by definition order", () => {
     expect(
-      normalizeFactValue(definition("multiselect", selectMetadata), ["high", "low"]),
+      normalizeFactValue(definition("multiselect", selectMetadata), [
+        "high",
+        "low",
+      ]),
     ).toEqual({ ok: true, value: ["low", "high"] });
-    expect(normalizeFactValue(definition("multiselect", selectMetadata), [])).toEqual({
+    expect(
+      normalizeFactValue(definition("multiselect", selectMetadata), []),
+    ).toEqual({
       ok: true,
       value: [],
     });
@@ -55,9 +64,20 @@ describe("canonical fact values", () => {
 
 describe("numeric, rating, duration and distance validation", () => {
   it("applies configured numeric bounds and integer semantics", () => {
-    const constrained = definition("number", { min: 0, max: 10, integer: true });
+    const constrained = definition("number", {
+      min: 0,
+      max: 10,
+      integer: true,
+    });
     expect(normalizeFactValue(constrained, 10).ok).toBe(true);
-    for (const raw of [Number.NaN, "1", 1.5, -1, 11, Number.MAX_SAFE_INTEGER + 1]) {
+    for (const raw of [
+      Number.NaN,
+      "1",
+      1.5,
+      -1,
+      11,
+      Number.MAX_SAFE_INTEGER + 1,
+    ]) {
       expect(normalizeFactValue(constrained, raw)).toEqual({
         ok: false,
         error: "invalid_fact_value",
@@ -87,13 +107,13 @@ describe("numeric, rating, duration and distance validation", () => {
   it.each(["duration", "distance"] as const)(
     "requires non-negative safe integer %s values",
     (valueType) => {
-      expect(normalizeFactValue(definition(valueType, { max: 20 }), 20).ok).toBe(
-        true,
-      );
+      expect(
+        normalizeFactValue(definition(valueType, { max: 20 }), 20).ok,
+      ).toBe(true);
       for (const raw of [-1, 1.5, 21, Number.MAX_SAFE_INTEGER + 1]) {
-        expect(normalizeFactValue(definition(valueType, { max: 20 }), raw).ok).toBe(
-          false,
-        );
+        expect(
+          normalizeFactValue(definition(valueType, { max: 20 }), raw).ok,
+        ).toBe(false);
       }
     },
   );
@@ -135,12 +155,12 @@ describe("money, time, date and URL validation", () => {
   });
 
   it("accepts http/https and rejects unsafe, malformed and oversized URLs", () => {
-    expect(normalizeFactValue(definition("url"), "http://example.invalid").ok).toBe(
-      true,
-    );
-    expect(normalizeFactValue(definition("url"), "javascript:alert(1)").ok).toBe(
-      false,
-    );
+    expect(
+      normalizeFactValue(definition("url"), "http://example.invalid").ok,
+    ).toBe(true);
+    expect(
+      normalizeFactValue(definition("url"), "javascript:alert(1)").ok,
+    ).toBe(false);
     expect(normalizeFactValue(definition("url"), "not a url").ok).toBe(false);
     expect(normalizeFactValue(definition("url"), 1).ok).toBe(false);
     expect(
@@ -154,14 +174,20 @@ describe("money, time, date and URL validation", () => {
 
 describe("text, select and multiselect validation", () => {
   it("bounds text without turning an empty string into unknown", () => {
-    expect(normalizeFactValue(definition("text"), "x".repeat(5000)).ok).toBe(true);
-    expect(normalizeFactValue(definition("text"), "x".repeat(5001)).ok).toBe(false);
+    expect(normalizeFactValue(definition("text"), "x".repeat(5000)).ok).toBe(
+      true,
+    );
+    expect(normalizeFactValue(definition("text"), "x".repeat(5001)).ok).toBe(
+      false,
+    );
     expect(normalizeFactValue(definition("text"), 1).ok).toBe(false);
   });
 
   it("requires declared select options", () => {
     expect(normalizeFactValue(definition("select"), "low").ok).toBe(false);
-    expect(normalizeFactValue(definition("select", selectMetadata), 1).ok).toBe(false);
+    expect(normalizeFactValue(definition("select", selectMetadata), 1).ok).toBe(
+      false,
+    );
     expect(
       normalizeFactValue(definition("select", selectMetadata), "missing").ok,
     ).toBe(false);
@@ -173,14 +199,18 @@ describe("text, select and multiselect validation", () => {
       normalizeFactValue(definition("multiselect", selectMetadata), "low").ok,
     ).toBe(false);
     expect(
-      normalizeFactValue(definition("multiselect", selectMetadata), ["low", 1]).ok,
-    ).toBe(false);
-    expect(
-      normalizeFactValue(definition("multiselect", selectMetadata), ["low", "low"])
+      normalizeFactValue(definition("multiselect", selectMetadata), ["low", 1])
         .ok,
     ).toBe(false);
     expect(
-      normalizeFactValue(definition("multiselect", selectMetadata), ["missing"]).ok,
+      normalizeFactValue(definition("multiselect", selectMetadata), [
+        "low",
+        "low",
+      ]).ok,
+    ).toBe(false);
+    expect(
+      normalizeFactValue(definition("multiselect", selectMetadata), ["missing"])
+        .ok,
     ).toBe(false);
   });
 });

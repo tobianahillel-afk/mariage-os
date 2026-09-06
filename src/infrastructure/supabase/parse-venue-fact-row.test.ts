@@ -57,7 +57,9 @@ const factRow = {
 
 describe("parseVenueFactDefinitionRow", () => {
   it("parses and revalidates a canonical provider row", () => {
-    expect(parseVenueFactDefinitionRow(definitionRow, projectId)).toEqual(definition);
+    expect(parseVenueFactDefinitionRow(definitionRow, projectId)).toEqual(
+      definition,
+    );
   });
 
   it.each([

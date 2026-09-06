@@ -76,7 +76,9 @@ describe("Venue fact definition service", () => {
         return definitionRecord;
       },
     });
-    await expect(createVenueFactDefinition(port, definitionDraft)).resolves.toEqual({
+    await expect(
+      createVenueFactDefinition(port, definitionDraft),
+    ).resolves.toEqual({
       ok: true,
       definition: definitionRecord,
     });
@@ -85,7 +87,10 @@ describe("Venue fact definition service", () => {
 
   it("returns domain validation errors before persistence", async () => {
     await expect(
-      createVenueFactDefinition(makePort(), { ...definitionDraft, key: "Bad Key" }),
+      createVenueFactDefinition(makePort(), {
+        ...definitionDraft,
+        key: "Bad Key",
+      }),
     ).resolves.toEqual({ ok: false, error: "invalid_key" });
   });
 
@@ -95,7 +100,9 @@ describe("Venue fact definition service", () => {
         throw new Error("provider detail");
       },
     });
-    await expect(createVenueFactDefinition(port, definitionDraft)).resolves.toEqual({
+    await expect(
+      createVenueFactDefinition(port, definitionDraft),
+    ).resolves.toEqual({
       ok: false,
       error: "persistence_failed",
     });

@@ -157,7 +157,10 @@ export async function setRetainedVenueFact(
   const invalidRevision = revisionError(draft.expectedRevision);
   if (invalidRevision !== null) return { ok: false, error: invalidRevision };
   try {
-    const definition = await port.getDefinition(draft.projectId, draft.definitionId);
+    const definition = await port.getDefinition(
+      draft.projectId,
+      draft.definitionId,
+    );
     const normalized = normalizeRetainedFact(definition, draft);
     if (!normalized.ok) return normalized;
     const fact = await port.setRetainedFact({

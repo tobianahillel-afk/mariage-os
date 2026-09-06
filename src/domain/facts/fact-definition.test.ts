@@ -57,9 +57,9 @@ describe("fact definition normalization", () => {
   });
 
   it("accepts the numeric storage boundary for weight", () => {
-    expect(normalizeFactDefinition({ ...validDraft, weight: 99_999.999 }).ok).toBe(
-      true,
-    );
+    expect(
+      normalizeFactDefinition({ ...validDraft, weight: 99_999.999 }).ok,
+    ).toBe(true);
   });
 });
 
@@ -93,7 +93,10 @@ describe("fact definition configurable metadata validation", () => {
     [{ ...validDraft, weight: 1.2345 }, "invalid_weight"],
     [{ ...validDraft, freshnessPolicy: 1 }, "invalid_freshness_policy"],
     [{ ...validDraft, freshnessPolicy: " " }, "invalid_freshness_policy"],
-    [{ ...validDraft, freshnessPolicy: "x".repeat(161) }, "invalid_freshness_policy"],
+    [
+      { ...validDraft, freshnessPolicy: "x".repeat(161) },
+      "invalid_freshness_policy",
+    ],
     [{ ...validDraft, optionsJson: { min: "zero" } }, "invalid_options"],
     [
       {
