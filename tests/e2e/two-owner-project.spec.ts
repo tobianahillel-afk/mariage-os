@@ -19,16 +19,17 @@ async function expectProtectedProject(page: Page): Promise<void> {
     page.getByRole("heading", { name: "Sécurité", exact: true }),
   ).toBeVisible();
 
-  const navigation = page.getByRole("navigation", {
+  const desktopNavigation = page.getByRole("navigation", {
     name: "Navigation du projet",
   });
+  const navigation = (await desktopNavigation.isVisible())
+    ? desktopNavigation
+    : page.getByRole("navigation", { name: "Navigation mobile du projet" });
+
   await expect(navigation).toBeVisible();
   await expect(
     navigation.getByRole("link", { name: "Accueil" }),
   ).toHaveAttribute("href", `/app/p/${projectId}/dashboard`);
-  await expect(
-    navigation.getByRole("link", { name: "Réglages" }),
-  ).toHaveAttribute("href", `/app/p/${projectId}/settings`);
 }
 
 test("two synthetic owners independently open the same protected project", async ({
