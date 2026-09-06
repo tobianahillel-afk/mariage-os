@@ -21,6 +21,11 @@ const venueRow = {
   revision: 2,
 };
 
+const otherProjectRow = {
+  ...venueRow,
+  project_id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+};
+
 interface Result {
   readonly data: unknown;
   readonly error: unknown;
@@ -155,10 +160,7 @@ describe("SupabaseVenueRepositoryAdapter list", () => {
   it.each([
     { data: null, error: { message: "provider detail" } },
     { data: null, error: null },
-    {
-      data: [{ ...venueRow, project_id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb" }],
-      error: null,
-    },
+    { data: [otherProjectRow], error: null },
   ])("fails closed for unsafe list response %#", async (list) => {
     const adapter = new SupabaseVenueRepositoryAdapter(
       clientWith(resultsWith({ list }), emptyCaptures()),
