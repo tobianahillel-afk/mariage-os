@@ -81,7 +81,11 @@ export function parseVenueMemberPreferenceRow(
   expectedVenueId: string,
 ): VenueMemberPreferenceRecord {
   const row = recordValue(value);
-  const { projectId, venueId } = targetIds(row, expectedProjectId, expectedVenueId);
+  const { projectId, venueId } = targetIds(
+    row,
+    expectedProjectId,
+    expectedVenueId,
+  );
   if (typeof row.favorite !== "boolean") invalidOpinionResponse();
 
   return {
@@ -101,7 +105,11 @@ export function parseVenueMemberRatingRow(
   expectedVenueId: string,
 ): VenueMemberRatingRecord {
   const row = recordValue(value);
-  const { projectId, venueId } = targetIds(row, expectedProjectId, expectedVenueId);
+  const { projectId, venueId } = targetIds(
+    row,
+    expectedProjectId,
+    expectedVenueId,
+  );
   const dimensionKey = stringValue(row.dimension_key);
   if (!isVenueRatingDimension(dimensionKey)) invalidOpinionResponse();
 
