@@ -169,6 +169,14 @@ describe("SupabaseVenueFactAdapter definition updates", () => {
     expect(client.lastRpc?.args).not.toHaveProperty("target_unit");
   });
 
+  it("fails closed when the definition update RPC fails", async () => {
+    const client = new FakeClient();
+    client.rpcResult = { data: null, error: { message: "hidden" } };
+    await expect(
+      new SupabaseVenueFactAdapter(client).updateDefinition(updateInput),
+    ).rejects.toThrow("Venue fact definition mutation failed.");
+  });
+
   it("fails closed on query, mutation and malformed provider responses", async () => {
     const queryClient = new FakeClient();
     queryClient.queryResult = { data: null, error: { message: "hidden" } };

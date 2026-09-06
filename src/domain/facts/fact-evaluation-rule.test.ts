@@ -56,6 +56,8 @@ describe("fact evaluation rule rejection", () => {
     ["number", null, { type: "number_max", maximum: "1" }],
     ["number", null, { type: "number_range", minimum: 10, maximum: 1 }],
     ["rating", null, { type: "rating_min", minimum: "7" }],
+    ["select", null, { type: "select_in", accepted: ["low"] }],
+    ["select", { min: 0 }, { type: "select_in", accepted: ["low"] }],
     ["select", options, { type: "select_in", accepted: [] }],
     ["select", options, { type: "select_in", accepted: ["missing"] }],
     ["select", options, { type: "select_in", accepted: ["low", "low"] }],
