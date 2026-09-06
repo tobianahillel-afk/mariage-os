@@ -27,13 +27,10 @@ export interface VenueMemberRatingDraft {
 }
 
 export type VenueMemberPreferenceError =
-  | "personal_note_too_long"
-  | "expected_revision_invalid";
+  "personal_note_too_long" | "expected_revision_invalid";
 
 export type VenueMemberRatingError =
-  | "rating_dimension_invalid"
-  | "rating_invalid"
-  | "expected_revision_invalid";
+  "rating_dimension_invalid" | "rating_invalid" | "expected_revision_invalid";
 
 export type NormalizedVenueMemberPreference =
   | {

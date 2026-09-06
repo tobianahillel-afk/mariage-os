@@ -71,7 +71,8 @@ export interface SaveVenueRatingDraft extends VenueMemberRatingDraft {
   readonly venueId: string;
 }
 
-type PreferenceMutationError = VenueMemberPreferenceError | "persistence_failed";
+type PreferenceMutationError =
+  VenueMemberPreferenceError | "persistence_failed";
 type RatingMutationError = VenueMemberRatingError | "persistence_failed";
 
 export type PreferenceMutationResult =

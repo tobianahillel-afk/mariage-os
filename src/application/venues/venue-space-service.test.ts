@@ -37,7 +37,10 @@ interface Captures {
 
 function portWith(
   captures: Captures,
-  options: { readonly failCreate?: boolean; readonly failUpdate?: boolean } = {},
+  options: {
+    readonly failCreate?: boolean;
+    readonly failUpdate?: boolean;
+  } = {},
 ): VenueSpacePort {
   return {
     async listVenueSpaces() {
@@ -51,7 +54,11 @@ function portWith(
     async updateVenueSpace(input) {
       captures.update = input;
       if (options.failUpdate === true) throw new Error("provider detail");
-      return { ...record, name: input.name, revision: input.expectedRevision + 1 };
+      return {
+        ...record,
+        name: input.name,
+        revision: input.expectedRevision + 1,
+      };
     },
   };
 }

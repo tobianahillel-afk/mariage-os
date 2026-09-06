@@ -40,7 +40,10 @@ interface Captures {
 
 function portWith(
   captures: Captures,
-  options: { readonly failPreference?: boolean; readonly failRating?: boolean } = {},
+  options: {
+    readonly failPreference?: boolean;
+    readonly failRating?: boolean;
+  } = {},
 ): VenueMemberOpinionPort {
   return {
     async getOwnVenuePreference() {

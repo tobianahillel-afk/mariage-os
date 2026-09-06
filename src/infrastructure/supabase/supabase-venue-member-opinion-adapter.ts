@@ -86,7 +86,9 @@ export class SupabaseVenueMemberOpinionAdapter implements VenueMemberOpinionPort
         .eq("target_type", "venue")
         .eq("target_id", venueId);
       if (error !== null || !Array.isArray(data)) queryFailure();
-      return data.map((row) => parseVenueMemberRatingRow(row, projectId, venueId));
+      return data.map((row) =>
+        parseVenueMemberRatingRow(row, projectId, venueId),
+      );
     } catch {
       throw new Error("Venue member opinion query failed.");
     }
@@ -96,15 +98,22 @@ export class SupabaseVenueMemberOpinionAdapter implements VenueMemberOpinionPort
     input: SaveVenueMemberPreferenceInput,
   ): Promise<VenueMemberPreferenceRecord> {
     try {
-      const { data, error } = await this.client.rpc("set_venue_member_preference", {
-        target_project_id: input.projectId,
-        target_venue_id: input.venueId,
-        target_favorite: input.favorite,
-        target_personal_note: input.personalNote,
-        target_expected_revision: input.expectedRevision,
-      });
+      const { data, error } = await this.client.rpc(
+        "set_venue_member_preference",
+        {
+          target_project_id: input.projectId,
+          target_venue_id: input.venueId,
+          target_favorite: input.favorite,
+          target_personal_note: input.personalNote,
+          target_expected_revision: input.expectedRevision,
+        },
+      );
       if (error !== null) mutationFailure();
-      return parseVenueMemberPreferenceRow(data, input.projectId, input.venueId);
+      return parseVenueMemberPreferenceRow(
+        data,
+        input.projectId,
+        input.venueId,
+      );
     } catch {
       throw new Error("Venue member opinion mutation failed.");
     }
