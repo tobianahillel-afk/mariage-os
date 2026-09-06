@@ -21,10 +21,9 @@ async function expectProtectedProject(page: Page): Promise<void> {
     name: "Navigation du projet",
   });
   await expect(navigation).toBeVisible();
-  await expect(navigation.getByRole("link", { name: "Accueil" })).toHaveAttribute(
-    "href",
-    `/app/p/${projectId}/dashboard`,
-  );
+  await expect(
+    navigation.getByRole("link", { name: "Accueil" }),
+  ).toHaveAttribute("href", `/app/p/${projectId}/dashboard`);
   await expect(
     navigation.getByRole("link", { name: "Réglages" }),
   ).toHaveAttribute("href", `/app/p/${projectId}/settings`);
