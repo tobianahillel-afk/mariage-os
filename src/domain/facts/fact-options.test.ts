@@ -32,9 +32,7 @@ describe("numeric fact options", () => {
       ok: true,
       value: { max: 50_000 },
     });
-    expect(
-      normalizeFactOptions("rating", { min: 20, max: 30 }).ok,
-    ).toBe(true);
+    expect(normalizeFactOptions("rating", { min: 20, max: 30 }).ok).toBe(true);
   });
 
   it.each([

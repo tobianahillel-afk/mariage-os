@@ -52,12 +52,8 @@ describe("canonical fact boundary parity", () => {
     expect(
       normalizeFactDefinition({ ...definition, label: "😀".repeat(241) }).ok,
     ).toBe(false);
-    expect(
-      normalizeFactValue(textDefinition, "😀".repeat(5000)).ok,
-    ).toBe(true);
-    expect(
-      normalizeFactValue(textDefinition, "😀".repeat(5001)).ok,
-    ).toBe(false);
+    expect(normalizeFactValue(textDefinition, "😀".repeat(5000)).ok).toBe(true);
+    expect(normalizeFactValue(textDefinition, "😀".repeat(5001)).ok).toBe(false);
   });
 
   it("validates proleptic Gregorian civil dates without the Date.UTC year-99 trap", () => {
