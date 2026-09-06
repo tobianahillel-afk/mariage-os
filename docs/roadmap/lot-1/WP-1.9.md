@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-1.9`
 - Lot: `1`
 - Name: Storage/Realtime isolation foundation and Lot-1 security-matrix closure
-- State: `IN_PROGRESS`
-- Current pass: `A-REMEDIATION`
+- State: `ACCEPTANCE_PENDING`
+- Current pass: `C-ACCEPTANCE`
 - Primary bounded context: Supabase project-scoped cloud side-channel isolation
 - Branch/PR: `lot-1/identity-project-foundation`
 
@@ -112,72 +112,82 @@
 - direct pgTAP evidence under `supabase/tests/` for Storage isolation and Realtime non-exposure;
 - this packet/status/coverage evidence only as required by the three-pass protocol.
 
-## Pass A — IMPLEMENT
+## Pass A — IMPLEMENT / REMEDIATION
 
 Implementation started from readiness HEAD `89c771b6b2014bde2741618cee6edc5cf54f2267`.
 
-Implementation/evidence HEAD before review: `a0e719462b2ea41908e6438a72cac75f11edcf36`.
+Initial implementation/evidence HEAD before review: `a0e719462b2ea41908e6438a72cac75f11edcf36`.
 
-Historical exact-head evidence: GitHub Actions run `33996464530` completed **5/5 SUCCESS**, including Core quality/security, browser E2E + mutation, local Supabase DB/RLS, privacy-safe preview and clean-checkout `npm run verify`. Fresh Pass B subsequently found `WP19-AR-001`, so this evidence is no longer sufficient for acceptance.
+Historical exact-head evidence: GitHub Actions run `33996464530` completed **5/5 SUCCESS**, including Core quality/security, browser E2E + mutation, local Supabase DB/RLS, privacy-safe preview and clean-checkout `npm run verify`. Fresh Pass B subsequently found `WP19-AR-001`, so that evidence became historical for acceptance.
 
-Historical direct DB/Storage evidence on that HEAD: **14 pgTAP files / 277 tests / PASS**; `storage_realtime_isolation_test.sql` contributed **38/38 PASS**. The matrix was correct for SELECT/INSERT/UPDATE and boundary isolation but did not behaviorally execute DELETE authorization.
+`WP19-AR-001` remediation changed only the direct pgTAP security matrix. The test now sets Supabase Storage's transaction-local `storage.allow_delete_query=true` flag before DELETE assertions; this bypasses Storage metadata-protection behavior only, while RLS remains active and is the authorization decision under test. No Storage policy, application code, credential or domain scope was changed.
 
-Current remediation activity: repair `WP19-AR-001` only by using Supabase's transaction-local `storage.allow_delete_query=true` flag in the existing pgTAP transaction, then execute DELETE under the existing synthetic roles. No Storage policy, application code, credential or domain scope change is permitted by this remediation.
+Final implementation/review HEAD: `1c8331de918e82e1dc40beb96e6ac08343b861d7`.
 
-### Pass A exit criteria before review
+Fresh exact-head evidence: GitHub Actions run `33999832455` completed **5/5 SUCCESS**, including Core quality/security, browser E2E + mutation, local Supabase DB/RLS, privacy-safe preview and clean-checkout `npm run verify`.
+
+Fresh direct DB/Storage evidence: **14 pgTAP files / 284 tests / PASS**. `storage_realtime_isolation_test.sql` contributes **45/45 PASS** and now behaviorally proves DELETE as well as SELECT/INSERT/UPDATE: own-project owner/editor DELETE allow; cross-project, viewer, outsider, revoked, anonymous and guest-like DELETE deny. The same matrix proves bucket privacy, malformed-path fail-closed behavior, A/B/C isolation and empty public Realtime publication.
+
+The final readiness-to-review delta remains limited to the packet/status records, `supabase/config.toml`, one Storage migration and one pgTAP matrix. No `src/`, UI, provider or client Realtime surface was introduced. The security matrix was compacted to 380 physical lines without removing any assertion or changing test semantics.
+
+### Pass A exit criteria
 
 - [x] private Storage foundation is migration-controlled and project-namespaced
 - [x] policies use live centralized permissions rather than client role/path trust
-- [x] anonymous/guest-like/outsider/other-project/revoked access denied directly for read/insert and applicable update paths
+- [x] anonymous/guest-like/outsider/other-project/revoked access denied directly
 - [x] owner/editor/viewer/multi-project permission behavior proved across A/B/C
 - [x] malformed/cross-project object namespaces fail closed
 - [x] Realtime service remains disabled and no application project table is published/exposed
 - [x] no Storage/Realtime secret/provider SDK leaks into UI/domain/public artifacts
 - [x] no domain media/document/guest/provider scope introduced
-- [ ] direct DELETE allow/deny evidence repaired under the Storage API-equivalent transaction flag
-- [ ] fresh exact-head full CI including clean-checkout `npm run verify` green after remediation
+- [x] direct SELECT/INSERT/UPDATE/DELETE Storage security evidence green
+- [x] exact-head full CI including clean-checkout `npm run verify` green before fresh Pass B
 
 ## Pass B — ADVERSARIAL REVIEW
 
-Fresh review reconstructed the packet from the governing Storage/RLS/security-testing contracts and reviewed the exact implementation diff rather than trusting Pass A conclusions.
+The first fresh review found one MAJOR only:
+
+### `WP19-AR-001` — MAJOR — DELETE authorization was inspected but not behaviorally proved
+
+The initial repaired Pass-A matrix asserted DELETE policy shape but did not execute the DELETE RLS decision. Repository authorization/security contracts require direct allow/deny evidence for Storage operations, including unauthorized delete. The packet transitioned through `REVIEW_FAILED` and bounded remediation rather than accepting structural evidence as sufficient.
+
+### Fresh post-remediation review
+
+Fresh review was performed against implementation/review HEAD `1c8331de918e82e1dc40beb96e6ac08343b861d7` after run `33999832455` was fully green.
 
 Reviewed clean:
 
-- bucket remains private and the policy surface is limited to the expected four operations;
-- project namespace is accepted only when the full synthetic media path matches the UUID/path contract; malformed paths yield fail-closed authorization rather than a permissive cast path;
-- every policy delegates authority to the existing live `has_project_permission` helper rather than client role claims or path knowledge;
-- UPDATE has both `USING` and `WITH CHECK`, preventing an authorized project-A object from being moved into project B;
-- owner/editor/viewer, multi-project, outsider, revoked, anonymous and guest-like claims are covered for the direct behaviors exercised;
-- exact project C/B path knowledge does not bypass membership;
-- Realtime stays disabled, no public application table is in `supabase_realtime`, and the diff adds no `src/`/client subscription surface;
-- no service-role/provider secret, domain media/document model, guest/provider implementation or Lot-2+ scope was introduced;
-- the 375-line pgTAP matrix is below the repository hard default and is a linear security matrix rather than a production god-module; deliberate review found no logic-complexity defect requiring packet split.
+- the bucket is private and the policy surface is limited to the expected SELECT/INSERT/UPDATE/DELETE operations;
+- the full synthetic media path must match the UUID/path contract before project extraction/cast; malformed paths fail closed;
+- every Storage policy delegates authority to live `has_project_permission`, which derives authority from `auth.uid()`, current active membership and the migration-controlled role-permission catalog rather than JWT role/path knowledge;
+- UPDATE has both `USING` and `WITH CHECK`, preventing cross-project object movement;
+- DELETE is now behaviorally exercised with the same transaction-local metadata-delete flag used by the Storage path while RLS remains active: owner/editor own-project allow; cross-project, viewer, outsider, revoked, anon and guest-like deny;
+- owner/editor/viewer, multi-project identity, outsider, revoked member, anonymous and guest-like capability cases remain covered across projects A/B/C;
+- exact object/project path knowledge does not bypass membership or permission;
+- Realtime remains disabled, no public application table is published in `supabase_realtime`, and targeted source review finds no client Realtime subscription surface;
+- targeted source review finds no `project-private` client integration, so the packet does not prematurely create a Storage UI/repository surface;
+- no service-role/provider credential, provider SDK, guest domain implementation, media/document business model or Lot-2+ scope was introduced;
+- final changed-file set is exactly the bounded configuration/migration/security-test/evidence surface expected by WP-1.9;
+- the 380-line SQL security matrix remains linear test evidence with small temporary helpers and no production responsibility coupling; no maintainability BLOCKING/MAJOR finding remains.
 
-### `WP19-AR-001` — MAJOR — DELETE authorization is inspected but not behaviorally proved
+`WP19-AR-001`: **CLOSED**.
 
-The repository's authorization/security contracts require direct allow/deny evidence for Storage operations, including unauthorized delete. After the initial unsupported direct-SQL delete was removed, Pass A only asserted that `pg_policies` contains a DELETE policy mentioning `authenticated`, `project-private` and `media.write`, plus a separate viewer permission check. That proves policy shape but not that the DELETE policy itself allows the intended writer and denies viewer/outsider/revoked/anon/cross-project cases.
-
-Supabase's current Storage implementation rejects ordinary direct SQL deletion to prevent orphaned backing objects. Its Storage API performs deletion with the transaction/session flag `storage.allow_delete_query=true`, while RLS remains responsible for authorization. The bounded repair is therefore to exercise DELETE in the pgTAP transaction with that exact local flag set, under the existing synthetic roles, so the test isolates the real RLS decision without introducing service-role credentials, custom JWTs, browser code or permanent object deletion.
-
-Required repair:
-
-- restore a transactional delete helper used only after `storage.allow_delete_query=true` is set locally;
-- prove authorized owner/editor delete succeeds for an own-project valid path;
-- prove viewer, outsider, revoked, anon/guest-like and cross-project delete attempts do not delete the target object;
-- keep all changes inside the existing pgTAP security matrix unless a smaller helper is required;
-- rerun exact-head verification and a fresh Pass B.
-
-Fresh Pass B result: **REVIEW_FAILED** due to `WP19-AR-001` MAJOR. No other BLOCKING/MAJOR finding was identified in the Storage policy implementation, Realtime non-exposure or scope boundaries reviewed on this pass.
+Fresh Pass B result: **PASS — no unresolved BLOCKING/MAJOR finding**.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started. Forbidden until `WP19-AR-001` is repaired, exact-head evidence is green and a fresh Pass B has no unresolved BLOCKING/MAJOR finding.
+Current state: `ACCEPTANCE_PENDING`.
+
+Pass C must mechanically compare EXPECTED vs IMPLEMENTED vs VERIFIED for every WP-1.9 responsibility, confirm `WP19-AR-001` remains closed, reconcile packet/status/coverage evidence and only then mark WP-1.9 `ACCEPTED`.
+
+If Pass C changes production code, affected verification and Pass B must be repeated. Documentation-only reconciliation does not alter the implementation/review HEAD evidence but its diff must be inspected before acceptance.
 
 ## Handoff
 
-- Current state: `IN_PROGRESS`.
-- Current/next pass: `A-REMEDIATION`.
-- Open finding under active repair: `WP19-AR-001` MAJOR.
-- Last green pre-finding evidence: run `33996464530` on `a0e719462b2ea41908e6438a72cac75f11edcf36`, now historical for acceptance.
-- Next permitted action: bounded pgTAP DELETE evidence repair -> fresh exact-head verification -> fresh Pass B.
-- Pass C, Lot reconciliation/integration/acceptance and Lot 2+ remain forbidden until sequencing gates are met.
+- Current state: `ACCEPTANCE_PENDING`.
+- Current/next pass: `C-ACCEPTANCE`.
+- Fresh implementation/review evidence: run `33999832455` on `1c8331de918e82e1dc40beb96e6ac08343b861d7`, **5/5 SUCCESS**; DB **14 files / 284 tests / PASS**; WP-1.9 matrix **45/45 PASS**.
+- Adversarial finding history: `WP19-AR-001` MAJOR found, remediated, reverified and **CLOSED**; fresh Pass B PASS.
+- Next permitted action: WP-1.9 Pass C only.
+- After WP-1.9 acceptance: Lot-1 reconciliation + separate Lot Integration Pass + Lot acceptance.
+- Lot 2+ remains forbidden.
