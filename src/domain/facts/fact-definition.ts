@@ -96,13 +96,18 @@ function normalizeWeight(value: unknown): number | null | undefined {
   return value;
 }
 
-function unitMatchesType(valueType: FactValueType, unit: string | null): boolean {
+function unitMatchesType(
+  valueType: FactValueType,
+  unit: string | null,
+): boolean {
   if (valueType === "duration") return unit === "minutes";
   if (valueType === "distance") return unit === "meters";
   return true;
 }
 
-function normalizeCore(draft: FactDefinitionDraft): CoreFields | FactDefinitionError {
+function normalizeCore(
+  draft: FactDefinitionDraft,
+): CoreFields | FactDefinitionError {
   const key = normalizeRequiredText(draft.key, 120);
   if (key === null || !/^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$/.test(key)) {
     return "invalid_key";

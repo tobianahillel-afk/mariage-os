@@ -27,7 +27,10 @@ function plainRecord(value: unknown): UnknownRecord | null {
   return value as UnknownRecord;
 }
 
-function hasOnlyKeys(record: UnknownRecord, allowed: readonly string[]): boolean {
+function hasOnlyKeys(
+  record: UnknownRecord,
+  allowed: readonly string[],
+): boolean {
   return Object.keys(record).every((key) => allowed.includes(key));
 }
 
@@ -46,7 +49,8 @@ function normalizeNumericOptions(raw: unknown): FactOptionsResult {
 
   const min = optionalFiniteNumber(record.min);
   const max = optionalFiniteNumber(record.max);
-  if (min === null || max === null) return { ok: false, error: "invalid_options" };
+  if (min === null || max === null)
+    return { ok: false, error: "invalid_options" };
   if (record.integer !== undefined && typeof record.integer !== "boolean") {
     return { ok: false, error: "invalid_options" };
   }

@@ -47,10 +47,17 @@ interface QueryBuilder {
 }
 
 class FakeClient implements SupabaseVenueFactClientLike {
-  queryResult: { data: unknown; error: unknown } = { data: definitionRow, error: null };
-  rpcResult: { data: unknown; error: unknown } = { data: definitionRow, error: null };
+  queryResult: { data: unknown; error: unknown } = {
+    data: definitionRow,
+    error: null,
+  };
+  rpcResult: { data: unknown; error: unknown } = {
+    data: definitionRow,
+    error: null,
+  };
   readonly queryFilters: Array<[string, string]> = [];
-  lastRpc: { name: string; args: Readonly<Record<string, unknown>> } | null = null;
+  lastRpc: { name: string; args: Readonly<Record<string, unknown>> } | null =
+    null;
 
   from(_table: "fact_definitions") {
     return {
@@ -164,7 +171,10 @@ describe("SupabaseVenueFactAdapter definitions", () => {
     const queryClient = new FakeClient();
     queryClient.queryResult = { data: null, error: { message: "hidden" } };
     await expect(
-      new SupabaseVenueFactAdapter(queryClient).getDefinition(projectId, definitionId),
+      new SupabaseVenueFactAdapter(queryClient).getDefinition(
+        projectId,
+        definitionId,
+      ),
     ).rejects.toThrow("Venue fact definition query failed.");
 
     const createClient = new FakeClient();
@@ -174,7 +184,10 @@ describe("SupabaseVenueFactAdapter definitions", () => {
     ).rejects.toThrow("Venue fact definition mutation failed.");
 
     const updateClient = new FakeClient();
-    updateClient.rpcResult = { data: { ...definitionRow, id: "bad" }, error: null };
+    updateClient.rpcResult = {
+      data: { ...definitionRow, id: "bad" },
+      error: null,
+    };
     await expect(
       new SupabaseVenueFactAdapter(updateClient).updateDefinition(updateInput),
     ).rejects.toThrow("Venue fact definition mutation failed.");

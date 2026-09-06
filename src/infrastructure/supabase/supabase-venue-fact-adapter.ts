@@ -125,7 +125,10 @@ export class SupabaseVenueFactAdapter implements VenueFactPort {
     input: SetRetainedVenueFactInput,
   ): Promise<RetainedVenueFactRecord> {
     try {
-      const definition = await this.getDefinition(input.projectId, input.definitionId);
+      const definition = await this.getDefinition(
+        input.projectId,
+        input.definitionId,
+      );
       const { data, error } = await this.client.rpc("set_retained_venue_fact", {
         target_project_id: input.projectId,
         target_venue_id: input.venueId,

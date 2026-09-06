@@ -1,4 +1,8 @@
-import type { FactOptions, FactValueType, SelectFactOptions } from "./fact-types";
+import type {
+  FactOptions,
+  FactValueType,
+  SelectFactOptions,
+} from "./fact-types";
 
 export type FactEvaluationRule = Readonly<Record<string, unknown>>;
 export type FactEvaluationRuleError = "invalid_evaluation_rule";
@@ -23,8 +27,7 @@ function plainRecord(value: unknown): UnknownRecord | null {
 function exactKeys(record: UnknownRecord, keys: readonly string[]): boolean {
   const actual = Object.keys(record);
   return (
-    actual.length === keys.length &&
-    actual.every((key) => keys.includes(key))
+    actual.length === keys.length && actual.every((key) => keys.includes(key))
   );
 }
 
@@ -33,9 +36,7 @@ function finiteNumber(value: unknown): value is number {
 }
 
 function validClock(value: unknown): value is string {
-  return (
-    typeof value === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(value)
-  );
+  return typeof value === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
 }
 
 function validMoney(value: unknown): boolean {
