@@ -48,7 +48,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 
 Planned packets:
 
-1. `WP-2.1` — venue identity, authorized persistence and lifecycle-history foundation — **IN_PROGRESS**;
+1. `WP-2.1` — venue identity, authorized persistence and lifecycle-history foundation — **REVIEW_PENDING**;
 2. `WP-2.2` — spaces, capacity and member ratings/preferences — **PLANNED**;
 3. `WP-2.3` — fact definitions, typed retained facts and value validation — **PLANNED**;
 4. `WP-2.4` — observations, sources, evidence/confidence/freshness and conflicts — **PLANNED**;
@@ -67,13 +67,13 @@ Planned packets:
 - Lot state: **IN_PROGRESS**
 - Current branch: **`lot-2/venues-core`**
 - Current packet: **WP-2.1**
-- Packet state: **IN_PROGRESS**
-- Current pass: **A-IMPLEMENT**
+- Packet state: **REVIEW_PENDING**
+- Current pass: **B-ADVERSARIAL-REVIEW**
 - Accepted packets: **none yet**
 - Review-failed/blocked packets: **none**
-- Open packet BLOCKING/MAJOR findings: **none**
-- Latest inherited full verification: PR #7 run `34030211097`, **5/5 SUCCESS** on the exact accepted Lot 0+1 content promoted to `main`.
-- Next permitted action: **implement WP-2.1 Pass A only; do not start WP-2.2 concurrently.**
+- Open packet BLOCKING/MAJOR findings: **Pass B in progress; none waived or closed yet**
+- Latest exact implementation verification: run `34034349485`, **5/5 SUCCESS** on Pass-A head `00144dfb70b901fb7c05f2d71ad032a68b2a16bd`, including clean-checkout `npm run verify`.
+- Next permitted action: **perform WP-2.1 Pass B adversarial review only; do not start WP-2.2 concurrently.**
 
 ## Known localized specification repairs
 
@@ -103,7 +103,7 @@ These are recorded stop-conditions for the owning later packets, not permission 
 
 Open Lot 2 packet findings:
 
-- none at kickoff.
+- WP-2.1 Pass B adversarial review is active; findings are recorded in the packet record before remediation/acceptance.
 
 Inherited reviewed non-blocking maintenance:
 
@@ -126,10 +126,12 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Coverage: required current-lot responsibilities - assigned packet responsibilities = ∅
 Current packet: WP-2.1
-Packet state: IN_PROGRESS
-Current pass: A-IMPLEMENT
+Packet state: REVIEW_PENDING
+Current pass: B-ADVERSARIAL-REVIEW
+Pass-A exact implementation head: 00144dfb70b901fb7c05f2d71ad032a68b2a16bd
+Pass-A CI: 34034349485 — 5/5 SUCCESS, clean-checkout verify PASS
 Accepted Lot 2 packets: none
-Open BLOCKING/MAJOR: none
-Next: implement WP-2.1 only
+Open BLOCKING/MAJOR: Pass B in progress; see WP-2.1 record
+Next: perform WP-2.1 Pass B only
 Lots 3–12: NOT_STARTED
 ```
