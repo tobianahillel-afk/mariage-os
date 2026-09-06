@@ -14,18 +14,23 @@ describe("venue status", () => {
   });
 
   it("requires a meaningful rejection reason", () => {
-    expect(validateVenueTransitionInput("rejected", null)).toEqual({
+    const missing = validateVenueTransitionInput("rejected", null);
+    const blank = validateVenueTransitionInput("rejected", "   ");
+
+    expect(missing).toEqual({
       ok: false,
       error: "rejection_reason_required",
     });
-    expect(validateVenueTransitionInput("rejected", "   ")).toEqual({
+    expect(blank).toEqual({
       ok: false,
       error: "rejection_reason_required",
     });
   });
 
   it("normalizes an accepted rejection reason", () => {
-    expect(validateVenueTransitionInput("rejected", "  too small  ")).toEqual({
+    const result = validateVenueTransitionInput("rejected", "  too small  ");
+
+    expect(result).toEqual({
       ok: true,
       status: "rejected",
       rejectionReason: "too small",
@@ -33,20 +38,27 @@ describe("venue status", () => {
   });
 
   it("rejects an overlong rejection reason", () => {
-    expect(
-      validateVenueTransitionInput("rejected", "x".repeat(1_001)),
-    ).toEqual({
+    const reason = "x".repeat(1_001);
+    const result = validateVenueTransitionInput("rejected", reason);
+
+    expect(result).toEqual({
       ok: false,
       error: "rejection_reason_too_long",
     });
   });
 
   it("does not carry a rejection reason into an active status", () => {
-    expect(validateVenueTransitionInput("shortlist", "old reason")).toEqual({
+    const staleReason = validateVenueTransitionInput(
+      "shortlist",
+      "old reason",
+    );
+    const valid = validateVenueTransitionInput("shortlist", null);
+
+    expect(staleReason).toEqual({
       ok: false,
       error: "rejection_reason_not_allowed",
     });
-    expect(validateVenueTransitionInput("shortlist", null)).toEqual({
+    expect(valid).toEqual({
       ok: true,
       status: "shortlist",
       rejectionReason: null,
@@ -54,7 +66,9 @@ describe("venue status", () => {
   });
 
   it("fails closed for an unknown status", () => {
-    expect(validateVenueTransitionInput("mystery", null)).toEqual({
+    const result = validateVenueTransitionInput("mystery", null);
+
+    expect(result).toEqual({
       ok: false,
       error: "unknown_status",
     });
