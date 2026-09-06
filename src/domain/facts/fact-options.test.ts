@@ -20,6 +20,13 @@ describe("numeric fact options", () => {
       ok: true,
       value: { min: 0, max: 500, integer: true },
     });
+    expect(normalizeFactOptions("number", { integer: true }).ok).toBe(true);
+    expect(
+      normalizeFactOptions("number", { min: 1, integer: true }).ok,
+    ).toBe(true);
+    expect(
+      normalizeFactOptions("number", { max: 1, integer: true }).ok,
+    ).toBe(true);
     expect(normalizeFactOptions("rating", {})).toEqual({
       ok: true,
       value: {},
