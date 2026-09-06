@@ -40,7 +40,7 @@ Before implementation gate opens, every V1 row remains `SPECIFIED`.
 | FTR-016 | Venue analytical table with controlled columns | 2 | VENUES, UX | SPECIFIED |
 | FTR-017 | Venue detail summary-first workspace | 2 | SCREEN-CONTRACTS, VENUES | SPECIFIED |
 | FTR-018 | Venue spaces/dimensions/capacity/configuration | 2 | VENUES, PHYSICAL-SCHEMA | IN_PROGRESS |
-| FTR-019 | Typed facts/criteria retained value | 2 | FACTS-SOURCES, FACT-VALUE-TYPES | SPECIFIED |
+| FTR-019 | Typed facts/criteria retained value | 2 | FACTS-SOURCES, FACT-VALUE-TYPES | IN_PROGRESS |
 | FTR-020 | Multi-source observations/provenance/conflict | 2 | FACTS-SOURCES, CONFIDENCE-FRESHNESS | SPECIFIED |
 | FTR-021 | Deterministic criterion evaluation / blockers / score explanation | 2 | CRITERIA-EVALUATION | SPECIFIED |
 | FTR-022 | Missing/stale/conflicting information guidance | 2/3 | VENUES, TASKS | SPECIFIED |
@@ -124,7 +124,7 @@ Before implementation gate opens, every V1 row remains `SPECIFIED`.
 | FTR-070 | Milestone dependencies/completion readiness | 8 | PLANNING, INVARIANTS | SPECIFIED |
 | FTR-071 | Explainable next-action prioritization | 8 | DASHBOARD, TASKS | SPECIFIED |
 | FTR-072 | Dashboard blockers/waiting/joint decisions | 8 | DASHBOARD | SPECIFIED |
-| FTR-073 | Dashboard budget/deadline/progress summaries | 8 | DASHBOARD | SPECIFIED |
+| FTR-073 | Dashboard budget/deadline/progress summaries | 8 | BUDGET, DASHBOARD | SPECIFIED |
 | FTR-074 | Meaningful partner changes since last visit | 8 | DASHBOARD, ACTIVITY | SPECIFIED |
 | FTR-075 | Wedding event timeline structured items | 8 | EVENT-TIMELINE | SPECIFIED |
 | FTR-076 | Timeline dependencies/vendor/location/time validation | 8 | EVENT-TIMELINE, DATES-TIME | SPECIFIED |
