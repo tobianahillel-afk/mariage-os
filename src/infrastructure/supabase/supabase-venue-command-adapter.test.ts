@@ -139,13 +139,16 @@ describe("SupabaseVenueCommandAdapter create", () => {
     { ...createdRow, revision: 1.5 },
     { ...createdRow, revision: 0 },
     { ...createdRow, revision: Number.MAX_SAFE_INTEGER + 1 },
-  ])("rejects malformed or cross-project creation response %#", async (data) => {
-    const adapter = adapterWith({ data, error: null });
+  ])(
+    "rejects malformed or cross-project creation response %#",
+    async (data) => {
+      const adapter = adapterWith({ data, error: null });
 
-    await expect(adapter.createVenue(createInput())).rejects.toThrow(
-      "Venue creation failed.",
-    );
-  });
+      await expect(adapter.createVenue(createInput())).rejects.toThrow(
+        "Venue creation failed.",
+      );
+    },
+  );
 });
 
 describe("SupabaseVenueCommandAdapter transition", () => {
