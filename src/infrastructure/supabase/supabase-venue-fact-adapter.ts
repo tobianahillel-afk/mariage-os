@@ -21,12 +21,7 @@ const DEFINITION_QUERY_FAILED = "Venue fact definition query failed.";
 const DEFINITION_MUTATION_FAILED = "Venue fact definition mutation failed.";
 const FACT_MUTATION_FAILED = "Venue fact mutation failed.";
 const CONFLICT_CODES = new Set(["40001", "23505"]);
-const BACKEND_CODES = new Set([
-  "PGRST000",
-  "PGRST001",
-  "PGRST002",
-  "PGRST003",
-]);
+const BACKEND_CODES = new Set(["PGRST000", "PGRST001", "PGRST002", "PGRST003"]);
 
 interface SupabaseResult {
   readonly data: unknown;
