@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(62);
+select no_plan();
 
 select has_table('public', 'venue_spaces', 'venue_spaces table exists');
 select has_table('public', 'member_entity_preferences', 'member_entity_preferences table exists');
@@ -33,7 +33,7 @@ select ok(
   not has_table_privilege('anon', 'public.venue_spaces', 'select')
   and not has_table_privilege('anon', 'public.member_entity_preferences', 'select')
   and not has_table_privilege('anon', 'public.member_ratings', 'select'),
-  'anonymous role receives no private table grants'
+  'anonymous receives no private table grants'
 );
 select ok(
   not has_table_privilege('authenticated', 'public.venue_spaces', 'insert')
@@ -90,7 +90,7 @@ select throws_ok(
     )$$,
   '23514',
   'member opinion target unavailable',
-  'database trigger rejects cross-project polymorphic preference target'
+  'cross-project polymorphic preference target is rejected'
 );
 select throws_ok(
   $$insert into public.member_ratings (
@@ -105,7 +105,7 @@ select throws_ok(
     )$$,
   '23514',
   'member opinion target unavailable',
-  'unsupported opinion target type fails closed until its owning domain extends validation'
+  'unsupported target type fails closed until its owning domain extends validation'
 );
 
 create function pg_temp.try_create_space(
@@ -122,8 +122,7 @@ begin
   );
   return true;
 exception
-  when insufficient_privilege or invalid_parameter_value or check_violation
-    then return false;
+  when insufficient_privilege or invalid_parameter_value or check_violation then return false;
 end;
 $$;
 
@@ -142,27 +141,7 @@ begin
   );
   return true;
 exception
-  when insufficient_privilege or invalid_parameter_value or serialization_failure or check_violation
-    then return false;
-end;
-$$;
-
-create function pg_temp.try_direct_space_insert(target_project uuid, target_venue uuid)
-returns boolean language plpgsql as $$
-begin
-  insert into public.venue_spaces (project_id, venue_id, name, space_type)
-  values (target_project, target_venue, 'Bypass', 'other');
-  return true;
-exception when insufficient_privilege then return false;
-end;
-$$;
-
-create function pg_temp.try_direct_space_update(target_space uuid)
-returns boolean language plpgsql as $$
-begin
-  update public.venue_spaces set name = 'Bypass update' where id = target_space;
-  return true;
-exception when insufficient_privilege then return false;
+  when insufficient_privilege or invalid_parameter_value or serialization_failure or check_violation then return false;
 end;
 $$;
 
@@ -180,8 +159,7 @@ begin
   );
   return true;
 exception
-  when insufficient_privilege or invalid_parameter_value or serialization_failure or check_violation
-    then return false;
+  when insufficient_privilege or invalid_parameter_value or serialization_failure or check_violation then return false;
 end;
 $$;
 
@@ -199,32 +177,7 @@ begin
   );
   return true;
 exception
-  when insufficient_privilege or invalid_parameter_value or serialization_failure or check_violation
-    then return false;
-end;
-$$;
-
-create function pg_temp.try_direct_preference_insert(
-  target_project uuid,
-  target_user uuid,
-  target_venue uuid
-)
-returns boolean language plpgsql as $$
-begin
-  insert into public.member_entity_preferences (
-    project_id, user_id, target_type, target_id, favorite
-  ) values (target_project, target_user, 'venue', target_venue, true);
-  return true;
-exception when insufficient_privilege then return false;
-end;
-$$;
-
-create function pg_temp.try_direct_rating_update(target_rating_id uuid)
-returns boolean language plpgsql as $$
-begin
-  update public.member_ratings set rating = 10 where id = target_rating_id;
-  return true;
-exception when insufficient_privilege then return false;
+  when insufficient_privilege or invalid_parameter_value or serialization_failure or check_violation then return false;
 end;
 $$;
 
@@ -238,27 +191,25 @@ reset role;
 
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"81111111-1111-4111-8111-111111111111","role":"authenticated"}', true);
-
 select ok(
   pg_temp.try_create_space(
     '8aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
     '8a100000-0000-4000-8000-000000000001',
     'Main room'
   ),
-  'owner may create a physical space in own Venue'
+  'owner may create own-project physical space'
 );
 select is((select count(*)::integer from public.venue_spaces), 1, 'owner sees created own-project space');
-select is((select capacity_seated from public.venue_spaces where name = 'Main room'), 150, 'space seated capacity stored independently');
-select is((select capacity_cocktail from public.venue_spaces where name = 'Main room'), 220, 'space cocktail capacity stored independently');
-select is((select revision from public.venue_spaces where name = 'Main room'), 1::bigint, 'new space starts at revision one');
+select is((select capacity_seated from public.venue_spaces where name = 'Main room'), 150, 'seated capacity stored independently');
+select is((select capacity_cocktail from public.venue_spaces where name = 'Main room'), 220, 'cocktail capacity stored independently');
+select is((select revision from public.venue_spaces where name = 'Main room'), 1::bigint, 'new space starts revision one');
 select ok(
   not pg_temp.try_create_space(
     '8aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
     '8a100000-0000-4000-8000-000000000001',
-    'Invalid capacity',
-    -1
+    'Invalid capacity', -1
   ),
-  'negative physical capacity is rejected'
+  'negative capacity is rejected'
 );
 select ok(
   not pg_temp.try_create_space(
@@ -266,18 +217,17 @@ select ok(
     '8b100000-0000-4000-8000-000000000001',
     'Cross project'
   ),
-  'owner cannot inject a project-B Venue as own-project space parent'
+  'cross-project Venue parent injection is rejected'
 );
-select ok(
-  not pg_temp.try_direct_space_insert(
-    '8aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-    '8a100000-0000-4000-8000-000000000001'
-  ),
+select throws_ok(
+  $$insert into public.venue_spaces (project_id, venue_id, name, space_type)
+    values (
+      '8aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+      '8a100000-0000-4000-8000-000000000001',
+      'Bypass', 'other'
+    )$$,
+  '42501', 'permission denied for table venue_spaces',
   'direct space insert cannot bypass protected command'
-);
-select ok(
-  not pg_temp.try_direct_space_update((select id from public.venue_spaces where name = 'Main room')),
-  'direct space update cannot bypass expected-revision command'
 );
 select ok(
   pg_temp.try_update_space(
@@ -289,7 +239,7 @@ select ok(
   'owner may update own space with current revision'
 );
 select is((select revision from public.venue_spaces where name = 'Main room reviewed'), 2::bigint, 'space update increments revision');
-select is((select capacity_seated from public.venue_spaces where name = 'Main room reviewed'), 170, 'space update stores revised physical capacity');
+select is((select capacity_seated from public.venue_spaces where name = 'Main room reviewed'), 170, 'space update stores revised seated capacity');
 select ok(
   not pg_temp.try_update_space(
     '8aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
@@ -299,7 +249,7 @@ select ok(
   ),
   'stale space edit is rejected'
 );
-select is((select name from public.venue_spaces limit 1), 'Main room reviewed', 'stale space edit leaves canonical value unchanged');
+select is((select name from public.venue_spaces where id = (select id from public.venue_spaces where name = 'Main room reviewed')), 'Main room reviewed', 'stale edit leaves canonical value unchanged');
 
 select set_config('request.jwt.claims', '{"sub":"83333333-3333-4333-8333-333333333333","role":"authenticated"}', true);
 select ok(
@@ -308,18 +258,18 @@ select ok(
     '8a100000-0000-4000-8000-000000000001',
     'Editor room'
   ),
-  'editor with venues.write may create own-project space'
+  'editor with venues.write may create a space'
 );
 
 select set_config('request.jwt.claims', '{"sub":"84444444-4444-4444-8444-444444444444","role":"authenticated"}', true);
-select is((select count(*)::integer from public.venue_spaces), 2, 'viewer with venues.read may read project spaces');
+select is((select count(*)::integer from public.venue_spaces), 2, 'viewer with venues.read may read spaces');
 select ok(
   not pg_temp.try_create_space(
     '8aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
     '8a100000-0000-4000-8000-000000000001',
     'Viewer write'
   ),
-  'viewer cannot mutate shared Venue space data'
+  'viewer cannot mutate shared space data'
 );
 
 select set_config('request.jwt.claims', '{"sub":"85555555-5555-4555-8555-555555555555","role":"authenticated"}', true);
@@ -352,30 +302,31 @@ select ok(
   pg_temp.try_preference(
     '8aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
     '8a100000-0000-4000-8000-000000000001',
-    true,
-    '  my private note  ',
-    0
+    true, '  my private note  ', 0
   ),
-  'member creates own Venue preference with create sentinel revision zero'
+  'member creates own Venue preference'
 );
-select is((select revision from public.member_entity_preferences), 1::bigint, 'new member preference starts revision one');
+select is((select revision from public.member_entity_preferences), 1::bigint, 'new preference starts revision one');
 select is((select personal_note from public.member_entity_preferences), 'my private note', 'personal note is normalized');
 select is((select user_id from public.member_entity_preferences), '81111111-1111-4111-8111-111111111111'::uuid, 'preference author derives from auth.uid');
-select ok(
-  not pg_temp.try_direct_preference_insert(
-    '8aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-    '82222222-2222-4222-8222-222222222222',
-    '8a100000-0000-4000-8000-000000000001'
-  ),
-  'client cannot insert a preference while impersonating another member'
+select throws_ok(
+  $$insert into public.member_entity_preferences (
+      project_id, user_id, target_type, target_id, favorite
+    ) values (
+      '8aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+      '82222222-2222-4222-8222-222222222222',
+      'venue',
+      '8a100000-0000-4000-8000-000000000001',
+      true
+    )$$,
+  '42501', 'permission denied for table member_entity_preferences',
+  'client cannot insert preference while impersonating another member'
 );
 select ok(
   pg_temp.try_preference(
     '8aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
     '8a100000-0000-4000-8000-000000000001',
-    false,
-    'updated own note',
-    1
+    false, 'updated own note', 1
   ),
   'member updates own preference with current revision'
 );
@@ -384,47 +335,39 @@ select ok(
   not pg_temp.try_preference(
     '8aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
     '8a100000-0000-4000-8000-000000000001',
-    true,
-    null,
-    1
+    true, null, 1
   ),
-  'stale member preference overwrite is rejected'
+  'stale preference overwrite is rejected'
 );
 select ok(
   not pg_temp.try_preference(
     '8aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
     '8b100000-0000-4000-8000-000000000001',
-    true,
-    null,
-    0
+    true, null, 0
   ),
-  'member cannot attach own preference to another project Venue'
+  'preference command rejects cross-project Venue target'
 );
 
 select set_config('request.jwt.claims', '{"sub":"82222222-2222-4222-8222-222222222222","role":"authenticated"}', true);
-select is((select count(*)::integer from public.member_entity_preferences), 0, 'partner cannot read another member private preference/note row');
+select is((select count(*)::integer from public.member_entity_preferences), 0, 'partner cannot read another member private preference row');
 select ok(
   pg_temp.try_preference(
     '8aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
     '8a100000-0000-4000-8000-000000000001',
-    true,
-    'partner private note',
-    0
+    true, 'partner private note', 0
   ),
-  'partner may create their own independent preference'
+  'partner creates independent preference'
 );
-select is((select count(*)::integer from public.member_entity_preferences), 1, 'partner still sees only their own preference row');
+select is((select count(*)::integer from public.member_entity_preferences), 1, 'partner sees only own preference row');
 
 select set_config('request.jwt.claims', '{"sub":"84444444-4444-4444-8444-444444444444","role":"authenticated"}', true);
 select ok(
   pg_temp.try_preference(
     '8aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
     '8a100000-0000-4000-8000-000000000001',
-    true,
-    null,
-    0
+    true, null, 0
   ),
-  'viewer may persist own personal Venue preference without shared Venue write permission'
+  'viewer may persist own personal preference'
 );
 
 select set_config('request.jwt.claims', '{"sub":"81111111-1111-4111-8111-111111111111","role":"authenticated"}', true);
@@ -432,30 +375,24 @@ select ok(
   pg_temp.try_rating(
     '8aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
     '8a100000-0000-4000-8000-000000000001',
-    'love_score',
-    9,
-    0
+    'love_score', 9, 0
   ),
-  'partner A records own rating 9'
+  'partner A records rating 9'
 );
-select is((select user_id from public.member_ratings where rating = 9), '81111111-1111-4111-8111-111111111111'::uuid, 'rating author derives from authenticated member');
+select is((select user_id from public.member_ratings where rating = 9), '81111111-1111-4111-8111-111111111111'::uuid, 'rating author derives from auth.uid');
 select ok(
   not pg_temp.try_rating(
     '8aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
     '8a100000-0000-4000-8000-000000000001',
-    'typo_score',
-    5,
-    0
+    'typo_score', 5, 0
   ),
-  'arbitrary rating dimension typo is rejected'
+  'arbitrary rating dimension is rejected'
 );
 select ok(
   not pg_temp.try_rating(
     '8aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
     '8a100000-0000-4000-8000-000000000001',
-    'love_score',
-    10.01,
-    1
+    'love_score', 10.01, 1
   ),
   'rating above ten is rejected'
 );
@@ -465,13 +402,11 @@ select ok(
   pg_temp.try_rating(
     '8aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
     '8a100000-0000-4000-8000-000000000001',
-    'love_score',
-    6,
-    0
+    'love_score', 6, 0
   ),
   'partner B records independent rating 6'
 );
-select is((select count(*)::integer from public.member_ratings), 2, 'partner can read both project Venue ratings for comparison');
+select is((select count(*)::integer from public.member_ratings), 2, 'partner may read both ratings for comparison');
 select is((select rating from public.member_ratings where user_id = '81111111-1111-4111-8111-111111111111'), 9.00::numeric, 'partner A rating remains 9');
 select is((select rating from public.member_ratings where user_id = '82222222-2222-4222-8222-222222222222'), 6.00::numeric, 'partner B rating remains 6');
 
@@ -480,37 +415,31 @@ select ok(
   pg_temp.try_rating(
     '8aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
     '8a100000-0000-4000-8000-000000000001',
-    'love_score',
-    8,
-    1
+    'love_score', 8, 1
   ),
-  'partner A updates only own rating with current revision'
+  'partner A updates own rating with current revision'
 );
 select is((select rating from public.member_ratings where user_id = '81111111-1111-4111-8111-111111111111'), 8.00::numeric, 'partner A rating changes to 8');
-select is((select rating from public.member_ratings where user_id = '82222222-2222-4222-8222-222222222222'), 6.00::numeric, 'partner B rating is unchanged when A edits');
+select is((select rating from public.member_ratings where user_id = '82222222-2222-4222-8222-222222222222'), 6.00::numeric, 'partner B rating remains unchanged');
 select ok(
   not pg_temp.try_rating(
     '8aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
     '8a100000-0000-4000-8000-000000000001',
-    'love_score',
-    7,
-    1
+    'love_score', 7, 1
   ),
   'stale rating overwrite is rejected'
 );
-select ok(
-  not pg_temp.try_direct_rating_update(
-    (select id from public.member_ratings where user_id = '82222222-2222-4222-8222-222222222222')
-  ),
+select throws_ok(
+  $$update public.member_ratings set rating = 10
+    where user_id = '82222222-2222-4222-8222-222222222222'$$,
+  '42501', 'permission denied for table member_ratings',
   'client cannot directly mutate partner rating row'
 );
 select ok(
   not pg_temp.try_rating(
     '8aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
     '8b100000-0000-4000-8000-000000000001',
-    'love_score',
-    5,
-    0
+    'love_score', 5, 0
   ),
   'rating command rejects cross-project Venue target'
 );
@@ -520,29 +449,26 @@ select ok(
   not pg_temp.try_rating(
     '8aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
     '8a100000-0000-4000-8000-000000000001',
-    'love_score',
-    5,
-    0
+    'love_score', 5, 0
   ),
   'revoked member cannot record rating'
 );
+select is((select count(*)::integer from public.member_ratings), 0, 'revoked member cannot read project ratings');
 
 select set_config('request.jwt.claims', '{"sub":"86666666-6666-4666-8666-666666666666","role":"authenticated"}', true);
-select is((select count(*)::integer from public.member_ratings), 0, 'outsider cannot read project member ratings');
+select is((select count(*)::integer from public.member_ratings), 0, 'outsider cannot read project ratings');
 
 select set_config('request.jwt.claims', '{"sub":"85555555-5555-4555-8555-555555555555","role":"authenticated"}', true);
-select is((select count(*)::integer from public.member_ratings), 0, 'project-B owner cannot read project-A member ratings');
+select is((select count(*)::integer from public.member_ratings), 0, 'project-B owner cannot read project-A ratings');
 
 select set_config('request.jwt.claims', '{"sub":"84444444-4444-4444-8444-444444444444","role":"authenticated"}', true);
 select ok(
   pg_temp.try_rating(
     '8aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
     '8a100000-0000-4000-8000-000000000001',
-    'logistics_score_personal',
-    4.5,
-    0
+    'logistics_score_personal', 4.5, 0
   ),
-  'viewer may record own personal rating while remaining unable to edit shared Venue data'
+  'viewer may record own personal rating while unable to edit shared Venue data'
 );
 select is((select count(*)::integer from public.member_ratings), 3, 'viewer with venues.read sees comparison ratings including own');
 
