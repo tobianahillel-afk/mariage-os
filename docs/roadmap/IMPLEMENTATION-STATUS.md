@@ -48,7 +48,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 
 Planned packets:
 
-1. `WP-2.1` — venue identity, authorized persistence and lifecycle-history foundation — **REVIEW_PENDING**;
+1. `WP-2.1` — venue identity, authorized persistence and lifecycle-history foundation — **REVIEW_FAILED / REMEDIATION**;
 2. `WP-2.2` — spaces, capacity and member ratings/preferences — **PLANNED**;
 3. `WP-2.3` — fact definitions, typed retained facts and value validation — **PLANNED**;
 4. `WP-2.4` — observations, sources, evidence/confidence/freshness and conflicts — **PLANNED**;
@@ -67,13 +67,13 @@ Planned packets:
 - Lot state: **IN_PROGRESS**
 - Current branch: **`lot-2/venues-core`**
 - Current packet: **WP-2.1**
-- Packet state: **REVIEW_PENDING**
-- Current pass: **B-ADVERSARIAL-REVIEW**
+- Packet state: **REVIEW_FAILED**
+- Current pass: **REMEDIATION**
 - Accepted packets: **none yet**
-- Review-failed/blocked packets: **none**
-- Open packet BLOCKING/MAJOR findings: **Pass B in progress; none waived or closed yet**
-- Latest exact implementation verification: run `34034349485`, **5/5 SUCCESS** on Pass-A head `00144dfb70b901fb7c05f2d71ad032a68b2a16bd`, including clean-checkout `npm run verify`.
-- Next permitted action: **perform WP-2.1 Pass B adversarial review only; do not start WP-2.2 concurrently.**
+- Review-failed/blocked packets: **WP-2.1**
+- Open packet BLOCKING/MAJOR findings: **4 MAJOR (`WP2.1-B-001..004`) plus 1 MODERATE (`WP2.1-B-005`) recorded in `lot-2/WP-2.1.md`**
+- Latest exact implementation verification before review: run `34034349485`, **5/5 SUCCESS** on Pass-A head `00144dfb70b901fb7c05f2d71ad032a68b2a16bd`, including clean-checkout `npm run verify`.
+- Next permitted action: **remediate WP-2.1 findings, rerun exact-head verification, then perform a fresh Pass B re-review; do not start WP-2.2 concurrently.**
 
 ## Known localized specification repairs
 
@@ -103,7 +103,11 @@ These are recorded stop-conditions for the owning later packets, not permission 
 
 Open Lot 2 packet findings:
 
-- WP-2.1 Pass B adversarial review is active; findings are recorded in the packet record before remediation/acceptance.
+- `WP2.1-B-001` MAJOR — revisioned ordinary/lifecycle mutation lacks expected-revision precondition;
+- `WP2.1-B-002` MAJOR — lifecycle `operationId` surface has no frozen receipt/replay semantics and must not pre-implement Lot-10 sync incorrectly;
+- `WP2.1-B-003` MAJOR — direct API can persist unsupported `website_url` scheme despite canonical URL allowlist contract;
+- `WP2.1-B-004` MAJOR — quick-add provider response does not bind returned project ID to requested project;
+- `WP2.1-B-005` MODERATE — natural numeric code comparison can lose precision for long legal numeric segments.
 
 Inherited reviewed non-blocking maintenance:
 
@@ -126,12 +130,12 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Coverage: required current-lot responsibilities - assigned packet responsibilities = ∅
 Current packet: WP-2.1
-Packet state: REVIEW_PENDING
-Current pass: B-ADVERSARIAL-REVIEW
+Packet state: REVIEW_FAILED
+Current pass: REMEDIATION
 Pass-A exact implementation head: 00144dfb70b901fb7c05f2d71ad032a68b2a16bd
 Pass-A CI: 34034349485 — 5/5 SUCCESS, clean-checkout verify PASS
 Accepted Lot 2 packets: none
-Open BLOCKING/MAJOR: Pass B in progress; see WP-2.1 record
-Next: perform WP-2.1 Pass B only
+Open BLOCKING/MAJOR: WP2.1-B-001..004 MAJOR; WP2.1-B-005 MODERATE
+Next: remediate WP-2.1, exact-head verify, fresh Pass B re-review
 Lots 3–12: NOT_STARTED
 ```
