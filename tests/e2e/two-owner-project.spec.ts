@@ -15,7 +15,9 @@ const ownerTwo = {
 
 async function expectProtectedProject(page: Page): Promise<void> {
   await expect(page.locator('[data-shell="private-project"]')).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Sécurité" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Sécurité", exact: true }),
+  ).toBeVisible();
 
   const navigation = page.getByRole("navigation", {
     name: "Navigation du projet",
