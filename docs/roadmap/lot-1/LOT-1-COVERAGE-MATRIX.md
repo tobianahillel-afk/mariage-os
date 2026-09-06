@@ -1,14 +1,14 @@
 # Lot 1 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — all planned Work Packets accepted; Lot reconciliation/integration/acceptance next**
+Status: **ACCEPTED — packet coverage, reconciliation and separate Integration Pass complete**
 
-Purpose: decompose Lot 1 into bounded, dependency-aware Work Packets before production implementation, as required by `docs/engineering/AI-LOT-ORCHESTRATION.md`.
+Purpose: durable responsibility-to-evidence map for Lot 1, executed under `docs/engineering/AI-LOT-ORCHESTRATION.md`.
 
 ## Lot 1 goal
 
 Establish identity, project tenancy and secure collaboration foundations that every later feature must reuse: Supabase Auth, controlled private bootstrap, partner invitation, permission-based authorization, RLS/same-project integrity, protected/public route separation, local project partitioning, sync/session primitives, Storage isolation and security/onboarding hooks.
 
-Lot 1 must remain multi-project/public-ready by construction even though the first real deployment is one couple.
+Lot 1 remains multi-project/public-ready by construction even though the first real deployment is one couple.
 
 ## Required Feature/current-lot responsibilities
 
@@ -39,17 +39,17 @@ Lot 1 must remain multi-project/public-ready by construction even though the fir
 | project-scoped Storage isolation foundation | AUTHZ-013, Lot acceptance | WP-1.9 | WP-1.2 | direct Storage allow/deny tests |
 | Realtime/project subscription isolation foundation where exposed | AUTHZ-013 | WP-1.9 | WP-1.2 | explicit non-exposure proof; Realtime disabled and no public application publication/client subscription surface |
 | synthetic public-ready matrix: projects A/B/C, multi-project user, outsider, revoked member, owner/editor/viewer | AUTHZ-018 | WP-1.1, WP-1.2, WP-1.9 | Lot 0 seed harness | deterministic direct security tests |
-| synthetic two-owner end-to-end identity/project flow | Lot acceptance | WP-1.3, WP-1.4, WP-1.6, WP-1.8 | prior packets | Playwright E2E |
+| synthetic two-owner end-to-end identity/project flow | Lot acceptance | WP-1.3, WP-1.4, WP-1.6, WP-1.8 | prior packets | integrated bootstrap/invite/accept pgTAP + two-context Playwright E2E, run `34026968380` |
 | no provider SDK/secret introduced into UI/domain; no guest capability grants membership | Lot 1 guest-communications addendum | WP-1.6, WP-1.9 | architecture gates | static/security negative evidence |
-| Lot reconciliation + separate integration pass | AI-LOT-ORCHESTRATION | after WP-1.1..1.9 | all packets | required - evidenced = ∅ + full verify/integration PASS |
+| Lot reconciliation + separate integration pass | AI-LOT-ORCHESTRATION | after WP-1.1..1.9 | all packets | required - evidenced = ∅ + run `34026968380` + Integration Pass PASS |
 
 Required current-lot responsibilities minus assigned packet responsibilities: **∅**.
 
-After WP-1.9 Pass C, required packet-owned current-lot responsibilities minus accepted/evidenced packet responsibilities: **∅**.
+Required packet-owned current-lot responsibilities minus accepted/evidenced packet responsibilities: **∅**.
 
-The remaining row is the explicit Lot-level closure activity itself: separate Lot reconciliation, Lot Integration Pass and Lot acceptance. It is not an unassigned implementation responsibility.
+Required current-lot responsibilities minus accepted/evidenced responsibilities after the separate Integration Pass: **∅**.
 
-## Work Packet plan
+## Final Work Packet states
 
 ### WP-1.1 — Permission catalog and authorization helper foundation
 
@@ -79,91 +79,60 @@ Acceptance evidence: run `33859207161` on `bf0046dc45c318875d349edc2b6327292e289
 
 State: **ACCEPTED**
 
-Scope:
-- protected project settings updates;
-- `wedding_date_options` zero-or-one selected invariant and atomic selection/history;
-- `project_reference_origins` including one-default invariant;
-- `user_project_preferences` author-scoped persistence;
-- provider-neutral Invitations & RSVP intent/settings fields only, with no guest/domain/provider implementation.
-
 Acceptance evidence: run `33866160626` on implementation HEAD `15e477a9ca75efbc98594000c190180e24226229`, all five jobs SUCCESS including clean-checkout `npm run verify`; DB 13 files / 239 tests PASS; `WP15-AR-001` and `WP15-AR-002` closed; Pass C required-minus-evidenced = ∅.
-
-Planning complexity: **9/10**.
 
 ### WP-1.6 — Protected app shell, navigation and public RSVP trust boundary
 
 State: **ACCEPTED**
 
-Scope:
-- protected `/app/p/:projectId/**` shell and membership-aware routing;
-- safe return/deep-link behavior;
-- separate public `/rsvp/:token` shell boundary with placeholder capability resolution only;
-- onboarding/settings UI hooks for RSVP intent/defer/manual-link plan;
-- no guest domain CRUD, outbound provider SDK or provider secret.
-
-Acceptance evidence: run `33880216335` on implementation HEAD `61dca0718f8ff7372609d208050aba6a50271743`, all five jobs SUCCESS including clean-checkout `npm run verify`; fresh Pass B PASS; `WP16-AR-001`/`002` closed; final recovery observation repaired/re-reviewed; Pass C required-minus-evidenced = ∅.
-
-Planning complexity: **7/10**.
+Acceptance evidence: run `33880216335` on implementation HEAD `61dca0718f8ff7372609d208050aba6a50271743`, all five jobs SUCCESS including clean-checkout `npm run verify`; fresh Pass B PASS; `WP16-AR-001`/`002` closed; Pass C required-minus-evidenced = ∅.
 
 ### WP-1.7 — Project-scoped repositories, local cache and sync primitives
 
 State: **ACCEPTED**
 
-Scope:
-- application ports/repositories and infrastructure composition boundaries;
-- local account+project partition key convention;
-- durable operation ID/revision envelope primitives;
-- global sync/local-durability indicator state;
-- cross-project/account cache isolation tests.
-
 Acceptance evidence: run `33895516028` on implementation/review HEAD `46548702f304dbabcf4bd673a33afb1c0ec96a3d`, all five jobs SUCCESS including 28/28 Playwright E2E, mutation and clean-checkout `npm run verify`; `WP17-AR-001..003` closed; fresh Pass B PASS; Pass C required-minus-evidenced = ∅.
-
-Planning complexity: **7/10**.
 
 ### WP-1.8 — Session expiry, safe logout, MFA/security diagnostics
 
 State: **ACCEPTED**
 
-Scope:
-- session-expired vs explicit signed-out state machine;
-- reauth + membership revalidation before cloud resume;
-- pending-work logout resolution contract;
-- purge of private local state after safe logout;
-- MFA/recovery readiness/security diagnostics shell.
-
 Acceptance evidence: run `33994961610` on implementation/evidence HEAD `cb7201e2d6dc1a8ca7608bb236f1f79ac84d8d9d`, all five jobs SUCCESS including browser E2E + mutation and clean-checkout `npm run verify`; `WP18-AR-001..003` closed; final fresh Pass B PASS; Pass C required-minus-evidenced = ∅.
-
-Planning complexity: **7/10**.
 
 ### WP-1.9 — Storage/Realtime isolation foundation and Lot-1 security matrix closure
 
 State: **ACCEPTED**
 
-Scope:
-- private `project-private` Storage foundation with project-derived validated media namespace;
-- live `media.read` / `media.write` authorization for SELECT/INSERT/UPDATE/DELETE;
-- direct role/cross-project/revoked/anonymous/guest-like allow/deny evidence;
-- Realtime remains disabled with explicit non-exposure proof;
-- no wedding-domain media/document, client subscription or provider implementation.
+Acceptance evidence: run `33999832455` on implementation/review HEAD `1c8331de918e82e1dc40beb96e6ac08343b861d7`, **5/5 SUCCESS** including clean-checkout `npm run verify`; DB **14 files / 284 tests / PASS**; Storage/Realtime matrix **45/45 PASS**. `WP19-AR-001` closed after direct behavioral DELETE-RLS evidence and a fresh Pass B. Pass C expected-minus-implemented/verified = **∅**.
 
-Acceptance evidence: run `33999832455` on implementation/review HEAD `1c8331de918e82e1dc40beb96e6ac08343b861d7`, **5/5 SUCCESS** including clean-checkout `npm run verify`; DB **14 files / 284 tests / PASS**; Storage/Realtime matrix **45/45 PASS**. `WP19-AR-001` was found as MAJOR in the first Pass B, remediated with direct behavioral DELETE-RLS evidence, reverified, then closed by a fresh Pass B. Pass C expected-minus-implemented/verified = **∅**.
+## Separate Lot Integration Pass
 
-Planning complexity: **7/10**.
+The separate Integration Pass is recorded in `LOT-1-INTEGRATION-PASS.md`.
 
-## Sequencing
+Exact technical evidence before final documentation-only closure: GitHub Actions run `34026968380` on `c7594e6cd15e33602411b810aad7f89ee732ba57`.
 
-```text
-WP-1.1 [ACCEPTED]
-  ↓
-WP-1.2 [ACCEPTED]
-  ├─→ WP-1.3 [ACCEPTED] → WP-1.4 [ACCEPTED]
-  ├─→ WP-1.5 [ACCEPTED] → WP-1.6 [ACCEPTED]
-  └─→ WP-1.7 [ACCEPTED] → WP-1.8 [ACCEPTED]
-                              ↘
-                                WP-1.9 [ACCEPTED]
-```
+- Core quality/security: **PASS**;
+- Local Supabase DB/RLS: **15 files / 294 tests / PASS**;
+- Browser/mutation: **PASS**, Playwright **40/40** across Chromium, Firefox, WebKit and mobile Chromium;
+- privacy-safe preview: **PASS**;
+- clean-checkout `npm run verify`: **PASS**;
+- integrated first-owner bootstrap → identity-bound owner invitation → second-owner acceptance → two active owners: **PASS**;
+- two isolated owner browser contexts opening the same protected project: **PASS**;
+- outsider/cross-project/local-cache/Storage/public-RSVP trust boundaries remain green: **PASS**;
+- provider/Lot-2+ scope leakage: **none identified**;
+- open BLOCKING/MAJOR findings: **0**.
 
-All planned Work Packets are accepted. Next sequencing gate: mechanical Lot reconciliation, then a separate Lot Integration Pass, then Lot acceptance if all base/addendum criteria and full verification remain green. Lot 2+ remains forbidden pending Lot 1 closure.
+`LOT1-IP-001`: **CLOSED**.
+
+Lot Integration Pass: **PASS**.
+
+## Final result
+
+Lot 1: **ACCEPTED**.
+
+Required current-lot responsibilities minus accepted/evidenced responsibilities: **∅**.
+
+All planned Work Packets are accepted, the separate Integration Pass is green, and no unresolved BLOCKING/MAJOR finding remains.
 
 ## Explicitly out of Lot 1
 
@@ -175,3 +144,5 @@ All planned Work Packets are accepted. Next sequencing gate: mechanical Lot reco
 - production provider cutover;
 - arbitrary public SaaS self-service project provisioning;
 - Lot 2+ product functionality.
+
+Lot 2–12 remain `NOT_STARTED`. No Lot 2 implementation may begin until the user gives a future explicit kickoff.
