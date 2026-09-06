@@ -39,11 +39,14 @@ function revisionValue(value: unknown): number {
 export function parseVenueFactDefinitionRow(
   value: unknown,
   expectedProjectId: string,
+  expectedDefinitionId: string | null = null,
 ): VenueFactDefinitionRecord {
   const row = recordValue(value);
+  const id = uuidValue(row.id);
   const projectId = uuidValue(row.project_id);
   if (
     projectId !== expectedProjectId ||
+    (expectedDefinitionId !== null && id !== expectedDefinitionId) ||
     row.entity_type !== "venue" ||
     typeof row.system_defined !== "boolean"
   ) {
@@ -62,7 +65,7 @@ export function parseVenueFactDefinitionRow(
   });
   if (!normalized.ok) invalidResponse();
   return {
-    id: uuidValue(row.id),
+    id,
     projectId,
     entityType: "venue",
     systemDefined: row.system_defined,

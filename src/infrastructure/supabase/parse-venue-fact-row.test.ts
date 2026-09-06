@@ -57,9 +57,22 @@ const factRow = {
 
 describe("parseVenueFactDefinitionRow", () => {
   it("parses and revalidates a canonical provider row", () => {
-    expect(parseVenueFactDefinitionRow(definitionRow, projectId)).toEqual(
-      definition,
-    );
+    expect(
+      parseVenueFactDefinitionRow(definitionRow, projectId, definitionId),
+    ).toEqual(definition);
+  });
+
+  it("rejects a different same-project definition when identity is expected", () => {
+    expect(() =>
+      parseVenueFactDefinitionRow(
+        {
+          ...definitionRow,
+          id: "85555555-5555-4555-8555-555555555555",
+        },
+        projectId,
+        definitionId,
+      ),
+    ).toThrow("Invalid venue fact response.");
   });
 
   it.each([

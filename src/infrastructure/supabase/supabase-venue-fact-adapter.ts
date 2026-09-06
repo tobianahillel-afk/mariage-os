@@ -75,7 +75,7 @@ export class SupabaseVenueFactAdapter implements VenueFactPort {
         .eq("id", definitionId)
         .single();
       if (error !== null) failure("Venue fact definition query failed.");
-      return parseVenueFactDefinitionRow(data, projectId);
+      return parseVenueFactDefinitionRow(data, projectId, definitionId);
     } catch {
       throw new Error("Venue fact definition query failed.");
     }
@@ -115,7 +115,11 @@ export class SupabaseVenueFactAdapter implements VenueFactPort {
         },
       );
       if (error !== null) failure("Venue fact definition mutation failed.");
-      return parseVenueFactDefinitionRow(data, input.projectId);
+      return parseVenueFactDefinitionRow(
+        data,
+        input.projectId,
+        input.definitionId,
+      );
     } catch {
       throw new Error("Venue fact definition mutation failed.");
     }
