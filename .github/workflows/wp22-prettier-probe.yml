@@ -1,0 +1,45 @@
+name: WP-2.2 Prettier Probe
+
+on:
+  push:
+    branches:
+      - tooling/wp22-prettier-probe
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Format WP-2.2 files
+        run: |
+          npx prettier --write \
+            src/application/venues/venue-member-opinion-service.test.ts \
+            src/application/venues/venue-member-opinion-service.ts \
+            src/application/venues/venue-space-service.test.ts \
+            src/application/venues/venue-space-service.ts \
+            src/domain/venues/venue-member-opinion.ts \
+            src/domain/venues/venue-space.test.ts \
+            src/infrastructure/supabase/parse-venue-member-opinion-row.test.ts \
+            src/infrastructure/supabase/supabase-venue-member-opinion-adapter.test.ts \
+            src/infrastructure/supabase/supabase-venue-member-opinion-adapter.ts \
+            src/infrastructure/supabase/supabase-venue-space-adapter.test.ts \
+            src/infrastructure/supabase/supabase-venue-space-adapter.ts
+      - name: Commit formatted output
+        run: |
+          if git diff --quiet; then
+            echo "No formatting changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/application/venues src/domain/venues src/infrastructure/supabase
+          git commit -m "style: apply Prettier to WP-2.2 files"
+          git push
