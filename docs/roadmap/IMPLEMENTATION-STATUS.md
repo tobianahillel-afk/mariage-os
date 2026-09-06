@@ -50,7 +50,7 @@ Packets:
 
 1. `WP-2.1` — venue identity, authorized persistence and lifecycle-history foundation — **ACCEPTED**;
 2. `WP-2.2` — spaces, capacity and member ratings/preferences — **ACCEPTED**;
-3. `WP-2.3` — fact definitions, typed retained facts and value validation — **REVIEW_FAILED — remediation next**;
+3. `WP-2.3` — fact definitions, typed retained facts and value validation — **REVIEW_PENDING — fresh Pass B next**;
 4. `WP-2.4` — observations, sources, evidence/confidence/freshness and conflicts — **PLANNED**;
 5. `WP-2.5` — deterministic criteria, blockers, score/readiness and missing information — **PLANNED**;
 6. `WP-2.6` — venue offers, availability, contacts and interactions basics — **PLANNED**;
@@ -105,15 +105,20 @@ Record: `lot-2/WP-2.2.md`.
 
 Record: `lot-2/WP-2.3.md`.
 
-- State: **REVIEW_FAILED**.
-- Current/next pass: **remediation**.
+- State: **REVIEW_PENDING**.
+- Current/next pass: **fresh independent Pass B**.
 - Primary Feature: `FTR-019`.
 - Scope: Venue `fact_definitions` + retained `facts`, explicit semantic states, all frozen V1 value-shape validation, same-project/RLS and provider-safe boundaries.
-- Reviewed Pass-A implementation head: `e209d5d33ef2ec5c535121caf9e2e066012f4de8`.
-- Historical Pass-A CI run `34062811901`: **5/5 SUCCESS**, including clean-checkout `npm run verify`; this evidence is now stale for acceptance because fresh Pass B found defects.
-- Fresh Pass B decision: **FAIL**.
-- Open MAJOR findings: `WP2.3-B-001` contradictory/unsatisfiable numeric metadata; `WP2.3-B-002` mutable-order multiselect canonicality; `WP2.3-B-003` Unicode string-length parity; `WP2.3-B-004` SQL-vs-standard URL parser parity; `WP2.3-B-005` collapsed error/conflict/auth/retry taxonomy.
-- Open MINOR findings: `WP2.3-B-006` first-create uniqueness normalization; `WP2.3-B-007` nested normalized JSON runtime mutability.
+- Historical reviewed Pass-A head: `e209d5d33ef2ec5c535121caf9e2e066012f4de8`; run `34062811901` was 5/5 SUCCESS before adversarial findings.
+- Original first Pass B decision: **FAIL** with `WP2.3-B-001..B-005` MAJOR and `WP2.3-B-006..B-007` MINOR.
+- Remediation status: **all `WP2.3-B-001..007` RESOLVED with scoped regression evidence; independent re-review still required**.
+- Remediated implementation head: `29d864586e791bd6d6b4e34747f9fe39f3e94848`.
+- Exact remediation CI run `34067663400`: **5/5 SUCCESS**, including clean-checkout `npm run verify`.
+- Unit: **59 files / 705 tests PASS**, measured coverage **100% statements/branches/functions/lines**.
+- DB/RLS: **26 files / 575 pgTAP tests PASS**.
+- Browser: **40/40 Playwright PASS**; mutation harness PASS with **82.50%** score under the repository-configured gate.
+- Privacy-safe preview: **PASS**.
+- Open recorded WP-2.3 BLOCKING/MAJOR findings at remediation handoff: **none**.
 - No observation/source, scoring/readiness, UI, offline queue, import/export or Vendor-target implementation is claimed.
 
 ### Durable cursor
@@ -122,13 +127,13 @@ Record: `lot-2/WP-2.3.md`.
 - Lot state: **IN_PROGRESS**
 - Current branch: **`lot-2/venues-core`**
 - Current packet: **WP-2.3**
-- Packet state: **REVIEW_FAILED**
-- Current/next pass: **remediation; transition back to `IN_PROGRESS` when code remediation begins**
+- Packet state: **REVIEW_PENDING**
+- Current/next pass: **fresh independent `B-ADVERSARIAL-REVIEW`**
 - Accepted packets: **WP-2.1, WP-2.2**
-- Review-failed packets: **WP-2.3**
-- Open packet BLOCKING/MAJOR findings: **B-001, B-002, B-003, B-004, B-005**
-- Historical Pass-A verification: run `34062811901` on `e209d5d33ef2ec5c535121caf9e2e066012f4de8` — **5/5 SUCCESS before review findings; affected evidence must be rerun after remediation**
-- Next permitted action: **remediate WP-2.3 findings only; do not start WP-2.4 concurrently.**
+- Review-failed packets: **none currently; WP-2.3 remediation completed and re-entered review**
+- Open packet BLOCKING/MAJOR findings: **none recorded at remediation handoff; fresh Pass B may create new findings**
+- Exact remediation verification: run `34067663400` on `29d864586e791bd6d6b4e34747f9fe39f3e94848` — **5/5 SUCCESS**
+- Next permitted action: **fresh Pass B on WP-2.3 only; do not start WP-2.4 concurrently.**
 
 ## Known localized specification repairs
 
@@ -158,11 +163,11 @@ The Venue lifecycle documentation conflict discovered during WP-2.1 is closed by
 - Feature-level whole-capability status and current-lot responsibility are not conflated; Lot Coverage Matrices are the durable responsibility-level reconciliation source.
 - `FTR-013` and `FTR-014` remain feature-level **IN_PROGRESS** because later Lot-2 UI/local/deep-link/duplicate responsibilities remain.
 - `FTR-018`, `FTR-023` and `FTR-012` remain feature-level **IN_PROGRESS** after WP-2.2 acceptance because later Lot-2 UI/local/read-model responsibilities remain.
-- `FTR-019` remains feature-level **IN_PROGRESS** while WP-2.3 remediation/re-review is active; later observation and compatibility responsibilities remain separate FTR-020/FTR-021 packets.
+- `FTR-019` remains feature-level **IN_PROGRESS** while WP-2.3 review/acceptance is active; later observation and compatibility responsibilities remain separate FTR-020/FTR-021 packets.
 
 ## Current blockers / forward maintenance
 
-Open Lot 2 review findings: **WP-2.3 B-001..B-005 MAJOR and B-006..B-007 MINOR; remediation is active next work**.
+Open Lot 2 review findings: **none recorded after WP-2.3 remediation; fresh independent Pass B is the active gate and may create new findings**.
 
 Reviewed non-blocking maintenance:
 
@@ -190,12 +195,15 @@ WP-2.1 governance CI: 34040803267 — 5/5 SUCCESS
 WP-2.2 implementation CI: 34046985956 — 5/5 SUCCESS
 WP-2.2 governance CI: 34048565452 — 5/5 SUCCESS
 Current packet: WP-2.3
-Packet state: REVIEW_FAILED
-Fresh Pass B: FAIL
-Open MAJOR: WP2.3-B-001, B-002, B-003, B-004, B-005
-Open MINOR: WP2.3-B-006, B-007
-Historical Pass-A head: e209d5d33ef2ec5c535121caf9e2e066012f4de8
-Historical Pass-A CI: 34062811901 — 5/5 SUCCESS before review findings
-Next: remediate WP-2.3 only, rerun exact-head verification, then perform a new fresh Pass B; do not start WP-2.4
+Packet state: REVIEW_PENDING
+Original Pass B: FAIL
+Original findings: WP2.3-B-001..B-007 — all RESOLVED pending independent re-review
+Remediated implementation head: 29d864586e791bd6d6b4e34747f9fe39f3e94848
+Remediation CI: 34067663400 — 5/5 SUCCESS
+Unit: 59 files / 705 tests PASS / 100% measured coverage
+DB/RLS: 26 files / 575 pgTAP PASS
+Browser: 40/40 Playwright PASS; mutation PASS
+Open BLOCKING/MAJOR at remediation handoff: none recorded
+Next: fresh independent Pass B on WP-2.3 only; do not start WP-2.4
 Lots 3–12: NOT_STARTED
 ```

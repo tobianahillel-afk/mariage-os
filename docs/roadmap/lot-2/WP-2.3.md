@@ -5,14 +5,15 @@
 - Work Packet ID: `WP-2.3`
 - Lot: `2`
 - Name: Fact definitions, typed retained facts and value validation
-- State: `REVIEW_FAILED`
-- Current pass: `B-ADVERSARIAL-REVIEW — FAILED; remediation next`
+- State: `REVIEW_PENDING`
+- Current pass: `B-ADVERSARIAL-REVIEW — fresh re-review next`
 - Primary bounded context: `facts` for Venue targets
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Dependencies: `WP-2.1 ACCEPTED`, `WP-2.2 ACCEPTED`
-- WP-2.2 governance gate: run `34048565452` on `480b0bcc168d7789bf2bee07a75c8f04200f5cb7` — **5/5 SUCCESS**, clean-checkout `npm run verify` PASS
 - Reviewed Pass-A implementation head: `e209d5d33ef2ec5c535121caf9e2e066012f4de8`
-- Exact Pass-A CI: run `34062811901` — **5/5 SUCCESS**, including clean-checkout `npm run verify`
+- Historical Pass-A CI: run `34062811901` — **5/5 SUCCESS**
+- Remediated implementation head: `29d864586e791bd6d6b4e34747f9fe39f3e94848`
+- Exact remediation CI: run `34067663400` — **5/5 SUCCESS**, including clean-checkout `npm run verify`
 
 ## Scope
 
@@ -29,70 +30,65 @@
 - validate `facts.retained_value` against the referenced definition before canonical persistence for all frozen V1 value types: `boolean`, `number`, `money`, `text`, `date`, `time`, `rating`, `select`, `multiselect`, `duration`, `distance`, `url`;
 - validate definition metadata needed by those types: numeric bounds/integer semantics, select/multiselect options, unit semantics where declared and exact supported JSON shapes;
 - accept `evaluation_rule_json` only when null or structurally supported/compatible with the definition value type; actual criterion evaluation/scoring is not implemented here;
-- enforce same-project and same-domain integrity for Venue target + definition; a project-A fact cannot reference a project-B Venue/definition;
-- use `venues.read` / `venues.write` as the inherited authorization boundary for Venue facts and Venue fact definitions in this packet;
-- provide domain/application/Supabase parser/adapter boundaries for later observations, criteria and UI without implementing those downstream layers.
+- enforce same-project and same-domain integrity for Venue target + definition;
+- use `venues.read` / `venues.write` as the inherited authorization boundary for Venue facts and Venue fact definitions;
+- provide domain/application/Supabase parser/adapter boundaries for later observations, criteria and UI without implementing downstream packets.
 
-### State/value rule for this packet
+### State/value rule
 
-WP-2.3 has no observation-resolution workflow yet. Therefore:
+WP-2.3 has no observation-resolution workflow yet:
 
 - `state = known` requires a non-null retained value valid for the definition;
-- `state = unknown`, `not_applicable` or `conflict` requires `retained_value = null` in WP-2.3;
-- the documented exceptional conflict workflow that may retain a provisional value is deliberately deferred to WP-2.4, where observation/provenance/resolution history exists;
-- `false` and `0` remain valid `known` values and are never unknown sentinels.
+- `state = unknown`, `not_applicable` or `conflict` requires `retained_value = null`;
+- provisional conflict retained values are deferred to WP-2.4;
+- `false`, `0` and valid empty text remain legitimate `known` values, never unknown sentinels.
 
 ### Requirements / acceptance / security
 
 - `VEN-005` factual-criterion foundation only;
 - `FAC-001`, WP-2.3 portion of `FAC-003`, `FAC-011`, `FAC-012`;
-- `ACC-021` unknown-vs-false foundation and `ACC-024` malformed canonical value rejection;
+- `ACC-021`, `ACC-024`;
 - Domain invariants 21, 22, 27 and 29;
 - `AUTHZ-001`, `AUTHZ-002`, `AUTHZ-004`, `AUTHZ-005`, `AUTHZ-006`, `AUTHZ-007`, `AUTHZ-008`, `AUTHZ-012`, `AUTHZ-018`, `AUTHZ-019`, `AUTHZ-020`;
-- applicable security baseline: `SEC-AUTHZ-001..005`, `SEC-AUTHZ-007..009`, `SEC-VAL-001..009` as applicable to the Facts boundary, `SEC-INJ-001..003`, `SEC-SUP-002`, `SEC-SUP-003`, `SEC-VER-001`, `SEC-VER-005`, `SEC-VER-006`;
-- `RLS-MATRIX-V1` Facts/evidence rules and direct project isolation matrix.
+- applicable `SEC-AUTHZ-*`, `SEC-VAL-*`, `SEC-INJ-*`, `SEC-SUP-*`, `SEC-VER-*` requirements identified by the packet;
+- `RLS-MATRIX-V1` Facts/evidence rules and direct project-isolation matrix.
 
 ### Explicitly out of scope
 
-- `fact_observations`, `sources`, `observation_sources`, evidence classes, confidence/freshness calculation, source health or provenance history — WP-2.4;
-- automatic conflict detection/resolution from competing observations or stronger/weaker evidence — WP-2.4;
-- compatibility evaluation, blockers, weighted score, completeness, `evidenceReadiness`, explanation engine or missing-information read model — WP-2.5;
-- seeding the complete default Venue criteria registry for compatibility use — deferred to the criteria packet so no incomplete scoring configuration is silently activated here;
-- Vendor facts or other target domains; schema may remain extensible, but WP-2.3 exposed commands accept Venue targets only;
+- observations, sources, provenance, evidence classes, confidence/freshness and conflict-resolution workflow — WP-2.4;
+- compatibility evaluation, blockers, weighted score, completeness, `evidenceReadiness`, explanation and missing-information read model — WP-2.5;
+- complete default criteria seeding;
+- Vendor facts or other target domains;
 - UI, IndexedDB/offline queue, import/export and real wedding data.
 
 ## Frozen value-shape contract
 
-WP-2.3 implementation must mirror `docs/domain/FACT-VALUE-TYPES.md` at both TypeScript and PostgreSQL mutation boundaries:
+WP-2.3 mirrors `docs/domain/FACT-VALUE-TYPES.md` at TypeScript and PostgreSQL mutation boundaries:
 
 - boolean: JSON boolean;
-- number: finite JSON number with optional definition min/max/integer metadata;
-- rating: finite number on supported configured scale, default system scale 0..10;
-- money: `{minor: integer, currency: ISO-4217 uppercase}` with no float/implicit conversion;
-- text: JSON string with bounded length;
-- url: validated `http`/`https` URL only;
+- number: finite JSON number with optional min/max/integer metadata;
+- rating: finite number on supported configured scale, default 0..10;
+- money: `{minor: integer, currency: ISO-4217 uppercase}`;
+- text: bounded JSON string;
+- url: canonical conservative `http`/`https` external-host subset;
 - date: canonical civil `YYYY-MM-DD`;
-- time: `{time: "HH:MM", dayOffset: integer}` with bounded day offset;
+- time: `{time: "HH:MM", dayOffset: integer}` with bounded offset;
 - duration: integer minutes;
 - distance: integer meters;
 - select: one declared option key;
-- multiselect: unique declared option-key array with canonical stable ordering.
+- multiselect: unique declared option-key array sorted by stable key order.
 
 Invalid shape/type/bounds/options are rejected before becoming canonical retained truth.
 
-Currency-boundary note for this packet: the already accepted Lot-1 `project_currency` boundary and the current Facts boundary both enforce the canonical uppercase three-letter currency-code representation. The frozen repository does not contain an embedded ISO-4217 registry, and WP-2.3 does not invent one or perform currency conversion. A stricter registry, if ever required, needs an explicit normative source/change rather than an implementation-local allowlist.
+Currency note: this packet enforces the frozen uppercase three-letter representation but does not invent an ISO-4217 registry or currency conversion.
 
 ## Evaluation-rule storage boundary
 
-`fact_definitions.evaluation_rule_json` is part of the frozen physical schema. WP-2.3 validates storage shape for supported V1 rule types from `CRITERIA-EVALUATION.md` and rejects unsupported/incompatible rules. It does **not** execute those rules.
-
-Supported storage shapes include boolean equality, numeric min/max/range, rating minimum, select in/not-in, time at-or-after/before, money max, project target guest count and custom manual assessment. WP-2.5 owns actual deterministic evaluation and the still-recorded `evidenceReadiness` stop-condition.
-
-`custom_manual_assessment` remains structural only in WP-2.3: no default registry is seeded and no PASS/FAIL evaluation is executed here. `CRITERIA-EVALUATION.md` says execution expects a configured acceptable value but does not freeze its exact representation for boolean/select/rating. That exact execution/configuration representation is therefore a recorded stop-condition before WP-2.5 may execute or seed this rule; WP-2.3 must not invent it prematurely.
+`fact_definitions.evaluation_rule_json` is structurally validated for the V1 rule shapes frozen in `CRITERIA-EVALUATION.md`; WP-2.3 does not execute rules. `custom_manual_assessment` remains structural only. Before WP-2.5 executes or seeds that rule, its acceptable-value representation remains an explicit specification stop-condition.
 
 ## System/default criteria boundary
 
-`DEFAULT-CRITERIA.md` remains the normative registry, but WP-2.3 does not bulk-seed it. This packet proves the safe schema/commands that later system seeds will use. Any later system seed must carry a stable key, compatible type/options and explicit evaluation rule where compatibility requires one; ordinary client commands cannot set or repurpose `system_defined` definitions.
+`DEFAULT-CRITERIA.md` remains normative, but WP-2.3 does not bulk-seed it. Ordinary client commands cannot create `system_defined` definitions or repurpose protected system semantics.
 
 ## Sizing review
 
@@ -104,17 +100,7 @@ Supported storage shapes include boolean equality, numeric min/max/range, rating
 | typed retained-value + evaluation-rule validation boundary | 2 |
 | **Total** | **8** |
 
-Within normal packet target. Observation/provenance and criteria evaluation remain separate packets specifically to avoid exceeding this scope.
-
-## Expected vertical slice
-
-- domain: fact states, definition/value types, options metadata, retained-value normalizer/validator, evaluation-rule storage validator;
-- application: Venue fact-definition and retained-fact ports/services with optimistic revision semantics;
-- infrastructure: strict Supabase adapters/parsers; no provider types leaking inward;
-- cloud persistence: `fact_definitions` + `facts`, same-project target/definition validation, RLS/grants, narrow mutation RPCs protecting system/audit/revision columns;
-- security: direct owner/editor/viewer/anon/outsider/project-B/revoked/cross-project target+definition tests;
-- quality: exhaustive value-type valid/invalid tests, property tests where useful, malformed provider response tests and exact-head CI;
-- UI/local/offline/import: none in this packet.
+Observation/provenance and criteria evaluation remain separate packets.
 
 ## Pass A — IMPLEMENT
 
@@ -122,111 +108,109 @@ Within normal packet target. Observation/provenance and criteria evaluation rema
 
 Domain/application:
 
-- `src/domain/facts/fact-types.ts`, `fact-options.ts`, `fact-definition.ts`, `fact-evaluation-rule.ts`, `fact-value.ts`, `retained-fact.ts` + tests — frozen value algebra, metadata/options/rule validation, retained states and canonical values;
-- `src/application/facts/venue-fact-service.ts` + tests — definition and retained-fact application boundaries with optimistic revision inputs and no observations/scoring behavior.
+- `src/domain/facts/fact-types.ts`, `fact-options.ts`, `fact-definition.ts`, `fact-evaluation-rule.ts`, `fact-value.ts`, `retained-fact.ts` plus tests;
+- `src/application/facts/venue-fact-service.ts` plus tests.
 
 Infrastructure:
 
-- `src/infrastructure/supabase/supabase-venue-fact-adapter.ts` + tests — project-scoped definition read and narrow mutation RPCs;
-- `src/infrastructure/supabase/parse-venue-fact-row.ts` + tests — strict response revalidation for project/Venue/definition/value/revision boundaries;
-- provider definition identity was hardened at commit `2ce0ef5ba578a14da461d8f8b7490599bc03eda8`, so a same-project response carrying the wrong requested definition ID fails closed.
+- `src/infrastructure/supabase/supabase-venue-fact-adapter.ts` plus tests;
+- `src/infrastructure/supabase/parse-venue-fact-row.ts` plus tests;
+- provider definition identity hardening at `2ce0ef5ba578a14da461d8f8b7490599bc03eda8`.
 
-Migrations/schema/security:
+Persistence/security:
 
-- `20260906183000_create_venue_fact_foundation.sql` — `fact_definitions` + `facts`, validation helpers/triggers, same-project FKs, RLS/grants and narrow `SECURITY DEFINER` mutation RPCs;
-- `20260906194500_harden_venue_fact_rule_numeric_bounds.sql` — canonical numeric envelope hardening for rule thresholds;
-- `20260906201500_harden_venue_fact_canonical_parity.sql` — TypeScript/PostgreSQL canonical parity hardening;
-- helper/RPC functions use explicit schema qualification, safe `search_path`, revoked default execution and narrow authenticated grants where exposed.
+- `20260906183000_create_venue_fact_foundation.sql`;
+- `20260906194500_harden_venue_fact_rule_numeric_bounds.sql`;
+- `20260906201500_harden_venue_fact_canonical_parity.sql`;
+- explicit schema qualification, safe `search_path`, revoked default function execution and narrow authenticated grants.
 
-Quality corrections made before the reviewed head:
+Historical reviewed-head evidence, run `34062811901` on `e209d5d33ef2ec5c535121caf9e2e066012f4de8`:
 
-- commit `3cc09fbd9702bd81b4f8cafe91f6d2f8bcc97a7c` removed an unused public export detected by Knip without changing numeric behavior;
-- commit `e209d5d33ef2ec5c535121caf9e2e066012f4de8` removed unreachable validation fallbacks so measured branch coverage represents executable behavior rather than impossible defensive branches.
+- Core: **57 files / 669 tests PASS**, 100% measured coverage;
+- DB/RLS: **25 files / 553 pgTAP tests PASS**;
+- Browser: **40/40 Playwright PASS**;
+- mutation, preview and clean-checkout verify: PASS.
 
-### Exact reviewed-head evidence
-
-GitHub Actions run `34062811901` on `e209d5d33ef2ec5c535121caf9e2e066012f4de8`:
-
-- **Core quality and security: SUCCESS**
-  - **57 test files / 669 tests PASS**;
-  - measured in-scope coverage **100% statements / branches / functions / lines**;
-  - typecheck, static/architecture/Knip, quality/security negative controls, dependency gate and build PASS;
-- **Local Supabase DB and RLS: SUCCESS**
-  - **25 files / 553 pgTAP tests PASS** after full reset/migration application;
-  - direct Facts RLS/RPC/same-project/system-defined/stale-write/value-shape evidence PASS;
-- **Browser and mutation harnesses: SUCCESS**
-  - **40/40 Playwright E2E PASS** across Chromium, Firefox, WebKit and mobile Chromium;
-  - mutation harness PASS under the repository's configured threshold/scope;
-- **Privacy-safe preview artifact: SUCCESS**;
-- **Full verify from clean checkout: SUCCESS** with `npm run verify`.
-
-Dependency audit still reports the previously reviewed two Moderate transitive development-tool advisories; no accepted-known Critical/High vulnerability is introduced by WP-2.3.
-
-### Pass A exit gate
-
-- [x] intended vertical slice exists
-- [x] all 12 value types have positive and adversarial validation evidence
-- [x] unknown/false/not-applicable/conflict distinctions directly tested
-- [x] same-project/RLS/direct-RPC matrix green
-- [x] system-defined semantic repurpose is denied
-- [x] provider parsers fail closed against the Pass-A cases
-- [x] exact-head CI is 5/5 green including clean-checkout `npm run verify`
-- [x] no WP-2.4/WP-2.5 behavior leaked into packet
-- [x] packet moved to `REVIEW_PENDING` for fresh Pass B
+Pass A exit was green, then fresh Pass B correctly found defects and moved the packet to `REVIEW_FAILED`.
 
 ## Pass B — ADVERSARIAL REVIEW
 
-Fresh adversarial review reconstructed the packet from the normative Facts, security, repository/service and error contracts rather than relying on Pass A conclusions.
+The first fresh adversarial review reconstructed the packet from Facts, security, repository/service and error contracts and returned **FAIL** because unresolved MAJOR findings existed.
 
-### Findings
+### Original findings and remediation state
 
-| Severity | Finding | Required remediation | State |
+| Severity | Finding | Remediation | State |
 |---|---|---|---|
-| MAJOR `WP2.3-B-001` | Numeric definition metadata can contradict the canonical value domain. `duration`/`distance` accept `integer:false` even though their retained representation is always an integer; integer-constrained number/rating/duration/distance definitions can also accept bounds whose interval contains no canonical safe integer, and default rating/non-negative quantity bounds can be made internally unsatisfiable. Such a definition can be accepted while no `known` retained value can ever satisfy it. | Make metadata validation type-aware in TypeScript and PostgreSQL; reject contradictory integer flags and bound sets that have no representable canonical value. Add parity/regression tests. | **OPEN** |
-| MAJOR `WP2.3-B-002` | Multiselect canonical ordering is currently definition-order based while custom definition option order is mutable. Reordering otherwise identical options can therefore change the canonical order contract without re-canonicalizing existing retained facts, leaving stored canonical truth dependent on historical option order. | Move canonical multiselect retained values to stable key ordering independent of mutable display/definition order, with matching TS/PostgreSQL canonicalization and regression tests covering option reorder. | **OPEN** |
-| MAJOR `WP2.3-B-003` | Bounded string validation is not fully parity-safe for Unicode: TypeScript `.length` counts UTF-16 code units while PostgreSQL `char_length` counts characters. Direct DB/RPC mutation can therefore accept a label/text/URL/metadata string that the TypeScript/provider boundary rejects later. | Use one explicit Unicode-code-point length rule in TypeScript matching PostgreSQL character semantics for all WP-2.3 bounded human/URL strings; add boundary tests at the exact limits. | **OPEN** |
-| MAJOR `WP2.3-B-004` | PostgreSQL URL validation is regex-only and is not a guaranteed subset of the standards parser used by TypeScript. Concrete strings such as numeric-TLD/invalid-IDNA host forms can pass the SQL host regex while `new URL(...)` rejects them, allowing direct RPC persistence of a URL the provider parser cannot subsequently accept. | Freeze a conservative canonical external-host grammar that is demonstrably accepted by the standards parser, implement the same subset in SQL and TS, reject control-character ambiguity, and add exact regression/parity cases. | **OPEN** |
-| MAJOR `WP2.3-B-005` | Application/provider failures collapse to generic `persistence_failed`; stale revision (`40001`), authorization/policy denial (`42501`), validation/integrity failures and network/backend failure are not distinguishable at the Facts service boundary despite the normative repository/error contract. DB safety prevents overwrite, but conflict/retry/auth handling cannot be correct above the adapter. | Introduce a scoped typed Facts persistence error taxonomy and safe provider-code mapping; preserve domain validation errors while distinguishing at least conflict, authorization/policy, backend-unavailable and data-integrity/provider-response failure. Add adapter/service tests without exposing raw backend errors. | **OPEN** |
-| MINOR `WP2.3-B-006` | Two simultaneous first creates of the same retained Venue fact can race to the uniqueness constraint; the loser can surface as a constraint conflict rather than the same stale-revision path used after a row exists. The race is non-destructive and cannot overwrite newer truth. | Normalize the uniqueness result to the scoped conflict category while remediating B-005; no schema redesign required. | **OPEN** |
-| MINOR `WP2.3-B-007` | Some normalized nested JSON values/rules retain mutable nested references. PostgreSQL revalidation prevents this from bypassing canonical cloud persistence in WP-2.3, and local/offline persistence is out of scope, but the normalized domain object is not deeply immutable at runtime. | Either copy/freeze nested canonical JSON in the scoped remediation or explicitly carry this into WP-2.10 local/offline hardening if no current mutation path remains. | **OPEN** |
+| MAJOR `WP2.3-B-001` | Numeric metadata could be contradictory or define an interval with no representable canonical value. | Type-aware satisfiability checks added in TypeScript and PostgreSQL; contradictory integer semantics and impossible bounds rejected. | **RESOLVED** |
+| MAJOR `WP2.3-B-002` | Multiselect canonical ordering depended on mutable definition option order. | Canonical retained values now sort by stable option key in TS/PostgreSQL, independent of display/definition order. | **RESOLVED** |
+| MAJOR `WP2.3-B-003` | TS UTF-16 `.length` diverged from PostgreSQL character semantics. | Shared code-point length rule added in TS to match PostgreSQL `char_length`, with exact-limit regressions. | **RESOLVED** |
+| MAJOR `WP2.3-B-004` | SQL URL regex could admit values rejected by the TS standards parser. | Conservative canonical URL grammar frozen and implemented in both TS and SQL, including host/label/port/control-character checks. | **RESOLVED** |
+| MAJOR `WP2.3-B-005` | Persistence failures collapsed to generic `persistence_failed`. | Scoped typed Facts persistence errors and safe SQLSTATE/PostgREST mapping distinguish conflict, auth/policy, backend, integrity and malformed provider responses without leaking raw details. | **RESOLVED** |
+| MINOR `WP2.3-B-006` | Concurrent first retained-fact creates could surface raw uniqueness behavior. | `23505` normalized to the same scoped `conflict` category as stale/revision conflict. | **RESOLVED** |
+| MINOR `WP2.3-B-007` | Nested canonical JSON retained mutable source references. | Normalized options and evaluation rules are detached and deeply frozen; mutation-after-normalization regressions added. | **RESOLVED** |
 
-### Review checks already completed
+### Remediation implementation evidence
 
-- [x] all 12 value types attacked beyond happy paths
-- [x] explicit state/sentinel behavior reviewed
-- [x] definition options and evaluation-rule structure attacked
-- [x] stale revision and first-create concurrency semantics reviewed
-- [x] cross-project/RLS/direct-RPC/grant/`SECURITY DEFINER` boundaries reviewed
-- [x] system-defined repurpose boundary reviewed
-- [x] provider identity/shape revalidation reviewed
-- [x] TypeScript/PostgreSQL canonical parity attacked rather than inferred from coverage
-- [x] error/retry/conflict contract reviewed
-- [x] WP-2.4/WP-2.5 leakage reviewed
+- canonicality hardening migration: `20260906223000_harden_venue_fact_adversarial_canonicality.sql`;
+- shared TS canonical helpers for numeric satisfiability, Unicode length and URLs;
+- stable multiselect key sorting in TypeScript and PostgreSQL;
+- `src/application/facts/venue-fact-persistence-error.ts` with safe typed failure codes;
+- adapter mapping for `40001`/`23505`, `42501`, bounded PostgREST backend codes, integrity SQLSTATE families and malformed provider responses;
+- `fact-immutability.test.ts` proves canonical options/rules are detached from mutable source objects and frozen.
 
-Pass B decision: **FAIL — unresolved MAJOR findings exist.** Per `AI-LOT-ORCHESTRATION.md`, packet state is `REVIEW_FAILED`; remediation is the only permitted next action. Any affected verification must be rerun before a new fresh Pass B.
+### Exact remediation verification
+
+GitHub Actions run `34067663400` on `29d864586e791bd6d6b4e34747f9fe39f3e94848`: **5/5 SUCCESS**.
+
+- **Core quality and security: SUCCESS**
+  - **59 test files / 705 tests PASS**;
+  - **100% statements / branches / functions / lines**;
+  - typecheck, format, lint, architecture, Knip, debt-marker, quality/security negative controls, dependency gate and build PASS.
+- **Local Supabase DB and RLS: SUCCESS**
+  - **26 files / 575 pgTAP tests PASS** after full reset/migration application;
+  - Facts canonicality, parity, value types, RLS/RPC, same-project, system-defined and stale-write tests PASS.
+- **Browser and mutation harnesses: SUCCESS**
+  - **40/40 Playwright E2E PASS** across Chromium, Firefox, WebKit and mobile Chromium;
+  - mutation harness PASS, score **82.50%**, above configured break threshold.
+- **Privacy-safe preview artifact: SUCCESS**.
+- **Full verify from clean checkout: SUCCESS** with `npm run verify`.
+
+Dependency audit continues to report only the previously reviewed two Moderate transitive development-tool advisories; no accepted-known Critical/High vulnerability is introduced by the remediation.
+
+### Remediation exit gate
+
+- [x] all original `WP2.3-B-001..007` findings have scoped fixes and regression evidence;
+- [x] all affected TypeScript/PostgreSQL/provider/security verification rerun;
+- [x] exact remediated implementation head is 5/5 green including clean-checkout `npm run verify`;
+- [x] no WP-2.4/WP-2.5 behavior added;
+- [x] packet transitions from remediation to `REVIEW_PENDING`.
+
+### Fresh re-review entry
+
+A new independent Pass B must now judge the remediated implementation from the normative contracts rather than accepting these remediation conclusions. No Pass B PASS is claimed by this transition commit.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started. Entry requires a later fresh Pass B PASS with no unresolved BLOCKING/MAJOR finding.
+Not started. Entry requires the new independent Pass B to PASS with no unresolved BLOCKING/MAJOR finding.
 
 | Responsibility | Expected | Implemented evidence | Verified evidence | Result |
 |---|---|---|---|---|
-| definitions | project-scoped typed Venue definition metadata and protected system semantics | Pass-A implementation above | exact-head CI + unit/provider + pgTAP | **REVIEW FAILED — B-001** |
-| retained states | explicit known/unknown/not_applicable/conflict with no sentinel collapse | retained-fact domain/service + DB command | unit + pgTAP state/value tests | pending remediation/re-review |
-| typed values | all frozen V1 value shapes/bounds validated before persistence | TS normalizers + PostgreSQL validators | Pass-A unit/pgTAP | **REVIEW FAILED — B-002/B-003/B-004** |
-| same-project/authz | Venue target+definition integrity and inherited venue permissions | same-project FK/RLS/RPC | direct security matrix | PASS in reviewed scope; reverify after remediation |
-| architecture | domain/application/provider boundaries with fail-closed parsing | ports/services/adapters/parsers | static gates + malformed provider tests | **REVIEW FAILED — B-005** |
+| definitions | project-scoped typed Venue metadata + protected system semantics | domain + RPC/schema + remediation hardening | unit/provider + pgTAP + exact-head CI | awaiting fresh Pass B |
+| retained states | known/unknown/not_applicable/conflict with no sentinel collapse | retained-fact domain/service + DB command | unit + pgTAP | awaiting fresh Pass B |
+| typed values | all 12 V1 canonical shapes/bounds | TS normalizers + PostgreSQL validators | unit/parity/value-type pgTAP | awaiting fresh Pass B |
+| same-project/authz | Venue target+definition integrity + venue permissions | FK/RLS/RPC | direct security matrix | awaiting fresh Pass B |
+| architecture/errors | layered provider boundary, fail-closed parser and typed safe failures | service/adapter/parser/error contract | static + malformed/error mapping tests | awaiting fresh Pass B |
 
-Final packet decision: `REVIEW_FAILED`.
+Final packet decision: `REVIEW_PENDING`.
 
 ## Handoff
 
-- Current state: `REVIEW_FAILED`
-- Current/next pass: **remediation of `WP2.3-B-001..005` MAJOR findings plus scoped MINOR fixes**
+- Current state: `REVIEW_PENDING`
+- Current/next pass: **fresh independent `B-ADVERSARIAL-REVIEW` only**
 - Accepted prerequisites: `WP-2.1`, `WP-2.2`
-- Reviewed Pass-A implementation head: `e209d5d33ef2ec5c535121caf9e2e066012f4de8`
-- Pass-A verification invalidated for acceptance by fresh Pass-B findings; historical run `34062811901` remains recorded as the pre-review 5/5 baseline
-- Open WP-2.3 BLOCKING/MAJOR findings: `WP2.3-B-001`, `WP2.3-B-002`, `WP2.3-B-003`, `WP2.3-B-004`, `WP2.3-B-005`
-- Open MINOR findings: `WP2.3-B-006`, `WP2.3-B-007`
-- Recorded downstream spec stop-condition: before WP-2.5 executes/seeds `custom_manual_assessment`, freeze its configured acceptable-value representation; do not invent it in WP-2.3
-- Next permitted action: **transition to `IN_PROGRESS` when remediation begins, fix WP-2.3 findings only, rerun exact-head verification, then perform a new fresh Pass B; do not start WP-2.4**
+- Historical Pass-A head/run: `e209d5d33ef2ec5c535121caf9e2e066012f4de8` / `34062811901`
+- Remediated implementation head/run: `29d864586e791bd6d6b4e34747f9fe39f3e94848` / `34067663400` — **5/5 SUCCESS**
+- Original open findings `WP2.3-B-001..007`: **all RESOLVED pending independent re-review**
+- Open WP-2.3 BLOCKING/MAJOR findings at remediation handoff: **none recorded**
+- Recorded downstream stop-condition: before WP-2.5 executes/seeds `custom_manual_assessment`, freeze its configured acceptable-value representation
+- Next permitted action: **fresh Pass B on WP-2.3 only; do not start WP-2.4**
