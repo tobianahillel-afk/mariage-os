@@ -82,10 +82,13 @@ describe("fact evaluation rule rejection", () => {
     ["number", null, { type: "project_target_guest_count_supported" }],
     ["text", null, { type: "custom_manual_assessment" }],
     ["boolean", null, { type: "custom_manual_assessment", expected: true }],
-  ] as const)("rejects malformed or incompatible rule %#", (type, metadata, rule) => {
-    expect(normalizeFactEvaluationRule(type, metadata, rule)).toEqual({
-      ok: false,
-      error: "invalid_evaluation_rule",
-    });
-  });
+  ] as const)(
+    "rejects malformed or incompatible rule %#",
+    (type, metadata, rule) => {
+      expect(normalizeFactEvaluationRule(type, metadata, rule)).toEqual({
+        ok: false,
+        error: "invalid_evaluation_rule",
+      });
+    },
+  );
 });

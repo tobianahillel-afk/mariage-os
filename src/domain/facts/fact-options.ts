@@ -19,7 +19,10 @@ const NUMERIC_TYPES: readonly FactValueType[] = [
   "duration",
   "distance",
 ];
-const INVALID_OPTIONS: FactOptionsResult = { ok: false, error: "invalid_options" };
+const INVALID_OPTIONS: FactOptionsResult = {
+  ok: false,
+  error: "invalid_options",
+};
 
 function plainRecord(value: unknown): UnknownRecord | null {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
@@ -28,7 +31,10 @@ function plainRecord(value: unknown): UnknownRecord | null {
   return value as UnknownRecord;
 }
 
-function hasOnlyKeys(record: UnknownRecord, allowed: readonly string[]): boolean {
+function hasOnlyKeys(
+  record: UnknownRecord,
+  allowed: readonly string[],
+): boolean {
   return Object.keys(record).every((key) => allowed.includes(key));
 }
 
@@ -64,7 +70,9 @@ function buildNumericOptions(
   return {
     ...(min === undefined ? {} : { min }),
     ...(max === undefined ? {} : { max }),
-    ...(record.integer === undefined ? {} : { integer: record.integer as boolean }),
+    ...(record.integer === undefined
+      ? {}
+      : { integer: record.integer as boolean }),
   };
 }
 
@@ -106,7 +114,9 @@ function optionCandidates(raw: unknown): readonly unknown[] | null {
   return record.options;
 }
 
-function normalizeOptionList(candidates: readonly unknown[]): FactOption[] | null {
+function normalizeOptionList(
+  candidates: readonly unknown[],
+): FactOption[] | null {
   const options: FactOption[] = [];
   const keys = new Set<string>();
   for (const candidate of candidates) {
