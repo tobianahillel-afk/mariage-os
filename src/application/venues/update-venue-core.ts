@@ -17,12 +17,14 @@ export interface UpdateVenueCoreDraft {
   readonly city?: string | null;
 }
 
+type UpdateVenueCoreError =
+  | VenueQuickAddError
+  | VenueRevisionError
+  | "persistence_failed";
+
 export type UpdateVenueCoreResult =
   | { readonly ok: true; readonly venue: VenueCoreRecord }
-  | {
-      readonly ok: false;
-      readonly error: VenueQuickAddError | VenueRevisionError | "persistence_failed";
-    };
+  | { readonly ok: false; readonly error: UpdateVenueCoreError };
 
 export async function updateVenueCore(
   port: VenueRepositoryPort,
