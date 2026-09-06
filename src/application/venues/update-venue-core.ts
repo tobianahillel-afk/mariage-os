@@ -21,10 +21,7 @@ export type UpdateVenueCoreResult =
   | { readonly ok: true; readonly venue: VenueCoreRecord }
   | {
       readonly ok: false;
-      readonly error:
-        | VenueQuickAddError
-        | VenueRevisionError
-        | "persistence_failed";
+      readonly error: VenueQuickAddError | VenueRevisionError | "persistence_failed";
     };
 
 export async function updateVenueCore(
