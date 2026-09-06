@@ -1,0 +1,39 @@
+name: WP23 Prettier Probe 2
+
+on:
+  push:
+    branches:
+      - tooling/wp23-prettier-2
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Format WP-2.3 refactor
+        run: |
+          npx prettier --write \
+            src/application/facts/venue-fact-service.test.ts \
+            src/domain/facts/fact-evaluation-rule.test.ts \
+            src/domain/facts/fact-options.ts \
+            src/domain/facts/fact-value.ts \
+            src/infrastructure/supabase/supabase-venue-fact-adapter.test.ts
+      - name: Commit formatting if needed
+        run: |
+          if git diff --quiet; then
+            echo "No formatting changes needed."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/application/facts/venue-fact-service.test.ts src/domain/facts/fact-evaluation-rule.test.ts src/domain/facts/fact-options.ts src/domain/facts/fact-value.ts src/infrastructure/supabase/supabase-venue-fact-adapter.test.ts
+          git commit -m "chore: format WP-2.3 refactor"
+          git push
