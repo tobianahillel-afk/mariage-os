@@ -15,6 +15,7 @@ export interface VenueCoreRecord {
 export interface VenueCoreUpdateInput {
   readonly projectId: string;
   readonly venueId: string;
+  readonly expectedRevision: number;
   readonly name: string;
   readonly code: string | null;
   readonly websiteUrl: string | null;

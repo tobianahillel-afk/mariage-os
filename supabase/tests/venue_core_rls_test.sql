@@ -1,11 +1,26 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(44);
+select plan(54);
 
 select has_table('public', 'venues', 'venues table exists');
 select has_table('public', 'activity_log', 'activity_log table exists');
-select has_function('public', 'transition_venue_status', array['uuid', 'uuid', 'text', 'text', 'uuid'], 'protected venue lifecycle command exists');
+select has_function(
+  'public',
+  'update_venue_core',
+  array['uuid', 'uuid', 'bigint', 'text', 'text', 'text', 'text'],
+  'protected ordinary venue update command exists'
+);
+select has_function(
+  'public',
+  'transition_venue_status',
+  array['uuid', 'uuid', 'text', 'text', 'bigint'],
+  'protected venue lifecycle command exists'
+);
+select ok(
+  to_regprocedure('public.transition_venue_status(uuid,uuid,text,text,uuid)') is null,
+  'premature operation-id lifecycle overload is removed'
+);
 select ok((select relrowsecurity from pg_class where oid = 'public.venues'::regclass), 'venues has RLS enabled');
 select ok((select relrowsecurity from pg_class where oid = 'public.activity_log'::regclass), 'activity_log has RLS enabled');
 select ok(
@@ -14,8 +29,13 @@ select ok(
   'anonymous role has no venue/history read grants'
 );
 select ok(
-  not has_function_privilege('anon', 'public.transition_venue_status(uuid,uuid,text,text,uuid)', 'execute')
-  and has_function_privilege('authenticated', 'public.transition_venue_status(uuid,uuid,text,text,uuid)', 'execute'),
+  not has_function_privilege('anon', 'public.update_venue_core(uuid,uuid,bigint,text,text,text,text)', 'execute')
+  and has_function_privilege('authenticated', 'public.update_venue_core(uuid,uuid,bigint,text,text,text,text)', 'execute'),
+  'ordinary update command is executable only by authenticated client role'
+);
+select ok(
+  not has_function_privilege('anon', 'public.transition_venue_status(uuid,uuid,text,text,bigint)', 'execute')
+  and has_function_privilege('authenticated', 'public.transition_venue_status(uuid,uuid,text,text,bigint)', 'execute'),
   'lifecycle command is executable only by authenticated client role'
 );
 select ok(
@@ -32,12 +52,13 @@ select ok(
   'venue insert grant exposes only safe creation fields'
 );
 select ok(
-  has_column_privilege('authenticated', 'public.venues', 'name', 'update')
+  not has_table_privilege('authenticated', 'public.venues', 'update')
+  and not has_column_privilege('authenticated', 'public.venues', 'name', 'update')
   and not has_column_privilege('authenticated', 'public.venues', 'project_id', 'update')
   and not has_column_privilege('authenticated', 'public.venues', 'status', 'update')
   and not has_column_privilege('authenticated', 'public.venues', 'rejection_reason', 'update')
   and not has_column_privilege('authenticated', 'public.venues', 'revision', 'update'),
-  'ordinary venue update cannot alter ownership, lifecycle or audit columns'
+  'authenticated clients cannot bypass optimistic locking with direct venue update'
 );
 select ok(
   has_table_privilege('authenticated', 'public.activity_log', 'select')
@@ -86,6 +107,16 @@ exception when insufficient_privilege or check_violation then return false;
 end;
 $$;
 
+create function pg_temp.try_venue_insert_url(target_project uuid, target_name text, target_url text)
+returns boolean language plpgsql as $$
+begin
+  insert into public.venues (project_id, name, website_url)
+  values (target_project, target_name, target_url);
+  return true;
+exception when insufficient_privilege or check_violation then return false;
+end;
+$$;
+
 create function pg_temp.try_venue_name_update(target_id uuid, target_name text)
 returns boolean language plpgsql as $$
 declare changed_rows integer;
@@ -94,6 +125,50 @@ begin
   get diagnostics changed_rows = row_count;
   return changed_rows = 1;
 exception when insufficient_privilege then return false;
+end;
+$$;
+
+create function pg_temp.try_venue_core_update(
+  target_project uuid,
+  target_id uuid,
+  target_name text,
+  target_expected_revision bigint default null
+)
+returns boolean language plpgsql as $$
+declare
+  effective_revision bigint;
+  current_code text;
+  current_website_url text;
+  current_city text;
+begin
+  effective_revision := target_expected_revision;
+  select revision, code, website_url, city
+  into effective_revision, current_code, current_website_url, current_city
+  from public.venues
+  where project_id = target_project and id = target_id
+    and target_expected_revision is null;
+
+  if target_expected_revision is not null then
+    effective_revision := target_expected_revision;
+    select code, website_url, city
+    into current_code, current_website_url, current_city
+    from public.venues
+    where project_id = target_project and id = target_id;
+  end if;
+
+  perform public.update_venue_core(
+    target_project,
+    target_id,
+    effective_revision,
+    target_name,
+    current_code,
+    current_website_url,
+    current_city
+  );
+  return true;
+exception
+  when insufficient_privilege or invalid_parameter_value or serialization_failure or check_violation
+    then return false;
 end;
 $$;
 
@@ -115,12 +190,34 @@ exception when insufficient_privilege then return false;
 end;
 $$;
 
-create function pg_temp.try_transition(target_project uuid, target_id uuid, target_status text, target_reason text default null)
+create function pg_temp.try_transition(
+  target_project uuid,
+  target_id uuid,
+  target_status text,
+  target_reason text default null,
+  target_expected_revision bigint default null
+)
 returns boolean language plpgsql as $$
+declare effective_revision bigint;
 begin
-  perform public.transition_venue_status(target_project, target_id, target_status, target_reason, gen_random_uuid());
+  effective_revision := target_expected_revision;
+  if effective_revision is null then
+    select revision into effective_revision
+    from public.venues
+    where project_id = target_project and id = target_id;
+  end if;
+
+  perform public.transition_venue_status(
+    target_project,
+    target_id,
+    target_status,
+    target_reason,
+    effective_revision
+  );
   return true;
-exception when insufficient_privilege or invalid_parameter_value then return false;
+exception
+  when insufficient_privilege or invalid_parameter_value or serialization_failure
+    then return false;
 end;
 $$;
 
@@ -136,16 +233,37 @@ select ok(
   (select status = 'research' and rejection_reason is null from public.venues where name = 'Quick Add Venue'),
   'quick-add venue starts research with unknown detail rather than invented rejection data'
 );
-select ok(pg_temp.try_venue_name_update('a1000000-0000-4000-8000-000000000001', 'Venue Alpha Renamed'), 'owner may update an ordinary venue field');
-select is((select revision from public.venues where id = 'a1000000-0000-4000-8000-000000000001'), 2::bigint, 'ordinary update increments venue revision');
+select ok(
+  not pg_temp.try_venue_insert_url('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Unsafe URL Venue', 'javascript:alert(1)'),
+  'direct API insert cannot persist an unsupported venue website scheme'
+);
+select ok(
+  not pg_temp.try_venue_name_update('a1000000-0000-4000-8000-000000000001', 'Direct Rename'),
+  'owner cannot bypass optimistic locking with direct ordinary update'
+);
+select ok(
+  pg_temp.try_venue_core_update('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'a1000000-0000-4000-8000-000000000001', 'Venue Alpha Renamed'),
+  'owner may update ordinary venue fields through protected optimistic-locking command'
+);
+select is((select revision from public.venues where id = 'a1000000-0000-4000-8000-000000000001'), 2::bigint, 'protected ordinary update increments venue revision');
+select ok(
+  not pg_temp.try_venue_core_update('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'a1000000-0000-4000-8000-000000000001', 'Stale overwrite', 1),
+  'stale ordinary update is rejected by expected revision'
+);
+select is((select name from public.venues where id = 'a1000000-0000-4000-8000-000000000001'), 'Venue Alpha Renamed', 'stale ordinary update cannot overwrite newer canonical value');
 select ok(not pg_temp.try_direct_status_update('a1000000-0000-4000-8000-000000000001', 'shortlist'), 'owner cannot bypass lifecycle command with direct status update');
 select ok(not pg_temp.try_venue_delete('a1000000-0000-4000-8000-000000000001'), 'owner cannot hard-delete venue through ordinary API');
 select ok(pg_temp.try_transition('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'a1000000-0000-4000-8000-000000000001', 'shortlist'), 'owner may explicitly move venue to shortlist');
 select is((select status from public.venues where id = 'a1000000-0000-4000-8000-000000000001'), 'shortlist', 'lifecycle command stores requested valid status');
 select is((select count(*)::integer from public.activity_log where entity_id = 'a1000000-0000-4000-8000-000000000001'), 1, 'first lifecycle transition creates one retained activity row');
 select is((select metadata_json ->> 'previousStatus' from public.activity_log where entity_id = 'a1000000-0000-4000-8000-000000000001'), 'research', 'history records previous lifecycle status');
-select ok(pg_temp.try_transition('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'a1000000-0000-4000-8000-000000000001', 'shortlist'), 'repeating same explicit transition is idempotent');
+select ok(pg_temp.try_transition('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'a1000000-0000-4000-8000-000000000001', 'shortlist'), 'same-state transition from current revision is idempotent');
 select is((select count(*)::integer from public.activity_log where entity_id = 'a1000000-0000-4000-8000-000000000001'), 1, 'same-state retry does not duplicate lifecycle history');
+select ok(
+  not pg_temp.try_transition('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'a1000000-0000-4000-8000-000000000001', 'contacted', null, 2),
+  'stale lifecycle intent is rejected by expected revision'
+);
+select is((select status from public.venues where id = 'a1000000-0000-4000-8000-000000000001'), 'shortlist', 'stale lifecycle intent cannot overwrite current status');
 select ok(not pg_temp.try_transition('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'a1000000-0000-4000-8000-000000000001', 'rejected'), 'rejection without reason is rejected');
 select ok(pg_temp.try_transition('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'a1000000-0000-4000-8000-000000000001', 'rejected', '  insufficient room  '), 'explicit rejection with reason succeeds');
 select is((select rejection_reason from public.venues where id = 'a1000000-0000-4000-8000-000000000001'), 'insufficient room', 'rejection reason is normalized on canonical row');
@@ -163,17 +281,25 @@ select ok(
 select ok(not pg_temp.try_transition('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'a1000000-0000-4000-8000-000000000001', 'mystery'), 'unknown lifecycle status fails closed');
 select ok(not pg_temp.try_transition('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'a1000000-0000-4000-8000-000000000001', 'shortlist', 'stale reason'), 'non-rejected status cannot carry rejection reason');
 select ok(not pg_temp.try_venue_insert('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'Cross Project Insert'), 'project A owner cannot insert into project B');
-select ok(not pg_temp.try_transition('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'b1000000-0000-4000-8000-000000000001', 'shortlist'), 'project A owner cannot transition project B venue');
+select ok(
+  not pg_temp.try_transition('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'b1000000-0000-4000-8000-000000000001', 'shortlist', null, 1),
+  'project A owner cannot transition project B venue'
+);
 
 select set_config('request.jwt.claims', '{"sub":"22222222-2222-4222-8222-222222222222","role":"authenticated"}', true);
 select ok(pg_temp.try_venue_insert('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Editor Venue'), 'editor may create venue because venues.write is granted');
+select ok(
+  pg_temp.try_venue_core_update('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'a1000000-0000-4000-8000-000000000001', 'Venue Alpha Editor'),
+  'editor may use protected ordinary update because venues.write is granted'
+);
 select ok(pg_temp.try_transition('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'a1000000-0000-4000-8000-000000000001', 'contacted'), 'editor may use lifecycle command because venues.write is granted');
 
 select set_config('request.jwt.claims', '{"sub":"33333333-3333-4333-8333-333333333333","role":"authenticated"}', true);
 select ok((select count(*) from public.venues) >= 1 and (select count(*) from public.activity_log where entity_type = 'venue') >= 1, 'viewer may read venues and their lifecycle history');
 select ok(
   not pg_temp.try_venue_insert('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Viewer Venue')
-  and not pg_temp.try_venue_name_update('a1000000-0000-4000-8000-000000000001', 'Viewer Rename')
+  and not pg_temp.try_venue_name_update('a1000000-0000-4000-8000-000000000001', 'Viewer Direct Rename')
+  and not pg_temp.try_venue_core_update('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'a1000000-0000-4000-8000-000000000001', 'Viewer RPC Rename')
   and not pg_temp.try_transition('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'a1000000-0000-4000-8000-000000000001', 'finalist'),
   'viewer cannot create, edit or transition venues'
 );
@@ -183,14 +309,16 @@ select ok(
   (select count(*) from public.venues) = 0
   and (select count(*) from public.activity_log) = 0
   and not pg_temp.try_venue_insert('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Outsider Venue')
-  and not pg_temp.try_transition('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'a1000000-0000-4000-8000-000000000001', 'finalist'),
+  and not pg_temp.try_venue_core_update('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'a1000000-0000-4000-8000-000000000001', 'Outsider Rename', 7)
+  and not pg_temp.try_transition('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'a1000000-0000-4000-8000-000000000001', 'finalist', null, 7),
   'outsider cannot read or mutate known project venue resources'
 );
 
 select set_config('request.jwt.claims', '{"sub":"66666666-6666-4666-8666-666666666666","role":"authenticated"}', true);
 select ok(
   (select count(*) from public.venues) = 0
-  and not pg_temp.try_transition('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'a1000000-0000-4000-8000-000000000001', 'finalist'),
+  and not pg_temp.try_venue_core_update('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'a1000000-0000-4000-8000-000000000001', 'Revoked Rename', 7)
+  and not pg_temp.try_transition('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'a1000000-0000-4000-8000-000000000001', 'finalist', null, 7),
   'revoked member loses venue read/write immediately'
 );
 

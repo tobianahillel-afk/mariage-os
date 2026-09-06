@@ -14,6 +14,7 @@ interface Captures {
 type Result = { readonly data: unknown; readonly error: unknown };
 
 const PROJECT_ID = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+const OTHER_PROJECT_ID = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
 const VENUE_ID = "a1000000-0000-4000-8000-000000000001";
 
 const createdRow = {
@@ -133,10 +134,12 @@ describe("SupabaseVenueCommandAdapter create", () => {
     { ...createdRow, id: 3 },
     { ...createdRow, id: "not-a-uuid" },
     { ...createdRow, project_id: "not-a-uuid" },
+    { ...createdRow, project_id: OTHER_PROJECT_ID },
     { ...createdRow, revision: "1" },
     { ...createdRow, revision: 1.5 },
     { ...createdRow, revision: 0 },
-  ])("rejects malformed creation response %#", async (data) => {
+    { ...createdRow, revision: Number.MAX_SAFE_INTEGER + 1 },
+  ])("rejects malformed or cross-project creation response %#", async (data) => {
     const adapter = adapterWith({ data, error: null });
 
     await expect(adapter.createVenue(createInput())).rejects.toThrow(
@@ -146,7 +149,7 @@ describe("SupabaseVenueCommandAdapter create", () => {
 });
 
 describe("SupabaseVenueCommandAdapter transition", () => {
-  it("calls the protected lifecycle RPC with explicit context", async () => {
+  it("calls the protected lifecycle RPC with expected revision", async () => {
     const captures = emptyCaptures();
     const adapter = adapterWith(
       { data: createdRow, error: null },
@@ -160,7 +163,7 @@ describe("SupabaseVenueCommandAdapter transition", () => {
         venueId: VENUE_ID,
         status: "rejected",
         rejectionReason: "Too small",
-        operationId: "c1000000-0000-4000-8000-000000000001",
+        expectedRevision: 6,
       }),
     ).resolves.toBe(7);
     expect(captures.rpc).toEqual({
@@ -168,7 +171,7 @@ describe("SupabaseVenueCommandAdapter transition", () => {
       target_venue_id: VENUE_ID,
       target_status: "rejected",
       target_rejection_reason: "Too small",
-      target_operation_id: "c1000000-0000-4000-8000-000000000001",
+      target_expected_revision: 6,
     });
   });
 
@@ -185,12 +188,12 @@ describe("SupabaseVenueCommandAdapter transition", () => {
         venueId: VENUE_ID,
         status: "shortlist",
         rejectionReason: null,
-        operationId: null,
+        expectedRevision: 1,
       }),
     ).rejects.toThrow("Venue transition failed.");
   });
 
-  it.each([null, "2", 1.5, 0])(
+  it.each([null, "2", 1.5, 0, Number.MAX_SAFE_INTEGER + 1])(
     "rejects malformed transition revision %#",
     async (data) => {
       const adapter = adapterWith(
@@ -204,7 +207,7 @@ describe("SupabaseVenueCommandAdapter transition", () => {
           venueId: VENUE_ID,
           status: "shortlist",
           rejectionReason: null,
-          operationId: null,
+          expectedRevision: 1,
         }),
       ).rejects.toThrow("Venue transition failed.");
     },

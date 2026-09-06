@@ -1,4 +1,6 @@
 import type { VenueCommandPort } from "@application/venues/venue-command-port";
+import { validateExpectedVenueRevision } from "@domain/venues/venue-revision";
+import type { VenueRevisionError } from "@domain/venues/venue-revision";
 import {
   validateVenueTransitionInput,
   type VenueTransitionError,
@@ -9,14 +11,17 @@ export interface ChangeVenueStatusInput {
   readonly venueId: string;
   readonly status: string;
   readonly rejectionReason: string | null;
-  readonly operationId: string | null;
+  readonly expectedRevision: number;
 }
 
 export type ChangeVenueStatusResult =
   | { readonly ok: true; readonly revision: number }
   | {
       readonly ok: false;
-      readonly error: VenueTransitionError | "persistence_failed";
+      readonly error:
+        | VenueTransitionError
+        | VenueRevisionError
+        | "persistence_failed";
     };
 
 export async function changeVenueStatus(
@@ -29,13 +34,16 @@ export async function changeVenueStatus(
   );
   if (!validated.ok) return validated;
 
+  const revisionError = validateExpectedVenueRevision(input.expectedRevision);
+  if (revisionError !== null) return { ok: false, error: revisionError };
+
   try {
     const revision = await port.transitionVenue({
       projectId: input.projectId,
       venueId: input.venueId,
       status: validated.status,
       rejectionReason: validated.rejectionReason,
-      operationId: input.operationId,
+      expectedRevision: input.expectedRevision,
     });
     return { ok: true, revision };
   } catch {

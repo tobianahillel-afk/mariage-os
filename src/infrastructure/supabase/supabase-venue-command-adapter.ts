@@ -59,18 +59,24 @@ function uuidValue(value: unknown): string {
 
 function revisionValue(value: unknown): number {
   if (typeof value !== "number") invalidCreatedVenue();
-  if (!Number.isInteger(value)) invalidCreatedVenue();
+  if (!Number.isSafeInteger(value)) invalidCreatedVenue();
   if (value < 1) invalidCreatedVenue();
   return value;
 }
 
-function parseCreatedVenue(value: unknown): CreatedVenue {
+function parseCreatedVenue(
+  value: unknown,
+  expectedProjectId: string,
+): CreatedVenue {
   const row = recordValue(value);
+  const projectId = uuidValue(row.project_id);
+  if (projectId !== expectedProjectId) invalidCreatedVenue();
+
   const status = stringValue(row.status);
   if (status !== "research") invalidCreatedVenue();
   return {
     id: uuidValue(row.id),
-    projectId: uuidValue(row.project_id),
+    projectId,
     status,
     revision: revisionValue(row.revision),
   };
@@ -80,7 +86,7 @@ function transitionRevision(value: unknown): number {
   if (typeof value !== "number") {
     throw new Error("Venue transition failed.");
   }
-  if (!Number.isInteger(value) || value < 1) {
+  if (!Number.isSafeInteger(value) || value < 1) {
     throw new Error("Venue transition failed.");
   }
   return value;
@@ -103,7 +109,7 @@ export class SupabaseVenueCommandAdapter implements VenueCommandPort {
         .select("id,project_id,status,revision")
         .single();
       if (error !== null) invalidCreatedVenue();
-      return parseCreatedVenue(data);
+      return parseCreatedVenue(data, input.projectId);
     } catch {
       throw new Error("Venue creation failed.");
     }
@@ -116,7 +122,7 @@ export class SupabaseVenueCommandAdapter implements VenueCommandPort {
         target_venue_id: input.venueId,
         target_status: input.status,
         target_rejection_reason: input.rejectionReason,
-        target_operation_id: input.operationId,
+        target_expected_revision: input.expectedRevision,
       });
       if (error !== null) throw new Error("Venue transition failed.");
       return transitionRevision(data);

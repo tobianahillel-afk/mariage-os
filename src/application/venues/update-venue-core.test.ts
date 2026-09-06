@@ -32,7 +32,7 @@ function repository(
 }
 
 describe("updateVenueCore", () => {
-  it("normalizes ordinary fields before persistence", async () => {
+  it("normalizes ordinary fields and carries expected revision", async () => {
     const calls: unknown[] = [];
     const port = repository(async (input) => {
       calls.push(input);
@@ -42,6 +42,7 @@ describe("updateVenueCore", () => {
     const result = await updateVenueCore(port, {
       projectId: venue.projectId,
       venueId: venue.id,
+      expectedRevision: 1,
       name: "  Venue Alpha  ",
       code: " P2 ",
       websiteUrl: " https://example.invalid ",
@@ -52,6 +53,7 @@ describe("updateVenueCore", () => {
     expect(calls[0]).toEqual({
       projectId: venue.projectId,
       venueId: venue.id,
+      expectedRevision: 1,
       name: "Venue Alpha",
       code: "P2",
       websiteUrl: "https://example.invalid",
@@ -59,7 +61,7 @@ describe("updateVenueCore", () => {
     });
   });
 
-  it("fails validation before persistence", async () => {
+  it("fails field validation before persistence", async () => {
     let calls = 0;
     const port = repository(async () => {
       calls += 1;
@@ -69,10 +71,29 @@ describe("updateVenueCore", () => {
     const result = await updateVenueCore(port, {
       projectId: venue.projectId,
       venueId: venue.id,
+      expectedRevision: 1,
       name: "   ",
     });
 
     expect(result).toEqual({ ok: false, error: "name_required" });
+    expect(calls).toBe(0);
+  });
+
+  it("fails revision validation before persistence", async () => {
+    let calls = 0;
+    const port = repository(async () => {
+      calls += 1;
+      return venue;
+    });
+
+    const result = await updateVenueCore(port, {
+      projectId: venue.projectId,
+      venueId: venue.id,
+      expectedRevision: 0,
+      name: "Venue Alpha",
+    });
+
+    expect(result).toEqual({ ok: false, error: "expected_revision_invalid" });
     expect(calls).toBe(0);
   });
 
@@ -84,6 +105,7 @@ describe("updateVenueCore", () => {
     const result = await updateVenueCore(port, {
       projectId: venue.projectId,
       venueId: venue.id,
+      expectedRevision: 1,
       name: "Venue Alpha",
     });
 

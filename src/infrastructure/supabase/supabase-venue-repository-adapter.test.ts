@@ -5,6 +5,7 @@ import {
 } from "./supabase-venue-repository-adapter";
 
 const projectId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+const otherProjectId = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
 const venueId = "a1000000-0000-4000-8000-000000000001";
 const columns =
   "id,project_id,code,name,status,rejection_reason,website_url,city,revision";
@@ -19,11 +20,6 @@ const venueRow = {
   website_url: "https://example.invalid",
   city: "Paris",
   revision: 2,
-};
-
-const otherProjectRow = {
-  ...venueRow,
-  project_id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
 };
 
 interface Result {
@@ -44,8 +40,8 @@ interface Captures {
   projectValue: string | null;
   idColumn: string | null;
   idValue: string | null;
-  update: Readonly<Record<string, unknown>> | null;
-  updateSelect: string | null;
+  rpcName: string | null;
+  rpc: Readonly<Record<string, unknown>> | null;
 }
 
 function emptyCaptures(): Captures {
@@ -56,8 +52,8 @@ function emptyCaptures(): Captures {
     projectValue: null,
     idColumn: null,
     idValue: null,
-    update: null,
-    updateSelect: null,
+    rpcName: null,
+    rpc: null,
   };
 }
 
@@ -85,34 +81,6 @@ function selectBuilder(results: Results, captures: Captures) {
   };
 }
 
-function updateBuilder(results: Results, captures: Captures) {
-  return (values: Readonly<Record<string, unknown>>) => {
-    captures.update = values;
-    return {
-      eq(projectColumn: "project_id", projectValue: string) {
-        captures.projectColumn = projectColumn;
-        captures.projectValue = projectValue;
-        return {
-          eq(idColumn: "id", idValue: string) {
-            captures.idColumn = idColumn;
-            captures.idValue = idValue;
-            return {
-              select(selectedColumns: string) {
-                captures.updateSelect = selectedColumns;
-                return {
-                  single() {
-                    return Promise.resolve(results.update);
-                  },
-                };
-              },
-            };
-          },
-        };
-      },
-    };
-  };
-}
-
 function clientWith(
   results: Results,
   captures: Captures,
@@ -120,10 +88,12 @@ function clientWith(
   return {
     from(table) {
       captures.table = table;
-      return {
-        select: selectBuilder(results, captures),
-        update: updateBuilder(results, captures),
-      };
+      return { select: selectBuilder(results, captures) };
+    },
+    rpc(functionName, args) {
+      captures.rpcName = functionName;
+      captures.rpc = args;
+      return Promise.resolve(results.update);
     },
   };
 }
@@ -160,7 +130,10 @@ describe("SupabaseVenueRepositoryAdapter list", () => {
   it.each([
     { data: null, error: { message: "provider detail" } },
     { data: null, error: null },
-    { data: [otherProjectRow], error: null },
+    {
+      data: [{ ...venueRow, project_id: otherProjectId }],
+      error: null,
+    },
   ])("fails closed for unsafe list response %#", async (list) => {
     const adapter = new SupabaseVenueRepositoryAdapter(
       clientWith(resultsWith({ list }), emptyCaptures()),
@@ -218,7 +191,7 @@ describe("SupabaseVenueRepositoryAdapter get", () => {
 });
 
 describe("SupabaseVenueRepositoryAdapter update", () => {
-  it("updates only ordinary editable venue fields", async () => {
+  it("uses the protected optimistic-locking RPC", async () => {
     const captures = emptyCaptures();
     const adapter = new SupabaseVenueRepositoryAdapter(
       clientWith(resultsWith(), captures),
@@ -227,25 +200,29 @@ describe("SupabaseVenueRepositoryAdapter update", () => {
     await adapter.updateVenueCore({
       projectId,
       venueId,
+      expectedRevision: 1,
       name: "Venue Alpha",
       code: "P2",
       websiteUrl: "https://example.invalid",
       city: "Paris",
     });
 
-    expect(captures.update).toEqual({
-      name: "Venue Alpha",
-      code: "P2",
-      website_url: "https://example.invalid",
-      city: "Paris",
+    expect(captures.rpcName).toBe("update_venue_core");
+    expect(captures.rpc).toEqual({
+      target_project_id: projectId,
+      target_venue_id: venueId,
+      target_expected_revision: 1,
+      target_name: "Venue Alpha",
+      target_code: "P2",
+      target_website_url: "https://example.invalid",
+      target_city: "Paris",
     });
-    expect(captures.updateSelect).toBe(columns);
-    expect(captures.idValue).toBe(venueId);
   });
 
   it.each([
     { data: null, error: { message: "policy detail" } },
     { data: { ...venueRow, revision: 0 }, error: null },
+    { data: { ...venueRow, project_id: otherProjectId }, error: null },
   ])("fails closed for unsafe update response %#", async (update) => {
     const adapter = new SupabaseVenueRepositoryAdapter(
       clientWith(resultsWith({ update }), emptyCaptures()),
@@ -255,6 +232,7 @@ describe("SupabaseVenueRepositoryAdapter update", () => {
       adapter.updateVenueCore({
         projectId,
         venueId,
+        expectedRevision: 1,
         name: "Venue Alpha",
         code: null,
         websiteUrl: null,

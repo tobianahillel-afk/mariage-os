@@ -22,12 +22,12 @@ function transitionDraft(status: "shortlist" | "rejected") {
     venueId: "venue-a",
     status,
     rejectionReason: status === "rejected" ? "  too small  " : null,
-    operationId: status === "shortlist" ? "operation-a" : null,
+    expectedRevision: 3,
   } as const;
 }
 
 describe("changeVenueStatus successful persistence", () => {
-  it("sends a validated lifecycle transition to persistence", async () => {
+  it("sends a validated lifecycle transition with expected revision", async () => {
     const calls: VenueTransitionInput[] = [];
     const port = commandPort(async (input) => {
       calls.push(input);
@@ -42,7 +42,7 @@ describe("changeVenueStatus successful persistence", () => {
       venueId: "venue-a",
       status: "shortlist",
       rejectionReason: null,
-      operationId: "operation-a",
+      expectedRevision: 3,
     });
   });
 
@@ -60,7 +60,7 @@ describe("changeVenueStatus successful persistence", () => {
 });
 
 describe("changeVenueStatus failure handling", () => {
-  it("fails validation before persistence", async () => {
+  it("fails lifecycle validation before persistence", async () => {
     let calls = 0;
     const port = commandPort(async () => {
       calls += 1;
@@ -72,10 +72,26 @@ describe("changeVenueStatus failure handling", () => {
       venueId: "venue-a",
       status: "rejected",
       rejectionReason: null,
-      operationId: null,
+      expectedRevision: 1,
     });
 
     expect(result).toEqual({ ok: false, error: "rejection_reason_required" });
+    expect(calls).toBe(0);
+  });
+
+  it("fails revision validation before persistence", async () => {
+    let calls = 0;
+    const port = commandPort(async () => {
+      calls += 1;
+      return 1;
+    });
+
+    const result = await changeVenueStatus(port, {
+      ...transitionDraft("shortlist"),
+      expectedRevision: 0,
+    });
+
+    expect(result).toEqual({ ok: false, error: "expected_revision_invalid" });
     expect(calls).toBe(0);
   });
 

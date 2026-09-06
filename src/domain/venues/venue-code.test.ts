@@ -5,11 +5,22 @@ describe("compareVenueCodes", () => {
   it("sorts numeric suffixes naturally", () => {
     const values = ["P10", "P2", "P1"];
     expect(values.sort(compareVenueCodes)).toEqual(["P1", "P2", "P10"]);
+    expect(compareVenueCodes("P2", "P10")).toBeLessThan(0);
+    expect(compareVenueCodes("P10", "P2")).toBeGreaterThan(0);
   });
 
   it("normalizes whitespace, case and numeric padding", () => {
     expect(compareVenueCodes(" s02 ", "S2")).toBeGreaterThan(0);
     expect(compareVenueCodes("s2", "S2")).toBe(0);
+  });
+
+  it("orders arbitrary-precision numeric parts without Number coercion", () => {
+    expect(
+      compareVenueCodes("P9007199254740992", "P9007199254740993"),
+    ).toBeLessThan(0);
+    expect(
+      compareVenueCodes("P9007199254740993", "P9007199254740992"),
+    ).toBeGreaterThan(0);
   });
 
   it("orders numeric parts before textual parts", () => {

@@ -2,7 +2,7 @@ const CODE_PART_PATTERN = /\d+|\D+/g;
 
 interface CodePart {
   readonly text: string;
-  readonly number: number | null;
+  readonly numeric: boolean;
 }
 
 function normalizedVenueCode(value: string | null): string | null {
@@ -12,18 +12,33 @@ function normalizedVenueCode(value: string | null): string | null {
 }
 
 function codeParts(value: string): readonly CodePart[] {
-  return Array.from(value.matchAll(CODE_PART_PATTERN), ([text]) => {
-    const number = /^\d+$/.test(text) ? Number(text) : null;
-    return { text, number };
-  });
+  return Array.from(value.matchAll(CODE_PART_PATTERN), ([text]) => ({
+    text,
+    numeric: /^\d+$/.test(text),
+  }));
+}
+
+function significantDigits(value: string): string {
+  return value.replace(/^0+(?=\d)/, "");
+}
+
+function compareNumericText(left: string, right: string): number {
+  const significantLeft = significantDigits(left);
+  const significantRight = significantDigits(right);
+  if (significantLeft.length !== significantRight.length) {
+    return significantLeft.length - significantRight.length;
+  }
+  if (significantLeft < significantRight) return -1;
+  if (significantLeft > significantRight) return 1;
+  return left.length - right.length;
 }
 
 function comparePart(left: CodePart, right: CodePart): number {
-  if (left.number !== null && right.number !== null) {
-    return left.number - right.number || left.text.length - right.text.length;
+  if (left.numeric && right.numeric) {
+    return compareNumericText(left.text, right.text);
   }
-  if (left.number !== null) return -1;
-  if (right.number !== null) return 1;
+  if (left.numeric) return -1;
+  if (right.numeric) return 1;
   return left.text.localeCompare(right.text, "en", { sensitivity: "base" });
 }
 

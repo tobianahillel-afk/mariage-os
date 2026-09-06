@@ -25,31 +25,16 @@ interface SupabaseSelectBuilder {
   eq(column: "project_id", value: string): SupabaseProjectFilterBuilder;
 }
 
-interface SupabaseSingleBuilder {
-  single(): PromiseLike<SupabaseResult>;
-}
-
-interface SupabaseUpdateSelectBuilder {
-  select(columns: string): SupabaseSingleBuilder;
-}
-
-interface SupabaseUpdateVenueFilterBuilder {
-  eq(column: "id", value: string): SupabaseUpdateSelectBuilder;
-}
-
-interface SupabaseUpdateProjectFilterBuilder {
-  eq(column: "project_id", value: string): SupabaseUpdateVenueFilterBuilder;
-}
-
 interface SupabaseVenueRepositoryTable {
   select(columns: string): SupabaseSelectBuilder;
-  update(
-    values: Readonly<Record<string, unknown>>,
-  ): SupabaseUpdateProjectFilterBuilder;
 }
 
 export interface SupabaseVenueRepositoryClientLike {
   from(table: "venues"): SupabaseVenueRepositoryTable;
+  rpc(
+    functionName: "update_venue_core",
+    args: Readonly<Record<string, unknown>>,
+  ): PromiseLike<SupabaseResult>;
 }
 
 function queryFailure(): never {
@@ -98,18 +83,15 @@ export class SupabaseVenueRepositoryAdapter implements VenueRepositoryPort {
 
   async updateVenueCore(input: VenueCoreUpdateInput): Promise<VenueCoreRecord> {
     try {
-      const { data, error } = await this.client
-        .from("venues")
-        .update({
-          name: input.name,
-          code: input.code,
-          website_url: input.websiteUrl,
-          city: input.city,
-        })
-        .eq("project_id", input.projectId)
-        .eq("id", input.venueId)
-        .select(VENUE_CORE_COLUMNS)
-        .single();
+      const { data, error } = await this.client.rpc("update_venue_core", {
+        target_project_id: input.projectId,
+        target_venue_id: input.venueId,
+        target_expected_revision: input.expectedRevision,
+        target_name: input.name,
+        target_code: input.code,
+        target_website_url: input.websiteUrl,
+        target_city: input.city,
+      });
       if (error !== null) updateFailure();
       return parseVenueCoreRow(data, input.projectId);
     } catch {
