@@ -49,7 +49,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 Packets:
 
 1. `WP-2.1` — venue identity, authorized persistence and lifecycle-history foundation — **ACCEPTED**;
-2. `WP-2.2` — spaces, capacity and member ratings/preferences — **IN_PROGRESS / A-IMPLEMENT**;
+2. `WP-2.2` — spaces, capacity and member ratings/preferences — **ACCEPTED**;
 3. `WP-2.3` — fact definitions, typed retained facts and value validation — **PLANNED**;
 4. `WP-2.4` — observations, sources, evidence/confidence/freshness and conflicts — **PLANNED**;
 5. `WP-2.5` — deterministic criteria, blockers, score/readiness and missing information — **PLANNED**;
@@ -80,35 +80,43 @@ Record: `lot-2/WP-2.1.md`.
 - Full verify from clean checkout: **PASS**.
 - Governance exact-head run `34040803267` on `3304840ac94dbae2e0ebb79bdc0b57cdedb4943c`: **5/5 SUCCESS**.
 
-### WP-2.2 active scope
+### WP-2.2 acceptance evidence
 
 Record: `lot-2/WP-2.2.md`.
 
-- State: **IN_PROGRESS**.
-- Current pass: **A-IMPLEMENT**.
-- Primary Features: `FTR-018`, `FTR-023`, Lot-2 continuation of `FTR-012`.
-- Physical-space responsibility: geometry, dimensions, indoor/outdoor context, seated/cocktail capacities, sort order and notes with same-project integrity and collaborative revision safety.
-- Personal-opinion responsibility: self-authored Venue favorite/note + controlled rating dimensions; partner ratings may be read for Venue summaries, but another member's row cannot be written or impersonated.
-- Boundary clarification: sourced wedding-specific suitability such as external caterer, two dance zones, chuppah, rain plan and similar criteria remains WP-2.3..WP-2.5; WP-2.2 must not duplicate those as unsourced space columns.
-- View-layout/table-column preferences remain WP-2.11 and reuse the existing `user_project_preferences` foundation.
-- No UI/local-offline completion is claimed in WP-2.2.
+- State: **ACCEPTED**.
+- Required WP-2.2 responsibilities minus accepted/evidenced responsibilities: **∅**.
+- MAJOR `WP2.2-B-001`: **RESOLVED** across domain validation, provider parsing, direct RPC validation and PostgreSQL representation.
+- Fresh Pass B: **PASS**.
+- Pass C reconciliation: **PASS**.
+- Open WP-2.2 BLOCKING/MAJOR findings: **none**.
+- Reviewed implementation head: `241daa01e069a6cbaec4d0ebc09ddf5ca982a385`.
+- Exact implementation CI run `34046985956`: **5/5 SUCCESS**.
+- Unit: **47 files / 473 tests PASS**, measured in-scope coverage **100% statements/branches/functions/lines**.
+- DB/RLS: **20 files / 442 pgTAP tests PASS**.
+- Browser: **40/40 Playwright PASS** across Chromium, Firefox, WebKit and mobile Chromium.
+- Privacy-safe preview: **PASS**.
+- Full verify from clean checkout: **PASS**.
+- Non-blocking observation: simultaneous first-create attempts for the same member opinion may lose on the uniqueness constraint rather than normalize to the existing-row stale/conflict code; no overwrite, impersonation or data loss occurs.
+- Acceptance-governance exact-head CI: **pending on the final documentation-sync head**.
+- No UI/local-offline/facts/criteria completion is claimed by WP-2.2.
 
 ### Durable cursor
 
 - Current Lot: **2 — Venues core**
 - Lot state: **IN_PROGRESS**
 - Current branch: **`lot-2/venues-core`**
-- Current packet: **WP-2.2**
-- Packet state: **IN_PROGRESS**
-- Current pass: **A-IMPLEMENT**
-- Accepted packets: **WP-2.1**
+- Current packet: **none — WP-2.2 accepted, governance exact-head verification pending**
+- Packet state: **no active implementation packet**
+- Current pass: **WP-2.2 acceptance-governance verification**
+- Accepted packets: **WP-2.1, WP-2.2**
 - Review-failed/blocked packets: **none**
-- Open packet BLOCKING/MAJOR findings: **none yet; Pass B for WP-2.2 not started**
-- Next permitted action: **implement WP-2.2 only, obtain exact-head verification, then move it to fresh Pass B; do not start WP-2.3 concurrently.**
+- Open packet BLOCKING/MAJOR findings: **none**
+- Next permitted action: **verify the final WP-2.2 governance head; if green, open WP-2.3 only.**
 
 ## Known localized specification repairs
 
-These are recorded stop-conditions for the owning later packets, not permission to invent behavior and not blockers for WP-2.2:
+These are recorded stop-conditions for the owning later packets, not permission to invent behavior:
 
 - before WP-2.4 implements `fact_observations`, reconcile the normative distinction between `evidence_level` and the separate `confidence = high|medium|low|unknown` field;
 - before WP-2.5 implements `evidenceReadiness`, document its deterministic formula in `domain/CRITERIA-EVALUATION.md`;
@@ -132,14 +140,15 @@ The Venue lifecycle documentation conflict discovered during WP-2.1 is closed by
 - Current-lot partial responsibilities also include `FTR-012`, `FTR-089`, `FTR-092`, `FTR-093` and Lot-acceptance cross-cutting access/offline/security responsibilities.
 - Feature-level whole-capability status and current-lot responsibility are not conflated; Lot Coverage Matrices are the durable responsibility-level reconciliation source.
 - `FTR-013` and `FTR-014` remain feature-level **IN_PROGRESS** because later Lot-2 UI/local/deep-link/duplicate responsibilities remain.
-- `FTR-018`, `FTR-023` and `FTR-012` are feature-level **IN_PROGRESS** while WP-2.2 executes and later UI responsibilities remain.
+- `FTR-018`, `FTR-023` and `FTR-012` remain feature-level **IN_PROGRESS** after WP-2.2 acceptance because later Lot-2 UI/local/read-model responsibilities remain.
 
 ## Current blockers / forward maintenance
 
 Open Lot 2 packet findings: **none currently**.
 
-Inherited reviewed non-blocking maintenance:
+Reviewed non-blocking maintenance:
 
+- WP-2.2 first-create member-opinion concurrency may surface a uniqueness failure instead of normalized stale/conflict; behavior is non-destructive and can be normalized in later local/retry hardening if needed;
 - dependency audit reports two Moderate transitive advisories in development tooling; Critical/High accepted-known count remains zero under the normative vulnerability gate;
 - dependency auditing keeps `npm audit` primary with exact-lockfile GitHub Advisory fallback only after bounded transient provider failure; dual-provider unavailability remains fail-closed;
 - external container registries may transiently rate-limit clean Supabase pulls; retry cannot skip DB/RLS verification;
@@ -157,13 +166,15 @@ Lot 1: ACCEPTED
 Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Coverage: required current-lot responsibilities - assigned packet responsibilities = ∅
-Accepted Lot 2 packets: WP-2.1
+Accepted Lot 2 packets: WP-2.1, WP-2.2
 WP-2.1 implementation CI: 34039296392 — 5/5 SUCCESS
 WP-2.1 governance CI: 34040803267 — 5/5 SUCCESS
-Current packet: WP-2.2
-Packet state: IN_PROGRESS
-Current pass: A-IMPLEMENT
-Open WP-2.2 BLOCKING/MAJOR: none yet; Pass B not started
-Next: implement WP-2.2 only and obtain exact-head verification
+WP-2.2 reviewed implementation head: 241daa01e069a6cbaec4d0ebc09ddf5ca982a385
+WP-2.2 implementation CI: 34046985956 — 5/5 SUCCESS
+WP-2.2 fresh Pass B: PASS
+WP-2.2 Pass C: PASS; responsibility gap ∅
+Open WP-2.2 BLOCKING/MAJOR: none
+Current packet: none while WP-2.2 governance exact-head CI is pending
+Next: after that gate is green, open WP-2.3 only
 Lots 3–12: NOT_STARTED
 ```
