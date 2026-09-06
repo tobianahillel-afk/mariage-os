@@ -23,7 +23,9 @@ function stringValue(value: unknown): string {
 
 function boundedText(value: unknown, maximum: number): string {
   const parsed = stringValue(value);
-  if (parsed.trim().length === 0 || parsed.length > maximum) invalidSpaceResponse();
+  if (parsed.trim().length === 0 || parsed.length > maximum) {
+    invalidSpaceResponse();
+  }
   return parsed;
 }
 
@@ -56,7 +58,9 @@ function nullableMeasurement(value: unknown): number | null {
 
 function nullableCapacity(value: unknown): number | null {
   if (value === null) return null;
-  if (!Number.isSafeInteger(value) || (value as number) < 0) invalidSpaceResponse();
+  if (!Number.isSafeInteger(value) || (value as number) < 0) {
+    invalidSpaceResponse();
+  }
   return value as number;
 }
 
