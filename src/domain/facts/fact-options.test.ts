@@ -32,6 +32,9 @@ describe("numeric fact options", () => {
       ok: true,
       value: { max: 50_000 },
     });
+    expect(
+      normalizeFactOptions("rating", { min: 20, max: 30 }).ok,
+    ).toBe(true);
   });
 
   it.each([
@@ -42,6 +45,21 @@ describe("numeric fact options", () => {
     ["number", { integer: "yes" }],
     ["number", { min: 10, max: 1 }],
   ] as const)("rejects malformed numeric options %#", (type, raw) => {
+    expect(normalizeFactOptions(type, raw)).toEqual({
+      ok: false,
+      error: "invalid_options",
+    });
+  });
+
+  it.each([
+    ["duration", { integer: false }],
+    ["distance", { max: -1 }],
+    ["duration", { min: 1e20 }],
+    ["rating", { min: 20 }],
+    ["rating", { max: -1 }],
+    ["number", { min: 0.1, max: 0.9, integer: true }],
+    ["rating", { min: 0.1, max: 0.9, integer: true }],
+  ] as const)("rejects unsatisfiable numeric options %#", (type, raw) => {
     expect(normalizeFactOptions(type, raw)).toEqual({
       ok: false,
       error: "invalid_options",
@@ -65,6 +83,11 @@ describe("select and multiselect options", () => {
       ok: true,
       value: selectOptions,
     });
+    expect(
+      normalizeFactOptions("select", {
+        options: [{ key: "ok", labelKey: "😀".repeat(160) }],
+      }).ok,
+    ).toBe(true);
   });
 
   it.each([
@@ -80,6 +103,7 @@ describe("select and multiselect options", () => {
     { options: [{ key: "x".repeat(81), labelKey: "x" }] },
     { options: [{ key: "low", labelKey: "" }] },
     { options: [{ key: "low", labelKey: "x".repeat(161) }] },
+    { options: [{ key: "low", labelKey: "😀".repeat(161) }] },
     {
       options: [
         { key: "low", labelKey: "criteria.low" },
