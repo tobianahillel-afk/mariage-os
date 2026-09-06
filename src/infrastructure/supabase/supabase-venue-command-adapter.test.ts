@@ -11,9 +11,25 @@ interface Captures {
   rpc: Readonly<Record<string, unknown>> | null;
 }
 
+type Result = { readonly data: unknown; readonly error: unknown };
+
+const PROJECT_ID = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+const VENUE_ID = "a1000000-0000-4000-8000-000000000001";
+
+const createdRow = {
+  id: VENUE_ID,
+  project_id: PROJECT_ID,
+  status: "research",
+  revision: 1,
+};
+
+function emptyCaptures(): Captures {
+  return { table: null, insert: null, select: null, rpc: null };
+}
+
 function clientWith(
-  createResult: { readonly data: unknown; readonly error: unknown },
-  transitionResult: { readonly data: unknown; readonly error: unknown },
+  createResult: Result,
+  transitionResult: Result,
   captures: Captures,
 ): SupabaseVenueClientLike {
   return {
@@ -43,42 +59,53 @@ function clientWith(
   };
 }
 
-function emptyCaptures(): Captures {
-  return { table: null, insert: null, select: null, rpc: null };
+function adapterWith(
+  createResult: Result,
+  transitionResult: Result = { data: 1, error: null },
+  captures: Captures = emptyCaptures(),
+): SupabaseVenueCommandAdapter {
+  return new SupabaseVenueCommandAdapter(
+    clientWith(createResult, transitionResult, captures),
+  );
 }
 
-const createdRow = {
-  id: "a1000000-0000-4000-8000-000000000001",
-  project_id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
-  status: "research",
-  revision: 1,
-};
+function createInput() {
+  return {
+    projectId: PROJECT_ID,
+    name: "Venue",
+    code: null,
+    websiteUrl: null,
+    city: null,
+  } as const;
+}
 
 describe("SupabaseVenueCommandAdapter", () => {
   it("creates a venue through the safe granted field set", async () => {
     const captures = emptyCaptures();
-    const adapter = new SupabaseVenueCommandAdapter(
-      clientWith({ data: createdRow, error: null }, { data: 1, error: null }, captures),
+    const adapter = adapterWith(
+      { data: createdRow, error: null },
+      { data: 1, error: null },
+      captures,
     );
 
     await expect(
       adapter.createVenue({
-        projectId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        projectId: PROJECT_ID,
         name: "Venue Alpha",
         code: "P2",
         websiteUrl: "https://example.invalid",
         city: "Paris",
       }),
     ).resolves.toEqual({
-      id: createdRow.id,
-      projectId: createdRow.project_id,
+      id: VENUE_ID,
+      projectId: PROJECT_ID,
       status: "research",
       revision: 1,
     });
     expect(captures).toMatchObject({
       table: "venues",
       insert: {
-        project_id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        project_id: PROJECT_ID,
         name: "Venue Alpha",
         code: "P2",
         website_url: "https://example.invalid",
@@ -89,22 +116,12 @@ describe("SupabaseVenueCommandAdapter", () => {
   });
 
   it("does not expose provider creation errors", async () => {
-    const adapter = new SupabaseVenueCommandAdapter(
-      clientWith(
-        { data: null, error: { message: "sensitive provider detail" } },
-        { data: 1, error: null },
-        emptyCaptures(),
-      ),
+    const providerError = { message: "sensitive provider detail" };
+    const adapter = adapterWith({ data: null, error: providerError });
+
+    await expect(adapter.createVenue(createInput())).rejects.toThrow(
+      "Venue creation failed.",
     );
-    await expect(
-      adapter.createVenue({
-        projectId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
-        name: "Venue",
-        code: null,
-        websiteUrl: null,
-        city: null,
-      }),
-    ).rejects.toThrow("Venue creation failed.");
   });
 
   it.each([
@@ -120,38 +137,33 @@ describe("SupabaseVenueCommandAdapter", () => {
     { ...createdRow, revision: 1.5 },
     { ...createdRow, revision: 0 },
   ])("rejects malformed venue creation response %#", async (data) => {
-    const adapter = new SupabaseVenueCommandAdapter(
-      clientWith({ data, error: null }, { data: 1, error: null }, emptyCaptures()),
+    const adapter = adapterWith({ data, error: null });
+
+    await expect(adapter.createVenue(createInput())).rejects.toThrow(
+      "Venue creation failed.",
     );
-    await expect(
-      adapter.createVenue({
-        projectId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
-        name: "Venue",
-        code: null,
-        websiteUrl: null,
-        city: null,
-      }),
-    ).rejects.toThrow("Venue creation failed.");
   });
 
   it("calls the protected lifecycle RPC with explicit context", async () => {
     const captures = emptyCaptures();
-    const adapter = new SupabaseVenueCommandAdapter(
-      clientWith({ data: createdRow, error: null }, { data: 7, error: null }, captures),
+    const adapter = adapterWith(
+      { data: createdRow, error: null },
+      { data: 7, error: null },
+      captures,
     );
 
     await expect(
       adapter.transitionVenue({
-        projectId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
-        venueId: createdRow.id,
+        projectId: PROJECT_ID,
+        venueId: VENUE_ID,
         status: "rejected",
         rejectionReason: "Too small",
         operationId: "c1000000-0000-4000-8000-000000000001",
       }),
     ).resolves.toBe(7);
     expect(captures.rpc).toEqual({
-      target_project_id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
-      target_venue_id: createdRow.id,
+      target_project_id: PROJECT_ID,
+      target_venue_id: VENUE_ID,
       target_status: "rejected",
       target_rejection_reason: "Too small",
       target_operation_id: "c1000000-0000-4000-8000-000000000001",
@@ -159,17 +171,16 @@ describe("SupabaseVenueCommandAdapter", () => {
   });
 
   it("does not expose provider transition errors", async () => {
-    const adapter = new SupabaseVenueCommandAdapter(
-      clientWith(
-        { data: createdRow, error: null },
-        { data: null, error: { message: "policy detail" } },
-        emptyCaptures(),
-      ),
+    const providerError = { message: "policy detail" };
+    const adapter = adapterWith(
+      { data: createdRow, error: null },
+      { data: null, error: providerError },
     );
+
     await expect(
       adapter.transitionVenue({
-        projectId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
-        venueId: createdRow.id,
+        projectId: PROJECT_ID,
+        venueId: VENUE_ID,
         status: "shortlist",
         rejectionReason: null,
         operationId: null,
@@ -180,17 +191,15 @@ describe("SupabaseVenueCommandAdapter", () => {
   it.each([null, "2", 1.5, 0])(
     "rejects malformed transition revision %#",
     async (data) => {
-      const adapter = new SupabaseVenueCommandAdapter(
-        clientWith(
-          { data: createdRow, error: null },
-          { data, error: null },
-          emptyCaptures(),
-        ),
+      const adapter = adapterWith(
+        { data: createdRow, error: null },
+        { data, error: null },
       );
+
       await expect(
         adapter.transitionVenue({
-          projectId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
-          venueId: createdRow.id,
+          projectId: PROJECT_ID,
+          venueId: VENUE_ID,
           status: "shortlist",
           rejectionReason: null,
           operationId: null,
