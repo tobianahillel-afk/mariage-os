@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — kickoff complete; WP-2.1 is the only active packet**
+Status: **IN_PROGRESS — WP-2.1 ACCEPTED; WP-2.2 is next**
 
 Purpose: durable responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`.
 
@@ -22,9 +22,9 @@ The previously accepted Lot 0 + Lot 1 implementation was promoted to `main` thro
 
 | Required item | Owning Feature/control | Packet(s) | Dependencies | Final evidence |
 |---|---|---|---|---|
-| stable venue UUID/project identity, human code/name/location core and natural code ordering | FTR-013, VEN-001, VEN-002 | WP-2.1, WP-2.11 | Lot 1 project isolation | migration/RLS + domain sort tests + UI/E2E |
-| minimal venue quick-add without giant form; duplicate warning inputs retained for later detector/read model | FTR-013, VEN-012, ACC-021 | WP-2.1, WP-2.10, WP-2.11 | venue identity + local store | create command/repository + local durability + E2E |
-| venue lifecycle, rejection reason/history and reversible restore | FTR-014, VEN-006, PRD-007, ACC-032 | WP-2.1, WP-2.11 | authorized venue persistence | state-transition/activity evidence + reject/restore E2E |
+| stable venue UUID/project identity, human code/name/location core and natural code ordering | FTR-013, VEN-001, VEN-002 | WP-2.1, WP-2.11 | Lot 1 project isolation | WP-2.1 ACCEPTED foundation + later UI/E2E |
+| minimal venue quick-add without giant form; duplicate warning inputs retained for later detector/read model | FTR-013, VEN-012, ACC-021 | WP-2.1, WP-2.10, WP-2.11 | venue identity + local store | WP-2.1 create command/repository accepted + later local durability/E2E |
+| venue lifecycle, rejection reason/history and reversible restore | FTR-014, VEN-006, PRD-007, ACC-032 | WP-2.1, WP-2.11 | authorized venue persistence | WP-2.1 ACCEPTED state-transition/activity evidence + later UI/E2E |
 | multiple spaces, dimensions, commercial capacities and wedding-specific configuration inputs | FTR-018, VEN-003, VEN-004, VEN-005 | WP-2.2, WP-2.11 | WP-2.1 | same-project DB tests + domain tests + detail UI |
 | independent member favorites/ratings and Lot-2 personal display/venue preference responsibilities | FTR-023, FTR-012 (Lot 2), VEN-015, VEN-017, PRD-004, ACC-029 | WP-2.2, WP-2.11 | Lot 1 membership/preferences | author-only RLS + partner-isolation tests + UI |
 | typed fact definitions, retained fact state/value and explicit unknown/known/not-applicable/conflict semantics | FTR-019, FAC-001, FAC-003, FAC-011, FAC-012, ACC-024 | WP-2.3 | WP-2.1 | runtime/domain validation + DB constraints/RLS |
@@ -45,28 +45,34 @@ The previously accepted Lot 0 + Lot 1 implementation was promoted to `main` thro
 | protected venue deep links preserve project authorization and generic outsider denial | FTR-014/FTR-017/FTR-027 routing responsibility, VEN-014 | WP-2.11 | Lot 1 protected shell | route/unit/E2E outsider tests |
 | mobile visit mode: cached detail/checklist/notes/measurement/photo/rating/finish summary with queued local edits | FTR-028, PWA-004, venue feature contract | WP-2.12 | WP-2.2, WP-2.5, WP-2.8, WP-2.10 | mobile Playwright/offline reload tests |
 | remote-image/file/content validation and no private data in public fixtures/artifacts | MED-002/003/009/010/013, security/quality controls | WP-2.8, WP-2.9, WP-2.12 | Lot 1 security foundation | adversarial tests + secret/privacy scans |
-| every new table/resource has explicit permissions, grants, RLS and direct anon/outsider/project-B/revoked allow/deny evidence | AUTHZ-001..008, AUTHZ-009, AUTHZ-012/017/018/020 | WP-2.1..WP-2.9 according to resource | Lot 1 authorization catalog | pgTAP direct security matrix |
+| every new table/resource has explicit permissions, grants, RLS and direct anon/outsider/project-B/revoked allow/deny evidence | AUTHZ-001..008, AUTHZ-009, AUTHZ-012/017/018/020 | WP-2.1..WP-2.9 according to resource | Lot 1 authorization catalog | per-packet pgTAP direct security matrix |
 | synthetic complex venue exit fixture: conflicting evidence, multiple spaces, route observations, offers, two partner ratings, reject/restore/compare | Lot 2 acceptance | WP-2.12 + separate Lot Integration Pass | all packets | integrated DB/browser scenario |
 | Lot reconciliation + separate Integration Pass | AI-LOT-ORCHESTRATION | after WP-2.1..WP-2.12 | all packets | required - accepted/evidenced = ∅ + full verify + integration PASS |
 
 Required current-lot responsibilities minus assigned packet responsibilities: **∅**.
 
+Accepted/evidenced packet responsibilities so far: **WP-2.1 only**. Lot-level accepted/evidenced reconciliation is intentionally incomplete until all packets and the separate Integration Pass finish.
+
 ## Work Packet plan
 
 ### WP-2.1 — Venue identity, authorized persistence and lifecycle-history foundation
 
-State: **IN_PROGRESS**  
-Current pass: **A-IMPLEMENT**
+State: **ACCEPTED**  
+Current pass: **COMPLETE**
 
 Primary Features: FTR-013, FTR-014 responsibilities for canonical venue identity/persistence/lifecycle.  
-Planning complexity: **10/10** — cohesive because `venues`, lifecycle transition/history and their authorization must be reviewed together to prevent a generic update path bypassing lifecycle rules.
+Planning complexity: **10/10** — cohesive because `venues`, lifecycle transition/history and their authorization were reviewed together to prevent generic mutation bypasses.  
+Acceptance record: `WP-2.1.md`.  
+Reviewed implementation head: `3418659d94d35f61183f0a20c367c74e38e86802`.  
+Exact implementation CI run `34039296392`: **5/5 SUCCESS**; 350 unit tests, 17 DB files / 359 pgTAP tests, 40/40 E2E, clean-checkout `npm run verify` PASS.  
+Required WP-2.1 responsibilities minus accepted/evidenced WP-2.1 responsibilities: **∅**.
 
 ### WP-2.2 — Spaces, capacity and member ratings/preferences
 
 State: **PLANNED**
 
 Primary Features: FTR-018, FTR-023, Lot-2 portion of FTR-012.  
-Dependencies: WP-2.1.
+Dependencies: WP-2.1 **ACCEPTED**.
 
 ### WP-2.3 — Fact definitions, typed retained facts and value validation
 
@@ -147,8 +153,8 @@ Provides the complete visit workflow and the final packet-owned synthetic venue 
 ## Sequencing
 
 ```text
-WP-2.1 [IN_PROGRESS]
-  ├─→ WP-2.2
+WP-2.1 [ACCEPTED]
+  ├─→ WP-2.2 [NEXT]
   ├─→ WP-2.3 → WP-2.4 → WP-2.5
   ├─→ WP-2.6
   ├─→ WP-2.7
@@ -169,7 +175,7 @@ separate Lot 2 Integration Pass
 Lot 2 acceptance
 ```
 
-Default execution remains one packet `IN_PROGRESS` at a time.
+Default execution remains one packet `IN_PROGRESS` at a time. After WP-2.1 acceptance and governance reconciliation, WP-2.2 is the next permitted packet.
 
 ## Explicitly out of Lot 2
 
