@@ -10,7 +10,7 @@ Status: **Living repository source of truth for development progress**
 - Final Design Review: **PASS**.
 - Implementation gate: **OPEN**.
 - Lot 0: **ACCEPTED** — implementation/integration completed 2026-09-03.
-- **Lot 1: IN_PROGRESS** — explicitly kicked off by the user on 2026-09-03.
+- **Lot 1: IN_PROGRESS — packet implementation complete; Lot reconciliation/integration/acceptance in progress.**
 - Lots 2–12: **NOT_STARTED**.
 
 Lot 1 is the only permitted implementation scope. No Lot 2+ product implementation is permitted.
@@ -26,9 +26,10 @@ Coverage/reconciliation: `lot-0/LOT-0-COVERAGE-MATRIX.md`.
 
 ## Lot 1 orchestration
 
-Coverage plan: `lot-1/LOT-1-COVERAGE-MATRIX.md`.
+Coverage/reconciliation: `lot-1/LOT-1-COVERAGE-MATRIX.md`.
 
 Required current-lot responsibilities minus assigned packet responsibilities: **∅**.
+Required packet-owned current-lot responsibilities minus accepted/evidenced packet responsibilities: **∅**.
 
 Packets:
 
@@ -40,17 +41,18 @@ Packets:
 6. `WP-1.6` — protected app shell/navigation and public RSVP trust boundary — **ACCEPTED**;
 7. `WP-1.7` — project-scoped repositories, local cache and sync primitives — **ACCEPTED**;
 8. `WP-1.8` — session expiry, safe logout, MFA/security diagnostics — **ACCEPTED**;
-9. `WP-1.9` — Storage/Realtime isolation foundation and security-matrix closure — **ACCEPTANCE_PENDING**.
+9. `WP-1.9` — Storage/Realtime isolation foundation and security-matrix closure — **ACCEPTED**.
 
 ### Durable cursor
 
 - Current Lot: **1**
 - Lot state: **IN_PROGRESS**
-- Current packet: **WP-1.9**
-- Packet state: **ACCEPTANCE_PENDING**
-- Current/next pass: **C-ACCEPTANCE**
-- Accepted packets: **WP-1.1, WP-1.2, WP-1.3, WP-1.4, WP-1.5, WP-1.6, WP-1.7, WP-1.8**
-- Review-failed/blocked packets: **none; `WP19-AR-001` is closed after bounded remediation and fresh review**
+- Current packet: **WP-1.9 — terminal**
+- Packet state: **ACCEPTED**
+- Current packet pass: **COMPLETE**
+- Current Lot activity: **LOT-RECONCILIATION**
+- Accepted packets: **WP-1.1 through WP-1.9**
+- Review-failed/blocked packets: **none; all historical MAJOR findings are closed**
 - WP-1.1 acceptance evidence: run `33809855993` on `f0b1e46c46bc3ad5d15bf2191c63ec4e85473507`, all five jobs SUCCESS.
 - WP-1.2 acceptance evidence: run `33811568440` on `fa96228bcd8a0b7671fcb561f8f7668eaf5851dc`, all five jobs SUCCESS; `WP12-AR-001` closed.
 - WP-1.3 acceptance evidence: run `33817932867` on `707b1384fbd370fe88ef7a87ac191aa9645f6db3`, all five jobs SUCCESS; `WP13-AR-001` and `WP13-AR-002` closed.
@@ -59,23 +61,23 @@ Packets:
 - WP-1.6 acceptance evidence: run `33880216335` on implementation HEAD `61dca0718f8ff7372609d208050aba6a50271743`, all five jobs SUCCESS including clean-checkout `npm run verify`; fresh Pass B PASS; Pass C required-minus-evidenced = ∅; `WP16-AR-001` and `WP16-AR-002` closed.
 - WP-1.7 acceptance evidence: run `33895516028` on implementation/review HEAD `46548702f304dbabcf4bd673a33afb1c0ec96a3d`, all five jobs SUCCESS including 28/28 Playwright E2E, mutation and clean-checkout `npm run verify`; `WP17-AR-001..003` closed; fresh Pass B PASS; Pass C required-minus-evidenced = ∅.
 - WP-1.8 acceptance evidence: run `33994961610` on implementation/evidence HEAD `cb7201e2d6dc1a8ca7608bb236f1f79ac84d8d9d`, all five jobs SUCCESS including browser E2E + mutation and clean-checkout `npm run verify`; `WP18-AR-001..003` closed; final fresh Pass B PASS; Pass C required-minus-evidenced = ∅.
-- WP-1.9 fresh implementation/review evidence: run `33999832455` on `1c8331de918e82e1dc40beb96e6ac08343b861d7`, **5/5 SUCCESS** including clean-checkout `npm run verify`; DB **14 files / 284 tests / PASS**; Storage/Realtime matrix **45/45 PASS**; `WP19-AR-001` closed; fresh Pass B PASS.
+- WP-1.9 acceptance evidence: run `33999832455` on implementation/review HEAD `1c8331de918e82e1dc40beb96e6ac08343b861d7`, **5/5 SUCCESS** including clean-checkout `npm run verify`; DB **14 files / 284 tests / PASS**; Storage/Realtime matrix **45/45 PASS**; `WP19-AR-001` closed; fresh Pass B PASS; Pass C expected-minus-implemented/verified = ∅.
 - Current branch: **`lot-1/identity-project-foundation`**
-- Next permitted action: **WP-1.9 Pass C acceptance/reconciliation only; then Lot-1 reconciliation if accepted**.
+- Next permitted action: **perform mechanical Lot 1 reconciliation; if empty, perform the separate Lot Integration Pass; only then decide Lot acceptance**.
 
 ## Lot status
 
 | Lot | State |
 |---:|---|
 | 0 | **ACCEPTED** |
-| 1 | **IN_PROGRESS** |
+| 1 | **IN_PROGRESS — LOT-RECONCILIATION** |
 | 2–12 | NOT_STARTED |
 
 ## Product Feature counts
 
 - V1 Feature IDs: 120 SPECIFIED inventory rows total.
-- Lot 1 foundations are in implementation; no Lot 2+ Feature may start.
-- WP-1.1 through WP-1.8 are accepted foundations; WP-1.9 is in Pass C as the final packet before Lot reconciliation/integration/acceptance.
+- Lot 1 packet implementation is complete and accepted; Lot 1 itself remains IN_PROGRESS until reconciliation, separate Integration Pass and Lot acceptance finish.
+- No Lot 2+ Feature may start.
 
 ## Current blockers / forward maintenance
 
@@ -85,7 +87,7 @@ Open adversarial findings:
 
 WP-1.9 reviewed closure:
 
-- `WP19-AR-001` is **CLOSED**: DELETE RLS is now behaviorally proved under the transaction-local Storage metadata-delete flag while RLS remains the authority; owner/editor own-project allow and cross-project/viewer/outsider/revoked/anon/guest-like deny all pass directly.
+- `WP19-AR-001` is **CLOSED**: DELETE RLS is behaviorally proved under the transaction-local Storage metadata-delete flag while RLS remains the authority; owner/editor own-project allow and cross-project/viewer/outsider/revoked/anon/guest-like deny all pass directly.
 - bucket privacy, full-path fail-closed validation, live centralized membership/permission authorization, cross-project UPDATE denial, Realtime non-exposure and absence of client/provider/domain scope leakage were re-reviewed clean.
 
 Inherited reviewed non-blocking maintenance:
@@ -93,7 +95,7 @@ Inherited reviewed non-blocking maintenance:
 - dependency audit reports two Moderate transitive advisories in development tooling; Critical/High accepted-known count remains zero under the normative vulnerability gate;
 - dependency auditing keeps `npm audit` primary with exact-lockfile GitHub Advisory fallback only after bounded transient provider failure; dual-provider unavailability remains fail-closed;
 - external container registries may transiently rate-limit clean Supabase pulls; retry cannot skip DB/RLS verification;
-- exact provider signup-window behavior remains a downstream Lot-1 onboarding requirement;
+- exact provider signup-window behavior remains a downstream onboarding/cutover requirement;
 - invitation create/accept rate-limit/abuse evidence remains required before public/self-service exposure or real production cutover;
 - browser device identity recovery after selective localStorage/IndexedDB divergence remains later session/local-recovery hardening; current behavior fails closed/degraded without cross-scope attachment or silent deletion.
 
@@ -101,12 +103,11 @@ Inherited reviewed non-blocking maintenance:
 
 ```text
 Lot 0: ACCEPTED
-Lot 1: IN_PROGRESS
-Coverage: required - assigned = ∅
-Accepted: WP-1.1, WP-1.2, WP-1.3, WP-1.4, WP-1.5, WP-1.6, WP-1.7, WP-1.8
-WP-1.9 fresh evidence: run 33999832455 on 1c8331de918e82e1dc40beb96e6ac08343b861d7, 5/5 SUCCESS; DB 14 files / 284 tests / PASS; matrix 45/45
-WP19-AR-001: CLOSED; fresh Pass B PASS
-Current: WP-1.9 / ACCEPTANCE_PENDING / C-ACCEPTANCE
-Next: WP-1.9 Pass C -> Lot reconciliation if accepted
-Lot 2+: forbidden until Lot 1 reconciliation + Integration Pass + acceptance
+Lot 1: IN_PROGRESS / LOT-RECONCILIATION
+Coverage: required - assigned = ∅; packet-owned required - accepted/evidenced = ∅
+Accepted packets: WP-1.1 through WP-1.9
+WP-1.9 evidence: run 33999832455 on 1c8331de918e82e1dc40beb96e6ac08343b861d7, 5/5 SUCCESS; DB 14 files / 284 tests / PASS; matrix 45/45
+Open BLOCKING/MAJOR: none
+Next: mechanical Lot 1 reconciliation -> separate Lot Integration Pass -> Lot acceptance if green
+Lot 2+: forbidden; even after Lot 1 acceptance, Lot 2 requires a future explicit kickoff
 ```
