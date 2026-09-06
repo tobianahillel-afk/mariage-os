@@ -14,12 +14,14 @@ export interface ChangeVenueStatusInput {
   readonly expectedRevision: number;
 }
 
+type ChangeVenueStatusError =
+  | VenueTransitionError
+  | VenueRevisionError
+  | "persistence_failed";
+
 export type ChangeVenueStatusResult =
   | { readonly ok: true; readonly revision: number }
-  | {
-      readonly ok: false;
-      readonly error: VenueTransitionError | VenueRevisionError | "persistence_failed";
-    };
+  | { readonly ok: false; readonly error: ChangeVenueStatusError };
 
 export async function changeVenueStatus(
   port: VenueCommandPort,
