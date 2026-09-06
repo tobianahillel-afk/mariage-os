@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { normalizeFactEvaluationRule } from "./fact-evaluation-rule";
 import { normalizeFactOptions } from "./fact-options";
 
-describe("normalized fact JSON immutability", () => {
+describe("normalized fact option immutability", () => {
   it("detaches and freezes numeric and select option metadata", () => {
     const numeric = normalizeFactOptions("number", { min: 1, max: 2 });
     expect(numeric.ok).toBe(true);
@@ -33,7 +33,9 @@ describe("normalized fact JSON immutability", () => {
     expect(Object.isFrozen(select.value.options)).toBe(true);
     expect(Object.isFrozen(select.value.options[0])).toBe(true);
   });
+});
 
+describe("normalized fact evaluation-rule immutability", () => {
   it("deep-copies and freezes nested evaluation-rule values", () => {
     const options = {
       options: [{ key: "low", labelKey: "criteria.low" }],
