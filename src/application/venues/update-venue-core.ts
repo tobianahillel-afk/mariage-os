@@ -18,9 +18,7 @@ export interface UpdateVenueCoreDraft {
 }
 
 type UpdateVenueCoreError =
-  | VenueQuickAddError
-  | VenueRevisionError
-  | "persistence_failed";
+  VenueQuickAddError | VenueRevisionError | "persistence_failed";
 
 export type UpdateVenueCoreResult =
   | { readonly ok: true; readonly venue: VenueCoreRecord }
