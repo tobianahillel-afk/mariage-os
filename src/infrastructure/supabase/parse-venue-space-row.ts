@@ -1,4 +1,9 @@
 import type { VenueSpaceRecord } from "@application/venues/venue-space-service";
+import {
+  isVenueSpaceCapacity,
+  isVenueSpaceMeasurement,
+  isVenueSpaceSortOrder,
+} from "@domain/venues/venue-space";
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -50,7 +55,7 @@ function nullableBooleanValue(value: unknown): boolean | null {
 
 function nullableMeasurement(value: unknown): number | null {
   if (value === null) return null;
-  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+  if (typeof value !== "number" || !isVenueSpaceMeasurement(value)) {
     invalidSpaceResponse();
   }
   return value;
@@ -58,10 +63,17 @@ function nullableMeasurement(value: unknown): number | null {
 
 function nullableCapacity(value: unknown): number | null {
   if (value === null) return null;
-  if (!Number.isSafeInteger(value) || (value as number) < 0) {
+  if (typeof value !== "number" || !isVenueSpaceCapacity(value)) {
     invalidSpaceResponse();
   }
-  return value as number;
+  return value;
+}
+
+function sortOrderValue(value: unknown): number {
+  if (typeof value !== "number" || !isVenueSpaceSortOrder(value)) {
+    invalidSpaceResponse();
+  }
+  return value;
 }
 
 function integerValue(value: unknown): number {
@@ -100,7 +112,7 @@ export function parseVenueSpaceRow(
     heightM: nullableMeasurement(row.height_m),
     capacitySeated: nullableCapacity(row.capacity_seated),
     capacityCocktail: nullableCapacity(row.capacity_cocktail),
-    sortOrder: integerValue(row.sort_order),
+    sortOrder: sortOrderValue(row.sort_order),
     notes: nullableNote(row.notes),
     revision: revisionValue(row.revision),
   };

@@ -81,16 +81,34 @@ function hasAtMostTwoDecimals(value: number): boolean {
   return Math.abs(value * 100 - Math.round(value * 100)) < 1e-8;
 }
 
+export function isVenueSpaceMeasurement(value: number): boolean {
+  return (
+    Number.isFinite(value) &&
+    value > 0 &&
+    value <= NUMERIC_10_2_MAX &&
+    hasAtMostTwoDecimals(value)
+  );
+}
+
+export function isVenueSpaceCapacity(value: number): boolean {
+  return (
+    Number.isSafeInteger(value) && value >= 0 && value <= POSTGRES_INT32_MAX
+  );
+}
+
+export function isVenueSpaceSortOrder(value: number): boolean {
+  return (
+    Number.isSafeInteger(value) &&
+    value >= POSTGRES_INT32_MIN &&
+    value <= POSTGRES_INT32_MAX
+  );
+}
+
 function optionalMeasurement(
   value: number | null | undefined,
 ): FieldResult<number | null> {
   if (value === null || value === undefined) return { ok: true, value: null };
-  if (
-    !Number.isFinite(value) ||
-    value <= 0 ||
-    value > NUMERIC_10_2_MAX ||
-    !hasAtMostTwoDecimals(value)
-  ) {
+  if (!isVenueSpaceMeasurement(value)) {
     return { ok: false, error: "measurement_invalid" };
   }
   return { ok: true, value };
@@ -100,7 +118,7 @@ function optionalCapacity(
   value: number | null | undefined,
 ): FieldResult<number | null> {
   if (value === null || value === undefined) return { ok: true, value: null };
-  if (!Number.isSafeInteger(value) || value < 0 || value > POSTGRES_INT32_MAX) {
+  if (!isVenueSpaceCapacity(value)) {
     return { ok: false, error: "capacity_invalid" };
   }
   return { ok: true, value };
@@ -160,11 +178,7 @@ function normalizeMetadata(
   draft: VenueSpaceDraft,
 ): FieldResult<VenueSpaceMetadata> {
   const sortOrder = draft.sortOrder ?? 0;
-  if (
-    !Number.isSafeInteger(sortOrder) ||
-    sortOrder < POSTGRES_INT32_MIN ||
-    sortOrder > POSTGRES_INT32_MAX
-  ) {
+  if (!isVenueSpaceSortOrder(sortOrder)) {
     return { ok: false, error: "sort_order_invalid" };
   }
 

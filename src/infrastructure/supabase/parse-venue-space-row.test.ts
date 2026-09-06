@@ -43,9 +43,15 @@ const malformedRows = [
   { ...validRow, area_m2: "300" },
   { ...validRow, area_m2: Number.NaN },
   { ...validRow, area_m2: 0 },
+  { ...validRow, area_m2: 1.234 },
+  { ...validRow, area_m2: 100_000_000 },
+  { ...validRow, length_m: 20.001 },
   { ...validRow, capacity_seated: 1.5 },
   { ...validRow, capacity_seated: -1 },
+  { ...validRow, capacity_seated: 2_147_483_648 },
   { ...validRow, sort_order: 1.5 },
+  { ...validRow, sort_order: -2_147_483_649 },
+  { ...validRow, sort_order: 2_147_483_648 },
   { ...validRow, notes: 7 },
   { ...validRow, notes: "x".repeat(5_001) },
   { ...validRow, revision: 1.5 },
@@ -90,6 +96,22 @@ describe("parseVenueSpaceRow valid responses", () => {
     expect(parsed.areaM2).toBeNull();
     expect(parsed.capacitySeated).toBeNull();
     expect(parsed.notes).toBeNull();
+  });
+
+  it("accepts exact canonical storage boundaries", () => {
+    const parsed = parseVenueSpaceRow(
+      {
+        ...validRow,
+        area_m2: 99_999_999.99,
+        capacity_seated: 2_147_483_647,
+        sort_order: -2_147_483_648,
+      },
+      projectId,
+      venueId,
+    );
+    expect(parsed.areaM2).toBe(99_999_999.99);
+    expect(parsed.capacitySeated).toBe(2_147_483_647);
+    expect(parsed.sortOrder).toBe(-2_147_483_648);
   });
 });
 
