@@ -104,7 +104,9 @@ describe("normalizeVenueSpaceDraft normalization", () => {
 
     expect(result.ok && result.value.notes).toBeNull();
   });
+});
 
+describe("normalizeVenueSpaceDraft storage boundaries", () => {
   it("accepts exact PostgreSQL numeric and integer boundaries", () => {
     const result = normalizeVenueSpaceDraft({
       ...fullDraft,
