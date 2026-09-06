@@ -20,18 +20,6 @@ describe("numeric fact options", () => {
       ok: true,
       value: { min: 0, max: 500, integer: true },
     });
-    const integer = normalizeFactOptions("number", { integer: true });
-    const minInteger = normalizeFactOptions("number", {
-      min: 1,
-      integer: true,
-    });
-    const maxInteger = normalizeFactOptions("number", {
-      max: 1,
-      integer: true,
-    });
-    expect(integer.ok).toBe(true);
-    expect(minInteger.ok).toBe(true);
-    expect(maxInteger.ok).toBe(true);
     expect(normalizeFactOptions("rating", {})).toEqual({
       ok: true,
       value: {},
@@ -45,6 +33,21 @@ describe("numeric fact options", () => {
       value: { max: 50_000 },
     });
     expect(normalizeFactOptions("rating", { min: 20, max: 30 }).ok).toBe(true);
+  });
+
+  it("accepts integer metadata with omitted numeric bounds", () => {
+    const integer = normalizeFactOptions("number", { integer: true });
+    const minInteger = normalizeFactOptions("number", {
+      min: 1,
+      integer: true,
+    });
+    const maxInteger = normalizeFactOptions("number", {
+      max: 1,
+      integer: true,
+    });
+    expect(integer.ok).toBe(true);
+    expect(minInteger.ok).toBe(true);
+    expect(maxInteger.ok).toBe(true);
   });
 
   it.each([
