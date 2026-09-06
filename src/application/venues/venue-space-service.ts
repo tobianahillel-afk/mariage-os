@@ -27,7 +27,10 @@ export interface UpdateVenueSpaceInput extends CreateVenueSpaceInput {
 }
 
 export interface VenueSpacePort {
-  listVenueSpaces(projectId: string, venueId: string): Promise<readonly VenueSpaceRecord[]>;
+  listVenueSpaces(
+    projectId: string,
+    venueId: string,
+  ): Promise<readonly VenueSpaceRecord[]>;
   createVenueSpace(input: CreateVenueSpaceInput): Promise<VenueSpaceRecord>;
   updateVenueSpace(input: UpdateVenueSpaceInput): Promise<VenueSpaceRecord>;
 }
@@ -42,7 +45,10 @@ export interface UpdateVenueSpaceDraft extends CreateVenueSpaceDraft {
   readonly expectedRevision: number;
 }
 
-type VenueSpaceMutationError = VenueSpaceError | VenueRevisionError | "persistence_failed";
+type VenueSpaceMutationError =
+  | VenueSpaceError
+  | VenueRevisionError
+  | "persistence_failed";
 
 export type VenueSpaceMutationResult =
   | { readonly ok: true; readonly space: VenueSpaceRecord }
