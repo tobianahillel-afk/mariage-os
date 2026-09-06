@@ -16,7 +16,10 @@ export interface UpdateVenueCoreDraft {
 
 export type UpdateVenueCoreResult =
   | { readonly ok: true; readonly venue: VenueCoreRecord }
-  | { readonly ok: false; readonly error: VenueQuickAddError | "persistence_failed" };
+  | {
+      readonly ok: false;
+      readonly error: VenueQuickAddError | "persistence_failed";
+    };
 
 export async function updateVenueCore(
   port: VenueRepositoryPort,
