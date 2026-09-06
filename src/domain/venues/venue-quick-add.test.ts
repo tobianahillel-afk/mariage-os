@@ -3,14 +3,14 @@ import { normalizeVenueQuickAdd } from "./venue-quick-add";
 
 describe("normalizeVenueQuickAdd", () => {
   it("normalizes the minimal quick-add fields", () => {
-    expect(
-      normalizeVenueQuickAdd({
-        name: "  Venue Alpha  ",
-        code: " P2 ",
-        websiteUrl: " https://example.invalid/venue ",
-        city: " Paris ",
-      }),
-    ).toEqual({
+    const result = normalizeVenueQuickAdd({
+      name: "  Venue Alpha  ",
+      code: " P2 ",
+      websiteUrl: " https://example.invalid/venue ",
+      city: " Paris ",
+    });
+
+    expect(result).toEqual({
       ok: true,
       value: {
         name: "Venue Alpha",
@@ -22,9 +22,12 @@ describe("normalizeVenueQuickAdd", () => {
   });
 
   it("normalizes omitted and blank optional fields to null", () => {
-    expect(
-      normalizeVenueQuickAdd({ name: "Venue Alpha", code: "   " }),
-    ).toEqual({
+    const result = normalizeVenueQuickAdd({
+      name: "Venue Alpha",
+      code: "   ",
+    });
+
+    expect(result).toEqual({
       ok: true,
       value: {
         name: "Venue Alpha",
@@ -36,58 +39,73 @@ describe("normalizeVenueQuickAdd", () => {
   });
 
   it("requires a nonblank name", () => {
-    expect(normalizeVenueQuickAdd({ name: "   " })).toEqual({
+    const result = normalizeVenueQuickAdd({ name: "   " });
+
+    expect(result).toEqual({
       ok: false,
       error: "name_required",
     });
   });
 
   it("enforces the name length limit", () => {
-    expect(normalizeVenueQuickAdd({ name: "x".repeat(241) })).toEqual({
+    const result = normalizeVenueQuickAdd({ name: "x".repeat(241) });
+
+    expect(result).toEqual({
       ok: false,
       error: "name_too_long",
     });
   });
 
   it("enforces the code length limit", () => {
-    expect(
-      normalizeVenueQuickAdd({ name: "Venue", code: "x".repeat(41) }),
-    ).toEqual({ ok: false, error: "code_too_long" });
+    const result = normalizeVenueQuickAdd({
+      name: "Venue",
+      code: "x".repeat(41),
+    });
+
+    expect(result).toEqual({ ok: false, error: "code_too_long" });
   });
 
   it("rejects dangerous and malformed website URLs", () => {
-    expect(
-      normalizeVenueQuickAdd({ name: "Venue", websiteUrl: "javascript:x" }),
-    ).toEqual({ ok: false, error: "website_url_invalid" });
-    expect(
-      normalizeVenueQuickAdd({ name: "Venue", websiteUrl: "not a url" }),
-    ).toEqual({ ok: false, error: "website_url_invalid" });
+    const dangerous = normalizeVenueQuickAdd({
+      name: "Venue",
+      websiteUrl: "javascript:x",
+    });
+    const malformed = normalizeVenueQuickAdd({
+      name: "Venue",
+      websiteUrl: "not a url",
+    });
+
+    expect(dangerous).toEqual({ ok: false, error: "website_url_invalid" });
+    expect(malformed).toEqual({ ok: false, error: "website_url_invalid" });
   });
 
   it("enforces the website URL length limit before parsing", () => {
-    expect(
-      normalizeVenueQuickAdd({
-        name: "Venue",
-        websiteUrl: `https://example.invalid/${"x".repeat(2_100)}`,
-      }),
-    ).toEqual({ ok: false, error: "website_url_too_long" });
+    const websiteUrl = `https://example.invalid/${"x".repeat(2_100)}`;
+    const result = normalizeVenueQuickAdd({ name: "Venue", websiteUrl });
+
+    expect(result).toEqual({ ok: false, error: "website_url_too_long" });
   });
 
   it("accepts legacy http navigation references but rejects other schemes", () => {
-    expect(
-      normalizeVenueQuickAdd({
-        name: "Venue",
-        websiteUrl: "http://example.invalid/venue",
-      }).ok,
-    ).toBe(true);
-    expect(
-      normalizeVenueQuickAdd({ name: "Venue", websiteUrl: "data:text/plain,x" }),
-    ).toEqual({ ok: false, error: "website_url_invalid" });
+    const httpResult = normalizeVenueQuickAdd({
+      name: "Venue",
+      websiteUrl: "http://example.invalid/venue",
+    });
+    const dataResult = normalizeVenueQuickAdd({
+      name: "Venue",
+      websiteUrl: "data:text/plain,x",
+    });
+
+    expect(httpResult.ok).toBe(true);
+    expect(dataResult).toEqual({ ok: false, error: "website_url_invalid" });
   });
 
   it("enforces the city length limit", () => {
-    expect(
-      normalizeVenueQuickAdd({ name: "Venue", city: "x".repeat(161) }),
-    ).toEqual({ ok: false, error: "city_too_long" });
+    const result = normalizeVenueQuickAdd({
+      name: "Venue",
+      city: "x".repeat(161),
+    });
+
+    expect(result).toEqual({ ok: false, error: "city_too_long" });
   });
 });
