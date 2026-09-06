@@ -18,10 +18,7 @@ export type ChangeVenueStatusResult =
   | { readonly ok: true; readonly revision: number }
   | {
       readonly ok: false;
-      readonly error:
-        | VenueTransitionError
-        | VenueRevisionError
-        | "persistence_failed";
+      readonly error: VenueTransitionError | VenueRevisionError | "persistence_failed";
     };
 
 export async function changeVenueStatus(
