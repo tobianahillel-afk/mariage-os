@@ -34,7 +34,6 @@ export const protectedVenueStatuses = [
 ] as const;
 
 export type VenueStatus = (typeof venueStatuses)[number];
-export type ProtectedVenueStatus = (typeof protectedVenueStatuses)[number];
 
 export type VenueTransitionError =
   | "unknown_status"
