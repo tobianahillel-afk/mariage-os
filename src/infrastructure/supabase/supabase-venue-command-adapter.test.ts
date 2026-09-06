@@ -80,7 +80,7 @@ function createInput() {
   } as const;
 }
 
-describe("SupabaseVenueCommandAdapter create", () => {
+describe("SupabaseVenueCommandAdapter create success", () => {
   it("creates through the safe granted field set", async () => {
     const captures = emptyCaptures();
     const adapter = adapterWith(
@@ -115,7 +115,9 @@ describe("SupabaseVenueCommandAdapter create", () => {
       select: "id,project_id,status,revision",
     });
   });
+});
 
+describe("SupabaseVenueCommandAdapter create failures", () => {
   it("does not expose provider creation errors", async () => {
     const providerError = { message: "sensitive provider detail" };
     const adapter = adapterWith({ data: null, error: providerError });
