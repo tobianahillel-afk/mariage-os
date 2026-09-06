@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.3`
 - Lot: `2`
 - Name: Fact definitions, typed retained facts and value validation
-- State: `REVIEW_PENDING`
-- Current pass: `B-ADVERSARIAL-REVIEW`
+- State: `REVIEW_FAILED`
+- Current pass: `B-ADVERSARIAL-REVIEW — FAILED; remediation next`
 - Primary bounded context: `facts` for Venue targets
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Dependencies: `WP-2.1 ACCEPTED`, `WP-2.2 ACCEPTED`
@@ -169,56 +169,64 @@ Dependency audit still reports the previously reviewed two Moderate transitive d
 - [x] unknown/false/not-applicable/conflict distinctions directly tested
 - [x] same-project/RLS/direct-RPC matrix green
 - [x] system-defined semantic repurpose is denied
-- [x] provider parsers fail closed
+- [x] provider parsers fail closed against the Pass-A cases
 - [x] exact-head CI is 5/5 green including clean-checkout `npm run verify`
 - [x] no WP-2.4/WP-2.5 behavior leaked into packet
 - [x] packet moved to `REVIEW_PENDING` for fresh Pass B
 
 ## Pass B — ADVERSARIAL REVIEW
 
-State: **next/running from `REVIEW_PENDING`**. No Pass-B decision is recorded yet.
+Fresh adversarial review reconstructed the packet from the normative Facts, security, repository/service and error contracts rather than relying on Pass A conclusions.
 
-Fresh review must reconstruct the packet from normative contracts rather than rely on Pass A conclusions and attack at least:
+### Findings
 
-- malformed JSON and wrong value type;
-- `unknown` disguised as null/false/string sentinel;
-- non-finite/out-of-bound/integer violations;
-- money float/lowercase/bad canonical currency representation/unsafe integer;
-- date/time/day-offset invalid calendar/clock values;
-- unsafe URL schemes and unintended canonical URL drift;
-- select unknown option and multiselect duplicates/order instability;
-- definition metadata/rule mismatch, including whether rule thresholds outside definition bounds are a valid unsatisfiable rule or a configuration error under the frozen contract;
-- `custom_manual_assessment` storage-vs-execution boundary without inventing the still-unfrozen acceptable-value representation;
-- system-defined key/type/rule repurpose;
-- stale retained-fact/definition overwrite and first-create/update revision semantics;
-- project-B Venue/definition injection;
-- viewer/outsider/revoked/anon mutation/read leakage;
-- client audit/revision/project identity spoofing;
-- provider responses that are canonical in shape but do not correspond to the requested command identity/semantics;
-- generic provider failure translation against the repository error contract, while avoiding an unjustified cross-packet refactor;
-- premature observation/evidence/scoring behavior.
+| Severity | Finding | Required remediation | State |
+|---|---|---|---|
+| MAJOR `WP2.3-B-001` | Numeric definition metadata can contradict the canonical value domain. `duration`/`distance` accept `integer:false` even though their retained representation is always an integer; integer-constrained number/rating/duration/distance definitions can also accept bounds whose interval contains no canonical safe integer, and default rating/non-negative quantity bounds can be made internally unsatisfiable. Such a definition can be accepted while no `known` retained value can ever satisfy it. | Make metadata validation type-aware in TypeScript and PostgreSQL; reject contradictory integer flags and bound sets that have no representable canonical value. Add parity/regression tests. | **OPEN** |
+| MAJOR `WP2.3-B-002` | Multiselect canonical ordering is currently definition-order based while custom definition option order is mutable. Reordering otherwise identical options can therefore change the canonical order contract without re-canonicalizing existing retained facts, leaving stored canonical truth dependent on historical option order. | Move canonical multiselect retained values to stable key ordering independent of mutable display/definition order, with matching TS/PostgreSQL canonicalization and regression tests covering option reorder. | **OPEN** |
+| MAJOR `WP2.3-B-003` | Bounded string validation is not fully parity-safe for Unicode: TypeScript `.length` counts UTF-16 code units while PostgreSQL `char_length` counts characters. Direct DB/RPC mutation can therefore accept a label/text/URL/metadata string that the TypeScript/provider boundary rejects later. | Use one explicit Unicode-code-point length rule in TypeScript matching PostgreSQL character semantics for all WP-2.3 bounded human/URL strings; add boundary tests at the exact limits. | **OPEN** |
+| MAJOR `WP2.3-B-004` | PostgreSQL URL validation is regex-only and is not a guaranteed subset of the standards parser used by TypeScript. Concrete strings such as numeric-TLD/invalid-IDNA host forms can pass the SQL host regex while `new URL(...)` rejects them, allowing direct RPC persistence of a URL the provider parser cannot subsequently accept. | Freeze a conservative canonical external-host grammar that is demonstrably accepted by the standards parser, implement the same subset in SQL and TS, reject control-character ambiguity, and add exact regression/parity cases. | **OPEN** |
+| MAJOR `WP2.3-B-005` | Application/provider failures collapse to generic `persistence_failed`; stale revision (`40001`), authorization/policy denial (`42501`), validation/integrity failures and network/backend failure are not distinguishable at the Facts service boundary despite the normative repository/error contract. DB safety prevents overwrite, but conflict/retry/auth handling cannot be correct above the adapter. | Introduce a scoped typed Facts persistence error taxonomy and safe provider-code mapping; preserve domain validation errors while distinguishing at least conflict, authorization/policy, backend-unavailable and data-integrity/provider-response failure. Add adapter/service tests without exposing raw backend errors. | **OPEN** |
+| MINOR `WP2.3-B-006` | Two simultaneous first creates of the same retained Venue fact can race to the uniqueness constraint; the loser can surface as a constraint conflict rather than the same stale-revision path used after a row exists. The race is non-destructive and cannot overwrite newer truth. | Normalize the uniqueness result to the scoped conflict category while remediating B-005; no schema redesign required. | **OPEN** |
+| MINOR `WP2.3-B-007` | Some normalized nested JSON values/rules retain mutable nested references. PostgreSQL revalidation prevents this from bypassing canonical cloud persistence in WP-2.3, and local/offline persistence is out of scope, but the normalized domain object is not deeply immutable at runtime. | Either copy/freeze nested canonical JSON in the scoped remediation or explicitly carry this into WP-2.10 local/offline hardening if no current mutation path remains. | **OPEN** |
+
+### Review checks already completed
+
+- [x] all 12 value types attacked beyond happy paths
+- [x] explicit state/sentinel behavior reviewed
+- [x] definition options and evaluation-rule structure attacked
+- [x] stale revision and first-create concurrency semantics reviewed
+- [x] cross-project/RLS/direct-RPC/grant/`SECURITY DEFINER` boundaries reviewed
+- [x] system-defined repurpose boundary reviewed
+- [x] provider identity/shape revalidation reviewed
+- [x] TypeScript/PostgreSQL canonical parity attacked rather than inferred from coverage
+- [x] error/retry/conflict contract reviewed
+- [x] WP-2.4/WP-2.5 leakage reviewed
+
+Pass B decision: **FAIL — unresolved MAJOR findings exist.** Per `AI-LOT-ORCHESTRATION.md`, packet state is `REVIEW_FAILED`; remediation is the only permitted next action. Any affected verification must be rerun before a new fresh Pass B.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started. Entry requires fresh Pass B PASS with no unresolved BLOCKING/MAJOR finding.
+Not started. Entry requires a later fresh Pass B PASS with no unresolved BLOCKING/MAJOR finding.
 
 | Responsibility | Expected | Implemented evidence | Verified evidence | Result |
 |---|---|---|---|---|
-| definitions | project-scoped typed Venue definition metadata and protected system semantics | Pass-A implementation above | exact-head CI + unit/provider + pgTAP | pending Pass B/C |
-| retained states | explicit known/unknown/not_applicable/conflict with no sentinel collapse | retained-fact domain/service + DB command | unit + pgTAP state/value tests | pending Pass B/C |
-| typed values | all frozen V1 value shapes/bounds validated before persistence | TS normalizers + PostgreSQL validators | 669 unit tests + 553 pgTAP suite | pending Pass B/C |
-| same-project/authz | Venue target+definition integrity and inherited venue permissions | same-project FK/RLS/RPC | direct owner/editor/viewer/anon/outsider/project-B/revoked tests | pending Pass B/C |
-| architecture | domain/application/provider boundaries with fail-closed parsing | ports/services/adapters/parsers | static/architecture gates + malformed provider tests | pending Pass B/C |
+| definitions | project-scoped typed Venue definition metadata and protected system semantics | Pass-A implementation above | exact-head CI + unit/provider + pgTAP | **REVIEW FAILED — B-001** |
+| retained states | explicit known/unknown/not_applicable/conflict with no sentinel collapse | retained-fact domain/service + DB command | unit + pgTAP state/value tests | pending remediation/re-review |
+| typed values | all frozen V1 value shapes/bounds validated before persistence | TS normalizers + PostgreSQL validators | Pass-A unit/pgTAP | **REVIEW FAILED — B-002/B-003/B-004** |
+| same-project/authz | Venue target+definition integrity and inherited venue permissions | same-project FK/RLS/RPC | direct security matrix | PASS in reviewed scope; reverify after remediation |
+| architecture | domain/application/provider boundaries with fail-closed parsing | ports/services/adapters/parsers | static gates + malformed provider tests | **REVIEW FAILED — B-005** |
 
-Final packet decision: `REVIEW_PENDING`.
+Final packet decision: `REVIEW_FAILED`.
 
 ## Handoff
 
-- Current state: `REVIEW_PENDING`
-- Current/next pass: `B-ADVERSARIAL-REVIEW`
+- Current state: `REVIEW_FAILED`
+- Current/next pass: **remediation of `WP2.3-B-001..005` MAJOR findings plus scoped MINOR fixes**
 - Accepted prerequisites: `WP-2.1`, `WP-2.2`
 - Reviewed Pass-A implementation head: `e209d5d33ef2ec5c535121caf9e2e066012f4de8`
-- Exact Pass-A verification: run `34062811901` — **5/5 SUCCESS**, clean-checkout `npm run verify` PASS
-- Open WP-2.3 BLOCKING/MAJOR findings: none recorded yet; fresh Pass B decision pending
+- Pass-A verification invalidated for acceptance by fresh Pass-B findings; historical run `34062811901` remains recorded as the pre-review 5/5 baseline
+- Open WP-2.3 BLOCKING/MAJOR findings: `WP2.3-B-001`, `WP2.3-B-002`, `WP2.3-B-003`, `WP2.3-B-004`, `WP2.3-B-005`
+- Open MINOR findings: `WP2.3-B-006`, `WP2.3-B-007`
 - Recorded downstream spec stop-condition: before WP-2.5 executes/seeds `custom_manual_assessment`, freeze its configured acceptable-value representation; do not invent it in WP-2.3
-- Next permitted action: **fresh WP-2.3 Pass B only; do not start WP-2.4 concurrently**
+- Next permitted action: **transition to `IN_PROGRESS` when remediation begins, fix WP-2.3 findings only, rerun exact-head verification, then perform a new fresh Pass B; do not start WP-2.4**
