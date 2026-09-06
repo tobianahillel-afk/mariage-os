@@ -7,14 +7,14 @@ describe("compareVenueCodes", () => {
     expect(values.sort(compareVenueCodes)).toEqual(["P1", "P2", "P10"]);
   });
 
-  it("normalizes whitespace and case", () => {
+  it("normalizes whitespace, case and numeric padding", () => {
     expect(compareVenueCodes(" s02 ", "S2")).toBeGreaterThan(0);
     expect(compareVenueCodes("s2", "S2")).toBe(0);
   });
 
-  it("orders numeric parts before textual parts at the same position", () => {
-    expect(compareVenueCodes("P2", "PA")).toBeLessThan(0);
-    expect(compareVenueCodes("PA", "P2")).toBeGreaterThan(0);
+  it("orders numeric parts before textual parts", () => {
+    expect(compareVenueCodes("2A", "A2")).toBeLessThan(0);
+    expect(compareVenueCodes("A2", "2A")).toBeGreaterThan(0);
   });
 
   it("uses the remaining part count when a prefix is otherwise equal", () => {
@@ -28,7 +28,7 @@ describe("compareVenueCodes", () => {
     expect(compareVenueCodes("   ", null)).toBe(0);
   });
 
-  it("keeps prefix ordering deterministic", () => {
+  it("keeps textual prefix ordering deterministic", () => {
     expect(compareVenueCodes("P2", "S2")).toBeLessThan(0);
   });
 });

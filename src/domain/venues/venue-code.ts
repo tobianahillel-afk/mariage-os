@@ -12,7 +12,7 @@ function normalizedVenueCode(value: string | null): string | null {
 }
 
 function codeParts(value: string): readonly CodePart[] {
-  return (value.match(CODE_PART_PATTERN) ?? []).map((text) => {
+  return value.match(CODE_PART_PATTERN)!.map((text) => {
     const number = /^\d+$/.test(text) ? Number(text) : null;
     return { text, number };
   });
@@ -41,10 +41,7 @@ export function compareVenueCodes(
   const rightParts = codeParts(normalizedRight);
   const sharedLength = Math.min(leftParts.length, rightParts.length);
   for (let index = 0; index < sharedLength; index += 1) {
-    const leftPart = leftParts[index];
-    const rightPart = rightParts[index];
-    if (leftPart === undefined || rightPart === undefined) break;
-    const compared = comparePart(leftPart, rightPart);
+    const compared = comparePart(leftParts[index]!, rightParts[index]!);
     if (compared !== 0) return compared;
   }
   return leftParts.length - rightParts.length;
