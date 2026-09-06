@@ -66,7 +66,10 @@ describe("fact definition normalization", () => {
     const maximum = "😀".repeat(240);
     const oversized = "😀".repeat(241);
     const valid = normalizeFactDefinition({ ...validDraft, label: maximum });
-    const invalid = normalizeFactDefinition({ ...validDraft, label: oversized });
+    const invalid = normalizeFactDefinition({
+      ...validDraft,
+      label: oversized,
+    });
 
     expect(valid.ok).toBe(true);
     expect(invalid.ok).toBe(false);
