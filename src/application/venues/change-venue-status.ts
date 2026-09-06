@@ -15,9 +15,7 @@ export interface ChangeVenueStatusInput {
 }
 
 type ChangeVenueStatusError =
-  | VenueTransitionError
-  | VenueRevisionError
-  | "persistence_failed";
+  VenueTransitionError | VenueRevisionError | "persistence_failed";
 
 export type ChangeVenueStatusResult =
   | { readonly ok: true; readonly revision: number }
