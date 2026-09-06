@@ -5,11 +5,13 @@
 - Work Packet ID: `WP-2.2`
 - Lot: `2`
 - Name: Spaces, capacity and member ratings/preferences
-- State: `IN_PROGRESS`
-- Current pass: `A-IMPLEMENT`
+- State: `ACCEPTED`
+- Current pass: `COMPLETE`
 - Primary bounded context: `venues` + generic member-opinion persistence used for Venue targets
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Dependency: `WP-2.1 ACCEPTED`
+- Reviewed implementation head: `241daa01e069a6cbaec4d0ebc09ddf5ca982a385`
+- Exact implementation CI: run `34046985956` — **5/5 SUCCESS**, including clean-checkout `npm run verify`
 
 ## Scope
 
@@ -19,7 +21,7 @@
 - `FTR-023` — Individual partner favorites/ratings/preferences.
 - `FTR-012` — only the Lot-2 continuation needed for member-scoped Venue preference/read-model foundations. Cross-device table/gallery layout preferences remain owned by WP-2.11 and reuse the already accepted `user_project_preferences` foundation rather than introducing a second UI-preference store.
 
-### Current-lot responsibilities covered
+### Current-lot responsibilities accepted here
 
 - persist multiple physical spaces per Venue with independent geometry, physical type/context, indoor/outdoor state, seated/cocktail capacities, sort order and notes;
 - distinguish space-level commercial capacity from whole-Venue marketing capacity and from later couple-specific compatibility/suitability results;
@@ -31,6 +33,7 @@
 - make member-authored preference/rating writes derive the author from `auth.uid()` rather than trusting client-supplied identity;
 - allow partner rating visibility where the Venue product requires both-partner summaries while preventing cross-member writes;
 - keep personal note/favorite row private to its owning member by default; later UI may expose a safe favorite summary without exposing private personal notes;
+- reject space measurements that cannot be represented exactly by `numeric(10,2)` and align TypeScript/provider validation with PostgreSQL `integer` bounds;
 - add direct authorization evidence for anon/outsider/project-B/revoked/viewer/member-impersonation/cross-project-target cases;
 - provide domain/application/infrastructure ports/parsers for later UI/local-first packets without UI or IndexedDB implementation here.
 
@@ -86,73 +89,130 @@ This preserves the frozen Facts/Criteria architecture and avoids duplicating sou
 
 Cohesion rationale: the packet deliberately joins physical Venue-space persistence with the first personal Venue-opinion tables because both are direct dependencies of the later Venue detail/compare workspace and both require the same project-scoped Venue target boundary. The personal-opinion security rules remain isolated in their own tables/commands rather than being mixed into shared Venue facts.
 
-## Expected vertical slice
-
-- domain: space input/range validation; controlled rating dimension/range validation; revision validation reuse;
-- application: project-scoped space repository/commands and self-authored Venue preference/rating ports;
-- infrastructure: Supabase adapters with strict response parsing and no trusted client author ID;
-- cloud persistence: `venue_spaces`, `member_entity_preferences`, `member_ratings` with same-project target validation/RLS/grants;
-- security: direct allow/deny tests including partner impersonation, cross-project Venue target, viewer, outsider and revoked membership;
-- local/offline: no new IndexedDB schema or queue in this packet;
-- UI: no Venue screen accepted in this packet;
-- import/export: no import semantics; generic target schema remains forward-compatible.
-
 ## Pass A — IMPLEMENT
 
-Implementation evidence: **in progress**.
+### Implementation evidence
 
-Planned evidence before Pass A exit:
+Domain/application:
 
-- migration(s) implementing the three frozen table contracts and narrow mutation boundaries;
-- direct pgTAP matrix for spaces and member opinions;
-- domain/application/infrastructure tests including malformed provider responses and member-identity spoof attempts;
-- mandatory static/type/coverage gates;
-- exact-head CI including clean-checkout `npm run verify`.
+- `src/domain/venues/venue-space.ts` + tests — physical-space validation, exact `numeric(10,2)` representation, PostgreSQL `int32` capacity/sort bounds and normalization;
+- `src/domain/venues/venue-member-opinion.ts` + tests — five controlled rating dimensions, 0..10/two-decimal ratings, private-note and expected-revision validation;
+- `src/application/venues/venue-space-service.ts` + tests — project-scoped space create/update boundary with stale-write semantics;
+- `src/application/venues/venue-member-opinion-service.ts` + tests — self-authored favorite/note/rating application boundary without client author identity.
 
-### Pass A exit gate
+Infrastructure:
 
-- [ ] intended vertical slice exists
-- [ ] applicable tests written
-- [ ] exact-head CI green
-- [ ] no known untracked stub/TODO
-- [ ] packet moved to `REVIEW_PENDING`
-- [ ] next pass recorded as `B-ADVERSARIAL-REVIEW`
+- `src/infrastructure/supabase/supabase-venue-space-adapter.ts` + tests — narrow space RPC adapter and project/Venue-bound response handling;
+- `src/infrastructure/supabase/parse-venue-space-row.ts` + tests — strict provider validation reusing the same physical representation rules as the domain;
+- `src/infrastructure/supabase/supabase-venue-member-opinion-adapter.ts` + tests — Venue-only member-opinion commands and reads;
+- `src/infrastructure/supabase/parse-venue-member-opinion-row.ts` + tests — UUID/project/user/target/dimension/range/revision response validation.
+
+Migrations/schema:
+
+- `supabase/migrations/20260906145000_create_venue_spaces_member_opinions.sql` — `venue_spaces`, `member_entity_preferences`, `member_ratings`, same-project target validation, RLS/grants and narrow RPCs;
+- `supabase/migrations/20260906161500_harden_venue_rating_precision.sql` — direct-RPC two-decimal rating validation;
+- `supabase/migrations/20260906170000_harden_venue_space_numeric_validation.sql` — direct-RPC exact `numeric(10,2)` validation preventing silent rounding/overflow.
+
+DB/security evidence includes the direct WP-2.2 RLS/command matrix plus `supabase/tests/venue_space_numeric_validation_test.sql` for exact precision/overflow behavior.
+
+### Pass A exit
+
+- [x] intended vertical slice exists
+- [x] applicable tests written
+- [x] exact reviewed-head CI green
+- [x] no known untracked stub/TODO in packet scope
+- [x] implementation reviewed on a fixed exact head
+- [x] packet proceeded to fresh Pass B
 
 ## Pass B — ADVERSARIAL REVIEW
 
-Not started. Must be fresh after Pass-A implementation and exact-head verification.
+### Finding and remediation
 
-Review will specifically attempt:
+| Severity | Finding | Resolution | Final state |
+|---|---|---|---|
+| MAJOR `WP2.2-B-001` | Space measurements/capacities were not consistently constrained to the exact PostgreSQL representation at every boundary. In particular, values with more than two decimals could reach `numeric(10,2)` and be rounded silently, and TypeScript/provider integer validation was broader than PostgreSQL `integer`. | Added canonical domain validators for `numeric(10,2)` measurements and PostgreSQL int32 capacities/sort order; reused them in provider parsing; hardened create/update RPCs against over-precision/overflow; added direct pgTAP proving rejected writes leave canonical value and revision unchanged. | **RESOLVED** |
 
-- cross-project `venue_id` injection;
-- direct `project_id`, audit or revision mutation;
-- viewer write / outsider / revoked / project-B access;
-- member A writing B's favorite/note/rating;
-- leaking another member's private personal note;
-- arbitrary rating-dimension proliferation;
-- stale space/opinion overwrite;
-- malformed/negative/overflow geometry and capacity;
-- accidental conversion of personal ratings into shared factual compatibility;
-- architecture drift or premature UI/local-sync behavior.
+### Final adversarial re-review
+
+Fresh re-review was performed against `241daa01e069a6cbaec4d0ebc09ddf5ca982a385` after B-001 remediation and exact-head verification.
+
+Checks performed:
+
+- [x] cross-project `venue_id` injection searched
+- [x] direct `project_id`, audit and revision mutation searched
+- [x] viewer/outsider/revoked/project-B write/read boundaries searched
+- [x] member A writing member B preference/rating searched
+- [x] another member's private personal note leakage searched
+- [x] arbitrary rating-dimension proliferation searched
+- [x] stale space/opinion overwrite searched
+- [x] malformed/negative/overflow/over-precision geometry and capacity searched
+- [x] provider-response representation mismatch searched
+- [x] personal rating → shared factual compatibility leakage searched
+- [x] architecture/provider-layer drift searched
+- [x] premature UI/local-sync completion searched
+- [x] real/private wedding data leakage searched
+
+Fresh Pass B decision: **PASS** — no unresolved BLOCKING or MAJOR finding.
+
+Non-blocking observation retained for later hardening: two simultaneous first creates of the same member preference/rating can race to the uniqueness constraint, so the losing write may surface as a uniqueness failure rather than the normalized stale/conflict error used after a row exists. This is non-destructive: no overwrite, impersonation or data loss occurs. It is not a WP-2.2 acceptance blocker.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started. Entry requires fresh Pass B `PASS` with no unresolved BLOCKING/MAJOR finding.
+### Entry gate
+
+- [x] packet entered Pass C from fresh Pass B PASS
+- [x] no unresolved BLOCKING/MAJOR finding exists
+- [x] exact reviewed implementation head has full CI evidence
 
 | Responsibility | Expected | Implemented evidence | Verified evidence | Result |
 |---|---|---|---|---|
-| spaces/capacity | independent physical spaces, geometry/capacity, same-project integrity | pending | pending | pending |
-| collaborative safety | revisioned edits with stale-write protection | pending | pending | pending |
-| member favorite/note | self-authored Venue preference row, private note | pending | pending | pending |
-| member ratings | controlled dimensions, partner-readable where required, author-only write | pending | pending | pending |
-| authorization/architecture | explicit grants/RLS/direct deny + layered ports/adapters | pending | pending | pending |
+| spaces/capacity | independent physical spaces, geometry/capacity and same-project integrity | `venue_spaces`, domain normalizer, service/port and Supabase adapter | unit/provider tests + direct pgTAP including precision/overflow and project isolation | **PASS** |
+| collaborative safety | revisioned edits with stale-write protection and no silent numeric transformation | expected-revision service/RPC + audit/revision trigger + exact numeric hardening | stale-write tests + rejected over-precision update leaves value/revision unchanged | **PASS** |
+| member favorite/note | self-authored Venue preference row with private personal note | `member_entity_preferences` + self-authored command/adapter | self-only RLS, impersonation/project isolation and service/parser tests | **PASS** |
+| member ratings | five controlled dimensions, partner-readable where required, author-only write | `member_ratings` + rating domain/service/adapter + precision hardening | partner-independence, author-only mutation, dimension/range/precision tests | **PASS** |
+| authorization/architecture | explicit grants/RLS/direct deny and layered ports/adapters | table grants/RLS, Venue-target trigger, `SECURITY DEFINER` commands, strict parsers | pgTAP security matrix + typecheck/static/dependency-cruiser/Knip + adapter tests | **PASS** |
 
-Final packet decision: `IN_PROGRESS`.
+### Exact reviewed-head evidence
+
+GitHub Actions run `34046985956` on `241daa01e069a6cbaec4d0ebc09ddf5ca982a385`:
+
+- **Core quality and security: SUCCESS**
+  - **47 test files / 473 tests PASS**;
+  - measured in-scope coverage **100% statements / branches / functions / lines**;
+  - typecheck, Prettier, ESLint, dependency-cruiser, Knip, marker and negative controls PASS;
+- **Local Supabase DB and RLS: SUCCESS**
+  - **20 files / 442 pgTAP tests PASS**;
+  - includes direct Venue-space/member-opinion authorization and numeric precision/overflow evidence;
+- **Browser and mutation harnesses: SUCCESS**
+  - **40/40 Playwright E2E PASS** across Chromium, Firefox, WebKit and mobile Chromium;
+  - mutation harness PASS under the repository's configured scope;
+- **Privacy-safe preview artifact: SUCCESS**;
+- **Full verify from clean checkout: SUCCESS** with `npm run verify`.
+
+Known dependency-audit output remains the previously reviewed two Moderate transitive `qs` development-tool advisories. No Critical/High accepted-known vulnerability is introduced by WP-2.2.
+
+### Acceptance checks
+
+- [x] all packet responsibilities reconciled
+- [x] FIR-equivalent durable record complete
+- [x] automated/security evidence green
+- [x] no BLOCKING/MAJOR finding open
+- [x] architecture/complexity/static gates green
+- [x] no false claim of UI/offline/criteria completion
+- [x] downstream prerequisites clearly recorded
+
+Required WP-2.2 responsibilities minus accepted/evidenced WP-2.2 responsibilities: **∅**.
+
+Final packet decision: **`ACCEPTED`**.
 
 ## Handoff
 
-- Current state: `IN_PROGRESS`
-- Current pass: `A-IMPLEMENT`
-- Accepted prerequisites: `WP-2.1`
-- Open BLOCKING/MAJOR findings: none yet; Pass B not started
-- Next permitted action: implement WP-2.2 only; do not start WP-2.3 concurrently
+- Current state: `ACCEPTED`
+- Current/next pass: `COMPLETE`
+- Reviewed implementation head: `241daa01e069a6cbaec4d0ebc09ddf5ca982a385`
+- Exact implementation verification: run `34046985956` — **5/5 SUCCESS**, clean-checkout verify PASS
+- Open WP-2.2 BLOCKING/MAJOR findings: **none**
+- Accepted responsibility gap: **∅**
+- Non-blocking observation: first-create uniqueness race may not normalize to the same conflict code as an existing-row stale write; no destructive behavior observed
+- Next permitted packet: **WP-2.3 — Fact definitions, typed retained facts and value validation**
+- WP-2.3 must keep personal opinions separate from shared facts and must not implement observations/sources/criteria early.
