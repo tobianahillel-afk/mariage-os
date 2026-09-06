@@ -56,7 +56,9 @@ export interface VenueMemberOpinionPort {
   saveVenuePreference(
     input: SaveVenueMemberPreferenceInput,
   ): Promise<VenueMemberPreferenceRecord>;
-  saveVenueRating(input: SaveVenueMemberRatingInput): Promise<VenueMemberRatingRecord>;
+  saveVenueRating(
+    input: SaveVenueMemberRatingInput,
+  ): Promise<VenueMemberRatingRecord>;
 }
 
 export interface SaveVenuePreferenceDraft extends VenueMemberPreferenceDraft {
