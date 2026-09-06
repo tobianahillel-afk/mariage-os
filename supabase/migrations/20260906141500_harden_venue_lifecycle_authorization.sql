@@ -123,7 +123,7 @@ begin
     raise exception 'venue transition unavailable' using errcode = '22023';
   end if;
 
-  if target_status not in (
+  if target_status is null or target_status not in (
     'research', 'shortlist', 'reserve', 'contacted', 'quote_requested',
     'quote_received', 'visit_planned', 'visited', 'reviewed', 'finalist',
     'option_held', 'rejected', 'unavailable', 'withdrawn', 'paused'
