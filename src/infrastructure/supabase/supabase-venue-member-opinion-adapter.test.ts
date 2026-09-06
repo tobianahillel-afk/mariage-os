@@ -123,7 +123,44 @@ function resultsWith(overrides: Partial<Results> = {}): Results {
   };
 }
 
-describe("SupabaseVenueMemberOpinionAdapter reads", () => {
+const unsafeReadCases = [
+  { key: "preference", value: { data: null, error: { message: "denied" } } },
+  {
+    key: "preference",
+    value: {
+      data: { ...preferenceRow, project_id: otherProjectId },
+      error: null,
+    },
+  },
+  { key: "ratings", value: { data: null, error: null } },
+  {
+    key: "ratings",
+    value: {
+      data: [{ ...ratingA, dimension_key: "typo_score" }],
+      error: null,
+    },
+  },
+] as const;
+
+const unsafeMutationCases = [
+  {
+    key: "savePreference",
+    value: { data: null, error: { message: "denied" } },
+  },
+  {
+    key: "savePreference",
+    value: {
+      data: { ...preferenceRow, project_id: otherProjectId },
+      error: null,
+    },
+  },
+  {
+    key: "saveRating",
+    value: { data: { ...ratingA, rating: 4.555 }, error: null },
+  },
+] as const;
+
+describe("SupabaseVenueMemberOpinionAdapter preference reads", () => {
   it("gets only the RLS-visible own preference with project/venue filters", async () => {
     const captures = emptyCaptures();
     const adapter = new SupabaseVenueMemberOpinionAdapter(
@@ -151,7 +188,9 @@ describe("SupabaseVenueMemberOpinionAdapter reads", () => {
       adapter.getOwnVenuePreference(projectId, venueId),
     ).resolves.toBeNull();
   });
+});
 
+describe("SupabaseVenueMemberOpinionAdapter rating reads", () => {
   it("lists independent partner ratings", async () => {
     const adapter = new SupabaseVenueMemberOpinionAdapter(
       clientWith(resultsWith(), emptyCaptures()),
@@ -160,25 +199,10 @@ describe("SupabaseVenueMemberOpinionAdapter reads", () => {
     expect(ratings.map((item) => item.rating)).toEqual([9, 6]);
     expect(ratings.map((item) => item.userId)).toEqual([userA, userB]);
   });
+});
 
-  it.each([
-    { key: "preference", value: { data: null, error: { message: "denied" } } },
-    {
-      key: "preference",
-      value: {
-        data: { ...preferenceRow, project_id: otherProjectId },
-        error: null,
-      },
-    },
-    { key: "ratings", value: { data: null, error: null } },
-    {
-      key: "ratings",
-      value: {
-        data: [{ ...ratingA, dimension_key: "typo_score" }],
-        error: null,
-      },
-    },
-  ] as const)(
+describe("SupabaseVenueMemberOpinionAdapter unsafe reads", () => {
+  it.each(unsafeReadCases)(
     "fails closed for unsafe read response %#",
     async ({ key, value }) => {
       const adapter = new SupabaseVenueMemberOpinionAdapter(
@@ -195,7 +219,7 @@ describe("SupabaseVenueMemberOpinionAdapter reads", () => {
   );
 });
 
-describe("SupabaseVenueMemberOpinionAdapter writes", () => {
+describe("SupabaseVenueMemberOpinionAdapter preference writes", () => {
   it("saves preference without accepting an author id", async () => {
     const captures = emptyCaptures();
     const adapter = new SupabaseVenueMemberOpinionAdapter(
@@ -218,7 +242,9 @@ describe("SupabaseVenueMemberOpinionAdapter writes", () => {
     });
     expect(captures.rpc).not.toHaveProperty("user_id");
   });
+});
 
+describe("SupabaseVenueMemberOpinionAdapter rating writes", () => {
   it("saves rating through the self-authored RPC", async () => {
     const captures = emptyCaptures();
     const adapter = new SupabaseVenueMemberOpinionAdapter(
@@ -241,24 +267,10 @@ describe("SupabaseVenueMemberOpinionAdapter writes", () => {
     });
     expect(captures.rpc).not.toHaveProperty("user_id");
   });
+});
 
-  it.each([
-    {
-      key: "savePreference",
-      value: { data: null, error: { message: "denied" } },
-    },
-    {
-      key: "savePreference",
-      value: {
-        data: { ...preferenceRow, project_id: otherProjectId },
-        error: null,
-      },
-    },
-    {
-      key: "saveRating",
-      value: { data: { ...ratingA, rating: 4.555 }, error: null },
-    },
-  ] as const)(
+describe("SupabaseVenueMemberOpinionAdapter unsafe writes", () => {
+  it.each(unsafeMutationCases)(
     "fails closed for unsafe mutation response %#",
     async ({ key, value }) => {
       const adapter = new SupabaseVenueMemberOpinionAdapter(

@@ -15,7 +15,7 @@ describe("venue rating dimensions", () => {
   });
 });
 
-describe("normalizeVenueMemberPreference", () => {
+describe("normalizeVenueMemberPreference normalization", () => {
   it("normalizes a private member preference", () => {
     expect(
       normalizeVenueMemberPreference({
@@ -67,7 +67,9 @@ describe("normalizeVenueMemberPreference", () => {
       });
     },
   );
+});
 
+describe("normalizeVenueMemberPreference validation", () => {
   it("rejects oversized private notes", () => {
     expect(
       normalizeVenueMemberPreference({

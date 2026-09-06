@@ -24,7 +24,35 @@ const validRow = {
   revision: 2,
 };
 
-describe("parseVenueSpaceRow", () => {
+const malformedRows = [
+  42,
+  null,
+  [],
+  { ...validRow, project_id: 7 },
+  { ...validRow, project_id: "not-a-uuid" },
+  { ...validRow, project_id: otherProjectId },
+  { ...validRow, venue_id: "not-a-uuid" },
+  { ...validRow, venue_id: otherVenueId },
+  { ...validRow, id: "not-a-uuid" },
+  { ...validRow, name: 7 },
+  { ...validRow, name: "   " },
+  { ...validRow, name: "x".repeat(161) },
+  { ...validRow, space_type: "   " },
+  { ...validRow, space_type: "x".repeat(81) },
+  { ...validRow, indoor: "yes" },
+  { ...validRow, area_m2: "300" },
+  { ...validRow, area_m2: Number.NaN },
+  { ...validRow, area_m2: 0 },
+  { ...validRow, capacity_seated: 1.5 },
+  { ...validRow, capacity_seated: -1 },
+  { ...validRow, sort_order: 1.5 },
+  { ...validRow, notes: 7 },
+  { ...validRow, notes: "x".repeat(5_001) },
+  { ...validRow, revision: 1.5 },
+  { ...validRow, revision: 0 },
+] as const;
+
+describe("parseVenueSpaceRow valid responses", () => {
   it("maps a project-bound Venue space response", () => {
     expect(parseVenueSpaceRow(validRow, projectId, venueId)).toEqual({
       id: validRow.id,
@@ -63,34 +91,10 @@ describe("parseVenueSpaceRow", () => {
     expect(parsed.capacitySeated).toBeNull();
     expect(parsed.notes).toBeNull();
   });
+});
 
-  it.each([
-    42,
-    null,
-    [],
-    { ...validRow, project_id: 7 },
-    { ...validRow, project_id: "not-a-uuid" },
-    { ...validRow, project_id: otherProjectId },
-    { ...validRow, venue_id: "not-a-uuid" },
-    { ...validRow, venue_id: otherVenueId },
-    { ...validRow, id: "not-a-uuid" },
-    { ...validRow, name: 7 },
-    { ...validRow, name: "   " },
-    { ...validRow, name: "x".repeat(161) },
-    { ...validRow, space_type: "   " },
-    { ...validRow, space_type: "x".repeat(81) },
-    { ...validRow, indoor: "yes" },
-    { ...validRow, area_m2: "300" },
-    { ...validRow, area_m2: Number.NaN },
-    { ...validRow, area_m2: 0 },
-    { ...validRow, capacity_seated: 1.5 },
-    { ...validRow, capacity_seated: -1 },
-    { ...validRow, sort_order: 1.5 },
-    { ...validRow, notes: 7 },
-    { ...validRow, notes: "x".repeat(5_001) },
-    { ...validRow, revision: 1.5 },
-    { ...validRow, revision: 0 },
-  ] as const)("fails closed for malformed response %#", (row) => {
+describe("parseVenueSpaceRow invalid responses", () => {
+  it.each(malformedRows)("fails closed for malformed response %#", (row) => {
     expect(() => parseVenueSpaceRow(row, projectId, venueId)).toThrow(
       "Invalid venue space response.",
     );

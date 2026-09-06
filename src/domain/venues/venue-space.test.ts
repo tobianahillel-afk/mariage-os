@@ -15,7 +15,32 @@ const fullDraft = {
   notes: "  Main dinner room  ",
 } as const;
 
-describe("normalizeVenueSpaceDraft", () => {
+const invalidRequiredTextCases = [
+  [{ ...fullDraft, name: "   " }, "name_required"],
+  [{ ...fullDraft, name: "x".repeat(161) }, "name_too_long"],
+  [{ ...fullDraft, spaceType: "   " }, "space_type_required"],
+  [{ ...fullDraft, spaceType: "x".repeat(81) }, "space_type_too_long"],
+] as const;
+
+const invalidMeasurementCases = [
+  [{ ...fullDraft, areaM2: Number.NaN }, "measurement_invalid"],
+  [{ ...fullDraft, areaM2: 0 }, "measurement_invalid"],
+  [{ ...fullDraft, lengthM: -1 }, "measurement_invalid"],
+  [{ ...fullDraft, widthM: 0 }, "measurement_invalid"],
+  [
+    { ...fullDraft, heightM: Number.POSITIVE_INFINITY },
+    "measurement_invalid",
+  ],
+] as const;
+
+const invalidCapacityCases = [
+  [{ ...fullDraft, capacitySeated: 1.5 }, "capacity_invalid"],
+  [{ ...fullDraft, capacitySeated: -1 }, "capacity_invalid"],
+  [{ ...fullDraft, capacityCocktail: 2.5 }, "capacity_invalid"],
+  [{ ...fullDraft, capacityCocktail: -1 }, "capacity_invalid"],
+] as const;
+
+describe("normalizeVenueSpaceDraft normalization", () => {
   it("normalizes complete physical-space data", () => {
     expect(normalizeVenueSpaceDraft(fullDraft)).toEqual({
       ok: true,
@@ -72,37 +97,31 @@ describe("normalizeVenueSpaceDraft", () => {
 
     expect(result.ok && result.value.notes).toBeNull();
   });
+});
 
-  it.each([
-    [{ ...fullDraft, name: "   " }, "name_required"],
-    [{ ...fullDraft, name: "x".repeat(161) }, "name_too_long"],
-    [{ ...fullDraft, spaceType: "   " }, "space_type_required"],
-    [{ ...fullDraft, spaceType: "x".repeat(81) }, "space_type_too_long"],
-  ] as const)("rejects invalid required text %#", (draft, error) => {
-    expect(normalizeVenueSpaceDraft(draft)).toEqual({ ok: false, error });
-  });
+describe("normalizeVenueSpaceDraft text and measurement validation", () => {
+  it.each(invalidRequiredTextCases)(
+    "rejects invalid required text %#",
+    (draft, error) => {
+      expect(normalizeVenueSpaceDraft(draft)).toEqual({ ok: false, error });
+    },
+  );
 
-  it.each([
-    [{ ...fullDraft, areaM2: Number.NaN }, "measurement_invalid"],
-    [{ ...fullDraft, areaM2: 0 }, "measurement_invalid"],
-    [{ ...fullDraft, lengthM: -1 }, "measurement_invalid"],
-    [{ ...fullDraft, widthM: 0 }, "measurement_invalid"],
-    [
-      { ...fullDraft, heightM: Number.POSITIVE_INFINITY },
-      "measurement_invalid",
-    ],
-  ] as const)("rejects invalid measurements %#", (draft, error) => {
-    expect(normalizeVenueSpaceDraft(draft)).toEqual({ ok: false, error });
-  });
+  it.each(invalidMeasurementCases)(
+    "rejects invalid measurements %#",
+    (draft, error) => {
+      expect(normalizeVenueSpaceDraft(draft)).toEqual({ ok: false, error });
+    },
+  );
+});
 
-  it.each([
-    [{ ...fullDraft, capacitySeated: 1.5 }, "capacity_invalid"],
-    [{ ...fullDraft, capacitySeated: -1 }, "capacity_invalid"],
-    [{ ...fullDraft, capacityCocktail: 2.5 }, "capacity_invalid"],
-    [{ ...fullDraft, capacityCocktail: -1 }, "capacity_invalid"],
-  ] as const)("rejects invalid capacities %#", (draft, error) => {
-    expect(normalizeVenueSpaceDraft(draft)).toEqual({ ok: false, error });
-  });
+describe("normalizeVenueSpaceDraft capacity and metadata validation", () => {
+  it.each(invalidCapacityCases)(
+    "rejects invalid capacities %#",
+    (draft, error) => {
+      expect(normalizeVenueSpaceDraft(draft)).toEqual({ ok: false, error });
+    },
+  );
 
   it("rejects non-integer sort order", () => {
     expect(normalizeVenueSpaceDraft({ ...fullDraft, sortOrder: 1.5 })).toEqual({

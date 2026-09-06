@@ -44,6 +44,18 @@ type FieldResult<T> =
   | { readonly ok: true; readonly value: T }
   | { readonly ok: false; readonly error: VenueSpaceError };
 
+interface VenueSpaceMeasurements {
+  readonly areaM2: number | null;
+  readonly lengthM: number | null;
+  readonly widthM: number | null;
+  readonly heightM: number | null;
+}
+
+interface VenueSpaceCapacities {
+  readonly capacitySeated: number | null;
+  readonly capacityCocktail: number | null;
+}
+
 function requiredText(
   value: string,
   limit: number,
@@ -86,6 +98,46 @@ function optionalNote(
   return { ok: true, value: normalized };
 }
 
+function normalizeMeasurements(
+  draft: VenueSpaceDraft,
+): FieldResult<VenueSpaceMeasurements> {
+  const areaM2 = optionalMeasurement(draft.areaM2);
+  if (!areaM2.ok) return areaM2;
+  const lengthM = optionalMeasurement(draft.lengthM);
+  if (!lengthM.ok) return lengthM;
+  const widthM = optionalMeasurement(draft.widthM);
+  if (!widthM.ok) return widthM;
+  const heightM = optionalMeasurement(draft.heightM);
+  if (!heightM.ok) return heightM;
+
+  return {
+    ok: true,
+    value: {
+      areaM2: areaM2.value,
+      lengthM: lengthM.value,
+      widthM: widthM.value,
+      heightM: heightM.value,
+    },
+  };
+}
+
+function normalizeCapacities(
+  draft: VenueSpaceDraft,
+): FieldResult<VenueSpaceCapacities> {
+  const capacitySeated = optionalCapacity(draft.capacitySeated);
+  if (!capacitySeated.ok) return capacitySeated;
+  const capacityCocktail = optionalCapacity(draft.capacityCocktail);
+  if (!capacityCocktail.ok) return capacityCocktail;
+
+  return {
+    ok: true,
+    value: {
+      capacitySeated: capacitySeated.value,
+      capacityCocktail: capacityCocktail.value,
+    },
+  };
+}
+
 export function normalizeVenueSpaceDraft(
   draft: VenueSpaceDraft,
 ): VenueSpaceNormalization {
@@ -100,19 +152,10 @@ export function normalizeVenueSpaceDraft(
   );
   if (!spaceType.ok) return spaceType;
 
-  const areaM2 = optionalMeasurement(draft.areaM2);
-  if (!areaM2.ok) return areaM2;
-  const lengthM = optionalMeasurement(draft.lengthM);
-  if (!lengthM.ok) return lengthM;
-  const widthM = optionalMeasurement(draft.widthM);
-  if (!widthM.ok) return widthM;
-  const heightM = optionalMeasurement(draft.heightM);
-  if (!heightM.ok) return heightM;
-
-  const capacitySeated = optionalCapacity(draft.capacitySeated);
-  if (!capacitySeated.ok) return capacitySeated;
-  const capacityCocktail = optionalCapacity(draft.capacityCocktail);
-  if (!capacityCocktail.ok) return capacityCocktail;
+  const measurements = normalizeMeasurements(draft);
+  if (!measurements.ok) return measurements;
+  const capacities = normalizeCapacities(draft);
+  if (!capacities.ok) return capacities;
 
   const sortOrder = draft.sortOrder ?? 0;
   if (!Number.isSafeInteger(sortOrder)) {
@@ -128,12 +171,8 @@ export function normalizeVenueSpaceDraft(
       name: name.value,
       spaceType: spaceType.value,
       indoor: draft.indoor ?? null,
-      areaM2: areaM2.value,
-      lengthM: lengthM.value,
-      widthM: widthM.value,
-      heightM: heightM.value,
-      capacitySeated: capacitySeated.value,
-      capacityCocktail: capacityCocktail.value,
+      ...measurements.value,
+      ...capacities.value,
       sortOrder,
       notes: notes.value,
     },
