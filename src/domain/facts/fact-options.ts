@@ -75,7 +75,10 @@ function intervalContainsSafeInteger(
     min ?? Number.MIN_SAFE_INTEGER,
     Number.MIN_SAFE_INTEGER,
   );
-  const upper = Math.min(max ?? Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER);
+  const upper = Math.min(
+    max ?? Number.MAX_SAFE_INTEGER,
+    Number.MAX_SAFE_INTEGER,
+  );
   return Math.ceil(lower) <= Math.floor(upper);
 }
 
@@ -99,7 +102,10 @@ function integerQuantitySemanticsValid(
 ): boolean {
   if (record.integer === false) return false;
   const lower = Math.max(min ?? 0, 0);
-  const upper = Math.min(max ?? Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER);
+  const upper = Math.min(
+    max ?? Number.MAX_SAFE_INTEGER,
+    Number.MAX_SAFE_INTEGER,
+  );
   return Math.ceil(lower) <= Math.floor(upper);
 }
 
@@ -143,7 +149,9 @@ function normalizeNumericOptions(
   if (min === null || max === null) return INVALID_OPTIONS;
   if (!validIntegerOption(record.integer)) return INVALID_OPTIONS;
   if (!validNumericBounds(min, max)) return INVALID_OPTIONS;
-  if (!numericSemanticsValid(valueType, record, min, max)) return INVALID_OPTIONS;
+  if (!numericSemanticsValid(valueType, record, min, max)) {
+    return INVALID_OPTIONS;
+  }
   return { ok: true, value: buildNumericOptions(record, min, max) };
 }
 

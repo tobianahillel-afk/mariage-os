@@ -22,25 +22,34 @@ describe("WP-2.3 adversarial numeric metadata remediation", () => {
     ["rating", { max: -1 }],
     ["number", { min: 0.1, max: 0.9, integer: true }],
     ["rating", { min: 0.1, max: 0.9, integer: true }],
-  ] as const)("rejects unsatisfiable %s metadata %#", (valueType, options) => {
-    expect(normalizeFactOptions(valueType, options)).toEqual({
-      ok: false,
-      error: "invalid_options",
-    });
-  });
+  ] as const)(
+    "rejects unsatisfiable %s metadata %#",
+    (valueType, options) => {
+      expect(normalizeFactOptions(valueType, options)).toEqual({
+        ok: false,
+        error: "invalid_options",
+      });
+    },
+  );
 
   it("accepts representable custom numeric domains", () => {
-    expect(normalizeFactOptions("rating", { min: 20, max: 30 }).ok).toBe(true);
-    expect(
-      normalizeFactOptions("duration", { min: 0, integer: true }).ok,
-    ).toBe(true);
-    expect(
-      normalizeFactOptions("number", {
-        min: Number.MIN_SAFE_INTEGER,
-        max: Number.MIN_SAFE_INTEGER,
-        integer: true,
-      }).ok,
-    ).toBe(true);
+    const customRating = normalizeFactOptions("rating", {
+      min: 20,
+      max: 30,
+    });
+    const duration = normalizeFactOptions("duration", {
+      min: 0,
+      integer: true,
+    });
+    const safeInteger = normalizeFactOptions("number", {
+      min: Number.MIN_SAFE_INTEGER,
+      max: Number.MIN_SAFE_INTEGER,
+      integer: true,
+    });
+
+    expect(customRating.ok).toBe(true);
+    expect(duration.ok).toBe(true);
+    expect(safeInteger.ok).toBe(true);
   });
 });
 
