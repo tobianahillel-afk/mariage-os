@@ -10,7 +10,7 @@ Status: **Living repository source of truth for development progress**
 - Final Design Review: **PASS**.
 - Implementation gate: **OPEN**.
 - Lot 0: **ACCEPTED** — implementation/integration completed 2026-09-03.
-- **Lot 1: IN_PROGRESS — packet implementation complete; Lot reconciliation/integration/acceptance in progress.**
+- **Lot 1: IN_PROGRESS — packet implementation complete; Lot Integration Pass remediation in progress.**
 - Lots 2–12: **NOT_STARTED**.
 
 Lot 1 is the only permitted implementation scope. No Lot 2+ product implementation is permitted.
@@ -27,6 +27,7 @@ Coverage/reconciliation: `lot-0/LOT-0-COVERAGE-MATRIX.md`.
 ## Lot 1 orchestration
 
 Coverage/reconciliation: `lot-1/LOT-1-COVERAGE-MATRIX.md`.
+Integration record: `lot-1/LOT-1-INTEGRATION-PASS.md`.
 
 Required current-lot responsibilities minus assigned packet responsibilities: **∅**.
 Required packet-owned current-lot responsibilities minus accepted/evidenced packet responsibilities: **∅**.
@@ -47,12 +48,11 @@ Packets:
 
 - Current Lot: **1**
 - Lot state: **IN_PROGRESS**
-- Current packet: **WP-1.9 — terminal**
-- Packet state: **ACCEPTED**
-- Current packet pass: **COMPLETE**
-- Current Lot activity: **LOT-RECONCILIATION**
+- Current packet: **none — WP-1.1 through WP-1.9 terminal/ACCEPTED**
+- Current Lot activity: **LOT-INTEGRATION-REMEDIATION**
 - Accepted packets: **WP-1.1 through WP-1.9**
-- Review-failed/blocked packets: **none; all historical MAJOR findings are closed**
+- Mechanical Lot reconciliation: **PASS — required packet-owned responsibilities minus accepted/evidenced = ∅**
+- Open Lot Integration finding: **`LOT1-IP-001` MAJOR — explicit synthetic two-owner Playwright journey missing**
 - WP-1.1 acceptance evidence: run `33809855993` on `f0b1e46c46bc3ad5d15bf2191c63ec4e85473507`, all five jobs SUCCESS.
 - WP-1.2 acceptance evidence: run `33811568440` on `fa96228bcd8a0b7671fcb561f8f7668eaf5851dc`, all five jobs SUCCESS; `WP12-AR-001` closed.
 - WP-1.3 acceptance evidence: run `33817932867` on `707b1384fbd370fe88ef7a87ac191aa9645f6db3`, all five jobs SUCCESS; `WP13-AR-001` and `WP13-AR-002` closed.
@@ -63,32 +63,31 @@ Packets:
 - WP-1.8 acceptance evidence: run `33994961610` on implementation/evidence HEAD `cb7201e2d6dc1a8ca7608bb236f1f79ac84d8d9d`, all five jobs SUCCESS including browser E2E + mutation and clean-checkout `npm run verify`; `WP18-AR-001..003` closed; final fresh Pass B PASS; Pass C required-minus-evidenced = ∅.
 - WP-1.9 acceptance evidence: run `33999832455` on implementation/review HEAD `1c8331de918e82e1dc40beb96e6ac08343b861d7`, **5/5 SUCCESS** including clean-checkout `npm run verify`; DB **14 files / 284 tests / PASS**; Storage/Realtime matrix **45/45 PASS**; `WP19-AR-001` closed; fresh Pass B PASS; Pass C expected-minus-implemented/verified = ∅.
 - Current branch: **`lot-1/identity-project-foundation`**
-- Next permitted action: **perform mechanical Lot 1 reconciliation; if empty, perform the separate Lot Integration Pass; only then decide Lot acceptance**.
+- Next permitted action: **repair `LOT1-IP-001` only with bounded synthetic two-owner Playwright evidence -> exact-head full verification -> fresh Lot Integration Pass**.
 
 ## Lot status
 
 | Lot | State |
 |---:|---|
 | 0 | **ACCEPTED** |
-| 1 | **IN_PROGRESS — LOT-RECONCILIATION** |
+| 1 | **IN_PROGRESS — LOT-INTEGRATION-REMEDIATION** |
 | 2–12 | NOT_STARTED |
 
 ## Product Feature counts
 
 - V1 Feature IDs: 120 SPECIFIED inventory rows total.
-- Lot 1 packet implementation is complete and accepted; Lot 1 itself remains IN_PROGRESS until reconciliation, separate Integration Pass and Lot acceptance finish.
+- Lot 1 packet implementation is complete and accepted; Lot 1 itself remains IN_PROGRESS until the Integration Pass is green and Lot acceptance completes.
 - No Lot 2+ Feature may start.
 
 ## Current blockers / forward maintenance
 
-Open adversarial findings:
+Open Lot Integration findings:
 
-- none.
+- `LOT1-IP-001` — **MAJOR** — server bootstrap/invitation lifecycle is directly tested, but the binding synthetic two-owner E2E requires an explicit Playwright/user-perspective journey with two distinct owners independently opening the same project. Bounded repair is test evidence only unless the test uncovers a product defect.
 
-WP-1.9 reviewed closure:
+Open packet adversarial findings:
 
-- `WP19-AR-001` is **CLOSED**: DELETE RLS is behaviorally proved under the transaction-local Storage metadata-delete flag while RLS remains the authority; owner/editor own-project allow and cross-project/viewer/outsider/revoked/anon/guest-like deny all pass directly.
-- bucket privacy, full-path fail-closed validation, live centralized membership/permission authorization, cross-project UPDATE denial, Realtime non-exposure and absence of client/provider/domain scope leakage were re-reviewed clean.
+- none; all historical packet MAJOR findings are closed.
 
 Inherited reviewed non-blocking maintenance:
 
@@ -103,11 +102,10 @@ Inherited reviewed non-blocking maintenance:
 
 ```text
 Lot 0: ACCEPTED
-Lot 1: IN_PROGRESS / LOT-RECONCILIATION
-Coverage: required - assigned = ∅; packet-owned required - accepted/evidenced = ∅
+Lot 1: IN_PROGRESS / LOT-INTEGRATION-REMEDIATION
+Coverage/reconciliation: required - assigned = ∅; packet-owned required - accepted/evidenced = ∅
 Accepted packets: WP-1.1 through WP-1.9
-WP-1.9 evidence: run 33999832455 on 1c8331de918e82e1dc40beb96e6ac08343b861d7, 5/5 SUCCESS; DB 14 files / 284 tests / PASS; matrix 45/45
-Open BLOCKING/MAJOR: none
-Next: mechanical Lot 1 reconciliation -> separate Lot Integration Pass -> Lot acceptance if green
+Open Integration finding: LOT1-IP-001 MAJOR — missing explicit synthetic two-owner Playwright journey
+Next: bounded E2E evidence repair -> exact-head full verify -> fresh Lot Integration Pass
 Lot 2+: forbidden; even after Lot 1 acceptance, Lot 2 requires a future explicit kickoff
 ```
