@@ -31,7 +31,7 @@ function repository(
   };
 }
 
-describe("updateVenueCore", () => {
+describe("updateVenueCore successful update", () => {
   it("normalizes ordinary fields and carries expected revision", async () => {
     const calls: unknown[] = [];
     const port = repository(async (input) => {
@@ -60,7 +60,9 @@ describe("updateVenueCore", () => {
       city: "Paris",
     });
   });
+});
 
+describe("updateVenueCore validation failures", () => {
   it("fails field validation before persistence", async () => {
     let calls = 0;
     const port = repository(async () => {
@@ -96,7 +98,9 @@ describe("updateVenueCore", () => {
     expect(result).toEqual({ ok: false, error: "expected_revision_invalid" });
     expect(calls).toBe(0);
   });
+});
 
+describe("updateVenueCore persistence failure", () => {
   it("converts persistence errors into a stable result", async () => {
     const port = repository(async () => {
       throw new Error("provider detail");
