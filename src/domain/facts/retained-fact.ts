@@ -6,7 +6,7 @@ export interface RetainedFactDraft {
   readonly retainedValue: unknown;
 }
 
-export interface NormalizedRetainedFact {
+interface NormalizedRetainedFact {
   readonly state: FactState;
   readonly retainedValue: unknown;
 }

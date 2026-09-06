@@ -6,7 +6,7 @@ import type {
   SelectFactOptions,
 } from "./fact-types";
 
-export type FactOptionsError = "invalid_options";
+type FactOptionsError = "invalid_options";
 export type FactOptionsResult =
   | { readonly ok: true; readonly value: FactOptions }
   | { readonly ok: false; readonly error: FactOptionsError };

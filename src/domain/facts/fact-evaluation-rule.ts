@@ -5,7 +5,7 @@ import type {
 } from "./fact-types";
 
 export type FactEvaluationRule = Readonly<Record<string, unknown>>;
-export type FactEvaluationRuleError = "invalid_evaluation_rule";
+type FactEvaluationRuleError = "invalid_evaluation_rule";
 export type FactEvaluationRuleResult =
   | { readonly ok: true; readonly value: FactEvaluationRule | null }
   | { readonly ok: false; readonly error: FactEvaluationRuleError };

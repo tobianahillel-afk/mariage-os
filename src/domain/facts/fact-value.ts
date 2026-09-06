@@ -10,7 +10,7 @@ export interface FactValueDefinition {
   readonly optionsJson: FactOptions;
 }
 
-export type FactValueError = "invalid_fact_value";
+type FactValueError = "invalid_fact_value";
 export type FactValueResult =
   | { readonly ok: true; readonly value: unknown }
   | { readonly ok: false; readonly error: FactValueError };
