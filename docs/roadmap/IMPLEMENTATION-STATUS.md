@@ -50,7 +50,7 @@ Packets:
 
 1. `WP-2.1` — venue identity, authorized persistence and lifecycle-history foundation — **ACCEPTED**;
 2. `WP-2.2` — spaces, capacity and member ratings/preferences — **ACCEPTED**;
-3. `WP-2.3` — fact definitions, typed retained facts and value validation — **REVIEW_PENDING / B-ADVERSARIAL-REVIEW**;
+3. `WP-2.3` — fact definitions, typed retained facts and value validation — **REVIEW_FAILED — remediation next**;
 4. `WP-2.4` — observations, sources, evidence/confidence/freshness and conflicts — **PLANNED**;
 5. `WP-2.5` — deterministic criteria, blockers, score/readiness and missing information — **PLANNED**;
 6. `WP-2.6` — venue offers, availability, contacts and interactions basics — **PLANNED**;
@@ -105,21 +105,16 @@ Record: `lot-2/WP-2.2.md`.
 
 Record: `lot-2/WP-2.3.md`.
 
-- State: **REVIEW_PENDING**.
-- Current/next pass: **B-ADVERSARIAL-REVIEW**.
+- State: **REVIEW_FAILED**.
+- Current/next pass: **remediation**.
 - Primary Feature: `FTR-019`.
 - Scope: Venue `fact_definitions` + retained `facts`, explicit semantic states, all frozen V1 value-shape validation, same-project/RLS and provider-safe boundaries.
-- WP-2.3 non-`known` states store null retained value; provisional conflict-value/resolution behavior waits for WP-2.4 observations/provenance.
-- `evaluation_rule_json` storage shape is validated, but compatibility execution/scoring remains WP-2.5.
-- Full default-criteria seeding is not activated in WP-2.3; ordinary client commands cannot create/repurpose system-defined definitions.
-- No observation/source, scoring/readiness, UI, offline queue, import/export or Vendor-target implementation is claimed.
 - Reviewed Pass-A implementation head: `e209d5d33ef2ec5c535121caf9e2e066012f4de8`.
-- Exact Pass-A CI run `34062811901`: **5/5 SUCCESS**, including clean-checkout `npm run verify`.
-- Unit: **57 files / 669 tests PASS**, measured in-scope coverage **100% statements/branches/functions/lines**.
-- DB/RLS: **25 files / 553 pgTAP tests PASS**.
-- Browser: **40/40 Playwright PASS** across Chromium, Firefox, WebKit and mobile Chromium.
-- Provider parser hardening: wrong same-project requested definition identity now fails closed.
-- Pass B decision: **pending; no BLOCKING/MAJOR finding has yet been recorded**.
+- Historical Pass-A CI run `34062811901`: **5/5 SUCCESS**, including clean-checkout `npm run verify`; this evidence is now stale for acceptance because fresh Pass B found defects.
+- Fresh Pass B decision: **FAIL**.
+- Open MAJOR findings: `WP2.3-B-001` contradictory/unsatisfiable numeric metadata; `WP2.3-B-002` mutable-order multiselect canonicality; `WP2.3-B-003` Unicode string-length parity; `WP2.3-B-004` SQL-vs-standard URL parser parity; `WP2.3-B-005` collapsed error/conflict/auth/retry taxonomy.
+- Open MINOR findings: `WP2.3-B-006` first-create uniqueness normalization; `WP2.3-B-007` nested normalized JSON runtime mutability.
+- No observation/source, scoring/readiness, UI, offline queue, import/export or Vendor-target implementation is claimed.
 
 ### Durable cursor
 
@@ -127,13 +122,13 @@ Record: `lot-2/WP-2.3.md`.
 - Lot state: **IN_PROGRESS**
 - Current branch: **`lot-2/venues-core`**
 - Current packet: **WP-2.3**
-- Packet state: **REVIEW_PENDING**
-- Current/next pass: **B-ADVERSARIAL-REVIEW**
+- Packet state: **REVIEW_FAILED**
+- Current/next pass: **remediation; transition back to `IN_PROGRESS` when code remediation begins**
 - Accepted packets: **WP-2.1, WP-2.2**
-- Review-failed/blocked packets: **none**
-- Open packet BLOCKING/MAJOR findings: **none recorded yet; fresh Pass B decision pending**
-- Latest implementation verification: run `34062811901` on `e209d5d33ef2ec5c535121caf9e2e066012f4de8` — **5/5 SUCCESS**
-- Next permitted action: **run fresh WP-2.3 Pass B only; do not start WP-2.4 concurrently.**
+- Review-failed packets: **WP-2.3**
+- Open packet BLOCKING/MAJOR findings: **B-001, B-002, B-003, B-004, B-005**
+- Historical Pass-A verification: run `34062811901` on `e209d5d33ef2ec5c535121caf9e2e066012f4de8` — **5/5 SUCCESS before review findings; affected evidence must be rerun after remediation**
+- Next permitted action: **remediate WP-2.3 findings only; do not start WP-2.4 concurrently.**
 
 ## Known localized specification repairs
 
@@ -163,11 +158,11 @@ The Venue lifecycle documentation conflict discovered during WP-2.1 is closed by
 - Feature-level whole-capability status and current-lot responsibility are not conflated; Lot Coverage Matrices are the durable responsibility-level reconciliation source.
 - `FTR-013` and `FTR-014` remain feature-level **IN_PROGRESS** because later Lot-2 UI/local/deep-link/duplicate responsibilities remain.
 - `FTR-018`, `FTR-023` and `FTR-012` remain feature-level **IN_PROGRESS** after WP-2.2 acceptance because later Lot-2 UI/local/read-model responsibilities remain.
-- `FTR-019` remains feature-level **IN_PROGRESS** while WP-2.3 is under review; later observation and compatibility responsibilities remain separate FTR-020/FTR-021 packets.
+- `FTR-019` remains feature-level **IN_PROGRESS** while WP-2.3 remediation/re-review is active; later observation and compatibility responsibilities remain separate FTR-020/FTR-021 packets.
 
 ## Current blockers / forward maintenance
 
-Open Lot 2 packet findings: **none currently recorded; WP-2.3 fresh Pass B is now the active review step**.
+Open Lot 2 review findings: **WP-2.3 B-001..B-005 MAJOR and B-006..B-007 MINOR; remediation is active next work**.
 
 Reviewed non-blocking maintenance:
 
@@ -195,11 +190,12 @@ WP-2.1 governance CI: 34040803267 — 5/5 SUCCESS
 WP-2.2 implementation CI: 34046985956 — 5/5 SUCCESS
 WP-2.2 governance CI: 34048565452 — 5/5 SUCCESS
 Current packet: WP-2.3
-Packet state: REVIEW_PENDING
-Current/next pass: B-ADVERSARIAL-REVIEW
-WP-2.3 reviewed Pass-A head: e209d5d33ef2ec5c535121caf9e2e066012f4de8
-WP-2.3 Pass-A CI: 34062811901 — 5/5 SUCCESS
-Open WP-2.3 BLOCKING/MAJOR: none recorded yet; fresh Pass B decision pending
-Next: run fresh WP-2.3 Pass B only; do not start WP-2.4
+Packet state: REVIEW_FAILED
+Fresh Pass B: FAIL
+Open MAJOR: WP2.3-B-001, B-002, B-003, B-004, B-005
+Open MINOR: WP2.3-B-006, B-007
+Historical Pass-A head: e209d5d33ef2ec5c535121caf9e2e066012f4de8
+Historical Pass-A CI: 34062811901 — 5/5 SUCCESS before review findings
+Next: remediate WP-2.3 only, rerun exact-head verification, then perform a new fresh Pass B; do not start WP-2.4
 Lots 3–12: NOT_STARTED
 ```
