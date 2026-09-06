@@ -56,6 +56,11 @@ interface VenueSpaceCapacities {
   readonly capacityCocktail: number | null;
 }
 
+interface VenueSpaceMetadata {
+  readonly sortOrder: number;
+  readonly notes: string | null;
+}
+
 function requiredText(
   value: string,
   limit: number,
@@ -138,6 +143,19 @@ function normalizeCapacities(
   };
 }
 
+function normalizeMetadata(
+  draft: VenueSpaceDraft,
+): FieldResult<VenueSpaceMetadata> {
+  const sortOrder = draft.sortOrder ?? 0;
+  if (!Number.isSafeInteger(sortOrder)) {
+    return { ok: false, error: "sort_order_invalid" };
+  }
+
+  const notes = optionalNote(draft.notes);
+  if (!notes.ok) return notes;
+  return { ok: true, value: { sortOrder, notes: notes.value } };
+}
+
 export function normalizeVenueSpaceDraft(
   draft: VenueSpaceDraft,
 ): VenueSpaceNormalization {
@@ -156,14 +174,8 @@ export function normalizeVenueSpaceDraft(
   if (!measurements.ok) return measurements;
   const capacities = normalizeCapacities(draft);
   if (!capacities.ok) return capacities;
-
-  const sortOrder = draft.sortOrder ?? 0;
-  if (!Number.isSafeInteger(sortOrder)) {
-    return { ok: false, error: "sort_order_invalid" };
-  }
-
-  const notes = optionalNote(draft.notes);
-  if (!notes.ok) return notes;
+  const metadata = normalizeMetadata(draft);
+  if (!metadata.ok) return metadata;
 
   return {
     ok: true,
@@ -173,8 +185,7 @@ export function normalizeVenueSpaceDraft(
       indoor: draft.indoor ?? null,
       ...measurements.value,
       ...capacities.value,
-      sortOrder,
-      notes: notes.value,
+      ...metadata.value,
     },
   };
 }
