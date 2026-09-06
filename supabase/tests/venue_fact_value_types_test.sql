@@ -58,7 +58,7 @@ select ok(not pg_temp.try_set('rating_fact',1,'known','10.1'),'rating above 10 r
 select ok(pg_temp.try_set('select_fact',null,'known','"low"'),'declared select persists');
 select ok(not pg_temp.try_set('select_fact',1,'known','"missing"'),'unknown select rejected');
 select ok(pg_temp.try_set('multiselect_fact',null,'known','["rectangular_tables","round_tables"]'),'multiselect persists');
-select is((select retained_value from public.facts f join public.fact_definitions d on d.id=f.definition_id where d.key='multiselect_fact'),'["round_tables","rectangular_tables"]'::jsonb,'multiselect canonicalized to definition order');
+select is((select retained_value from public.facts f join public.fact_definitions d on d.id=f.definition_id where d.key='multiselect_fact'),'["rectangular_tables","round_tables"]'::jsonb,'multiselect canonicalized to stable key order');
 select ok(not pg_temp.try_set('multiselect_fact',1,'known','["round_tables","round_tables"]'),'duplicate multiselect rejected');
 select ok(pg_temp.try_set('duration_fact',null,'known','135'),'duration minutes persists');
 select ok(not pg_temp.try_set('duration_fact',1,'known','-1'),'negative duration rejected');

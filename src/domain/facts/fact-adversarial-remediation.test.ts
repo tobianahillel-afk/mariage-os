@@ -31,9 +31,9 @@ describe("WP-2.3 adversarial numeric metadata remediation", () => {
 
   it("accepts representable custom numeric domains", () => {
     expect(normalizeFactOptions("rating", { min: 20, max: 30 }).ok).toBe(true);
-    expect(normalizeFactOptions("duration", { min: 0, integer: true }).ok).toBe(
-      true,
-    );
+    expect(
+      normalizeFactOptions("duration", { min: 0, integer: true }).ok,
+    ).toBe(true);
     expect(
       normalizeFactOptions("number", {
         min: Number.MIN_SAFE_INTEGER,
@@ -62,12 +62,12 @@ describe("WP-2.3 Unicode character-length parity", () => {
       optionsJson: null,
       evaluationRuleJson: null,
     } as const;
-    expect(normalizeFactDefinition({ ...base, label: emoji.repeat(240) }).ok).toBe(
-      true,
-    );
-    expect(normalizeFactDefinition({ ...base, label: emoji.repeat(241) }).ok).toBe(
-      false,
-    );
+    expect(
+      normalizeFactDefinition({ ...base, label: emoji.repeat(240) }).ok,
+    ).toBe(true);
+    expect(
+      normalizeFactDefinition({ ...base, label: emoji.repeat(241) }).ok,
+    ).toBe(false);
     expect(
       normalizeFactValue(
         { valueType: "text", optionsJson: null },

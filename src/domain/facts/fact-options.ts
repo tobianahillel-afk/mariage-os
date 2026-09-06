@@ -21,7 +21,10 @@ const NUMERIC_TYPES: readonly FactValueType[] = [
   "duration",
   "distance",
 ];
-const INTEGER_QUANTITY_TYPES: readonly FactValueType[] = ["duration", "distance"];
+const INTEGER_QUANTITY_TYPES: readonly FactValueType[] = [
+  "duration",
+  "distance",
+];
 const INVALID_OPTIONS: FactOptionsResult = {
   ok: false,
   error: "invalid_options",
@@ -68,7 +71,10 @@ function intervalContainsSafeInteger(
   min: number | undefined,
   max: number | undefined,
 ): boolean {
-  const lower = Math.max(min ?? Number.MIN_SAFE_INTEGER, Number.MIN_SAFE_INTEGER);
+  const lower = Math.max(
+    min ?? Number.MIN_SAFE_INTEGER,
+    Number.MIN_SAFE_INTEGER,
+  );
   const upper = Math.min(max ?? Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER);
   return Math.ceil(lower) <= Math.floor(upper);
 }

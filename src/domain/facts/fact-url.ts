@@ -2,8 +2,7 @@ import { hasCodePointLengthBetween } from "./fact-text-length";
 
 const CANONICAL_HTTP_URL_PATTERN =
   /^https?:\/\/([^/:?#\s]+)(?::([0-9]{1,5}))?(?:[/?#][^\s\u0000-\u001f\u007f]*)?$/i;
-const HOST_LABEL_PATTERN =
-  /^[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?$/;
+const HOST_LABEL_PATTERN = /^[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?$/;
 const FINAL_DNS_LABEL_PATTERN = /^[A-Za-z]{2,63}$/;
 
 function hasCanonicalHostLabels(host: string): boolean {
