@@ -76,9 +76,7 @@ describe("Venue fact definition service", () => {
         return definitionRecord;
       },
     });
-    await expect(
-      createVenueFactDefinition(port, definitionDraft),
-    ).resolves.toEqual({
+    await expect(createVenueFactDefinition(port, definitionDraft)).resolves.toEqual({
       ok: true,
       definition: definitionRecord,
     });
@@ -87,10 +85,7 @@ describe("Venue fact definition service", () => {
 
   it("returns domain validation errors before persistence", async () => {
     await expect(
-      createVenueFactDefinition(makePort(), {
-        ...definitionDraft,
-        key: "Bad Key",
-      }),
+      createVenueFactDefinition(makePort(), { ...definitionDraft, key: "Bad Key" }),
     ).resolves.toEqual({ ok: false, error: "invalid_key" });
   });
 
@@ -100,14 +95,14 @@ describe("Venue fact definition service", () => {
         throw new Error("provider detail");
       },
     });
-    await expect(
-      createVenueFactDefinition(port, definitionDraft),
-    ).resolves.toEqual({
+    await expect(createVenueFactDefinition(port, definitionDraft)).resolves.toEqual({
       ok: false,
       error: "persistence_failed",
     });
   });
+});
 
+describe("Venue fact definition update service", () => {
   it("updates only mutable definition metadata with optimistic revision", async () => {
     let received: unknown;
     const port = makePort({
@@ -139,7 +134,9 @@ describe("Venue fact definition service", () => {
       evaluationRuleJson: { type: "boolean_equals", expected: true },
     });
   });
+});
 
+describe("Venue fact definition update failures", () => {
   it("rejects invalid update data and revision before persistence", async () => {
     await expect(
       updateVenueFactDefinition(makePort(), {
@@ -225,7 +222,9 @@ describe("retained Venue fact service", () => {
       }),
     ).resolves.toEqual({ ok: false, error: "invalid_fact_value" });
   });
+});
 
+describe("retained Venue fact failure mapping", () => {
   it("maps definition lookup and mutation failures safely", async () => {
     const lookupFailure = makePort({
       getDefinition: async () => {

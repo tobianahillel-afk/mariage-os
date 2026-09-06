@@ -19,6 +19,7 @@ const NUMERIC_TYPES: readonly FactValueType[] = [
   "duration",
   "distance",
 ];
+const INVALID_OPTIONS: FactOptionsResult = { ok: false, error: "invalid_options" };
 
 function plainRecord(value: unknown): UnknownRecord | null {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
@@ -27,10 +28,7 @@ function plainRecord(value: unknown): UnknownRecord | null {
   return value as UnknownRecord;
 }
 
-function hasOnlyKeys(
-  record: UnknownRecord,
-  allowed: readonly string[],
-): boolean {
+function hasOnlyKeys(record: UnknownRecord, allowed: readonly string[]): boolean {
   return Object.keys(record).every((key) => allowed.includes(key));
 }
 
@@ -40,69 +38,92 @@ function optionalFiniteNumber(value: unknown): number | undefined | null {
   return value;
 }
 
-function normalizeNumericOptions(raw: unknown): FactOptionsResult {
-  if (raw === null) return { ok: true, value: null };
+function numericRecord(raw: unknown): UnknownRecord | null {
   const record = plainRecord(raw);
-  if (record === null || !hasOnlyKeys(record, ["min", "max", "integer"])) {
-    return { ok: false, error: "invalid_options" };
-  }
+  if (record === null) return null;
+  return hasOnlyKeys(record, ["min", "max", "integer"]) ? record : null;
+}
 
-  const min = optionalFiniteNumber(record.min);
-  const max = optionalFiniteNumber(record.max);
-  if (min === null || max === null)
-    return { ok: false, error: "invalid_options" };
-  if (record.integer !== undefined && typeof record.integer !== "boolean") {
-    return { ok: false, error: "invalid_options" };
-  }
-  if (min !== undefined && max !== undefined && min > max) {
-    return { ok: false, error: "invalid_options" };
-  }
+function validIntegerOption(value: unknown): boolean {
+  return value === undefined || typeof value === "boolean";
+}
 
-  const value: NumericFactOptions = {
+function validNumericBounds(
+  min: number | undefined,
+  max: number | undefined,
+): boolean {
+  if (min === undefined || max === undefined) return true;
+  return min <= max;
+}
+
+function buildNumericOptions(
+  record: UnknownRecord,
+  min: number | undefined,
+  max: number | undefined,
+): NumericFactOptions {
+  return {
     ...(min === undefined ? {} : { min }),
     ...(max === undefined ? {} : { max }),
-    ...(record.integer === undefined ? {} : { integer: record.integer }),
+    ...(record.integer === undefined ? {} : { integer: record.integer as boolean }),
   };
-  return { ok: true, value };
+}
+
+function normalizeNumericOptions(raw: unknown): FactOptionsResult {
+  if (raw === null) return { ok: true, value: null };
+  const record = numericRecord(raw);
+  if (record === null) return INVALID_OPTIONS;
+  const min = optionalFiniteNumber(record.min);
+  const max = optionalFiniteNumber(record.max);
+  if (min === null || max === null) return INVALID_OPTIONS;
+  if (!validIntegerOption(record.integer)) return INVALID_OPTIONS;
+  if (!validNumericBounds(min, max)) return INVALID_OPTIONS;
+  return { ok: true, value: buildNumericOptions(record, min, max) };
+}
+
+function validOptionKey(key: string): boolean {
+  return key.length <= 80 && /^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$/.test(key);
 }
 
 function normalizeOption(value: unknown): FactOption | null {
   const record = plainRecord(value);
-  if (record === null || !hasOnlyKeys(record, ["key", "labelKey"])) return null;
+  if (record === null) return null;
+  if (!hasOnlyKeys(record, ["key", "labelKey"])) return null;
   if (typeof record.key !== "string" || typeof record.labelKey !== "string") {
     return null;
   }
   const key = record.key.trim();
   const labelKey = record.labelKey.trim();
-  if (!/^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$/.test(key) || key.length > 80) {
-    return null;
-  }
+  if (!validOptionKey(key)) return null;
   if (labelKey.length < 1 || labelKey.length > 160) return null;
   return { key, labelKey };
 }
 
-function normalizeSelectOptions(raw: unknown): FactOptionsResult {
+function optionCandidates(raw: unknown): readonly unknown[] | null {
   const record = plainRecord(raw);
-  if (record === null || !hasOnlyKeys(record, ["options"])) {
-    return { ok: false, error: "invalid_options" };
-  }
-  if (
-    !Array.isArray(record.options) ||
-    record.options.length < 1 ||
-    record.options.length > 100
-  ) {
-    return { ok: false, error: "invalid_options" };
-  }
+  if (record === null || !hasOnlyKeys(record, ["options"])) return null;
+  if (!Array.isArray(record.options)) return null;
+  if (record.options.length < 1 || record.options.length > 100) return null;
+  return record.options;
+}
+
+function normalizeOptionList(candidates: readonly unknown[]): FactOption[] | null {
   const options: FactOption[] = [];
   const keys = new Set<string>();
-  for (const candidate of record.options) {
+  for (const candidate of candidates) {
     const option = normalizeOption(candidate);
-    if (option === null || keys.has(option.key)) {
-      return { ok: false, error: "invalid_options" };
-    }
+    if (option === null) return null;
+    if (keys.has(option.key)) return null;
     keys.add(option.key);
     options.push(option);
   }
+  return options;
+}
+
+function normalizeSelectOptions(raw: unknown): FactOptionsResult {
+  const candidates = optionCandidates(raw);
+  if (candidates === null) return INVALID_OPTIONS;
+  const options = normalizeOptionList(candidates);
+  if (options === null) return INVALID_OPTIONS;
   const value: SelectFactOptions = { options };
   return { ok: true, value };
 }
@@ -116,5 +137,5 @@ export function normalizeFactOptions(
     return normalizeSelectOptions(raw);
   }
   if (raw === null) return { ok: true, value: null };
-  return { ok: false, error: "invalid_options" };
+  return INVALID_OPTIONS;
 }

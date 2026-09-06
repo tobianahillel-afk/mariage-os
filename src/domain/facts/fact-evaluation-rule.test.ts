@@ -40,7 +40,9 @@ describe("fact evaluation rule storage validation", () => {
     expect(result).toEqual({ ok: true, value: rule });
     expect(result.ok && Object.isFrozen(result.value)).toBe(true);
   });
+});
 
+describe("fact evaluation rule rejection", () => {
   it.each([
     ["boolean", null, []],
     ["boolean", null, {}],
@@ -80,13 +82,10 @@ describe("fact evaluation rule storage validation", () => {
     ["number", null, { type: "project_target_guest_count_supported" }],
     ["text", null, { type: "custom_manual_assessment" }],
     ["boolean", null, { type: "custom_manual_assessment", expected: true }],
-  ] as const)(
-    "rejects malformed or incompatible rule %#",
-    (type, metadata, rule) => {
-      expect(normalizeFactEvaluationRule(type, metadata, rule)).toEqual({
-        ok: false,
-        error: "invalid_evaluation_rule",
-      });
-    },
-  );
+  ] as const)("rejects malformed or incompatible rule %#", (type, metadata, rule) => {
+    expect(normalizeFactEvaluationRule(type, metadata, rule)).toEqual({
+      ok: false,
+      error: "invalid_evaluation_rule",
+    });
+  });
 });

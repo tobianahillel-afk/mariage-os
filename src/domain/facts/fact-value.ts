@@ -33,7 +33,8 @@ function plainRecord(value: unknown): UnknownRecord | null {
 function exactKeys(record: UnknownRecord, keys: readonly string[]): boolean {
   const actual = Object.keys(record);
   return (
-    actual.length === keys.length && actual.every((key) => keys.includes(key))
+    actual.length === keys.length &&
+    actual.every((key) => keys.includes(key))
   );
 }
 
@@ -42,14 +43,30 @@ function numericOptions(options: FactOptions): NumericFactOptions {
   return options;
 }
 
-function numberMatches(
-  value: unknown,
-  options: NumericFactOptions,
-): value is number {
-  if (typeof value !== "number" || !Number.isFinite(value)) return false;
-  if (options.integer === true && !Number.isSafeInteger(value)) return false;
-  if (options.min !== undefined && value < options.min) return false;
-  if (options.max !== undefined && value > options.max) return false;
+function finiteNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
+function integerMatches(value: number, integer: boolean | undefined): boolean {
+  if (integer !== true) return true;
+  return Number.isSafeInteger(value);
+}
+
+function minimumMatches(value: number, minimum: number | undefined): boolean {
+  if (minimum === undefined) return true;
+  return value >= minimum;
+}
+
+function maximumMatches(value: number, maximum: number | undefined): boolean {
+  if (maximum === undefined) return true;
+  return value <= maximum;
+}
+
+function numberMatches(value: unknown, options: NumericFactOptions): value is number {
+  if (!finiteNumber(value)) return false;
+  if (!integerMatches(value, options.integer)) return false;
+  if (!minimumMatches(value, options.min)) return false;
+  if (!maximumMatches(value, options.max)) return false;
   return true;
 }
 
@@ -186,8 +203,7 @@ function normalizeMultiselect(
   if (select === null || !Array.isArray(raw)) return INVALID;
   const requested = new Set<string>();
   for (const candidate of raw) {
-    if (typeof candidate !== "string" || requested.has(candidate))
-      return INVALID;
+    if (typeof candidate !== "string" || requested.has(candidate)) return INVALID;
     requested.add(candidate);
   }
   const known = new Set(select.options.map((option) => option.key));
