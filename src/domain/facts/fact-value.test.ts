@@ -183,6 +183,14 @@ describe("text, select and multiselect validation", () => {
     expect(normalizeFactValue(definition("text"), 1).ok).toBe(false);
   });
 
+  it("counts text limits by Unicode code point", () => {
+    const maximum = "😀".repeat(5000);
+    const oversized = "😀".repeat(5001);
+
+    expect(normalizeFactValue(definition("text"), maximum).ok).toBe(true);
+    expect(normalizeFactValue(definition("text"), oversized).ok).toBe(false);
+  });
+
   it("requires declared select options", () => {
     expect(normalizeFactValue(definition("select"), "low").ok).toBe(false);
     expect(normalizeFactValue(definition("select", selectMetadata), 1).ok).toBe(

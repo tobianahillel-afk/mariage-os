@@ -61,6 +61,16 @@ describe("fact definition normalization", () => {
       normalizeFactDefinition({ ...validDraft, weight: 99_999.999 }).ok,
     ).toBe(true);
   });
+
+  it("counts label limits by Unicode code point", () => {
+    const maximum = "😀".repeat(240);
+    const oversized = "😀".repeat(241);
+    const valid = normalizeFactDefinition({ ...validDraft, label: maximum });
+    const invalid = normalizeFactDefinition({ ...validDraft, label: oversized });
+
+    expect(valid.ok).toBe(true);
+    expect(invalid.ok).toBe(false);
+  });
 });
 
 describe("fact definition identity validation", () => {
