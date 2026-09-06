@@ -1,0 +1,333 @@
+import type { LocalProjectPurgePort } from "@application/local-data/local-project-purge-port";
+import {
+  parseCachedRecordEnvelope,
+  parseLocalProjectMetadata,
+  parsePendingMutationEnvelope,
+} from "@application/local-data/persisted-local-data-parser";
+import type {
+  LocalProjectMetadata,
+  LocalProjectStore,
+  LocalProjectStoreFactory,
+  LocalSyncCounters,
+} from "@application/local-data/local-project-store";
+import {
+  localProjectDatabaseName,
+  type LocalProjectScope,
+} from "@application/local-data/local-project-scope";
+import type {
+  CachedRecordEnvelope,
+  PendingMutationEnvelope,
+} from "@application/local-data/local-records";
+
+const LOCAL_SCHEMA_VERSION = 1;
+const METADATA_STORE = "metadata";
+const CACHE_STORE = "cached_records";
+const MUTATION_STORE = "pending_mutations";
+
+function storageError(action: string): Error {
+  return new Error(`Local IndexedDB ${action} failed.`);
+}
+
+function createSchema(database: IDBDatabase): void {
+  if (!database.objectStoreNames.contains(METADATA_STORE)) {
+    database.createObjectStore(METADATA_STORE, { keyPath: "key" });
+  }
+  if (!database.objectStoreNames.contains(CACHE_STORE)) {
+    database.createObjectStore(CACHE_STORE, { keyPath: "key" });
+  }
+  if (!database.objectStoreNames.contains(MUTATION_STORE)) {
+    database.createObjectStore(MUTATION_STORE, { keyPath: "operationId" });
+  }
+}
+
+function openDatabase(factory: IDBFactory, name: string): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const request = factory.open(name, LOCAL_SCHEMA_VERSION);
+    let settled = false;
+    const fail = (action: string): void => {
+      settled = true;
+      reject(storageError(action));
+    };
+
+    request.onupgradeneeded = () => createSchema(request.result);
+    request.onblocked = () => fail("open blocked");
+    request.onerror = () => fail("open");
+    request.onsuccess = () => {
+      const database = request.result;
+      database.onversionchange = () => database.close();
+      if (settled) {
+        database.close();
+        return;
+      }
+      settled = true;
+      resolve(database);
+    };
+  });
+}
+
+function purgeDatabase(factory: IDBFactory, name: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const request = factory.deleteDatabase(name);
+    request.onblocked = () => reject(storageError("purge blocked"));
+    request.onerror = () => reject(storageError("purge"));
+    request.onsuccess = () => resolve();
+  });
+}
+
+function runRequest<T>(
+  database: IDBDatabase,
+  storeName: string,
+  mode: IDBTransactionMode,
+  createRequest: (store: IDBObjectStore) => IDBRequest<T>,
+): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(storeName, mode);
+    const request = createRequest(transaction.objectStore(storeName));
+    let result: T | undefined;
+
+    request.onsuccess = () => {
+      result = request.result;
+    };
+    request.onerror = () => reject(storageError(`${storeName} request`));
+    transaction.onerror = () =>
+      reject(storageError(`${storeName} transaction`));
+    transaction.onabort = () =>
+      reject(storageError(`${storeName} transaction`));
+    transaction.oncomplete = () => resolve(result as T);
+  });
+}
+
+function createMetadata(
+  scope: LocalProjectScope,
+  appVersion: string,
+): LocalProjectMetadata {
+  return {
+    key: "scope",
+    localSchemaVersion: LOCAL_SCHEMA_VERSION,
+    appVersionLastOpened: appVersion,
+    projectId: scope.projectId,
+    userId: scope.userId,
+    deviceId: scope.deviceId,
+    lastSuccessfulSyncAt: null,
+    backendSchemaVersionLastSeen: null,
+    serviceWorkerBuildLastSeen: null,
+  };
+}
+
+function assertScopeMetadata(
+  value: LocalProjectMetadata,
+  scope: LocalProjectScope,
+): void {
+  if (
+    value.localSchemaVersion !== LOCAL_SCHEMA_VERSION ||
+    value.projectId !== scope.projectId ||
+    value.userId !== scope.userId ||
+    value.deviceId !== scope.deviceId
+  ) {
+    throw new Error("Local IndexedDB scope metadata is inconsistent.");
+  }
+}
+
+function assertCachedRecordScope(
+  record: CachedRecordEnvelope,
+  scope: LocalProjectScope,
+): void {
+  if (record.projectId !== scope.projectId) {
+    throw new Error("Cached record belongs to another project scope.");
+  }
+}
+
+function assertMutationScope(
+  mutation: PendingMutationEnvelope,
+  scope: LocalProjectScope,
+): void {
+  if (
+    mutation.projectId !== scope.projectId ||
+    mutation.userId !== scope.userId ||
+    mutation.deviceId !== scope.deviceId
+  ) {
+    throw new Error("Pending mutation belongs to another local scope.");
+  }
+}
+
+export class IndexedDbProjectStore implements LocalProjectStore {
+  private constructor(
+    private readonly database: IDBDatabase,
+    readonly scope: LocalProjectScope,
+  ) {}
+
+  static async open(
+    factory: IDBFactory,
+    scope: LocalProjectScope,
+    appVersion: string,
+  ): Promise<IndexedDbProjectStore> {
+    const database = await openDatabase(
+      factory,
+      localProjectDatabaseName(scope),
+    );
+    const store = new IndexedDbProjectStore(database, scope);
+    await store.initializeMetadata(appVersion);
+    return store;
+  }
+
+  private async initializeMetadata(appVersion: string): Promise<void> {
+    const raw = await runRequest<unknown>(
+      this.database,
+      METADATA_STORE,
+      "readonly",
+      (store) => store.get("scope"),
+    );
+    const existing =
+      raw === undefined ? undefined : parseLocalProjectMetadata(raw);
+
+    if (existing !== undefined) {
+      assertScopeMetadata(existing, this.scope);
+    }
+
+    if (
+      existing === undefined ||
+      existing.appVersionLastOpened !== appVersion
+    ) {
+      const metadata = {
+        ...(existing ?? createMetadata(this.scope, appVersion)),
+        appVersionLastOpened: appVersion,
+      };
+      await runRequest<IDBValidKey>(
+        this.database,
+        METADATA_STORE,
+        "readwrite",
+        (store) => store.put(metadata),
+      );
+    }
+  }
+
+  async getMetadata(): Promise<LocalProjectMetadata> {
+    const raw = await runRequest<unknown>(
+      this.database,
+      METADATA_STORE,
+      "readonly",
+      (store) => store.get("scope"),
+    );
+    if (raw === undefined) {
+      throw new Error("Local IndexedDB scope metadata is missing.");
+    }
+    const metadata = parseLocalProjectMetadata(raw);
+    assertScopeMetadata(metadata, this.scope);
+    return metadata;
+  }
+
+  async putCachedRecord(record: CachedRecordEnvelope): Promise<void> {
+    const parsed = parseCachedRecordEnvelope(record);
+    assertCachedRecordScope(parsed, this.scope);
+    await runRequest<IDBValidKey>(
+      this.database,
+      CACHE_STORE,
+      "readwrite",
+      (store) => store.put(parsed),
+    );
+  }
+
+  async getCachedRecord(
+    recordType: string,
+    entityId: string,
+  ): Promise<CachedRecordEnvelope | null> {
+    const raw = await runRequest<unknown>(
+      this.database,
+      CACHE_STORE,
+      "readonly",
+      (store) => store.get(`${recordType}:${entityId}`),
+    );
+    if (raw === undefined) {
+      return null;
+    }
+    const record = parseCachedRecordEnvelope(raw);
+    assertCachedRecordScope(record, this.scope);
+    return record;
+  }
+
+  async addPendingMutation(mutation: PendingMutationEnvelope): Promise<void> {
+    const parsed = parsePendingMutationEnvelope(mutation);
+    assertMutationScope(parsed, this.scope);
+    await runRequest<IDBValidKey>(
+      this.database,
+      MUTATION_STORE,
+      "readwrite",
+      (store) => store.add(parsed),
+    );
+  }
+
+  async getPendingMutation(
+    operationId: string,
+  ): Promise<PendingMutationEnvelope | null> {
+    const raw = await runRequest<unknown>(
+      this.database,
+      MUTATION_STORE,
+      "readonly",
+      (store) => store.get(operationId),
+    );
+    if (raw === undefined) {
+      return null;
+    }
+    const mutation = parsePendingMutationEnvelope(raw);
+    assertMutationScope(mutation, this.scope);
+    return mutation;
+  }
+
+  async listPendingMutations(): Promise<readonly PendingMutationEnvelope[]> {
+    const raw = await runRequest<unknown[]>(
+      this.database,
+      MUTATION_STORE,
+      "readonly",
+      (store) => store.getAll(),
+    );
+    return raw.map((value) => {
+      const mutation = parsePendingMutationEnvelope(value);
+      assertMutationScope(mutation, this.scope);
+      return mutation;
+    });
+  }
+
+  async readSyncCounters(): Promise<LocalSyncCounters> {
+    const counters: LocalSyncCounters = {
+      pendingCount: 0,
+      conflictCount: 0,
+      retryableFailureCount: 0,
+      permanentFailureCount: 0,
+    };
+    const mutable = { ...counters };
+
+    for (const mutation of await this.listPendingMutations()) {
+      if (mutation.status === "conflict") {
+        mutable.conflictCount += 1;
+      } else if (mutation.status === "failed_retryable") {
+        mutable.retryableFailureCount += 1;
+      } else if (mutation.status === "failed_permanent") {
+        mutable.permanentFailureCount += 1;
+      } else {
+        mutable.pendingCount += 1;
+      }
+    }
+    return mutable;
+  }
+
+  close(): void {
+    this.database.close();
+  }
+}
+
+export class IndexedDbProjectStoreFactory
+  implements LocalProjectStoreFactory, LocalProjectPurgePort
+{
+  constructor(private readonly factory: IDBFactory) {}
+
+  open(
+    scope: LocalProjectScope,
+    appVersion: string,
+  ): Promise<LocalProjectStore> {
+    return IndexedDbProjectStore.open(this.factory, scope, appVersion);
+  }
+
+  purge(scope: LocalProjectScope): Promise<void> {
+    return purgeDatabase(this.factory, localProjectDatabaseName(scope));
+  }
+}

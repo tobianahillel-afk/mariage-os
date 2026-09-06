@@ -67,6 +67,8 @@ Default release policy:
 
 Medium/Low are reviewed with risk, exploitability, applicability and remediation plan; they are not ignored automatically.
 
+Dependency scanning is fail-closed and source-redundant rather than tied to one availability domain. `npm audit` is the primary npm advisory check. Only after bounded retries prove its advisory endpoint unavailable for a transient network/5xx reason may CI fall back to GitHub Advisory Database reviewed advisories queried against the exact `package-lock.json` package versions. A real npm-audit vulnerability result never triggers fallback. The fallback must itself fail closed on transport/API/payload errors and must fail the gate for any matching High/Critical advisory. If neither advisory source can complete, the gate remains failed.
+
 ## RLS gate
 
 Any change to schema/access requires direct authorization tests. A missing required deny test blocks completion.

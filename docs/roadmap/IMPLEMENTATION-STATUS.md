@@ -2,224 +2,116 @@
 
 Status: **Living repository source of truth for development progress**
 
-Purpose: answer “where exactly are we?” without relying on chat history, memory or interpretation of recent commits.
-
 ## Current phase
 
-**Pre-code V1 documentation/design: COMPLETE / FROZEN.**
+- V1 documentation/design: **COMPLETE / FROZEN**.
+- Guest RSVP + Email/SMS/WhatsApp scope: **MERGED / FROZEN**.
+- AI Lot Orchestration governance: **MERGED / FROZEN**.
+- Final Design Review: **PASS**.
+- Implementation gate: **OPEN**.
+- Lot 0: **ACCEPTED** — implementation/integration completed 2026-09-03.
+- **Lot 1: ACCEPTED — identity, project and secure foundation completed 2026-09-06.**
+- Lots 2–12: **NOT_STARTED**.
 
-**Expanded V1 guest RSVP + Email/SMS/WhatsApp scope: REVIEWED / MERGED / FROZEN.**
+No Lot 2+ product implementation is currently permitted. Lot 2 requires a future explicit user kickoff before implementation begins.
 
-**AI Lot Orchestration / bounded Work Packet governance: REVIEWED / MERGED / FROZEN.**
+## Lot 0 closure
 
-**Final Design Review: PASS.**
+Coverage/reconciliation: `lot-0/LOT-0-COVERAGE-MATRIX.md`.
 
-**Implementation gate: OPEN.**
+- WP-0.1 through WP-0.6: **ACCEPTED**.
+- Required Lot 0 responsibilities minus accepted/evidenced responsibilities: **∅**.
+- Lot Integration Pass: **PASS**.
+- Exact-head closure: branch `lot-0/repository-tooling` at `3dccc801a38929c6dfda7ecb06626d9c5143ec76` retained a green Lot 0 CI including clean-checkout `npm run verify`.
 
-**Lot 0: READY / NOT_STARTED.**
+## Lot 1 closure
 
-No application/tooling implementation work has started.
+Coverage/reconciliation: `lot-1/LOT-1-COVERAGE-MATRIX.md`.
+Integration record: `lot-1/LOT-1-INTEGRATION-PASS.md`.
 
-PR #6 merged the AI Lot Orchestration change from exact sealed head:
+Required current-lot responsibilities minus assigned packet responsibilities: **∅**.
+Required packet-owned current-lot responsibilities minus accepted/evidenced packet responsibilities: **∅**.
+Required current-lot responsibilities minus accepted/evidenced responsibilities after Integration Pass: **∅**.
 
-`d72f1d025d8e5f7b6cab696aa5886fa3a432c70a`
+Packets:
 
-Merge commit:
+1. `WP-1.1` — permission catalog and authorization helper foundation — **ACCEPTED**;
+2. `WP-1.2` — core tenancy schema, membership and RLS baseline — **ACCEPTED**;
+3. `WP-1.3` — Supabase Auth/session and controlled first-owner provisioning — **ACCEPTED**;
+4. `WP-1.4` — partner invitation and protected membership lifecycle — **ACCEPTED**;
+5. `WP-1.5` — project configuration, dates, origins, preferences and RSVP-intent hooks — **ACCEPTED**;
+6. `WP-1.6` — protected app shell/navigation and public RSVP trust boundary — **ACCEPTED**;
+7. `WP-1.7` — project-scoped repositories, local cache and sync primitives — **ACCEPTED**;
+8. `WP-1.8` — session expiry, safe logout, MFA/security diagnostics — **ACCEPTED**;
+9. `WP-1.9` — Storage/Realtime isolation foundation and security-matrix closure — **ACCEPTED**.
 
-`8c879f9fd2e7e7427b3fef98247028d0dc163e8c`
+### Durable cursor
 
-The merge used exact-head protection. Any future Lot begins only after an explicit user kickoff and must follow the frozen orchestration protocol.
-
-## Frozen V1 feature inventory
-
-The authoritative V1 feature set is the union of:
-
-- `../FEATURE-LEDGER.md` — `FTR-001..104`;
-- `../FEATURE-LEDGER-GUEST-COMMUNICATIONS-EXTENSION.md` — `FTR-105..120`.
-
-Total: **120 V1 capabilities**, all still design-level `SPECIFIED`.
-
-Implementation counts:
-
-- `READY`: 0 Feature IDs unless explicitly promoted during a future lot kickoff;
-- `IN_PROGRESS`: 0;
-- `IMPLEMENTED`: 0;
-- `VERIFIED`: 0;
-- `INTEGRATED`: 0;
-- `ACCEPTED`: 0;
-- `BLOCKED`: 0.
-
-Documentation completion never counts as feature implementation.
-
-## Frozen AI Lot execution model
-
-A user may simply request:
-
-```text
-Fais le Lot N
-```
-
-The user does not need to manually enumerate Work Packets.
-
-When the current Lot is permitted, the AI must internally execute:
-
-```text
-complete current-lot Feature/control inventory
-→ dependency-aware Lot Coverage Matrix
-→ bounded Work Packet plan
-→ Pass A IMPLEMENT
-→ Pass B ADVERSARIAL REVIEW
-→ Pass C ACCEPTANCE
-→ next packet
-→ mechanical required - accepted/evidenced reconciliation = ∅
-→ separate Lot Integration Pass
-→ base + applicable addendum Lot acceptance
-→ Checkpoint when applicable
-```
-
-Default: one Work Packet `IN_PROGRESS` at a time.
-
-Every Work Packet uses the canonical state machine from `../engineering/AI-LOT-ORCHESTRATION.md`, with durable state/pass evidence in `../templates/WORK-PACKET-RECORD.md`.
-
-Normal path:
-
-```text
-PLANNED
-→ READY
-→ IN_PROGRESS
-→ REVIEW_PENDING
-→ ACCEPTANCE_PENDING
-→ ACCEPTED
-```
-
-A failed adversarial review uses `REVIEW_FAILED` and explicit `REMEDIATION`; Pass C cannot be entered without `ACCEPTANCE_PENDING`.
-
-During an active Lot this status board must persist:
-
-- current Lot;
-- Lot state;
-- Work Packet plan/reference;
-- current packet;
-- packet state;
-- current/next pass;
-- accepted packets;
-- review-failed/blocked packets and findings;
-- latest relevant verification;
-- next permitted action.
-
-A session may not silently skip an unfinished packet or infer Lot completion from chat history.
-
-## Packet sizing safeguards
-
-Work Packet normal target:
-
-- 1–3 primary Feature IDs or one tightly coupled foundation concern;
-- one primary bounded context;
-- ≤8 planning complexity points target;
-- 9–10 points requires cohesion review;
-- >10 points normally requires split.
-
-Lot-level planning sentries include:
-
-- Lot 2: 8–12 typical packets;
-- Lot 4: 7–10;
-- Lot 5: 6–9;
-- Lot 6: **15–25**;
-- Lot 10: 6–9;
-- Lot 11: **10–15**;
-- Lot 12: 6–10.
-
-These ranges are sanity checks, not quotas. A coarse plan below range requires explicit justification; complexity limits still govern every packet.
-
-## Final pre-Lot 0 review evidence
-
-- `../FINAL-DESIGN-REVIEW.md` — PASS / implementation gate OPEN;
-- `../V1-FROZEN-MANIFEST.md` — frozen V1 composition/precedence;
-- `../reviews/PRE-LOT0-36-CRITERIA-CERTIFICATION.md` — **36/36 criteria at 100/100 design**;
-- `../reviews/AI-LOT-ORCHESTRATION-REVIEW.md` — execution-governance review;
-- `../reviews/AI-LOT-ORCHESTRATION-PR-FINDINGS-ADDENDUM.md` — final PR findings AIO-011..013;
-- `../reviews/ABSOLUTE-300-CONTROL-CHECKLIST.md` + AI-orchestration addendum — cross-phase maturity controls;
-- PR #6 exact-head seal + successful exact-head merge.
-
-Final orchestration review resolved 13 design/governance findings, including the two GitHub review threads and the final Work Packet template/state-machine consistency issue.
+- Current Lot: **none — Lot 1 terminal/ACCEPTED**
+- Lot state: **ACCEPTED**
+- Current packet: **none — WP-1.1 through WP-1.9 terminal/ACCEPTED**
+- Current Lot activity: **NONE — awaiting future explicit Lot 2 kickoff**
+- Accepted packets: **WP-1.1 through WP-1.9**
+- Mechanical Lot reconciliation: **PASS — required packet-owned responsibilities minus accepted/evidenced = ∅**
+- Lot Integration Pass: **PASS**
+- Open Lot Integration findings: **none; `LOT1-IP-001` CLOSED**
+- Open packet adversarial findings: **none; all historical packet MAJOR findings are closed**
+- WP-1.1 acceptance evidence: run `33809855993` on `f0b1e46c46bc3ad5d15bf2191c63ec4e85473507`, all five jobs SUCCESS.
+- WP-1.2 acceptance evidence: run `33811568440` on `fa96228bcd8a0b7671fcb561f8f7668eaf5851dc`, all five jobs SUCCESS; `WP12-AR-001` closed.
+- WP-1.3 acceptance evidence: run `33817932867` on `707b1384fbd370fe88ef7a87ac191aa9645f6db3`, all five jobs SUCCESS; `WP13-AR-001` and `WP13-AR-002` closed.
+- WP-1.4 acceptance evidence: run `33859207161` on `bf0046dc45c318875d349edc2b6327292e2894ea`, all five jobs SUCCESS including clean-checkout `npm run verify`; DB 133/133; `WP14-AR-001..003` closed.
+- WP-1.5 acceptance evidence: run `33866160626` on implementation HEAD `15e477a9ca75efbc98594000c190180e24226229`, all five jobs SUCCESS including clean-checkout `npm run verify`; DB **13 files / 239 tests / PASS**; `WP15-AR-001` and `WP15-AR-002` closed; Pass C required-minus-evidenced = ∅.
+- WP-1.6 acceptance evidence: run `33880216335` on implementation HEAD `61dca0718f8ff7372609d208050aba6a50271743`, all five jobs SUCCESS including clean-checkout `npm run verify`; fresh Pass B PASS; Pass C required-minus-evidenced = ∅; `WP16-AR-001` and `WP16-AR-002` closed.
+- WP-1.7 acceptance evidence: run `33895516028` on implementation/review HEAD `46548702f304dbabcf4bd673a33afb1c0ec96a3d`, all five jobs SUCCESS including 28/28 Playwright E2E, mutation and clean-checkout `npm run verify`; `WP17-AR-001..003` closed; fresh Pass B PASS; Pass C required-minus-evidenced = ∅.
+- WP-1.8 acceptance evidence: run `33994961610` on implementation/evidence HEAD `cb7201e2d6dc1a8ca7608bb236f1f79ac84d8d9d`, all five jobs SUCCESS including browser E2E + mutation and clean-checkout `npm run verify`; `WP18-AR-001..003` closed; final fresh Pass B PASS; Pass C required-minus-evidenced = ∅.
+- WP-1.9 acceptance evidence: run `33999832455` on implementation/review HEAD `1c8331de918e82e1dc40beb96e6ac08343b861d7`, **5/5 SUCCESS** including clean-checkout `npm run verify`; DB **14 files / 284 tests / PASS**; Storage/Realtime matrix **45/45 PASS**; `WP19-AR-001` closed; fresh Pass B PASS; Pass C expected-minus-implemented/verified = ∅.
+- Lot 1 Integration/acceptance evidence: run `34026968380` on technical HEAD `c7594e6cd15e33602411b810aad7f89ee732ba57`, **5/5 SUCCESS** including clean-checkout `npm run verify`; DB **15 files / 294 tests / PASS**; Playwright **40/40 PASS** across Chromium, Firefox, WebKit and mobile Chromium; fresh separate Integration Pass PASS; `LOT1-IP-001` CLOSED.
+- Current branch: **`lot-1/identity-project-foundation`**
+- Next permitted action: **none until a future explicit user kickoff of Lot 2**.
 
 ## Lot status
 
-Allowed lot states:
-- `NOT_STARTED`
-- `READY`
-- `IN_PROGRESS`
-- `LOT_REVIEW`
-- `CHECKPOINT_REVIEW`
-- `ACCEPTED`
-- `BLOCKED`
+| Lot | State |
+|---:|---|
+| 0 | **ACCEPTED** |
+| 1 | **ACCEPTED** |
+| 2–12 | NOT_STARTED |
 
-| Lot | Name | State | Feature range / focus |
-|---:|---|---|---|
-| 0 | Repository & tooling | **READY / NOT_STARTED** | engineering foundation |
-| 1 | Identity/project foundation | NOT_STARTED | FTR-002..012 + guest-comms foundation hooks |
-| 2 | Venues core | NOT_STARTED | FTR-013..028 + file basics |
-| 3 | Tasks/decisions/Inbox | NOT_STARTED | FTR-029..035 |
-| 4 | Import/export foundation | NOT_STARTED | FTR-036..044 + contact import safeguards |
-| 5 | Budget/payments | NOT_STARTED | FTR-045..053 |
-| 6 | Guests/invitations/RSVP/communications/seating | NOT_STARTED | FTR-054..063 + FTR-105..119 |
-| 7 | Vendors/contracts | NOT_STARTED | FTR-064..068, FTR-089..093 as assigned |
-| 8 | Dashboard/planning/timeline/search | NOT_STARTED | FTR-069..078 + RSVP actionable summaries |
-| 9 | Map/access | NOT_STARTED | FTR-079..082 |
-| 10 | Offline/PWA hardening | NOT_STARTED | FTR-083..088 + communication draft/send boundaries |
-| 11 | Backup/recovery/providers/production | NOT_STARTED | FTR-094..099 + production provider evidence incl. FTR-120 |
-| 12 | Existing data/cutover | NOT_STARTED | FTR-100..104 + contact/RSVP/provider cutover evidence |
+## Product Feature counts
 
-`READY` is permission to begin only after explicit kickoff; it is not evidence of work already performed.
+- V1 Feature IDs: 120 SPECIFIED inventory rows total.
+- Lot 1 identity/project/secure-foundation responsibilities are implemented, reconciled, integration-reviewed and accepted.
+- No Lot 2+ Feature may start without a future explicit kickoff.
 
-## Cross-lot checkpoints
+## Current blockers / forward maintenance
 
-| Checkpoint | Lots | State | Key expanded-V1 focus |
-|---|---|---|---|
-| A | 0–3 | NOT_STARTED | foundations, capability/provider boundaries + packet/lot evidence |
-| B | 4–7 | NOT_STARTED | import + guests + RSVP + communications + seating + QIF/security integration + packet reconciliation |
-| C | 8–10 | NOT_STARTED | dashboard/search/offline/PWA coherence + implementation maintainability |
-| D | 11–12 | NOT_STARTED | real providers, recovery, costs, deliverability, real-device/QIF and cutover evidence |
+Open Lot Integration findings:
 
-## Current blockers
+- none. `LOT1-IP-001` is **CLOSED** by integrated DB/RPC lifecycle evidence plus explicit two-owner Playwright evidence.
 
-**Pre-Lot 0 design blockers: 0.**
+Open packet adversarial findings:
 
-No known unresolved BLOCKING or MAJOR pre-code design finding remains.
+- none; all historical packet MAJOR findings are closed.
 
-Runtime/tooling evidence intentionally does not exist yet because Lot 0 and all implementation Lots are still unstarted.
+Inherited reviewed non-blocking maintenance:
 
-## Next permitted action
+- dependency audit reports two Moderate transitive advisories in development tooling; Critical/High accepted-known count remains zero under the normative vulnerability gate;
+- dependency auditing keeps `npm audit` primary with exact-lockfile GitHub Advisory fallback only after bounded transient provider failure; dual-provider unavailability remains fail-closed;
+- external container registries may transiently rate-limit clean Supabase pulls; retry cannot skip DB/RLS verification;
+- exact provider signup-window behavior remains a downstream onboarding/cutover requirement;
+- invitation create/accept rate-limit/abuse evidence remains required before public/self-service exposure or real production cutover;
+- browser device identity recovery after selective localStorage/IndexedDB divergence remains later session/local-recovery hardening; current behavior fails closed/degraded without cross-scope attachment or silent deletion.
 
-**Wait for an explicit Lot 0 kickoff request.**
-
-Until then, do not:
-
-- initialize Vite/TypeScript;
-- create `package.json`, lockfile or toolchain;
-- create GitHub Actions workflows;
-- implement CI/CD;
-- create Supabase migrations/configuration;
-- create application source code;
-- integrate provider SDKs/webhooks;
-- send real Email/SMS/WhatsApp messages;
-- mark any Feature ID implemented;
-- create active Lot 0 Work Packets as if implementation had begun.
-
-## Handoff summary
+## Handoff
 
 ```text
-V1 design: COMPLETE / FROZEN
-Guest RSVP + communications: MERGED / FROZEN
-AI Lot Orchestration: MERGED / FROZEN
-Frozen Feature IDs: 120
-Final Design Review: PASS
-36 pre-Lot 0 criteria: 36/36 at 100/100 design
-Implementation gate: OPEN
-Lot 0: READY / NOT_STARTED
-Features IMPLEMENTED: 0
-Open pre-code BLOCKING/MAJOR findings: 0
-Next permitted action: explicit future Lot 0 kickoff only
+Lot 0: ACCEPTED
+Lot 1: ACCEPTED
+Coverage/reconciliation: required - assigned = ∅; packet-owned required - accepted/evidenced = ∅; final required - accepted/evidenced = ∅
+Accepted packets: WP-1.1 through WP-1.9
+Lot Integration Pass: PASS
+Integration evidence: run 34026968380 on c7594e6cd15e33602411b810aad7f89ee732ba57, 5/5 SUCCESS; DB 15 files / 294 tests / PASS; Playwright 40/40 PASS
+Open BLOCKING/MAJOR: none
+Next: no implementation until the user explicitly kicks off Lot 2
+Lot 2–12: NOT_STARTED
 ```
-
-The repository is the canonical handoff. Chat history is supplementary only.
