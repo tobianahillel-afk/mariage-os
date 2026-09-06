@@ -140,12 +140,15 @@ describe("normalizeVenueSpaceDraft capacity and metadata validation", () => {
     },
   );
 
-  it.each(invalidSortOrderCases)("rejects invalid sort order %#", (sortOrder) => {
-    expect(normalizeVenueSpaceDraft({ ...fullDraft, sortOrder })).toEqual({
-      ok: false,
-      error: "sort_order_invalid",
-    });
-  });
+  it.each(invalidSortOrderCases)(
+    "rejects invalid sort order %#",
+    (sortOrder) => {
+      expect(normalizeVenueSpaceDraft({ ...fullDraft, sortOrder })).toEqual({
+        ok: false,
+        error: "sort_order_invalid",
+      });
+    },
+  );
 
   it("rejects oversized notes and accepts explicit null note", () => {
     expect(
