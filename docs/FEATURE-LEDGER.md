@@ -34,8 +34,8 @@ Before implementation gate opens, every V1 row remains `SPECIFIED`.
 
 | ID | Capability | Lot | Primary contracts | Status |
 |---|---|---:|---|---|
-| FTR-013 | Minimal/quick venue creation with duplicate guard | 2 | VENUES, USER-FLOWS | SPECIFIED |
-| FTR-014 | Venue lifecycle shortlist/reject/restore/history | 2 | VENUES, STATE-MACHINES | SPECIFIED |
+| FTR-013 | Minimal/quick venue creation with duplicate guard | 2 | VENUES, USER-FLOWS | IN_PROGRESS |
+| FTR-014 | Venue lifecycle shortlist/reject/restore/history | 2 | VENUES, STATE-MACHINES | IN_PROGRESS |
 | FTR-015 | Venue gallery browsing | 2 | VENUES, UX | SPECIFIED |
 | FTR-016 | Venue analytical table with controlled columns | 2 | VENUES, UX | SPECIFIED |
 | FTR-017 | Venue detail summary-first workspace | 2 | SCREEN-CONTRACTS, VENUES | SPECIFIED |
