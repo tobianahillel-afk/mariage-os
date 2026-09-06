@@ -23,10 +23,22 @@ export const venueStatuses = [
   "paused",
 ] as const;
 
+export const protectedVenueStatuses = [
+  "selected",
+  "contract_sent",
+  "contract_signed",
+  "deposit_paid",
+  "confirmed",
+  "completed",
+  "archived",
+] as const;
+
 export type VenueStatus = (typeof venueStatuses)[number];
+export type ProtectedVenueStatus = (typeof protectedVenueStatuses)[number];
 
 export type VenueTransitionError =
   | "unknown_status"
+  | "protected_transition_required"
   | "rejection_reason_required"
   | "rejection_reason_too_long"
   | "rejection_reason_not_allowed";
@@ -40,6 +52,7 @@ export type VenueTransitionValidation =
   | { readonly ok: false; readonly error: VenueTransitionError };
 
 const venueStatusSet = new Set<string>(venueStatuses);
+const protectedVenueStatusSet = new Set<string>(protectedVenueStatuses);
 const MAX_REJECTION_REASON_LENGTH = 1_000;
 
 export function isVenueStatus(value: string): value is VenueStatus {
@@ -58,6 +71,9 @@ export function validateVenueTransitionInput(
 ): VenueTransitionValidation {
   if (!isVenueStatus(targetStatus)) {
     return { ok: false, error: "unknown_status" };
+  }
+  if (protectedVenueStatusSet.has(targetStatus)) {
+    return { ok: false, error: "protected_transition_required" };
   }
 
   const reason = normalizedReason(rejectionReason);
