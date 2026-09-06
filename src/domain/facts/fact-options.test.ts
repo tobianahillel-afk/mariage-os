@@ -21,8 +21,14 @@ describe("numeric fact options", () => {
       value: { min: 0, max: 500, integer: true },
     });
     const integer = normalizeFactOptions("number", { integer: true });
-    const minInteger = normalizeFactOptions("number", { min: 1, integer: true });
-    const maxInteger = normalizeFactOptions("number", { max: 1, integer: true });
+    const minInteger = normalizeFactOptions("number", {
+      min: 1,
+      integer: true,
+    });
+    const maxInteger = normalizeFactOptions("number", {
+      max: 1,
+      integer: true,
+    });
     expect(integer.ok).toBe(true);
     expect(minInteger.ok).toBe(true);
     expect(maxInteger.ok).toBe(true);
