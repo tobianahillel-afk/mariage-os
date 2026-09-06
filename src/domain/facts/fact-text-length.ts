@@ -4,7 +4,8 @@ export function hasCodePointLengthBetween(
   maximum: number,
 ): boolean {
   let length = 0;
-  for (const _codePoint of value) {
+  const iterator = value[Symbol.iterator]();
+  while (!iterator.next().done) {
     length += 1;
     if (length > maximum) return false;
   }
