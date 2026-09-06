@@ -1,0 +1,31 @@
+name: WP23 Prettier Probe
+
+on:
+  push:
+    branches:
+      - probe/wp23-b002-prettier
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npx prettier --write src/domain/facts/fact-value.ts src/domain/facts/fact-boundary-parity.test.ts
+      - name: Emit formatted files
+        run: |
+          echo '=== FACT_VALUE_BEGIN ==='
+          cat src/domain/facts/fact-value.ts
+          echo '=== FACT_VALUE_END ==='
+          echo '=== PARITY_TEST_BEGIN ==='
+          cat src/domain/facts/fact-boundary-parity.test.ts
+          echo '=== PARITY_TEST_END ==='
