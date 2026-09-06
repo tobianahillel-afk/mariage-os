@@ -28,6 +28,8 @@ const invalidMeasurementCases = [
   [{ ...fullDraft, lengthM: -1 }, "measurement_invalid"],
   [{ ...fullDraft, widthM: 0 }, "measurement_invalid"],
   [{ ...fullDraft, heightM: Number.POSITIVE_INFINITY }, "measurement_invalid"],
+  [{ ...fullDraft, areaM2: 1.234 }, "measurement_invalid"],
+  [{ ...fullDraft, areaM2: 100_000_000 }, "measurement_invalid"],
 ] as const;
 
 const invalidCapacityCases = [
@@ -35,6 +37,14 @@ const invalidCapacityCases = [
   [{ ...fullDraft, capacitySeated: -1 }, "capacity_invalid"],
   [{ ...fullDraft, capacityCocktail: 2.5 }, "capacity_invalid"],
   [{ ...fullDraft, capacityCocktail: -1 }, "capacity_invalid"],
+  [{ ...fullDraft, capacitySeated: 2_147_483_648 }, "capacity_invalid"],
+] as const;
+
+const invalidSortOrderCases = [
+  1.5,
+  -2_147_483_649,
+  2_147_483_648,
+  Number.MAX_SAFE_INTEGER + 1,
 ] as const;
 
 describe("normalizeVenueSpaceDraft normalization", () => {
@@ -94,6 +104,16 @@ describe("normalizeVenueSpaceDraft normalization", () => {
 
     expect(result.ok && result.value.notes).toBeNull();
   });
+
+  it("accepts exact PostgreSQL numeric and integer boundaries", () => {
+    const result = normalizeVenueSpaceDraft({
+      ...fullDraft,
+      areaM2: 99_999_999.99,
+      capacitySeated: 2_147_483_647,
+      sortOrder: -2_147_483_648,
+    });
+    expect(result.ok).toBe(true);
+  });
 });
 
 describe("normalizeVenueSpaceDraft text and measurement validation", () => {
@@ -120,8 +140,8 @@ describe("normalizeVenueSpaceDraft capacity and metadata validation", () => {
     },
   );
 
-  it("rejects non-integer sort order", () => {
-    expect(normalizeVenueSpaceDraft({ ...fullDraft, sortOrder: 1.5 })).toEqual({
+  it.each(invalidSortOrderCases)("rejects invalid sort order %#", (sortOrder) => {
+    expect(normalizeVenueSpaceDraft({ ...fullDraft, sortOrder })).toEqual({
       ok: false,
       error: "sort_order_invalid",
     });
