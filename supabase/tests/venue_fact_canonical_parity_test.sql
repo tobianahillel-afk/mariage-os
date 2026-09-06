@@ -55,7 +55,7 @@ select ok(not pg_temp.try_set('url_parity',1,to_jsonb('https://%'::text)),'malfo
 select ok(not pg_temp.try_set('url_parity',1,to_jsonb('https://user@example.invalid'::text)),'credential URL rejected');
 select ok(not pg_temp.try_set('url_parity',1,to_jsonb('https://999.999.999.999'::text)),'ambiguous numeric host rejected');
 select ok(not pg_temp.try_set('url_parity',1,to_jsonb('https://example.invalid:65536'::text)),'out-of-range port rejected');
-select is((select revision from public.facts f join public.fact_definitions d on d.id=f.definition_id where d.key='url_parity'),1::bigint,'rejected URLs do not mutate retained revision');
+select is((select f.revision from public.facts f join public.fact_definitions d on d.id=f.definition_id where d.key='url_parity'),1::bigint,'rejected URLs do not mutate retained revision');
 
 select ok(pg_temp.try_set('date_parity',null,'"0001-01-01"'::jsonb),'year 0001 civil date accepted');
 select ok(not pg_temp.try_set('date_parity',1,'"0000-01-01"'::jsonb),'year 0000 civil date rejected');
@@ -64,7 +64,7 @@ select ok(pg_temp.try_set('date_parity',1,'"2000-02-29"'::jsonb),'leap-century d
 
 select ok(pg_temp.try_set('number_parity',null,'1e308'::jsonb),'canonical numeric upper bound accepted');
 select ok(not pg_temp.try_set('number_parity',1,'1.5e308'::jsonb),'number above canonical bound rejected');
-select is((select revision from public.facts f join public.fact_definitions d on d.id=f.definition_id where d.key='number_parity'),1::bigint,'rejected oversized number does not mutate retained revision');
+select is((select f.revision from public.facts f join public.fact_definitions d on d.id=f.definition_id where d.key='number_parity'),1::bigint,'rejected oversized number does not mutate retained revision');
 
 reset role;
 select * from finish();

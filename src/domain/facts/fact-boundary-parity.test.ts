@@ -27,10 +27,8 @@ describe("canonical fact boundary parity", () => {
       normalizeFactValue({ valueType: "number", optionsJson: null }, 1e308).ok,
     ).toBe(true);
     expect(
-      normalizeFactValue(
-        { valueType: "number", optionsJson: null },
-        1.5e308,
-      ).ok,
+      normalizeFactValue({ valueType: "number", optionsJson: null }, 1.5e308)
+        .ok,
     ).toBe(false);
   });
 

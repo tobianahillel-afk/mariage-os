@@ -139,8 +139,7 @@ function normalizeUrl(
 }
 
 function daysInMonth(year: number, month: number): number {
-  const leapYear =
-    year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  const leapYear = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
   const monthLengths = [
     31,
     leapYear ? 29 : 28,
