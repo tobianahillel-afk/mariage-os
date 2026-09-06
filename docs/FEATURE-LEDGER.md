@@ -28,7 +28,7 @@ Before implementation gate opens, every V1 row remains `SPECIFIED`.
 | FTR-009 | Responsive application shell/navigation/deep links | 1 | NAVIGATION, SCREEN-CONTRACTS | SPECIFIED |
 | FTR-010 | Global sync status and local durability indicator | 1 | LOCAL-FIRST, SYNC | SPECIFIED |
 | FTR-011 | Safe logout with pending-work resolution and local purge | 1/10 | AUTHENTICATION, OFFLINE | SPECIFIED |
-| FTR-012 | Personal cross-device UI preferences | 1/2 | PHYSICAL-SCHEMA, RLS | SPECIFIED |
+| FTR-012 | Personal cross-device UI preferences | 1/2 | PHYSICAL-SCHEMA, RLS | IN_PROGRESS |
 
 ## Venue research / comparison
 
@@ -39,12 +39,12 @@ Before implementation gate opens, every V1 row remains `SPECIFIED`.
 | FTR-015 | Venue gallery browsing | 2 | VENUES, UX | SPECIFIED |
 | FTR-016 | Venue analytical table with controlled columns | 2 | VENUES, UX | SPECIFIED |
 | FTR-017 | Venue detail summary-first workspace | 2 | SCREEN-CONTRACTS, VENUES | SPECIFIED |
-| FTR-018 | Venue spaces/dimensions/capacity/configuration | 2 | VENUES, PHYSICAL-SCHEMA | SPECIFIED |
+| FTR-018 | Venue spaces/dimensions/capacity/configuration | 2 | VENUES, PHYSICAL-SCHEMA | IN_PROGRESS |
 | FTR-019 | Typed facts/criteria retained value | 2 | FACTS-SOURCES, FACT-VALUE-TYPES | SPECIFIED |
 | FTR-020 | Multi-source observations/provenance/conflict | 2 | FACTS-SOURCES, CONFIDENCE-FRESHNESS | SPECIFIED |
 | FTR-021 | Deterministic criterion evaluation / blockers / score explanation | 2 | CRITERIA-EVALUATION | SPECIFIED |
 | FTR-022 | Missing/stale/conflicting information guidance | 2/3 | VENUES, TASKS | SPECIFIED |
-| FTR-023 | Individual partner favorites/ratings/preferences | 2 | RLS, PHYSICAL-SCHEMA | SPECIFIED |
+| FTR-023 | Individual partner favorites/ratings/preferences | 2 | RLS, PHYSICAL-SCHEMA | IN_PROGRESS |
 | FTR-024 | Venue photos remote references/private archive/gallery | 2 | STORAGE, DOCUMENTS-MEDIA | SPECIFIED |
 | FTR-025 | Venue offers/date pricing/availability context | 2/5 | VENUES, BUDGET | SPECIFIED |
 | FTR-026 | Venue contacts/interactions/quote follow-up | 2/3 | VENUES, TASKS | SPECIFIED |
