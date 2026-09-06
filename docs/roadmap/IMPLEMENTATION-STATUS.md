@@ -49,7 +49,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 Packets:
 
 1. `WP-2.1` — venue identity, authorized persistence and lifecycle-history foundation — **ACCEPTED**;
-2. `WP-2.2` — spaces, capacity and member ratings/preferences — **PLANNED / NEXT**;
+2. `WP-2.2` — spaces, capacity and member ratings/preferences — **IN_PROGRESS / A-IMPLEMENT**;
 3. `WP-2.3` — fact definitions, typed retained facts and value validation — **PLANNED**;
 4. `WP-2.4` — observations, sources, evidence/confidence/freshness and conflicts — **PLANNED**;
 5. `WP-2.5` — deterministic criteria, blockers, score/readiness and missing information — **PLANNED**;
@@ -67,8 +67,7 @@ Record: `lot-2/WP-2.1.md`.
 
 - State: **ACCEPTED**.
 - Required WP-2.1 responsibilities minus accepted/evidenced responsibilities: **∅**.
-- Original Pass B findings `WP2.1-B-001..005`: **RESOLVED**.
-- Fresh re-review findings `WP2.1-B-006..008`: **RESOLVED**.
+- All original/fresh Pass B findings `WP2.1-B-001..008`: **RESOLVED**.
 - Fresh Pass B: **PASS**.
 - Pass C reconciliation: **PASS**.
 - Open WP-2.1 BLOCKING/MAJOR findings: **none**.
@@ -79,21 +78,33 @@ Record: `lot-2/WP-2.1.md`.
 - Browser: **40/40 Playwright PASS** across Chromium, Firefox, WebKit and mobile Chromium.
 - Privacy-safe preview: **PASS**.
 - Full verify from clean checkout: **PASS**.
-- Mutation job is green but currently mutates `start-application.ts`; it is not claimed as Venue mutation evidence for WP-2.1.
+- Governance exact-head run `34040803267` on `3304840ac94dbae2e0ebb79bdc0b57cdedb4943c`: **5/5 SUCCESS**.
+
+### WP-2.2 active scope
+
+Record: `lot-2/WP-2.2.md`.
+
+- State: **IN_PROGRESS**.
+- Current pass: **A-IMPLEMENT**.
+- Primary Features: `FTR-018`, `FTR-023`, Lot-2 continuation of `FTR-012`.
+- Physical-space responsibility: geometry, dimensions, indoor/outdoor context, seated/cocktail capacities, sort order and notes with same-project integrity and collaborative revision safety.
+- Personal-opinion responsibility: self-authored Venue favorite/note + controlled rating dimensions; partner ratings may be read for Venue summaries, but another member's row cannot be written or impersonated.
+- Boundary clarification: sourced wedding-specific suitability such as external caterer, two dance zones, chuppah, rain plan and similar criteria remains WP-2.3..WP-2.5; WP-2.2 must not duplicate those as unsourced space columns.
+- View-layout/table-column preferences remain WP-2.11 and reuse the existing `user_project_preferences` foundation.
+- No UI/local-offline completion is claimed in WP-2.2.
 
 ### Durable cursor
 
 - Current Lot: **2 — Venues core**
 - Lot state: **IN_PROGRESS**
 - Current branch: **`lot-2/venues-core`**
-- Current packet: **none between packets; WP-2.1 accepted, WP-2.2 next**
-- Packet state: **none active**
-- Current pass: **none active**
+- Current packet: **WP-2.2**
+- Packet state: **IN_PROGRESS**
+- Current pass: **A-IMPLEMENT**
 - Accepted packets: **WP-2.1**
 - Review-failed/blocked packets: **none**
-- Open packet BLOCKING/MAJOR findings: **none**
-- Latest accepted packet implementation verification: run `34039296392` on `3418659d94d35f61183f0a20c367c74e38e86802`, **5/5 SUCCESS**, including clean-checkout `npm run verify`.
-- Next permitted action: **after governance-only exact-head CI remains green, open WP-2.2 as the single `IN_PROGRESS` packet and execute Pass A; do not start another packet concurrently.**
+- Open packet BLOCKING/MAJOR findings: **none yet; Pass B for WP-2.2 not started**
+- Next permitted action: **implement WP-2.2 only, obtain exact-head verification, then move it to fresh Pass B; do not start WP-2.3 concurrently.**
 
 ## Known localized specification repairs
 
@@ -103,7 +114,7 @@ These are recorded stop-conditions for the owning later packets, not permission 
 - before WP-2.5 implements `evidenceReadiness`, document its deterministic formula in `domain/CRITERIA-EVALUATION.md`;
 - before WP-2.8 relies on the security reading graph, repair the missing `docs/security/STORAGE-RLS.md` reference using the already frozen Storage/RLS rules and tested Lot-1 policies.
 
-The Venue lifecycle documentation conflict discovered during WP-2.1 is closed by `docs/domain/STATE-MACHINES-VENUE-LIFECYCLE-ADDENDUM.md`: `reserve` is a non-contractual backup-candidate state; protected commitment/terminal states require dedicated future commands and are unavailable through the generic lifecycle command.
+The Venue lifecycle documentation conflict discovered during WP-2.1 is closed by `docs/domain/STATE-MACHINES-VENUE-LIFECYCLE-ADDENDUM.md`.
 
 ## Lot status
 
@@ -120,11 +131,12 @@ The Venue lifecycle documentation conflict discovered during WP-2.1 is closed by
 - Lot 2 primary Feature IDs: `FTR-013..FTR-028`.
 - Current-lot partial responsibilities also include `FTR-012`, `FTR-089`, `FTR-092`, `FTR-093` and Lot-acceptance cross-cutting access/offline/security responsibilities.
 - Feature-level whole-capability status and current-lot responsibility are not conflated; Lot Coverage Matrices are the durable responsibility-level reconciliation source.
-- `FTR-013` and `FTR-014` are now feature-level **IN_PROGRESS**, not ACCEPTED: WP-2.1 packet responsibilities are accepted while their remaining Lot-2 UI/local/duplicate-guard/deep-link responsibilities are still planned.
+- `FTR-013` and `FTR-014` remain feature-level **IN_PROGRESS** because later Lot-2 UI/local/deep-link/duplicate responsibilities remain.
+- `FTR-018`, `FTR-023` and `FTR-012` are feature-level **IN_PROGRESS** while WP-2.2 executes and later UI responsibilities remain.
 
 ## Current blockers / forward maintenance
 
-Open Lot 2 packet findings: **none**.
+Open Lot 2 packet findings: **none currently**.
 
 Inherited reviewed non-blocking maintenance:
 
@@ -140,20 +152,18 @@ Inherited reviewed non-blocking maintenance:
 
 ```text
 main integration truth: f6da05626f024431230ae46ca1ec8a4becc72a1f
-PR #7 promotion CI: 34030211097 — 5/5 SUCCESS
 Lot 0: ACCEPTED
 Lot 1: ACCEPTED
 Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Coverage: required current-lot responsibilities - assigned packet responsibilities = ∅
 Accepted Lot 2 packets: WP-2.1
-WP-2.1: ACCEPTED
-WP-2.1 reviewed implementation head: 3418659d94d35f61183f0a20c367c74e38e86802
-WP-2.1 CI: 34039296392 — 5/5 SUCCESS, clean-checkout verify PASS
-WP-2.1 responsibility gap: ∅
-Open WP-2.1 BLOCKING/MAJOR: none
-Current packet: none between packets
-Next packet: WP-2.2 — spaces, capacity and member ratings/preferences
-Next: exact-head governance CI, then open WP-2.2 as the only IN_PROGRESS packet
+WP-2.1 implementation CI: 34039296392 — 5/5 SUCCESS
+WP-2.1 governance CI: 34040803267 — 5/5 SUCCESS
+Current packet: WP-2.2
+Packet state: IN_PROGRESS
+Current pass: A-IMPLEMENT
+Open WP-2.2 BLOCKING/MAJOR: none yet; Pass B not started
+Next: implement WP-2.2 only and obtain exact-head verification
 Lots 3–12: NOT_STARTED
 ```
