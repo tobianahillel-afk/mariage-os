@@ -14,6 +14,10 @@ import {
   validateExpectedVenueRevision,
   type VenueRevisionError,
 } from "@domain/venues/venue-revision";
+import {
+  venueFactPersistenceErrorCode,
+  type VenueFactPersistenceErrorCode,
+} from "./venue-fact-persistence-error";
 
 export interface VenueFactDefinitionRecord extends NormalizedFactDefinition {
   readonly id: string;
@@ -95,7 +99,7 @@ type MutationError =
   | FactDefinitionError
   | RetainedFactError
   | VenueRevisionError
-  | "persistence_failed";
+  | VenueFactPersistenceErrorCode;
 export type DefinitionMutationResult =
   | { readonly ok: true; readonly definition: VenueFactDefinitionRecord }
   | { readonly ok: false; readonly error: MutationError };
@@ -105,6 +109,10 @@ export type RetainedFactMutationResult =
 
 function revisionError(value: number | null): VenueRevisionError | null {
   return value === null ? null : validateExpectedVenueRevision(value);
+}
+
+function persistenceError(error: unknown): VenueFactPersistenceErrorCode {
+  return venueFactPersistenceErrorCode(error) ?? "persistence_failed";
 }
 
 export async function createVenueFactDefinition(
@@ -119,8 +127,8 @@ export async function createVenueFactDefinition(
       ...normalized.value,
     });
     return { ok: true, definition };
-  } catch {
-    return { ok: false, error: "persistence_failed" };
+  } catch (error) {
+    return { ok: false, error: persistenceError(error) };
   }
 }
 
@@ -145,8 +153,8 @@ export async function updateVenueFactDefinition(
       evaluationRuleJson: normalized.value.evaluationRuleJson,
     });
     return { ok: true, definition };
-  } catch {
-    return { ok: false, error: "persistence_failed" };
+  } catch (error) {
+    return { ok: false, error: persistenceError(error) };
   }
 }
 
@@ -171,7 +179,7 @@ export async function setRetainedVenueFact(
       ...normalized.value,
     });
     return { ok: true, fact };
-  } catch {
-    return { ok: false, error: "persistence_failed" };
+  } catch (error) {
+    return { ok: false, error: persistenceError(error) };
   }
 }

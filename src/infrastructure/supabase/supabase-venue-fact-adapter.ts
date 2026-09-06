@@ -1,3 +1,7 @@
+import {
+  VenueFactPersistenceError,
+  type VenueFactPersistenceErrorCode,
+} from "@application/facts/venue-fact-persistence-error";
 import type {
   CreateVenueFactDefinitionInput,
   RetainedVenueFactRecord,
@@ -13,6 +17,11 @@ import {
 
 const DEFINITION_COLUMNS =
   "id,project_id,key,label,entity_type,value_type,unit,priority,weight,freshness_policy,system_defined,options_json,evaluation_rule_json,revision";
+const DEFINITION_QUERY_FAILED = "Venue fact definition query failed.";
+const DEFINITION_MUTATION_FAILED = "Venue fact definition mutation failed.";
+const FACT_MUTATION_FAILED = "Venue fact mutation failed.";
+const CONFLICT_CODES = new Set(["40001", "23505"]);
+const BACKEND_CODES = new Set(["PGRST000", "PGRST001", "PGRST002", "PGRST003"]);
 
 interface SupabaseResult {
   readonly data: unknown;
@@ -39,8 +48,70 @@ export interface SupabaseVenueFactClientLike {
   ): PromiseLike<SupabaseResult>;
 }
 
-function failure(message: string): never {
-  throw new Error(message);
+function providerErrorCode(value: unknown): string {
+  const code = (Object(value) as Record<string, unknown>).code;
+  return typeof code === "string" ? code : "";
+}
+
+function classifyProviderError(error: unknown): VenueFactPersistenceErrorCode {
+  const code = providerErrorCode(error);
+  if (CONFLICT_CODES.has(code)) return "conflict";
+  if (code === "42501") return "authorization_failed";
+  if (BACKEND_CODES.has(code)) return "backend_unavailable";
+  if (code === "P0001" || code.startsWith("22") || code.startsWith("23")) {
+    return "data_integrity_failed";
+  }
+  return "persistence_failed";
+}
+
+function fail(code: VenueFactPersistenceErrorCode, message: string): never {
+  throw new VenueFactPersistenceError(code, message);
+}
+
+async function providerResult(
+  call: () => PromiseLike<SupabaseResult>,
+  message: string,
+): Promise<SupabaseResult> {
+  try {
+    return await call();
+  } catch {
+    fail("backend_unavailable", message);
+  }
+}
+
+function providerData(result: SupabaseResult, message: string): unknown {
+  if (result.error !== null) fail(classifyProviderError(result.error), message);
+  return result.data;
+}
+
+function definitionData(
+  data: unknown,
+  projectId: string,
+  definitionId: string | undefined,
+  message: string,
+): VenueFactDefinitionRecord {
+  try {
+    return parseVenueFactDefinitionRow(data, projectId, definitionId);
+  } catch {
+    fail("provider_response_invalid", message);
+  }
+}
+
+function factData(
+  data: unknown,
+  input: SetRetainedVenueFactInput,
+  definition: VenueFactDefinitionRecord,
+): RetainedVenueFactRecord {
+  try {
+    return parseRetainedVenueFactRow(
+      data,
+      input.projectId,
+      input.venueId,
+      definition,
+    );
+  } catch {
+    fail("provider_response_invalid", FACT_MUTATION_FAILED);
+  }
 }
 
 function definitionPayload(
@@ -67,42 +138,51 @@ export class SupabaseVenueFactAdapter implements VenueFactPort {
     projectId: string,
     definitionId: string,
   ): Promise<VenueFactDefinitionRecord> {
-    try {
-      const { data, error } = await this.client
-        .from("fact_definitions")
-        .select(DEFINITION_COLUMNS)
-        .eq("project_id", projectId)
-        .eq("id", definitionId)
-        .single();
-      if (error !== null) failure("Venue fact definition query failed.");
-      return parseVenueFactDefinitionRow(data, projectId, definitionId);
-    } catch {
-      throw new Error("Venue fact definition query failed.");
-    }
+    const result = await providerResult(
+      () =>
+        this.client
+          .from("fact_definitions")
+          .select(DEFINITION_COLUMNS)
+          .eq("project_id", projectId)
+          .eq("id", definitionId)
+          .single(),
+      DEFINITION_QUERY_FAILED,
+    );
+    const data = providerData(result, DEFINITION_QUERY_FAILED);
+    return definitionData(
+      data,
+      projectId,
+      definitionId,
+      DEFINITION_QUERY_FAILED,
+    );
   }
 
   async createDefinition(
     input: CreateVenueFactDefinitionInput,
   ): Promise<VenueFactDefinitionRecord> {
-    try {
-      const { data, error } = await this.client.rpc(
-        "create_venue_fact_definition",
-        definitionPayload(input),
-      );
-      if (error !== null) failure("Venue fact definition mutation failed.");
-      return parseVenueFactDefinitionRow(data, input.projectId);
-    } catch {
-      throw new Error("Venue fact definition mutation failed.");
-    }
+    const result = await providerResult(
+      () =>
+        this.client.rpc(
+          "create_venue_fact_definition",
+          definitionPayload(input),
+        ),
+      DEFINITION_MUTATION_FAILED,
+    );
+    const data = providerData(result, DEFINITION_MUTATION_FAILED);
+    return definitionData(
+      data,
+      input.projectId,
+      undefined,
+      DEFINITION_MUTATION_FAILED,
+    );
   }
 
   async updateDefinition(
     input: UpdateVenueFactDefinitionInput,
   ): Promise<VenueFactDefinitionRecord> {
-    try {
-      const { data, error } = await this.client.rpc(
-        "update_venue_fact_definition",
-        {
+    const result = await providerResult(
+      () =>
+        this.client.rpc("update_venue_fact_definition", {
           target_project_id: input.projectId,
           target_definition_id: input.definitionId,
           target_expected_revision: input.expectedRevision,
@@ -112,44 +192,37 @@ export class SupabaseVenueFactAdapter implements VenueFactPort {
           target_freshness_policy: input.freshnessPolicy,
           target_options_json: input.optionsJson,
           target_evaluation_rule_json: input.evaluationRuleJson,
-        },
-      );
-      if (error !== null) failure("Venue fact definition mutation failed.");
-      return parseVenueFactDefinitionRow(
-        data,
-        input.projectId,
-        input.definitionId,
-      );
-    } catch {
-      throw new Error("Venue fact definition mutation failed.");
-    }
+        }),
+      DEFINITION_MUTATION_FAILED,
+    );
+    const data = providerData(result, DEFINITION_MUTATION_FAILED);
+    return definitionData(
+      data,
+      input.projectId,
+      input.definitionId,
+      DEFINITION_MUTATION_FAILED,
+    );
   }
 
   async setRetainedFact(
     input: SetRetainedVenueFactInput,
   ): Promise<RetainedVenueFactRecord> {
-    try {
-      const definition = await this.getDefinition(
-        input.projectId,
-        input.definitionId,
-      );
-      const { data, error } = await this.client.rpc("set_retained_venue_fact", {
-        target_project_id: input.projectId,
-        target_venue_id: input.venueId,
-        target_definition_id: input.definitionId,
-        target_expected_revision: input.expectedRevision,
-        target_state: input.state,
-        target_retained_value: input.retainedValue,
-      });
-      if (error !== null) failure("Venue fact mutation failed.");
-      return parseRetainedVenueFactRow(
-        data,
-        input.projectId,
-        input.venueId,
-        definition,
-      );
-    } catch {
-      throw new Error("Venue fact mutation failed.");
-    }
+    const definition = await this.getDefinition(
+      input.projectId,
+      input.definitionId,
+    );
+    const result = await providerResult(
+      () =>
+        this.client.rpc("set_retained_venue_fact", {
+          target_project_id: input.projectId,
+          target_venue_id: input.venueId,
+          target_definition_id: input.definitionId,
+          target_expected_revision: input.expectedRevision,
+          target_state: input.state,
+          target_retained_value: input.retainedValue,
+        }),
+      FACT_MUTATION_FAILED,
+    );
+    return factData(providerData(result, FACT_MUTATION_FAILED), input, definition);
   }
 }
