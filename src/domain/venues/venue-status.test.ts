@@ -48,10 +48,7 @@ describe("venue status", () => {
   });
 
   it("does not carry a rejection reason into an active status", () => {
-    const staleReason = validateVenueTransitionInput(
-      "shortlist",
-      "old reason",
-    );
+    const staleReason = validateVenueTransitionInput("shortlist", "old reason");
     const valid = validateVenueTransitionInput("shortlist", null);
 
     expect(staleReason).toEqual({
