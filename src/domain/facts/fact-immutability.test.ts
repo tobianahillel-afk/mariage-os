@@ -20,7 +20,11 @@ describe("normalized fact JSON immutability", () => {
       throw new Error("Expected normalized select options.");
     }
 
-    source.options[0]!.key = "changed";
+    const firstSourceOption = source.options[0];
+    if (firstSourceOption === undefined) {
+      throw new Error("Expected source option.");
+    }
+    firstSourceOption.key = "changed";
     source.options.push({ key: "high", labelKey: "criteria.high" });
     expect(select.value.options).toEqual([
       { key: "low", labelKey: "criteria.low" },
