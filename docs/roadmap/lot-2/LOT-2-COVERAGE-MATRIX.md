@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1 ACCEPTED; WP-2.2 is next**
+Status: **IN_PROGRESS — WP-2.1 ACCEPTED; WP-2.2 is the only active packet**
 
 Purpose: durable responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`.
 
@@ -25,8 +25,8 @@ The previously accepted Lot 0 + Lot 1 implementation was promoted to `main` thro
 | stable venue UUID/project identity, human code/name/location core and natural code ordering | FTR-013, VEN-001, VEN-002 | WP-2.1, WP-2.11 | Lot 1 project isolation | WP-2.1 ACCEPTED foundation + later UI/E2E |
 | minimal venue quick-add without giant form; duplicate warning inputs retained for later detector/read model | FTR-013, VEN-012, ACC-021 | WP-2.1, WP-2.10, WP-2.11 | venue identity + local store | WP-2.1 create command/repository accepted + later local durability/E2E |
 | venue lifecycle, rejection reason/history and reversible restore | FTR-014, VEN-006, PRD-007, ACC-032 | WP-2.1, WP-2.11 | authorized venue persistence | WP-2.1 ACCEPTED state-transition/activity evidence + later UI/E2E |
-| multiple spaces, dimensions, commercial capacities and wedding-specific configuration inputs | FTR-018, VEN-003, VEN-004, VEN-005 | WP-2.2, WP-2.11 | WP-2.1 | same-project DB tests + domain tests + detail UI |
-| independent member favorites/ratings and Lot-2 personal display/venue preference responsibilities | FTR-023, FTR-012 (Lot 2), VEN-015, VEN-017, PRD-004, ACC-029 | WP-2.2, WP-2.11 | Lot 1 membership/preferences | author-only RLS + partner-isolation tests + UI |
+| multiple physical spaces, dimensions and commercial capacities; sourced wedding-specific suitability remains Facts/Criteria responsibility | FTR-018, VEN-003, VEN-004, physical-input portion of VEN-005 | WP-2.2, WP-2.11 | WP-2.1 | same-project DB tests + domain tests + later detail UI |
+| independent member favorites/ratings and Lot-2 personal Venue preference foundations | FTR-023, FTR-012 (Lot 2), VEN-015, VEN-017, PRD-004, ACC-029 | WP-2.2, WP-2.11 | Lot 1 membership/preferences | author-only RLS/RPC + partner-isolation tests + later UI |
 | typed fact definitions, retained fact state/value and explicit unknown/known/not-applicable/conflict semantics | FTR-019, FAC-001, FAC-003, FAC-011, FAC-012, ACC-024 | WP-2.3 | WP-2.1 | runtime/domain validation + DB constraints/RLS |
 | multi-source append-oriented observations, sources/provenance, conflict retention and stronger-evidence protection inputs | FTR-020, FAC-002, FAC-004..009, ACC-015, ACC-025..027 | WP-2.4 | WP-2.3 | append/history/RLS tests + conflict/freshness tests |
 | deterministic criterion evaluation, blockers, weighted score explanation and dynamic recomputation | FTR-021, FAC-011, FAC-013, VEN-010, VEN-011, ACC-022, ACC-023, ACC-028 | WP-2.5 | WP-2.3, WP-2.4 | unit/property/mutation tests + explanation reconstruction |
@@ -61,18 +61,21 @@ State: **ACCEPTED**
 Current pass: **COMPLETE**
 
 Primary Features: FTR-013, FTR-014 responsibilities for canonical venue identity/persistence/lifecycle.  
-Planning complexity: **10/10** — cohesive because `venues`, lifecycle transition/history and their authorization were reviewed together to prevent generic mutation bypasses.  
 Acceptance record: `WP-2.1.md`.  
 Reviewed implementation head: `3418659d94d35f61183f0a20c367c74e38e86802`.  
 Exact implementation CI run `34039296392`: **5/5 SUCCESS**; 350 unit tests, 17 DB files / 359 pgTAP tests, 40/40 E2E, clean-checkout `npm run verify` PASS.  
+Governance exact-head CI run `34040803267` on `3304840ac94dbae2e0ebb79bdc0b57cdedb4943c`: **5/5 SUCCESS**.  
 Required WP-2.1 responsibilities minus accepted/evidenced WP-2.1 responsibilities: **∅**.
 
 ### WP-2.2 — Spaces, capacity and member ratings/preferences
 
-State: **PLANNED**
+State: **IN_PROGRESS**  
+Current pass: **A-IMPLEMENT**
 
-Primary Features: FTR-018, FTR-023, Lot-2 portion of FTR-012.  
-Dependencies: WP-2.1 **ACCEPTED**.
+Primary Features: FTR-018, FTR-023, Lot-2 continuation of FTR-012.  
+Dependencies: WP-2.1 **ACCEPTED**.  
+Record: `WP-2.2.md`.  
+Boundary: physical space geometry/capacity belongs here; sourced wedding-specific fit remains WP-2.3..2.5; table/gallery UI preferences remain WP-2.11 and reuse `user_project_preferences`.
 
 ### WP-2.3 — Fact definitions, typed retained facts and value validation
 
@@ -154,7 +157,7 @@ Provides the complete visit workflow and the final packet-owned synthetic venue 
 
 ```text
 WP-2.1 [ACCEPTED]
-  ├─→ WP-2.2 [NEXT]
+  ├─→ WP-2.2 [IN_PROGRESS]
   ├─→ WP-2.3 → WP-2.4 → WP-2.5
   ├─→ WP-2.6
   ├─→ WP-2.7
@@ -175,7 +178,7 @@ separate Lot 2 Integration Pass
 Lot 2 acceptance
 ```
 
-Default execution remains one packet `IN_PROGRESS` at a time. After WP-2.1 acceptance and governance reconciliation, WP-2.2 is the next permitted packet.
+Default execution remains one packet `IN_PROGRESS` at a time. WP-2.2 is currently the only active packet.
 
 ## Explicitly out of Lot 2
 
