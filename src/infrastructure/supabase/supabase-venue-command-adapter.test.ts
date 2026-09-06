@@ -79,8 +79,8 @@ function createInput() {
   } as const;
 }
 
-describe("SupabaseVenueCommandAdapter", () => {
-  it("creates a venue through the safe granted field set", async () => {
+describe("SupabaseVenueCommandAdapter create", () => {
+  it("creates through the safe granted field set", async () => {
     const captures = emptyCaptures();
     const adapter = adapterWith(
       { data: createdRow, error: null },
@@ -136,14 +136,16 @@ describe("SupabaseVenueCommandAdapter", () => {
     { ...createdRow, revision: "1" },
     { ...createdRow, revision: 1.5 },
     { ...createdRow, revision: 0 },
-  ])("rejects malformed venue creation response %#", async (data) => {
+  ])("rejects malformed creation response %#", async (data) => {
     const adapter = adapterWith({ data, error: null });
 
     await expect(adapter.createVenue(createInput())).rejects.toThrow(
       "Venue creation failed.",
     );
   });
+});
 
+describe("SupabaseVenueCommandAdapter transition", () => {
   it("calls the protected lifecycle RPC with explicit context", async () => {
     const captures = emptyCaptures();
     const adapter = adapterWith(

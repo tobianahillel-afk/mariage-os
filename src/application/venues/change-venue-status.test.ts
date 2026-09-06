@@ -16,7 +16,17 @@ function commandPort(
   };
 }
 
-describe("changeVenueStatus", () => {
+function transitionDraft(status: "shortlist" | "rejected") {
+  return {
+    projectId: "project-a",
+    venueId: "venue-a",
+    status,
+    rejectionReason: status === "rejected" ? "  too small  " : null,
+    operationId: status === "shortlist" ? "operation-a" : null,
+  } as const;
+}
+
+describe("changeVenueStatus successful persistence", () => {
   it("sends a validated lifecycle transition to persistence", async () => {
     const calls: VenueTransitionInput[] = [];
     const port = commandPort(async (input) => {
@@ -24,15 +34,9 @@ describe("changeVenueStatus", () => {
       return 4;
     });
 
-    expect(
-      await changeVenueStatus(port, {
-        projectId: "project-a",
-        venueId: "venue-a",
-        status: "shortlist",
-        rejectionReason: null,
-        operationId: "operation-a",
-      }),
-    ).toEqual({ ok: true, revision: 4 });
+    const result = await changeVenueStatus(port, transitionDraft("shortlist"));
+
+    expect(result).toEqual({ ok: true, revision: 4 });
     expect(calls[0]).toEqual({
       projectId: "project-a",
       venueId: "venue-a",
@@ -49,17 +53,13 @@ describe("changeVenueStatus", () => {
       return 5;
     });
 
-    await changeVenueStatus(port, {
-      projectId: "project-a",
-      venueId: "venue-a",
-      status: "rejected",
-      rejectionReason: "  too small  ",
-      operationId: null,
-    });
+    await changeVenueStatus(port, transitionDraft("rejected"));
 
     expect(calls[0]?.rejectionReason).toBe("too small");
   });
+});
 
+describe("changeVenueStatus failure handling", () => {
   it("fails validation before persistence", async () => {
     let calls = 0;
     const port = commandPort(async () => {
@@ -67,15 +67,15 @@ describe("changeVenueStatus", () => {
       return 1;
     });
 
-    expect(
-      await changeVenueStatus(port, {
-        projectId: "project-a",
-        venueId: "venue-a",
-        status: "rejected",
-        rejectionReason: null,
-        operationId: null,
-      }),
-    ).toEqual({ ok: false, error: "rejection_reason_required" });
+    const result = await changeVenueStatus(port, {
+      projectId: "project-a",
+      venueId: "venue-a",
+      status: "rejected",
+      rejectionReason: null,
+      operationId: null,
+    });
+
+    expect(result).toEqual({ ok: false, error: "rejection_reason_required" });
     expect(calls).toBe(0);
   });
 
@@ -84,14 +84,8 @@ describe("changeVenueStatus", () => {
       throw new Error("provider detail");
     });
 
-    expect(
-      await changeVenueStatus(port, {
-        projectId: "project-a",
-        venueId: "venue-a",
-        status: "shortlist",
-        rejectionReason: null,
-        operationId: null,
-      }),
-    ).toEqual({ ok: false, error: "persistence_failed" });
+    const result = await changeVenueStatus(port, transitionDraft("shortlist"));
+
+    expect(result).toEqual({ ok: false, error: "persistence_failed" });
   });
 });
