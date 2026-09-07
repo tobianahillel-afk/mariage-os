@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.4`
 - Lot: `2`
 - Name: Observations, sources, evidence/confidence/freshness and conflicts
-- State: `REVIEW_PENDING`
-- Current pass: `B-ADVERSARIAL-REVIEW — fresh re-review after WP2.4-B-006`
+- State: `REVIEW_FAILED`
+- Current pass: `B-ADVERSARIAL-REVIEW — WP2.4-B-007`
 - Primary bounded context: `facts/evidence` for Venue targets
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Dependency: `WP-2.3 ACCEPTED`
@@ -22,6 +22,7 @@
 - Verified B-004/B-005 remediation head/run: `d4d3ce84331d13809b5f7b97ed7bf1a263a2bf4a` / `34119950023` — **5/5 SUCCESS**
 - Fresh re-review baseline after B-004/B-005: `3ba8575ac32564197d823d7f01001a7b6f75fdfe`
 - Verified B-006 remediation head/run: `06c38444a2e859f59f590477bd43c40255463f3e` / `34131416659` — **5/5 SUCCESS**
+- Fresh re-review baseline after B-006: `29469d63eccc40d9b9ababd915b974378d3cc990`
 
 ## Scope and frozen responsibilities
 
@@ -75,7 +76,7 @@ MAJOR: PostgreSQL `timestamptz` microsecond/non-finite semantics were broader th
 
 Exact-head verification run `34119950023` on `d4d3ce84331d13809b5f7b97ed7bf1a263a2bf4a`: **5/5 SUCCESS**. Core includes 80 test files / 811 tests with **100% statements/branches/functions/lines**; Local Supabase DB/RLS, Browser/mutation, privacy-safe preview and clean-checkout `npm run verify` all PASS.
 
-### `WP2.4-B-006` — RESOLVED / VERIFIED; FRESH RE-REVIEW PENDING
+### `WP2.4-B-006` — RESOLVED / VERIFIED
 
 Fresh independent re-review found a remaining timestamp-domain parity gap. The B-005 database hardening checked only `isfinite(timestamptz)`, while the official TypeScript parser accepted exactly four-digit ISO years. PostgreSQL could represent finite timestamps outside that parser domain, and `Date.parse` could silently normalize invalid calendar inputs such as `2026-02-30`.
 
@@ -85,15 +86,27 @@ Migration `20260907142000_harden_venue_fact_timestamp_domain.sql` adds a client-
 
 Exact-head verification run `34131416659` on `06c38444a2e859f59f590477bd43c40255463f3e`: **5/5 SUCCESS**, including Core quality/security, Local Supabase DB/RLS, Browser/mutation, privacy-safe preview and clean-checkout `npm run verify`.
 
-WP-2.4 is therefore back in `REVIEW_PENDING`. CI success does not close Pass B: another fresh independent adversarial review across the complete remediated packet is now mandatory.
+### `WP2.4-B-007` — OPEN / MAJOR
 
-The previous fresh re-review otherwise re-attacked without additional promoted findings: B-001 setter/append serialization, B-002 definition-update/append locking, B-003 source/conflict whitespace parity, B-004 definition whitespace/core bypasses, B-005 non-finite/microsecond handling, freshness/resolution revisions, supersession concurrency, withdrawal/resolution, same-project evidence links, retained-observation integrity, append-only observation fields, direct table grants/RLS and core-function EXECUTE revocation.
+The fresh independent Pass B after B-006 found that the public source/observation/freshness RPCs still accept temporal parameters as PostgreSQL `timestamptz`. PostgreSQL parses an RPC JSON string into `timestamptz` before the function body and intentionally accepts date/time input syntaxes broader than the frozen TypeScript instant grammar. Therefore a non-canonical input string rejected by `normalizeFactInstant` can be coerced into a valid timestamp before WP-2.4 validation sees it, then persisted successfully. The B-006 pgTAP helpers passed already-typed `timestamptz` values and therefore could not detect this raw-RPC grammar bypass.
+
+This violates the frozen boundary that database/RPC canonical validation must not commit values the official TypeScript parser rejects.
+
+Required remediation:
+
+- make the public WP-2.4 RPC timestamp boundary receive raw `text` for source `observed_at`, observation `observed_at`, and freshness `last_verified_at` / `stale_at`;
+- strictly parse that text in PostgreSQL with the same `YYYY-MM-DDTHH:mm:ss[.ffffff](Z|±HH:mm)` Gregorian/calendar/offset/year-domain profile before constructing `timestamptz`;
+- rename/revoke the old `timestamptz` RPC entrypoints so authenticated clients cannot bypass the raw-text parser;
+- preserve nullable source/freshness timestamp semantics and existing microsecond storage behavior;
+- add direct pgTAP using raw non-canonical strings that PostgreSQL would otherwise accept, plus canonical positive cases, privilege checks and failed-mutation atomicity.
+
+No other BLOCKING/MAJOR is promoted yet from this fresh re-review. B-001..B-006 and nearby locking/RLS/lifecycle variants remain under attack after B-007 remediation.
 
 Withdrawal preserving an existing retained pointer/value remains reviewed but not promoted: frozen contracts preserve evidence history and do not clearly mandate automatic retained-truth invalidation on withdrawal, so WP-2.4 must not invent that semantic.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started. Entry is prohibited until the fresh independent Pass B after B-006 finds no remaining BLOCKING/MAJOR. Only then may the packet transition to `ACCEPTANCE_PENDING`.
+Not started. Entry is prohibited while `WP2.4-B-007` remains open. After remediation and exact-head verification, another fresh independent Pass B is required before `ACCEPTANCE_PENDING`.
 
 ## Handoff
 
@@ -101,11 +114,12 @@ Not started. Entry is prohibited until the fresh independent Pass B after B-006 
 Lot: 2 — Venues core
 Branch: lot-2/venues-core
 Packet: WP-2.4
-State: REVIEW_PENDING
-Pass: B-ADVERSARIAL-REVIEW — fresh re-review after WP2.4-B-006
+State: REVIEW_FAILED
+Pass: B-ADVERSARIAL-REVIEW — WP2.4-B-007
 Primary Feature: FTR-020
 Dependency: WP-2.3 ACCEPTED
 Resolved/verified: WP2.4-B-001, WP2.4-B-002, WP2.4-B-003, WP2.4-B-004, WP2.4-B-005, WP2.4-B-006
+Open MAJOR: WP2.4-B-007
 Latest verified remediation: 06c38444a2e859f59f590477bd43c40255463f3e / 34131416659 — 5/5 SUCCESS
-Next action: fresh independent Pass B across complete WP-2.4. If no BLOCKING/MAJOR remains, transition ACCEPTANCE_PENDING and perform Pass C. Do not start WP-2.5.
+Next action: remediate B-007 only, verify exact head, then fresh independent Pass B. Do not start WP-2.5.
 ```
