@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1 and WP-2.2 ACCEPTED; WP-2.3 is the only active packet**
+Status: **IN_PROGRESS — WP-2.1, WP-2.2 and WP-2.3 ACCEPTED; WP-2.4 is next after its recorded specification gate**
 
 Purpose: durable responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`.
 
@@ -27,7 +27,7 @@ The previously accepted Lot 0 + Lot 1 implementation was promoted to `main` thro
 | venue lifecycle, rejection reason/history and reversible restore | FTR-014, VEN-006, PRD-007, ACC-032 | WP-2.1, WP-2.11 | authorized venue persistence | WP-2.1 ACCEPTED state-transition/activity evidence + later UI/E2E |
 | multiple physical spaces, dimensions and commercial capacities; sourced wedding-specific suitability remains Facts/Criteria responsibility | FTR-018, VEN-003, VEN-004, physical-input portion of VEN-005 | WP-2.2, WP-2.11 | WP-2.1 | WP-2.2 ACCEPTED same-project/numeric/domain evidence + later detail UI |
 | independent member favorites/ratings and Lot-2 personal Venue preference foundations | FTR-023, FTR-012 (Lot 2), VEN-015, VEN-017, PRD-004, ACC-029 | WP-2.2, WP-2.11 | Lot 1 membership/preferences | WP-2.2 ACCEPTED author-only/partner-isolation evidence + later UI |
-| typed fact definitions, retained fact state/value and explicit unknown/known/not-applicable/conflict semantics | FTR-019, FAC-001, FAC-003, FAC-011, FAC-012, ACC-024 | WP-2.3 | WP-2.1 | runtime/domain validation + DB constraints/RLS |
+| typed fact definitions, retained fact state/value and explicit unknown/known/not-applicable/conflict semantics | FTR-019, FAC-001, FAC-003, FAC-011, FAC-012, ACC-024 | WP-2.3 | WP-2.1 | **WP-2.3 ACCEPTED**; runtime/domain validation + DB constraints/RLS + provider parity |
 | multi-source append-oriented observations, sources/provenance, conflict retention and stronger-evidence protection inputs | FTR-020, FAC-002, FAC-004..009, ACC-015, ACC-025..027 | WP-2.4 | WP-2.3 | append/history/RLS tests + conflict/freshness tests |
 | deterministic criterion evaluation, blockers, weighted score explanation and dynamic recomputation | FTR-021, FAC-011, FAC-013, VEN-010, VEN-011, ACC-022, ACC-023, ACC-028 | WP-2.5 | WP-2.3, WP-2.4 | unit/property/mutation tests + explanation reconstruction |
 | missing/stale/conflicting information guidance without silently creating tasks | FTR-022 (Lot 2 responsibility), VEN-007, FAC-006, FAC-008, FAC-010 | WP-2.5, WP-2.11 | criteria/facts | deterministic missing-info read model + UI |
@@ -51,7 +51,7 @@ The previously accepted Lot 0 + Lot 1 implementation was promoted to `main` thro
 
 Required current-lot responsibilities minus assigned packet responsibilities: **∅**.
 
-Accepted/evidenced packet responsibilities so far: **WP-2.1 and WP-2.2**. Lot-level accepted/evidenced reconciliation is intentionally incomplete until all packets and the separate Integration Pass finish.
+Accepted/evidenced packet responsibilities so far: **WP-2.1, WP-2.2 and WP-2.3**. Lot-level accepted/evidenced reconciliation is intentionally incomplete until all packets and the separate Integration Pass finish.
 
 ## Work Packet plan
 
@@ -84,21 +84,26 @@ Boundary retained: sourced wedding-specific fit remains WP-2.3..2.5; table/galle
 
 ### WP-2.3 — Fact definitions, typed retained facts and value validation
 
-State: **IN_PROGRESS**  
-Current pass: **A-IMPLEMENT**
+State: **ACCEPTED**  
+Current pass: **COMPLETE**
 
 Primary Feature: FTR-019.  
 Dependencies: WP-2.1 and WP-2.2 **ACCEPTED**.  
-Record: `WP-2.3.md`.  
-Boundary: owns Venue fact definitions + retained fact state/value/type validation only. Observations/sources/conflict-resolution provenance remain WP-2.4; compatibility execution/readiness remains WP-2.5; no full default-criteria seeding is activated here.
+Acceptance record: `WP-2.3.md`.  
+Final reviewed implementation head: `2e3194f7109eb30eee4e73ace7ecbdd329fd321c`.  
+Exact implementation CI run `34068703691`: **5/5 SUCCESS**; 62 unit-test files / 707 tests with 100% statements/branches/functions/lines, 26 DB files / 575 pgTAP tests, 40/40 E2E, mutation PASS, clean-checkout `npm run verify` PASS.  
+Fresh Pass B: **PASS** after all `WP2.3-B-001..B-008` findings were resolved.  
+Pass C reconciliation: **PASS**.  
+Required WP-2.3 responsibilities minus accepted/evidenced WP-2.3 responsibilities: **∅**.  
+Boundary retained: observations/sources/conflict-resolution provenance remain WP-2.4; compatibility execution/readiness remains WP-2.5; no full default-criteria seeding is activated here.
 
 ### WP-2.4 — Observations, sources, evidence/confidence/freshness and conflicts
 
 State: **PLANNED**
 
 Primary Feature: FTR-020.  
-Dependencies: WP-2.3.  
-Pre-implementation stop-condition: first document the distinct semantics of `evidence_level` and `confidence` without changing frozen Feature scope.
+Dependencies: WP-2.3 **ACCEPTED**.  
+Pre-implementation stop-condition: first document the distinct semantics of `evidence_level` and separate `confidence = high|medium|low|unknown` without changing frozen Feature scope.
 
 ### WP-2.5 — Deterministic criteria, blockers, score/readiness and missing information
 
@@ -166,7 +171,7 @@ Provides the complete visit workflow and the final packet-owned synthetic venue 
 ```text
 WP-2.1 [ACCEPTED]
   ├─→ WP-2.2 [ACCEPTED]
-  ├─→ WP-2.3 [IN_PROGRESS] → WP-2.4 → WP-2.5
+  ├─→ WP-2.3 [ACCEPTED] → WP-2.4 [next; spec gate first] → WP-2.5
   ├─→ WP-2.6
   ├─→ WP-2.7
   └─→ WP-2.8 → WP-2.9
@@ -186,7 +191,7 @@ separate Lot 2 Integration Pass
 Lot 2 acceptance
 ```
 
-Default execution remains one packet `IN_PROGRESS` at a time. WP-2.3 is currently the only active packet.
+Default execution remains one packet `IN_PROGRESS` at a time. No new packet is in implementation at this acceptance checkpoint; the next permitted work is the localized WP-2.4 specification repair, followed by WP-2.4 Pass A kickoff.
 
 ## Explicitly out of Lot 2
 

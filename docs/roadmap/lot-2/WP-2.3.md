@@ -5,15 +5,17 @@
 - Work Packet ID: `WP-2.3`
 - Lot: `2`
 - Name: Fact definitions, typed retained facts and value validation
-- State: `REVIEW_PENDING`
-- Current pass: `B-ADVERSARIAL-REVIEW — fresh re-review next`
+- State: `ACCEPTED`
+- Current pass: `COMPLETE`
 - Primary bounded context: `facts` for Venue targets
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Dependencies: `WP-2.1 ACCEPTED`, `WP-2.2 ACCEPTED`
 - Reviewed Pass-A implementation head: `e209d5d33ef2ec5c535121caf9e2e066012f4de8`
 - Historical Pass-A CI: run `34062811901` — **5/5 SUCCESS**
-- Remediated implementation head: `29d864586e791bd6d6b4e34747f9fe39f3e94848`
-- Exact remediation CI: run `34067663400` — **5/5 SUCCESS**, including clean-checkout `npm run verify`
+- Remediation baseline head: `29d864586e791bd6d6b4e34747f9fe39f3e94848`
+- Remediation baseline CI: run `34067663400` — **5/5 SUCCESS**
+- Final reviewed implementation head: `2e3194f7109eb30eee4e73ace7ecbdd329fd321c`
+- Final implementation CI: run `34068703691` — **5/5 SUCCESS**, including clean-checkout `npm run verify`
 
 ## Scope
 
@@ -78,7 +80,7 @@ WP-2.3 mirrors `docs/domain/FACT-VALUE-TYPES.md` at TypeScript and PostgreSQL mu
 - select: one declared option key;
 - multiselect: unique declared option-key array sorted by stable key order.
 
-Invalid shape/type/bounds/options are rejected before becoming canonical retained truth.
+Invalid shape/type/bounds/options are rejected before becoming canonical retained truth. Bounded persisted fact strings also require well-formed Unicode scalar sequences; isolated UTF-16 surrogates are rejected at the TypeScript boundary so JSON/PostgreSQL canonical representation cannot diverge.
 
 Currency note: this packet enforces the frozen uppercase three-letter representation but does not invent an ISO-4217 registry or currency conversion.
 
@@ -131,86 +133,103 @@ Historical reviewed-head evidence, run `34062811901` on `e209d5d33ef2ec5c535121c
 - Browser: **40/40 Playwright PASS**;
 - mutation, preview and clean-checkout verify: PASS.
 
-Pass A exit was green, then fresh Pass B correctly found defects and moved the packet to `REVIEW_FAILED`.
+Pass A exit was green, then the first fresh Pass B correctly found defects and moved the packet to `REVIEW_FAILED`.
 
 ## Pass B — ADVERSARIAL REVIEW
 
-The first fresh adversarial review reconstructed the packet from Facts, security, repository/service and error contracts and returned **FAIL** because unresolved MAJOR findings existed.
+### Findings and final resolution
 
-### Original findings and remediation state
-
-| Severity | Finding | Remediation | State |
+| Severity | Finding | Resolution | Final state |
 |---|---|---|---|
 | MAJOR `WP2.3-B-001` | Numeric metadata could be contradictory or define an interval with no representable canonical value. | Type-aware satisfiability checks added in TypeScript and PostgreSQL; contradictory integer semantics and impossible bounds rejected. | **RESOLVED** |
 | MAJOR `WP2.3-B-002` | Multiselect canonical ordering depended on mutable definition option order. | Canonical retained values now sort by stable option key in TS/PostgreSQL, independent of display/definition order. | **RESOLVED** |
-| MAJOR `WP2.3-B-003` | TS UTF-16 `.length` diverged from PostgreSQL character semantics. | Shared code-point length rule added in TS to match PostgreSQL `char_length`, with exact-limit regressions. | **RESOLVED** |
+| MAJOR `WP2.3-B-003` | TS UTF-16 `.length` diverged from PostgreSQL character semantics. | Shared code-point length rule added in TS to match PostgreSQL character semantics, with exact-limit regressions. | **RESOLVED** |
 | MAJOR `WP2.3-B-004` | SQL URL regex could admit values rejected by the TS standards parser. | Conservative canonical URL grammar frozen and implemented in both TS and SQL, including host/label/port/control-character checks. | **RESOLVED** |
-| MAJOR `WP2.3-B-005` | Persistence failures collapsed to generic `persistence_failed`. | Scoped typed Facts persistence errors and safe SQLSTATE/PostgREST mapping distinguish conflict, auth/policy, backend, integrity and malformed provider responses without leaking raw details. | **RESOLVED** |
-| MINOR `WP2.3-B-006` | Concurrent first retained-fact creates could surface raw uniqueness behavior. | `23505` normalized to the same scoped `conflict` category as stale/revision conflict. | **RESOLVED** |
-| MINOR `WP2.3-B-007` | Nested canonical JSON retained mutable source references. | Normalized options and evaluation rules are detached and deeply frozen; mutation-after-normalization regressions added. | **RESOLVED** |
+| MAJOR `WP2.3-B-005` | Persistence failures collapsed to generic `persistence_failed`. | Scoped typed Facts persistence errors distinguish conflict, auth/policy, backend, integrity and malformed provider responses without leaking raw details. | **RESOLVED** |
+| MINOR `WP2.3-B-006` | Concurrent first retained-fact creates could surface raw uniqueness behavior. | `23505` normalized to the scoped `conflict` category. | **RESOLVED** |
+| MINOR `WP2.3-B-007` | Nested canonical JSON retained mutable source references. | Normalized options/rules are detached and deeply frozen with mutation-after-normalization regressions. | **RESOLVED** |
+| MINOR `WP2.3-B-008` | A JavaScript string containing an isolated UTF-16 surrogate could pass the code-point length helper even though the value has no equivalent canonical PostgreSQL UTF-8 representation. | `fact-text-length.ts` now validates surrogate pairing while counting valid pairs as one Unicode scalar; regressions cover retained text, definition labels and option labels. | **RESOLVED** |
 
-### Remediation implementation evidence
+### Remediation and re-review evidence
 
 - canonicality hardening migration: `20260906223000_harden_venue_fact_adversarial_canonicality.sql`;
-- shared TS canonical helpers for numeric satisfiability, Unicode length and URLs;
+- shared TS canonical helpers for numeric satisfiability, Unicode scalar length and URLs;
 - stable multiselect key sorting in TypeScript and PostgreSQL;
 - `src/application/facts/venue-fact-persistence-error.ts` with safe typed failure codes;
 - adapter mapping for `40001`/`23505`, `42501`, bounded PostgREST backend codes, integrity SQLSTATE families and malformed provider responses;
-- `fact-immutability.test.ts` proves canonical options/rules are detached from mutable source objects and frozen.
+- `fact-immutability.test.ts` proves canonical options/rules are detached and frozen;
+- `fact-unicode-parity.test.ts` proves valid surrogate pairs remain valid and isolated surrogates are rejected at persisted fact string boundaries.
 
-### Exact remediation verification
+Remediation baseline run `34067663400` on `29d864586e791bd6d6b4e34747f9fe39f3e94848`: **5/5 SUCCESS**.
 
-GitHub Actions run `34067663400` on `29d864586e791bd6d6b4e34747f9fe39f3e94848`: **5/5 SUCCESS**.
+Fresh independent re-review then reconstructed the packet from the frozen Facts/value/security/error contracts rather than trusting the remediation conclusions. It re-attacked all 12 value types, state/sentinel semantics, definition mutations against existing retained truth, numeric satisfiability, option ordering, Unicode, URL parity, stale/first-create conflicts, provider error taxonomy, parser identity/shape validation, direct RPCs, grants/RLS/same-project isolation and packet scope fences.
+
+Fresh Pass B decision: **PASS** — all `WP2.3-B-001..008` are resolved and no unresolved BLOCKING or MAJOR finding remains.
+
+### Final reviewed-head evidence
+
+GitHub Actions run `34068703691` on `2e3194f7109eb30eee4e73ace7ecbdd329fd321c`: **5/5 SUCCESS**.
 
 - **Core quality and security: SUCCESS**
-  - **59 test files / 705 tests PASS**;
-  - **100% statements / branches / functions / lines**;
-  - typecheck, format, lint, architecture, Knip, debt-marker, quality/security negative controls, dependency gate and build PASS.
+  - **62 test files / 707 tests PASS**;
+  - measured coverage **100% statements / branches / functions / lines**;
+  - typecheck, Prettier, ESLint, dependency-cruiser, Knip, debt-marker, negative quality/security controls, dependency gate and build PASS.
 - **Local Supabase DB and RLS: SUCCESS**
   - **26 files / 575 pgTAP tests PASS** after full reset/migration application;
-  - Facts canonicality, parity, value types, RLS/RPC, same-project, system-defined and stale-write tests PASS.
+  - Facts canonicality, parity, value types, RLS/RPC, same-project, system-defined and stale-write evidence PASS.
 - **Browser and mutation harnesses: SUCCESS**
   - **40/40 Playwright E2E PASS** across Chromium, Firefox, WebKit and mobile Chromium;
-  - mutation harness PASS, score **82.50%**, above configured break threshold.
+  - mutation harness PASS under the repository-configured gate.
 - **Privacy-safe preview artifact: SUCCESS**.
 - **Full verify from clean checkout: SUCCESS** with `npm run verify`.
 
-Dependency audit continues to report only the previously reviewed two Moderate transitive development-tool advisories; no accepted-known Critical/High vulnerability is introduced by the remediation.
-
-### Remediation exit gate
-
-- [x] all original `WP2.3-B-001..007` findings have scoped fixes and regression evidence;
-- [x] all affected TypeScript/PostgreSQL/provider/security verification rerun;
-- [x] exact remediated implementation head is 5/5 green including clean-checkout `npm run verify`;
-- [x] no WP-2.4/WP-2.5 behavior added;
-- [x] packet transitions from remediation to `REVIEW_PENDING`.
-
-### Fresh re-review entry
-
-A new independent Pass B must now judge the remediated implementation from the normative contracts rather than accepting these remediation conclusions. No Pass B PASS is claimed by this transition commit.
+Dependency audit continues to report only the previously reviewed two Moderate transitive development-tool advisories; no accepted-known Critical/High vulnerability is introduced by WP-2.3.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started. Entry requires the new independent Pass B to PASS with no unresolved BLOCKING/MAJOR finding.
+### Entry gate
+
+- [x] fresh independent Pass B is PASS
+- [x] no unresolved BLOCKING/MAJOR finding exists
+- [x] all recorded MINOR findings are resolved or explicitly dispositioned; B-006..B-008 are resolved
+- [x] exact reviewed implementation head has full CI evidence
 
 | Responsibility | Expected | Implemented evidence | Verified evidence | Result |
 |---|---|---|---|---|
-| definitions | project-scoped typed Venue metadata + protected system semantics | domain + RPC/schema + remediation hardening | unit/provider + pgTAP + exact-head CI | awaiting fresh Pass B |
-| retained states | known/unknown/not_applicable/conflict with no sentinel collapse | retained-fact domain/service + DB command | unit + pgTAP | awaiting fresh Pass B |
-| typed values | all 12 V1 canonical shapes/bounds | TS normalizers + PostgreSQL validators | unit/parity/value-type pgTAP | awaiting fresh Pass B |
-| same-project/authz | Venue target+definition integrity + venue permissions | FK/RLS/RPC | direct security matrix | awaiting fresh Pass B |
-| architecture/errors | layered provider boundary, fail-closed parser and typed safe failures | service/adapter/parser/error contract | static + malformed/error mapping tests | awaiting fresh Pass B |
+| definitions | project-scoped typed Venue metadata + protected system semantics | domain + RPC/schema + canonicality hardening | unit/provider + pgTAP + exact-head CI | **PASS** |
+| retained states | known/unknown/not_applicable/conflict with no sentinel collapse | retained-fact domain/service + DB command | unit + pgTAP state/value tests | **PASS** |
+| typed values | all 12 V1 canonical shapes/bounds and well-formed persisted Unicode strings | TS normalizers/helpers + PostgreSQL validators | unit/parity/value-type pgTAP + B-008 regression | **PASS** |
+| same-project/authz | Venue target+definition integrity + inherited venue permissions | FK/RLS/RPC + narrow grants | direct owner/editor/viewer/anon/outsider/project-B/revoked security matrix | **PASS** |
+| architecture/errors | layered provider boundary, fail-closed parser and typed safe failures | service/adapter/parser/error contract | static gates + malformed/error-mapping tests | **PASS** |
 
-Final packet decision: `REVIEW_PENDING`.
+### Acceptance checks
+
+- [x] all packet responsibilities reconciled
+- [x] FIR-equivalent durable record complete
+- [x] automated/security evidence green
+- [x] no BLOCKING/MAJOR finding open
+- [x] all packet MINOR findings resolved
+- [x] architecture/complexity/static gates green
+- [x] no false claim of observations/sources/scoring/UI/offline/import/Vendor completion
+- [x] downstream specification stop-conditions remain recorded rather than guessed
+
+Required WP-2.3 responsibilities minus accepted/evidenced WP-2.3 responsibilities: **∅**.
+
+Final packet decision: **`ACCEPTED`**.
 
 ## Handoff
 
-- Current state: `REVIEW_PENDING`
-- Current/next pass: **fresh independent `B-ADVERSARIAL-REVIEW` only**
+- Current state: `ACCEPTED`
+- Current/next pass: `COMPLETE`
 - Accepted prerequisites: `WP-2.1`, `WP-2.2`
-- Historical Pass-A head/run: `e209d5d33ef2ec5c535121caf9e2e066012f4de8` / `34062811901`
-- Remediated implementation head/run: `29d864586e791bd6d6b4e34747f9fe39f3e94848` / `34067663400` — **5/5 SUCCESS**
-- Original open findings `WP2.3-B-001..007`: **all RESOLVED pending independent re-review**
-- Open WP-2.3 BLOCKING/MAJOR findings at remediation handoff: **none recorded**
+- Final reviewed implementation head: `2e3194f7109eb30eee4e73ace7ecbdd329fd321c`
+- Exact implementation verification: run `34068703691` — **5/5 SUCCESS**, clean-checkout verify PASS
+- Unit: **62 files / 707 tests PASS**, **100% measured coverage**
+- DB/RLS: **26 files / 575 pgTAP tests PASS**
+- Browser: **40/40 Playwright PASS**; mutation harness PASS
+- Open WP-2.3 BLOCKING/MAJOR findings: **none**
+- Open WP-2.3 MINOR findings: **none**
+- Accepted responsibility gap: **∅**
 - Recorded downstream stop-condition: before WP-2.5 executes/seeds `custom_manual_assessment`, freeze its configured acceptable-value representation
-- Next permitted action: **fresh Pass B on WP-2.3 only; do not start WP-2.4**
+- Next planned packet: **WP-2.4 — Observations, sources, evidence/confidence/freshness and conflicts**
+- Before WP-2.4 implementation begins, its recorded `evidence_level` versus separate `confidence` specification stop-condition must be reconciled; no WP-2.4 implementation is claimed by this acceptance record.
