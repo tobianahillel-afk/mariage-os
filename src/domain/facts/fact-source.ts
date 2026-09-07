@@ -65,6 +65,11 @@ function normalizeSourceUrl(value: unknown): string | null | undefined {
   return value;
 }
 
+function normalizeObservedAt(value: unknown): string | null | undefined {
+  if (value === null) return null;
+  return normalizeFactInstant(value) ?? undefined;
+}
+
 export function normalizeFactSource(draft: FactSourceDraft): FactSourceResult {
   if (!isFactSourceType(draft.sourceType)) {
     return { ok: false, error: "invalid_source_type" };
@@ -76,9 +81,8 @@ export function normalizeFactSource(draft: FactSourceDraft): FactSourceResult {
   if (!isFactEvidenceLevel(draft.evidenceLevel)) {
     return { ok: false, error: "invalid_evidence_level" };
   }
-  const observedAt =
-    draft.observedAt === null ? null : normalizeFactInstant(draft.observedAt);
-  if (draft.observedAt !== null && observedAt === null) {
+  const observedAt = normalizeObservedAt(draft.observedAt);
+  if (observedAt === undefined) {
     return { ok: false, error: "invalid_source_observed_at" };
   }
   const notes = normalizeOptionalText(draft.notes, 5000);
