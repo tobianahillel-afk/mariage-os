@@ -7,7 +7,7 @@ export interface FactResolutionDraft {
   readonly resolutionNote: unknown;
 }
 
-export interface NormalizedFactResolution {
+interface NormalizedFactResolution {
   readonly state: FactResolutionState;
   readonly resolutionNote: string | null;
 }
