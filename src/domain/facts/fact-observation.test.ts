@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { FactValueDefinition } from "./fact-value";
-import { normalizeFactInstant, normalizeFactObservation } from "./fact-observation";
+import {
+  normalizeFactInstant,
+  normalizeFactObservation,
+} from "./fact-observation";
 
 const booleanDefinition: FactValueDefinition = {
   valueType: "boolean",

@@ -51,7 +51,9 @@ export type FactObservationStatus = (typeof FACT_OBSERVATION_STATUSES)[number];
 export type FactSourceType = (typeof FACT_SOURCE_TYPES)[number];
 export type FactSourceStatus = (typeof FACT_SOURCE_STATUSES)[number];
 
-export function isFactEvidenceLevel(value: unknown): value is FactEvidenceLevel {
+export function isFactEvidenceLevel(
+  value: unknown,
+): value is FactEvidenceLevel {
   return FACT_EVIDENCE_LEVELS.some((candidate) => candidate === value);
 }
 
