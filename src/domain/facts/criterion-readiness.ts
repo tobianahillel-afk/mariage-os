@@ -15,6 +15,12 @@ export interface EvidenceReadiness {
   readonly applicableCriteria: number;
 }
 
+interface ReadinessContext {
+  readonly snapshots: readonly CriterionFactSnapshot[];
+  readonly evaluationContext: CriterionEvaluationContext;
+  readonly evaluatedAt: string | null;
+}
+
 function freshAt(
   snapshot: CriterionFactSnapshot,
   evaluatedAt: string,
@@ -61,33 +67,49 @@ function isApplicable(evaluation: CriterionEvaluation): boolean {
   return evaluation.outcome !== "NOT_APPLICABLE";
 }
 
+function isCritical(evaluation: CriterionEvaluation): boolean {
+  return ["blocking", "important"].includes(evaluation.priority);
+}
+
+function criterionReady(
+  snapshot: CriterionFactSnapshot,
+  evaluation: CriterionEvaluation,
+  context: ReadinessContext,
+): boolean {
+  if (context.evaluatedAt === null) return false;
+  return isDerivedTargetGuestDefinition(snapshot.definition)
+    ? dynamicReady(
+        context.snapshots,
+        evaluation,
+        context.evaluationContext,
+        context.evaluatedAt,
+      )
+    : ordinaryReady(snapshot, evaluation, context.evaluatedAt);
+}
+
 export function calculateEvidenceReadiness(
   snapshots: readonly CriterionFactSnapshot[],
   evaluations: readonly CriterionEvaluation[],
   context: CriterionEvaluationContext,
   evaluatedAtInput: string,
 ): EvidenceReadiness {
-  const evaluatedAt = normalizeFactInstant(evaluatedAtInput);
   const snapshotsByKey = new Map(
     snapshots.map((snapshot) => [snapshot.definition.key, snapshot] as const),
   );
+  const readinessContext: ReadinessContext = {
+    snapshots,
+    evaluationContext: context,
+    evaluatedAt: normalizeFactInstant(evaluatedAtInput),
+  };
   let applicable = 0;
   let ready = 0;
   for (const evaluation of evaluations) {
-    if (
-      !["blocking", "important"].includes(evaluation.priority) ||
-      !isApplicable(evaluation)
-    ) {
-      continue;
-    }
+    if (!isCritical(evaluation) || !isApplicable(evaluation)) continue;
     applicable += 1;
-    if (evaluatedAt === null) continue;
     const snapshot = snapshotsByKey.get(evaluation.key);
-    if (snapshot === undefined) continue;
-    const criterionReady = isDerivedTargetGuestDefinition(snapshot.definition)
-      ? dynamicReady(snapshots, evaluation, context, evaluatedAt)
-      : ordinaryReady(snapshot, evaluation, evaluatedAt);
-    if (criterionReady) ready += 1;
+    if (snapshot !== undefined && criterionReady(snapshot, evaluation, readinessContext)) {
+      ready += 1;
+    }
   }
   return {
     evidenceReadiness: applicable === 0 ? null : ready / applicable,

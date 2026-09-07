@@ -13,12 +13,16 @@ import type {
 } from "./criterion-types";
 import { normalizeFactValue } from "./fact-value";
 
+interface ResultDetails {
+  readonly actual?: unknown;
+  readonly target?: unknown;
+}
+
 function result(
   snapshot: CriterionFactSnapshot,
   outcome: CriterionOutcome,
   reason: CriterionReason,
-  actual: unknown = null,
-  target: unknown = null,
+  details: ResultDetails = {},
 ): CriterionEvaluation {
   return {
     key: snapshot.definition.key,
@@ -26,8 +30,8 @@ function result(
     configuredWeight: snapshot.definition.weight,
     outcome,
     reason,
-    actual,
-    target,
+    actual: details.actual ?? null,
+    target: details.target ?? null,
   };
 }
 
@@ -46,19 +50,28 @@ function sourceSnapshot(
     : null;
 }
 
-function evaluateSupportCeiling(
-  target: number,
+function sourceStateIssue(
   source: CriterionFactSnapshot,
   derived: CriterionFactSnapshot,
-): CriterionEvaluation {
+): CriterionEvaluation | null {
   if (source.state === "conflict")
     return result(derived, "CONFLICT", "conflict");
   if (source.state === "not_applicable") {
     return result(derived, "UNKNOWN", "support_ceiling_not_applicable");
   }
-  if (source.state === null || source.state === "unknown") {
+  if (source.state !== "known") {
     return result(derived, "UNKNOWN", "missing_support_ceiling");
   }
+  return null;
+}
+
+function evaluateSupportCeiling(
+  target: number,
+  source: CriterionFactSnapshot,
+  derived: CriterionFactSnapshot,
+): CriterionEvaluation {
+  const stateIssue = sourceStateIssue(source, derived);
+  if (stateIssue !== null) return stateIssue;
   const normalized = normalizeFactValue(
     source.definition,
     source.retainedValue,
@@ -67,12 +80,12 @@ function evaluateSupportCeiling(
     return result(derived, "UNKNOWN", "invalid_support_ceiling");
   }
   const ceiling = normalized.value;
+  const passes = target <= ceiling;
   return result(
     derived,
-    target <= ceiling ? "PASS" : "FAIL",
-    target <= ceiling ? "rule_pass" : "rule_fail",
-    ceiling,
-    target,
+    passes ? "PASS" : "FAIL",
+    passes ? "rule_pass" : "rule_fail",
+    { actual: ceiling, target },
   );
 }
 
@@ -119,13 +132,10 @@ function evaluateOrdinary(
   const evaluated = evaluateKnownRule(normalized.value, rule);
   if (evaluated === null)
     return result(snapshot, "UNKNOWN", "configuration_incomplete");
-  return result(
-    snapshot,
-    evaluated.outcome,
-    evaluated.reason,
-    normalized.value,
-    evaluated.target,
-  );
+  return result(snapshot, evaluated.outcome, evaluated.reason, {
+    actual: normalized.value,
+    target: evaluated.target,
+  });
 }
 
 export function evaluateCriterion(
