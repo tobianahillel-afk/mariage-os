@@ -1,3 +1,4 @@
+import type { FactObservationStatus } from "@domain/facts/fact-evidence-types";
 import {
   normalizeFactObservation,
   type FactObservationDraft,
@@ -15,16 +16,15 @@ import {
   type FactSourceError,
   type NormalizedFactSource,
 } from "@domain/facts/fact-source";
-import type { FactObservationStatus } from "@domain/facts/fact-evidence-types";
 import {
   validateExpectedVenueRevision,
   type VenueRevisionError,
 } from "@domain/venues/venue-revision";
-import type { VenueFactDefinitionRecord } from "./venue-fact-service";
 import {
   venueFactPersistenceErrorCode,
   type VenueFactPersistenceErrorCode,
 } from "./venue-fact-persistence-error";
+import type { VenueFactDefinitionRecord } from "./venue-fact-service";
 
 export interface VenueFactContext {
   readonly factId: string;
@@ -101,9 +101,16 @@ export interface ResolveVenueFactObservationInput {
 }
 
 export interface VenueFactEvidencePort {
-  getFactContext(projectId: string, factId: string): Promise<VenueFactContext>;
-  createSource(input: CreateVenueFactSourceInput): Promise<VenueFactSourceRecord>;
-  updateSource(input: UpdateVenueFactSourceInput): Promise<VenueFactSourceRecord>;
+  getFactContext(
+    projectId: string,
+    factId: string,
+  ): Promise<VenueFactContext>;
+  createSource(
+    input: CreateVenueFactSourceInput,
+  ): Promise<VenueFactSourceRecord>;
+  updateSource(
+    input: UpdateVenueFactSourceInput,
+  ): Promise<VenueFactSourceRecord>;
   appendObservation(
     input: AppendVenueFactObservationInput,
   ): Promise<VenueFactObservationRecord>;
