@@ -5,14 +5,15 @@
 - Work Packet ID: `WP-2.5`
 - Lot: `2`
 - Name: Deterministic criteria, blockers, score/readiness and missing information
-- State: `REVIEW_FAILED`
-- Current pass: `B-ADVERSARIAL-REVIEW — WP2.5-B-001 / WP2.5-B-002`
+- State: `REVIEW_PENDING`
+- Current pass: `B-ADVERSARIAL-REVIEW — fresh independent re-review pending`
 - Primary bounded context: `facts/criteria` and Venue compatibility read models
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Dependencies: `WP-2.3 ACCEPTED`, `WP-2.4 ACCEPTED`
 - Primary Features: `FTR-021`, Lot-2 responsibility of `FTR-022`
 - Verified Pass-A implementation head/run: `aef7bea53e9db32790ab19c3fffdd0a8f63dc89d` / `34158303997` — **5/5 SUCCESS**
-- Fresh Pass-B reviewed head/run: `3948060eb541ae2ae3eac6f5b1a7e702eb057e64` / `34159043613` — **5/5 SUCCESS**, review decision still **FAIL** because green CI does not satisfy the missing normative behavior below.
+- Prior fresh Pass-B reviewed head/run: `3948060eb541ae2ae3eac6f5b1a7e702eb057e64` / `34159043613` — **5/5 SUCCESS**, review decision **FAIL** on `WP2.5-B-001` and `WP2.5-B-002`.
+- Verified remediation head/run: `68439bb0d152c60197fc8ae05f416300b3a81c35` / `34161773557` — **5/5 SUCCESS**, including clean-checkout `npm run verify`.
 
 ## Scope and current-lot responsibilities
 
@@ -133,29 +134,39 @@ Pass A decision: **PASS — implementation complete and fully verified; packet e
 
 ## Pass B — ADVERSARIAL REVIEW
 
-Fresh review baseline: `3948060eb541ae2ae3eac6f5b1a7e702eb057e64`. Transition CI `34159043613`: **5/5 SUCCESS**. Pass B deliberately did not treat that green run as acceptance evidence.
+Prior fresh review baseline: `3948060eb541ae2ae3eac6f5b1a7e702eb057e64`. Transition CI `34159043613`: **5/5 SUCCESS**. That review deliberately did not treat green CI as acceptance evidence and returned **FAIL** on the two MAJOR findings below.
 
-### `WP2.5-B-001` — MAJOR — dynamic compatibility explanation is not reconstructible from the read model
+### `WP2.5-B-001` — MAJOR — RESOLVED / VERIFIED — dynamic compatibility explanation was not reconstructible from the read model
 
-**Finding.** `VenueCompatibilityQuery` already accepts an explicit `targetGuestCountOverride`, but `VenueCompatibilityReadModel` returns only the numeric/null `targetGuestCount`. It does not expose whether the target came from `projects.target_guest_count` or an explicit evaluation context. It also does not expose an explicit dynamic dependency explanation containing the support-source key, retained source state/value and per-derived-criterion source freshness/readiness state.
+**Historical finding.** `VenueCompatibilityQuery` already accepted an explicit `targetGuestCountOverride`, but `VenueCompatibilityReadModel` returned only the numeric/null `targetGuestCount`. It did not expose whether the target came from `projects.target_guest_count` or an explicit evaluation context. It also did not expose an explicit dynamic dependency explanation containing the support-source key, retained source state/value and per-derived-criterion source freshness/readiness state.
 
-**Normative mismatch.** `CRITERIA-EVALUATION-DYNAMIC-GUEST-COUNT-ADDENDUM.md` §8–§10 requires the derived readiness numerator/denominator and dynamic result to be exactly reconstructible, and requires the compatibility read model to expose at least target value **and target source**, support source key, source retained state/value, result/comparison, source freshness/readiness state and deterministic non-evaluable reason. The existing `evaluations + aggregate + readiness + guidance` output does not preserve target provenance and cannot fully reconstruct those dependency details, especially when a caller supplies an override or the support fact is not ready.
+**Normative mismatch.** `CRITERIA-EVALUATION-DYNAMIC-GUEST-COUNT-ADDENDUM.md` §8–§10 requires the derived readiness numerator/denominator and dynamic result to be exactly reconstructible, and requires the compatibility read model to expose at least target value **and target source**, support source key, source retained state/value, result/comparison, source freshness/readiness state and deterministic non-evaluable reason. The pre-remediation `evaluations + aggregate + readiness + guidance` output did not preserve target provenance and could not fully reconstruct those dependency details, especially when a caller supplied an override or the support fact was not ready.
 
-**Impact.** Two evaluations with the same numeric target but different provenance (`project` versus explicit context) are observationally indistinguishable to consumers. Later scenario-context use can therefore be presented as project truth, and the mandated explanation cannot be reconstructed reliably even though the PASS/FAIL arithmetic itself is correct.
+**Remediation.** The read model now exposes immutable `targetGuestCountSource` provenance (`project` versus `explicit_context`) and an explicit `dynamicGuestCountExplanation` with target source/value, canonical support-source key, support retained state/value, retained observation status, stale boundary/freshness, readiness, numeric comparison when available, outcome and deterministic reason. Regression coverage proves project provenance, explicit-context provenance including equal numeric values, missing/conflict/stale/invalid-input cases, comparison reconstruction and unchanged source truth.
 
-**Required remediation.** Add an explicit, immutable dynamic guest-count explanation/read-model component that identifies target source (`project` versus explicit evaluation context), canonical support-source key, support retained state/value, observation/freshness/readiness state, numeric comparison when available, outcome and deterministic reason. Preserve the existing formula and non-mutation behavior. Regression tests must prove project provenance, explicit-context provenance (including equal numeric values), missing/conflict/stale cases, comparison reconstruction and unchanged source truth.
+**Verification.** Remediation is included in exact verified head `68439bb0d152c60197fc8ae05f416300b3a81c35`, run `34161773557` — **5/5 SUCCESS**.
 
-### `WP2.5-B-002` — MAJOR — malformed provider response can alias one retained observation across multiple facts
+### `WP2.5-B-002` — MAJOR — RESOLVED / VERIFIED — malformed provider response could alias one retained observation across multiple facts
 
-**Finding.** `expectedObservationFacts()` stores `retainedObservationId -> factId` in a `Map` without rejecting an already-present observation ID; later facts silently overwrite earlier ownership. `retainedObservationIds()` likewise deduplicates repeated retained IDs before the observation query. A malformed provider response containing two different facts that both reference the same retained observation can therefore be accepted if the single returned observation matches the last mapped fact, after which `snapshots()` assigns that same observation status to both facts.
+**Historical finding.** `expectedObservationFacts()` stored `retainedObservationId -> factId` in a `Map` without rejecting an already-present observation ID; later facts silently overwrote earlier ownership. `retainedObservationIds()` likewise deduplicated repeated retained IDs before the observation query. A malformed provider response containing two different facts that both referenced the same retained observation could therefore be accepted if the single returned observation matched the last mapped fact, after which `snapshots()` assigned that same observation status to both facts.
 
 **Normative/security mismatch.** Legitimate PostgreSQL state prevents this relation because retained-fact validation requires the retained observation to belong to the same fact. The Supabase response is nevertheless an untrusted runtime boundary. `SEC-VAL-001` P0 requires schema/type validation at every untrusted runtime boundary; `SEC-VAL-008` P0 forbids validation failure from falling through to permissive defaults. A relationally impossible provider response must fail closed rather than silently aliasing evidence. `SEC-VER-005` requires a regression test once discovered.
 
-**Impact.** A malformed/compromised/stale provider response can falsely mark evidence active for a second fact and can inflate `evidenceReadiness` or change missing-information guidance. This is silent compatibility/readiness corruption at the trust boundary even though such a state cannot be produced through valid database mutations.
+**Remediation.** Duplicate non-null retained-observation ownership across distinct facts is now rejected fail-closed while collecting retained observation IDs and again while building expected observation ownership inside the full parser. Regression coverage demonstrates the formerly accepted alias and proves rejection without weakening the existing duplicate observation-row, missing-observation and wrong-fact checks.
 
-**Required remediation.** Reject duplicate non-null `retained_observation_id` ownership across different fact rows both when collecting retained observation IDs and when building expected observation ownership inside the full parser. Add regression tests that demonstrate the formerly accepted alias and prove fail-closed behavior; keep duplicate observation response rows and missing/wrong-fact checks intact.
+**Verification.** Remediation is included in exact verified head `68439bb0d152c60197fc8ae05f416300b3a81c35`, run `34161773557` — **5/5 SUCCESS**.
 
-### Reviewed surfaces with no additional BLOCKING/MAJOR finding in this pass
+### Verified remediation evidence
+
+- remediation code remained bounded to WP-2.5; WP-2.6 was not started;
+- Core quality/security: **SUCCESS**; **94 test files / 924 tests PASS**, **100% statements/branches/functions/lines**, static quality, dependency audit and build PASS;
+- Local Supabase DB/RLS: **36 pgTAP files / 795 tests PASS** after clean reset;
+- Browser/mutation: E2E PASS and mutation gate PASS;
+- privacy-safe preview artifact: PASS;
+- full verification from clean checkout: `npm run verify` PASS;
+- exact remediation head/run: `68439bb0d152c60197fc8ae05f416300b3a81c35` / `34161773557` — **5/5 SUCCESS**.
+
+### Reviewed surfaces with no additional BLOCKING/MAJOR finding in the prior pass
 
 - blocking severity and weighted-score denominator/default-weight semantics;
 - `NOT_APPLICABLE`, bonus and unknown/conflict score treatment;
@@ -166,17 +177,20 @@ Fresh review baseline: `3948060eb541ae2ae3eac6f5b1a7e702eb057e64`. Transition CI
 - explicit conflict state versus resolved `known` state semantics;
 - project-scoped RLS/GRANT model and database same-fact retained-observation integrity.
 
-Pass B decision on reviewed head: **FAIL — `WP2.5-B-001` and `WP2.5-B-002` are unresolved MAJOR findings.**
+Current Pass B state: **REVIEW_PENDING — the prior MAJOR findings are resolved/verified, but governance requires a fresh independent adversarial review of the post-remediation head before any Pass-B PASS or packet acceptance claim.**
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started. Pass C may begin only from `ACCEPTANCE_PENDING` after remediation, exact-head verification and a **fresh independent Pass B** with no unresolved BLOCKING/MAJOR finding.
+Not started. Pass C may begin only from `ACCEPTANCE_PENDING` after a **fresh independent Pass B** of the verified post-remediation state finds no unresolved BLOCKING/MAJOR finding.
 
 ## Handoff
 
-- Current state: `REVIEW_FAILED`
-- Current pass: `B-ADVERSARIAL-REVIEW — WP2.5-B-001 / WP2.5-B-002`
+- Current state: `REVIEW_PENDING`
+- Current pass: `B-ADVERSARIAL-REVIEW — fresh independent re-review pending`
 - Verified Pass-A implementation head/run: `aef7bea53e9db32790ab19c3fffdd0a8f63dc89d` / `34158303997` — **5/5 SUCCESS**
-- Fresh reviewed head/run: `3948060eb541ae2ae3eac6f5b1a7e702eb057e64` / `34159043613` — **5/5 SUCCESS**, review decision FAIL
-- Open WP-2.5 BLOCKING/MAJOR findings: `WP2.5-B-001 MAJOR`, `WP2.5-B-002 MAJOR`
-- Next permitted action: remediate **B-001 and B-002 only**, add regressions, obtain exact-head full CI, transition back to `REVIEW_PENDING`, then perform a fresh independent Pass B. Do not start WP-2.6 concurrently.
+- Prior fresh reviewed head/run: `3948060eb541ae2ae3eac6f5b1a7e702eb057e64` / `34159043613` — **5/5 SUCCESS**, review decision FAIL
+- Verified remediation head/run: `68439bb0d152c60197fc8ae05f416300b3a81c35` / `34161773557` — **5/5 SUCCESS**
+- `WP2.5-B-001`: **RESOLVED / VERIFIED**
+- `WP2.5-B-002`: **RESOLVED / VERIFIED**
+- Open WP-2.5 BLOCKING/MAJOR findings: **∅ pending fresh re-review**
+- Next permitted action: obtain exact-head CI for this documentation transition, then perform a fresh independent Pass B. Do not start WP-2.6 concurrently.
