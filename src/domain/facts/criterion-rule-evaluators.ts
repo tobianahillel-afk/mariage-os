@@ -53,7 +53,9 @@ function selectEvaluator(
 
 function clockMinutes(value: unknown): number {
   const time = record(value);
-  const [hours, minutes] = (time.time as string).split(":").map(Number);
+  const clock = time.time as string;
+  const hours = Number(clock.slice(0, 2));
+  const minutes = Number(clock.slice(3, 5));
   return (time.dayOffset as number) * 1440 + hours * 60 + minutes;
 }
 
