@@ -15,7 +15,10 @@ export interface EvidenceReadiness {
   readonly applicableCriteria: number;
 }
 
-function freshAt(snapshot: CriterionFactSnapshot, evaluatedAt: string): boolean {
+function freshAt(
+  snapshot: CriterionFactSnapshot,
+  evaluatedAt: string,
+): boolean {
   if (snapshot.staleAt === null) return true;
   const staleAt = normalizeFactInstant(snapshot.staleAt);
   return staleAt !== null && staleAt > evaluatedAt;
@@ -40,7 +43,10 @@ function dynamicReady(
   context: CriterionEvaluationContext,
   evaluatedAt: string,
 ): boolean {
-  if (context.targetGuestCount === null || !Number.isSafeInteger(context.targetGuestCount)) {
+  if (
+    context.targetGuestCount === null ||
+    !Number.isSafeInteger(context.targetGuestCount)
+  ) {
     return false;
   }
   const sources = snapshots.filter(
@@ -68,7 +74,10 @@ export function calculateEvidenceReadiness(
   let applicable = 0;
   let ready = 0;
   for (const evaluation of evaluations) {
-    if (!["blocking", "important"].includes(evaluation.priority) || !isApplicable(evaluation)) {
+    if (
+      !["blocking", "important"].includes(evaluation.priority) ||
+      !isApplicable(evaluation)
+    ) {
       continue;
     }
     applicable += 1;

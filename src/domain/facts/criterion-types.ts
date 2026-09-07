@@ -8,11 +8,7 @@ import type {
 } from "./fact-types";
 
 export type CriterionOutcome =
-  | "PASS"
-  | "FAIL"
-  | "UNKNOWN"
-  | "NOT_APPLICABLE"
-  | "CONFLICT";
+  "PASS" | "FAIL" | "UNKNOWN" | "NOT_APPLICABLE" | "CONFLICT";
 
 export type CriterionReason =
   | "rule_pass"

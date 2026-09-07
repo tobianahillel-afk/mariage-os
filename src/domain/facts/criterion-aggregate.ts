@@ -32,7 +32,9 @@ function blockingOutcome(outcome: CriterionOutcome): BlockingStatus {
   return "PASS";
 }
 
-function blockingStatus(evaluations: readonly CriterionEvaluation[]): BlockingStatus {
+function blockingStatus(
+  evaluations: readonly CriterionEvaluation[],
+): BlockingStatus {
   let status: BlockingStatus = "PASS";
   for (const evaluation of evaluations) {
     if (evaluation.priority !== "blocking") continue;
@@ -46,7 +48,9 @@ function scoreWeight(evaluation: CriterionEvaluation): number | null {
   if (evaluation.priority !== "important" && evaluation.priority !== "bonus") {
     return null;
   }
-  return evaluation.configuredWeight ?? (evaluation.priority === "important" ? 3 : 1);
+  return (
+    evaluation.configuredWeight ?? (evaluation.priority === "important" ? 3 : 1)
+  );
 }
 
 function scoreComponents(
@@ -55,7 +59,8 @@ function scoreComponents(
   const components: ScoreComponent[] = [];
   for (const evaluation of evaluations) {
     const weight = scoreWeight(evaluation);
-    if (weight === null || !["PASS", "FAIL"].includes(evaluation.outcome)) continue;
+    if (weight === null || !["PASS", "FAIL"].includes(evaluation.outcome))
+      continue;
     const contribution: 0 | 1 = evaluation.outcome === "PASS" ? 1 : 0;
     components.push({
       key: evaluation.key,
@@ -70,8 +75,10 @@ function scoreComponents(
 function weightedScore(components: readonly ScoreComponent[]): number | null {
   const denominator = components.reduce((sum, item) => sum + item.weight, 0);
   if (denominator === 0) return null;
-  return components.reduce((sum, item) => sum + item.weightedContribution, 0) /
-    denominator;
+  return (
+    components.reduce((sum, item) => sum + item.weightedContribution, 0) /
+    denominator
+  );
 }
 
 export function aggregateCriteria(

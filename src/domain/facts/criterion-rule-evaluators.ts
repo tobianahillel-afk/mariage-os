@@ -3,10 +3,16 @@ import type { CriterionOutcome, CriterionReason } from "./criterion-types";
 
 type KnownRuleResult = Readonly<{
   outcome: Extract<CriterionOutcome, "PASS" | "FAIL" | "UNKNOWN">;
-  reason: Extract<CriterionReason, "rule_pass" | "rule_fail" | "currency_mismatch">;
+  reason: Extract<
+    CriterionReason,
+    "rule_pass" | "rule_fail" | "currency_mismatch"
+  >;
   target: unknown;
 }>;
-type RuleEvaluator = (value: unknown, rule: FactEvaluationRule) => KnownRuleResult;
+type RuleEvaluator = (
+  value: unknown,
+  rule: FactEvaluationRule,
+) => KnownRuleResult;
 type UnknownRecord = Record<string, unknown>;
 
 function record(value: unknown): UnknownRecord {
@@ -47,7 +53,10 @@ function selectEvaluator(
 ): RuleEvaluator {
   return (value, rule) => {
     const values = rule[field] as readonly string[];
-    return binary(values.includes(value as string) === expectedMembership, values);
+    return binary(
+      values.includes(value as string) === expectedMembership,
+      values,
+    );
   };
 }
 
@@ -59,10 +68,15 @@ function clockMinutes(value: unknown): number {
   return (time.dayOffset as number) * 1440 + hours * 60 + minutes;
 }
 
-function timeEvaluator(compare: (value: number, target: number) => boolean): RuleEvaluator {
+function timeEvaluator(
+  compare: (value: number, target: number) => boolean,
+): RuleEvaluator {
   return (value, rule) => {
     const targetValue = { time: rule.time, dayOffset: rule.dayOffset };
-    return binary(compare(clockMinutes(value), clockMinutes(targetValue)), targetValue);
+    return binary(
+      compare(clockMinutes(value), clockMinutes(targetValue)),
+      targetValue,
+    );
   };
 }
 

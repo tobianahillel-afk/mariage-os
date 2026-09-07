@@ -102,8 +102,12 @@ export interface ResolveVenueFactObservationInput {
 
 export interface VenueFactEvidencePort {
   getFactContext(projectId: string, factId: string): Promise<VenueFactContext>;
-  createSource(input: CreateVenueFactSourceInput): Promise<VenueFactSourceRecord>;
-  updateSource(input: UpdateVenueFactSourceInput): Promise<VenueFactSourceRecord>;
+  createSource(
+    input: CreateVenueFactSourceInput,
+  ): Promise<VenueFactSourceRecord>;
+  updateSource(
+    input: UpdateVenueFactSourceInput,
+  ): Promise<VenueFactSourceRecord>;
   appendObservation(
     input: AppendVenueFactObservationInput,
   ): Promise<VenueFactObservationRecord>;
@@ -150,7 +154,8 @@ type EvidenceDomainError =
   | VenueRevisionError
   | "invalid_primary_flag"
   | "derived_fact_read_only";
-type EvidenceMutationError = EvidenceDomainError | VenueFactPersistenceErrorCode;
+type EvidenceMutationError =
+  EvidenceDomainError | VenueFactPersistenceErrorCode;
 
 export type SourceMutationResult =
   | { readonly ok: true; readonly source: VenueFactSourceRecord }
@@ -176,7 +181,13 @@ export async function createVenueFactSource(
   const normalized = normalizeFactSource(draft);
   if (!normalized.ok) return normalized;
   try {
-    return { ok: true, source: await port.createSource({ projectId: draft.projectId, ...normalized.value }) };
+    return {
+      ok: true,
+      source: await port.createSource({
+        projectId: draft.projectId,
+        ...normalized.value,
+      }),
+    };
   } catch (error) {
     return { ok: false, error: persistenceError(error) };
   }

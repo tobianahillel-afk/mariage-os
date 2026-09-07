@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { evaluateCriterion } from "./criterion-evaluation";
-import type { CriterionDefinition, CriterionFactSnapshot } from "./criterion-types";
+import type {
+  CriterionDefinition,
+  CriterionFactSnapshot,
+} from "./criterion-types";
 
 function definition(
   key: string,
@@ -34,8 +37,14 @@ function snapshot(
 
 describe("ordinary criterion evaluation", () => {
   it("keeps false distinct and applies rule direction", () => {
-    const item = snapshot(definition("external_caterer_allowed"), "known", false);
-    expect(evaluateCriterion(item, [item], { targetGuestCount: 160 })).toMatchObject({
+    const item = snapshot(
+      definition("external_caterer_allowed"),
+      "known",
+      false,
+    );
+    expect(
+      evaluateCriterion(item, [item], { targetGuestCount: 160 }),
+    ).toMatchObject({
       outcome: "FAIL",
       reason: "rule_fail",
       actual: false,
@@ -50,7 +59,9 @@ describe("ordinary criterion evaluation", () => {
     ["not_applicable", "NOT_APPLICABLE", "not_applicable"],
   ] as const)("maps fact state %s", (state, outcome, reason) => {
     const item = snapshot(definition("rain_plan"), state, null);
-    expect(evaluateCriterion(item, [item], { targetGuestCount: 160 })).toMatchObject({
+    expect(
+      evaluateCriterion(item, [item], { targetGuestCount: 160 }),
+    ).toMatchObject({
       outcome,
       reason,
     });
@@ -59,12 +70,17 @@ describe("ordinary criterion evaluation", () => {
   it("supports exact custom manual assessment", () => {
     const item = snapshot(
       definition("two_dance_areas_feasible", {
-        evaluationRuleJson: { type: "custom_manual_assessment", accepted: true },
+        evaluationRuleJson: {
+          type: "custom_manual_assessment",
+          accepted: true,
+        },
       }),
       "known",
       true,
     );
-    expect(evaluateCriterion(item, [item], { targetGuestCount: 160 }).outcome).toBe("PASS");
+    expect(
+      evaluateCriterion(item, [item], { targetGuestCount: 160 }).outcome,
+    ).toBe("PASS");
   });
 });
 
@@ -98,12 +114,14 @@ describe("dynamic guest-count evaluation", () => {
 
   it("fails safe for absent target and source conflict", () => {
     const ceiling = snapshot(ceilingDefinition, "conflict", null);
-    expect(evaluateCriterion(derived, [derived, ceiling], { targetGuestCount: null }).reason).toBe(
-      "missing_target_guest_count",
-    );
-    expect(evaluateCriterion(derived, [derived, ceiling], { targetGuestCount: 170 }).outcome).toBe(
-      "CONFLICT",
-    );
+    expect(
+      evaluateCriterion(derived, [derived, ceiling], { targetGuestCount: null })
+        .reason,
+    ).toBe("missing_target_guest_count");
+    expect(
+      evaluateCriterion(derived, [derived, ceiling], { targetGuestCount: 170 })
+        .outcome,
+    ).toBe("CONFLICT");
   });
 
   it("never falls back to advertised capacity", () => {
@@ -117,7 +135,9 @@ describe("dynamic guest-count evaluation", () => {
       500,
     );
     expect(
-      evaluateCriterion(derived, [derived, advertised], { targetGuestCount: 160 }),
+      evaluateCriterion(derived, [derived, advertised], {
+        targetGuestCount: 160,
+      }),
     ).toMatchObject({ outcome: "UNKNOWN", reason: "configuration_incomplete" });
   });
 });

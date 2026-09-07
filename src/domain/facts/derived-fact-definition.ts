@@ -15,9 +15,7 @@ interface DefinitionLike {
   readonly evaluationRuleJson: FactEvaluationRule | null;
 }
 
-export function isDynamicGuestRule(
-  rule: FactEvaluationRule | null,
-): boolean {
+export function isDynamicGuestRule(rule: FactEvaluationRule | null): boolean {
   return rule?.type === DYNAMIC_GUEST_RULE_TYPE;
 }
 

@@ -25,7 +25,11 @@ const validRules = [
   ],
   ["boolean", null, { type: "project_target_guest_count_supported" }],
   ["boolean", null, { type: "custom_manual_assessment", accepted: true }],
-  ["select", selectOptions, { type: "custom_manual_assessment", accepted: "low" }],
+  [
+    "select",
+    selectOptions,
+    { type: "custom_manual_assessment", accepted: "low" },
+  ],
   [
     "rating",
     { min: 2, max: 9 },
@@ -75,8 +79,16 @@ describe("fact evaluation rule rejection", () => {
     ["number", null, { type: "project_target_guest_count_supported" }],
     ["text", null, { type: "custom_manual_assessment", accepted: "x" }],
     ["boolean", null, { type: "custom_manual_assessment" }],
-    ["boolean", null, { type: "custom_manual_assessment", accepted: true, extra: 1 }],
-    ["select", selectOptions, { type: "custom_manual_assessment", accepted: "missing" }],
+    [
+      "boolean",
+      null,
+      { type: "custom_manual_assessment", accepted: true, extra: 1 },
+    ],
+    [
+      "select",
+      selectOptions,
+      { type: "custom_manual_assessment", accepted: "missing" },
+    ],
     [
       "rating",
       { min: 2, max: 9 },

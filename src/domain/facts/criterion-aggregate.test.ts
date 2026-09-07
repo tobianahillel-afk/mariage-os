@@ -43,7 +43,9 @@ it("uses FAIL > CONFLICT > UNKNOWN > PASS blocking severity", () => {
 });
 
 it("returns null score for zero denominator", () => {
-  expect(aggregateCriteria([item("only", "UNKNOWN", "important")]).weightedScore).toBeNull();
+  expect(
+    aggregateCriteria([item("only", "UNKNOWN", "important")]).weightedScore,
+  ).toBeNull();
 });
 
 it("reconstructs weighted pass/fail score", () => {

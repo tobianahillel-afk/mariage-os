@@ -59,7 +59,8 @@ function evidencePort(): VenueFactEvidencePort {
     updateSource: async () => Promise.reject(new Error("unused")),
     appendObservation: async () => Promise.reject(new Error("must not mutate")),
     linkObservationSource: async () => Promise.reject(new Error("unused")),
-    resolveFromObservation: async () => Promise.reject(new Error("must not mutate")),
+    resolveFromObservation: async () =>
+      Promise.reject(new Error("must not mutate")),
   };
 }
 

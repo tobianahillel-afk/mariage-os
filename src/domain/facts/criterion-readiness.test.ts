@@ -1,7 +1,10 @@
 import { expect, it } from "vitest";
 import { evaluateCriteria } from "./criterion-evaluation";
 import { calculateEvidenceReadiness } from "./criterion-readiness";
-import type { CriterionDefinition, CriterionFactSnapshot } from "./criterion-types";
+import type {
+  CriterionDefinition,
+  CriterionFactSnapshot,
+} from "./criterion-types";
 
 function snapshot(
   definition: CriterionDefinition,
@@ -61,11 +64,7 @@ it("counts only active non-stale critical evidence as ready", () => {
 });
 
 it("keeps stale known outcome but readiness becomes zero", () => {
-  const current = snapshot(
-    ordinaryDefinition,
-    true,
-    "2026-09-07T16:00:00Z",
-  );
+  const current = snapshot(ordinaryDefinition, true, "2026-09-07T16:00:00Z");
   const evaluations = evaluateCriteria([current], { targetGuestCount: 160 });
   expect(evaluations[0]?.outcome).toBe("PASS");
   expect(
@@ -90,10 +89,12 @@ it("uses source evidence for the derived target-support criterion", () => {
   const snapshots = [derived, ceiling];
   const context = { targetGuestCount: 160 };
   const evaluations = evaluateCriteria(snapshots, context);
-  expect(calculateEvidenceReadiness(
-    snapshots,
-    evaluations,
-    context,
-    "2026-09-07T17:00:00Z",
-  )).toEqual({ evidenceReadiness: 1, readyCriteria: 2, applicableCriteria: 2 });
+  expect(
+    calculateEvidenceReadiness(
+      snapshots,
+      evaluations,
+      context,
+      "2026-09-07T17:00:00Z",
+    ),
+  ).toEqual({ evidenceReadiness: 1, readyCriteria: 2, applicableCriteria: 2 });
 });
