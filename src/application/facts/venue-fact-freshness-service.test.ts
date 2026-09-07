@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { expect, it } from "vitest";
 import {
   setVenueFactFreshness,
   type VenueFactFreshnessPort,
@@ -26,75 +26,82 @@ function makePort(
   return { setFreshness: override ?? (async () => record) };
 }
 
-describe("venue fact freshness service", () => {
-  it("normalizes explicit timestamps before persistence", async () => {
-    let received: unknown;
-    const result = await setVenueFactFreshness(
-      makePort(async (input) => {
-        received = input;
-        return record;
-      }),
-      {
-        projectId,
-        factId,
-        expectedRevision: 1,
-        lastVerifiedAt: "2026-09-07T10:00:00+02:00",
-        staleAt: "2026-10-07T10:00:00+02:00",
-      },
-    );
-    expect(result).toEqual({ ok: true, fact: record });
-    expect(received).toEqual({
+it("normalizes explicit freshness timestamps before persistence", async () => {
+  let received: unknown;
+  const result = await setVenueFactFreshness(
+    makePort(async (input) => {
+      received = input;
+      return record;
+    }),
+    {
       projectId,
       factId,
       expectedRevision: 1,
-      lastVerifiedAt: "2026-09-07T08:00:00.000Z",
-      staleAt: "2026-10-07T08:00:00.000Z",
-    });
+      lastVerifiedAt: "2026-09-07T10:00:00+02:00",
+      staleAt: "2026-10-07T10:00:00+02:00",
+    },
+  );
+  expect(result).toEqual({ ok: true, fact: record });
+  expect(received).toEqual({
+    projectId,
+    factId,
+    expectedRevision: 1,
+    lastVerifiedAt: "2026-09-07T08:00:00.000Z",
+    staleAt: "2026-10-07T08:00:00.000Z",
   });
+});
 
-  it("rejects revision and freshness errors before persistence", async () => {
-    let calls = 0;
-    const port = makePort(async () => {
-      calls += 1;
-      return record;
-    });
-    await expect(
-      setVenueFactFreshness(port, {
-        projectId,
-        factId,
-        expectedRevision: 0,
-        lastVerifiedAt: null,
-        staleAt: null,
-      }),
-    ).resolves.toEqual({ ok: false, error: "expected_revision_invalid" });
-    await expect(
-      setVenueFactFreshness(port, {
-        projectId,
-        factId,
-        expectedRevision: 1,
-        lastVerifiedAt: null,
-        staleAt: "2026-10-07T08:00:00Z",
-      }),
-    ).resolves.toEqual({
-      ok: false,
-      error: "stale_without_last_verified_at",
-    });
-    expect(calls).toBe(0);
+it("rejects invalid freshness revision before persistence", async () => {
+  let calls = 0;
+  const port = makePort(async () => {
+    calls += 1;
+    return record;
   });
+  await expect(
+    setVenueFactFreshness(port, {
+      projectId,
+      factId,
+      expectedRevision: 0,
+      lastVerifiedAt: null,
+      staleAt: null,
+    }),
+  ).resolves.toEqual({ ok: false, error: "expected_revision_invalid" });
+  expect(calls).toBe(0);
+});
 
-  it("maps persistence failures without leaking provider details", async () => {
-    const result = await setVenueFactFreshness(
-      makePort(async () => {
-        throw new Error("secret provider detail");
-      }),
-      {
-        projectId,
-        factId,
-        expectedRevision: 1,
-        lastVerifiedAt: null,
-        staleAt: null,
-      },
-    );
-    expect(result).toEqual({ ok: false, error: "persistence_failed" });
+it("rejects staleAt without verification before persistence", async () => {
+  let calls = 0;
+  const port = makePort(async () => {
+    calls += 1;
+    return record;
   });
+  await expect(
+    setVenueFactFreshness(port, {
+      projectId,
+      factId,
+      expectedRevision: 1,
+      lastVerifiedAt: null,
+      staleAt: "2026-10-07T08:00:00Z",
+    }),
+  ).resolves.toEqual({
+    ok: false,
+    error: "stale_without_last_verified_at",
+  });
+  expect(calls).toBe(0);
+});
+
+it("maps freshness persistence failures without leaking provider details", async () => {
+  const result = await setVenueFactFreshness(
+    makePort(async () => {
+      throw new Error("secret provider detail");
+    }),
+    {
+      projectId,
+      factId,
+      expectedRevision: 1,
+      lastVerifiedAt: null,
+      staleAt: null,
+    },
+  );
+  expect(result).toEqual({ ok: false, error: "persistence_failed" });
 });
