@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.4`
 - Lot: `2`
 - Name: Observations, sources, evidence/confidence/freshness and conflicts
-- State: `REVIEW_PENDING`
-- Current pass: `B-ADVERSARIAL-REVIEW — fresh independent re-review after WP2.4-B-008`
+- State: `ACCEPTANCE_PENDING`
+- Current pass: `C-ACCEPTANCE`
 - Primary bounded context: `facts/evidence` for Venue targets
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Dependency: `WP-2.3 ACCEPTED`
@@ -25,6 +25,7 @@
 - Fresh re-review baseline after B-006: `29469d63eccc40d9b9ababd915b974378d3cc990`
 - Verified B-007 remediation head/run: `92e0f511d394448ccdcdd3143d29b4f2cf3df987` / `34134876299` — **5/5 SUCCESS**
 - Verified B-008 remediation head/run: `4b161f4120cf554395badcc5b05cac79eb018e70` / `34137075923` — **5/5 SUCCESS**
+- Final fresh Pass-B reviewed head/run: `93262f9459e720d97a6dfa3a83f84f02f3a02c7c` / `34137822804` — **5/5 SUCCESS**
 
 ## Scope and frozen responsibilities
 
@@ -106,13 +107,33 @@ Remediation in `20260907162000_harden_venue_fact_link_primary_parity.sql` moves 
 
 Exact-head verification run `34137075923` on `4b161f4120cf554395badcc5b05cac79eb018e70`: **5/5 SUCCESS**, including Core quality/security, Local Supabase DB/RLS (`db:verify`), Browser E2E/mutation, privacy-safe preview and clean-checkout `npm run verify`.
 
-Fresh independent Pass B is now required on this verified remediation baseline. B-001..B-008 and nearby locking/RLS/lifecycle/canonicality variants remain under attack. No BLOCKING/MAJOR is assumed closed merely from green remediation CI.
+### Final fresh independent re-review after B-008
 
-Withdrawal preserving an existing retained pointer/value remains reviewed but not promoted: frozen contracts preserve evidence history and do not clearly mandate automatic retained-truth invalidation on withdrawal, so WP-2.4 must not invent that semantic.
+Fresh Pass B reconstructed WP-2.4 from the frozen Facts/provenance, authorization, instant/canonicality and acceptance contracts rather than trusting the remediation history. It re-attacked:
+
+- observation append/supersession and withdrawal lifecycle, including row locking, append-only history and cross-operation interleavings;
+- retained-observation resolution, revision checks, same-fact/project integrity and conflict-rationale canonicality;
+- source create/update semantics, expected-revision serialization, source classes/status and broken-source retention;
+- independent evidence-level, confidence, freshness and fact-state semantics;
+- direct table privileges/RLS and same-project authorization for observations, sources and observation/source links;
+- public RPC versus TypeScript canonical boundaries, including nullability, enums, free-form bounded strings, URLs, timestamps and `isPrimary`;
+- client-inaccessible cores introduced by B-003/B-004/B-007/B-008;
+- the apparent PostgreSQL `bigint` versus JavaScript safe-integer revision-domain difference: ordinary authenticated clients cannot directly mutate evidence/fact revisions, and supported RPCs only increment serialized server-owned revisions from 1, so no supported client-controlled invalid canonical row is reachable through that theoretical bound mismatch;
+- `ACC-015`, `ACC-025`, `ACC-026` and `ACC-027`: conflicting observations remain preserved, one observation can retain multiple same-project sources, weaker evidence cannot silently overwrite retained truth, and a broken source does not delete historical evidence.
+
+Reviewed non-finding retained from earlier review: withdrawal may leave an existing retained observation pointer/value. Frozen contracts preserve evidence history and do not mandate automatic retained-truth invalidation on withdrawal; inventing that semantic remains prohibited.
+
+Final fresh reviewed HEAD `93262f9459e720d97a6dfa3a83f84f02f3a02c7c` has GitHub Actions run `34137822804`: **5/5 SUCCESS** — Core quality/security, Local Supabase DB/RLS, Browser E2E/mutation, privacy-safe preview and clean-checkout `npm run verify` all PASS.
+
+Fresh Pass B decision: **PASS — `WP2.4-B-001..008` are resolved/verified and no unresolved BLOCKING/MAJOR finding remains.**
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started. Entry remains prohibited until the fresh independent Pass B after B-008 completes with no open BLOCKING/MAJOR and the packet transitions to `ACCEPTANCE_PENDING`.
+Current state: `ACCEPTANCE_PENDING`.
+
+Pass C must mechanically compare EXPECTED vs IMPLEMENTED vs VERIFIED for every WP-2.4 responsibility, confirm `WP2.4-B-001..008` remain closed, reconcile `FAC-002`, the WP-2.4 portion of `FAC-003`, `FAC-004..009`, `ACC-015`, `ACC-025..027`, applicable authorization/RLS obligations and packet scope fences, and only then mark WP-2.4 `ACCEPTED`.
+
+If Pass C changes production code, affected verification and a fresh Pass B must be repeated. Documentation-only reconciliation does not alter the implementation/review HEAD evidence, but its diff and durable cursor must be inspected before acceptance.
 
 ## Handoff
 
@@ -120,12 +141,12 @@ Not started. Entry remains prohibited until the fresh independent Pass B after B
 Lot: 2 — Venues core
 Branch: lot-2/venues-core
 Packet: WP-2.4
-State: REVIEW_PENDING
-Pass: B-ADVERSARIAL-REVIEW — fresh independent re-review after WP2.4-B-008
+State: ACCEPTANCE_PENDING
+Pass: C-ACCEPTANCE
 Primary Feature: FTR-020
 Dependency: WP-2.3 ACCEPTED
 Resolved/verified: WP2.4-B-001, WP2.4-B-002, WP2.4-B-003, WP2.4-B-004, WP2.4-B-005, WP2.4-B-006, WP2.4-B-007, WP2.4-B-008
-Open BLOCKING/MAJOR: none promoted yet from the fresh re-review
-Latest verified remediation: 4b161f4120cf554395badcc5b05cac79eb018e70 / 34137075923 — 5/5 SUCCESS
-Next action: perform a fresh independent Pass B on the verified B-008 baseline. Pass C and WP-2.5 remain prohibited until that review clears.
+Open BLOCKING/MAJOR: none
+Final fresh Pass-B reviewed head/run: 93262f9459e720d97a6dfa3a83f84f02f3a02c7c / 34137822804 — 5/5 SUCCESS
+Next action: WP-2.4 Pass C acceptance/reconciliation only. WP-2.5 remains prohibited until WP-2.4 is ACCEPTED.
 ```
