@@ -33,7 +33,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.2 | spaces, capacity, member ratings/preferences | **ACCEPTED** |
 | WP-2.3 | fact definitions, typed retained facts, value validation | **ACCEPTED** |
 | WP-2.4 | observations, sources, evidence/confidence/freshness, conflicts | **ACCEPTED** |
-| WP-2.5 | deterministic criteria, blockers, score/readiness, missing information | PLANNED — specification gates pending |
+| WP-2.5 | deterministic criteria, blockers, score/readiness, missing information | **BLOCKED — `WP2.5-S-001`** |
 | WP-2.6 | offers, availability, contacts/interactions basics | PLANNED |
 | WP-2.7 | contextual venue access-route observations | PLANNED |
 | WP-2.8 | venue media/photo foundation and media safety | PLANNED |
@@ -72,30 +72,46 @@ Final reviewed head/run `93262f9459e720d97a6dfa3a83f84f02f3a02c7c` / `3413782280
 
 Pass C: **PASS**. `FAC-002`, WP-2.4 portion of `FAC-003`, `FAC-004..009`, `ACC-015`, `ACC-025..027`, applicable authorization/RLS duties and packet scope fences were mechanically reconciled EXPECTED → IMPLEMENTED → VERIFIED. Required WP-2.4 responsibilities minus accepted/evidenced WP-2.4 responsibilities: **∅**.
 
+## WP-2.5 — pre-implementation specification state
+
+Packet record: `lot-2/WP-2.5.md`.
+
+Two previously recorded stop-conditions are now **CLOSED** by `5fd9be01f4da192d9d47b2d48944134fd15e471a`; exact-head CI `34143567491`: **5/5 SUCCESS**.
+
+- deterministic V1 `evidenceReadiness`: **CLOSED** — unweighted readiness ratio over applicable `blocking|important` criteria, with explicit active-retained-evidence/freshness/configuration conditions and no evidence-level/confidence pseudo-weighting;
+- `custom_manual_assessment.accepted`: **CLOSED** — exact canonical acceptable value for boolean/select/rating, with TypeScript↔PostgreSQL parity required during Pass A.
+
+Open pre-implementation finding:
+
+- `WP2.5-S-001` **BLOCKING** — `project_target_guest_count_supported` has no frozen authoritative support/capacity input or derivation formula. The repository distinguishes commercial advertised capacity, per-space capacities, couple-specific two-dance-area maximum estimate and the dynamic target-support criterion, while requiring commercial capacity and couple suitability to remain distinct. No contract defines the composition/precedence, unknown/conflict/stale behavior, null target behavior or persistence/derived semantics. Choosing one would materially change a blocking Venue decision.
+
+While `WP2.5-S-001` is open, Pass A must not silently derive target support from advertised capacity, maximum venue-space capacity, the two-dance-area estimate, a permanently retained boolean, or an undocumented fallback/precedence. WP-2.6 must not start concurrently.
+
+Resolution condition: freeze the dynamic rule's authoritative inputs and exact state behavior in a governing criteria/domain contract, preserve commercial-capacity vs couple-suitability separation and derived-data invariant 27, define project-target change behavior without pre-implementing Lot-5 scenarios, add deterministic dependency/boundary test requirements, obtain exact-head full CI, then move WP-2.5 `BLOCKED → READY`.
+
 ## Durable cursor
 
 ```text
 Current Lot: 2 — Venues core
 Lot State: IN_PROGRESS
 Branch: lot-2/venues-core
-Current Packet: WP-2.4
-Packet State: ACCEPTED
-Current Pass: COMPLETE
+Current Packet: WP-2.5
+Packet State: BLOCKED
+Current Pass: PLAN
 Last completed packet: WP-2.4 — ACCEPTED
 Accepted packets: WP-2.1, WP-2.2, WP-2.3, WP-2.4
-Resolved/verified WP-2.4 findings: WP2.4-B-001, WP2.4-B-002, WP2.4-B-003, WP2.4-B-004, WP2.4-B-005, WP2.4-B-006, WP2.4-B-007, WP2.4-B-008
-Open WP-2.4 BLOCKING/MAJOR finding: none
-Final WP-2.4 reviewed head/run: 93262f9459e720d97a6dfa3a83f84f02f3a02c7c / 34137822804 — 5/5 SUCCESS
-WP-2.4 accepted responsibility gap: ∅
-Next planned packet: WP-2.5 — deterministic criteria, blockers, score/readiness and missing information
-Next permitted action: close WP-2.5 pre-implementation specification gates before any Pass-A production implementation.
+Closed WP-2.5 specification gates: evidenceReadiness; custom_manual_assessment.accepted
+Open WP-2.5 BLOCKING finding: WP2.5-S-001 — project_target_guest_count_supported semantics under-specified
+Last green WP-2.5 specification head/run: 5fd9be01f4da192d9d47b2d48944134fd15e471a / 34143567491 — 5/5 SUCCESS
+Next permitted action: resolve WP2.5-S-001 in the governing criteria/domain contract, obtain exact-head full CI, then transition WP-2.5 to READY. Do not begin Pass A or WP-2.6 concurrently.
 ```
 
 ## Known localized specification repairs / stop-conditions
 
 - WP-2.4 evidence/confidence gate: **CLOSED** (`c414549d...`, CI `34069692843`).
-- Before WP-2.5 implements `evidenceReadiness`, document its deterministic formula in `domain/CRITERIA-EVALUATION.md`.
-- Before WP-2.5 executes/seeds `custom_manual_assessment`, freeze exact acceptable-value representation for supported boolean/select/rating cases.
+- WP-2.5 deterministic `evidenceReadiness` formula: **CLOSED** (`5fd9be01...`, CI `34143567491`).
+- WP-2.5 `custom_manual_assessment.accepted` representation: **CLOSED** (`5fd9be01...`, CI `34143567491`).
+- WP-2.5 `project_target_guest_count_supported` deterministic semantics: **OPEN / BLOCKING — `WP2.5-S-001`**.
 - Before WP-2.8 relies on the security reading graph, repair the missing `docs/security/STORAGE-RLS.md` reference using already frozen/tested Storage authorization semantics.
 - Venue lifecycle documentation conflict from WP-2.1 is closed by `docs/domain/STATE-MACHINES-VENUE-LIFECYCLE-ADDENDUM.md`.
 
@@ -105,6 +121,7 @@ Next permitted action: close WP-2.5 pre-implementation specification gates befor
 - Lot-2 primary IDs: `FTR-013..FTR-028`; partial cross-lot responsibilities also include `FTR-012`, `FTR-089`, `FTR-092`, `FTR-093` and cross-cutting access/offline/security obligations.
 - Feature-level whole-capability status is not conflated with packet/current-lot responsibility; Lot Coverage Matrices remain the durable responsibility-level reconciliation source.
 - WP-2.4 packet responsibility for `FTR-020` is **ACCEPTED**. This does not claim downstream WP-2.5 criteria/readiness, UI, offline/import, Vendor or real-data completion.
+- WP-2.5 remains **BLOCKED before Pass A**; no FTR-021/FTR-022 implementation completion is claimed from the specification work alone.
 
 ## Forward maintenance
 
@@ -133,11 +150,10 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted Lot-2 packets: WP-2.1, WP-2.2, WP-2.3, WP-2.4
 Last completed packet: WP-2.4 — ACCEPTED / COMPLETE
-WP-2.4 resolved/verified findings: WP2.4-B-001..WP2.4-B-008
-WP-2.4 open BLOCKING/MAJOR: none
-WP-2.4 final reviewed head/run: 93262f9459e720d97a6dfa3a83f84f02f3a02c7c / 34137822804 — 5/5 SUCCESS
-WP-2.4 accepted responsibility gap: ∅
-Next planned packet: WP-2.5
-WP-2.5 Pass A is blocked until the evidenceReadiness formula and custom_manual_assessment acceptable-value representation gates are frozen.
+Current packet: WP-2.5 — BLOCKED / PLAN
+WP-2.5 closed specification gates: evidenceReadiness; custom_manual_assessment.accepted
+WP-2.5 open BLOCKING: WP2.5-S-001 — dynamic project-target guest-count support semantics
+WP-2.5 last green specification head/run: 5fd9be01f4da192d9d47b2d48944134fd15e471a / 34143567491 — 5/5 SUCCESS
+Next permitted action: resolve WP2.5-S-001 specification only; then exact-head CI and BLOCKED → READY. Pass A and WP-2.6 remain prohibited until then.
 Lots 3–12: NOT_STARTED
 ```
