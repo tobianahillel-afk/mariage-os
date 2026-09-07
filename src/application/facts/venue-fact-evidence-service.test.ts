@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { expect, it } from "vitest";
 import type { NormalizedFactDefinition } from "@domain/facts/fact-definition";
 import {
   appendVenueFactObservation,
@@ -105,6 +105,18 @@ const resolvedFact: ResolvedVenueFactRecord = {
   revision: 2,
 };
 
+const observationDraft = {
+  projectId,
+  factId,
+  supersedesObservationId: null,
+  value: false,
+  rawValueText: "No",
+  evidenceLevel: "confirmed_for_event",
+  confidence: "high",
+  observedAt: "2026-09-07T08:30:00+02:00",
+  note: null,
+} as const;
+
 function makePort(
   overrides: Partial<VenueFactEvidencePort> = {},
 ): VenueFactEvidencePort {
@@ -119,220 +131,223 @@ function makePort(
   };
 }
 
-describe("Venue fact evidence source service", () => {
-  it("normalizes source creation and updates with optimistic revision", async () => {
-    let created: unknown;
-    let updated: unknown;
-    const port = makePort({
-      createSource: async (input) => {
-        created = input;
-        return sourceRecord;
-      },
-      updateSource: async (input) => {
-        updated = input;
-        return { ...sourceRecord, revision: 2 };
-      },
-    });
-    await expect(
-      createVenueFactSource(port, sourceDraft),
-    ).resolves.toMatchObject({
-      ok: true,
-      source: sourceRecord,
-    });
-    await expect(
-      updateVenueFactSource(port, {
-        ...sourceDraft,
-        sourceId,
-        expectedRevision: 1,
-        status: "broken",
-      }),
-    ).resolves.toMatchObject({ ok: true, source: { revision: 2 } });
-    expect(created).toMatchObject({ title: "Venue email" });
-    expect(updated).toMatchObject({ sourceId, status: "broken" });
+it("normalizes source creation and updates with optimistic revision", async () => {
+  let created: unknown;
+  let updated: unknown;
+  const port = makePort({
+    createSource: async (input) => {
+      created = input;
+      return sourceRecord;
+    },
+    updateSource: async (input) => {
+      updated = input;
+      return { ...sourceRecord, revision: 2 };
+    },
   });
+  await expect(createVenueFactSource(port, sourceDraft)).resolves.toMatchObject({
+    ok: true,
+    source: sourceRecord,
+  });
+  await expect(
+    updateVenueFactSource(port, {
+      ...sourceDraft,
+      sourceId,
+      expectedRevision: 1,
+      status: "broken",
+    }),
+  ).resolves.toMatchObject({ ok: true, source: { revision: 2 } });
+  expect(created).toMatchObject({ title: "Venue email" });
+  expect(updated).toMatchObject({ sourceId, status: "broken" });
+});
 
-  it("returns source validation, revision and persistence failures safely", async () => {
-    await expect(
-      createVenueFactSource(makePort(), {
-        ...sourceDraft,
-        sourceType: "email",
-      }),
-    ).resolves.toEqual({ ok: false, error: "invalid_source_type" });
-    await expect(
-      updateVenueFactSource(makePort(), {
-        ...sourceDraft,
-        sourceId,
-        expectedRevision: 0,
-      }),
-    ).resolves.toEqual({ ok: false, error: "expected_revision_invalid" });
-    await expect(
-      updateVenueFactSource(makePort(), {
-        ...sourceDraft,
-        sourceId,
-        expectedRevision: 1,
-        status: "deleted",
-      }),
-    ).resolves.toEqual({ ok: false, error: "invalid_source_status" });
-    const failing = makePort({
-      createSource: async () => {
-        throw new Error("hidden provider detail");
-      },
-    });
-    await expect(createVenueFactSource(failing, sourceDraft)).resolves.toEqual({
-      ok: false,
-      error: "persistence_failed",
-    });
+it("rejects invalid source type before persistence", async () => {
+  await expect(
+    createVenueFactSource(makePort(), {
+      ...sourceDraft,
+      sourceType: "email",
+    }),
+  ).resolves.toEqual({ ok: false, error: "invalid_source_type" });
+});
+
+it("rejects invalid source revision before persistence", async () => {
+  await expect(
+    updateVenueFactSource(makePort(), {
+      ...sourceDraft,
+      sourceId,
+      expectedRevision: 0,
+    }),
+  ).resolves.toEqual({ ok: false, error: "expected_revision_invalid" });
+});
+
+it("rejects invalid source status before persistence", async () => {
+  await expect(
+    updateVenueFactSource(makePort(), {
+      ...sourceDraft,
+      sourceId,
+      expectedRevision: 1,
+      status: "deleted",
+    }),
+  ).resolves.toEqual({ ok: false, error: "invalid_source_status" });
+});
+
+it("maps source persistence failures safely", async () => {
+  const failing = makePort({
+    createSource: async () => {
+      throw new Error("hidden provider detail");
+    },
+  });
+  await expect(createVenueFactSource(failing, sourceDraft)).resolves.toEqual({
+    ok: false,
+    error: "persistence_failed",
   });
 });
 
-describe("Venue fact observation service", () => {
-  const observationDraft = {
+it("validates observation against the fact definition before appending", async () => {
+  let received: unknown;
+  const port = makePort({
+    appendObservation: async (input) => {
+      received = input;
+      return observationRecord;
+    },
+  });
+  await expect(
+    appendVenueFactObservation(port, observationDraft),
+  ).resolves.toEqual({ ok: true, observation: observationRecord });
+  expect(received).toMatchObject({
     projectId,
     factId,
-    supersedesObservationId: null,
     value: false,
-    rawValueText: "No",
     evidenceLevel: "confirmed_for_event",
     confidence: "high",
-    observedAt: "2026-09-07T08:30:00+02:00",
-    note: null,
-  } as const;
-
-  it("validates against the fact definition before appending", async () => {
-    let received: unknown;
-    const port = makePort({
-      appendObservation: async (input) => {
-        received = input;
-        return observationRecord;
-      },
-    });
-    await expect(
-      appendVenueFactObservation(port, observationDraft),
-    ).resolves.toEqual({ ok: true, observation: observationRecord });
-    expect(received).toMatchObject({
-      projectId,
-      factId,
-      value: false,
-      evidenceLevel: "confirmed_for_event",
-      confidence: "high",
-      observedAt: "2026-09-07T06:30:00.000Z",
-    });
-  });
-
-  it("fails before mutation for malformed typed values", async () => {
-    await expect(
-      appendVenueFactObservation(makePort(), {
-        ...observationDraft,
-        value: "false",
-      }),
-    ).resolves.toEqual({ ok: false, error: "invalid_observation_value" });
-  });
-
-  it("maps context lookup and append failures safely", async () => {
-    const lookupFailure = makePort({
-      getFactContext: async () => {
-        throw new Error("hidden");
-      },
-    });
-    await expect(
-      appendVenueFactObservation(lookupFailure, observationDraft),
-    ).resolves.toEqual({ ok: false, error: "persistence_failed" });
-
-    const appendFailure = makePort({
-      appendObservation: async () => {
-        throw new Error("hidden");
-      },
-    });
-    await expect(
-      appendVenueFactObservation(appendFailure, observationDraft),
-    ).resolves.toEqual({ ok: false, error: "persistence_failed" });
+    observedAt: "2026-09-07T06:30:00.000Z",
   });
 });
 
-describe("Venue fact evidence linking and resolution", () => {
-  it("links one observation to multiple source records without changing truth", async () => {
-    await expect(
-      linkVenueFactObservationSource(makePort(), {
-        projectId,
-        observationId,
-        sourceId,
-        isPrimary: true,
-      }),
-    ).resolves.toEqual({ ok: true, link: linkRecord });
-    await expect(
-      linkVenueFactObservationSource(makePort(), {
-        projectId,
-        observationId,
-        sourceId,
-        isPrimary: "yes",
-      }),
-    ).resolves.toEqual({ ok: false, error: "invalid_primary_flag" });
-    const failing = makePort({
-      linkObservationSource: async () => {
-        throw new Error("hidden");
-      },
-    });
-    await expect(
-      linkVenueFactObservationSource(failing, {
-        projectId,
-        observationId,
-        sourceId,
-        isPrimary: false,
-      }),
-    ).resolves.toEqual({ ok: false, error: "persistence_failed" });
-  });
+it("fails before observation mutation for malformed typed values", async () => {
+  await expect(
+    appendVenueFactObservation(makePort(), {
+      ...observationDraft,
+      value: "false",
+    }),
+  ).resolves.toEqual({ ok: false, error: "invalid_observation_value" });
+});
 
-  it("resolves retained truth only through an explicit observation decision", async () => {
-    await expect(
-      resolveVenueFactFromObservation(makePort(), {
-        projectId,
-        factId,
-        observationId,
-        expectedRevision: 1,
-        state: "known",
-        resolutionNote: null,
-      }),
-    ).resolves.toEqual({ ok: true, fact: resolvedFact });
-    await expect(
-      resolveVenueFactFromObservation(makePort(), {
-        projectId,
-        factId,
-        observationId,
-        expectedRevision: 0,
-        state: "known",
-        resolutionNote: null,
-      }),
-    ).resolves.toEqual({ ok: false, error: "expected_revision_invalid" });
-    await expect(
-      resolveVenueFactFromObservation(makePort(), {
-        projectId,
-        factId,
-        observationId,
-        expectedRevision: 1,
-        state: "conflict",
-        resolutionNote: null,
-      }),
-    ).resolves.toEqual({
-      ok: false,
-      error: "conflict_resolution_note_required",
-    });
+it("maps observation context lookup failure safely", async () => {
+  const lookupFailure = makePort({
+    getFactContext: async () => {
+      throw new Error("hidden");
+    },
   });
+  await expect(
+    appendVenueFactObservation(lookupFailure, observationDraft),
+  ).resolves.toEqual({ ok: false, error: "persistence_failed" });
+});
 
-  it("maps resolution persistence failure without leaking provider details", async () => {
-    const failing = makePort({
-      resolveFromObservation: async () => {
-        throw new Error("hidden");
-      },
-    });
-    await expect(
-      resolveVenueFactFromObservation(failing, {
-        projectId,
-        factId,
-        observationId,
-        expectedRevision: 1,
-        state: "known",
-        resolutionNote: null,
-      }),
-    ).resolves.toEqual({ ok: false, error: "persistence_failed" });
+it("maps observation append failure safely", async () => {
+  const appendFailure = makePort({
+    appendObservation: async () => {
+      throw new Error("hidden");
+    },
   });
+  await expect(
+    appendVenueFactObservation(appendFailure, observationDraft),
+  ).resolves.toEqual({ ok: false, error: "persistence_failed" });
+});
+
+it("links an observation to a source without changing truth", async () => {
+  await expect(
+    linkVenueFactObservationSource(makePort(), {
+      projectId,
+      observationId,
+      sourceId,
+      isPrimary: true,
+    }),
+  ).resolves.toEqual({ ok: true, link: linkRecord });
+});
+
+it("rejects malformed primary-source flags", async () => {
+  await expect(
+    linkVenueFactObservationSource(makePort(), {
+      projectId,
+      observationId,
+      sourceId,
+      isPrimary: "yes",
+    }),
+  ).resolves.toEqual({ ok: false, error: "invalid_primary_flag" });
+});
+
+it("maps evidence-link persistence failures safely", async () => {
+  const failing = makePort({
+    linkObservationSource: async () => {
+      throw new Error("hidden");
+    },
+  });
+  await expect(
+    linkVenueFactObservationSource(failing, {
+      projectId,
+      observationId,
+      sourceId,
+      isPrimary: false,
+    }),
+  ).resolves.toEqual({ ok: false, error: "persistence_failed" });
+});
+
+it("resolves retained truth only through an explicit observation decision", async () => {
+  await expect(
+    resolveVenueFactFromObservation(makePort(), {
+      projectId,
+      factId,
+      observationId,
+      expectedRevision: 1,
+      state: "known",
+      resolutionNote: null,
+    }),
+  ).resolves.toEqual({ ok: true, fact: resolvedFact });
+});
+
+it("rejects invalid retained-resolution revision", async () => {
+  await expect(
+    resolveVenueFactFromObservation(makePort(), {
+      projectId,
+      factId,
+      observationId,
+      expectedRevision: 0,
+      state: "known",
+      resolutionNote: null,
+    }),
+  ).resolves.toEqual({ ok: false, error: "expected_revision_invalid" });
+});
+
+it("requires rationale for explicit conflict resolution", async () => {
+  await expect(
+    resolveVenueFactFromObservation(makePort(), {
+      projectId,
+      factId,
+      observationId,
+      expectedRevision: 1,
+      state: "conflict",
+      resolutionNote: null,
+    }),
+  ).resolves.toEqual({
+    ok: false,
+    error: "conflict_resolution_note_required",
+  });
+});
+
+it("maps resolution persistence failure without leaking provider details", async () => {
+  const failing = makePort({
+    resolveFromObservation: async () => {
+      throw new Error("hidden");
+    },
+  });
+  await expect(
+    resolveVenueFactFromObservation(failing, {
+      projectId,
+      factId,
+      observationId,
+      expectedRevision: 1,
+      state: "known",
+      resolutionNote: null,
+    }),
+  ).resolves.toEqual({ ok: false, error: "persistence_failed" });
 });
