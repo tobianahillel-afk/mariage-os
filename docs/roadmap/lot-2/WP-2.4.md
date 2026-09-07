@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.4`
 - Lot: `2`
 - Name: Observations, sources, evidence/confidence/freshness and conflicts
-- State: `REVIEW_PENDING`
-- Current pass: `B-ADVERSARIAL`
+- State: `REVIEW_FAILED`
+- Current pass: `REVIEW_FAILED — remediation next`
 - Primary bounded context: `facts/evidence` for Venue targets
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Dependencies: `WP-2.3 ACCEPTED`
@@ -149,8 +149,8 @@ Dependency audit continues to report only the previously reviewed two Moderate t
 ### Pass A exit checklist
 
 - [x] all packet-owned schema/resources implemented
-- [x] all ordinary and privileged mutation paths have implementation and direct authorization/same-project test evidence
-- [x] observation values reuse WP-2.3 canonical validation
+- [x] all ordinary and privileged mutation paths had implementation and direct authorization/same-project test evidence at Pass-A exit
+- [x] observation values reuse WP-2.3 canonical validation on observation mutation
 - [x] append/supersession/withdrawal paths preserve historical rows
 - [x] multi-source links preserve one observation with many sources
 - [x] observation append is distinct from retained-truth mutation
@@ -161,23 +161,31 @@ Dependency audit continues to report only the previously reviewed two Moderate t
 - [x] architecture/static/complexity gates green
 - [x] exact implementation HEAD has full CI evidence
 
-Pass A decision: **PASS / REVIEW_PENDING**. This is not packet acceptance; all semantic/security claims above remain subject to fresh Pass B attack.
+Pass A decision was **PASS / REVIEW_PENDING**. Pass B has since invalidated acceptance readiness with MAJOR findings below; affected verification must be rerun after remediation.
 
 ## Pass B — ADVERSARIAL REVIEW
 
-**IN PROGRESS.** Fresh review must reconstruct expected behavior from the frozen facts/evidence/security contracts and attack the reviewed Pass-A head independently rather than trusting Pass-A conclusions.
+Fresh review reconstructed the expected behavior from `FACTS-SOURCES.md`, `CONFIDENCE-FRESHNESS.md`, `INVARIANTS.md`, ADR-0006, `PHYSICAL-SCHEMA-V1.md`, `RLS-MATRIX-V1.md` and the WP-2.4 packet contract rather than trusting Pass-A conclusions.
 
 Review baseline:
 
 - implementation head: `9f3ca2fb57adf124e50bf8c4888280854c5d846f`;
-- exact-head CI: `34106264873` — **5/5 SUCCESS**;
-- open Pass-B findings at entry: **none yet**.
+- exact-head CI: `34106264873` — **5/5 SUCCESS**.
 
-Pass B must explicitly attack observation/source immutability, supersession/withdrawal lifecycle, retained-observation validity after lifecycle changes, same-project composite integrity, direct table/RPC grants and RLS, role/revocation boundaries, conflict-resolution races, freshness temporal invariants, provider/parser fail-closed behavior, evidence/confidence independence and scope fences. Green Pass-A CI is evidence, not a substitute for this review.
+### Findings
+
+| Severity | Finding | Evidence / impact | State |
+|---|---|---|---|
+| MAJOR `WP2.4-B-001` | Legacy `set_retained_venue_fact` remains a write-around for the WP-2.4 observation-resolution boundary. | Once observations/conflicts exist, an authenticated `venues.write` caller can still use the WP-2.3 RPC to set a direct `known` retained value and clear `retained_observation_id`, `resolution_note`, `resolved_by` and `resolved_at`. This can collapse conflict/evidence state without the documented retained-observation resolution path and bypass invariant 26 / protected resolution semantics. | **OPEN** |
+| MAJOR `WP2.4-B-002` | Fact-definition edits do not preserve canonical validity of existing observation-backed evidence. | `validate_fact_definition_row` only rejects edits that invalidate `facts.state='known'` retained values. It does not validate non-null `fact_observations.value`, nor non-null retained values allowed for WP-2.4 `state='conflict'`. A custom options/rule edit can therefore leave stored observations/current conflict-retained truth invalid under the referenced current definition and make provider/domain parsing fail closed after the mutation. | **OPEN** |
+
+Reviewed but not promoted to a finding: observation withdrawal currently preserves the retained value/pointer and fact revision by explicit test design. The frozen contract requires history preservation and does not unambiguously require automatic retained-truth invalidation on withdrawal, so Pass B does not invent that behavior. It remains a semantic point for later explicit specification if product requirements change.
+
+Pass B decision: **FAIL / REVIEW_FAILED**. No Pass C may start. The durable next action is bounded WP-2.4 remediation for `WP2.4-B-001..002`, followed by fresh exact-head verification and a fresh independent re-review.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started. Entry requires Pass B with no unresolved BLOCKING/MAJOR findings and state `ACCEPTANCE_PENDING`.
+Not started. Entry requires a fresh Pass B with no unresolved BLOCKING/MAJOR findings and state `ACCEPTANCE_PENDING`.
 
 ## Handoff
 
@@ -185,17 +193,12 @@ Not started. Entry requires Pass B with no unresolved BLOCKING/MAJOR findings an
 Lot: 2 — Venues core
 Branch: lot-2/venues-core
 Packet: WP-2.4
-State: REVIEW_PENDING
-Pass: B-ADVERSARIAL
+State: REVIEW_FAILED
+Pass: review failed; remediation next
 Primary Feature: FTR-020
 Dependency: WP-2.3 ACCEPTED
-Specification stop-condition: CLOSED at c414549d20338bf5180d5afc3681beda56fb11de
-Specification-gate CI: 34069692843 — 5/5 SUCCESS
 Reviewed Pass-A implementation head: 9f3ca2fb57adf124e50bf8c4888280854c5d846f
-Pass-A implementation CI: 34106264873 — 5/5 SUCCESS
-Unit: 79 files / 807 tests PASS; coverage 100% statements/branches/functions/lines
-DB/RLS: 29 files / 664 pgTAP tests PASS
-Browser: 40/40 Playwright PASS; mutation 82.50% PASS
-Open WP-2.4 Pass-B findings: none yet
-Next action: perform fresh WP-2.4 Pass B only; do not start WP-2.5 concurrently
+Pass-A implementation CI: 34106264873 — 5/5 SUCCESS (invalidated for acceptance by Pass-B MAJOR findings)
+Open MAJOR findings: WP2.4-B-001, WP2.4-B-002
+Next action: remediate WP2.4-B-001..002 only, rerun exact-head verification, then perform fresh Pass B; do not start WP-2.5
 ```
