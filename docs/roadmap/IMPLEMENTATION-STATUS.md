@@ -32,7 +32,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.1 | venue identity, authorized persistence, lifecycle history | **ACCEPTED** |
 | WP-2.2 | spaces, capacity, member ratings/preferences | **ACCEPTED** |
 | WP-2.3 | fact definitions, typed retained facts, value validation | **ACCEPTED** |
-| WP-2.4 | observations, sources, evidence/confidence/freshness, conflicts | **REVIEW_PENDING — fresh Pass B after B-008** |
+| WP-2.4 | observations, sources, evidence/confidence/freshness, conflicts | **ACCEPTANCE_PENDING — Pass C** |
 | WP-2.5 | deterministic criteria, blockers, score/readiness, missing information | PLANNED |
 | WP-2.6 | offers, availability, contacts/interactions basics | PLANNED |
 | WP-2.7 | contextual venue access-route observations | PLANNED |
@@ -73,7 +73,11 @@ Accepted packet evidence remains unchanged:
 
 B-008 remediation moves the old permissive link implementation behind a client-inaccessible core and rejects `NULL` at the public RPC before mutation. Direct pgTAP proves rejected-NULL atomicity, canonical `false`/`true` behavior, no duplicate relationship, and denial of core execution to `authenticated`.
 
-A fresh independent Pass B is now active on this verified baseline. No BLOCKING/MAJOR is assumed absent merely because remediation CI is green. Pass C remains prohibited until the fresh review clears. WP-2.5 remains PLANNED.
+Fresh independent Pass B after B-008: **PASS**. The re-review reconstructed the packet from frozen Facts/provenance, authorization, canonical instant and acceptance contracts; re-attacked append/supersession/withdrawal, retained resolution, source revision/update, evidence/confidence/freshness/state independence, direct table/RLS/RPC authorization, TS↔DB canonicality and internal-core privileges; and rechecked `ACC-015`, `ACC-025..027`. No unresolved BLOCKING/MAJOR remains. The PostgreSQL-bigint/JavaScript-safe-integer revision difference was reviewed as non-actionable under supported mutation paths because authenticated clients cannot directly mutate revisions and public RPCs increment serialized server-owned revisions from 1.
+
+Final fresh Pass-B reviewed head/run: `93262f9459e720d97a6dfa3a83f84f02f3a02c7c` / `34137822804` — **5/5 SUCCESS**, including Core, DB/RLS, Browser E2E/mutation, privacy-safe preview and clean-checkout `npm run verify`.
+
+WP-2.4 is now in Pass C acceptance/reconciliation only. WP-2.5 remains PLANNED and prohibited until WP-2.4 is accepted.
 
 ## Durable cursor
 
@@ -82,14 +86,15 @@ Current Lot: 2 — Venues core
 Lot State: IN_PROGRESS
 Branch: lot-2/venues-core
 Current Packet: WP-2.4
-Packet State: REVIEW_PENDING
-Current Pass: B-ADVERSARIAL-REVIEW — fresh independent re-review after WP2.4-B-008
+Packet State: ACCEPTANCE_PENDING
+Current Pass: C-ACCEPTANCE
 Last completed packet: WP-2.3 — ACCEPTED
 Accepted packets: WP-2.1, WP-2.2, WP-2.3
 Resolved/verified WP-2.4 MAJOR findings: WP2.4-B-001, WP2.4-B-002, WP2.4-B-003, WP2.4-B-004, WP2.4-B-005, WP2.4-B-006, WP2.4-B-007, WP2.4-B-008
-Open WP-2.4 BLOCKING/MAJOR finding: none promoted yet from fresh re-review
+Open WP-2.4 BLOCKING/MAJOR finding: none
 Latest verified remediation: 4b161f4120cf554395badcc5b05cac79eb018e70 / 34137075923 — 5/5 SUCCESS
-Next permitted action: perform fresh independent Pass B on the verified B-008 baseline. Pass C and WP-2.5 remain prohibited until review clearance.
+Final fresh Pass-B reviewed head/run: 93262f9459e720d97a6dfa3a83f84f02f3a02c7c / 34137822804 — 5/5 SUCCESS
+Next permitted action: WP-2.4 Pass C acceptance/reconciliation only. WP-2.5 remains prohibited until WP-2.4 is ACCEPTED.
 ```
 
 ## Known localized specification repairs / stop-conditions
@@ -105,7 +110,7 @@ Next permitted action: perform fresh independent Pass B on the verified B-008 ba
 - V1 Feature inventory: 120 Feature IDs across both ledgers.
 - Lot-2 primary IDs: `FTR-013..FTR-028`; partial cross-lot responsibilities also include `FTR-012`, `FTR-089`, `FTR-092`, `FTR-093` and cross-cutting access/offline/security obligations.
 - Feature-level whole-capability status is not conflated with packet/current-lot responsibility; Lot Coverage Matrices remain the durable responsibility-level reconciliation source.
-- `FTR-020` remains feature-level **IN_PROGRESS** while WP-2.4 undergoes fresh Pass B after B-008.
+- `FTR-020` remains feature-level **IN_PROGRESS** while WP-2.4 completes Pass C; packet acceptance does not claim downstream criteria/UI/offline/import completion.
 
 ## Forward maintenance
 
@@ -134,9 +139,10 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted Lot-2 packets: WP-2.1, WP-2.2, WP-2.3
 Current packet: WP-2.4
-Current state/pass: REVIEW_PENDING / B-ADVERSARIAL-REVIEW — fresh independent re-review after WP2.4-B-008
+Current state/pass: ACCEPTANCE_PENDING / C-ACCEPTANCE
 Resolved/verified: WP2.4-B-001, WP2.4-B-002, WP2.4-B-003, WP2.4-B-004, WP2.4-B-005, WP2.4-B-006, WP2.4-B-007, WP2.4-B-008
-Open BLOCKING/MAJOR: none promoted yet from fresh re-review
-Next: fresh independent Pass B. Pass C and WP-2.5 remain prohibited until review clearance.
+Open BLOCKING/MAJOR: none
+Final fresh Pass-B reviewed head/run: 93262f9459e720d97a6dfa3a83f84f02f3a02c7c / 34137822804 — 5/5 SUCCESS
+Next: WP-2.4 Pass C acceptance/reconciliation only. WP-2.5 remains prohibited until WP-2.4 is ACCEPTED.
 Lots 3–12: NOT_STARTED
 ```
