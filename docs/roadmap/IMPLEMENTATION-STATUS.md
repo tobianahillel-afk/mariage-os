@@ -9,162 +9,160 @@ Status: **Living repository source of truth for development progress**
 - AI Lot Orchestration governance: **MERGED / FROZEN**.
 - Final Design Review: **PASS**.
 - Implementation gate: **OPEN**.
-- Lot 0: **ACCEPTED** — repository/tooling foundation completed 2026-09-03.
-- Lot 1: **ACCEPTED** — identity/project/security foundation completed 2026-09-06.
-- **Lot 2: IN_PROGRESS — Venues core explicitly kicked off 2026-09-06.**
+- Lot 0: **ACCEPTED** — completed 2026-09-03.
+- Lot 1: **ACCEPTED** — completed 2026-09-06.
+- Lot 2: **IN_PROGRESS — Venues core**.
 - Lots 3–12: **NOT_STARTED**.
 
-`main` is integration truth after PR #7 promoted the accepted Lot 0 + Lot 1 state. Promotion merge commit: `f6da05626f024431230ae46ca1ec8a4becc72a1f`. PR #7 CI run `34030211097`: **5/5 SUCCESS**, including clean-checkout `npm run verify`.
+`main` integration truth after accepted Lot 0 + Lot 1 promotion is `f6da05626f024431230ae46ca1ec8a4becc72a1f` (PR #7). Promotion CI `34030211097`: **5/5 SUCCESS**, including clean-checkout `npm run verify`.
 
-## Lot 0 closure
+## Closed foundations
 
-Coverage/reconciliation: `lot-0/LOT-0-COVERAGE-MATRIX.md`.
+### Lot 0
+
+Coverage: `lot-0/LOT-0-COVERAGE-MATRIX.md`.
 
 - WP-0.1 through WP-0.6: **ACCEPTED**.
-- Required Lot 0 responsibilities minus accepted/evidenced responsibilities: **∅**.
+- Required Lot-0 responsibilities minus accepted/evidenced responsibilities: **∅**.
 - Lot Integration Pass: **PASS**.
-- Accepted Lot 0 branch head: `3dccc801a38929c6dfda7ecb06626d9c5143ec76`.
+- Accepted branch head: `3dccc801a38929c6dfda7ecb06626d9c5143ec76`.
 
-## Lot 1 closure
+### Lot 1
 
-Coverage/reconciliation: `lot-1/LOT-1-COVERAGE-MATRIX.md`.
-Integration record: `lot-1/LOT-1-INTEGRATION-PASS.md`.
+Coverage: `lot-1/LOT-1-COVERAGE-MATRIX.md`.
+Integration: `lot-1/LOT-1-INTEGRATION-PASS.md`.
 
 - WP-1.1 through WP-1.9: **ACCEPTED**.
 - Required current-lot responsibilities minus assigned packet responsibilities: **∅**.
-- Required packet-owned current-lot responsibilities minus accepted/evidenced packet responsibilities: **∅**.
 - Required current-lot responsibilities minus accepted/evidenced responsibilities after Integration Pass: **∅**.
-- Lot Integration Pass: **PASS**.
-- Open Lot Integration findings: **none; `LOT1-IP-001` CLOSED**.
-- Integration evidence: run `34026968380` on `c7594e6cd15e33602411b810aad7f89ee732ba57`, 5/5 SUCCESS; DB 15 files / 294 tests PASS; Playwright 40/40 PASS.
-- Final Lot 1 branch head before promotion: `c27021fe739b52811e5c219439a0c5c7e8db8049`; exact-head push CI run `34027354049` SUCCESS.
-- Promotion to `main`: PR #7 / merge commit `f6da05626f024431230ae46ca1ec8a4becc72a1f`; PR CI run `34030211097` 5/5 SUCCESS.
+- Lot Integration Pass: **PASS**; `LOT1-IP-001` CLOSED; no open integration finding.
+- Integration run `34026968380` on `c7594e6cd15e33602411b810aad7f89ee732ba57`: **5/5 SUCCESS**, DB 15 files / 294 tests PASS, Playwright 40/40 PASS.
+- Final pre-promotion head `c27021fe739b52811e5c219439a0c5c7e8db8049`; exact-head run `34027354049` SUCCESS.
+- Promotion: PR #7 / `f6da05626f024431230ae46ca1ec8a4becc72a1f`; CI `34030211097` 5/5 SUCCESS.
 
-## Lot 2 progress
+## Lot 2 — Venues core
 
 Coverage/work-packet plan: `lot-2/LOT-2-COVERAGE-MATRIX.md`.
 
 Required current-lot responsibilities minus assigned packet responsibilities: **∅**.
 
-Packets:
+| Packet | Responsibility | State |
+|---|---|---|
+| WP-2.1 | venue identity, authorized persistence, lifecycle history | **ACCEPTED** |
+| WP-2.2 | spaces, capacity, member ratings/preferences | **ACCEPTED** |
+| WP-2.3 | fact definitions, typed retained facts, value validation | **ACCEPTED** |
+| WP-2.4 | observations, sources, evidence/confidence/freshness, conflicts | **IN_PROGRESS / B-REMEDIATION** |
+| WP-2.5 | deterministic criteria, blockers, score/readiness, missing information | PLANNED |
+| WP-2.6 | offers, availability, contacts/interactions basics | PLANNED |
+| WP-2.7 | contextual venue access-route observations | PLANNED |
+| WP-2.8 | venue media/photo foundation and media safety | PLANNED |
+| WP-2.9 | venue document/tag/link basics | PLANNED |
+| WP-2.10 | repositories, local cache, pending/offline mutations | PLANNED |
+| WP-2.11 | gallery/table/detail/compare/deep-link workspace | PLANNED |
+| WP-2.12 | mobile/offline venue-visit workflow and packet E2E completion | PLANNED |
 
-1. `WP-2.1` — venue identity, authorized persistence and lifecycle-history foundation — **ACCEPTED**;
-2. `WP-2.2` — spaces, capacity and member ratings/preferences — **ACCEPTED**;
-3. `WP-2.3` — fact definitions, typed retained facts and value validation — **ACCEPTED**;
-4. `WP-2.4` — observations, sources, evidence/confidence/freshness and conflicts — **REVIEW_FAILED**;
-5. `WP-2.5` — deterministic criteria, blockers, score/readiness and missing information — **PLANNED**;
-6. `WP-2.6` — venue offers, availability, contacts and interactions basics — **PLANNED**;
-7. `WP-2.7` — contextual venue access-route observations — **PLANNED**;
-8. `WP-2.8` — venue media/photo foundation and private/remote media safety — **PLANNED**;
-9. `WP-2.9` — venue document and tag/link basics — **PLANNED**;
-10. `WP-2.10` — venue repositories, local cache and pending/offline mutation integration — **PLANNED**;
-11. `WP-2.11` — gallery/table/detail/compare/deep-link workspace — **PLANNED**;
-12. `WP-2.12` — mobile/offline venue-visit workflow and packet-level end-to-end completion — **PLANNED**.
+### Accepted packet evidence
 
-### WP-2.1 acceptance evidence
+**WP-2.1** (`lot-2/WP-2.1.md`)
 
-Record: `lot-2/WP-2.1.md`.
+- Responsibility gap: **∅**.
+- Pass B findings `WP2.1-B-001..008`: RESOLVED; fresh Pass B PASS; Pass C PASS.
+- Reviewed head `3418659d94d35f61183f0a20c367c74e38e86802`, CI `34039296392`: **5/5 SUCCESS**.
+- Unit 39 files / 350 tests, 100% measured coverage; DB/RLS 17 files / 359 pgTAP; Playwright 40/40; preview and clean verify PASS.
+- Governance run `34040803267` on `3304840ac94dbae2e0ebb79bdc0b57cdedb4943c`: 5/5 SUCCESS.
 
-- State: **ACCEPTED**.
-- Required WP-2.1 responsibilities minus accepted/evidenced responsibilities: **∅**.
-- All original/fresh Pass B findings `WP2.1-B-001..008`: **RESOLVED**.
-- Fresh Pass B: **PASS**.
-- Pass C reconciliation: **PASS**.
-- Open WP-2.1 BLOCKING/MAJOR findings: **none**.
-- Reviewed implementation head: `3418659d94d35f61183f0a20c367c74e38e86802`.
-- Exact implementation CI run `34039296392`: **5/5 SUCCESS**.
-- Unit: **39 files / 350 tests PASS**, measured in-scope coverage **100% statements/branches/functions/lines**.
-- DB/RLS: **17 files / 359 pgTAP tests PASS**.
-- Browser: **40/40 Playwright PASS** across Chromium, Firefox, WebKit and mobile Chromium.
-- Privacy-safe preview: **PASS**.
-- Full verify from clean checkout: **PASS**.
-- Governance exact-head run `34040803267` on `3304840ac94dbae2e0ebb79bdc0b57cdedb4943c`: **5/5 SUCCESS**.
+**WP-2.2** (`lot-2/WP-2.2.md`)
 
-### WP-2.2 acceptance evidence
+- Responsibility gap: **∅**.
+- `WP2.2-B-001`: RESOLVED; fresh Pass B PASS; Pass C PASS.
+- Reviewed head `241daa01e069a6cbaec4d0ebc09ddf5ca982a385`, CI `34046985956`: **5/5 SUCCESS**.
+- Unit 47 files / 473 tests, 100% measured coverage; DB/RLS 20 files / 442 pgTAP; Playwright 40/40; preview and clean verify PASS.
+- Governance run `34048565452` on `480b0bcc168d7789bf2bee07a75c8f04200f5cb7`: 5/5 SUCCESS.
+- Non-blocking: simultaneous first-create member-opinion attempts may surface uniqueness instead of normalized stale/conflict; no overwrite/impersonation/data loss.
 
-Record: `lot-2/WP-2.2.md`.
+**WP-2.3** (`lot-2/WP-2.3.md`)
 
-- State: **ACCEPTED**.
-- Required WP-2.2 responsibilities minus accepted/evidenced responsibilities: **∅**.
-- MAJOR `WP2.2-B-001`: **RESOLVED** across domain validation, provider parsing, direct RPC validation and PostgreSQL representation.
-- Fresh Pass B: **PASS**.
-- Pass C reconciliation: **PASS**.
-- Open WP-2.2 BLOCKING/MAJOR findings: **none**.
-- Reviewed implementation head: `241daa01e069a6cbaec4d0ebc09ddf5ca982a385`.
-- Exact implementation CI run `34046985956`: **5/5 SUCCESS**.
-- Unit: **47 files / 473 tests PASS**, measured in-scope coverage **100% statements/branches/functions/lines**.
-- DB/RLS: **20 files / 442 pgTAP tests PASS**.
-- Browser: **40/40 Playwright PASS** across Chromium, Firefox, WebKit and mobile Chromium.
-- Privacy-safe preview: **PASS**.
-- Full verify from clean checkout: **PASS**.
-- Non-blocking observation: simultaneous first-create attempts for the same member opinion may lose on the uniqueness constraint rather than normalize to the existing-row stale/conflict code; no overwrite, impersonation or data loss occurs.
-- Acceptance-governance exact-head CI: run `34048565452` on `480b0bcc168d7789bf2bee07a75c8f04200f5cb7` — **5/5 SUCCESS**, clean-checkout `npm run verify` PASS.
+- Responsibility gap: **∅**.
+- Findings `WP2.3-B-001..008`: all RESOLVED; fresh independent Pass B PASS; Pass C PASS.
+- Final reviewed head `2e3194f7109eb30eee4e73ace7ecbdd329fd321c`, CI `34068703691`: **5/5 SUCCESS**.
+- Unit 62 files / 707 tests, 100% coverage; DB/RLS 26 files / 575 pgTAP; Playwright 40/40; mutation, preview, clean verify PASS.
+- Scope fence preserved: no observation/source, criteria execution/readiness, UI, offline, import/export or Vendor completion claimed.
 
-### WP-2.3 acceptance evidence
-
-Record: `lot-2/WP-2.3.md`.
-
-- State: **ACCEPTED**.
-- Required WP-2.3 responsibilities minus accepted/evidenced responsibilities: **∅**.
-- Original adversarial findings `WP2.3-B-001..B-005` MAJOR and `WP2.3-B-006..B-007` MINOR: **RESOLVED**.
-- Fresh re-review finding `WP2.3-B-008` MINOR (isolated UTF-16 surrogate canonical parity): **RESOLVED**.
-- Fresh independent Pass B: **PASS**.
-- Pass C reconciliation: **PASS**.
-- Open WP-2.3 BLOCKING/MAJOR findings: **none**.
-- Open WP-2.3 MINOR findings: **none**.
-- Historical Pass-A head/run: `e209d5d33ef2ec5c535121caf9e2e066012f4de8` / `34062811901`.
-- Remediation baseline head/run: `29d864586e791bd6d6b4e34747f9fe39f3e94848` / `34067663400` — 5/5 SUCCESS.
-- Final reviewed implementation head: `2e3194f7109eb30eee4e73ace7ecbdd329fd321c`.
-- Final implementation CI run `34068703691`: **5/5 SUCCESS**, including clean-checkout `npm run verify`.
-- Unit: **62 files / 707 tests PASS**, measured coverage **100% statements/branches/functions/lines**.
-- DB/RLS: **26 files / 575 pgTAP tests PASS**.
-- Browser: **40/40 Playwright PASS**; mutation harness PASS.
-- Privacy-safe preview: **PASS**.
-- Scope fence preserved: no observation/source, criteria execution/readiness, UI, offline queue, import/export or Vendor-target completion is claimed.
-
-### WP-2.4 Pass-B findings
+## WP-2.4 — current packet
 
 Record: `lot-2/WP-2.4.md`.
 
-- State: **REVIEW_FAILED**.
-- Current/next pass: **review failed; remediation next**.
+### Frozen/specification gate
+
 - Primary Feature: `FTR-020`.
 - Dependency: **WP-2.3 ACCEPTED**.
-- Pre-implementation evidence/confidence specification stop-condition: **CLOSED** by `c414549d20338bf5180d5afc3681beda56fb11de`.
-- Specification-gate CI run `34069692843`: **5/5 SUCCESS**.
-- Reviewed Pass-A implementation head: `9f3ca2fb57adf124e50bf8c4888280854c5d846f`.
-- Pass-A CI run `34106264873`: **5/5 SUCCESS**, now invalidated for acceptance by Pass-B MAJOR findings.
-- MAJOR `WP2.4-B-001`: legacy `set_retained_venue_fact` can write around observation-backed resolution and clear resolution provenance after evidence/conflict exists.
-- MAJOR `WP2.4-B-002`: fact-definition edits can invalidate existing observation values and WP-2.4 conflict-retained values because current definition validation protects only `facts.state='known'`.
-- Open WP-2.4 BLOCKING/MAJOR findings: **WP2.4-B-001, WP2.4-B-002**.
-- Pass C: **not started**.
+- Evidence-level versus independent-confidence stop-condition: **CLOSED** by `c414549d20338bf5180d5afc3681beda56fb11de`.
+- Specification-gate CI `34069692843`: **5/5 SUCCESS**.
 
-### Durable cursor
+### Historical Pass A
 
-- Current Lot: **2 — Venues core**
-- Lot state: **IN_PROGRESS**
-- Current branch: **`lot-2/venues-core`**
-- Current packet: **WP-2.4**
-- Packet state: **REVIEW_FAILED**
-- Current/next pass: **review failed; remediation next**
-- Last completed packet: **WP-2.3 — ACCEPTED**
-- Accepted packets: **WP-2.1, WP-2.2, WP-2.3**
-- Review-failed packets: **WP-2.4**
-- Open packet BLOCKING/MAJOR findings: **WP2.4-B-001, WP2.4-B-002**
-- WP-2.4 pre-implementation gate: **CLOSED**.
-- WP-2.4 Pass-A exact-head gate: historical **PASS** on `9f3ca2fb57adf124e50bf8c4888280854c5d846f`, run `34106264873`; affected verification must be rerun after remediation.
-- Next permitted action: **remediate WP2.4-B-001..002 only, rerun exact-head verification, then perform fresh WP-2.4 Pass B; do not implement WP-2.5 concurrently.**
+- Reviewed implementation head: `9f3ca2fb57adf124e50bf8c4888280854c5d846f`.
+- CI `34106264873`: **5/5 SUCCESS**, including clean-checkout `npm run verify`.
+- Unit: 79 files / 807 tests, **100% statements/branches/functions/lines**.
+- DB/RLS: 29 files / 664 pgTAP.
+- Browser: 40/40 Playwright; mutation 82.50% PASS; preview PASS.
 
-## Known localized specification repairs
+Fresh Pass B invalidated this acceptance evidence with two MAJOR findings recorded at `3f6a750a97ca039c36dafd3dff5eca69eac683ad`:
 
-These are recorded stop-conditions for the owning later packets, not permission to invent behavior:
+- `WP2.4-B-001`: legacy `set_retained_venue_fact` can write around observation-backed resolution after evidence exists and clear resolution provenance.
+- `WP2.4-B-002`: fact-definition edits can invalidate persisted observation values or WP-2.4 conflict-retained typed truth.
 
-- WP-2.4 gate **CLOSED**: `evidence_level` is now explicitly distinct from `confidence = high|medium|low|unknown`, freshness and fact state; repair commit `c414549d20338bf5180d5afc3681beda56fb11de`, CI `34069692843` 5/5 SUCCESS;
-- before WP-2.5 implements `evidenceReadiness`, document its deterministic formula in `domain/CRITERIA-EVALUATION.md`;
-- before WP-2.5 executes or seeds `custom_manual_assessment`, freeze the exact representation of its configured acceptable value for the supported boolean/select/rating cases; WP-2.3 stores/validates only the currently frozen structural marker and does not execute it;
-- before WP-2.8 relies on the security reading graph, repair the missing `docs/security/STORAGE-RLS.md` reference using the already frozen Storage/RLS rules and tested Lot-1 policies.
+### Remediation in progress
 
-The Venue lifecycle documentation conflict discovered during WP-2.1 is closed by `docs/domain/STATE-MACHINES-VENUE-LIFECYCLE-ADDENDUM.md`.
+- State/pass: **IN_PROGRESS / B-REMEDIATION**.
+- Remediation implementation baseline: `06c7d1bf92239db22af14303d008c449387ca6ea`.
+- Migration: `20260907101500_harden_venue_fact_evidence_review.sql`.
+- Regression: `venue_fact_evidence_adversarial_review_test.sql`.
+- B-001 remediation: legacy core setter is client-inaccessible; public setter rejects direct `known` write-around once observations exist while preserving pre-evidence WP-2.3 behavior; fact locking serializes append/direct-set race.
+- B-002 remediation: definition mutation validates every non-null retained value and every non-null persisted observation value against proposed definition semantics.
+- Intermediate remediation run `34109732455` on `06c7d1bf...`: Core quality/security already **SUCCESS**; this run is diagnostic only because governance commits create a newer final remediation head.
+- Findings remain **REMEDIATING**, not RESOLVED, until final exact-head CI is fully green and a fresh independent re-review re-attacks both boundaries.
+- Pass C: **NOT_STARTED**.
+
+## Durable cursor
+
+```text
+Current Lot: 2 — Venues core
+Lot State: IN_PROGRESS
+Branch: lot-2/venues-core
+Current Packet: WP-2.4
+Packet State: IN_PROGRESS
+Current Pass: B-REMEDIATION
+Last completed packet: WP-2.3 — ACCEPTED
+Accepted packets: WP-2.1, WP-2.2, WP-2.3
+Review-failed history: WP-2.4 fresh Pass B at 3f6a750a97ca039c36dafd3dff5eca69eac683ad
+Open findings under remediation: WP2.4-B-001, WP2.4-B-002
+Next permitted action: finish WP-2.4 remediation verification only; then REVIEW_PENDING + fresh independent Pass B. Do not start WP-2.5 concurrently.
+```
+
+## Known localized specification repairs / stop-conditions
+
+- WP-2.4 evidence/confidence gate: **CLOSED** (`c414549d...`, CI `34069692843`).
+- Before WP-2.5 implements `evidenceReadiness`, document its deterministic formula in `domain/CRITERIA-EVALUATION.md`.
+- Before WP-2.5 executes/seeds `custom_manual_assessment`, freeze exact acceptable-value representation for supported boolean/select/rating cases.
+- Before WP-2.8 relies on the security reading graph, repair the missing `docs/security/STORAGE-RLS.md` reference using already frozen Storage/RLS rules and tested Lot-1 policies.
+- Venue lifecycle documentation conflict from WP-2.1 is closed by `docs/domain/STATE-MACHINES-VENUE-LIFECYCLE-ADDENDUM.md`.
+
+## Feature lifecycle notes
+
+- V1 Feature inventory: 120 Feature IDs across both ledgers.
+- Lot-2 primary IDs: `FTR-013..FTR-028`; partial cross-lot responsibilities also include `FTR-012`, `FTR-089`, `FTR-092`, `FTR-093` and cross-cutting access/offline/security obligations.
+- Feature-level whole-capability status is not conflated with packet/current-lot responsibility; Lot Coverage Matrices remain the durable responsibility-level reconciliation source.
+- `FTR-013`, `FTR-014`, `FTR-018`, `FTR-019`, `FTR-020`, `FTR-023` and relevant spanning features remain feature-level IN_PROGRESS until their remaining Lot-2/integration responsibilities elapse.
+
+## Forward maintenance
+
+- Dependency audit continues to report two Moderate transitive development-tool advisories; accepted-known Critical/High count remains zero under the normative gate.
+- Dependency audit uses `npm audit` primary with exact-lockfile GitHub Advisory fallback only after bounded transient provider failure; dual-provider failure remains fail-closed.
+- External container registry rate limiting may be retried but cannot skip DB/RLS verification.
+- Provider signup-window behavior and invitation abuse/rate-limit evidence remain downstream onboarding/cutover requirements.
+- Browser device-identity recovery after selective localStorage/IndexedDB divergence remains later local/session hardening.
+- Root `README.md` still contains historical pre-Lot-0 wording; reconcile during Lot-2 governance cleanup without overriding this board.
 
 ## Lot status
 
@@ -175,32 +173,6 @@ The Venue lifecycle documentation conflict discovered during WP-2.1 is closed by
 | 2 | **IN_PROGRESS** |
 | 3–12 | NOT_STARTED |
 
-## Product Feature inventory
-
-- V1 Feature IDs: 120 total across both ledgers.
-- Lot 2 primary Feature IDs: `FTR-013..FTR-028`.
-- Current-lot partial responsibilities also include `FTR-012`, `FTR-089`, `FTR-092`, `FTR-093` and Lot-acceptance cross-cutting access/offline/security responsibilities.
-- Feature-level whole-capability status and current-lot responsibility are not conflated; Lot Coverage Matrices are the durable responsibility-level reconciliation source.
-- `FTR-013` and `FTR-014` remain feature-level **IN_PROGRESS** because later Lot-2 UI/local/deep-link/duplicate responsibilities remain.
-- `FTR-018`, `FTR-023` and `FTR-012` remain feature-level **IN_PROGRESS** because later Lot-2 UI/local/read-model responsibilities remain.
-- `FTR-019` remains feature-level **IN_PROGRESS** until Lot-level integration/acceptance; WP-2.3 responsibility-level reconciliation is nevertheless complete and ACCEPTED.
-- `FTR-020` remains feature-level **IN_PROGRESS** while WP-2.4 remediates fresh Pass-B findings.
-
-## Current blockers / forward maintenance
-
-Open Lot 2 review findings: **WP2.4-B-001, WP2.4-B-002 (MAJOR)**. WP-2.4 is the sole packet requiring remediation; WP-2.5 remains planned and may not start concurrently.
-
-Reviewed non-blocking maintenance:
-
-- WP-2.2 first-create member-opinion concurrency may surface a uniqueness failure instead of normalized stale/conflict; behavior is non-destructive and can be normalized in later local/retry hardening if needed;
-- dependency audit reports two Moderate transitive advisories in development tooling; Critical/High accepted-known count remains zero under the normative vulnerability gate;
-- dependency auditing keeps `npm audit` primary with exact-lockfile GitHub Advisory fallback only after bounded transient provider failure; dual-provider unavailability remains fail-closed;
-- external container registries may transiently rate-limit clean Supabase pulls; retry cannot skip DB/RLS verification;
-- exact provider signup-window behavior remains a downstream onboarding/cutover requirement;
-- invitation create/accept rate-limit/abuse evidence remains required before public/self-service exposure or real production cutover;
-- browser device identity recovery after selective localStorage/IndexedDB divergence remains later session/local-recovery hardening;
-- root `README.md` still contains historical pre-Lot-0 status wording and should be reconciled during Lot 2 governance cleanup without overriding this status board.
-
 ## Handoff
 
 ```text
@@ -209,25 +181,13 @@ Lot 0: ACCEPTED
 Lot 1: ACCEPTED
 Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
-Coverage: required current-lot responsibilities - assigned packet responsibilities = ∅
-Accepted Lot 2 packets: WP-2.1, WP-2.2, WP-2.3
-WP-2.1 implementation CI: 34039296392 — 5/5 SUCCESS
-WP-2.1 governance CI: 34040803267 — 5/5 SUCCESS
-WP-2.2 implementation CI: 34046985956 — 5/5 SUCCESS
-WP-2.2 governance CI: 34048565452 — 5/5 SUCCESS
-WP-2.3 final implementation head: 2e3194f7109eb30eee4e73ace7ecbdd329fd321c
-WP-2.3 final implementation CI: 34068703691 — 5/5 SUCCESS
-WP-2.3 Fresh Pass B: PASS
-WP-2.3 Pass C: PASS
-WP-2.3 responsibility gap: ∅
-Open WP-2.3 findings: none
-WP-2.4 specification repair head: c414549d20338bf5180d5afc3681beda56fb11de
-WP-2.4 specification repair CI: 34069692843 — 5/5 SUCCESS
-WP-2.4 reviewed Pass-A implementation head: 9f3ca2fb57adf124e50bf8c4888280854c5d846f
-WP-2.4 Pass-A implementation CI: 34106264873 — historical 5/5 SUCCESS; acceptance evidence invalidated by review findings
+Accepted Lot-2 packets: WP-2.1, WP-2.2, WP-2.3
 Current packet: WP-2.4
-Current state/pass: REVIEW_FAILED / remediation next
-Open WP-2.4 MAJOR findings: WP2.4-B-001, WP2.4-B-002
-Next action: remediate WP2.4-B-001..002 only, rerun exact-head verification, then fresh Pass B; WP-2.5 remains PLANNED
+Current state/pass: IN_PROGRESS / B-REMEDIATION
+WP-2.4 historical Pass-A head/run: 9f3ca2fb57adf124e50bf8c4888280854c5d846f / 34106264873 — 5/5 SUCCESS, invalidated for acceptance by fresh Pass B
+WP-2.4 review-failure record: 3f6a750a97ca039c36dafd3dff5eca69eac683ad
+WP-2.4 remediation baseline: 06c7d1bf92239db22af14303d008c449387ca6ea
+Open MAJOR findings under remediation: WP2.4-B-001, WP2.4-B-002
+Next: exact-head remediation verification -> REVIEW_PENDING -> fresh independent Pass B. WP-2.5 remains PLANNED.
 Lots 3–12: NOT_STARTED
 ```
