@@ -33,7 +33,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.2 | spaces, capacity, member ratings/preferences | **ACCEPTED** |
 | WP-2.3 | fact definitions, typed retained facts, value validation | **ACCEPTED** |
 | WP-2.4 | observations, sources, evidence/confidence/freshness, conflicts | **ACCEPTED** |
-| WP-2.5 | deterministic criteria, blockers, score/readiness, missing information | **REVIEW_PENDING — fresh independent re-review pending** |
+| WP-2.5 | deterministic criteria, blockers, score/readiness, missing information | **ACCEPTANCE_PENDING — Pass C reconciliation pending** |
 | WP-2.6 | offers, availability, contacts/interactions basics | PLANNED |
 | WP-2.7 | contextual venue access-route observations | PLANNED |
 | WP-2.8 | venue media/photo foundation and media safety | PLANNED |
@@ -59,7 +59,7 @@ Accepted packet evidence:
 - Final reviewed head/run `93262f9459e720d97a6dfa3a83f84f02f3a02c7c` / `34137822804`: **5/5 SUCCESS**. Core: 80 test files / 814 tests PASS at 100% measured statements/branches/functions/lines; DB/RLS: 35 files / 778 pgTAP tests PASS; Browser: 40/40 Playwright PASS across Chromium, Firefox, WebKit and mobile Chromium; mutation harness: 82.50%; privacy-safe preview and clean-checkout `npm run verify` PASS.
 - Pass C: **PASS**. Required WP-2.4 responsibilities minus accepted/evidenced WP-2.4 responsibilities: **∅**.
 
-## WP-2.5 — B-004 remediation verified; fresh Pass B pending
+## WP-2.5 — Pass B PASS; acceptance reconciliation pending
 
 Packet record: `lot-2/WP-2.5.md`.
 
@@ -127,7 +127,9 @@ The next fresh independent Pass B reviewed exact head `441d300c8de92b310fd84184d
 - no PostgreSQL change was required because the authoritative DB guard was already correct;
 - B-001, B-002 and B-003 remain verified.
 
-The remediation itself is not treated as a Pass-B PASS. WP-2.5 is returned to `REVIEW_PENDING`; a fresh independent adversarial review of the verified post-B-004 state is mandatory before Pass C can begin. WP-2.6 remains prohibited concurrently.
+The final fresh independent Pass B reviewed exact head `65410a3dc032208644911f29e79b70bd49e89277`; CI `34165826166` is **5/5 SUCCESS**, including clean-checkout `npm run verify`. The review independently rechecked the frozen criteria/evidenceReadiness and dynamic guest-count contracts, ordinary/dynamic evaluators, blocker/score/readiness/guidance, reconstructible dynamic provenance/explanation, TypeScript create/update mutation boundaries, authorized Supabase provider parser/adapter, PostgreSQL canonical-shape/write protections and pgTAP criteria boundaries. B-001 through B-004 remain effective and no unresolved BLOCKING/MAJOR mismatch was found against `FAC-006`, `FAC-008`, `FAC-010`, `FAC-011`, `FAC-013`, `VEN-007`, `VEN-010`, `VEN-011`, `ACC-022`, `ACC-023` or `ACC-028`.
+
+Pass B decision: **PASS**. WP-2.5 is now `ACCEPTANCE_PENDING`; the next gate is exact-head CI of this documentary transition followed by Pass C responsibility reconciliation. WP-2.6 remains prohibited concurrently.
 
 ## Durable cursor
 
@@ -136,8 +138,8 @@ Current Lot: 2 — Venues core
 Lot State: IN_PROGRESS
 Branch: lot-2/venues-core
 Current Packet: WP-2.5
-Packet State: REVIEW_PENDING
-Current Pass: B-ADVERSARIAL-REVIEW — fresh independent re-review pending
+Packet State: ACCEPTANCE_PENDING
+Current Pass: C-ACCEPTANCE — reconciliation pending
 Last completed packet: WP-2.4 — ACCEPTED
 Accepted packets: WP-2.1, WP-2.2, WP-2.3, WP-2.4
 Closed WP-2.5 specification gates: evidenceReadiness; custom_manual_assessment.accepted; WP2.5-S-001
@@ -150,9 +152,10 @@ WP-2.5 verified B-003 remediation head/run: 3ce8ddf6e14a25efc71d928def52efe2314d
 WP-2.5 fresh post-B-003 reviewed head/run: 441d300c8de92b310fd84184dab708b55750b2fb / 34164290470 — 5/5 SUCCESS, review FAIL
 WP-2.5 B-004 red-first proof: 0d996515d5541cb6af1e9986bd6e833b8057fb32 / 34165097206 — expected regression FAILURE
 WP-2.5 verified B-004 remediation head/run: 589f82ca5735e9a27064697957bd3250c852c592 / 34165218864 — 5/5 SUCCESS
+WP-2.5 final fresh Pass-B reviewed head/run: 65410a3dc032208644911f29e79b70bd49e89277 / 34165826166 — 5/5 SUCCESS, review PASS
 Resolved/verified WP-2.5 findings: WP2.5-B-001; WP2.5-B-002; WP2.5-B-003; WP2.5-B-004
 Open WP-2.5 BLOCKING/MAJOR findings: ∅
-Next permitted action: obtain exact-head full CI for this documentary REVIEW_PENDING transition, then perform another fresh independent Pass B of WP-2.5. Do not start WP-2.6 concurrently.
+Next permitted action: obtain exact-head full CI for this documentary ACCEPTANCE_PENDING transition, then perform Pass C responsibility reconciliation. Do not start WP-2.6 concurrently.
 ```
 
 ## Known localized specification repairs / stop-conditions
@@ -164,6 +167,7 @@ Next permitted action: obtain exact-head full CI for this documentary REVIEW_PEN
 - WP-2.5 prior Pass-B findings `WP2.5-B-001` and `WP2.5-B-002`: **RESOLVED / VERIFIED** on `68439bb0...`, CI `34161773557`.
 - WP-2.5 fresh Pass-B finding `WP2.5-B-003`: **RESOLVED / VERIFIED** by red-first proof `6e382a02...` / `34163182953` and final remediation `3ce8ddf6...` / `34163426797`.
 - WP-2.5 fresh Pass-B finding `WP2.5-B-004`: **RESOLVED / VERIFIED** by red-first proof `0d996515...` / `34165097206` and final remediation `589f82ca...` / `34165218864`.
+- WP-2.5 final fresh Pass B: **PASS** on `65410a3d...`, CI `34165826166`; no open BLOCKING/MAJOR findings.
 - Before WP-2.8 relies on the security reading graph, repair the missing `docs/security/STORAGE-RLS.md` reference using already frozen/tested Storage authorization semantics.
 - Venue lifecycle documentation conflict from WP-2.1 is closed by `docs/domain/STATE-MACHINES-VENUE-LIFECYCLE-ADDENDUM.md`.
 
@@ -173,7 +177,7 @@ Next permitted action: obtain exact-head full CI for this documentary REVIEW_PEN
 - Lot-2 primary IDs: `FTR-013..FTR-028`; partial cross-lot responsibilities also include `FTR-012`, `FTR-089`, `FTR-092`, `FTR-093` and cross-cutting access/offline/security obligations.
 - Feature-level whole-capability status is not conflated with packet/current-lot responsibility; Lot Coverage Matrices remain the durable responsibility-level reconciliation source.
 - WP-2.4 packet responsibility for `FTR-020` is **ACCEPTED**.
-- WP-2.5 is **REVIEW_PENDING / B-ADVERSARIAL-REVIEW — fresh independent re-review pending**; no FTR-021/FTR-022 packet acceptance is claimed until a fresh Pass B passes and Pass C succeeds.
+- WP-2.5 is **ACCEPTANCE_PENDING / C-ACCEPTANCE — reconciliation pending**; no FTR-021/FTR-022 packet acceptance is claimed until Pass C succeeds.
 
 ## Forward maintenance
 
@@ -202,7 +206,7 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted Lot-2 packets: WP-2.1, WP-2.2, WP-2.3, WP-2.4
 Last completed packet: WP-2.4 — ACCEPTED / COMPLETE
-Current packet: WP-2.5 — REVIEW_PENDING / B-ADVERSARIAL-REVIEW — fresh independent re-review pending
+Current packet: WP-2.5 — ACCEPTANCE_PENDING / C-ACCEPTANCE — reconciliation pending
 WP-2.5 closed specification gates: evidenceReadiness; custom_manual_assessment.accepted; WP2.5-S-001
 WP-2.5 verified Pass-A head/run: aef7bea53e9db32790ab19c3fffdd0a8f63dc89d / 34158303997 — 5/5 SUCCESS
 WP-2.5 prior fresh reviewed head/run: 3948060eb541ae2ae3eac6f5b1a7e702eb057e64 / 34159043613 — 5/5 SUCCESS, review FAIL
@@ -213,8 +217,9 @@ WP-2.5 verified B-003 remediation head/run: 3ce8ddf6e14a25efc71d928def52efe2314d
 WP-2.5 fresh post-B-003 reviewed head/run: 441d300c8de92b310fd84184dab708b55750b2fb / 34164290470 — 5/5 SUCCESS, review FAIL
 WP-2.5 B-004 red-first proof: 0d996515d5541cb6af1e9986bd6e833b8057fb32 / 34165097206 — expected regression FAILURE
 WP-2.5 verified B-004 remediation head/run: 589f82ca5735e9a27064697957bd3250c852c592 / 34165218864 — 5/5 SUCCESS
+WP-2.5 final fresh Pass-B reviewed head/run: 65410a3dc032208644911f29e79b70bd49e89277 / 34165826166 — 5/5 SUCCESS, review PASS
 Resolved/verified findings: WP2.5-B-001; WP2.5-B-002; WP2.5-B-003; WP2.5-B-004
 Open BLOCKING/MAJOR findings: ∅
-Next permitted action: obtain exact-head full CI for this documentary REVIEW_PENDING transition, then perform another fresh independent Pass B of WP-2.5. WP-2.6 remains prohibited concurrently.
+Next permitted action: obtain exact-head full CI for this documentary ACCEPTANCE_PENDING transition, then perform Pass C responsibility reconciliation. WP-2.6 remains prohibited concurrently.
 Lots 3–12: NOT_STARTED
 ```
