@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.4`
 - Lot: `2`
 - Name: Observations, sources, evidence/confidence/freshness and conflicts
-- State: `REVIEW_FAILED`
-- Current pass: `B-ADVERSARIAL-REVIEW — WP2.4-B-006`
+- State: `REVIEW_PENDING`
+- Current pass: `B-ADVERSARIAL-REVIEW — fresh re-review after WP2.4-B-006`
 - Primary bounded context: `facts/evidence` for Venue targets
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Dependency: `WP-2.3 ACCEPTED`
@@ -21,6 +21,7 @@
 - B-004/B-005 remediation implementation head: `e87f1b82059d371159ce1f35f2bafdbb85cdf3fa`
 - Verified B-004/B-005 remediation head/run: `d4d3ce84331d13809b5f7b97ed7bf1a263a2bf4a` / `34119950023` — **5/5 SUCCESS**
 - Fresh re-review baseline after B-004/B-005: `3ba8575ac32564197d823d7f01001a7b6f75fdfe`
+- Verified B-006 remediation head/run: `06c38444a2e859f59f590477bd43c40255463f3e` / `34131416659` — **5/5 SUCCESS**
 
 ## Scope and frozen responsibilities
 
@@ -74,27 +75,25 @@ MAJOR: PostgreSQL `timestamptz` microsecond/non-finite semantics were broader th
 
 Exact-head verification run `34119950023` on `d4d3ce84331d13809b5f7b97ed7bf1a263a2bf4a`: **5/5 SUCCESS**. Core includes 80 test files / 811 tests with **100% statements/branches/functions/lines**; Local Supabase DB/RLS, Browser/mutation, privacy-safe preview and clean-checkout `npm run verify` all PASS.
 
-### `WP2.4-B-006` — OPEN / MAJOR
+### `WP2.4-B-006` — RESOLVED / VERIFIED; FRESH RE-REVIEW PENDING
 
-Fresh independent re-review found a remaining timestamp-domain parity gap. The B-005 database hardening checks only `isfinite(timestamptz)`, while the official TypeScript parser accepts exactly four-digit ISO years. PostgreSQL can represent finite timestamps outside that parser domain, so a direct RPC can still persist a finite value that a provider parser cannot read back. Conversely, `Date.parse` silently normalizes some invalid calendar inputs such as `2026-02-30` before persistence, rather than rejecting the invalid instant.
+Fresh independent re-review found a remaining timestamp-domain parity gap. The B-005 database hardening checked only `isfinite(timestamptz)`, while the official TypeScript parser accepted exactly four-digit ISO years. PostgreSQL could represent finite timestamps outside that parser domain, and `Date.parse` could silently normalize invalid calendar inputs such as `2026-02-30`.
 
-This violates the frozen WP-2.4 boundary that database/RPC validation must not commit values rejected by the official parser and that canonicalization must not silently change evidence/freshness timestamps.
+Remediation freezes the Facts/evidence instant profile in `docs/domain/DATES-TIME.md`: Gregorian years `0001..9999`, valid calendar/clock components, optional 1..6 fractional digits, `Z|±HH:mm` with absolute offset bounded to `14:00`, no leap-second/`24:00`, and a canonical UTC result that itself remains inside the four-digit-year domain. TypeScript now validates calendar fields before timezone conversion instead of parsing untrusted instant text through permissive `Date.parse`; PostgreSQL keeps microsecond precision while provider/domain reads canonicalize to milliseconds without rounding.
 
-Required remediation:
+Migration `20260907142000_harden_venue_fact_timestamp_domain.sql` adds a client-inaccessible application-domain primitive and CHECK constraints to `sources.observed_at`, `fact_observations.observed_at`, `facts.resolved_at`, `facts.last_verified_at` and `facts.stale_at`. Domain/provider regressions cover impossible calendar values, year/offset boundaries and valid PostgreSQL microseconds. Direct pgTAP covers finite out-of-domain RPC/table write-arounds and failed-mutation atomicity.
 
-- freeze the application instant domain to strict ISO calendar instants with years `0001..9999`, valid month/day/time and bounded offset syntax;
-- reject invalid calendar dates rather than relying on permissive `Date.parse` rollover;
-- add a database timestamp-domain primitive/constraints so all WP-2.4 persisted evidence/freshness/resolution instants remain inside the same application-readable year range, in addition to being finite;
-- add domain/provider tests for invalid calendar dates, year zero/beyond-four-digit inputs and valid PostgreSQL microseconds;
-- add direct pgTAP proving finite out-of-domain timestamps cannot commit and failed mutations remain atomic.
+Exact-head verification run `34131416659` on `06c38444a2e859f59f590477bd43c40255463f3e`: **5/5 SUCCESS**, including Core quality/security, Local Supabase DB/RLS, Browser/mutation, privacy-safe preview and clean-checkout `npm run verify`.
 
-Fresh re-review otherwise re-attacked without additional promoted findings: B-001 setter/append serialization, B-002 definition-update/append locking, B-003 source/conflict whitespace parity, B-004 definition whitespace/core bypasses, B-005 non-finite/microsecond handling, freshness/resolution revisions, supersession concurrency, withdrawal/resolution, same-project evidence links, retained-observation integrity, append-only observation fields, direct table grants/RLS and core-function EXECUTE revocation.
+WP-2.4 is therefore back in `REVIEW_PENDING`. CI success does not close Pass B: another fresh independent adversarial review across the complete remediated packet is now mandatory.
+
+The previous fresh re-review otherwise re-attacked without additional promoted findings: B-001 setter/append serialization, B-002 definition-update/append locking, B-003 source/conflict whitespace parity, B-004 definition whitespace/core bypasses, B-005 non-finite/microsecond handling, freshness/resolution revisions, supersession concurrency, withdrawal/resolution, same-project evidence links, retained-observation integrity, append-only observation fields, direct table grants/RLS and core-function EXECUTE revocation.
 
 Withdrawal preserving an existing retained pointer/value remains reviewed but not promoted: frozen contracts preserve evidence history and do not clearly mandate automatic retained-truth invalidation on withdrawal, so WP-2.4 must not invent that semantic.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started. Entry is prohibited while `WP2.4-B-006` remains open. After remediation and exact-head verification, another fresh independent Pass B is required before `ACCEPTANCE_PENDING`.
+Not started. Entry is prohibited until the fresh independent Pass B after B-006 finds no remaining BLOCKING/MAJOR. Only then may the packet transition to `ACCEPTANCE_PENDING`.
 
 ## Handoff
 
@@ -102,12 +101,11 @@ Not started. Entry is prohibited while `WP2.4-B-006` remains open. After remedia
 Lot: 2 — Venues core
 Branch: lot-2/venues-core
 Packet: WP-2.4
-State: REVIEW_FAILED
-Pass: B-ADVERSARIAL-REVIEW — WP2.4-B-006
+State: REVIEW_PENDING
+Pass: B-ADVERSARIAL-REVIEW — fresh re-review after WP2.4-B-006
 Primary Feature: FTR-020
 Dependency: WP-2.3 ACCEPTED
-Resolved/verified: WP2.4-B-001, WP2.4-B-002, WP2.4-B-003, WP2.4-B-004, WP2.4-B-005
-Open MAJOR: WP2.4-B-006
-Latest verified remediation: d4d3ce84331d13809b5f7b97ed7bf1a263a2bf4a / 34119950023 — 5/5 SUCCESS
-Next action: remediate B-006 only, verify exact head, then fresh independent Pass B. Do not start WP-2.5.
+Resolved/verified: WP2.4-B-001, WP2.4-B-002, WP2.4-B-003, WP2.4-B-004, WP2.4-B-005, WP2.4-B-006
+Latest verified remediation: 06c38444a2e859f59f590477bd43c40255463f3e / 34131416659 — 5/5 SUCCESS
+Next action: fresh independent Pass B across complete WP-2.4. If no BLOCKING/MAJOR remains, transition ACCEPTANCE_PENDING and perform Pass C. Do not start WP-2.5.
 ```

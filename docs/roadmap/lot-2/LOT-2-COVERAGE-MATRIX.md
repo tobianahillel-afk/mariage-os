@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1, WP-2.2 and WP-2.3 ACCEPTED; WP-2.4 REVIEW_FAILED / B-006**
+Status: **IN_PROGRESS — WP-2.1, WP-2.2 and WP-2.3 ACCEPTED; WP-2.4 REVIEW_PENDING / fresh Pass B after B-006**
 
 Purpose: durable responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`.
 
@@ -51,7 +51,7 @@ The previously accepted Lot 0 + Lot 1 implementation was promoted to `main` thro
 
 Required current-lot responsibilities minus assigned packet responsibilities: **∅**.
 
-Accepted/evidenced packet responsibilities so far: **WP-2.1, WP-2.2 and WP-2.3**. WP-2.4 remains unaccepted because fresh Pass B found `WP2.4-B-006`; Lot-level accepted/evidenced reconciliation is intentionally incomplete until all packets and the separate Integration Pass finish.
+Accepted/evidenced packet responsibilities so far: **WP-2.1, WP-2.2 and WP-2.3**. WP-2.4 has verified remediation through `WP2.4-B-006` and is under fresh independent Pass B; it is not accepted yet. Lot-level accepted/evidenced reconciliation is intentionally incomplete until all packets and the separate Integration Pass finish.
 
 ## Work Packet plan
 
@@ -99,8 +99,8 @@ Boundary retained: observations/sources/conflict-resolution provenance remain WP
 
 ### WP-2.4 — Observations, sources, evidence/confidence/freshness and conflicts
 
-State: **REVIEW_FAILED**  
-Current pass: **B-ADVERSARIAL-REVIEW — WP2.4-B-006**
+State: **REVIEW_PENDING**  
+Current pass: **B-ADVERSARIAL-REVIEW — fresh re-review after WP2.4-B-006**
 
 Primary Feature: FTR-020.  
 Dependencies: WP-2.3 **ACCEPTED**.  
@@ -108,10 +108,9 @@ Record: `WP-2.4.md`.
 Pre-implementation stop-condition: **CLOSED** by `c414549d20338bf5180d5afc3681beda56fb11de`; `evidence_level`, independent `confidence`, freshness and fact state are distinct normative axes.  
 Specification-gate CI run `34069692843`: **5/5 SUCCESS**.  
 Historical Pass-A head/run: `9f3ca2fb57adf124e50bf8c4888280854c5d846f` / `34106264873` — **5/5 SUCCESS**.  
-Resolved/verified findings: `WP2.4-B-001..B-005`.  
-Latest verified remediation: `d4d3ce84331d13809b5f7b97ed7bf1a263a2bf4a` / `34119950023` — **5/5 SUCCESS**, 80 unit-test files / 811 tests with 100% statements/branches/functions/lines, DB/RLS PASS, Browser/mutation PASS and clean-checkout `npm run verify` PASS.  
-Open MAJOR: `WP2.4-B-006` timestamp calendar/year-range parity.  
-Current action: remediate B-006 only, verify exact head, then fresh independent Pass B; do not start WP-2.5 concurrently.
+Resolved/verified findings: `WP2.4-B-001..B-006`.  
+Latest verified remediation: `06c38444a2e859f59f590477bd43c40255463f3e` / `34131416659` — **5/5 SUCCESS**, including Core, DB/RLS, Browser/mutation, privacy-safe preview and clean-checkout `npm run verify`.  
+Current action: fresh independent adversarial Pass B across complete WP-2.4; do not start WP-2.5 concurrently.
 
 ### WP-2.5 — Deterministic criteria, blockers, score/readiness and missing information
 
@@ -179,7 +178,7 @@ Provides the complete visit workflow and the final packet-owned synthetic venue 
 ```text
 WP-2.1 [ACCEPTED]
   ├─→ WP-2.2 [ACCEPTED]
-  ├─→ WP-2.3 [ACCEPTED] → WP-2.4 [REVIEW_FAILED / B-006] → WP-2.5
+  ├─→ WP-2.3 [ACCEPTED] → WP-2.4 [REVIEW_PENDING / fresh Pass B] → WP-2.5
   ├─→ WP-2.6
   ├─→ WP-2.7
   └─→ WP-2.8 → WP-2.9
@@ -199,7 +198,7 @@ separate Lot 2 Integration Pass
 Lot 2 acceptance
 ```
 
-Default execution remains one packet in active work/review at a time. WP-2.4 is the sole current packet; WP-2.5 remains PLANNED until WP-2.4 remediates B-006, passes exact-head verification, fresh Pass B and Pass C acceptance.
+Default execution remains one packet in active work/review at a time. WP-2.4 is the sole current packet; WP-2.5 remains PLANNED until WP-2.4 completes fresh Pass B and Pass C acceptance.
 
 ## Explicitly out of Lot 2
 
