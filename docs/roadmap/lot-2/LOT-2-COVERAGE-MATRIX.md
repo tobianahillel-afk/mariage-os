@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1..WP-2.4 ACCEPTED; WP-2.5 next PLANNED packet**
+Status: **IN_PROGRESS — WP-2.1..WP-2.4 ACCEPTED; WP-2.5 BLOCKED before Pass A**
 
 Purpose: durable responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`.
 
@@ -118,11 +118,15 @@ Boundary retained: deterministic compatibility/blockers/score/readiness and miss
 
 ### WP-2.5 — Deterministic criteria, blockers, score/readiness and missing information
 
-State: **PLANNED**
+State: **BLOCKED**  
+Current pass: **PLAN**
 
 Primary Features: FTR-021, FTR-022 Lot-2 responsibility.  
 Dependencies: WP-2.3, WP-2.4 **ACCEPTED**.  
-Pre-implementation stop-conditions: define the deterministic `evidenceReadiness` formula in the governing criteria contract before code; freeze the configured acceptable-value representation for `custom_manual_assessment` before executing/seeding it.
+Packet record: `WP-2.5.md`.  
+Closed specification gates: deterministic `evidenceReadiness` formula and exact `custom_manual_assessment.accepted` representation, frozen by `5fd9be01f4da192d9d47b2d48944134fd15e471a`; exact-head CI `34143567491`: **5/5 SUCCESS**.  
+Open finding: `WP2.5-S-001` **BLOCKING** — `project_target_guest_count_supported` does not yet have a frozen authoritative support/capacity input, derivation/precedence, null/unknown/conflict/stale behavior or derived/persisted semantics. Commercial advertised capacity, per-space capacity and couple-specific suitability are explicitly distinct and must not be conflated by implementation guesswork.  
+Resolution condition: freeze those dynamic semantics in the governing criteria/domain contract, define deterministic dependency/boundary tests, obtain exact-head full CI, then transition `BLOCKED → READY`. Pass A and WP-2.6 are prohibited while this blocker is open.
 
 ### WP-2.6 — Venue offers, availability, contacts and interactions basics
 
@@ -182,8 +186,8 @@ Provides the complete visit workflow and the final packet-owned synthetic venue 
 ```text
 WP-2.1 [ACCEPTED]
   ├─→ WP-2.2 [ACCEPTED]
-  ├─→ WP-2.3 [ACCEPTED] → WP-2.4 [ACCEPTED] → WP-2.5 [PLANNED / specification gates pending]
-  ├─→ WP-2.6
+  ├─→ WP-2.3 [ACCEPTED] → WP-2.4 [ACCEPTED] → WP-2.5 [BLOCKED / WP2.5-S-001]
+  ├─→ WP-2.6 [PLANNED; must not start concurrently while WP-2.5 is blocked]
   ├─→ WP-2.7
   └─→ WP-2.8 → WP-2.9
 
@@ -202,7 +206,7 @@ separate Lot 2 Integration Pass
 Lot 2 acceptance
 ```
 
-Default execution remains one packet in active work/review at a time. WP-2.4 is complete. WP-2.5 is the next planned packet, but Pass A remains prohibited until its recorded `evidenceReadiness` and `custom_manual_assessment` specification stop-conditions are closed rather than guessed.
+Default execution remains one packet in active work/review at a time. WP-2.4 is complete. WP-2.5 is the current blocked packet. Its `evidenceReadiness` and `custom_manual_assessment` specification gates are closed and green, but Pass A remains prohibited until `WP2.5-S-001` freezes the dynamic project-target guest-count rule rather than guessing a capacity/suitability source. WP-2.6 must not start concurrently.
 
 ## Explicitly out of Lot 2
 
