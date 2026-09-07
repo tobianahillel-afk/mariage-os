@@ -1,11 +1,11 @@
 import type { FactEvaluationRule } from "./fact-evaluation-rule";
 import type { FactValueType } from "./fact-types";
 
-export const TARGET_GUEST_COUNT_SUPPORTED_KEY =
+const TARGET_GUEST_COUNT_SUPPORTED_KEY =
   "target_guest_count_supported" as const;
 export const TWO_DANCE_AREAS_MAX_GUEST_KEY =
   "two_dance_areas_max_guest_estimate" as const;
-export const DYNAMIC_GUEST_RULE_TYPE =
+const DYNAMIC_GUEST_RULE_TYPE =
   "project_target_guest_count_supported" as const;
 
 interface DefinitionLike {

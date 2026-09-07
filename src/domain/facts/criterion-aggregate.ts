@@ -1,8 +1,8 @@
 import type { CriterionEvaluation, CriterionOutcome } from "./criterion-types";
 
-export type BlockingStatus = "PASS" | "UNKNOWN" | "CONFLICT" | "FAIL";
+type BlockingStatus = "PASS" | "UNKNOWN" | "CONFLICT" | "FAIL";
 
-export interface ScoreComponent {
+interface ScoreComponent {
   readonly key: string;
   readonly weight: number;
   readonly contribution: 0 | 1;
