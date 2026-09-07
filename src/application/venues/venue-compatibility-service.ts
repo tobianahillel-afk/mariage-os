@@ -29,16 +29,16 @@ export interface VenueCompatibilityQuery {
   readonly targetGuestCountOverride?: number | null;
 }
 
-export type VenueCompatibilityTargetSource = "project" | "explicit_context";
-export type VenueCompatibilityFreshness = "fresh" | "stale" | "unknown";
+type VenueCompatibilityTargetSource = "project" | "explicit_context";
+type VenueCompatibilityFreshness = "fresh" | "stale" | "unknown";
 
-export interface DynamicGuestCountComparison {
+interface DynamicGuestCountComparison {
   readonly targetGuestCount: number;
   readonly supportMaximumGuestCount: number;
   readonly passes: boolean;
 }
 
-export interface DynamicGuestCountExplanation {
+interface DynamicGuestCountExplanation {
   readonly targetGuestCount: number | null;
   readonly targetSource: VenueCompatibilityTargetSource;
   readonly supportSourceKey: "two_dance_areas_max_guest_estimate";
