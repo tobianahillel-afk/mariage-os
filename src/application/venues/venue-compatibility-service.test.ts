@@ -335,7 +335,10 @@ describe("venue compatibility dynamic explanation fail-closed states", () => {
       ...inactiveSnapshots[1]!,
       retainedObservationStatus: "withdrawn",
     };
-    const inactive = await compatibility({ ...input, snapshots: inactiveSnapshots });
+    const inactive = await compatibility({
+      ...input,
+      snapshots: inactiveSnapshots,
+    });
     expect(inactive?.dynamicGuestCountExplanation).toMatchObject({
       outcome: "PASS",
       ready: false,
