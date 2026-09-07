@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.4`
 - Lot: `2`
 - Name: Observations, sources, evidence/confidence/freshness and conflicts
-- State: `ACCEPTANCE_PENDING`
-- Current pass: `C-ACCEPTANCE`
+- State: `ACCEPTED`
+- Current pass: `COMPLETE`
 - Primary bounded context: `facts/evidence` for Venue targets
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Dependency: `WP-2.3 ACCEPTED`
@@ -129,11 +129,58 @@ Fresh Pass B decision: **PASS — `WP2.4-B-001..008` are resolved/verified and n
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Current state: `ACCEPTANCE_PENDING`.
+### Entry gate
 
-Pass C must mechanically compare EXPECTED vs IMPLEMENTED vs VERIFIED for every WP-2.4 responsibility, confirm `WP2.4-B-001..008` remain closed, reconcile `FAC-002`, the WP-2.4 portion of `FAC-003`, `FAC-004..009`, `ACC-015`, `ACC-025..027`, applicable authorization/RLS obligations and packet scope fences, and only then mark WP-2.4 `ACCEPTED`.
+- [x] fresh independent Pass B is PASS
+- [x] no unresolved BLOCKING/MAJOR finding exists
+- [x] `WP2.4-B-001..008` are resolved and verified
+- [x] exact reviewed implementation head has full CI evidence
+- [x] documentation-only reconciliation diff was inspected and changed no packet responsibility assignment or production semantics
 
-If Pass C changes production code, affected verification and a fresh Pass B must be repeated. Documentation-only reconciliation does not alter the implementation/review HEAD evidence, but its diff and durable cursor must be inspected before acceptance.
+| Responsibility | Expected | Implemented evidence | Verified evidence | Result |
+|---|---|---|---|---|
+| observations/history | project-scoped typed observations; append/supersession/withdrawal preserve evidence history; append never silently overwrites retained truth | observation domain/application/adapter boundaries plus append, supersession and withdrawal RPC/schema migrations | unit/provider evidence; evidence/adversarial/withdrawal pgTAP; fresh concurrency re-review; exact-head CI | **PASS** |
+| sources/provenance/multi-source | distinguishable source classes/status, source metadata, multiple same-project sources per observation, broken source never deletes historical evidence | source domain/service/adapter plus `sources` / `observation_sources` persistence and protected RPCs | unit/parser/adapter tests; evidence/RLS/link-primary pgTAP; `ACC-025`, `ACC-027`; exact-head CI | **PASS** |
+| evidence/confidence/freshness/state independence | evidence strength, confidence, freshness and fact state remain separate axes; freshness transitions are explicit and revision-safe | frozen evidence contract; source/evidence models; freshness service and serialized RPC | specification gate; unit tests; freshness pgTAP; fresh Pass B | **PASS** |
+| conflicts/retained truth | contradictory observations remain visible; retained resolution is explicit/revision-safe; weaker evidence cannot silently replace stronger retained truth | append-oriented observation model plus protected retained-observation resolution with same-fact/project and revision locking | evidence/adversarial unit+pgTAP; `ACC-015`, `ACC-026`; fresh interleaving review | **PASS** |
+| definition/canonical parity | existing typed evidence survives compatible definition edits and invalidating edits fail; DB/RPC cannot commit values rejected by official TS canonical boundaries | B-002..B-008 hardening across definition validation, Unicode whitespace, URLs/text, timestamp domain/grammar and `isPrimary` | domain/provider parity tests; Unicode/timestamp/link-primary pgTAP; exact-head CI | **PASS** |
+| authorization/project isolation | inherited Venue permissions, same-project integrity, direct evidence tables read-only under RLS, mutation through narrow RPCs, internal cores inaccessible | FK/RLS/grants, project assertions, protected RPC/core split | owner/editor/viewer/anon/outsider/project-B/revoked security matrix; direct privilege pgTAP; fresh Pass B | **PASS** |
+| architecture/scope fences | pure domain/application ports/infrastructure adapters; no WP-2.5 scoring/readiness, UI, offline/import or Vendor semantics claimed | separated domain/application/Supabase modules and bounded migrations | dependency-cruiser/Knip/static gates; scope review; exact-head clean verify | **PASS** |
+
+### Requirements and acceptance reconciliation
+
+- [x] `FAC-002` — multiple observations and multiple sources are retained with provenance.
+- [x] WP-2.4 portion of `FAC-003` — retained truth may differ from an observation without destroying observation history.
+- [x] `FAC-004` — weaker evidence cannot silently replace stronger retained truth.
+- [x] `FAC-005` — freshness is explicit, independent and revision-safe.
+- [x] `FAC-006` — conflicts remain visible instead of being silently collapsed.
+- [x] `FAC-007` — source classes/status are distinguishable.
+- [x] `FAC-008` — stale critical facts can be represented/flagged by freshness state without rewriting truth.
+- [x] `FAC-009` — source/provenance metadata required for later import remains retained rather than flattened.
+- [x] `ACC-015` — contradictory observations remain conserved.
+- [x] `ACC-025` — one observation may retain multiple same-project sources with integrity.
+- [x] `ACC-026` — weak evidence cannot silently replace stronger retained contractual truth.
+- [x] `ACC-027` — a broken/withdrawn source does not erase historical evidence.
+- [x] applicable `AUTHZ-001..009`, `AUTHZ-012`, `AUTHZ-017`, `AUTHZ-018`, `AUTHZ-020` and Facts/evidence RLS obligations are directly evidenced.
+
+### Acceptance checks
+
+- [x] all packet responsibilities reconciled EXPECTED → IMPLEMENTED → VERIFIED
+- [x] durable packet record complete
+- [x] exact reviewed implementation head/run `93262f9459e720d97a6dfa3a83f84f02f3a02c7c` / `34137822804` is 5/5 SUCCESS
+- [x] Core: 80 test files / 814 tests PASS, measured 100% statements/branches/functions/lines
+- [x] DB/RLS: 35 files / 778 pgTAP tests PASS after full reset/migrations
+- [x] Browser: 40/40 Playwright PASS across Chromium, Firefox, WebKit and mobile Chromium
+- [x] mutation harness PASS at 82.50% under the repository-configured gate
+- [x] privacy-safe preview and clean-checkout `npm run verify` PASS
+- [x] no BLOCKING/MAJOR finding open; `WP2.4-B-001..008` all closed
+- [x] architecture/complexity/static/security gates green
+- [x] no false claim of WP-2.5 criteria/scoring/readiness, UI, offline/import, Vendor or real-data completion
+- [x] downstream WP-2.5 specification stop-conditions remain recorded rather than guessed
+
+Required WP-2.4 responsibilities minus accepted/evidenced WP-2.4 responsibilities: **∅**.
+
+Final packet decision: **`ACCEPTED`**.
 
 ## Handoff
 
@@ -141,12 +188,17 @@ If Pass C changes production code, affected verification and a fresh Pass B must
 Lot: 2 — Venues core
 Branch: lot-2/venues-core
 Packet: WP-2.4
-State: ACCEPTANCE_PENDING
-Pass: C-ACCEPTANCE
+State: ACCEPTED
+Pass: COMPLETE
 Primary Feature: FTR-020
 Dependency: WP-2.3 ACCEPTED
 Resolved/verified: WP2.4-B-001, WP2.4-B-002, WP2.4-B-003, WP2.4-B-004, WP2.4-B-005, WP2.4-B-006, WP2.4-B-007, WP2.4-B-008
 Open BLOCKING/MAJOR: none
+Accepted responsibility gap: ∅
 Final fresh Pass-B reviewed head/run: 93262f9459e720d97a6dfa3a83f84f02f3a02c7c / 34137822804 — 5/5 SUCCESS
-Next action: WP-2.4 Pass C acceptance/reconciliation only. WP-2.5 remains prohibited until WP-2.4 is ACCEPTED.
+Core evidence: 80 files / 814 tests PASS; measured 100% statements/branches/functions/lines
+DB/RLS evidence: 35 files / 778 pgTAP tests PASS
+Browser/mutation evidence: 40/40 Playwright PASS; mutation 82.50%
+Next planned packet: WP-2.5 — Deterministic criteria, blockers, score/readiness and missing information
+Pre-implementation stop-conditions for WP-2.5: freeze deterministic evidenceReadiness formula in docs/domain/CRITERIA-EVALUATION.md and freeze configured acceptable-value representation for custom_manual_assessment before execution/seeding. No WP-2.5 production implementation is claimed by this acceptance.
 ```
