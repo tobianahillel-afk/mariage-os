@@ -21,27 +21,32 @@ export type FactResolutionResult =
   | { readonly ok: true; readonly value: NormalizedFactResolution }
   | { readonly ok: false; readonly error: FactResolutionError };
 
+function resolutionState(value: unknown): FactResolutionState | null {
+  return value === "known" || value === "conflict" ? value : null;
+}
+
+function resolutionNote(value: unknown): string | null | undefined {
+  if (value === null) return null;
+  if (typeof value !== "string") return undefined;
+  return hasCodePointLengthBetween(value, 0, 5000) ? value : undefined;
+}
+
+function conflictNeedsNote(
+  state: FactResolutionState,
+  note: string | null,
+): boolean {
+  return state === "conflict" && (note === null || note.trim().length === 0);
+}
+
 export function normalizeFactResolution(
   draft: FactResolutionDraft,
 ): FactResolutionResult {
-  if (draft.state !== "known" && draft.state !== "conflict") {
-    return { ok: false, error: "invalid_resolution_state" };
-  }
-  if (
-    draft.resolutionNote !== null &&
-    typeof draft.resolutionNote !== "string"
-  ) {
-    return { ok: false, error: "invalid_resolution_note" };
-  }
-  const note = draft.resolutionNote;
-  if (note !== null && !hasCodePointLengthBetween(note, 0, 5000)) {
-    return { ok: false, error: "invalid_resolution_note" };
-  }
-  if (
-    draft.state === "conflict" &&
-    (note === null || note.trim().length === 0)
-  ) {
+  const state = resolutionState(draft.state);
+  if (state === null) return { ok: false, error: "invalid_resolution_state" };
+  const note = resolutionNote(draft.resolutionNote);
+  if (note === undefined) return { ok: false, error: "invalid_resolution_note" };
+  if (conflictNeedsNote(state, note)) {
     return { ok: false, error: "conflict_resolution_note_required" };
   }
-  return { ok: true, value: { state: draft.state, resolutionNote: note } };
+  return { ok: true, value: { state, resolutionNote: note } };
 }
