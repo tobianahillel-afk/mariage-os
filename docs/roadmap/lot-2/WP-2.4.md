@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.4`
 - Lot: `2`
 - Name: Observations, sources, evidence/confidence/freshness and conflicts
-- State: `IN_PROGRESS`
-- Current pass: `B-REMEDIATION — WP2.4-B-003`
+- State: `REVIEW_PENDING`
+- Current pass: `B-ADVERSARIAL-REVIEW — fresh re-review after WP2.4-B-003`
 - Primary bounded context: `facts/evidence` for Venue targets
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Dependency: `WP-2.3 ACCEPTED`
@@ -18,6 +18,7 @@
 - Verified first-remediation head/run: `5e229cada52c9b50ca3b2b820df3ab8291c2960c` / `34110071790` — **5/5 SUCCESS**
 - Fresh re-review transition: `48ddaa1cdca2bde7f2b9e639295a10455e7ba477`
 - B-003 review-failure record: `c43af7fc93ca36931b549d94a1d6e35316c6d173`
+- Verified B-003 remediation head/run: `527bdeff7840f244d749cd92a81d1eda3fc89017` / `34111887666` — **5/5 SUCCESS**
 
 ## Scope and frozen responsibilities
 
@@ -55,11 +56,11 @@ MAJOR: definition edits could invalidate persisted observations or conflict-reta
 
 First-remediation verification: run `34110071790` on `5e229cada52c9b50ca3b2b820df3ab8291c2960c` — **5/5 SUCCESS**, including clean-checkout `npm run verify`.
 
-### `WP2.4-B-003` — REMEDIATION IMPLEMENTED / VERIFICATION PENDING
+### `WP2.4-B-003` — REMEDIATION VERIFIED / FRESH RE-REVIEW PENDING
 
 MAJOR found during the fresh re-review: PostgreSQL/RPC blank-string semantics were weaker than the official TypeScript contract for source titles and conflict-resolution rationale. SQL used default `btrim`, while `normalizeFactSource` / `normalizeFactResolution` use JavaScript `String.trim()`. TAB/NBSP-only input could therefore be accepted/committed by SQL and rejected by the official parser; conflict resolution could also persist an effectively blank required rationale.
 
-Remediation implemented in the current code change:
+Remediation verified at exact head `527bdeff7840f244d749cd92a81d1eda3fc89017`:
 
 - add `public.fact_ecmascript_trim(text)`, an immutable PostgreSQL canonical trim primitive matching the ECMAScript whitespace/line-terminator set used by `String.trim()`;
 - add a `sources` canonical-title CHECK using that primitive;
@@ -68,7 +69,9 @@ Remediation implemented in the current code change:
 - expose same-signature protected wrappers: source wrappers canonicalize titles before the previous validation/persistence path; conflict resolution rejects ECMAScript-blank rationale before delegating while preserving legitimate rationale verbatim;
 - add `venue_fact_unicode_whitespace_parity_test.sql` covering TAB-only and NBSP-only source titles, source update non-mutation, BOM/ideographic trim parity, TAB/NBSP-only conflict rationale, no partial fact mutation/revision/provenance on rejection, legitimate Unicode values, internal-core privilege denial and privileged table-level blank-rationale write-around denial.
 
-Affected verification is now stale by design. The next required gate is exact-head full CI. If and only if it is green, transition to `REVIEW_PENDING` and perform another fresh adversarial re-review; do not proceed directly to Pass C.
+Exact-head verification run `34111887666`: **5/5 SUCCESS**, including Local Supabase DB/RLS with 31 files / 707 pgTAP tests and clean-checkout `npm run verify`.
+
+The packet is now `REVIEW_PENDING`. A fresh independent adversarial Pass B must re-attack the complete WP-2.4 implementation and all three resolved MAJOR classes before Pass C can start; exact-head CI success alone does not constitute acceptance.
 
 Reviewed but not promoted to a finding: withdrawal preserves retained pointer/value by explicit design; frozen contracts require evidence history preservation but do not clearly require automatic retained-truth invalidation, so WP-2.4 does not invent that semantic.
 
@@ -82,13 +85,12 @@ Not started. Entry requires a fresh Pass B with no unresolved BLOCKING/MAJOR fin
 Lot: 2 — Venues core
 Branch: lot-2/venues-core
 Packet: WP-2.4
-State: IN_PROGRESS
-Pass: B-REMEDIATION — WP2.4-B-003
+State: REVIEW_PENDING
+Pass: B-ADVERSARIAL-REVIEW — fresh re-review after WP2.4-B-003
 Primary Feature: FTR-020
 Dependency: WP-2.3 ACCEPTED
 Resolved: WP2.4-B-001, WP2.4-B-002
 B-003 review failure: c43af7fc93ca36931b549d94a1d6e35316c6d173
-B-003 remediation: implemented in current code change; exact-head verification pending
-Last fully verified remediation: 5e229cada52c9b50ca3b2b820df3ab8291c2960c / 34110071790 — 5/5 SUCCESS
-Next action: obtain exact-head full CI for B-003 remediation; if green transition REVIEW_PENDING and fresh Pass B; do not start WP-2.5
+B-003 verified remediation: 527bdeff7840f244d749cd92a81d1eda3fc89017 / 34111887666 — 5/5 SUCCESS
+Next action: perform fresh independent Pass B across the complete WP-2.4 boundary; if no unresolved BLOCKING/MAJOR findings remain, transition to ACCEPTANCE_PENDING and perform Pass C. Do not start WP-2.5.
 ```
