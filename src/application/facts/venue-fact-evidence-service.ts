@@ -15,10 +15,7 @@ import {
   type FactSourceError,
   type NormalizedFactSource,
 } from "@domain/facts/fact-source";
-import type {
-  FactObservationStatus,
-  FactSourceStatus,
-} from "@domain/facts/fact-evidence-types";
+import type { FactObservationStatus } from "@domain/facts/fact-evidence-types";
 import {
   validateExpectedVenueRevision,
   type VenueRevisionError,
