@@ -162,7 +162,11 @@ describe("dynamic guest-count evaluation", () => {
   });
 
   it("ignores a legacy retained value on the derived criterion", () => {
-    const legacyDerived = { ...derived, state: "known" as const, retainedValue: false };
+    const legacyDerived = {
+      ...derived,
+      state: "known" as const,
+      retainedValue: false,
+    };
     const ceiling = snapshot(ceilingDefinition, "known", 170);
     expect(
       evaluateCriterion(legacyDerived, [legacyDerived, ceiling], {
