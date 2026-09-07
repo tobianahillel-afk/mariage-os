@@ -67,9 +67,16 @@ function projectTarget(value: unknown, projectId: string): number | null {
   return targetGuestCount;
 }
 
-function validateVenue(value: unknown, projectId: string, venueId: string): void {
+function validateVenue(
+  value: unknown,
+  projectId: string,
+  venueId: string,
+): void {
   const row = recordValue(value);
-  if (uuidValue(row.id) !== venueId || uuidValue(row.project_id) !== projectId) {
+  if (
+    uuidValue(row.id) !== venueId ||
+    uuidValue(row.project_id) !== projectId
+  ) {
     invalidResponse();
   }
 }
@@ -93,12 +100,11 @@ function definitions(
   rows: readonly unknown[],
   projectId: string,
 ): readonly VenueFactDefinitionRecord[] {
-  const parsed = rows.map((row) =>
-    parseVenueFactDefinitionRow(row, projectId),
-  );
+  const parsed = rows.map((row) => parseVenueFactDefinitionRow(row, projectId));
   const ids = new Set(parsed.map((item) => item.id));
   const keys = new Set(parsed.map((item) => item.key));
-  if (ids.size !== parsed.length || keys.size !== parsed.length) invalidResponse();
+  if (ids.size !== parsed.length || keys.size !== parsed.length)
+    invalidResponse();
   return Object.freeze(
     [...parsed].sort((left, right) => left.key.localeCompare(right.key)),
   );
@@ -189,9 +195,7 @@ function snapshots(
           fact.retainedObservationId === null
             ? null
             : (statuses.get(fact.retainedObservationId) as
-                | "active"
-                | "superseded"
-                | "withdrawn"),
+                "active" | "superseded" | "withdrawn"),
         staleAt: fact.staleAt,
       };
     }),
@@ -220,7 +224,11 @@ export function parseVenueCompatibilityInputs(
     projectId,
     venueId,
   );
-  const statuses = observationStatuses(rows.observations, parsedFacts, projectId);
+  const statuses = observationStatuses(
+    rows.observations,
+    parsedFacts,
+    projectId,
+  );
   validateVenue(rows.venue, projectId, venueId);
   return Object.freeze({
     projectId,

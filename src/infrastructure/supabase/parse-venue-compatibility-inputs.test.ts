@@ -152,7 +152,9 @@ describe("parseVenueCompatibilityInputs identity validation", () => {
     (targetGuestCount) => {
       const rows = baseRows();
       rows.project = { id: PROJECT_ID, target_guest_count: targetGuestCount };
-      expect(() => parse(rows)).toThrow("Invalid venue compatibility response.");
+      expect(() => parse(rows)).toThrow(
+        "Invalid venue compatibility response.",
+      );
     },
   );
 });
@@ -160,9 +162,7 @@ describe("parseVenueCompatibilityInputs identity validation", () => {
 describe("parseVenueCompatibilityInputs fact validation", () => {
   it("rejects duplicate definition ids and keys", () => {
     const rows = baseRows();
-    rows.definitions.push(
-      definitionRow(PARKING_DEFINITION_ID, "parking_copy"),
-    );
+    rows.definitions.push(definitionRow(PARKING_DEFINITION_ID, "parking_copy"));
     expect(() => parse(rows)).toThrow("Invalid venue compatibility response.");
     rows.definitions = [
       definitionRow(PARKING_DEFINITION_ID, "parking"),

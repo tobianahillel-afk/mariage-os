@@ -17,11 +17,7 @@ const OBSERVATION_COLUMNS = "id,project_id,fact_id,observation_status";
 const QUERY_FAILED = "Venue compatibility query failed.";
 
 type CompatibilityTableName =
-  | "projects"
-  | "venues"
-  | "fact_definitions"
-  | "facts"
-  | "fact_observations";
+  "projects" | "venues" | "fact_definitions" | "facts" | "fact_observations";
 
 type QueryFilter = readonly [string, string];
 
@@ -81,12 +77,7 @@ async function listRows(
   columns: string,
   filters: readonly QueryFilter[],
 ): Promise<readonly unknown[]> {
-  const { data, error } = await filteredQuery(
-    client,
-    table,
-    columns,
-    filters,
-  );
+  const { data, error } = await filteredQuery(client, table, columns, filters);
   if (error !== null || !Array.isArray(data)) queryFailure();
   return data;
 }
@@ -109,9 +100,7 @@ async function retainedObservations(
   return data;
 }
 
-export class SupabaseVenueCompatibilityQueryAdapter
-  implements VenueCompatibilityQueryPort
-{
+export class SupabaseVenueCompatibilityQueryAdapter implements VenueCompatibilityQueryPort {
   constructor(private readonly client: SupabaseVenueCompatibilityClientLike) {}
 
   async loadVenueCompatibilityInputs(
@@ -119,12 +108,9 @@ export class SupabaseVenueCompatibilityQueryAdapter
     venueId: string,
   ): Promise<VenueCompatibilityInputs | null> {
     try {
-      const project = await maybeRow(
-        this.client,
-        "projects",
-        PROJECT_COLUMNS,
-        [["id", projectId]],
-      );
+      const project = await maybeRow(this.client, "projects", PROJECT_COLUMNS, [
+        ["id", projectId],
+      ]);
       if (project === null) return null;
       const venue = await maybeRow(this.client, "venues", VENUE_COLUMNS, [
         ["project_id", projectId],

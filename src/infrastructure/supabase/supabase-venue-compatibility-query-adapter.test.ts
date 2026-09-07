@@ -11,11 +11,7 @@ const FACT_ID = "a3000000-0000-4000-8000-000000000001";
 const OBSERVATION_ID = "a4000000-0000-4000-8000-000000000001";
 
 type TableName =
-  | "projects"
-  | "venues"
-  | "fact_definitions"
-  | "facts"
-  | "fact_observations";
+  "projects" | "venues" | "fact_definitions" | "facts" | "fact_observations";
 
 interface Result {
   readonly data: unknown;
@@ -176,8 +172,10 @@ describe("SupabaseVenueCompatibilityQueryAdapter reads", () => {
     const results = successResults({
       facts: { data: [factRow(null)], error: null },
     });
-    const result = await adapterWith(results, captures)
-      .loadVenueCompatibilityInputs(PROJECT_ID, VENUE_ID);
+    const result = await adapterWith(
+      results,
+      captures,
+    ).loadVenueCompatibilityInputs(PROJECT_ID, VENUE_ID);
     expect(result?.snapshots[0]?.retainedObservationStatus).toBeNull();
     expect(captures.map((item) => item.table)).not.toContain(
       "fact_observations",
@@ -209,20 +207,14 @@ describe("SupabaseVenueCompatibilityQueryAdapter absence handling", () => {
         VENUE_ID,
       ),
     ).resolves.toBeNull();
-    expect(captures.map((item) => item.table)).toEqual([
-      "projects",
-      "venues",
-    ]);
+    expect(captures.map((item) => item.table)).toEqual(["projects", "venues"]);
   });
 });
 
 describe("SupabaseVenueCompatibilityQueryAdapter failures", () => {
   it.each([
     ["project provider error", { projects: { data: null, error: {} } }],
-    [
-      "non-array definitions",
-      { fact_definitions: { data: {}, error: null } },
-    ],
+    ["non-array definitions", { fact_definitions: { data: {}, error: null } }],
     ["fact provider error", { facts: { data: null, error: {} } }],
     [
       "observation provider error",
