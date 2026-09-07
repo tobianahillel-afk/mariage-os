@@ -8,6 +8,7 @@ import {
 import {
   createVenueFactDefinition,
   setRetainedVenueFact,
+  updateVenueFactDefinition,
   type VenueFactDefinitionRecord,
   type VenueFactPort,
 } from "./venue-fact-service";
@@ -79,6 +80,35 @@ it("rejects ordinary creation of the reserved dynamic rule", async () => {
       evaluationRuleJson: { type: "project_target_guest_count_supported" },
     }),
   ).resolves.toEqual({ ok: false, error: "invalid_evaluation_rule" });
+});
+
+it("rejects ordinary updates using the reserved dynamic rule before persistence", async () => {
+  let updateCalled = false;
+  const port: VenueFactPort = {
+    ...factPort(),
+    updateDefinition: async () => {
+      updateCalled = true;
+      return derivedDefinition;
+    },
+  };
+
+  await expect(
+    updateVenueFactDefinition(port, {
+      projectId,
+      definitionId,
+      expectedRevision: 1,
+      key: "external_caterer_allowed",
+      label: "External caterer allowed",
+      valueType: "boolean",
+      unit: null,
+      priority: "blocking",
+      weight: 3,
+      freshnessPolicy: null,
+      optionsJson: null,
+      evaluationRuleJson: { type: "project_target_guest_count_supported" },
+    }),
+  ).resolves.toEqual({ ok: false, error: "invalid_evaluation_rule" });
+  expect(updateCalled).toBe(false);
 });
 
 it("rejects retained writes for the derived target-support criterion", async () => {
