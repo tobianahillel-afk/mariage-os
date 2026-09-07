@@ -61,7 +61,10 @@ describe("criterion evaluation invalid dynamic inputs", () => {
       evaluateCriterion(derived, [derived, ceiling], {
         targetGuestCount: target,
       }),
-    ).toMatchObject({ outcome: "UNKNOWN", reason: "invalid_target_guest_count" });
+    ).toMatchObject({
+      outcome: "UNKNOWN",
+      reason: "invalid_target_guest_count",
+    });
   });
 
   it("requires the exact derived definition for the dynamic rule", () => {

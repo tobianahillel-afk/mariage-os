@@ -81,20 +81,30 @@ describe("criterion readiness invalid context", () => {
   });
 
   it.each([null, 160.5])("does not ready derived target for %#", (target) => {
-    const derived = snapshot(derivedDefinition, { state: null, retainedValue: null });
+    const derived = snapshot(derivedDefinition, {
+      state: null,
+      retainedValue: null,
+    });
     const ceiling = snapshot(ceilingDefinition, { retainedValue: 170 });
     const snapshots = [derived, ceiling];
     const context = { targetGuestCount: target };
     const evaluations = evaluateCriteria(snapshots, context);
     expect(
       calculateEvidenceReadiness(snapshots, evaluations, context, EVALUATED_AT),
-    ).toEqual({ evidenceReadiness: 0.5, readyCriteria: 1, applicableCriteria: 2 });
+    ).toEqual({
+      evidenceReadiness: 0.5,
+      readyCriteria: 1,
+      applicableCriteria: 2,
+    });
   });
 });
 
 describe("criterion readiness structural fail-closed cases", () => {
   it("does not ready a derived criterion without exactly one source", () => {
-    const derived = snapshot(derivedDefinition, { state: null, retainedValue: null });
+    const derived = snapshot(derivedDefinition, {
+      state: null,
+      retainedValue: null,
+    });
     const evaluations = evaluateCriteria([derived], { targetGuestCount: 160 });
     expect(
       calculateEvidenceReadiness(
@@ -114,7 +124,11 @@ describe("criterion readiness structural fail-closed cases", () => {
         { targetGuestCount: 160 },
         EVALUATED_AT,
       ),
-    ).toEqual({ evidenceReadiness: 0, readyCriteria: 0, applicableCriteria: 1 });
+    ).toEqual({
+      evidenceReadiness: 0,
+      readyCriteria: 0,
+      applicableCriteria: 1,
+    });
   });
 });
 
@@ -158,7 +172,9 @@ describe("criterion readiness applicability", () => {
   it("returns null when no critical criterion is applicable", () => {
     const bonus = snapshot(definition("panorama", { priority: "bonus" }));
     const na = snapshot(definition("parking"), { state: "not_applicable" });
-    const evaluations = evaluateCriteria([bonus, na], { targetGuestCount: 160 });
+    const evaluations = evaluateCriteria([bonus, na], {
+      targetGuestCount: 160,
+    });
     expect(
       calculateEvidenceReadiness(
         [bonus, na],
@@ -166,6 +182,10 @@ describe("criterion readiness applicability", () => {
         { targetGuestCount: 160 },
         EVALUATED_AT,
       ),
-    ).toEqual({ evidenceReadiness: null, readyCriteria: 0, applicableCriteria: 0 });
+    ).toEqual({
+      evidenceReadiness: null,
+      readyCriteria: 0,
+      applicableCriteria: 0,
+    });
   });
 });

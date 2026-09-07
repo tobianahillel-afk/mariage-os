@@ -28,7 +28,9 @@ describe("criterion numeric rule evaluators", () => {
 
 describe("criterion membership and manual evaluators", () => {
   it("evaluates boolean and exact manual values", () => {
-    expect(evaluate(true, { type: "boolean_equals", expected: true })).toMatchObject({
+    expect(
+      evaluate(true, { type: "boolean_equals", expected: true }),
+    ).toMatchObject({
       outcome: "PASS",
       target: true,
     });
@@ -65,9 +67,24 @@ describe("criterion temporal and money evaluators", () => {
 
   it("handles money pass, fail and currency mismatch", () => {
     const maximum = { minor: 10000, currency: "EUR" };
-    expect(evaluate({ minor: 9000, currency: "EUR" }, { type: "money_max", maximum })).toMatchObject({ outcome: "PASS" });
-    expect(evaluate({ minor: 11000, currency: "EUR" }, { type: "money_max", maximum })).toMatchObject({ outcome: "FAIL" });
-    expect(evaluate({ minor: 9000, currency: "USD" }, { type: "money_max", maximum })).toMatchObject({
+    expect(
+      evaluate(
+        { minor: 9000, currency: "EUR" },
+        { type: "money_max", maximum },
+      ),
+    ).toMatchObject({ outcome: "PASS" });
+    expect(
+      evaluate(
+        { minor: 11000, currency: "EUR" },
+        { type: "money_max", maximum },
+      ),
+    ).toMatchObject({ outcome: "FAIL" });
+    expect(
+      evaluate(
+        { minor: 9000, currency: "USD" },
+        { type: "money_max", maximum },
+      ),
+    ).toMatchObject({
       outcome: "UNKNOWN",
       reason: "currency_mismatch",
     });
@@ -80,8 +97,14 @@ describe("criterion evaluator registry boundaries", () => {
   });
 
   it("exercises false boolean and inverse select branches", () => {
-    expect(evaluate(false, { type: "boolean_equals", expected: true })).toMatchObject({ outcome: "FAIL" });
-    expect(evaluate("other", { type: "select_in", accepted: ["garden"] })).toMatchObject({ outcome: "FAIL" });
-    expect(evaluate("other", { type: "select_not_in", rejected: ["barn"] })).toMatchObject({ outcome: "PASS" });
+    expect(
+      evaluate(false, { type: "boolean_equals", expected: true }),
+    ).toMatchObject({ outcome: "FAIL" });
+    expect(
+      evaluate("other", { type: "select_in", accepted: ["garden"] }),
+    ).toMatchObject({ outcome: "FAIL" });
+    expect(
+      evaluate("other", { type: "select_not_in", rejected: ["barn"] }),
+    ).toMatchObject({ outcome: "PASS" });
   });
 });
