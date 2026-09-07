@@ -107,7 +107,10 @@ export function calculateEvidenceReadiness(
     if (!isCritical(evaluation) || !isApplicable(evaluation)) continue;
     applicable += 1;
     const snapshot = snapshotsByKey.get(evaluation.key);
-    if (snapshot !== undefined && criterionReady(snapshot, evaluation, readinessContext)) {
+    if (
+      snapshot !== undefined &&
+      criterionReady(snapshot, evaluation, readinessContext)
+    ) {
       ready += 1;
     }
   }
