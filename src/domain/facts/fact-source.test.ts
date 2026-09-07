@@ -55,7 +55,9 @@ describe("fact source normalization", () => {
       ok: false,
       error: "invalid_evidence_level",
     });
-    expect(normalizeFactSource({ ...validDraft, status: "deleted" })).toEqual({
+    expect(
+      normalizeFactSource({ ...validDraft, status: "deleted" }),
+    ).toEqual({
       ok: false,
       error: "invalid_source_status",
     });
