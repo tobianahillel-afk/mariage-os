@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { expect, it } from "vitest";
 import type { VenueFactContext } from "@application/facts/venue-fact-evidence-service";
 import type { VenueFactDefinitionRecord } from "@application/facts/venue-fact-service";
 import {
@@ -88,181 +88,179 @@ const resolvedRow = {
   revision: 2,
 };
 
-describe("venue fact evidence provider parsing", () => {
-  it("parses fact context identity and binds the expected definition", () => {
-    const identity = parseVenueFactContextIdentity(
+it("parses fact context identity and binds the expected definition", () => {
+  const identity = parseVenueFactContextIdentity(
+    {
+      id: factId,
+      project_id: projectId,
+      target_type: "venue",
+      target_id: venueId,
+      definition_id: definitionId,
+    },
+    projectId,
+    factId,
+  );
+  expect(venueFactContextFromIdentity(identity, definition)).toEqual(context);
+});
+
+it("rejects cross-project or non-venue fact context responses", () => {
+  expect(() =>
+    parseVenueFactContextIdentity(
       {
         id: factId,
-        project_id: projectId,
+        project_id: otherProjectId,
         target_type: "venue",
         target_id: venueId,
         definition_id: definitionId,
       },
       projectId,
       factId,
-    );
-    expect(venueFactContextFromIdentity(identity, definition)).toEqual(context);
-  });
-
-  it("rejects cross-project or non-venue fact context responses", () => {
-    expect(() =>
-      parseVenueFactContextIdentity(
-        {
-          id: factId,
-          project_id: otherProjectId,
-          target_type: "venue",
-          target_id: venueId,
-          definition_id: definitionId,
-        },
-        projectId,
-        factId,
-      ),
-    ).toThrow("Invalid venue fact evidence response.");
-    expect(() =>
-      parseVenueFactContextIdentity(
-        {
-          id: factId,
-          project_id: projectId,
-          target_type: "vendor",
-          target_id: venueId,
-          definition_id: definitionId,
-        },
-        projectId,
-        factId,
-      ),
-    ).toThrow("Invalid venue fact evidence response.");
-  });
-
-  it("parses source metadata without deriving evidence or confidence", () => {
-    expect(parseVenueFactSourceRow(sourceRow, projectId, sourceId)).toEqual({
-      id: sourceId,
-      projectId,
-      sourceType: "written_confirmation",
-      title: "Venue email",
-      url: "https://venue.example/confirmation",
-      evidenceLevel: "confirmed_for_event",
-      observedAt: "2026-09-07T06:20:00.000Z",
-      notes: null,
-      status: "active",
-      revision: 1,
-    });
-  });
-
-  it("rejects malformed source project, status and revision responses", () => {
-    for (const row of [
-      { ...sourceRow, project_id: otherProjectId },
-      { ...sourceRow, status: "deleted" },
-      { ...sourceRow, revision: 0 },
-    ]) {
-      expect(() => parseVenueFactSourceRow(row, projectId, sourceId)).toThrow(
-        "Invalid venue fact evidence response.",
-      );
-    }
-  });
-
-  it("parses an explicit known-false observation with independent confidence", () => {
-    expect(
-      parseVenueFactObservationRow(observationRow, context, observationId),
-    ).toEqual({
-      id: observationId,
+    ),
+  ).toThrow("Invalid venue fact evidence response.");
+  expect(() =>
+    parseVenueFactContextIdentity(
+      {
+        id: factId,
+        project_id: projectId,
+        target_type: "vendor",
+        target_id: venueId,
+        definition_id: definitionId,
+      },
       projectId,
       factId,
-      value: false,
-      rawValueText: "No",
-      evidenceLevel: "confirmed_for_event",
-      confidence: "high",
-      observedAt: "2026-09-07T06:30:00.000Z",
-      note: null,
-      status: "active",
-      supersededByObservationId: null,
-      createdBy: actorId,
-    });
-  });
+    ),
+  ).toThrow("Invalid venue fact evidence response.");
+});
 
-  it("rejects cross-fact, malformed typed value and invalid status observations", () => {
-    for (const row of [
-      { ...observationRow, fact_id: definitionId },
-      { ...observationRow, value: "false" },
-      { ...observationRow, observation_status: "deleted" },
-    ]) {
-      expect(() =>
-        parseVenueFactObservationRow(row, context, observationId),
-      ).toThrow("Invalid venue fact evidence response.");
-    }
+it("parses source metadata without deriving evidence or confidence", () => {
+  expect(parseVenueFactSourceRow(sourceRow, projectId, sourceId)).toEqual({
+    id: sourceId,
+    projectId,
+    sourceType: "written_confirmation",
+    title: "Venue email",
+    url: "https://venue.example/confirmation",
+    evidenceLevel: "confirmed_for_event",
+    observedAt: "2026-09-07T06:20:00.000Z",
+    notes: null,
+    status: "active",
+    revision: 1,
   });
+});
 
-  it("parses same-project many-to-many evidence links", () => {
-    expect(
-      parseObservationSourceLinkRow(
-        {
-          project_id: projectId,
-          observation_id: observationId,
-          source_id: sourceId,
-          is_primary: true,
-        },
-        projectId,
-        observationId,
-        sourceId,
-      ),
-    ).toEqual({ projectId, observationId, sourceId, isPrimary: true });
+it("rejects malformed source project, status and revision responses", () => {
+  for (const row of [
+    { ...sourceRow, project_id: otherProjectId },
+    { ...sourceRow, status: "deleted" },
+    { ...sourceRow, revision: 0 },
+  ]) {
+    expect(() => parseVenueFactSourceRow(row, projectId, sourceId)).toThrow(
+      "Invalid venue fact evidence response.",
+    );
+  }
+});
+
+it("parses an explicit known-false observation with independent confidence", () => {
+  expect(
+    parseVenueFactObservationRow(observationRow, context, observationId),
+  ).toEqual({
+    id: observationId,
+    projectId,
+    factId,
+    value: false,
+    rawValueText: "No",
+    evidenceLevel: "confirmed_for_event",
+    confidence: "high",
+    observedAt: "2026-09-07T06:30:00.000Z",
+    note: null,
+    status: "active",
+    supersededByObservationId: null,
+    createdBy: actorId,
   });
+});
 
-  it("rejects malformed or cross-project evidence links", () => {
+it("rejects cross-fact, malformed typed value and invalid status observations", () => {
+  for (const row of [
+    { ...observationRow, fact_id: definitionId },
+    { ...observationRow, value: "false" },
+    { ...observationRow, observation_status: "deleted" },
+  ]) {
     expect(() =>
-      parseObservationSourceLinkRow(
-        {
-          project_id: otherProjectId,
-          observation_id: observationId,
-          source_id: sourceId,
-          is_primary: true,
-        },
-        projectId,
-        observationId,
-        sourceId,
-      ),
+      parseVenueFactObservationRow(row, context, observationId),
     ).toThrow("Invalid venue fact evidence response.");
-    expect(() =>
-      parseObservationSourceLinkRow(
-        {
-          project_id: projectId,
-          observation_id: observationId,
-          source_id: sourceId,
-          is_primary: "true",
-        },
-        projectId,
-        observationId,
-        sourceId,
-      ),
-    ).toThrow("Invalid venue fact evidence response.");
-  });
+  }
+});
 
-  it("parses explicit retained-observation resolution audit safely", () => {
-    expect(
-      parseResolvedVenueFactEvidenceRow(resolvedRow, context, observationId),
-    ).toEqual({
-      id: factId,
+it("parses same-project many-to-many evidence links", () => {
+  expect(
+    parseObservationSourceLinkRow(
+      {
+        project_id: projectId,
+        observation_id: observationId,
+        source_id: sourceId,
+        is_primary: true,
+      },
       projectId,
-      venueId,
-      definitionId,
-      state: "known",
-      retainedValue: false,
-      retainedObservationId: observationId,
-      resolutionNote: null,
-      revision: 2,
-    });
-  });
+      observationId,
+      sourceId,
+    ),
+  ).toEqual({ projectId, observationId, sourceId, isPrimary: true });
+});
 
-  it("rejects mismatched retained evidence and malformed resolution audit", () => {
-    for (const row of [
-      { ...resolvedRow, retained_observation_id: sourceId },
-      { ...resolvedRow, retained_value: "false" },
-      { ...resolvedRow, resolved_by: null },
-      { ...resolvedRow, resolved_at: "yesterday" },
-      { ...resolvedRow, stale_at: "not-an-instant" },
-    ]) {
-      expect(() =>
-        parseResolvedVenueFactEvidenceRow(row, context, observationId),
-      ).toThrow("Invalid venue fact evidence response.");
-    }
+it("rejects malformed or cross-project evidence links", () => {
+  expect(() =>
+    parseObservationSourceLinkRow(
+      {
+        project_id: otherProjectId,
+        observation_id: observationId,
+        source_id: sourceId,
+        is_primary: true,
+      },
+      projectId,
+      observationId,
+      sourceId,
+    ),
+  ).toThrow("Invalid venue fact evidence response.");
+  expect(() =>
+    parseObservationSourceLinkRow(
+      {
+        project_id: projectId,
+        observation_id: observationId,
+        source_id: sourceId,
+        is_primary: "true",
+      },
+      projectId,
+      observationId,
+      sourceId,
+    ),
+  ).toThrow("Invalid venue fact evidence response.");
+});
+
+it("parses explicit retained-observation resolution audit safely", () => {
+  expect(
+    parseResolvedVenueFactEvidenceRow(resolvedRow, context, observationId),
+  ).toEqual({
+    id: factId,
+    projectId,
+    venueId,
+    definitionId,
+    state: "known",
+    retainedValue: false,
+    retainedObservationId: observationId,
+    resolutionNote: null,
+    revision: 2,
   });
+});
+
+it("rejects mismatched retained evidence and malformed resolution audit", () => {
+  for (const row of [
+    { ...resolvedRow, retained_observation_id: sourceId },
+    { ...resolvedRow, retained_value: "false" },
+    { ...resolvedRow, resolved_by: null },
+    { ...resolvedRow, resolved_at: "yesterday" },
+    { ...resolvedRow, stale_at: "not-an-instant" },
+  ]) {
+    expect(() =>
+      parseResolvedVenueFactEvidenceRow(row, context, observationId),
+    ).toThrow("Invalid venue fact evidence response.");
+  }
 });
