@@ -5,12 +5,13 @@
 - Work Packet ID: `WP-2.5`
 - Lot: `2`
 - Name: Deterministic criteria, blockers, score/readiness and missing information
-- State: `IN_PROGRESS`
-- Current pass: `A-IMPLEMENT`
+- State: `REVIEW_PENDING`
+- Current pass: `B-ADVERSARIAL-REVIEW`
 - Primary bounded context: `facts/criteria` and Venue compatibility read models
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Dependencies: `WP-2.3 ACCEPTED`, `WP-2.4 ACCEPTED`
 - Primary Features: `FTR-021`, Lot-2 responsibility of `FTR-022`
+- Verified Pass-A implementation head/run: `aef7bea53e9db32790ab19c3fffdd0a8f63dc89d` / `34158303997` — **5/5 SUCCESS**
 
 ## Scope and current-lot responsibilities
 
@@ -104,29 +105,36 @@ The migration family hardens already-owned fact-definition / retained-fact / obs
 
 ## Pass A — IMPLEMENT
 
-**IN PROGRESS.** Production implementation is now permitted only inside WP-2.5.
+**COMPLETE / VERIFIED.** Production implementation remained bounded to WP-2.5 and no WP-2.6 responsibility was started.
 
-Implementation order:
+Implementation completed the frozen order:
 
-1. harden `custom_manual_assessment.accepted` in TypeScript and PostgreSQL with canonical parity tests;
-2. restrict `project_target_guest_count_supported` to the canonical derived-key semantics rather than arbitrary boolean definitions;
-3. reject retained-fact / observation writes for the system-derived target-support criterion at supported TypeScript and PostgreSQL boundaries;
-4. implement pure ordinary/dynamic criterion evaluation, blocker aggregation, weighted score, readiness, deterministic reason/explanation models and missing-information guidance;
-5. add the authorized Venue compatibility read-model port/adapter without persisting compatibility authority;
-6. verify dynamic target changes and derived-data non-mutation;
-7. obtain exact-head full CI before moving to `REVIEW_PENDING`.
+1. hardened `custom_manual_assessment.accepted` in TypeScript and PostgreSQL with canonical parity coverage;
+2. restricted `project_target_guest_count_supported` to the canonical derived-key semantics rather than arbitrary boolean definitions;
+3. rejected retained-fact / observation writes for the system-derived target-support criterion at supported TypeScript and PostgreSQL boundaries;
+4. implemented pure ordinary/dynamic criterion evaluation, blocker aggregation, weighted score, readiness, deterministic reason/explanation models and missing-information guidance;
+5. added the authorized Venue compatibility read-model port/adapter without persisting compatibility authority;
+6. verified dynamic target changes, source-evidence readiness and derived-data non-mutation;
+7. obtained exact-head full CI on the implementation head before this transition to `REVIEW_PENDING`.
 
 ### Implementation evidence
 
-- code/modules: pending
-- migrations/schema: pending
-- tests added: pending
-- FIRs updated: pending
-- docs/status updated: Pass A cursor opened on status board and packet record
+- domain/code: `criterion-types.ts`, `derived-fact-definition.ts`, `fact-evaluation-rule.ts`, `criterion-rule-evaluators.ts`, `criterion-evaluation.ts`, `criterion-aggregate.ts`, `criterion-readiness.ts`, `criterion-guidance.ts`, plus the supported derived-fact write guard;
+- application: `venue-compatibility-query-port.ts` and `venue-compatibility-service.ts` provide a pure project/venue compatibility read model with optional caller-supplied target override and no persisted score/readiness authority;
+- infrastructure: `parse-venue-compatibility-inputs.ts` and `supabase-venue-compatibility-query-adapter.ts` load and fail-close project-scoped definitions/facts/retained evidence through the existing authorized Supabase boundary;
+- migration/schema: `20260907181500_harden_venue_criteria_boundaries.sql` hardens canonical criteria-rule and system-derived write boundaries without introducing a compatibility table or elevated client capability;
+- DB evidence: `venue_criteria_boundaries_test.sql` plus the full existing pgTAP corpus validate direct database boundaries and inherited project isolation;
+- tests: exact clean-checkout verification has **94 test files / 911 tests PASS** at **100% statements/branches/functions/lines**; Local Supabase reset and **36 pgTAP files / 795 tests PASS**; Browser E2E **40/40 PASS** across Chromium, Firefox, WebKit and mobile Chromium; mutation harness gate PASS; build and privacy-safe preview PASS;
+- exact implementation verification: head `aef7bea53e9db32790ab19c3fffdd0a8f63dc89d`, GitHub Actions run `34158303997` — **5/5 SUCCESS**, including clean-checkout `npm run verify`;
+- FIR-equivalent durable record: this packet record carries frozen semantics, implementation boundaries, exact verification evidence and lifecycle state; status board is reconciled in the same docs-only transition commit.
+
+Pass A decision: **PASS — implementation complete and fully verified; packet may enter fresh independent Pass B.**
 
 ## Pass B — ADVERSARIAL REVIEW
 
-Not started. Pass B may begin only after a completed, fully verified Pass A reaches `REVIEW_PENDING`.
+**READY / NOT YET DECIDED.** A fresh independent Pass B must review the post-transition docs+code HEAD rather than relying on Pass-A implementation intent or green CI alone. Any BLOCKING/MAJOR finding returns the packet to `REVIEW_FAILED` and must be remediated before re-review.
+
+Required attack surface includes rule-validator/evaluator parity; blocker and weighted-score denominator semantics; `NOT_APPLICABLE` and bonus treatment; dynamic target/source uniqueness and derived write protection; stale/readiness boundary semantics; project isolation/RLS and provider fail-closed parsing; malformed/partial/multiple definitions/facts/observations; explanation reconstruction; and `ACC-022`, `ACC-023`, `ACC-028` plus the listed FAC/VEN invariants.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
@@ -134,9 +142,9 @@ Not started. Pass C may begin only from `ACCEPTANCE_PENDING` after a fresh Pass 
 
 ## Handoff
 
-- Current state: `IN_PROGRESS`
-- Current/next pass: `A-IMPLEMENT`
-- Last green verification: dynamic specification commit `01136a7694141fd21c6067dcc4a1eb876e89080a`, CI `34146113235` — **5/5 SUCCESS**
+- Current state: `REVIEW_PENDING`
+- Current/next pass: `B-ADVERSARIAL-REVIEW`
+- Verified Pass-A implementation head/run: `aef7bea53e9db32790ab19c3fffdd0a8f63dc89d` / `34158303997` — **5/5 SUCCESS**
 - Closed specification gates: `evidenceReadiness`; `custom_manual_assessment.accepted`; `WP2.5-S-001` dynamic guest-target support semantics
-- Remaining pre-implementation blocker/finding: none
-- Next permitted action: implement WP-2.5 Pass A only, beginning with canonical validation and derived-data write boundaries. Do not start WP-2.6 concurrently.
+- Open WP-2.5 BLOCKING/MAJOR finding: none at Pass-B entry
+- Next permitted action: fresh independent WP-2.5 Pass B on the docs+code transition HEAD. Do not start WP-2.6 concurrently.

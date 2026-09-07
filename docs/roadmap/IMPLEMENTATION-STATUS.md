@@ -33,7 +33,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.2 | spaces, capacity, member ratings/preferences | **ACCEPTED** |
 | WP-2.3 | fact definitions, typed retained facts, value validation | **ACCEPTED** |
 | WP-2.4 | observations, sources, evidence/confidence/freshness, conflicts | **ACCEPTED** |
-| WP-2.5 | deterministic criteria, blockers, score/readiness, missing information | **IN_PROGRESS — A-IMPLEMENT** |
+| WP-2.5 | deterministic criteria, blockers, score/readiness, missing information | **REVIEW_PENDING — B-ADVERSARIAL-REVIEW** |
 | WP-2.6 | offers, availability, contacts/interactions basics | PLANNED |
 | WP-2.7 | contextual venue access-route observations | PLANNED |
 | WP-2.8 | venue media/photo foundation and media safety | PLANNED |
@@ -59,7 +59,7 @@ Accepted packet evidence:
 - Final reviewed head/run `93262f9459e720d97a6dfa3a83f84f02f3a02c7c` / `34137822804`: **5/5 SUCCESS**. Core: 80 test files / 814 tests PASS at 100% measured statements/branches/functions/lines; DB/RLS: 35 files / 778 pgTAP tests PASS; Browser: 40/40 Playwright PASS across Chromium, Firefox, WebKit and mobile Chromium; mutation harness: 82.50%; privacy-safe preview and clean-checkout `npm run verify` PASS.
 - Pass C: **PASS**. Required WP-2.4 responsibilities minus accepted/evidenced WP-2.4 responsibilities: **∅**.
 
-## WP-2.5 — active Pass A
+## WP-2.5 — verified Pass A / review pending
 
 Packet record: `lot-2/WP-2.5.md`.
 
@@ -80,16 +80,15 @@ Frozen dynamic rule summary:
 - `target_guest_count_supported` is derived and must not be independently writable fact/evidence;
 - later scenario callers may inject an explicit target without changing the formula or mutating historical project/fact truth.
 
-Pass A implementation order:
+Pass A implementation is complete and exact-head verified:
 
-1. harden TypeScript/PostgreSQL rule validation and derived-key write boundaries;
-2. implement pure ordinary/dynamic criterion evaluation;
-3. blocking aggregation, weighted score, readiness and deterministic explanations;
-4. missing/stale/conflicting information guidance;
-5. authorized Venue compatibility read-model port/adapter without persistent score authority;
-6. full exact-head verification, then `REVIEW_PENDING` and fresh Pass B.
+- deterministic rule validation/evaluation, blocking aggregation, weighted score, readiness and guidance are implemented as pure domain/read-model behavior;
+- the project/venue compatibility application service and authorized Supabase adapter load project-scoped inputs without persisting compatibility authority;
+- migration `20260907181500_harden_venue_criteria_boundaries.sql` hardens canonical rule and system-derived write boundaries; direct DB coverage lives in `venue_criteria_boundaries_test.sql`;
+- implementation head/run `aef7bea53e9db32790ab19c3fffdd0a8f63dc89d` / `34158303997`: **5/5 SUCCESS**;
+- clean-checkout evidence: **94 test files / 911 tests PASS**, **100% statements/branches/functions/lines**, **36 pgTAP files / 795 tests PASS**, Browser E2E **40/40 PASS**, mutation gate PASS, build PASS, privacy-safe preview PASS and full `npm run verify` PASS.
 
-WP-2.6 must not start concurrently.
+WP-2.5 is now `REVIEW_PENDING`; the next permitted action is a fresh independent Pass B on the post-transition docs+code HEAD. Green Pass A is not acceptance. WP-2.6 must not start concurrently.
 
 ## Durable cursor
 
@@ -98,14 +97,14 @@ Current Lot: 2 — Venues core
 Lot State: IN_PROGRESS
 Branch: lot-2/venues-core
 Current Packet: WP-2.5
-Packet State: IN_PROGRESS
-Current Pass: A-IMPLEMENT
+Packet State: REVIEW_PENDING
+Current Pass: B-ADVERSARIAL-REVIEW
 Last completed packet: WP-2.4 — ACCEPTED
 Accepted packets: WP-2.1, WP-2.2, WP-2.3, WP-2.4
 Closed WP-2.5 specification gates: evidenceReadiness; custom_manual_assessment.accepted; WP2.5-S-001
-WP-2.5 specification gate head/run: 01136a7694141fd21c6067dcc4a1eb876e89080a / 34146113235 — 5/5 SUCCESS
-Open WP-2.5 BLOCKING/MAJOR finding: none at Pass-A entry
-Next permitted action: implement WP-2.5 Pass A only, beginning with canonical rule/derived-data boundaries and pure deterministic evaluation. Do not start WP-2.6 concurrently.
+WP-2.5 verified Pass-A implementation head/run: aef7bea53e9db32790ab19c3fffdd0a8f63dc89d / 34158303997 — 5/5 SUCCESS
+Open WP-2.5 BLOCKING/MAJOR finding: none at Pass-B entry
+Next permitted action: fresh independent WP-2.5 Pass B on the post-transition docs+code HEAD. Do not start WP-2.6 concurrently.
 ```
 
 ## Known localized specification repairs / stop-conditions
@@ -123,7 +122,7 @@ Next permitted action: implement WP-2.5 Pass A only, beginning with canonical ru
 - Lot-2 primary IDs: `FTR-013..FTR-028`; partial cross-lot responsibilities also include `FTR-012`, `FTR-089`, `FTR-092`, `FTR-093` and cross-cutting access/offline/security obligations.
 - Feature-level whole-capability status is not conflated with packet/current-lot responsibility; Lot Coverage Matrices remain the durable responsibility-level reconciliation source.
 - WP-2.4 packet responsibility for `FTR-020` is **ACCEPTED**.
-- WP-2.5 is **IN_PROGRESS / A-IMPLEMENT**; no FTR-021/FTR-022 implementation completion is claimed until Pass A verification, fresh Pass B and Pass C succeed.
+- WP-2.5 is **REVIEW_PENDING / B-ADVERSARIAL-REVIEW**; no FTR-021/FTR-022 packet acceptance is claimed until fresh Pass B and Pass C succeed.
 
 ## Forward maintenance
 
@@ -152,9 +151,9 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted Lot-2 packets: WP-2.1, WP-2.2, WP-2.3, WP-2.4
 Last completed packet: WP-2.4 — ACCEPTED / COMPLETE
-Current packet: WP-2.5 — IN_PROGRESS / A-IMPLEMENT
+Current packet: WP-2.5 — REVIEW_PENDING / B-ADVERSARIAL-REVIEW
 WP-2.5 closed specification gates: evidenceReadiness; custom_manual_assessment.accepted; WP2.5-S-001
-WP-2.5 specification head/run: 01136a7694141fd21c6067dcc4a1eb876e89080a / 34146113235 — 5/5 SUCCESS
-Next permitted action: WP-2.5 Pass A only; WP-2.6 remains prohibited concurrently.
+WP-2.5 verified Pass-A head/run: aef7bea53e9db32790ab19c3fffdd0a8f63dc89d / 34158303997 — 5/5 SUCCESS
+Next permitted action: fresh independent WP-2.5 Pass B; WP-2.6 remains prohibited concurrently.
 Lots 3–12: NOT_STARTED
 ```
