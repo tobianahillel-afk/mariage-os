@@ -141,7 +141,9 @@ describe("dynamic guest-count evaluation", () => {
       500,
     );
     expect(
-      evaluateCriterion(derived, [derived, wrongUnit], { targetGuestCount: 160 }),
+      evaluateCriterion(derived, [derived, wrongUnit], {
+        targetGuestCount: 160,
+      }),
     ).toMatchObject({ outcome: "UNKNOWN", reason: "configuration_incomplete" });
   });
 
@@ -157,7 +159,9 @@ describe("dynamic guest-count evaluation", () => {
       500,
     );
     expect(
-      evaluateCriterion(derived, [derived, advertised], { targetGuestCount: 160 }),
+      evaluateCriterion(derived, [derived, advertised], {
+        targetGuestCount: 160,
+      }),
     ).toMatchObject({ outcome: "UNKNOWN", reason: "configuration_incomplete" });
   });
 
