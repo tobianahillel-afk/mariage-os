@@ -182,6 +182,21 @@ describe("parseVenueCompatibilityInputs fact validation", () => {
     expect(() => parse(rows)).toThrow("Invalid venue compatibility response.");
   });
 
+  it("rejects one fact primary key projected under multiple definitions", () => {
+    const rows = baseRows();
+    rows.facts = [
+      factRow(),
+      factRow(ACCESS_DEFINITION_ID, {
+        retained_observation_id: OTHER_OBSERVATION_ID,
+      }),
+    ];
+    rows.observations = [
+      observationRow(),
+      observationRow({ id: OTHER_OBSERVATION_ID }),
+    ];
+    expect(() => parse(rows)).toThrow("Invalid venue compatibility response.");
+  });
+
   it("rejects malformed freshness and retained observation ids", () => {
     const rows = baseRows();
     rows.facts = [
