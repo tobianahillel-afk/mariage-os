@@ -55,11 +55,16 @@ function optionalUuid(value: unknown): string | null {
 function projectTarget(value: unknown, projectId: string): number | null {
   const row = recordValue(value);
   if (uuidValue(row.id) !== projectId) invalidResponse();
-  if (row.target_guest_count === null) return null;
-  if (!Number.isSafeInteger(row.target_guest_count) || row.target_guest_count < 0) {
+  const targetGuestCount = row.target_guest_count;
+  if (targetGuestCount === null) return null;
+  if (
+    typeof targetGuestCount !== "number" ||
+    !Number.isSafeInteger(targetGuestCount) ||
+    targetGuestCount < 0
+  ) {
     invalidResponse();
   }
-  return row.target_guest_count as number;
+  return targetGuestCount;
 }
 
 function validateVenue(value: unknown, projectId: string, venueId: string): void {
@@ -92,7 +97,9 @@ function definitions(
   const ids = new Set(parsed.map((item) => item.id));
   const keys = new Set(parsed.map((item) => item.key));
   if (ids.size !== parsed.length || keys.size !== parsed.length) invalidResponse();
-  return Object.freeze([...parsed].sort((left, right) => left.key.localeCompare(right.key)));
+  return Object.freeze(
+    [...parsed].sort((left, right) => left.key.localeCompare(right.key)),
+  );
 }
 
 function staleAt(value: unknown): string | null {
