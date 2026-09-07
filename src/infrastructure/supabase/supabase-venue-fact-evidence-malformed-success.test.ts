@@ -66,10 +66,12 @@ it("rejects a malformed successful definition response", async () => {
   const adapter = new SupabaseVenueFactEvidenceAdapter(
     client({ ...definitionRow, id: factId }),
   );
-  await expect(adapter.getFactContext(projectId, factId)).rejects.toMatchObject({
-    code: "provider_response_invalid",
-    message: "Venue fact evidence context query failed.",
-  });
+  await expect(adapter.getFactContext(projectId, factId)).rejects.toMatchObject(
+    {
+      code: "provider_response_invalid",
+      message: "Venue fact evidence context query failed.",
+    },
+  );
 });
 
 it("rejects a malformed successful evidence-link response", async () => {

@@ -61,9 +61,9 @@ it("rejects definitions inconsistent with a parsed fact identity", () => {
 
 it("rejects malformed freshness provider shapes and scalar fields", () => {
   for (const candidate of [42, null, []]) {
-    expect(() => parseVenueFactFreshnessRow(candidate, projectId, factId)).toThrow(
-      "Invalid venue fact freshness response.",
-    );
+    expect(() =>
+      parseVenueFactFreshnessRow(candidate, projectId, factId),
+    ).toThrow("Invalid venue fact freshness response.");
   }
   for (const candidate of [
     { ...freshnessRow, id: definitionId },
@@ -71,9 +71,9 @@ it("rejects malformed freshness provider shapes and scalar fields", () => {
     { ...freshnessRow, target_id: "not-a-uuid" },
     { ...freshnessRow, revision: "2" },
   ]) {
-    expect(() => parseVenueFactFreshnessRow(candidate, projectId, factId)).toThrow(
-      "Invalid venue fact freshness response.",
-    );
+    expect(() =>
+      parseVenueFactFreshnessRow(candidate, projectId, factId),
+    ).toThrow("Invalid venue fact freshness response.");
   }
 });
 
