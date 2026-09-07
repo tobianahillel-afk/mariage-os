@@ -20,6 +20,7 @@ The following remain outside WP-2.6:
 
 - `vendor_offers` and Vendor-owned contacts/interactions/components — Lot 7;
 - budget items/scenarios/calculation/payment truth — Lot 5;
+- deposit/payment due-date and installment schedules — Lot 5; WP-2.6 persists only quoted deposit amounts/refundability as commercial terms;
 - automatic follow-up Tasks — Lot 3;
 - document metadata/storage and `quote_document_id` relationship — WP-2.9 plus its document dependencies;
 - local/offline mutation integration — WP-2.10/2.12;
@@ -112,6 +113,8 @@ Offer validity uses civil dates. If both bounds exist, `valid_from <= valid_to` 
 Weekday uses the frozen `0=Sunday ... 6=Saturday` convention.
 
 `included_end_day_offset` is an integer `0..2`; after-midnight end time remains explicit rather than inferred from comparing wall-clock times.
+
+`deposit_amount_minor`, `deposit_refundable`, `security_deposit_minor` and `security_deposit_refundable` are quoted commercial terms only. WP-2.6 does not persist due dates, installment sequencing or payment-obligation state for those amounts; Lot 5 owns that schedule and reconciliation once Budget/Payments is implemented.
 
 ## 5. Venue offer components
 
