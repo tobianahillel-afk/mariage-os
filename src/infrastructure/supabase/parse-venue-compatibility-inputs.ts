@@ -131,7 +131,12 @@ function parseFacts(
     const definitionId = uuidValue(row.definition_id);
     const definition = definitionsById.get(definitionId);
     if (definition === undefined || parsed.has(definitionId)) invalidResponse();
-    const fact = parseRetainedVenueFactRow(value, projectId, venueId, definition);
+    const fact = parseRetainedVenueFactRow(
+      value,
+      projectId,
+      venueId,
+      definition,
+    );
     if (factIds.has(fact.id)) invalidResponse();
     factIds.add(fact.id);
     parsed.set(definitionId, {
