@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.4`
 - Lot: `2`
 - Name: Observations, sources, evidence/confidence/freshness and conflicts
-- State: `REVIEW_FAILED`
-- Current pass: `B-ADVERSARIAL-REVIEW — WP2.4-B-008`
+- State: `REVIEW_PENDING`
+- Current pass: `B-ADVERSARIAL-REVIEW — fresh independent re-review after WP2.4-B-008`
 - Primary bounded context: `facts/evidence` for Venue targets
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Dependency: `WP-2.3 ACCEPTED`
@@ -24,6 +24,7 @@
 - Verified B-006 remediation head/run: `06c38444a2e859f59f590477bd43c40255463f3e` / `34131416659` — **5/5 SUCCESS**
 - Fresh re-review baseline after B-006: `29469d63eccc40d9b9ababd915b974378d3cc990`
 - Verified B-007 remediation head/run: `92e0f511d394448ccdcdd3143d29b4f2cf3df987` / `34134876299` — **5/5 SUCCESS**
+- Verified B-008 remediation head/run: `4b161f4120cf554395badcc5b05cac79eb018e70` / `34137075923` — **5/5 SUCCESS**
 
 ## Scope and frozen responsibilities
 
@@ -97,19 +98,21 @@ Remediation in `20260907150000_harden_venue_fact_rpc_timestamp_grammar.sql` move
 
 Exact-head verification run `34134876299` on `92e0f511d394448ccdcdd3143d29b4f2cf3df987`: **5/5 SUCCESS**, including Core quality/security, Local Supabase DB/RLS (`db:verify`), Browser E2E/mutation, privacy-safe preview and clean-checkout `npm run verify`.
 
-### `WP2.4-B-008` — MAJOR — OPEN
+### `WP2.4-B-008` — RESOLVED / VERIFIED
 
-Fresh independent Pass B found an observation/source-link canonicality bypass. The official application service accepts `isPrimary` only when `typeof value === "boolean"`; `null` returns `invalid_primary_flag`. The direct authenticated RPC `link_venue_fact_observation_source(uuid,uuid,uuid,boolean)` instead persists `coalesce(target_is_primary, false)`, so an explicit SQL/PostgREST `NULL` that the official TypeScript boundary rejects is silently committed as `false`.
+Fresh independent Pass B found an observation/source-link canonicality bypass. The official application service accepts `isPrimary` only when `typeof value === "boolean"`; `null` returns `invalid_primary_flag`. The direct authenticated RPC previously persisted `NULL` as `false` through `coalesce(target_is_primary, false)`, so a value rejected by the official TypeScript boundary could be silently committed.
 
-This violates WP-2.4's frozen database/RPC canonicality boundary and weakens the meaning of direct-RPC validation. It is MAJOR for the same boundary-integrity reason as prior B-003/B-004/B-007 findings even though the resulting stored column remains a valid boolean.
+Remediation in `20260907162000_harden_venue_fact_link_primary_parity.sql` moves the pre-hardening implementation behind client-inaccessible `link_venue_fact_observation_source_primary_core(...)` and places a canonical public wrapper in front of it that rejects `NULL` with SQLSTATE `22023` before mutation. `venue_fact_link_primary_parity_review_test.sql` proves the core is not executable by `authenticated`, rejected `NULL` leaves no link, canonical `false` creates exactly one relationship, and canonical `true` updates that same relationship without duplication.
 
-Required remediation is strictly bounded: reject `NULL` at the public RPC before mutation; keep the pre-hardening implementation behind a client-inaccessible core (or equivalently eliminate any bypassable permissive entrypoint); prove a rejected `NULL` creates/changes no link; prove canonical `false` and `true` still work; verify the core cannot be executed by `authenticated`; run exact-head full CI; then transition back to `REVIEW_PENDING` and perform another fresh independent Pass B.
+Exact-head verification run `34137075923` on `4b161f4120cf554395badcc5b05cac79eb018e70`: **5/5 SUCCESS**, including Core quality/security, Local Supabase DB/RLS (`db:verify`), Browser E2E/mutation, privacy-safe preview and clean-checkout `npm run verify`.
+
+Fresh independent Pass B is now required on this verified remediation baseline. B-001..B-008 and nearby locking/RLS/lifecycle/canonicality variants remain under attack. No BLOCKING/MAJOR is assumed closed merely from green remediation CI.
 
 Withdrawal preserving an existing retained pointer/value remains reviewed but not promoted: frozen contracts preserve evidence history and do not clearly mandate automatic retained-truth invalidation on withdrawal, so WP-2.4 must not invent that semantic.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started. Entry is prohibited while `WP2.4-B-008` is open. WP-2.5 is also prohibited concurrently.
+Not started. Entry remains prohibited until the fresh independent Pass B after B-008 completes with no open BLOCKING/MAJOR and the packet transitions to `ACCEPTANCE_PENDING`.
 
 ## Handoff
 
@@ -117,12 +120,12 @@ Not started. Entry is prohibited while `WP2.4-B-008` is open. WP-2.5 is also pro
 Lot: 2 — Venues core
 Branch: lot-2/venues-core
 Packet: WP-2.4
-State: REVIEW_FAILED
-Pass: B-ADVERSARIAL-REVIEW — WP2.4-B-008
+State: REVIEW_PENDING
+Pass: B-ADVERSARIAL-REVIEW — fresh independent re-review after WP2.4-B-008
 Primary Feature: FTR-020
 Dependency: WP-2.3 ACCEPTED
-Resolved/verified: WP2.4-B-001, WP2.4-B-002, WP2.4-B-003, WP2.4-B-004, WP2.4-B-005, WP2.4-B-006, WP2.4-B-007
-Open BLOCKING/MAJOR: WP2.4-B-008 MAJOR — NULL primary-link flag is silently normalized to false by direct RPC although TypeScript rejects it
-Latest verified remediation: 92e0f511d394448ccdcdd3143d29b4f2cf3df987 / 34134876299 — 5/5 SUCCESS
-Next action: remediate WP2.4-B-008 only, obtain exact-head full CI, transition to REVIEW_PENDING and perform another fresh independent Pass B. Pass C and WP-2.5 remain prohibited.
+Resolved/verified: WP2.4-B-001, WP2.4-B-002, WP2.4-B-003, WP2.4-B-004, WP2.4-B-005, WP2.4-B-006, WP2.4-B-007, WP2.4-B-008
+Open BLOCKING/MAJOR: none promoted yet from the fresh re-review
+Latest verified remediation: 4b161f4120cf554395badcc5b05cac79eb018e70 / 34137075923 — 5/5 SUCCESS
+Next action: perform a fresh independent Pass B on the verified B-008 baseline. Pass C and WP-2.5 remain prohibited until that review clears.
 ```
