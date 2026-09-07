@@ -247,11 +247,7 @@ export class SupabaseVenueFactEvidenceAdapter implements VenueFactEvidencePort {
       projectId,
       identity.definitionId,
     );
-    try {
-      return venueFactContextFromIdentity(identity, definition);
-    } catch {
-      fail("provider_response_invalid", CONTEXT_QUERY_FAILED);
-    }
+    return venueFactContextFromIdentity(identity, definition);
   }
 
   async createSource(
