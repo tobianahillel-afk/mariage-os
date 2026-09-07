@@ -100,7 +100,10 @@ async function compatibility(
     projectId: PROJECT_ID,
     venueId: VENUE_ID,
     evaluatedAt: overrides.evaluatedAt ?? EVALUATED_AT,
-    ...(Object.prototype.hasOwnProperty.call(overrides, "targetGuestCountOverride")
+    ...(Object.prototype.hasOwnProperty.call(
+      overrides,
+      "targetGuestCountOverride",
+    )
       ? { targetGuestCountOverride: overrides.targetGuestCountOverride }
       : {}),
   });
@@ -169,7 +172,9 @@ describe("venue compatibility dynamic recomputation", () => {
   it("preserves explicit-context provenance while recomputing without mutation", async () => {
     const input = compatibilityInputs();
     const before = JSON.stringify(input.snapshots);
-    const result = await compatibility(input, { targetGuestCountOverride: 180 });
+    const result = await compatibility(input, {
+      targetGuestCountOverride: 180,
+    });
     const derived = result?.evaluations.find(
       (item) => item.key === "target_guest_count_supported",
     );
@@ -273,7 +278,8 @@ describe("venue compatibility dynamic explanation fail-closed states", () => {
   it("exposes missing support-source dependency explicitly", async () => {
     const input = compatibilityInputs();
     const snapshots = input.snapshots.filter(
-      (snapshot) => snapshot.definition.key !== "two_dance_areas_max_guest_estimate",
+      (snapshot) =>
+        snapshot.definition.key !== "two_dance_areas_max_guest_estimate",
     );
     const result = await compatibility({ ...input, snapshots });
     expect(result?.dynamicGuestCountExplanation).toMatchObject({
