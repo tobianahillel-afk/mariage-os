@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1, WP-2.2 and WP-2.3 ACCEPTED; WP-2.4 is next after its recorded specification gate**
+Status: **IN_PROGRESS — WP-2.1, WP-2.2 and WP-2.3 ACCEPTED; WP-2.4 IN_PROGRESS / A-IMPLEMENT**
 
 Purpose: durable responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`.
 
@@ -51,7 +51,7 @@ The previously accepted Lot 0 + Lot 1 implementation was promoted to `main` thro
 
 Required current-lot responsibilities minus assigned packet responsibilities: **∅**.
 
-Accepted/evidenced packet responsibilities so far: **WP-2.1, WP-2.2 and WP-2.3**. Lot-level accepted/evidenced reconciliation is intentionally incomplete until all packets and the separate Integration Pass finish.
+Accepted/evidenced packet responsibilities so far: **WP-2.1, WP-2.2 and WP-2.3**. WP-2.4 is currently implementing its assigned evidence/provenance/conflict responsibilities. Lot-level accepted/evidenced reconciliation is intentionally incomplete until all packets and the separate Integration Pass finish.
 
 ## Work Packet plan
 
@@ -99,11 +99,15 @@ Boundary retained: observations/sources/conflict-resolution provenance remain WP
 
 ### WP-2.4 — Observations, sources, evidence/confidence/freshness and conflicts
 
-State: **PLANNED**
+State: **IN_PROGRESS**  
+Current pass: **A-IMPLEMENT**
 
 Primary Feature: FTR-020.  
 Dependencies: WP-2.3 **ACCEPTED**.  
-Pre-implementation stop-condition: first document the distinct semantics of `evidence_level` and separate `confidence = high|medium|low|unknown` without changing frozen Feature scope.
+Record: `WP-2.4.md`.  
+Pre-implementation stop-condition: **CLOSED** by `c414549d20338bf5180d5afc3681beda56fb11de`; `evidence_level`, independent `confidence`, freshness and fact state are now distinct normative axes.  
+Specification-gate CI run `34069692843`: **5/5 SUCCESS**, including clean-checkout `npm run verify`.  
+Current action: implement append-oriented observations, sources, many-to-many provenance links, evidence/confidence metadata, history-preserving supersession and protected conflict/retained-observation semantics; do not start WP-2.5 concurrently.
 
 ### WP-2.5 — Deterministic criteria, blockers, score/readiness and missing information
 
@@ -171,7 +175,7 @@ Provides the complete visit workflow and the final packet-owned synthetic venue 
 ```text
 WP-2.1 [ACCEPTED]
   ├─→ WP-2.2 [ACCEPTED]
-  ├─→ WP-2.3 [ACCEPTED] → WP-2.4 [next; spec gate first] → WP-2.5
+  ├─→ WP-2.3 [ACCEPTED] → WP-2.4 [IN_PROGRESS / A-IMPLEMENT] → WP-2.5
   ├─→ WP-2.6
   ├─→ WP-2.7
   └─→ WP-2.8 → WP-2.9
@@ -191,7 +195,7 @@ separate Lot 2 Integration Pass
 Lot 2 acceptance
 ```
 
-Default execution remains one packet `IN_PROGRESS` at a time. No new packet is in implementation at this acceptance checkpoint; the next permitted work is the localized WP-2.4 specification repair, followed by WP-2.4 Pass A kickoff.
+Default execution remains one packet `IN_PROGRESS` at a time. WP-2.4 is now the sole implementation packet; WP-2.5 remains PLANNED until WP-2.4 completes Pass A, fresh Pass B and Pass C acceptance.
 
 ## Explicitly out of Lot 2
 

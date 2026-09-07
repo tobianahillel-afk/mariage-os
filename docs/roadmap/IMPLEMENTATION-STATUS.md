@@ -51,7 +51,7 @@ Packets:
 1. `WP-2.1` — venue identity, authorized persistence and lifecycle-history foundation — **ACCEPTED**;
 2. `WP-2.2` — spaces, capacity and member ratings/preferences — **ACCEPTED**;
 3. `WP-2.3` — fact definitions, typed retained facts and value validation — **ACCEPTED**;
-4. `WP-2.4` — observations, sources, evidence/confidence/freshness and conflicts — **PLANNED; specification stop-condition must be reconciled before implementation**;
+4. `WP-2.4` — observations, sources, evidence/confidence/freshness and conflicts — **IN_PROGRESS / A-IMPLEMENT**;
 5. `WP-2.5` — deterministic criteria, blockers, score/readiness and missing information — **PLANNED**;
 6. `WP-2.6` — venue offers, availability, contacts and interactions basics — **PLANNED**;
 7. `WP-2.7` — contextual venue access-route observations — **PLANNED**;
@@ -122,24 +122,40 @@ Record: `lot-2/WP-2.3.md`.
 - Privacy-safe preview: **PASS**.
 - Scope fence preserved: no observation/source, criteria execution/readiness, UI, offline queue, import/export or Vendor-target completion is claimed.
 
+### WP-2.4 kickoff evidence
+
+Record: `lot-2/WP-2.4.md`.
+
+- State: **IN_PROGRESS**.
+- Current pass: **A-IMPLEMENT**.
+- Primary Feature: `FTR-020`.
+- Dependency: **WP-2.3 ACCEPTED**.
+- Pre-implementation evidence/confidence specification stop-condition: **CLOSED** by `c414549d20338bf5180d5afc3681beda56fb11de`.
+- Specification-gate CI run `34069692843`: **5/5 SUCCESS**, including clean-checkout `npm run verify`.
+- Required packet focus: append-oriented observations, sources/provenance, multi-source links, independent evidence/confidence/freshness semantics, conflict/history preservation and protected retained-observation resolution.
+- Pass B: **not started**.
+- Pass C: **not started**.
+
 ### Durable cursor
 
 - Current Lot: **2 — Venues core**
 - Lot state: **IN_PROGRESS**
 - Current branch: **`lot-2/venues-core`**
+- Current packet: **WP-2.4**
+- Packet state: **IN_PROGRESS**
+- Current pass: **A-IMPLEMENT**
 - Last completed packet: **WP-2.3 — ACCEPTED**
 - Accepted packets: **WP-2.1, WP-2.2, WP-2.3**
 - Review-failed packets: **none**
 - Open packet BLOCKING/MAJOR findings: **none**
-- Next planned packet: **WP-2.4**
-- WP-2.4 pre-implementation gate: **reconcile the normative distinction between `evidence_level` and separate `confidence = high|medium|low|unknown`; do not implement until documented**
-- Next permitted action: **perform that localized WP-2.4 specification repair, then create/kick off WP-2.4 Pass A; do not implement WP-2.5 concurrently.**
+- WP-2.4 pre-implementation gate: **CLOSED** — evidence level and independent confidence semantics documented and exact-head CI green.
+- Next permitted action: **implement WP-2.4 only, obtain exact-head verification, then transition to REVIEW_PENDING for a fresh Pass B; do not implement WP-2.5 concurrently.**
 
 ## Known localized specification repairs
 
 These are recorded stop-conditions for the owning later packets, not permission to invent behavior:
 
-- before WP-2.4 implements `fact_observations`, reconcile the normative distinction between `evidence_level` and the separate `confidence = high|medium|low|unknown` field;
+- WP-2.4 gate **CLOSED**: `evidence_level` is now explicitly distinct from `confidence = high|medium|low|unknown`, freshness and fact state; repair commit `c414549d20338bf5180d5afc3681beda56fb11de`, CI `34069692843` 5/5 SUCCESS;
 - before WP-2.5 implements `evidenceReadiness`, document its deterministic formula in `domain/CRITERIA-EVALUATION.md`;
 - before WP-2.5 executes or seeds `custom_manual_assessment`, freeze the exact representation of its configured acceptable value for the supported boolean/select/rating cases; WP-2.3 stores/validates only the currently frozen structural marker and does not execute it;
 - before WP-2.8 relies on the security reading graph, repair the missing `docs/security/STORAGE-RLS.md` reference using the already frozen Storage/RLS rules and tested Lot-1 policies.
@@ -164,10 +180,11 @@ The Venue lifecycle documentation conflict discovered during WP-2.1 is closed by
 - `FTR-013` and `FTR-014` remain feature-level **IN_PROGRESS** because later Lot-2 UI/local/deep-link/duplicate responsibilities remain.
 - `FTR-018`, `FTR-023` and `FTR-012` remain feature-level **IN_PROGRESS** because later Lot-2 UI/local/read-model responsibilities remain.
 - `FTR-019` remains feature-level **IN_PROGRESS** until Lot-level integration/acceptance; WP-2.3 responsibility-level reconciliation is nevertheless complete and ACCEPTED.
+- `FTR-020` is feature-level **IN_PROGRESS** while WP-2.4 implements its Lot-2 evidence/provenance/conflict responsibilities.
 
 ## Current blockers / forward maintenance
 
-Open Lot 2 review findings: **none**. The next hard gate is the WP-2.4 localized specification repair described above.
+Open Lot 2 review findings: **none**. WP-2.4 is the sole packet in implementation; its prior specification stop-condition is closed.
 
 Reviewed non-blocking maintenance:
 
@@ -200,7 +217,10 @@ WP-2.3 Fresh Pass B: PASS
 WP-2.3 Pass C: PASS
 WP-2.3 responsibility gap: ∅
 Open WP-2.3 findings: none
-Next planned packet: WP-2.4
-Next gate: reconcile evidence_level vs separate confidence semantics before WP-2.4 implementation
+WP-2.4 specification repair head: c414549d20338bf5180d5afc3681beda56fb11de
+WP-2.4 specification repair CI: 34069692843 — 5/5 SUCCESS
+Current packet: WP-2.4
+Current state/pass: IN_PROGRESS / A-IMPLEMENT
+Next action: implement WP-2.4 only; WP-2.5 remains PLANNED
 Lots 3–12: NOT_STARTED
 ```

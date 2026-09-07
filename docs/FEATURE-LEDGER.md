@@ -41,7 +41,7 @@ Before implementation gate opens, every V1 row remains `SPECIFIED`.
 | FTR-017 | Venue detail summary-first workspace | 2 | SCREEN-CONTRACTS, VENUES | SPECIFIED |
 | FTR-018 | Venue spaces/dimensions/capacity/configuration | 2 | VENUES, PHYSICAL-SCHEMA | IN_PROGRESS |
 | FTR-019 | Typed facts/criteria retained value | 2 | FACTS-SOURCES, FACT-VALUE-TYPES | IN_PROGRESS |
-| FTR-020 | Multi-source observations/provenance/conflict | 2 | FACTS-SOURCES, CONFIDENCE-FRESHNESS | SPECIFIED |
+| FTR-020 | Multi-source observations/provenance/conflict | 2 | FACTS-SOURCES, CONFIDENCE-FRESHNESS | IN_PROGRESS |
 | FTR-021 | Deterministic criterion evaluation / blockers / score explanation | 2 | CRITERIA-EVALUATION | SPECIFIED |
 | FTR-022 | Missing/stale/conflicting information guidance | 2/3 | VENUES, TASKS | SPECIFIED |
 | FTR-023 | Individual partner favorites/ratings/preferences | 2 | RLS, PHYSICAL-SCHEMA | IN_PROGRESS |
