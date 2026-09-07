@@ -20,13 +20,13 @@ select ok(
 select has_function(
   'public',
   'create_venue_fact_source',
-  array['uuid','text','text','text','text','timestamp with time zone','text','text'],
+  array['uuid','text','text','text','text','text','text','text'],
   'create source RPC exists'
 );
 select has_function(
   'public',
   'append_venue_fact_observation',
-  array['uuid','uuid','jsonb','text','text','text','timestamp with time zone','text','uuid'],
+  array['uuid','uuid','jsonb','text','text','text','text','text','uuid'],
   'append observation RPC exists'
 );
 select has_function(
@@ -118,7 +118,7 @@ declare result_row jsonb;
 begin
   result_row := public.create_venue_fact_source(
     p, t, 'Synthetic source', 'https://example.com/evidence', l,
-    now(), 'notes', s
+    '2026-09-07T10:11:12Z', 'notes', s
   );
   return (result_row ->> 'id')::uuid;
 exception when others then
@@ -131,7 +131,7 @@ create function pg_temp.try_observation(
 declare result_row jsonb;
 begin
   result_row := public.append_venue_fact_observation(
-    p, f, v, 'raw evidence', l, c, now(), 'note', supersedes
+    p, f, v, 'raw evidence', l, c, '2026-09-07T10:11:12Z', 'note', supersedes
   );
   return (result_row ->> 'id')::uuid;
 exception when others then
