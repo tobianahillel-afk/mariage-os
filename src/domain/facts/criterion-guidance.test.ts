@@ -1,12 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { evaluateCriterion } from "./criterion-evaluation";
 import { classifyCriterionGuidance } from "./criterion-guidance";
+import type { FactObservationStatus } from "./fact-evidence-types";
 import type {
   CriterionDefinition,
   CriterionFactSnapshot,
 } from "./criterion-types";
 
 const EVALUATED_AT = "2026-09-07T18:00:00Z";
+
+interface SnapshotEvidence {
+  readonly retainedObservationStatus?: FactObservationStatus | null;
+  readonly staleAt?: string | null;
+}
 
 function definition(
   key: string,
@@ -29,15 +35,17 @@ function snapshot(
   current: CriterionDefinition,
   state: CriterionFactSnapshot["state"],
   retainedValue: unknown,
-  observation: CriterionFactSnapshot["retainedObservationStatus"] = "active",
-  staleAt: string | null = null,
+  evidence: SnapshotEvidence = {},
 ): CriterionFactSnapshot {
   return {
     definition: current,
     state,
     retainedValue,
-    retainedObservationStatus: observation,
-    staleAt,
+    retainedObservationStatus:
+      evidence.retainedObservationStatus === undefined
+        ? "active"
+        : evidence.retainedObservationStatus,
+    staleAt: evidence.staleAt ?? null,
   };
 }
 
@@ -56,9 +64,11 @@ function kinds(
   ).map((guidance) => guidance.kind);
 }
 
-describe("criterion guidance", () => {
+describe("criterion guidance classification", () => {
   it("can expose missing information and missing evidence together", () => {
-    const item = snapshot(definition("rain_plan"), null, null, null);
+    const item = snapshot(definition("rain_plan"), null, null, {
+      retainedObservationStatus: null,
+    });
     expect(kinds(item)).toEqual([
       "missing_or_unknown",
       "retained_evidence_missing_or_non_active",
@@ -67,19 +77,12 @@ describe("criterion guidance", () => {
 
   it("classifies conflict, staleness, evidence and configuration", () => {
     const conflict = snapshot(definition("parking"), "conflict", null);
-    const stale = snapshot(
-      definition("music_until"),
-      "known",
-      true,
-      "active",
-      EVALUATED_AT,
-    );
-    const inactive = snapshot(
-      definition("accommodation"),
-      "known",
-      true,
-      "withdrawn",
-    );
+    const stale = snapshot(definition("music_until"), "known", true, {
+      staleAt: EVALUATED_AT,
+    });
+    const inactive = snapshot(definition("accommodation"), "known", true, {
+      retainedObservationStatus: "withdrawn",
+    });
     const malformed = snapshot(
       definition("access", { evaluationRuleJson: null }),
       "known",
@@ -107,7 +110,9 @@ describe("criterion guidance", () => {
     expect(kinds(notApplicable)).toEqual([]);
     expect(kinds(bonus)).toEqual([]);
   });
+});
 
+describe("criterion guidance derived evidence", () => {
   it("uses source evidence for the derived guest-count criterion", () => {
     const derived = snapshot(
       definition("target_guest_count_supported", {
@@ -119,7 +124,7 @@ describe("criterion guidance", () => {
       }),
       null,
       null,
-      null,
+      { retainedObservationStatus: null },
     );
     const ceiling = snapshot(
       definition("two_dance_areas_max_guest_estimate", {
@@ -132,8 +137,7 @@ describe("criterion guidance", () => {
       }),
       "known",
       170,
-      "active",
-      "2026-09-07T17:00:00Z",
+      { staleAt: "2026-09-07T17:00:00Z" },
     );
     expect(kinds(derived, [derived, ceiling])).toEqual(["stale"]);
   });
