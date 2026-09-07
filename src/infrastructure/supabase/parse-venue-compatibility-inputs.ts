@@ -139,10 +139,8 @@ function parseFacts(
   return parsed;
 }
 
-function observationStatuses(
-  rows: readonly unknown[],
+function expectedObservationFacts(
   facts: ReadonlyMap<string, ParsedFact>,
-  projectId: string,
 ): ReadonlyMap<string, string> {
   const expected = new Map<string, string>();
   for (const fact of facts.values()) {
@@ -150,21 +148,35 @@ function observationStatuses(
       expected.set(fact.retainedObservationId, fact.record.id);
     }
   }
+  return expected;
+}
+
+function observationStatusRow(
+  value: unknown,
+  expected: ReadonlyMap<string, string>,
+  projectId: string,
+): readonly [string, string] {
+  const row = recordValue(value);
+  const id = uuidValue(row.id);
+  const expectedFactId = expected.get(id);
+  if (expectedFactId === undefined) invalidResponse();
+  if (uuidValue(row.project_id) !== projectId) invalidResponse();
+  if (uuidValue(row.fact_id) !== expectedFactId) invalidResponse();
+  if (!isFactObservationStatus(row.observation_status)) invalidResponse();
+  return [id, row.observation_status];
+}
+
+function observationStatuses(
+  rows: readonly unknown[],
+  facts: ReadonlyMap<string, ParsedFact>,
+  projectId: string,
+): ReadonlyMap<string, string> {
+  const expected = expectedObservationFacts(facts);
   const statuses = new Map<string, string>();
   for (const value of rows) {
-    const row = recordValue(value);
-    const id = uuidValue(row.id);
-    const expectedFactId = expected.get(id);
-    if (
-      expectedFactId === undefined ||
-      uuidValue(row.project_id) !== projectId ||
-      uuidValue(row.fact_id) !== expectedFactId ||
-      !isFactObservationStatus(row.observation_status) ||
-      statuses.has(id)
-    ) {
-      invalidResponse();
-    }
-    statuses.set(id, row.observation_status);
+    const [id, status] = observationStatusRow(value, expected, projectId);
+    if (statuses.has(id)) invalidResponse();
+    statuses.set(id, status);
   }
   if (statuses.size !== expected.size) invalidResponse();
   return statuses;
