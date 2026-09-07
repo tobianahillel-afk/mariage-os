@@ -102,12 +102,8 @@ export interface ResolveVenueFactObservationInput {
 
 export interface VenueFactEvidencePort {
   getFactContext(projectId: string, factId: string): Promise<VenueFactContext>;
-  createSource(
-    input: CreateVenueFactSourceInput,
-  ): Promise<VenueFactSourceRecord>;
-  updateSource(
-    input: UpdateVenueFactSourceInput,
-  ): Promise<VenueFactSourceRecord>;
+  createSource(input: CreateVenueFactSourceInput): Promise<VenueFactSourceRecord>;
+  updateSource(input: UpdateVenueFactSourceInput): Promise<VenueFactSourceRecord>;
   appendObservation(
     input: AppendVenueFactObservationInput,
   ): Promise<VenueFactObservationRecord>;
@@ -157,9 +153,7 @@ type EvidenceDomainError =
   | FactResolutionError
   | VenueRevisionError
   | "invalid_primary_flag";
-type EvidenceMutationError =
-  | EvidenceDomainError
-  | VenueFactPersistenceErrorCode;
+type EvidenceMutationError = EvidenceDomainError | VenueFactPersistenceErrorCode;
 
 export type SourceMutationResult =
   | { readonly ok: true; readonly source: VenueFactSourceRecord }
