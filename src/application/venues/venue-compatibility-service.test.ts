@@ -103,10 +103,11 @@ describe("venue compatibility read model", () => {
       ...input,
       snapshots: [
         {
-          ...input.snapshots[0],
+          definition: definition("parking"),
           state: null,
           retainedValue: null,
           retainedObservationStatus: null,
+          staleAt: null,
         },
       ],
     } satisfies VenueCompatibilityInputs;
