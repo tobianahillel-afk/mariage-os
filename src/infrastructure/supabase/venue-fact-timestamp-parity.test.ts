@@ -125,3 +125,62 @@ it("parses PostgreSQL microsecond freshness fields to canonical milliseconds", (
     staleAt: "2026-10-07T10:13:14.654Z",
   });
 });
+
+it("rejects provider timestamps outside the strict calendar/domain envelope", () => {
+  expect(() =>
+    parseVenueFactSourceRow(
+      {
+        id: sourceId,
+        project_id: projectId,
+        source_type: "written_confirmation",
+        title: "Venue email",
+        url: null,
+        evidence_level: "confirmed_for_event",
+        observed_at: "2026-02-30T10:10:11+00:00",
+        notes: null,
+        status: "active",
+        revision: 1,
+      },
+      projectId,
+      sourceId,
+    ),
+  ).toThrow("Invalid venue fact evidence response.");
+
+  expect(() =>
+    parseVenueFactObservationRow(
+      {
+        id: observationId,
+        project_id: projectId,
+        fact_id: factId,
+        value: true,
+        raw_value_text: null,
+        evidence_level: "confirmed_for_event",
+        confidence: "high",
+        observation_status: "active",
+        superseded_by_observation_id: null,
+        observed_at: "0000-12-31T23:59:59+00:00",
+        note: null,
+        created_by: actorId,
+      },
+      context,
+      observationId,
+    ),
+  ).toThrow("Invalid venue fact evidence response.");
+
+  expect(() =>
+    parseVenueFactFreshnessRow(
+      {
+        id: factId,
+        project_id: projectId,
+        target_type: "venue",
+        target_id: venueId,
+        definition_id: definitionId,
+        revision: 3,
+        last_verified_at: "10000-01-01T00:00:00+00:00",
+        stale_at: null,
+      },
+      projectId,
+      factId,
+    ),
+  ).toThrow("Invalid venue fact freshness response.");
+});

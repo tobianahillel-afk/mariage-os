@@ -42,6 +42,18 @@ Examples:
 
 Store as timezone-aware instant (`timestamptz`), transport ISO-8601, normally UTC, localize for display.
 
+For the V1 Facts/evidence boundary, the accepted transport grammar is deliberately narrower and deterministic:
+
+- `YYYY-MM-DDTHH:mm:ss[.ffffff](Z|±HH:mm)`;
+- calendar year must be `0001..9999` and the Gregorian month/day must exist;
+- hour is `00..23`; minute and second are `00..59`; leap-second `:60` and `24:00` forms are rejected;
+- fractional seconds are optional with `1..6` digits; PostgreSQL microseconds remain representable and the TypeScript domain canonicalizes reads to milliseconds without rounding;
+- numeric offsets are bounded to absolute `14:00`; when offset hour is `14`, offset minutes must be `00`;
+- after applying the offset, the canonical UTC instant itself must remain in the four-digit-year domain from `0001-01-01T00:00:00.000Z` through `9999-12-31T23:59:59.999999Z` at PostgreSQL precision;
+- canonical TypeScript output is UTC `YYYY-MM-DDTHH:mm:ss.sssZ`.
+
+Invalid calendar values are rejected before timezone conversion; normalization must never turn an impossible input such as 30 February into another civil date. Database constraints for WP-2.4 evidence/freshness/resolution timestamps mirror the same UTC year-domain envelope so a direct RPC or privileged write cannot persist an instant that the official provider parser cannot read back.
+
 ### Local date-time tied to event timezone
 
 Examples:
