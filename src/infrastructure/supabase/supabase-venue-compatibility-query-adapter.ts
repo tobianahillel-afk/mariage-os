@@ -81,7 +81,12 @@ async function listRows(
   columns: string,
   filters: readonly QueryFilter[],
 ): Promise<readonly unknown[]> {
-  const { data, error } = await filteredQuery(client, table, columns, filters);
+  const { data, error } = await filteredQuery(
+    client,
+    table,
+    columns,
+    filters,
+  );
   if (error !== null || !Array.isArray(data)) queryFailure();
   return data;
 }
@@ -114,9 +119,12 @@ export class SupabaseVenueCompatibilityQueryAdapter
     venueId: string,
   ): Promise<VenueCompatibilityInputs | null> {
     try {
-      const project = await maybeRow(this.client, "projects", PROJECT_COLUMNS, [
-        ["id", projectId],
-      ]);
+      const project = await maybeRow(
+        this.client,
+        "projects",
+        PROJECT_COLUMNS,
+        [["id", projectId]],
+      );
       if (project === null) return null;
       const venue = await maybeRow(this.client, "venues", VENUE_COLUMNS, [
         ["project_id", projectId],

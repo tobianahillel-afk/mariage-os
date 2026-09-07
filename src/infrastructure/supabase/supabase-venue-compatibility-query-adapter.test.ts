@@ -75,7 +75,10 @@ function successResults(
   overrides: Partial<Record<TableName, Result>> = {},
 ): Results {
   return {
-    projects: { data: { id: PROJECT_ID, target_guest_count: 160 }, error: null },
+    projects: {
+      data: { id: PROJECT_ID, target_guest_count: 160 },
+      error: null,
+    },
     venues: { data: { id: VENUE_ID, project_id: PROJECT_ID }, error: null },
     fact_definitions: { data: [definitionRow()], error: null },
     facts: { data: [factRow()], error: null },
@@ -144,8 +147,10 @@ function adapterWith(
 describe("SupabaseVenueCompatibilityQueryAdapter reads", () => {
   it("loads project-scoped compatibility inputs and retained evidence", async () => {
     const captures: QueryCapture[] = [];
-    const result = await adapterWith(successResults(), captures)
-      .loadVenueCompatibilityInputs(PROJECT_ID, VENUE_ID);
+    const result = await adapterWith(
+      successResults(),
+      captures,
+    ).loadVenueCompatibilityInputs(PROJECT_ID, VENUE_ID);
     expect(result).toMatchObject({
       projectId: PROJECT_ID,
       venueId: VENUE_ID,
@@ -214,9 +219,15 @@ describe("SupabaseVenueCompatibilityQueryAdapter absence handling", () => {
 describe("SupabaseVenueCompatibilityQueryAdapter failures", () => {
   it.each([
     ["project provider error", { projects: { data: null, error: {} } }],
-    ["non-array definitions", { fact_definitions: { data: {}, error: null } }],
+    [
+      "non-array definitions",
+      { fact_definitions: { data: {}, error: null } },
+    ],
     ["fact provider error", { facts: { data: null, error: {} } }],
-    ["observation provider error", { fact_observations: { data: null, error: {} } }],
+    [
+      "observation provider error",
+      { fact_observations: { data: null, error: {} } },
+    ],
   ])("fails closed for %s", async (_label, overrides) => {
     const results = successResults(overrides);
     await expect(

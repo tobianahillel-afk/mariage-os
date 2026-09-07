@@ -117,10 +117,12 @@ describe("parseVenueCompatibilityInputs", () => {
   it("accepts a null project target and a known fact without evidence", () => {
     const rows = baseRows();
     rows.project = { id: PROJECT_ID, target_guest_count: null };
-    rows.facts = [factRow(PARKING_DEFINITION_ID, {
-      retained_observation_id: null,
-      stale_at: null,
-    })];
+    rows.facts = [
+      factRow(PARKING_DEFINITION_ID, {
+        retained_observation_id: null,
+        stale_at: null,
+      }),
+    ];
     rows.observations = [];
     const result = parse(rows);
     expect(result.projectTargetGuestCount).toBeNull();
@@ -145,11 +147,14 @@ describe("parseVenueCompatibilityInputs identity validation", () => {
     expect(() => parse(rows)).toThrow("Invalid venue compatibility response.");
   });
 
-  it.each([-1, 1.5])("rejects invalid project target %#", (targetGuestCount) => {
-    const rows = baseRows();
-    rows.project = { id: PROJECT_ID, target_guest_count: targetGuestCount };
-    expect(() => parse(rows)).toThrow("Invalid venue compatibility response.");
-  });
+  it.each([-1, 1.5])(
+    "rejects invalid project target %#",
+    (targetGuestCount) => {
+      const rows = baseRows();
+      rows.project = { id: PROJECT_ID, target_guest_count: targetGuestCount };
+      expect(() => parse(rows)).toThrow("Invalid venue compatibility response.");
+    },
+  );
 });
 
 describe("parseVenueCompatibilityInputs fact validation", () => {
@@ -179,11 +184,15 @@ describe("parseVenueCompatibilityInputs fact validation", () => {
 
   it("rejects malformed freshness and retained observation ids", () => {
     const rows = baseRows();
-    rows.facts = [factRow(PARKING_DEFINITION_ID, { stale_at: "not-an-instant" })];
+    rows.facts = [
+      factRow(PARKING_DEFINITION_ID, { stale_at: "not-an-instant" }),
+    ];
     expect(() => parse(rows)).toThrow("Invalid venue compatibility response.");
-    rows.facts = [factRow(PARKING_DEFINITION_ID, {
-      retained_observation_id: "bad",
-    })];
+    rows.facts = [
+      factRow(PARKING_DEFINITION_ID, {
+        retained_observation_id: "bad",
+      }),
+    ];
     expect(() => parse(rows)).toThrow("Invalid venue compatibility response.");
   });
 });

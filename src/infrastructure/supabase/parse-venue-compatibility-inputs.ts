@@ -93,7 +93,9 @@ function definitions(
   rows: readonly unknown[],
   projectId: string,
 ): readonly VenueFactDefinitionRecord[] {
-  const parsed = rows.map((row) => parseVenueFactDefinitionRow(row, projectId));
+  const parsed = rows.map((row) =>
+    parseVenueFactDefinitionRow(row, projectId),
+  );
   const ids = new Set(parsed.map((item) => item.id));
   const keys = new Set(parsed.map((item) => item.key));
   if (ids.size !== parsed.length || keys.size !== parsed.length) invalidResponse();
@@ -196,7 +198,9 @@ function snapshots(
   );
 }
 
-export function retainedObservationIds(rows: readonly unknown[]): readonly string[] {
+export function retainedObservationIds(
+  rows: readonly unknown[],
+): readonly string[] {
   const ids = rows.flatMap((value) => {
     const retainedId = recordValue(value).retained_observation_id;
     return retainedId === null ? [] : [uuidValue(retainedId)];
@@ -210,7 +214,12 @@ export function parseVenueCompatibilityInputs(
   venueId: string,
 ): VenueCompatibilityInputs {
   const parsedDefinitions = definitions(rows.definitions, projectId);
-  const parsedFacts = parseFacts(rows.facts, parsedDefinitions, projectId, venueId);
+  const parsedFacts = parseFacts(
+    rows.facts,
+    parsedDefinitions,
+    projectId,
+    venueId,
+  );
   const statuses = observationStatuses(rows.observations, parsedFacts, projectId);
   validateVenue(rows.venue, projectId, venueId);
   return Object.freeze({
