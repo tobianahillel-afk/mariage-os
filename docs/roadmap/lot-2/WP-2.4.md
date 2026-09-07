@@ -5,13 +5,15 @@
 - Work Packet ID: `WP-2.4`
 - Lot: `2`
 - Name: Observations, sources, evidence/confidence/freshness and conflicts
-- State: `IN_PROGRESS`
-- Current pass: `A-IMPLEMENT`
+- State: `REVIEW_PENDING`
+- Current pass: `B-ADVERSARIAL`
 - Primary bounded context: `facts/evidence` for Venue targets
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Dependencies: `WP-2.3 ACCEPTED`
 - Specification gate: **CLOSED** by `c414549d20338bf5180d5afc3681beda56fb11de`
 - Specification-gate CI: run `34069692843` — **5/5 SUCCESS**, including clean-checkout `npm run verify`
+- Reviewed Pass-A implementation head: `9f3ca2fb57adf124e50bf8c4888280854c5d846f`
+- Pass-A implementation CI: run `34106264873` — **5/5 SUCCESS**, including clean-checkout `npm run verify`
 
 ## Scope
 
@@ -100,58 +102,78 @@ This packet is intentionally kept cohesive despite crossing the normal planning 
 | protected append/supersession/resolution command family | 2+ |
 | **Total** | **>10** |
 
-The packet remains unsplit under the orchestration exception because splitting source/link persistence from append/supersession/retained-observation integrity would temporarily create an evidence store whose history or retained-truth relationship could be mutated without the final safety boundary. The implementation must still keep individual modules/functions/RPCs small and independently testable. If Pass A reveals that this cohesion cannot be maintained within repository complexity limits, the packet must be split before declaring `REVIEW_PENDING`.
+The packet remains unsplit under the orchestration exception because splitting source/link persistence from append/supersession/retained-observation integrity would temporarily create an evidence store whose history or retained-truth relationship could be mutated without the final safety boundary. Pass A maintained repository complexity limits without requiring a split.
 
 ## Pass A — IMPLEMENT
 
-### Planned implementation evidence
+### Implementation evidence
 
 Domain/application:
 
 - evidence/source type unions and runtime validators;
-- observation/source drafts and canonical normalization;
-- application commands for source persistence, observation append/supersession and explicit retained-observation resolution;
-- tests for null/non-null normalized values, evidence/confidence separation, source lifecycle, history preservation and safe conflict behavior.
+- observation/source drafts, canonical normalization and freshness/resolution semantics;
+- application services for source persistence, observation append, source linking, explicit retained-observation resolution, freshness transition and observation withdrawal;
+- tests for nullable/non-null normalized values, evidence/confidence separation, source lifecycle, history preservation, fail-closed transitions and conflict behavior.
 
 Infrastructure:
 
 - Supabase adapters/parsers with fail-closed response validation and typed safe persistence errors;
-- provider mappings must not leak raw PostgREST errors or collapse authorization/integrity/conflict failures into false success.
+- provider mappings reject malformed UUID/revision/shape responses and do not expose raw PostgREST errors;
+- separate evidence, freshness and observation-lifecycle adapter/parser boundaries keep protected operations explicit.
 
 Persistence/security:
 
-- ordered migration for `fact_observations`, `sources`, `observation_sources` plus safe extension of `facts` observation/resolution fields;
-- explicit grants/RLS and narrow privileged commands where append/supersession/resolution cannot be safely expressed through ordinary table mutation;
-- direct pgTAP allow/deny matrix for owner, anon, outsider, project-B, revoked and disallowed-role cases;
-- same-project fact/source/observation links and cross-project injection denial;
-- append/history immutability and retained-observation validity tests.
+- `20260907074000_create_venue_fact_evidence.sql`;
+- `20260907083000_add_venue_fact_freshness_transition.sql`;
+- `20260907084500_add_venue_fact_observation_withdrawal.sql`;
+- project-scoped `fact_observations`, `sources`, `observation_sources` and protected `facts` resolution metadata;
+- explicit grants/RLS and privileged command boundaries for append/link/resolution/freshness/withdrawal semantics;
+- direct pgTAP coverage for evidence persistence, freshness transitions, observation withdrawal, same-project integrity and inherited facts security.
 
-Quality:
+Exact reviewed Pass-A evidence — GitHub Actions run `34106264873` on `9f3ca2fb57adf124e50bf8c4888280854c5d846f`: **5/5 SUCCESS**.
 
-- unit/property tests for evidence/confidence/status/value validation;
-- provider/parser malformed-response tests;
-- exact-head `npm run verify` and full CI before Pass A may transition to `REVIEW_PENDING`.
+- **Core quality and security: SUCCESS**
+  - **79 test files / 807 tests PASS**;
+  - measured coverage **100% statements / branches / functions / lines**;
+  - typecheck, Prettier, ESLint, architecture/dependency checks, dead-code checks, debt-marker policy, negative quality/security controls, dependency gate and build PASS.
+- **Local Supabase DB and RLS: SUCCESS**
+  - **29 files / 664 pgTAP tests PASS** after full reset/migration application.
+- **Browser and mutation harnesses: SUCCESS**
+  - **40/40 Playwright E2E PASS** across Chromium, Firefox, WebKit and mobile Chromium;
+  - mutation score **82.50%**, PASS under the repository-configured gate.
+- **Privacy-safe preview artifact: SUCCESS**.
+- **Full verify from clean checkout: SUCCESS** with `npm run verify`.
+
+Dependency audit continues to report only the previously reviewed two Moderate transitive development-tool advisories; no accepted-known Critical/High vulnerability is introduced by this packet.
 
 ### Pass A exit checklist
 
-- [ ] all packet-owned schema/resources implemented
-- [ ] all ordinary and privileged mutation paths enforce authorization and same-project integrity
-- [ ] observation values reuse WP-2.3 canonical validation
-- [ ] append/supersession preserves history
-- [ ] multi-source links preserve one observation with many sources
-- [ ] weaker/new evidence cannot silently replace retained truth
-- [ ] conflict/resolution metadata is validated and auditable
-- [ ] evidence/confidence/freshness remain separate
-- [ ] direct DB/RLS security matrix green
-- [ ] provider/domain tests green
-- [ ] architecture/static/complexity gates green
-- [ ] exact implementation HEAD has full CI evidence
+- [x] all packet-owned schema/resources implemented
+- [x] all ordinary and privileged mutation paths have implementation and direct authorization/same-project test evidence
+- [x] observation values reuse WP-2.3 canonical validation
+- [x] append/supersession/withdrawal paths preserve historical rows
+- [x] multi-source links preserve one observation with many sources
+- [x] observation append is distinct from retained-truth mutation
+- [x] conflict/resolution metadata has validated protected transition coverage
+- [x] evidence/confidence/freshness remain separate in the implementation contract
+- [x] direct DB/RLS security matrix green
+- [x] provider/domain tests green
+- [x] architecture/static/complexity gates green
+- [x] exact implementation HEAD has full CI evidence
 
-When these are all satisfied, transition to `REVIEW_PENDING`; do not self-accept.
+Pass A decision: **PASS / REVIEW_PENDING**. This is not packet acceptance; all semantic/security claims above remain subject to fresh Pass B attack.
 
 ## Pass B — ADVERSARIAL REVIEW
 
-Not started. A fresh review must reconstruct expected behavior from the frozen facts/evidence/security contracts after Pass A reaches `REVIEW_PENDING`.
+**IN PROGRESS.** Fresh review must reconstruct expected behavior from the frozen facts/evidence/security contracts and attack the reviewed Pass-A head independently rather than trusting Pass-A conclusions.
+
+Review baseline:
+
+- implementation head: `9f3ca2fb57adf124e50bf8c4888280854c5d846f`;
+- exact-head CI: `34106264873` — **5/5 SUCCESS**;
+- open Pass-B findings at entry: **none yet**.
+
+Pass B must explicitly attack observation/source immutability, supersession/withdrawal lifecycle, retained-observation validity after lifecycle changes, same-project composite integrity, direct table/RPC grants and RLS, role/revocation boundaries, conflict-resolution races, freshness temporal invariants, provider/parser fail-closed behavior, evidence/confidence independence and scope fences. Green Pass-A CI is evidence, not a substitute for this review.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
@@ -163,11 +185,17 @@ Not started. Entry requires Pass B with no unresolved BLOCKING/MAJOR findings an
 Lot: 2 — Venues core
 Branch: lot-2/venues-core
 Packet: WP-2.4
-State: IN_PROGRESS
-Pass: A-IMPLEMENT
+State: REVIEW_PENDING
+Pass: B-ADVERSARIAL
 Primary Feature: FTR-020
 Dependency: WP-2.3 ACCEPTED
 Specification stop-condition: CLOSED at c414549d20338bf5180d5afc3681beda56fb11de
 Specification-gate CI: 34069692843 — 5/5 SUCCESS
-Next action: implement WP-2.4 only; do not start WP-2.5 concurrently
+Reviewed Pass-A implementation head: 9f3ca2fb57adf124e50bf8c4888280854c5d846f
+Pass-A implementation CI: 34106264873 — 5/5 SUCCESS
+Unit: 79 files / 807 tests PASS; coverage 100% statements/branches/functions/lines
+DB/RLS: 29 files / 664 pgTAP tests PASS
+Browser: 40/40 Playwright PASS; mutation 82.50% PASS
+Open WP-2.4 Pass-B findings: none yet
+Next action: perform fresh WP-2.4 Pass B only; do not start WP-2.5 concurrently
 ```

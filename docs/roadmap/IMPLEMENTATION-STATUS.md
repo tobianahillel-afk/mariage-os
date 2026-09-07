@@ -51,7 +51,7 @@ Packets:
 1. `WP-2.1` — venue identity, authorized persistence and lifecycle-history foundation — **ACCEPTED**;
 2. `WP-2.2` — spaces, capacity and member ratings/preferences — **ACCEPTED**;
 3. `WP-2.3` — fact definitions, typed retained facts and value validation — **ACCEPTED**;
-4. `WP-2.4` — observations, sources, evidence/confidence/freshness and conflicts — **IN_PROGRESS / A-IMPLEMENT**;
+4. `WP-2.4` — observations, sources, evidence/confidence/freshness and conflicts — **REVIEW_PENDING / B-ADVERSARIAL**;
 5. `WP-2.5` — deterministic criteria, blockers, score/readiness and missing information — **PLANNED**;
 6. `WP-2.6` — venue offers, availability, contacts and interactions basics — **PLANNED**;
 7. `WP-2.7` — contextual venue access-route observations — **PLANNED**;
@@ -122,18 +122,25 @@ Record: `lot-2/WP-2.3.md`.
 - Privacy-safe preview: **PASS**.
 - Scope fence preserved: no observation/source, criteria execution/readiness, UI, offline queue, import/export or Vendor-target completion is claimed.
 
-### WP-2.4 kickoff evidence
+### WP-2.4 Pass-A evidence / Pass-B entry
 
 Record: `lot-2/WP-2.4.md`.
 
-- State: **IN_PROGRESS**.
-- Current pass: **A-IMPLEMENT**.
+- State: **REVIEW_PENDING**.
+- Current pass: **B-ADVERSARIAL**.
 - Primary Feature: `FTR-020`.
 - Dependency: **WP-2.3 ACCEPTED**.
 - Pre-implementation evidence/confidence specification stop-condition: **CLOSED** by `c414549d20338bf5180d5afc3681beda56fb11de`.
 - Specification-gate CI run `34069692843`: **5/5 SUCCESS**, including clean-checkout `npm run verify`.
-- Required packet focus: append-oriented observations, sources/provenance, multi-source links, independent evidence/confidence/freshness semantics, conflict/history preservation and protected retained-observation resolution.
-- Pass B: **not started**.
+- Reviewed Pass-A implementation head: `9f3ca2fb57adf124e50bf8c4888280854c5d846f`.
+- Exact Pass-A CI run `34106264873`: **5/5 SUCCESS**, including clean-checkout `npm run verify`.
+- Unit: **79 files / 807 tests PASS**, measured coverage **100% statements/branches/functions/lines**.
+- DB/RLS: **29 files / 664 pgTAP tests PASS**.
+- Browser: **40/40 Playwright PASS** across Chromium, Firefox, WebKit and mobile Chromium.
+- Mutation: **82.50%**, PASS under the repository-configured gate.
+- Privacy-safe preview: **PASS**.
+- Required review focus: append-oriented observations, source/history preservation, multi-source/same-project integrity, evidence/confidence/freshness separation, supersession/withdrawal, retained-observation validity, conflict races, direct grant/RLS authorization and fail-closed provider parsing.
+- Open WP-2.4 Pass-B findings at entry: **none yet**.
 - Pass C: **not started**.
 
 ### Durable cursor
@@ -142,14 +149,15 @@ Record: `lot-2/WP-2.4.md`.
 - Lot state: **IN_PROGRESS**
 - Current branch: **`lot-2/venues-core`**
 - Current packet: **WP-2.4**
-- Packet state: **IN_PROGRESS**
-- Current pass: **A-IMPLEMENT**
+- Packet state: **REVIEW_PENDING**
+- Current pass: **B-ADVERSARIAL**
 - Last completed packet: **WP-2.3 — ACCEPTED**
 - Accepted packets: **WP-2.1, WP-2.2, WP-2.3**
 - Review-failed packets: **none**
-- Open packet BLOCKING/MAJOR findings: **none**
+- Open packet BLOCKING/MAJOR findings: **none yet for WP-2.4**
 - WP-2.4 pre-implementation gate: **CLOSED** — evidence level and independent confidence semantics documented and exact-head CI green.
-- Next permitted action: **implement WP-2.4 only, obtain exact-head verification, then transition to REVIEW_PENDING for a fresh Pass B; do not implement WP-2.5 concurrently.**
+- WP-2.4 Pass-A exact-head gate: **PASS** — `9f3ca2fb57adf124e50bf8c4888280854c5d846f`, run `34106264873`, 5/5 SUCCESS.
+- Next permitted action: **perform fresh WP-2.4 Pass B adversarial review only; do not implement WP-2.5 concurrently.**
 
 ## Known localized specification repairs
 
@@ -180,11 +188,11 @@ The Venue lifecycle documentation conflict discovered during WP-2.1 is closed by
 - `FTR-013` and `FTR-014` remain feature-level **IN_PROGRESS** because later Lot-2 UI/local/deep-link/duplicate responsibilities remain.
 - `FTR-018`, `FTR-023` and `FTR-012` remain feature-level **IN_PROGRESS** because later Lot-2 UI/local/read-model responsibilities remain.
 - `FTR-019` remains feature-level **IN_PROGRESS** until Lot-level integration/acceptance; WP-2.3 responsibility-level reconciliation is nevertheless complete and ACCEPTED.
-- `FTR-020` is feature-level **IN_PROGRESS** while WP-2.4 implements its Lot-2 evidence/provenance/conflict responsibilities.
+- `FTR-020` remains feature-level **IN_PROGRESS** while WP-2.4 is under fresh adversarial review for its Lot-2 evidence/provenance/conflict responsibilities.
 
 ## Current blockers / forward maintenance
 
-Open Lot 2 review findings: **none**. WP-2.4 is the sole packet in implementation; its prior specification stop-condition is closed.
+Open Lot 2 review findings: **none yet at WP-2.4 Pass-B entry**. WP-2.4 is the sole packet under review; WP-2.5 remains planned and may not start concurrently.
 
 Reviewed non-blocking maintenance:
 
@@ -219,8 +227,11 @@ WP-2.3 responsibility gap: ∅
 Open WP-2.3 findings: none
 WP-2.4 specification repair head: c414549d20338bf5180d5afc3681beda56fb11de
 WP-2.4 specification repair CI: 34069692843 — 5/5 SUCCESS
+WP-2.4 reviewed Pass-A implementation head: 9f3ca2fb57adf124e50bf8c4888280854c5d846f
+WP-2.4 Pass-A implementation CI: 34106264873 — 5/5 SUCCESS
 Current packet: WP-2.4
-Current state/pass: IN_PROGRESS / A-IMPLEMENT
-Next action: implement WP-2.4 only; WP-2.5 remains PLANNED
+Current state/pass: REVIEW_PENDING / B-ADVERSARIAL
+Open WP-2.4 Pass-B findings: none yet
+Next action: perform fresh WP-2.4 Pass B only; WP-2.5 remains PLANNED
 Lots 3–12: NOT_STARTED
 ```
