@@ -44,7 +44,8 @@ export function normalizeFactResolution(
   const state = resolutionState(draft.state);
   if (state === null) return { ok: false, error: "invalid_resolution_state" };
   const note = resolutionNote(draft.resolutionNote);
-  if (note === undefined) return { ok: false, error: "invalid_resolution_note" };
+  if (note === undefined)
+    return { ok: false, error: "invalid_resolution_note" };
   if (conflictNeedsNote(state, note)) {
     return { ok: false, error: "conflict_resolution_note_required" };
   }

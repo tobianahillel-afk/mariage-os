@@ -249,7 +249,14 @@ export function parseResolvedVenueFactEvidenceRow(
     definitionId: uuidValue(row.definition_id),
     retainedObservationId: uuidValue(row.retained_observation_id),
   };
-  if (!resolvedIdentityMatches(identity, context, expectedObservationId, row.target_type)) {
+  if (
+    !resolvedIdentityMatches(
+      identity,
+      context,
+      expectedObservationId,
+      row.target_type,
+    )
+  ) {
     invalidResponse();
   }
   const resolution = normalizeFactResolution({

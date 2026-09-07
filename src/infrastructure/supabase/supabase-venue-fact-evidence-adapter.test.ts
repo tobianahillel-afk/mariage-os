@@ -166,9 +166,7 @@ const resolveInput: ResolveVenueFactObservationInput = {
 };
 
 it("loads a project-scoped fact context and definition", async () => {
-  const adapter = new SupabaseVenueFactEvidenceAdapter(
-    makeClient(() => null),
-  );
+  const adapter = new SupabaseVenueFactEvidenceAdapter(makeClient(() => null));
   await expect(
     adapter.getFactContext(projectId, factId),
   ).resolves.toMatchObject({

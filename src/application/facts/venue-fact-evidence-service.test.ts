@@ -144,10 +144,12 @@ it("normalizes source creation and updates with optimistic revision", async () =
       return { ...sourceRecord, revision: 2 };
     },
   });
-  await expect(createVenueFactSource(port, sourceDraft)).resolves.toMatchObject({
-    ok: true,
-    source: sourceRecord,
-  });
+  await expect(createVenueFactSource(port, sourceDraft)).resolves.toMatchObject(
+    {
+      ok: true,
+      source: sourceRecord,
+    },
+  );
   await expect(
     updateVenueFactSource(port, {
       ...sourceDraft,

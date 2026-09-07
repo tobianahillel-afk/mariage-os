@@ -42,18 +42,16 @@ it("allows nullable optional fact source metadata", () => {
 });
 
 it("rejects unknown fact source vocabulary", () => {
-  expect(normalizeFactSource({ ...validDraft, sourceType: "email" })).toEqual(
+  expect(normalizeFactSource({ ...validDraft, sourceType: "email" })).toEqual({
+    ok: false,
+    error: "invalid_source_type",
+  });
+  expect(normalizeFactSource({ ...validDraft, evidenceLevel: "high" })).toEqual(
     {
       ok: false,
-      error: "invalid_source_type",
+      error: "invalid_evidence_level",
     },
   );
-  expect(
-    normalizeFactSource({ ...validDraft, evidenceLevel: "high" }),
-  ).toEqual({
-    ok: false,
-    error: "invalid_evidence_level",
-  });
   expect(normalizeFactSource({ ...validDraft, status: "deleted" })).toEqual({
     ok: false,
     error: "invalid_source_status",
