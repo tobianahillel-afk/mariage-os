@@ -27,14 +27,20 @@ export function normalizeFactResolution(
   if (draft.state !== "known" && draft.state !== "conflict") {
     return { ok: false, error: "invalid_resolution_state" };
   }
-  if (draft.resolutionNote !== null && typeof draft.resolutionNote !== "string") {
+  if (
+    draft.resolutionNote !== null &&
+    typeof draft.resolutionNote !== "string"
+  ) {
     return { ok: false, error: "invalid_resolution_note" };
   }
   const note = draft.resolutionNote;
   if (note !== null && !hasCodePointLengthBetween(note, 0, 5000)) {
     return { ok: false, error: "invalid_resolution_note" };
   }
-  if (draft.state === "conflict" && (note === null || note.trim().length === 0)) {
+  if (
+    draft.state === "conflict" &&
+    (note === null || note.trim().length === 0)
+  ) {
     return { ok: false, error: "conflict_resolution_note_required" };
   }
   return { ok: true, value: { state: draft.state, resolutionNote: note } };
