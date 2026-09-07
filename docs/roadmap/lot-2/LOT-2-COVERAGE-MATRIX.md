@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1..WP-2.4 ACCEPTED; WP-2.5 BLOCKED before Pass A**
+Status: **IN_PROGRESS — WP-2.1..WP-2.5 ACCEPTED; WP-2.6 next planned packet**
 
 Purpose: durable responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`.
 
@@ -29,8 +29,8 @@ The previously accepted Lot 0 + Lot 1 implementation was promoted to `main` thro
 | independent member favorites/ratings and Lot-2 personal Venue preference foundations | FTR-023, FTR-012 (Lot 2), VEN-015, VEN-017, PRD-004, ACC-029 | WP-2.2, WP-2.11 | Lot 1 membership/preferences | WP-2.2 ACCEPTED author-only/partner-isolation evidence + later UI |
 | typed fact definitions, retained fact state/value and explicit unknown/known/not-applicable/conflict semantics | FTR-019, FAC-001, FAC-003, FAC-011, FAC-012, ACC-024 | WP-2.3 | WP-2.1 | **WP-2.3 ACCEPTED**; runtime/domain validation + DB constraints/RLS + provider parity |
 | multi-source append-oriented observations, sources/provenance, conflict retention and stronger-evidence protection inputs | FTR-020, FAC-002, FAC-004..009, ACC-015, ACC-025..027 | WP-2.4 | WP-2.3 | **WP-2.4 ACCEPTED**; append/history/RLS/conflict/freshness/canonicality evidence, B-001..B-008 closed |
-| deterministic criterion evaluation, blockers, weighted score explanation and dynamic recomputation | FTR-021, FAC-011, FAC-013, VEN-010, VEN-011, ACC-022, ACC-023, ACC-028 | WP-2.5 | WP-2.3, WP-2.4 | unit/property/mutation tests + explanation reconstruction |
-| missing/stale/conflicting information guidance without silently creating tasks | FTR-022 (Lot 2 responsibility), VEN-007, FAC-006, FAC-008, FAC-010 | WP-2.5, WP-2.11 | criteria/facts | deterministic missing-info read model + UI |
+| deterministic criterion evaluation, blockers, weighted score explanation and dynamic recomputation | FTR-021, FAC-011, FAC-013, VEN-010, VEN-011, ACC-022, ACC-023, ACC-028 | WP-2.5 | WP-2.3, WP-2.4 | **WP-2.5 ACCEPTED**; deterministic unit/property coverage, explanation reconstruction, provider/DB boundary evidence and final fresh Pass B |
+| missing/stale/conflicting information guidance without silently creating tasks | FTR-022 (Lot 2 responsibility), VEN-007, FAC-006, FAC-008, FAC-010 | WP-2.5, WP-2.11 | criteria/facts | **WP-2.5 ACCEPTED read-model/guidance responsibility** + later WP-2.11 presentation/UI |
 | venue offers/date pricing and availability observation basics without full Budget engine | FTR-025 (Lot 2 responsibility), VEN-008, VEN-009 | WP-2.6 | WP-2.1, wedding dates | migration/RLS + date/source/history tests |
 | venue contacts/interactions/quote-follow-up data basics without Task workflow | FTR-026 (Lot 2 responsibility) | WP-2.6, WP-2.11 | WP-2.1 | same-project tests + detail read model |
 | contextual access-route observations by origin/mode; default-origin switch never overwrites route history | Lot-2 acceptance, VEN-016, ACC-030, access responsibility | WP-2.7, WP-2.11 | Lot 1 reference origins | access.read/write RLS + contextual-history tests |
@@ -51,7 +51,7 @@ The previously accepted Lot 0 + Lot 1 implementation was promoted to `main` thro
 
 Required current-lot responsibilities minus assigned packet responsibilities: **∅**.
 
-Accepted/evidenced packet responsibilities so far: **WP-2.1, WP-2.2, WP-2.3 and WP-2.4**. Required WP-2.4 responsibilities minus accepted/evidenced WP-2.4 responsibilities: **∅**. Lot-level accepted/evidenced reconciliation remains intentionally incomplete until all packets and the separate Integration Pass finish.
+Accepted/evidenced packet responsibilities so far: **WP-2.1, WP-2.2, WP-2.3, WP-2.4 and WP-2.5**. Required WP-2.5 responsibilities minus accepted/evidenced WP-2.5 responsibilities: **∅**. The FTR-022 presentation/UI responsibility remains explicitly assigned to WP-2.11 and is not claimed by WP-2.5. Lot-level accepted/evidenced reconciliation remains intentionally incomplete until all packets and the separate Integration Pass finish.
 
 ## Work Packet plan
 
@@ -118,22 +118,27 @@ Boundary retained: deterministic compatibility/blockers/score/readiness and miss
 
 ### WP-2.5 — Deterministic criteria, blockers, score/readiness and missing information
 
-State: **BLOCKED**  
-Current pass: **PLAN**
+State: **ACCEPTED**  
+Current pass: **COMPLETE**
 
-Primary Features: FTR-021, FTR-022 Lot-2 responsibility.  
+Primary Features: FTR-021, FTR-022 Lot-2 read-model/guidance responsibility.  
 Dependencies: WP-2.3, WP-2.4 **ACCEPTED**.  
-Packet record: `WP-2.5.md`.  
-Closed specification gates: deterministic `evidenceReadiness` formula and exact `custom_manual_assessment.accepted` representation, frozen by `5fd9be01f4da192d9d47b2d48944134fd15e471a`; exact-head CI `34143567491`: **5/5 SUCCESS**.  
-Open finding: `WP2.5-S-001` **BLOCKING** — `project_target_guest_count_supported` does not yet have a frozen authoritative support/capacity input, derivation/precedence, null/unknown/conflict/stale behavior or derived/persisted semantics. Commercial advertised capacity, per-space capacity and couple-specific suitability are explicitly distinct and must not be conflated by implementation guesswork.  
-Resolution condition: freeze those dynamic semantics in the governing criteria/domain contract, define deterministic dependency/boundary tests, obtain exact-head full CI, then transition `BLOCKED → READY`. Pass A and WP-2.6 are prohibited while this blocker is open.
+Acceptance record: `WP-2.5.md`.  
+Specification gates: deterministic `evidenceReadiness` and exact `custom_manual_assessment.accepted` closed by `5fd9be01f4da192d9d47b2d48944134fd15e471a` / CI `34143567491`; dynamic guest-count blocker `WP2.5-S-001` closed by `01136a7694141fd21c6067dcc4a1eb876e89080a` / CI `34146113235`; all gate runs **5/5 SUCCESS**.  
+Verified Pass-A implementation head/run: `aef7bea53e9db32790ab19c3fffdd0a8f63dc89d` / `34158303997` — **5/5 SUCCESS**.  
+Resolved/verified fresh-review findings: `WP2.5-B-001..B-004`; red-first proofs and exact remediation runs are retained in `WP-2.5.md`.  
+Final fresh Pass-B reviewed head/run: `65410a3dc032208644911f29e79b70bd49e89277` / `34165826166` — **5/5 SUCCESS**, review **PASS**, no unresolved BLOCKING/MAJOR finding.  
+Pass-C entry head/run: `931bac6a7145bc31a4bce24d4ea5cff354753ed4` / `34166488903` — **5/5 SUCCESS**, including Core, DB/RLS, Browser/mutation, privacy-safe preview and clean-checkout `npm run verify`.  
+Pass C reconciliation: **PASS**.  
+Required WP-2.5 responsibilities minus accepted/evidenced WP-2.5 responsibilities: **∅**.  
+Boundary retained: FTR-022 rendering/presentation remains WP-2.11; automatic Task creation remains Lot 3; local/offline Venue integration remains WP-2.10/2.12; real default criteria/research data remain Lot 12.
 
 ### WP-2.6 — Venue offers, availability, contacts and interactions basics
 
 State: **PLANNED**
 
 Primary Features: FTR-025 and FTR-026 Lot-2 responsibilities.  
-Dependencies: WP-2.1, Lot-1 wedding dates.
+Dependencies: WP-2.1, Lot-1 wedding dates. WP-2.5 is now **ACCEPTED** and no longer blocks packet sequencing.
 
 ### WP-2.7 — Contextual venue access-route observations
 
@@ -169,7 +174,7 @@ Must extend `LocalProjectStore`; a parallel IndexedDB architecture is forbidden.
 
 State: **PLANNED**
 
-Primary Features: FTR-015, FTR-016, FTR-017, FTR-027 plus Lot-2 UI portion of FTR-012.  
+Primary Features: FTR-015, FTR-016, FTR-017, FTR-027 plus Lot-2 UI portions of FTR-012 and FTR-022.  
 Dependencies: WP-2.1..WP-2.10.  
 Packet review must ensure one coherent Venues workspace rather than four disconnected CRUD pages.
 
@@ -186,8 +191,7 @@ Provides the complete visit workflow and the final packet-owned synthetic venue 
 ```text
 WP-2.1 [ACCEPTED]
   ├─→ WP-2.2 [ACCEPTED]
-  ├─→ WP-2.3 [ACCEPTED] → WP-2.4 [ACCEPTED] → WP-2.5 [BLOCKED / WP2.5-S-001]
-  ├─→ WP-2.6 [PLANNED; must not start concurrently while WP-2.5 is blocked]
+  ├─→ WP-2.3 [ACCEPTED] → WP-2.4 [ACCEPTED] → WP-2.5 [ACCEPTED] → WP-2.6 [NEXT / PLANNED]
   ├─→ WP-2.7
   └─→ WP-2.8 → WP-2.9
 
@@ -206,7 +210,7 @@ separate Lot 2 Integration Pass
 Lot 2 acceptance
 ```
 
-Default execution remains one packet in active work/review at a time. WP-2.4 is complete. WP-2.5 is the current blocked packet. Its `evidenceReadiness` and `custom_manual_assessment` specification gates are closed and green, but Pass A remains prohibited until `WP2.5-S-001` freezes the dynamic project-target guest-count rule rather than guessing a capacity/suitability source. WP-2.6 must not start concurrently.
+Default execution remains one packet in active work/review at a time. WP-2.5 is complete and accepted after Pass-C reconciliation. WP-2.6 is the next permitted planned packet, but must not be treated as `IN_PROGRESS` until the final WP-2.5 acceptance-governance HEAD has exact 5/5 CI evidence.
 
 ## Explicitly out of Lot 2
 
