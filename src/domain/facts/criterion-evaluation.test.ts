@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { evaluateCriterion } from "./criterion-evaluation";
 import type {
   CriterionDefinition,
+  CriterionEvaluation,
   CriterionFactSnapshot,
 } from "./criterion-types";
 
@@ -57,6 +58,17 @@ const GUEST_CEILING_DEFINITION = definition(
   },
 );
 
+function evaluateDynamic(
+  ceiling: CriterionFactSnapshot,
+  targetGuestCount: number | null,
+): CriterionEvaluation {
+  return evaluateCriterion(
+    DERIVED_GUEST_CRITERION,
+    [DERIVED_GUEST_CRITERION, ceiling],
+    { targetGuestCount },
+  );
+}
+
 describe("ordinary criterion evaluation", () => {
   it("keeps false distinct and applies rule direction", () => {
     const item = snapshot(
@@ -111,11 +123,11 @@ describe("dynamic guest-count comparisons", () => {
     [171, "FAIL"],
   ] as const)("compares target %i inclusively", (targetGuestCount, outcome) => {
     const ceiling = snapshot(GUEST_CEILING_DEFINITION, "known", 170);
-    expect(
-      evaluateCriterion(DERIVED_GUEST_CRITERION, [DERIVED_GUEST_CRITERION, ceiling], {
-        targetGuestCount,
-      }),
-    ).toMatchObject({ outcome, actual: 170, target: targetGuestCount });
+    expect(evaluateDynamic(ceiling, targetGuestCount)).toMatchObject({
+      outcome,
+      actual: 170,
+      target: targetGuestCount,
+    });
   });
 
   it.each([
@@ -124,27 +136,20 @@ describe("dynamic guest-count comparisons", () => {
     ["conflict", "CONFLICT", "conflict"],
   ] as const)("maps support source state %s", (state, outcome, reason) => {
     const ceiling = snapshot(GUEST_CEILING_DEFINITION, state, null);
-    expect(
-      evaluateCriterion(DERIVED_GUEST_CRITERION, [DERIVED_GUEST_CRITERION, ceiling], {
-        targetGuestCount: 170,
-      }),
-    ).toMatchObject({ outcome, reason });
+    expect(evaluateDynamic(ceiling, 170)).toMatchObject({ outcome, reason });
   });
 });
 
 describe("dynamic guest-count fail-closed boundaries", () => {
   it("rejects absent target and malformed source value", () => {
     const ceiling = snapshot(GUEST_CEILING_DEFINITION, "known", 170.5);
-    expect(
-      evaluateCriterion(DERIVED_GUEST_CRITERION, [DERIVED_GUEST_CRITERION, ceiling], {
-        targetGuestCount: null,
-      }).reason,
-    ).toBe("missing_target_guest_count");
-    expect(
-      evaluateCriterion(DERIVED_GUEST_CRITERION, [DERIVED_GUEST_CRITERION, ceiling], {
-        targetGuestCount: 170,
-      }),
-    ).toMatchObject({ outcome: "UNKNOWN", reason: "invalid_support_ceiling" });
+    expect(evaluateDynamic(ceiling, null).reason).toBe(
+      "missing_target_guest_count",
+    );
+    expect(evaluateDynamic(ceiling, 170)).toMatchObject({
+      outcome: "UNKNOWN",
+      reason: "invalid_support_ceiling",
+    });
   });
 
   it("requires the exact system support-source definition", () => {
@@ -153,11 +158,10 @@ describe("dynamic guest-count fail-closed boundaries", () => {
       "known",
       500,
     );
-    expect(
-      evaluateCriterion(DERIVED_GUEST_CRITERION, [DERIVED_GUEST_CRITERION, wrongUnit], {
-        targetGuestCount: 160,
-      }),
-    ).toMatchObject({ outcome: "UNKNOWN", reason: "configuration_incomplete" });
+    expect(evaluateDynamic(wrongUnit, 160)).toMatchObject({
+      outcome: "UNKNOWN",
+      reason: "configuration_incomplete",
+    });
   });
 
   it("never falls back to advertised capacity", () => {
@@ -171,11 +175,10 @@ describe("dynamic guest-count fail-closed boundaries", () => {
       "known",
       500,
     );
-    expect(
-      evaluateCriterion(DERIVED_GUEST_CRITERION, [DERIVED_GUEST_CRITERION, advertised], {
-        targetGuestCount: 160,
-      }),
-    ).toMatchObject({ outcome: "UNKNOWN", reason: "configuration_incomplete" });
+    expect(evaluateDynamic(advertised, 160)).toMatchObject({
+      outcome: "UNKNOWN",
+      reason: "configuration_incomplete",
+    });
   });
 
   it("ignores a legacy retained value on the derived criterion", () => {
