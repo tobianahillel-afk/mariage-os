@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.4`
 - Lot: `2`
 - Name: Observations, sources, evidence/confidence/freshness and conflicts
-- State: `REVIEW_FAILED`
-- Current pass: `B-ADVERSARIAL-REVIEW — WP2.4-B-007`
+- State: `REVIEW_PENDING`
+- Current pass: `B-ADVERSARIAL-REVIEW — fresh independent re-review after WP2.4-B-007`
 - Primary bounded context: `facts/evidence` for Venue targets
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Dependency: `WP-2.3 ACCEPTED`
@@ -23,6 +23,7 @@
 - Fresh re-review baseline after B-004/B-005: `3ba8575ac32564197d823d7f01001a7b6f75fdfe`
 - Verified B-006 remediation head/run: `06c38444a2e859f59f590477bd43c40255463f3e` / `34131416659` — **5/5 SUCCESS**
 - Fresh re-review baseline after B-006: `29469d63eccc40d9b9ababd915b974378d3cc990`
+- Verified B-007 remediation head/run: `92e0f511d394448ccdcdd3143d29b4f2cf3df987` / `34134876299` — **5/5 SUCCESS**
 
 ## Scope and frozen responsibilities
 
@@ -86,27 +87,23 @@ Migration `20260907142000_harden_venue_fact_timestamp_domain.sql` adds a client-
 
 Exact-head verification run `34131416659` on `06c38444a2e859f59f590477bd43c40255463f3e`: **5/5 SUCCESS**, including Core quality/security, Local Supabase DB/RLS, Browser/mutation, privacy-safe preview and clean-checkout `npm run verify`.
 
-### `WP2.4-B-007` — OPEN / MAJOR
+### `WP2.4-B-007` — RESOLVED / VERIFIED
 
-The fresh independent Pass B after B-006 found that the public source/observation/freshness RPCs still accept temporal parameters as PostgreSQL `timestamptz`. PostgreSQL parses an RPC JSON string into `timestamptz` before the function body and intentionally accepts date/time input syntaxes broader than the frozen TypeScript instant grammar. Therefore a non-canonical input string rejected by `normalizeFactInstant` can be coerced into a valid timestamp before WP-2.4 validation sees it, then persisted successfully. The B-006 pgTAP helpers passed already-typed `timestamptz` values and therefore could not detect this raw-RPC grammar bypass.
+The fresh independent Pass B after B-006 found that the public source/observation/freshness RPCs accepted temporal parameters as PostgreSQL `timestamptz`. PostgreSQL parsed an RPC JSON string into `timestamptz` before the function body and intentionally accepted date/time input syntaxes broader than the frozen TypeScript instant grammar. A non-canonical input rejected by `normalizeFactInstant` could therefore be coerced into a valid timestamp before WP-2.4 validation saw the original representation.
 
-This violates the frozen boundary that database/RPC canonical validation must not commit values the official TypeScript parser rejects.
+Remediation in `20260907150000_harden_venue_fact_rpc_timestamp_grammar.sql` moves the public create/update-source, append-observation and freshness temporal boundaries to raw `text`, validates the frozen `YYYY-MM-DDTHH:mm:ss[.ffffff](Z|±HH:mm)` Gregorian/calendar/offset/year-domain profile before constructing `timestamptz`, and keeps the typed timestamp implementations behind client-inaccessible cores. Nullable source/freshness semantics and PostgreSQL microsecond storage remain preserved.
 
-Required remediation:
+`venue_fact_rpc_timestamp_grammar_review_test.sql` attacks PostgreSQL-friendly non-canonical raw strings, offset variants, create/update/append/freshness atomicity and core privileges while retaining canonical/microsecond/null positive cases. Historical pgTAP helpers were updated to cross the same raw-text public boundary rather than relying on pre-cast `timestamptz` values.
 
-- make the public WP-2.4 RPC timestamp boundary receive raw `text` for source `observed_at`, observation `observed_at`, and freshness `last_verified_at` / `stale_at`;
-- strictly parse that text in PostgreSQL with the same `YYYY-MM-DDTHH:mm:ss[.ffffff](Z|±HH:mm)` Gregorian/calendar/offset/year-domain profile before constructing `timestamptz`;
-- rename/revoke the old `timestamptz` RPC entrypoints so authenticated clients cannot bypass the raw-text parser;
-- preserve nullable source/freshness timestamp semantics and existing microsecond storage behavior;
-- add direct pgTAP using raw non-canonical strings that PostgreSQL would otherwise accept, plus canonical positive cases, privilege checks and failed-mutation atomicity.
+Exact-head verification run `34134876299` on `92e0f511d394448ccdcdd3143d29b4f2cf3df987`: **5/5 SUCCESS**, including Core quality/security, Local Supabase DB/RLS (`db:verify`), Browser E2E/mutation, privacy-safe preview and clean-checkout `npm run verify`.
 
-No other BLOCKING/MAJOR is promoted yet from this fresh re-review. B-001..B-006 and nearby locking/RLS/lifecycle variants remain under attack after B-007 remediation.
+Fresh independent Pass B is now required on this verified remediation baseline. B-001..B-007 and nearby locking/RLS/lifecycle variants remain under attack. No BLOCKING/MAJOR is assumed closed merely from the green remediation CI.
 
 Withdrawal preserving an existing retained pointer/value remains reviewed but not promoted: frozen contracts preserve evidence history and do not clearly mandate automatic retained-truth invalidation on withdrawal, so WP-2.4 must not invent that semantic.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started. Entry is prohibited while `WP2.4-B-007` remains open. After remediation and exact-head verification, another fresh independent Pass B is required before `ACCEPTANCE_PENDING`.
+Not started. Entry remains prohibited until the fresh independent Pass B after B-007 completes with no open BLOCKING/MAJOR and the packet transitions to `ACCEPTANCE_PENDING`.
 
 ## Handoff
 
@@ -114,12 +111,12 @@ Not started. Entry is prohibited while `WP2.4-B-007` remains open. After remedia
 Lot: 2 — Venues core
 Branch: lot-2/venues-core
 Packet: WP-2.4
-State: REVIEW_FAILED
-Pass: B-ADVERSARIAL-REVIEW — WP2.4-B-007
+State: REVIEW_PENDING
+Pass: B-ADVERSARIAL-REVIEW — fresh independent re-review after WP2.4-B-007
 Primary Feature: FTR-020
 Dependency: WP-2.3 ACCEPTED
-Resolved/verified: WP2.4-B-001, WP2.4-B-002, WP2.4-B-003, WP2.4-B-004, WP2.4-B-005, WP2.4-B-006
-Open MAJOR: WP2.4-B-007
-Latest verified remediation: 06c38444a2e859f59f590477bd43c40255463f3e / 34131416659 — 5/5 SUCCESS
-Next action: remediate B-007 only, verify exact head, then fresh independent Pass B. Do not start WP-2.5.
+Resolved/verified: WP2.4-B-001, WP2.4-B-002, WP2.4-B-003, WP2.4-B-004, WP2.4-B-005, WP2.4-B-006, WP2.4-B-007
+Open BLOCKING/MAJOR: none promoted yet from the fresh re-review
+Latest verified remediation: 92e0f511d394448ccdcdd3143d29b4f2cf3df987 / 34134876299 — 5/5 SUCCESS
+Next action: perform a fresh independent Pass B on the verified B-007 baseline. Pass C and WP-2.5 remain prohibited until that review clears.
 ```
