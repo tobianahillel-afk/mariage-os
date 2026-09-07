@@ -109,7 +109,7 @@ exception when others then
   return null;
 end$$;
 
-create function pg_temp.try_create_source_at(target_observed_at timestamptz)
+create function pg_temp.try_create_source_at(target_observed_at text)
 returns jsonb language plpgsql as $$
 declare result_row jsonb;
 begin
@@ -128,7 +128,7 @@ exception when others then
   return null;
 end$$;
 
-create function pg_temp.try_append_at(target_observed_at timestamptz)
+create function pg_temp.try_append_at(target_observed_at text)
 returns jsonb language plpgsql as $$
 declare result_row jsonb;
 begin
@@ -150,8 +150,8 @@ end$$;
 
 create function pg_temp.try_set_freshness(
   target_revision bigint,
-  target_last_verified_at timestamptz,
-  target_stale_at timestamptz
+  target_last_verified_at text,
+  target_stale_at text
 )
 returns boolean language plpgsql as $$
 begin
@@ -265,18 +265,18 @@ select is(
 );
 
 select is(
-  pg_temp.try_create_source_at('infinity'::timestamptz),
+  pg_temp.try_create_source_at('infinity'),
   null::jsonb,
   'non-finite source observed_at is rejected at persistence boundary'
 );
 select is(
-  pg_temp.try_append_at('infinity'::timestamptz),
+  pg_temp.try_append_at('infinity'),
   null::jsonb,
   'non-finite observation observed_at is rejected at persistence boundary'
 );
 
 select isnt(
-  pg_temp.try_append_at('2026-09-07 10:11:12.123456+00'::timestamptz),
+  pg_temp.try_append_at('2026-09-07T10:11:12.123456+00:00'),
   null::jsonb,
   'finite PostgreSQL microsecond observation timestamp remains persistable'
 );
@@ -287,7 +287,7 @@ select is(
 );
 
 select ok(
-  not pg_temp.try_set_freshness(1, 'infinity'::timestamptz, null),
+  not pg_temp.try_set_freshness(1, 'infinity', null),
   'non-finite last_verified_at is rejected at persistence boundary'
 );
 select is(
