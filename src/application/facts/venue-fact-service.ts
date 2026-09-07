@@ -1,4 +1,8 @@
 import {
+  isDerivedTargetGuestDefinition,
+  isDynamicGuestRule,
+} from "@domain/facts/derived-fact-definition";
+import {
   normalizeFactDefinition,
   type FactDefinitionDraft,
   type FactDefinitionError,
@@ -95,10 +99,12 @@ export interface SetRetainedVenueFactDraft extends RetainedFactDraft {
   readonly expectedRevision: number | null;
 }
 
+type DerivedFactError = "derived_fact_read_only";
 type MutationError =
   | FactDefinitionError
   | RetainedFactError
   | VenueRevisionError
+  | DerivedFactError
   | VenueFactPersistenceErrorCode;
 export type DefinitionMutationResult =
   | { readonly ok: true; readonly definition: VenueFactDefinitionRecord }
@@ -121,6 +127,9 @@ export async function createVenueFactDefinition(
 ): Promise<DefinitionMutationResult> {
   const normalized = normalizeFactDefinition(draft);
   if (!normalized.ok) return normalized;
+  if (isDynamicGuestRule(normalized.value.evaluationRuleJson)) {
+    return { ok: false, error: "invalid_evaluation_rule" };
+  }
   try {
     const definition = await port.createDefinition({
       projectId: draft.projectId,
@@ -169,6 +178,9 @@ export async function setRetainedVenueFact(
       draft.projectId,
       draft.definitionId,
     );
+    if (isDerivedTargetGuestDefinition(definition)) {
+      return { ok: false, error: "derived_fact_read_only" };
+    }
     const normalized = normalizeRetainedFact(definition, draft);
     if (!normalized.ok) return normalized;
     const fact = await port.setRetainedFact({

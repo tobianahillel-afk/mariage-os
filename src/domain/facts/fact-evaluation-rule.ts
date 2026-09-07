@@ -4,6 +4,7 @@ import type {
   FactValueType,
   SelectFactOptions,
 } from "./fact-types";
+import { normalizeFactValue } from "./fact-value";
 
 export type FactEvaluationRule = Readonly<Record<string, unknown>>;
 type FactEvaluationRuleError = "invalid_evaluation_rule";
@@ -71,17 +72,10 @@ function validStringSet(value: unknown, allowed: ReadonlySet<string>): boolean {
   return true;
 }
 
-function booleanRule(
-  valueType: FactValueType,
-  _options: FactOptions,
-  record: UnknownRecord,
-): boolean {
-  return (
-    valueType === "boolean" &&
-    exactKeys(record, ["type", "expected"]) &&
-    typeof record.expected === "boolean"
-  );
-}
+const booleanRule: RuleValidator = (valueType, _options, record) =>
+  valueType === "boolean" &&
+  exactKeys(record, ["type", "expected"]) &&
+  typeof record.expected === "boolean";
 
 function numericRule(field: "minimum" | "maximum"): RuleValidator {
   return (valueType, _options, record) =>
@@ -90,31 +84,17 @@ function numericRule(field: "minimum" | "maximum"): RuleValidator {
     isCanonicalFactNumber(record[field]);
 }
 
-function numberRangeRule(
-  valueType: FactValueType,
-  _options: FactOptions,
-  record: UnknownRecord,
-): boolean {
-  return (
-    ["number", "duration", "distance"].includes(valueType) &&
-    exactKeys(record, ["type", "minimum", "maximum"]) &&
-    isCanonicalFactNumber(record.minimum) &&
-    isCanonicalFactNumber(record.maximum) &&
-    record.minimum <= record.maximum
-  );
-}
+const numberRangeRule: RuleValidator = (valueType, _options, record) =>
+  ["number", "duration", "distance"].includes(valueType) &&
+  exactKeys(record, ["type", "minimum", "maximum"]) &&
+  isCanonicalFactNumber(record.minimum) &&
+  isCanonicalFactNumber(record.maximum) &&
+  record.minimum <= record.maximum;
 
-function ratingRule(
-  valueType: FactValueType,
-  _options: FactOptions,
-  record: UnknownRecord,
-): boolean {
-  return (
-    valueType === "rating" &&
-    exactKeys(record, ["type", "minimum"]) &&
-    isCanonicalFactNumber(record.minimum)
-  );
-}
+const ratingRule: RuleValidator = (valueType, _options, record) =>
+  valueType === "rating" &&
+  exactKeys(record, ["type", "minimum"]) &&
+  isCanonicalFactNumber(record.minimum);
 
 function selectRule(field: "accepted" | "rejected"): RuleValidator {
   return (valueType, options, record) =>
@@ -123,37 +103,34 @@ function selectRule(field: "accepted" | "rejected"): RuleValidator {
     validStringSet(record[field], optionKeys(options));
 }
 
-function timeRule(
-  valueType: FactValueType,
-  _options: FactOptions,
-  record: UnknownRecord,
-): boolean {
-  return (
-    valueType === "time" &&
-    exactKeys(record, ["type", "time", "dayOffset"]) &&
-    validClock(record.time) &&
-    Number.isSafeInteger(record.dayOffset) &&
-    (record.dayOffset as number) >= 0 &&
-    (record.dayOffset as number) <= 2
-  );
-}
+const timeRule: RuleValidator = (valueType, _options, record) =>
+  valueType === "time" &&
+  exactKeys(record, ["type", "time", "dayOffset"]) &&
+  validClock(record.time) &&
+  Number.isSafeInteger(record.dayOffset) &&
+  (record.dayOffset as number) >= 0 &&
+  (record.dayOffset as number) <= 2;
 
-function moneyRule(
-  valueType: FactValueType,
-  _options: FactOptions,
-  record: UnknownRecord,
-): boolean {
-  return (
-    valueType === "money" &&
-    exactKeys(record, ["type", "maximum"]) &&
-    validMoney(record.maximum)
-  );
-}
+const moneyRule: RuleValidator = (valueType, _options, record) =>
+  valueType === "money" &&
+  exactKeys(record, ["type", "maximum"]) &&
+  validMoney(record.maximum);
 
-function typeOnlyRule(allowed: readonly FactValueType[]): RuleValidator {
-  return (valueType, _options, record) =>
-    allowed.includes(valueType) && exactKeys(record, ["type"]);
-}
+const dynamicGuestRule: RuleValidator = (valueType, _options, record) =>
+  valueType === "boolean" && exactKeys(record, ["type"]);
+
+const manualAssessmentRule: RuleValidator = (valueType, options, record) => {
+  if (
+    !["boolean", "select", "rating"].includes(valueType) ||
+    !exactKeys(record, ["type", "accepted"])
+  ) {
+    return false;
+  }
+  return normalizeFactValue(
+    { valueType, optionsJson: options },
+    record.accepted,
+  ).ok;
+};
 
 const RULE_VALIDATORS: Readonly<Record<string, RuleValidator>> = {
   boolean_equals: booleanRule,
@@ -166,8 +143,8 @@ const RULE_VALIDATORS: Readonly<Record<string, RuleValidator>> = {
   time_at_or_after: timeRule,
   time_at_or_before: timeRule,
   money_max: moneyRule,
-  project_target_guest_count_supported: typeOnlyRule(["boolean"]),
-  custom_manual_assessment: typeOnlyRule(["boolean", "select", "rating"]),
+  project_target_guest_count_supported: dynamicGuestRule,
+  custom_manual_assessment: manualAssessmentRule,
 };
 
 function freezeCanonicalValue(value: unknown): unknown {

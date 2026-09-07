@@ -1,3 +1,4 @@
+import { isDerivedTargetGuestDefinition } from "@domain/facts/derived-fact-definition";
 import type { FactObservationStatus } from "@domain/facts/fact-evidence-types";
 import {
   normalizeFactObservation,
@@ -101,12 +102,8 @@ export interface ResolveVenueFactObservationInput {
 
 export interface VenueFactEvidencePort {
   getFactContext(projectId: string, factId: string): Promise<VenueFactContext>;
-  createSource(
-    input: CreateVenueFactSourceInput,
-  ): Promise<VenueFactSourceRecord>;
-  updateSource(
-    input: UpdateVenueFactSourceInput,
-  ): Promise<VenueFactSourceRecord>;
+  createSource(input: CreateVenueFactSourceInput): Promise<VenueFactSourceRecord>;
+  updateSource(input: UpdateVenueFactSourceInput): Promise<VenueFactSourceRecord>;
   appendObservation(
     input: AppendVenueFactObservationInput,
   ): Promise<VenueFactObservationRecord>;
@@ -121,26 +118,22 @@ export interface VenueFactEvidencePort {
 export interface CreateVenueFactSourceDraft extends FactSourceDraft {
   readonly projectId: string;
 }
-
 export interface UpdateVenueFactSourceDraft extends FactSourceDraft {
   readonly projectId: string;
   readonly sourceId: string;
   readonly expectedRevision: number;
 }
-
 export interface AppendVenueFactObservationDraft extends FactObservationDraft {
   readonly projectId: string;
   readonly factId: string;
   readonly supersedesObservationId: string | null;
 }
-
 export interface LinkObservationSourceDraft {
   readonly projectId: string;
   readonly observationId: string;
   readonly sourceId: string;
   readonly isPrimary: unknown;
 }
-
 export interface ResolveVenueFactObservationDraft {
   readonly projectId: string;
   readonly factId: string;
@@ -155,9 +148,9 @@ type EvidenceDomainError =
   | FactSourceError
   | FactResolutionError
   | VenueRevisionError
-  | "invalid_primary_flag";
-type EvidenceMutationError =
-  EvidenceDomainError | VenueFactPersistenceErrorCode;
+  | "invalid_primary_flag"
+  | "derived_fact_read_only";
+type EvidenceMutationError = EvidenceDomainError | VenueFactPersistenceErrorCode;
 
 export type SourceMutationResult =
   | { readonly ok: true; readonly source: VenueFactSourceRecord }
@@ -183,11 +176,7 @@ export async function createVenueFactSource(
   const normalized = normalizeFactSource(draft);
   if (!normalized.ok) return normalized;
   try {
-    const source = await port.createSource({
-      projectId: draft.projectId,
-      ...normalized.value,
-    });
-    return { ok: true, source };
+    return { ok: true, source: await port.createSource({ projectId: draft.projectId, ...normalized.value }) };
   } catch (error) {
     return { ok: false, error: persistenceError(error) };
   }
@@ -202,13 +191,15 @@ export async function updateVenueFactSource(
   const normalized = normalizeFactSource(draft);
   if (!normalized.ok) return normalized;
   try {
-    const source = await port.updateSource({
-      projectId: draft.projectId,
-      sourceId: draft.sourceId,
-      expectedRevision: draft.expectedRevision,
-      ...normalized.value,
-    });
-    return { ok: true, source };
+    return {
+      ok: true,
+      source: await port.updateSource({
+        projectId: draft.projectId,
+        sourceId: draft.sourceId,
+        expectedRevision: draft.expectedRevision,
+        ...normalized.value,
+      }),
+    };
   } catch (error) {
     return { ok: false, error: persistenceError(error) };
   }
@@ -220,6 +211,9 @@ export async function appendVenueFactObservation(
 ): Promise<ObservationMutationResult> {
   try {
     const context = await port.getFactContext(draft.projectId, draft.factId);
+    if (isDerivedTargetGuestDefinition(context.definition)) {
+      return { ok: false, error: "derived_fact_read_only" };
+    }
     const normalized = normalizeFactObservation(context.definition, draft);
     if (!normalized.ok) return normalized;
     const observation = await port.appendObservation({
@@ -263,6 +257,10 @@ export async function resolveVenueFactFromObservation(
   const normalized = normalizeFactResolution(draft);
   if (!normalized.ok) return normalized;
   try {
+    const context = await port.getFactContext(draft.projectId, draft.factId);
+    if (isDerivedTargetGuestDefinition(context.definition)) {
+      return { ok: false, error: "derived_fact_read_only" };
+    }
     const fact = await port.resolveFromObservation({
       projectId: draft.projectId,
       factId: draft.factId,
