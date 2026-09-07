@@ -71,6 +71,13 @@ interface SelectedTarget {
   readonly source: VenueCompatibilityTargetSource;
 }
 
+interface SupportExplanationFields {
+  readonly supportSourceState: CriterionFactSnapshot["state"];
+  readonly supportSourceValue: unknown;
+  readonly supportSourceObservationStatus: CriterionFactSnapshot["retainedObservationStatus"];
+  readonly supportSourceStaleAt: string | null;
+}
+
 function selectedTarget(
   input: VenueCompatibilityInputs,
   query: VenueCompatibilityQuery,
@@ -157,34 +164,70 @@ function comparisonFor(
   });
 }
 
+function derivedGuestEvaluation(
+  evaluations: readonly CriterionEvaluation[],
+): CriterionEvaluation | null {
+  for (const evaluation of evaluations) {
+    if (evaluation.key === "target_guest_count_supported") return evaluation;
+  }
+  return null;
+}
+
+function supportExplanationFields(
+  source: CriterionFactSnapshot | null,
+): SupportExplanationFields {
+  if (source === null) {
+    return {
+      supportSourceState: null,
+      supportSourceValue: null,
+      supportSourceObservationStatus: null,
+      supportSourceStaleAt: null,
+    };
+  }
+  return {
+    supportSourceState: source.state,
+    supportSourceValue: source.retainedValue,
+    supportSourceObservationStatus: source.retainedObservationStatus,
+    supportSourceStaleAt: source.staleAt,
+  };
+}
+
+function dynamicExplanationReady(
+  source: CriterionFactSnapshot | null,
+  freshness: VenueCompatibilityFreshness,
+  comparison: DynamicGuestCountComparison | null,
+  outcome: CriterionEvaluation["outcome"],
+): boolean {
+  if (source === null) return false;
+  if (comparison === null) return false;
+  if (source.retainedObservationStatus !== "active") return false;
+  if (freshness !== "fresh") return false;
+  return outcome === "PASS" || outcome === "FAIL";
+}
+
 function dynamicGuestCountExplanation(
   input: VenueCompatibilityInputs,
   evaluations: readonly CriterionEvaluation[],
   target: SelectedTarget,
   evaluatedAt: string,
 ): DynamicGuestCountExplanation | null {
-  const evaluation = evaluations.find(
-    (item) => item.key === "target_guest_count_supported",
-  );
-  if (evaluation === undefined) return null;
+  const evaluation = derivedGuestEvaluation(evaluations);
+  if (evaluation === null) return null;
   const source = supportSnapshot(input.snapshots);
   const freshness = supportFreshness(source, evaluatedAt);
   const comparison = comparisonFor(target, source);
-  const ready =
-    comparison !== null &&
-    source?.retainedObservationStatus === "active" &&
-    freshness === "fresh" &&
-    ["PASS", "FAIL"].includes(evaluation.outcome);
   return Object.freeze({
     targetGuestCount: target.value,
     targetSource: target.source,
     supportSourceKey: "two_dance_areas_max_guest_estimate",
-    supportSourceState: source?.state ?? null,
-    supportSourceValue: source?.retainedValue ?? null,
-    supportSourceObservationStatus: source?.retainedObservationStatus ?? null,
-    supportSourceStaleAt: source?.staleAt ?? null,
+    ...supportExplanationFields(source),
     supportSourceFreshness: freshness,
-    ready,
+    ready: dynamicExplanationReady(
+      source,
+      freshness,
+      comparison,
+      evaluation.outcome,
+    ),
     outcome: evaluation.outcome,
     reason: evaluation.reason,
     comparison,
