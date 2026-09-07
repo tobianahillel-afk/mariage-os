@@ -125,13 +125,17 @@ function parseFacts(
 ): ReadonlyMap<string, ParsedFact> {
   const definitionsById = new Map(records.map((record) => [record.id, record]));
   const parsed = new Map<string, ParsedFact>();
+  const factIds = new Set<string>();
   for (const value of rows) {
     const row = recordValue(value);
     const definitionId = uuidValue(row.definition_id);
     const definition = definitionsById.get(definitionId);
     if (definition === undefined || parsed.has(definitionId)) invalidResponse();
+    const fact = parseRetainedVenueFactRow(value, projectId, venueId, definition);
+    if (factIds.has(fact.id)) invalidResponse();
+    factIds.add(fact.id);
     parsed.set(definitionId, {
-      record: parseRetainedVenueFactRow(value, projectId, venueId, definition),
+      record: fact,
       retainedObservationId: optionalUuid(row.retained_observation_id),
       staleAt: staleAt(row.stale_at),
     });
