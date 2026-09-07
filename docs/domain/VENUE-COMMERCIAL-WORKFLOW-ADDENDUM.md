@@ -194,7 +194,7 @@ Use these packet-level maxima, aligned with existing Venue/text conventions:
 - offer/contact/component display name or label: 240 Unicode code points;
 - role label: 160;
 - email: 320;
-- phone: 64;
+- phone: 80;
 - preferred channel: 80;
 - interaction type: 80;
 - unit label: 80;
