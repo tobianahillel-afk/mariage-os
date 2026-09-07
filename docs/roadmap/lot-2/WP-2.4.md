@@ -5,18 +5,20 @@
 - Work Packet ID: `WP-2.4`
 - Lot: `2`
 - Name: Observations, sources, evidence/confidence/freshness and conflicts
-- State: `IN_PROGRESS`
-- Current pass: `B-REMEDIATION`
+- State: `REVIEW_PENDING`
+- Current pass: `B-ADVERSARIAL-REVIEW`
 - Primary bounded context: `facts/evidence` for Venue targets
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Dependency: `WP-2.3 ACCEPTED`
 - Primary Feature: `FTR-020`
 - Specification gate: **CLOSED** by `c414549d20338bf5180d5afc3681beda56fb11de`
 - Specification-gate CI: run `34069692843` — **5/5 SUCCESS**
-- Reviewed Pass-A implementation head: `9f3ca2fb57adf124e50bf8c4888280854c5d846f`
-- Pass-A implementation CI: run `34106264873` — **5/5 SUCCESS**, including clean-checkout `npm run verify`
-- Pass-B review-failure record: `3f6a750a97ca039c36dafd3dff5eca69eac683ad`
+- Historical Pass-A implementation head: `9f3ca2fb57adf124e50bf8c4888280854c5d846f`
+- Historical Pass-A CI: run `34106264873` — **5/5 SUCCESS**
+- First Pass-B review-failure record: `3f6a750a97ca039c36dafd3dff5eca69eac683ad`
 - Remediation implementation baseline: `06c7d1bf92239db22af14303d008c449387ca6ea`
+- Verified remediation/governance head: `5e229cada52c9b50ca3b2b820df3ab8291c2960c`
+- Exact-head remediation CI: run `34110071790` — **5/5 SUCCESS**, including clean-checkout `npm run verify`
 
 ## Scope and frozen responsibilities
 
@@ -55,7 +57,7 @@ Not owned here: WP-2.5 scoring/compatibility/blockers/`evidenceReadiness`/missin
 
 ## Pass A — IMPLEMENT
 
-Implemented before fresh review:
+Implemented foundation:
 
 - domain/application evidence, source, resolution and freshness contracts;
 - Supabase adapters/parsers with fail-closed response validation and typed safe persistence errors;
@@ -64,64 +66,70 @@ Implemented before fresh review:
 - `20260907084500_add_venue_fact_observation_withdrawal.sql`;
 - `sources`, `fact_observations`, `observation_sources`, protected retained-observation/freshness/lifecycle RPCs, RLS/grants and pgTAP coverage.
 
-Exact Pass-A evidence on `9f3ca2fb57adf124e50bf8c4888280854c5d846f`, run `34106264873`: **5/5 SUCCESS**.
+Historical Pass-A evidence on `9f3ca2fb57adf124e50bf8c4888280854c5d846f`, run `34106264873`: **5/5 SUCCESS**. Fresh Pass B later invalidated acceptance readiness with two MAJOR findings.
 
-- Core: **79 test files / 807 tests PASS**, **100% statements/branches/functions/lines**.
-- DB/RLS: **29 files / 664 pgTAP tests PASS**.
-- Browser: **40/40 Playwright PASS** across Chromium, Firefox, WebKit and mobile Chromium.
-- Mutation: **82.50%**, configured gate PASS.
-- Privacy-safe preview: PASS.
-- Clean-checkout `npm run verify`: PASS.
-- Dependency gate: only the two previously reviewed Moderate transitive development-tool advisories; no accepted-known Critical/High.
+## First Pass B — ADVERSARIAL REVIEW
 
-Pass A correctly transitioned to `REVIEW_PENDING`; this evidence was later invalidated for acceptance by fresh Pass-B MAJOR findings.
+Fresh review reconstructed behavior from `FACTS-SOURCES.md`, `CONFIDENCE-FRESHNESS.md`, `INVARIANTS.md`, ADR-0006, `PHYSICAL-SCHEMA-V1.md`, `RLS-MATRIX-V1.md` and this packet rather than trusting Pass-A conclusions.
 
-## Pass B — ADVERSARIAL REVIEW
-
-Fresh review reconstructed expected behavior from `FACTS-SOURCES.md`, `CONFIDENCE-FRESHNESS.md`, `INVARIANTS.md`, ADR-0006, `PHYSICAL-SCHEMA-V1.md`, `RLS-MATRIX-V1.md` and this packet rather than trusting Pass-A conclusions.
-
-### Findings
-
-| Severity | Finding | State |
+| Severity | Finding | Remediation status |
 |---|---|---|
-| MAJOR `WP2.4-B-001` | Legacy `set_retained_venue_fact` can write around observation-backed resolution after evidence exists, allowing direct `known` truth and clearing retained-observation resolution provenance. | **REMEDIATING** |
-| MAJOR `WP2.4-B-002` | `fact_definition` edits protect only prior `known` retained truth and can invalidate persisted observation values or WP-2.4 conflict-retained values. | **REMEDIATING** |
+| MAJOR `WP2.4-B-001` | Legacy `set_retained_venue_fact` could write around observation-backed resolution after evidence existed, allowing direct `known` truth and clearing retained-observation resolution provenance. | **IMPLEMENTED + exact-head verification green; fresh re-review pending** |
+| MAJOR `WP2.4-B-002` | `fact_definition` edits could invalidate persisted observation values or WP-2.4 conflict-retained values. | **IMPLEMENTED + exact-head verification green; fresh re-review pending** |
 
 Reviewed but not promoted to a finding: withdrawal currently preserves the retained value/pointer and fact revision by explicit test design. Frozen contracts require history preservation but do not unambiguously require automatic retained-truth invalidation on withdrawal, so this packet does not invent that behavior.
 
-Fresh Pass-B decision at baseline: **FAIL / REVIEW_FAILED**. Pass C remains prohibited until remediation is verified and a fresh re-review passes.
+## Remediation evidence
 
-## Remediation — IN PROGRESS
-
-Remediation implementation baseline `06c7d1bf92239db22af14303d008c449387ca6ea` adds:
+Remediation added:
 
 - `supabase/migrations/20260907101500_harden_venue_fact_evidence_review.sql`;
 - `supabase/tests/venue_fact_evidence_adversarial_review_test.sql`.
 
-### `WP2.4-B-001` remediation
+### `WP2.4-B-001`
 
-The original WP-2.3 retained setter is renamed to an internal core function with client EXECUTE revoked. The public `set_retained_venue_fact` wrapper preserves legitimate pre-evidence direct retained-value behavior, but once a fact has observations it rejects a direct transition to `known`; callers must use the protected observation-resolution workflow. The fact row is locked before the evidence-existence check so concurrent append versus direct-set operations serialize instead of creating a time-of-check/time-of-use bypass.
+The original WP-2.3 setter is now an internal core function with client EXECUTE revoked. The public `set_retained_venue_fact` wrapper preserves pre-evidence direct retained-value behavior, but once a fact has observations it rejects direct transition to `known`; callers must use protected observation resolution. The fact row is locked before checking for observations, serializing concurrent append/direct-set attempts.
 
-Regression evidence attacks the public legacy RPC after an explicit conflict resolution and verifies that state, retained value, retained observation pointer and rationale remain unchanged. It also proves direct retained setting still works before evidence exists.
+Regression evidence re-attacks the public legacy RPC after explicit conflict resolution and proves state, retained value, retained observation pointer and rationale are preserved. It also proves direct retained setting remains available before evidence exists.
 
-### `WP2.4-B-002` remediation
+### `WP2.4-B-002`
 
-`validate_fact_definition_row` now rejects definition edits that invalidate any non-null retained value regardless of fact state and any non-null persisted observation value for facts using that definition. Historical evidence remains valid even when superseded/withdrawn because it is still persisted evidence under the same definition.
+`validate_fact_definition_row` now rejects edits that invalidate any non-null retained value regardless of fact state and any non-null persisted observation value for facts using the definition. Historical observation rows remain valid after supersession/withdrawal.
 
-Regression evidence proves an option-removing definition edit is rejected when an observation uses that option, a compatible edit still succeeds, and an edit cannot invalidate a conflict-retained observation value.
+Regression evidence rejects an option-removing edit when persisted evidence uses the option, permits a compatible edit, and rejects invalidation of conflict-retained typed truth.
 
-### Verification state
+### Exact-head verification
 
-- remediation code/tests committed at `06c7d1bf92239db22af14303d008c449387ca6ea`;
-- intermediate CI run `34109732455` started for that code-only remediation head;
-- Core quality/security on that intermediate run: **SUCCESS**;
-- full exact-head acceptance evidence is **not yet claimed** because this governance update creates a newer head and the complete CI must be rerun on the final remediation head.
+GitHub Actions run `34110071790` on `5e229cada52c9b50ca3b2b820df3ab8291c2960c`: **5/5 SUCCESS**.
 
-No finding is marked RESOLVED until full exact-head verification is green and the fresh independent re-review re-attacks both boundaries.
+- Core quality/security: **SUCCESS** — 79 test files / 807 tests PASS; measured coverage **100% statements / branches / functions / lines**; typecheck/static/security/dependency/build gates PASS.
+- Local Supabase DB/RLS: **SUCCESS** — full reset/migrations and pgTAP suite PASS, including the adversarial remediation regression.
+- Browser/mutation harnesses: **SUCCESS** — Playwright and mutation gates PASS.
+- Privacy-safe preview: **SUCCESS**.
+- Full verify from clean checkout: **SUCCESS** — `npm run verify` PASS.
+- Dependency audit still reports only the previously reviewed two Moderate transitive development-tool advisories; no accepted-known Critical/High.
+
+This verification satisfies remediation exit. The packet is therefore `REVIEW_PENDING`; the two original MAJOR findings are not considered finally closed until the fresh re-review attacks the repaired boundaries and finds no bypass.
+
+## Fresh Pass B — ADVERSARIAL RE-REVIEW
+
+Started from the frozen contracts and the verified remediation head, not from the remediation author's conclusions.
+
+Required re-attacks include:
+
+- old-setter/core-function privilege and concurrency bypasses;
+- direct-set state variants after evidence exists;
+- fact-definition edit races and historical/superseded/withdrawn observation validity;
+- direct RPC versus domain/parser canonical parity;
+- same-project/RLS/capability leakage;
+- malformed-success/provider fail-closed behavior;
+- source/observation lifecycle and provenance preservation.
+
+No fresh verdict has been recorded yet in this state-transition commit.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started. Entry requires state `ACCEPTANCE_PENDING` after a fresh Pass B with no unresolved BLOCKING/MAJOR findings.
+Not started. Entry requires state `ACCEPTANCE_PENDING` after fresh Pass B with no unresolved BLOCKING/MAJOR findings.
 
 ## Handoff
 
@@ -129,13 +137,14 @@ Not started. Entry requires state `ACCEPTANCE_PENDING` after a fresh Pass B with
 Lot: 2 — Venues core
 Branch: lot-2/venues-core
 Packet: WP-2.4
-State: IN_PROGRESS
-Pass: B-REMEDIATION
+State: REVIEW_PENDING
+Pass: B-ADVERSARIAL-REVIEW
 Primary Feature: FTR-020
 Dependency: WP-2.3 ACCEPTED
 Historical Pass-A head/run: 9f3ca2fb57adf124e50bf8c4888280854c5d846f / 34106264873 — 5/5 SUCCESS
-Review-failure record: 3f6a750a97ca039c36dafd3dff5eca69eac683ad
-Open MAJOR findings under remediation: WP2.4-B-001, WP2.4-B-002
-Remediation baseline: 06c7d1bf92239db22af14303d008c449387ca6ea
-Next action: finish exact-head verification of remediation, then transition REVIEW_PENDING and perform a fresh independent WP-2.4 Pass B; do not start WP-2.5
+First review-failure record: 3f6a750a97ca039c36dafd3dff5eca69eac683ad
+Remediation code baseline: 06c7d1bf92239db22af14303d008c449387ca6ea
+Verified remediation head/run: 5e229cada52c9b50ca3b2b820df3ab8291c2960c / 34110071790 — 5/5 SUCCESS
+Original MAJOR findings: WP2.4-B-001, WP2.4-B-002 — remediation verified, fresh re-review pending
+Next action: perform fresh independent WP-2.4 Pass B only; do not start WP-2.5
 ```
