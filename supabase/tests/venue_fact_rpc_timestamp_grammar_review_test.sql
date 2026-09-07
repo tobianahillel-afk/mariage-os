@@ -8,6 +8,11 @@ select has_function(
   'public source RPC receives raw timestamp text'
 );
 select has_function(
+  'public','update_venue_fact_source',
+  array['uuid','uuid','bigint','text','text','text','text','text','text','text'],
+  'public source update RPC receives raw timestamp text'
+);
+select has_function(
   'public','append_venue_fact_observation',
   array['uuid','uuid','jsonb','text','text','text','text','text','uuid'],
   'public observation RPC receives raw timestamp text'
@@ -24,6 +29,14 @@ select ok(
     'EXECUTE'
   ),
   'authenticated cannot bypass source raw-text parsing through timestamptz core'
+);
+select ok(
+  not has_function_privilege(
+    'authenticated',
+    'public.update_venue_fact_source_timestamp_core(uuid,uuid,bigint,text,text,text,text,timestamptz,text,text)',
+    'EXECUTE'
+  ),
+  'authenticated cannot bypass source-update raw-text parsing through timestamptz core'
 );
 select ok(
   not has_function_privilege(
@@ -99,6 +112,19 @@ begin
 exception when others then return null;
 end$$;
 
+create function pg_temp.try_update_source(source_id uuid, raw_timestamp text)
+returns jsonb language plpgsql as $$
+declare saved jsonb;
+begin
+  saved := public.update_venue_fact_source(
+    'a7000000-0000-4000-8000-000000000001',source_id,1,
+    'written_confirmation','RPC timestamp source',null,'confirmed_for_event',
+    raw_timestamp,null,'active'
+  );
+  return saved;
+exception when others then return null;
+end$$;
+
 create function pg_temp.try_observation(raw_timestamp text)
 returns jsonb language plpgsql as $$
 declare saved jsonb;
@@ -167,6 +193,24 @@ select is(
   (select observed_at from public.sources where project_id='a7000000-0000-4000-8000-000000000001'),
   '2026-09-07T10:11:12.123456Z'::timestamptz,
   'canonical source microseconds are preserved in PostgreSQL'
+);
+select is(
+  pg_temp.try_update_source(
+    (select id from public.sources where project_id='a7000000-0000-4000-8000-000000000001'),
+    '2026-09-08 10:11:12 UTC'
+  ),
+  null::jsonb,
+  'source update RPC rejects PostgreSQL-friendly non-canonical timestamp syntax'
+);
+select is(
+  (select revision from public.sources where project_id='a7000000-0000-4000-8000-000000000001'),
+  1::bigint,
+  'rejected source timestamp update leaves revision unchanged'
+);
+select is(
+  (select observed_at from public.sources where project_id='a7000000-0000-4000-8000-000000000001'),
+  '2026-09-07T10:11:12.123456Z'::timestamptz,
+  'rejected source timestamp update leaves prior observed_at unchanged'
 );
 select isnt(
   pg_temp.try_observation('2026-09-07T10:11:12.654321Z'),null::jsonb,
