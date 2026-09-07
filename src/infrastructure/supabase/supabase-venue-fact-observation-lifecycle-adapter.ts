@@ -45,9 +45,7 @@ function fail(code: VenueFactPersistenceErrorCode): never {
   throw new VenueFactPersistenceError(code, WITHDRAWAL_FAILED);
 }
 
-export class SupabaseVenueFactObservationLifecycleAdapter
-  implements VenueFactObservationLifecyclePort
-{
+export class SupabaseVenueFactObservationLifecycleAdapter implements VenueFactObservationLifecyclePort {
   constructor(
     private readonly client: SupabaseVenueFactObservationLifecycleClientLike,
   ) {}

@@ -167,8 +167,12 @@ const resolveInput: ResolveVenueFactObservationInput = {
 
 describe("Supabase venue fact evidence adapter", () => {
   it("loads a project-scoped fact context and definition", async () => {
-    const adapter = new SupabaseVenueFactEvidenceAdapter(makeClient(() => null));
-    await expect(adapter.getFactContext(projectId, factId)).resolves.toMatchObject({
+    const adapter = new SupabaseVenueFactEvidenceAdapter(
+      makeClient(() => null),
+    );
+    await expect(
+      adapter.getFactContext(projectId, factId),
+    ).resolves.toMatchObject({
       factId,
       projectId,
       venueId,
@@ -188,12 +192,16 @@ describe("Supabase venue fact evidence adapter", () => {
         calls,
       ),
     );
-    await expect(adapter.createSource(createSourceInput)).resolves.toMatchObject({
+    await expect(
+      adapter.createSource(createSourceInput),
+    ).resolves.toMatchObject({
       id: sourceId,
       status: "active",
       revision: 1,
     });
-    await expect(adapter.updateSource(updateSourceInput)).resolves.toMatchObject({
+    await expect(
+      adapter.updateSource(updateSourceInput),
+    ).resolves.toMatchObject({
       id: sourceId,
       status: "broken",
       revision: 2,
@@ -230,11 +238,13 @@ describe("Supabase venue fact evidence adapter", () => {
         calls,
       ),
     );
-    await expect(adapter.appendObservation(appendInput)).resolves.toMatchObject({
-      id: observationId,
-      value: false,
-      confidence: "high",
-    });
+    await expect(adapter.appendObservation(appendInput)).resolves.toMatchObject(
+      {
+        id: observationId,
+        value: false,
+        confidence: "high",
+      },
+    );
     expect(calls).toEqual([
       {
         name: "append_venue_fact_observation",
@@ -275,7 +285,9 @@ describe("Supabase venue fact evidence adapter", () => {
       sourceId,
       isPrimary: true,
     });
-    await expect(adapter.resolveFromObservation(resolveInput)).resolves.toMatchObject({
+    await expect(
+      adapter.resolveFromObservation(resolveInput),
+    ).resolves.toMatchObject({
       id: factId,
       retainedObservationId: observationId,
       retainedValue: false,

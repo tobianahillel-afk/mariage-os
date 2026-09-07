@@ -146,7 +146,9 @@ describe("Supabase venue fact evidence provider failures", () => {
     const adapter = new SupabaseVenueFactEvidenceAdapter(
       queryClient({ ...factRow, project_id: definitionId }),
     );
-    await expect(adapter.getFactContext(projectId, factId)).rejects.toMatchObject({
+    await expect(
+      adapter.getFactContext(projectId, factId),
+    ).rejects.toMatchObject({
       code: "provider_response_invalid",
       message: "Venue fact evidence context query failed.",
     });

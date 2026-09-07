@@ -77,8 +77,7 @@ export interface UpdateVenueFactSourceInput extends NormalizedFactSource {
   readonly expectedRevision: number;
 }
 
-export interface AppendVenueFactObservationInput
-  extends NormalizedFactObservation {
+export interface AppendVenueFactObservationInput extends NormalizedFactObservation {
   readonly projectId: string;
   readonly factId: string;
   readonly supersedesObservationId: string | null;
@@ -102,8 +101,12 @@ export interface ResolveVenueFactObservationInput {
 
 export interface VenueFactEvidencePort {
   getFactContext(projectId: string, factId: string): Promise<VenueFactContext>;
-  createSource(input: CreateVenueFactSourceInput): Promise<VenueFactSourceRecord>;
-  updateSource(input: UpdateVenueFactSourceInput): Promise<VenueFactSourceRecord>;
+  createSource(
+    input: CreateVenueFactSourceInput,
+  ): Promise<VenueFactSourceRecord>;
+  updateSource(
+    input: UpdateVenueFactSourceInput,
+  ): Promise<VenueFactSourceRecord>;
   appendObservation(
     input: AppendVenueFactObservationInput,
   ): Promise<VenueFactObservationRecord>;
@@ -153,7 +156,8 @@ type EvidenceDomainError =
   | FactResolutionError
   | VenueRevisionError
   | "invalid_primary_flag";
-type EvidenceMutationError = EvidenceDomainError | VenueFactPersistenceErrorCode;
+type EvidenceMutationError =
+  EvidenceDomainError | VenueFactPersistenceErrorCode;
 
 export type SourceMutationResult =
   | { readonly ok: true; readonly source: VenueFactSourceRecord }

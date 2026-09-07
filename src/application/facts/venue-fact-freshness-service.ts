@@ -40,9 +40,7 @@ export interface SetVenueFactFreshnessDraft extends FactFreshnessDraft {
 }
 
 type FreshnessMutationError =
-  | FactFreshnessError
-  | VenueRevisionError
-  | VenueFactPersistenceErrorCode;
+  FactFreshnessError | VenueRevisionError | VenueFactPersistenceErrorCode;
 
 export type FreshnessMutationResult =
   | { readonly ok: true; readonly fact: VenueFactFreshnessRecord }

@@ -24,7 +24,10 @@ export interface VenueFactObservationLifecyclePort {
 }
 
 export type ObservationWithdrawalResult =
-  | { readonly ok: true; readonly observation: WithdrawnVenueFactObservationRecord }
+  | {
+      readonly ok: true;
+      readonly observation: WithdrawnVenueFactObservationRecord;
+    }
   | { readonly ok: false; readonly error: VenueFactPersistenceErrorCode };
 
 function persistenceError(error: unknown): VenueFactPersistenceErrorCode {

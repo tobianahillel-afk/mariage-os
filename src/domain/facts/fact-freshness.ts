@@ -23,10 +23,12 @@ export type FactFreshnessResult =
 function nullableInstant(
   value: unknown,
   invalidError: FactFreshnessError,
-): { readonly ok: true; readonly value: string | null } | {
-  readonly ok: false;
-  readonly error: FactFreshnessError;
-} {
+):
+  | { readonly ok: true; readonly value: string | null }
+  | {
+      readonly ok: false;
+      readonly error: FactFreshnessError;
+    } {
   if (value === null) return { ok: true, value: null };
   const normalized = normalizeFactInstant(value);
   return normalized === null
