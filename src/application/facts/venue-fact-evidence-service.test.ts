@@ -133,7 +133,9 @@ describe("Venue fact evidence source service", () => {
         return { ...sourceRecord, revision: 2 };
       },
     });
-    await expect(createVenueFactSource(port, sourceDraft)).resolves.toMatchObject({
+    await expect(
+      createVenueFactSource(port, sourceDraft),
+    ).resolves.toMatchObject({
       ok: true,
       source: sourceRecord,
     });
@@ -151,7 +153,10 @@ describe("Venue fact evidence source service", () => {
 
   it("returns source validation, revision and persistence failures safely", async () => {
     await expect(
-      createVenueFactSource(makePort(), { ...sourceDraft, sourceType: "email" }),
+      createVenueFactSource(makePort(), {
+        ...sourceDraft,
+        sourceType: "email",
+      }),
     ).resolves.toEqual({ ok: false, error: "invalid_source_type" });
     await expect(
       updateVenueFactSource(makePort(), {
