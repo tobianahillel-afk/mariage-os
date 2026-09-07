@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1, WP-2.2 and WP-2.3 ACCEPTED; WP-2.4 REVIEW_PENDING / fresh Pass B after B-006**
+Status: **IN_PROGRESS — WP-2.1, WP-2.2 and WP-2.3 ACCEPTED; WP-2.4 ACCEPTANCE_PENDING / Pass C**
 
 Purpose: durable responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`.
 
@@ -28,7 +28,7 @@ The previously accepted Lot 0 + Lot 1 implementation was promoted to `main` thro
 | multiple physical spaces, dimensions and commercial capacities; sourced wedding-specific suitability remains Facts/Criteria responsibility | FTR-018, VEN-003, VEN-004, physical-input portion of VEN-005 | WP-2.2, WP-2.11 | WP-2.1 | WP-2.2 ACCEPTED same-project/numeric/domain evidence + later detail UI |
 | independent member favorites/ratings and Lot-2 personal Venue preference foundations | FTR-023, FTR-012 (Lot 2), VEN-015, VEN-017, PRD-004, ACC-029 | WP-2.2, WP-2.11 | Lot 1 membership/preferences | WP-2.2 ACCEPTED author-only/partner-isolation evidence + later UI |
 | typed fact definitions, retained fact state/value and explicit unknown/known/not-applicable/conflict semantics | FTR-019, FAC-001, FAC-003, FAC-011, FAC-012, ACC-024 | WP-2.3 | WP-2.1 | **WP-2.3 ACCEPTED**; runtime/domain validation + DB constraints/RLS + provider parity |
-| multi-source append-oriented observations, sources/provenance, conflict retention and stronger-evidence protection inputs | FTR-020, FAC-002, FAC-004..009, ACC-015, ACC-025..027 | WP-2.4 | WP-2.3 | append/history/RLS tests + conflict/freshness tests |
+| multi-source append-oriented observations, sources/provenance, conflict retention and stronger-evidence protection inputs | FTR-020, FAC-002, FAC-004..009, ACC-015, ACC-025..027 | WP-2.4 | WP-2.3 | **WP-2.4 Pass B PASS; Pass C reconciliation in progress**; append/history/RLS/conflict/freshness/canonicality evidence |
 | deterministic criterion evaluation, blockers, weighted score explanation and dynamic recomputation | FTR-021, FAC-011, FAC-013, VEN-010, VEN-011, ACC-022, ACC-023, ACC-028 | WP-2.5 | WP-2.3, WP-2.4 | unit/property/mutation tests + explanation reconstruction |
 | missing/stale/conflicting information guidance without silently creating tasks | FTR-022 (Lot 2 responsibility), VEN-007, FAC-006, FAC-008, FAC-010 | WP-2.5, WP-2.11 | criteria/facts | deterministic missing-info read model + UI |
 | venue offers/date pricing and availability observation basics without full Budget engine | FTR-025 (Lot 2 responsibility), VEN-008, VEN-009 | WP-2.6 | WP-2.1, wedding dates | migration/RLS + date/source/history tests |
@@ -51,7 +51,7 @@ The previously accepted Lot 0 + Lot 1 implementation was promoted to `main` thro
 
 Required current-lot responsibilities minus assigned packet responsibilities: **∅**.
 
-Accepted/evidenced packet responsibilities so far: **WP-2.1, WP-2.2 and WP-2.3**. WP-2.4 has verified remediation through `WP2.4-B-006` and is under fresh independent Pass B; it is not accepted yet. Lot-level accepted/evidenced reconciliation is intentionally incomplete until all packets and the separate Integration Pass finish.
+Accepted/evidenced packet responsibilities so far: **WP-2.1, WP-2.2 and WP-2.3**. WP-2.4 has verified remediation through `WP2.4-B-008`, its final fresh independent Pass B is PASS, and Pass C reconciliation is in progress; it is not accepted until the mechanical acceptance gate below is closed. Lot-level accepted/evidenced reconciliation is intentionally incomplete until all packets and the separate Integration Pass finish.
 
 ## Work Packet plan
 
@@ -99,8 +99,8 @@ Boundary retained: observations/sources/conflict-resolution provenance remain WP
 
 ### WP-2.4 — Observations, sources, evidence/confidence/freshness and conflicts
 
-State: **REVIEW_PENDING**  
-Current pass: **B-ADVERSARIAL-REVIEW — fresh re-review after WP2.4-B-006**
+State: **ACCEPTANCE_PENDING**  
+Current pass: **C-ACCEPTANCE**
 
 Primary Feature: FTR-020.  
 Dependencies: WP-2.3 **ACCEPTED**.  
@@ -108,9 +108,11 @@ Record: `WP-2.4.md`.
 Pre-implementation stop-condition: **CLOSED** by `c414549d20338bf5180d5afc3681beda56fb11de`; `evidence_level`, independent `confidence`, freshness and fact state are distinct normative axes.  
 Specification-gate CI run `34069692843`: **5/5 SUCCESS**.  
 Historical Pass-A head/run: `9f3ca2fb57adf124e50bf8c4888280854c5d846f` / `34106264873` — **5/5 SUCCESS**.  
-Resolved/verified findings: `WP2.4-B-001..B-006`.  
-Latest verified remediation: `06c38444a2e859f59f590477bd43c40255463f3e` / `34131416659` — **5/5 SUCCESS**, including Core, DB/RLS, Browser/mutation, privacy-safe preview and clean-checkout `npm run verify`.  
-Current action: fresh independent adversarial Pass B across complete WP-2.4; do not start WP-2.5 concurrently.
+Resolved/verified findings: `WP2.4-B-001..B-008`.  
+Latest remediation head/run: `4b161f4120cf554395badcc5b05cac79eb018e70` / `34137075923` — **5/5 SUCCESS**.  
+Final fresh Pass-B reviewed head/run: `93262f9459e720d97a6dfa3a83f84f02f3a02c7c` / `34137822804` — **5/5 SUCCESS**. Core: 80 test files / 814 tests, 100% statements/branches/functions/lines for measured files; DB/RLS: 35 files / 778 pgTAP tests PASS; Browser: 40/40 Playwright tests PASS across Chromium/Firefox/WebKit/mobile Chromium; mutation harness: 82.50%; privacy-safe preview and clean-checkout `npm run verify` PASS.  
+Fresh Pass B: **PASS**, no unresolved BLOCKING/MAJOR finding.  
+Current action: mechanical Pass C responsibility/requirements/acceptance/evidence reconciliation only. WP-2.5 remains prohibited until WP-2.4 is ACCEPTED.
 
 ### WP-2.5 — Deterministic criteria, blockers, score/readiness and missing information
 
@@ -178,7 +180,7 @@ Provides the complete visit workflow and the final packet-owned synthetic venue 
 ```text
 WP-2.1 [ACCEPTED]
   ├─→ WP-2.2 [ACCEPTED]
-  ├─→ WP-2.3 [ACCEPTED] → WP-2.4 [REVIEW_PENDING / fresh Pass B] → WP-2.5
+  ├─→ WP-2.3 [ACCEPTED] → WP-2.4 [ACCEPTANCE_PENDING / Pass C] → WP-2.5
   ├─→ WP-2.6
   ├─→ WP-2.7
   └─→ WP-2.8 → WP-2.9
@@ -198,7 +200,7 @@ separate Lot 2 Integration Pass
 Lot 2 acceptance
 ```
 
-Default execution remains one packet in active work/review at a time. WP-2.4 is the sole current packet; WP-2.5 remains PLANNED until WP-2.4 completes fresh Pass B and Pass C acceptance.
+Default execution remains one packet in active work/review at a time. WP-2.4 is the sole current packet; WP-2.5 remains PLANNED until WP-2.4 completes Pass C acceptance.
 
 ## Explicitly out of Lot 2
 
