@@ -32,8 +32,8 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.1 | venue identity, authorized persistence, lifecycle history | **ACCEPTED** |
 | WP-2.2 | spaces, capacity, member ratings/preferences | **ACCEPTED** |
 | WP-2.3 | fact definitions, typed retained facts, value validation | **ACCEPTED** |
-| WP-2.4 | observations, sources, evidence/confidence/freshness, conflicts | **ACCEPTANCE_PENDING — Pass C** |
-| WP-2.5 | deterministic criteria, blockers, score/readiness, missing information | PLANNED |
+| WP-2.4 | observations, sources, evidence/confidence/freshness, conflicts | **ACCEPTED** |
+| WP-2.5 | deterministic criteria, blockers, score/readiness, missing information | PLANNED — specification gates pending |
 | WP-2.6 | offers, availability, contacts/interactions basics | PLANNED |
 | WP-2.7 | contextual venue access-route observations | PLANNED |
 | WP-2.8 | venue media/photo foundation and media safety | PLANNED |
@@ -42,42 +42,35 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace | PLANNED |
 | WP-2.12 | mobile/offline venue-visit workflow and packet E2E completion | PLANNED |
 
-Accepted packet evidence remains unchanged:
+Accepted packet evidence:
 
 - WP-2.1 ACCEPTED; findings `WP2.1-B-001..008` resolved; CI `34039296392` and governance `34040803267` 5/5.
 - WP-2.2 ACCEPTED; `WP2.2-B-001` resolved; CI `34046985956` and governance `34048565452` 5/5.
 - WP-2.3 ACCEPTED; `WP2.3-B-001..008` resolved; final reviewed head `2e3194f7109eb30eee4e73ace7ecbdd329fd321c`, CI `34068703691` 5/5.
+- WP-2.4 ACCEPTED; `WP2.4-B-001..008` resolved/verified; final fresh reviewed head `93262f9459e720d97a6dfa3a83f84f02f3a02c7c`, CI `34137822804` 5/5; Pass C responsibility gap **∅**.
 
-## WP-2.4 — current packet
+## WP-2.4 — accepted packet closure
 
 - Primary Feature: `FTR-020`.
 - Dependency: **WP-2.3 ACCEPTED**.
 - Evidence/confidence specification gate: **CLOSED** by `c414549d20338bf5180d5afc3681beda56fb11de`, CI `34069692843` 5/5.
 - Historical Pass-A head/run: `9f3ca2fb57adf124e50bf8c4888280854c5d846f` / `34106264873` — **5/5 SUCCESS**.
-
-### Pass-B history
-
 - `WP2.4-B-001` MAJOR — legacy retained setter write-around: **RESOLVED / VERIFIED**.
 - `WP2.4-B-002` MAJOR — definition edits invalidating persisted evidence: **RESOLVED / VERIFIED**.
 - Verified first-remediation head/run: `5e229cada52c9b50ca3b2b820df3ab8291c2960c` / `34110071790` — **5/5 SUCCESS**.
 - `WP2.4-B-003` MAJOR — source/conflict ECMAScript whitespace parity: **RESOLVED / VERIFIED**; head/run `527bdeff7840f244d749cd92a81d1eda3fc89017` / `34111887666` — **5/5 SUCCESS**.
 - `WP2.4-B-004` MAJOR — fact-definition ECMAScript whitespace parity: **RESOLVED / VERIFIED**.
 - `WP2.4-B-005` MAJOR — timestamp microsecond/non-finite parity: **RESOLVED / VERIFIED**.
-- Verified B-004/B-005 remediation head/run: `d4d3ce84331d13809b5f7b97ed7bf1a263a2bf4a` / `34119950023` — **5/5 SUCCESS**, Core 80 files / 811 tests at 100% coverage plus DB/RLS, Browser/mutation, preview and clean-checkout verify PASS.
-- `WP2.4-B-006` MAJOR — strict timestamp calendar/year-domain parity: **RESOLVED / VERIFIED**.
-- Verified B-006 remediation head/run: `06c38444a2e859f59f590477bd43c40255463f3e` / `34131416659` — **5/5 SUCCESS**, including Core, DB/RLS, Browser/mutation, privacy-safe preview and clean-checkout `npm run verify`.
-- `WP2.4-B-007` MAJOR — raw RPC timestamp grammar bypass through PostgreSQL `timestamptz` coercion: **RESOLVED / VERIFIED**.
-- Verified B-007 remediation head/run: `92e0f511d394448ccdcdd3143d29b4f2cf3df987` / `34134876299` — **5/5 SUCCESS**, including Core, DB/RLS (`db:verify`), Browser E2E/mutation, privacy-safe preview and clean-checkout `npm run verify`.
-- `WP2.4-B-008` MAJOR — observation/source link `isPrimary` parity: **RESOLVED / VERIFIED**.
-- Verified B-008 remediation head/run: `4b161f4120cf554395badcc5b05cac79eb018e70` / `34137075923` — **5/5 SUCCESS**, including Core, DB/RLS (`db:verify`), Browser E2E/mutation, privacy-safe preview and clean-checkout `npm run verify`.
+- Verified B-004/B-005 remediation head/run: `d4d3ce84331d13809b5f7b97ed7bf1a263a2bf4a` / `34119950023` — **5/5 SUCCESS**.
+- `WP2.4-B-006` MAJOR — strict timestamp calendar/year-domain parity: **RESOLVED / VERIFIED**; head/run `06c38444a2e859f59f590477bd43c40255463f3e` / `34131416659` — **5/5 SUCCESS**.
+- `WP2.4-B-007` MAJOR — raw RPC timestamp grammar bypass through PostgreSQL `timestamptz` coercion: **RESOLVED / VERIFIED**; head/run `92e0f511d394448ccdcdd3143d29b4f2cf3df987` / `34134876299` — **5/5 SUCCESS**.
+- `WP2.4-B-008` MAJOR — observation/source link `isPrimary` parity: **RESOLVED / VERIFIED**; head/run `4b161f4120cf554395badcc5b05cac79eb018e70` / `34137075923` — **5/5 SUCCESS**.
 
-B-008 remediation moves the old permissive link implementation behind a client-inaccessible core and rejects `NULL` at the public RPC before mutation. Direct pgTAP proves rejected-NULL atomicity, canonical `false`/`true` behavior, no duplicate relationship, and denial of core execution to `authenticated`.
+Final fresh independent Pass B after B-008: **PASS**. It reconstructed the packet from frozen Facts/provenance, authorization, canonical instant and acceptance contracts; re-attacked append/supersession/withdrawal, retained resolution, source revision/update, evidence/confidence/freshness/state independence, direct table/RLS/RPC authorization, TS↔DB canonicality and internal-core privileges; and rechecked `ACC-015`, `ACC-025..027`. No unresolved BLOCKING/MAJOR remains.
 
-Fresh independent Pass B after B-008: **PASS**. The re-review reconstructed the packet from frozen Facts/provenance, authorization, canonical instant and acceptance contracts; re-attacked append/supersession/withdrawal, retained resolution, source revision/update, evidence/confidence/freshness/state independence, direct table/RLS/RPC authorization, TS↔DB canonicality and internal-core privileges; and rechecked `ACC-015`, `ACC-025..027`. No unresolved BLOCKING/MAJOR remains. The PostgreSQL-bigint/JavaScript-safe-integer revision difference was reviewed as non-actionable under supported mutation paths because authenticated clients cannot directly mutate revisions and public RPCs increment serialized server-owned revisions from 1.
+Final reviewed head/run `93262f9459e720d97a6dfa3a83f84f02f3a02c7c` / `34137822804`: **5/5 SUCCESS**. Core: 80 test files / 814 tests PASS at 100% measured statements/branches/functions/lines; DB/RLS: 35 files / 778 pgTAP tests PASS; Browser: 40/40 Playwright PASS across Chromium, Firefox, WebKit and mobile Chromium; mutation harness: 82.50%; privacy-safe preview and clean-checkout `npm run verify` PASS.
 
-Final fresh Pass-B reviewed head/run: `93262f9459e720d97a6dfa3a83f84f02f3a02c7c` / `34137822804` — **5/5 SUCCESS**, including Core, DB/RLS, Browser E2E/mutation, privacy-safe preview and clean-checkout `npm run verify`.
-
-WP-2.4 is now in Pass C acceptance/reconciliation only. WP-2.5 remains PLANNED and prohibited until WP-2.4 is accepted.
+Pass C: **PASS**. `FAC-002`, WP-2.4 portion of `FAC-003`, `FAC-004..009`, `ACC-015`, `ACC-025..027`, applicable authorization/RLS duties and packet scope fences were mechanically reconciled EXPECTED → IMPLEMENTED → VERIFIED. Required WP-2.4 responsibilities minus accepted/evidenced WP-2.4 responsibilities: **∅**.
 
 ## Durable cursor
 
@@ -86,15 +79,16 @@ Current Lot: 2 — Venues core
 Lot State: IN_PROGRESS
 Branch: lot-2/venues-core
 Current Packet: WP-2.4
-Packet State: ACCEPTANCE_PENDING
-Current Pass: C-ACCEPTANCE
-Last completed packet: WP-2.3 — ACCEPTED
-Accepted packets: WP-2.1, WP-2.2, WP-2.3
-Resolved/verified WP-2.4 MAJOR findings: WP2.4-B-001, WP2.4-B-002, WP2.4-B-003, WP2.4-B-004, WP2.4-B-005, WP2.4-B-006, WP2.4-B-007, WP2.4-B-008
+Packet State: ACCEPTED
+Current Pass: COMPLETE
+Last completed packet: WP-2.4 — ACCEPTED
+Accepted packets: WP-2.1, WP-2.2, WP-2.3, WP-2.4
+Resolved/verified WP-2.4 findings: WP2.4-B-001, WP2.4-B-002, WP2.4-B-003, WP2.4-B-004, WP2.4-B-005, WP2.4-B-006, WP2.4-B-007, WP2.4-B-008
 Open WP-2.4 BLOCKING/MAJOR finding: none
-Latest verified remediation: 4b161f4120cf554395badcc5b05cac79eb018e70 / 34137075923 — 5/5 SUCCESS
-Final fresh Pass-B reviewed head/run: 93262f9459e720d97a6dfa3a83f84f02f3a02c7c / 34137822804 — 5/5 SUCCESS
-Next permitted action: WP-2.4 Pass C acceptance/reconciliation only. WP-2.5 remains prohibited until WP-2.4 is ACCEPTED.
+Final WP-2.4 reviewed head/run: 93262f9459e720d97a6dfa3a83f84f02f3a02c7c / 34137822804 — 5/5 SUCCESS
+WP-2.4 accepted responsibility gap: ∅
+Next planned packet: WP-2.5 — deterministic criteria, blockers, score/readiness and missing information
+Next permitted action: close WP-2.5 pre-implementation specification gates before any Pass-A production implementation.
 ```
 
 ## Known localized specification repairs / stop-conditions
@@ -110,7 +104,7 @@ Next permitted action: WP-2.4 Pass C acceptance/reconciliation only. WP-2.5 rema
 - V1 Feature inventory: 120 Feature IDs across both ledgers.
 - Lot-2 primary IDs: `FTR-013..FTR-028`; partial cross-lot responsibilities also include `FTR-012`, `FTR-089`, `FTR-092`, `FTR-093` and cross-cutting access/offline/security obligations.
 - Feature-level whole-capability status is not conflated with packet/current-lot responsibility; Lot Coverage Matrices remain the durable responsibility-level reconciliation source.
-- `FTR-020` remains feature-level **IN_PROGRESS** while WP-2.4 completes Pass C; packet acceptance does not claim downstream criteria/UI/offline/import completion.
+- WP-2.4 packet responsibility for `FTR-020` is **ACCEPTED**. This does not claim downstream WP-2.5 criteria/readiness, UI, offline/import, Vendor or real-data completion.
 
 ## Forward maintenance
 
@@ -137,12 +131,13 @@ Lot 0: ACCEPTED
 Lot 1: ACCEPTED
 Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
-Accepted Lot-2 packets: WP-2.1, WP-2.2, WP-2.3
-Current packet: WP-2.4
-Current state/pass: ACCEPTANCE_PENDING / C-ACCEPTANCE
-Resolved/verified: WP2.4-B-001, WP2.4-B-002, WP2.4-B-003, WP2.4-B-004, WP2.4-B-005, WP2.4-B-006, WP2.4-B-007, WP2.4-B-008
-Open BLOCKING/MAJOR: none
-Final fresh Pass-B reviewed head/run: 93262f9459e720d97a6dfa3a83f84f02f3a02c7c / 34137822804 — 5/5 SUCCESS
-Next: WP-2.4 Pass C acceptance/reconciliation only. WP-2.5 remains prohibited until WP-2.4 is ACCEPTED.
+Accepted Lot-2 packets: WP-2.1, WP-2.2, WP-2.3, WP-2.4
+Last completed packet: WP-2.4 — ACCEPTED / COMPLETE
+WP-2.4 resolved/verified findings: WP2.4-B-001..WP2.4-B-008
+WP-2.4 open BLOCKING/MAJOR: none
+WP-2.4 final reviewed head/run: 93262f9459e720d97a6dfa3a83f84f02f3a02c7c / 34137822804 — 5/5 SUCCESS
+WP-2.4 accepted responsibility gap: ∅
+Next planned packet: WP-2.5
+WP-2.5 Pass A is blocked until the evidenceReadiness formula and custom_manual_assessment acceptable-value representation gates are frozen.
 Lots 3–12: NOT_STARTED
 ```
