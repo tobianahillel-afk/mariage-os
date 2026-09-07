@@ -70,7 +70,7 @@ begin
     target_title,
     'https://example.com/unicode-parity',
     'confirmed_for_event',
-    now(),
+    '2026-09-07T10:11:12Z',
     null,
     'active'
   );
@@ -91,7 +91,7 @@ begin
     target_title,
     'https://example.com/unicode-parity',
     'confirmed_for_event',
-    now(),
+    '2026-09-07T10:11:12Z',
     null,
     'active'
   );
@@ -111,7 +111,7 @@ begin
     'yes',
     'confirmed_for_event',
     'high',
-    now(),
+    '2026-09-07T10:11:12Z',
     null,
     null
   );
