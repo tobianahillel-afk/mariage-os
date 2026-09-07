@@ -32,7 +32,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.1 | venue identity, authorized persistence, lifecycle history | **ACCEPTED** |
 | WP-2.2 | spaces, capacity, member ratings/preferences | **ACCEPTED** |
 | WP-2.3 | fact definitions, typed retained facts, value validation | **ACCEPTED** |
-| WP-2.4 | observations, sources, evidence/confidence/freshness, conflicts | **IN_PROGRESS / B-REMEDIATION (B-003)** |
+| WP-2.4 | observations, sources, evidence/confidence/freshness, conflicts | **REVIEW_PENDING / B-ADVERSARIAL-REVIEW** |
 | WP-2.5 | deterministic criteria, blockers, score/readiness, missing information | PLANNED |
 | WP-2.6 | offers, availability, contacts/interactions basics | PLANNED |
 | WP-2.7 | contextual venue access-route observations | PLANNED |
@@ -63,21 +63,10 @@ Accepted packet evidence remains unchanged:
 - Verified first-remediation head/run: `5e229cada52c9b50ca3b2b820df3ab8291c2960c` / `34110071790` — **5/5 SUCCESS**, including clean-checkout verify.
 - Fresh re-review baseline: `48ddaa1cdca2bde7f2b9e639295a10455e7ba477`.
 - B-003 review-failure record: `c43af7fc93ca36931b549d94a1d6e35316c6d173`.
+- `WP2.4-B-003` MAJOR — PostgreSQL/RPC versus TypeScript Unicode-whitespace parity: **REMEDIATION VERIFIED; FRESH RE-REVIEW PENDING**.
+- Verified B-003 remediation head/run: `527bdeff7840f244d749cd92a81d1eda3fc89017` / `34111887666` — **5/5 SUCCESS**, including 31 DB files / 707 pgTAP tests and clean-checkout `npm run verify`.
 
-### Open/remediating finding
-
-MAJOR `WP2.4-B-003`: PostgreSQL/RPC whitespace semantics were weaker than the TypeScript domain/parser semantics for source titles and conflict-resolution rationale (`btrim` versus `String.trim()`), allowing TAB/NBSP-only input to be committed and then rejected by the official parser, including an effectively blank required conflict rationale.
-
-B-003 remediation has now been implemented but is **not yet verified**:
-
-- new PostgreSQL ECMAScript-trim primitive;
-- canonical `sources.title` table constraint;
-- conflict-rationale nonblank table constraint;
-- source create/update and retained-observation resolution behind client-inaccessible core functions with same-signature protected wrappers;
-- source wrappers canonicalize titles; conflict wrapper rejects ECMAScript-blank rationale while preserving valid rationale verbatim;
-- direct pgTAP regression covers TAB/NBSP, BOM/ideographic boundaries, non-mutation on rejection, legitimate Unicode, core-function privilege denial and privileged write-around denial.
-
-Affected verification is stale until a full exact-head CI run succeeds. Pass C is prohibited and WP-2.5 remains PLANNED.
+The packet is now `REVIEW_PENDING`. The next required action is a fresh independent adversarial Pass B across the complete WP-2.4 boundary, explicitly re-attacking all three former MAJOR classes plus nearby bypass/race/parser variants. CI success does not by itself permit Pass C.
 
 ## Durable cursor
 
@@ -86,14 +75,14 @@ Current Lot: 2 — Venues core
 Lot State: IN_PROGRESS
 Branch: lot-2/venues-core
 Current Packet: WP-2.4
-Packet State: IN_PROGRESS
-Current Pass: B-REMEDIATION — WP2.4-B-003
+Packet State: REVIEW_PENDING
+Current Pass: B-ADVERSARIAL-REVIEW — fresh re-review after WP2.4-B-003
 Last completed packet: WP-2.3 — ACCEPTED
 Accepted packets: WP-2.1, WP-2.2, WP-2.3
 Resolved WP-2.4 MAJOR findings: WP2.4-B-001, WP2.4-B-002
-Remediating WP-2.4 MAJOR finding: WP2.4-B-003
-Last fully verified remediation: 5e229cada52c9b50ca3b2b820df3ab8291c2960c / 34110071790 — 5/5 SUCCESS
-Next permitted action: obtain exact-head full CI for B-003 remediation; if green transition WP-2.4 to REVIEW_PENDING and perform fresh Pass B. Do not start WP-2.5 concurrently.
+Verified-remediation / fresh-review-pending finding: WP2.4-B-003
+Last fully verified remediation: 527bdeff7840f244d749cd92a81d1eda3fc89017 / 34111887666 — 5/5 SUCCESS
+Next permitted action: fresh independent Pass B for WP-2.4. If no unresolved BLOCKING/MAJOR findings remain, transition to ACCEPTANCE_PENDING and perform Pass C. Do not start WP-2.5 concurrently.
 ```
 
 ## Known localized specification repairs / stop-conditions
@@ -109,7 +98,7 @@ Next permitted action: obtain exact-head full CI for B-003 remediation; if green
 - V1 Feature inventory: 120 Feature IDs across both ledgers.
 - Lot-2 primary IDs: `FTR-013..FTR-028`; partial cross-lot responsibilities also include `FTR-012`, `FTR-089`, `FTR-092`, `FTR-093` and cross-cutting access/offline/security obligations.
 - Feature-level whole-capability status is not conflated with packet/current-lot responsibility; Lot Coverage Matrices remain the durable responsibility-level reconciliation source.
-- `FTR-020` remains feature-level **IN_PROGRESS** while WP-2.4 remediates B-003.
+- `FTR-020` remains feature-level **IN_PROGRESS** while WP-2.4 is under fresh adversarial review.
 
 ## Forward maintenance
 
@@ -138,10 +127,10 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted Lot-2 packets: WP-2.1, WP-2.2, WP-2.3
 Current packet: WP-2.4
-Current state/pass: IN_PROGRESS / B-REMEDIATION — WP2.4-B-003
+Current state/pass: REVIEW_PENDING / B-ADVERSARIAL-REVIEW — fresh re-review after WP2.4-B-003
 Resolved: WP2.4-B-001, WP2.4-B-002
 B-003 review failure: c43af7fc93ca36931b549d94a1d6e35316c6d173
-B-003 remediation: implemented in current code change; exact-head verification pending
-Next: verify exact head, then fresh Pass B if green. WP-2.5 remains PLANNED.
+B-003 verified remediation: 527bdeff7840f244d749cd92a81d1eda3fc89017 / 34111887666 — 5/5 SUCCESS
+Next: fresh Pass B. If it passes, transition to ACCEPTANCE_PENDING and perform Pass C. WP-2.5 remains PLANNED.
 Lots 3–12: NOT_STARTED
 ```
