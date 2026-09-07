@@ -148,8 +148,13 @@ Important variable factual attributes use the facts/evidence subsystem when appr
 - typed retained value;
 - multiple observations;
 - multiple sources per observation;
-- verification/confidence/freshness;
+- detailed source type/provenance;
+- normalized `evidence_level` describing evidence strength/context;
+- separate observation `confidence` in `high|medium|low|unknown`;
+- freshness/revalidation semantics;
 - conflict/history.
+
+For facts, `evidence_level`, `confidence`, freshness and semantic state are distinct fields/concepts. No implementation may silently derive confidence from evidence level, convert stale to false, or treat `confidence=unknown` / `evidence_level=unknown_source` as fact state `unknown`. See `FACTS-SOURCES.md` and `CONFIDENCE-FRESHNESS.md`.
 
 A broken source never converts a known historical observation into “never existed”.
 
