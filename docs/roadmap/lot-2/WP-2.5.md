@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.5`
 - Lot: `2`
 - Name: Deterministic criteria, blockers, score/readiness and missing information
-- State: `READY`
-- Current pass: `PLAN`
+- State: `IN_PROGRESS`
+- Current pass: `A-IMPLEMENT`
 - Primary bounded context: `facts/criteria` and Venue compatibility read models
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Dependencies: `WP-2.3 ACCEPTED`, `WP-2.4 ACCEPTED`
@@ -104,16 +104,25 @@ The migration family hardens already-owned fact-definition / retained-fact / obs
 
 ## Pass A — IMPLEMENT
 
-Ready to start. No production implementation is claimed by the specification gates alone.
+**IN PROGRESS.** Production implementation is now permitted only inside WP-2.5.
 
-Required first implementation boundaries:
+Implementation order:
 
 1. harden `custom_manual_assessment.accepted` in TypeScript and PostgreSQL with canonical parity tests;
 2. restrict `project_target_guest_count_supported` to the canonical derived-key semantics rather than arbitrary boolean definitions;
 3. reject retained-fact / observation writes for the system-derived target-support criterion at supported TypeScript and PostgreSQL boundaries;
 4. implement pure ordinary/dynamic criterion evaluation, blocker aggregation, weighted score, readiness, deterministic reason/explanation models and missing-information guidance;
 5. add the authorized Venue compatibility read-model port/adapter without persisting compatibility authority;
-6. verify dynamic target changes and derived-data non-mutation.
+6. verify dynamic target changes and derived-data non-mutation;
+7. obtain exact-head full CI before moving to `REVIEW_PENDING`.
+
+### Implementation evidence
+
+- code/modules: pending
+- migrations/schema: pending
+- tests added: pending
+- FIRs updated: pending
+- docs/status updated: Pass A cursor opened on status board and packet record
 
 ## Pass B — ADVERSARIAL REVIEW
 
@@ -125,9 +134,9 @@ Not started. Pass C may begin only from `ACCEPTANCE_PENDING` after a fresh Pass 
 
 ## Handoff
 
-- Current state: `READY`
-- Current/next pass: `PLAN` → `A-IMPLEMENT`
+- Current state: `IN_PROGRESS`
+- Current/next pass: `A-IMPLEMENT`
 - Last green verification: dynamic specification commit `01136a7694141fd21c6067dcc4a1eb876e89080a`, CI `34146113235` — **5/5 SUCCESS**
 - Closed specification gates: `evidenceReadiness`; `custom_manual_assessment.accepted`; `WP2.5-S-001` dynamic guest-target support semantics
 - Remaining pre-implementation blocker/finding: none
-- Next permitted action: transition `READY → IN_PROGRESS / A-IMPLEMENT` and implement WP-2.5 only. Do not start WP-2.6 concurrently.
+- Next permitted action: implement WP-2.5 Pass A only, beginning with canonical validation and derived-data write boundaries. Do not start WP-2.6 concurrently.
