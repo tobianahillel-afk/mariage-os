@@ -82,8 +82,33 @@ it("rejects evidence level and confidence independently", () => {
   ).toEqual({ ok: false, error: "invalid_confidence" });
 });
 
-it("rejects malformed observation timestamps", () => {
-  for (const observedAt of [42, "2026-09-07", "not-a-date"] as const) {
+it("normalizes PostgreSQL microsecond precision to canonical milliseconds", () => {
+  expect(normalizeFactInstant("2026-09-07T06:15:30.123456Z")).toBe(
+    "2026-09-07T06:15:30.123Z",
+  );
+  expect(normalizeFactInstant("2026-09-07T08:15:30.654321+02:00")).toBe(
+    "2026-09-07T06:15:30.654Z",
+  );
+  expect(
+    normalizeFactObservation(booleanDefinition, {
+      ...validDraft,
+      observedAt: "2026-09-07T06:15:30.987654+00:00",
+    }),
+  ).toMatchObject({
+    ok: true,
+    value: { observedAt: "2026-09-07T06:15:30.987Z" },
+  });
+});
+
+it("rejects malformed, over-precision and non-finite observation timestamps", () => {
+  for (const observedAt of [
+    42,
+    "2026-09-07",
+    "not-a-date",
+    "2026-09-07T06:15:30.1234567Z",
+    "infinity",
+    "-infinity",
+  ] as const) {
     expect(
       normalizeFactObservation(booleanDefinition, {
         ...validDraft,

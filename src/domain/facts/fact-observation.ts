@@ -8,7 +8,7 @@ import {
 } from "./fact-evidence-types";
 
 const INSTANT_PATTERN =
-  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/;
+  /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.(\d{1,6}))?(Z|[+-]\d{2}:\d{2})$/;
 
 export interface FactObservationDraft {
   readonly value: unknown;
@@ -50,8 +50,15 @@ function nullableBoundedText(
 }
 
 export function normalizeFactInstant(value: unknown): string | null {
-  if (typeof value !== "string" || !INSTANT_PATTERN.test(value)) return null;
-  const parsed = Date.parse(value);
+  if (typeof value !== "string") return null;
+  const match = INSTANT_PATTERN.exec(value);
+  if (match === null) return null;
+  const base = match[1];
+  const fraction = match[2] ?? "";
+  const offset = match[3];
+  if (base === undefined || offset === undefined) return null;
+  const milliseconds = fraction.padEnd(3, "0").slice(0, 3);
+  const parsed = Date.parse(`${base}.${milliseconds}${offset}`);
   if (!Number.isFinite(parsed)) return null;
   return new Date(parsed).toISOString();
 }
