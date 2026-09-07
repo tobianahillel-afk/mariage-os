@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.5`
 - Lot: `2`
 - Name: Deterministic criteria, blockers, score/readiness and missing information
-- State: `REVIEW_FAILED`
-- Current pass: `B-ADVERSARIAL-REVIEW — WP2.5-B-003 open`
+- State: `REVIEW_PENDING`
+- Current pass: `B-ADVERSARIAL-REVIEW — fresh independent re-review pending`
 - Primary bounded context: `facts/criteria` and Venue compatibility read models
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Dependencies: `WP-2.3 ACCEPTED`, `WP-2.4 ACCEPTED`
@@ -15,6 +15,7 @@
 - Prior fresh Pass-B reviewed head/run: `3948060eb541ae2ae3eac6f5b1a7e702eb057e64` / `34159043613` — **5/5 SUCCESS**, review decision **FAIL** on `WP2.5-B-001` and `WP2.5-B-002`.
 - Verified remediation head/run: `68439bb0d152c60197fc8ae05f416300b3a81c35` / `34161773557` — **5/5 SUCCESS**, including clean-checkout `npm run verify`.
 - Fresh post-remediation reviewed head/run: `7eecdbfbf986d26faa2f7d98e67db2a674fdd3e2` / `34162443907` — **5/5 SUCCESS**, review decision **FAIL** on `WP2.5-B-003`.
+- Verified B-003 remediation head/run: `3ce8ddf6e14a25efc71d928def52efe2314d72ba` / `34163426797` — **5/5 SUCCESS**, including clean-checkout `npm run verify`.
 
 ## Scope and current-lot responsibilities
 
@@ -182,17 +183,21 @@ Prior fresh review baseline: `3948060eb541ae2ae3eac6f5b1a7e702eb057e64`. Transit
 
 Reviewed head `7eecdbfbf986d26faa2f7d98e67db2a674fdd3e2`; exact CI `34162443907`: **5/5 SUCCESS**, including clean-checkout `npm run verify`. The review re-read the dynamic addendum, compatibility service/read model, query port/adapter, provider parser, criterion evaluation/aggregate/readiness/guidance, evaluation-rule boundary and PostgreSQL derived-write hardening. B-001 and B-002 remediations remain effective, but the fresh review found the new MAJOR finding below. Green CI is therefore not treated as a Pass-B PASS.
 
-### `WP2.5-B-003` — MAJOR — OPEN — duplicate fact primary-key identity can be silently projected as multiple criteria
+### `WP2.5-B-003` — MAJOR — RESOLVED / VERIFIED — duplicate fact primary-key identity could be silently projected as multiple criteria
 
-**Finding.** `parseFacts()` keys its internal `Map` by `definition_id` and rejects an unknown or repeated definition, but it never enforces uniqueness of the parsed fact record's own `id`. A malformed Supabase/provider response can therefore return two fact rows with different valid `definition_id` values but the same valid `facts.id`. If the two rows use distinct retained-observation IDs, and both observation rows point to that same fact ID, `expectedObservationFacts()` and `observationStatuses()` accept the relation. `snapshots()` then projects the two rows as two independent criterion snapshots even though PostgreSQL could never contain two distinct `facts` rows sharing one primary key.
+**Historical finding.** `parseFacts()` keyed its internal `Map` by `definition_id` and rejected an unknown or repeated definition, but it did not enforce uniqueness of the parsed fact record's own `id`. A malformed Supabase/provider response could therefore return two fact rows with different valid `definition_id` values but the same valid `facts.id`. If the two rows used distinct retained-observation IDs, and both observation rows pointed to that same fact ID, `expectedObservationFacts()` and `observationStatuses()` accepted the relation. `snapshots()` then projected the two rows as two independent criterion snapshots even though PostgreSQL could never contain two distinct `facts` rows sharing one primary key.
 
-**Impact.** The compatibility engine can silently double-project one impossible fact identity under multiple definitions and use the fabricated snapshots in blocker evaluation, weighted score, guidance and `evidenceReadiness`. This is not merely a provider-format cosmetic issue: it can alter decision-support output and readiness counts from a relationally impossible network response.
+**Impact.** The compatibility engine could silently double-project one impossible fact identity under multiple definitions and use the fabricated snapshots in blocker evaluation, weighted score, guidance and `evidenceReadiness`. This was not merely a provider-format cosmetic issue: it could alter decision-support output and readiness counts from a relationally impossible network response.
 
 **Normative/security mismatch.** Network/Supabase responses are explicitly untrusted under `INPUT-VALIDATION.md` and `SECURITY-CONTROL-BASELINE.md`. Validation must include semantic/domain invariants after syntax validation, and failure must not fall through to a permissive interpretation. This finding is the same class of fail-closed relational-boundary defect as B-002 and implicates `SEC-VAL-001`, `SEC-VAL-008` and regression obligation `SEC-VER-005`. PostgreSQL primary-key uniqueness is defense in depth, not permission for the runtime provider parser to accept a response shape the database cannot represent.
 
-**Required remediation.** Add a regression that constructs two otherwise-valid returned fact rows with distinct definitions but one shared fact ID and distinct retained observations pointing at that ID, proving the current parser would otherwise accept them. Then enforce fact-record ID uniqueness fail-closed in the centralized compatibility parser without weakening definition uniqueness, retained-observation ownership, project/venue identity or observation-status checks. No DB migration is required because the authoritative table already enforces primary-key uniqueness.
+**Red-first reproduction.** Test-only commit `6e382a02de227306952199828479e442d507e710` added the otherwise-valid two-definition / one-shared-`fact.id` provider response with distinct retained observations. Exact run `34163182953` failed as intended on that regression before any production fix, while the prior unit corpus remained green.
 
-Fresh Pass B decision: **FAIL — `WP2.5-B-003 MAJOR` is open.** No other new BLOCKING/MAJOR finding was identified in the reviewed score/blocker, dynamic formula, readiness/guidance, derived-write or project-isolation surfaces. The packet returns to `REVIEW_FAILED`; WP-2.6 remains prohibited.
+**Remediation.** `parseFacts()` now validates each retained fact through the existing canonical row parser, tracks the parsed fact record IDs centrally and rejects a repeated `fact.id` fail-closed before snapshot projection. Existing definition uniqueness, retained-observation ownership, project/venue identity and observation-status checks remain intact. No database migration was added because PostgreSQL already enforces fact primary-key uniqueness.
+
+**Verification.** The functional guard was introduced in `1405490854d94b15d0e2129730a48b1c6815f55f`; that run stopped at the repository formatting gate before unit execution, so it is not used as behavioral verification. The formatting-only follow-up produced final remediation head `3ce8ddf6e14a25efc71d928def52efe2314d72ba`. Exact run `34163426797` is **5/5 SUCCESS**: Core quality/security including the B-003 regression, Local Supabase DB/RLS, Browser/mutation, privacy-safe preview and full clean-checkout `npm run verify` all passed.
+
+Historical fresh Pass B decision on reviewed head `7eecdbfbf986d26faa2f7d98e67db2a674fdd3e2`: **FAIL — `WP2.5-B-003 MAJOR` was open.** No other new BLOCKING/MAJOR finding was identified in the reviewed score/blocker, dynamic formula, readiness/guidance, derived-write or project-isolation surfaces. B-003 is now **RESOLVED / VERIFIED**, so the packet returns to `REVIEW_PENDING` for another fresh independent Pass B; this remediation does not itself constitute a Pass-B PASS.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
@@ -200,14 +205,16 @@ Not started. Pass C may begin only from `ACCEPTANCE_PENDING` after a **fresh ind
 
 ## Handoff
 
-- Current state: `REVIEW_FAILED`
-- Current pass: `B-ADVERSARIAL-REVIEW — WP2.5-B-003 open`
+- Current state: `REVIEW_PENDING`
+- Current pass: `B-ADVERSARIAL-REVIEW — fresh independent re-review pending`
 - Verified Pass-A implementation head/run: `aef7bea53e9db32790ab19c3fffdd0a8f63dc89d` / `34158303997` — **5/5 SUCCESS**
 - Prior fresh reviewed head/run: `3948060eb541ae2ae3eac6f5b1a7e702eb057e64` / `34159043613` — **5/5 SUCCESS**, review decision FAIL
 - Verified remediation head/run: `68439bb0d152c60197fc8ae05f416300b3a81c35` / `34161773557` — **5/5 SUCCESS**
 - Fresh post-remediation reviewed head/run: `7eecdbfbf986d26faa2f7d98e67db2a674fdd3e2` / `34162443907` — **5/5 SUCCESS**, review decision FAIL
+- B-003 red-first proof: `6e382a02de227306952199828479e442d507e710` / `34163182953` — expected regression FAILURE before fix
+- Verified B-003 remediation head/run: `3ce8ddf6e14a25efc71d928def52efe2314d72ba` / `34163426797` — **5/5 SUCCESS**
 - `WP2.5-B-001`: **RESOLVED / VERIFIED**
 - `WP2.5-B-002`: **RESOLVED / VERIFIED**
-- `WP2.5-B-003`: **OPEN / MAJOR**
-- Open WP-2.5 BLOCKING/MAJOR findings: **WP2.5-B-003**
-- Next permitted action: remediate `WP2.5-B-003` only, obtain exact-head full CI, transition back to `REVIEW_PENDING`, then perform another fresh independent Pass B. Do not start WP-2.6 concurrently.
+- `WP2.5-B-003`: **RESOLVED / VERIFIED**
+- Open WP-2.5 BLOCKING/MAJOR findings: **none at the remediation checkpoint; fresh Pass B still required**
+- Next permitted action: obtain exact-head full CI for the durable `REVIEW_PENDING` record/status transition, then perform another fresh independent Pass B of the whole WP-2.5 packet. Do not start WP-2.6 concurrently.
