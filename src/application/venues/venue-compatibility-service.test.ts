@@ -161,11 +161,16 @@ describe("venue compatibility read model", () => {
   });
 
   it("keeps ordinary missing information visible", async () => {
-    const input = compatibilityInputs();
-    const snapshots = input.snapshots.filter(
+    const unknownParking = replaceSnapshot(compatibilityInputs(), "parking", {
+      state: null,
+      retainedValue: null,
+      retainedObservationStatus: null,
+      staleAt: null,
+    });
+    const snapshots = unknownParking.snapshots.filter(
       (snapshot) => snapshot.definition.key === "parking",
     );
-    const result = await compatibility({ ...input, snapshots });
+    const result = await compatibility({ ...unknownParking, snapshots });
     expect(result?.readiness.evidenceReadiness).toBe(0);
     expect(result?.guidance.map((item) => item.kind)).toEqual([
       "missing_or_unknown",
