@@ -61,15 +61,13 @@ declare
   rule_type text := new.evaluation_rule_json ->> 'type';
 begin
   if new.key = 'target_guest_count_supported' then
-    if not (
-      new.system_defined
-      and new.entity_type = 'venue'
-      and new.value_type = 'boolean'
-      and new.unit is null
-      and new.priority = 'blocking'
-      and new.evaluation_rule_json =
-        '{"type":"project_target_guest_count_supported"}'::jsonb
-    ) then
+    if not new.system_defined
+      or new.entity_type <> 'venue'
+      or new.value_type <> 'boolean'
+      or new.unit is not null
+      or new.priority <> 'blocking'
+      or new.evaluation_rule_json is distinct from
+        '{"type":"project_target_guest_count_supported"}'::jsonb then
       raise exception 'venue criterion system definition unavailable'
         using errcode = '23514';
     end if;
@@ -79,12 +77,12 @@ begin
   end if;
 
   if new.key = 'two_dance_areas_max_guest_estimate'
-    and not (
-      new.system_defined
-      and new.entity_type = 'venue'
-      and new.value_type = 'number'
-      and new.unit = 'people'
-      and new.priority = 'important'
+    and (
+      not new.system_defined
+      or new.entity_type <> 'venue'
+      or new.value_type <> 'number'
+      or new.unit is distinct from 'people'
+      or new.priority <> 'important'
     ) then
     raise exception 'venue criterion system definition unavailable'
       using errcode = '23514';
