@@ -216,17 +216,44 @@ describe("parseVenueCompatibilityInputs observation validation", () => {
     rows.observations = [];
     expect(() => parse(rows)).toThrow("Invalid venue compatibility response.");
   });
+
+  it("rejects one retained observation claimed by multiple facts", () => {
+    const rows = baseRows();
+    rows.facts = [
+      factRow(),
+      factRow(ACCESS_DEFINITION_ID, {
+        id: OTHER_FACT_ID,
+        retained_observation_id: OBSERVATION_ID,
+      }),
+    ];
+    expect(() => parse(rows)).toThrow("Invalid venue compatibility response.");
+  });
 });
 
 describe("retainedObservationIds", () => {
-  it("deduplicates retained ids and ignores explicit null", () => {
+  it("returns retained ids in encounter order and ignores explicit null", () => {
     expect(
       retainedObservationIds([
         factRow(),
-        factRow(PARKING_DEFINITION_ID, { id: OTHER_FACT_ID }),
+        factRow(ACCESS_DEFINITION_ID, {
+          id: OTHER_FACT_ID,
+          retained_observation_id: OTHER_OBSERVATION_ID,
+        }),
         factRow(PARKING_DEFINITION_ID, { retained_observation_id: null }),
       ]),
-    ).toEqual([OBSERVATION_ID]);
+    ).toEqual([OBSERVATION_ID, OTHER_OBSERVATION_ID]);
+  });
+
+  it("rejects duplicate retained ids before the provider observation query", () => {
+    expect(() =>
+      retainedObservationIds([
+        factRow(),
+        factRow(ACCESS_DEFINITION_ID, {
+          id: OTHER_FACT_ID,
+          retained_observation_id: OBSERVATION_ID,
+        }),
+      ]),
+    ).toThrow("Invalid venue compatibility response.");
   });
 
   it("fails closed on malformed retained ids", () => {

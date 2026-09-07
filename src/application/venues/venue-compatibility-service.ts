@@ -11,7 +11,12 @@ import {
   type CriterionGuidance,
 } from "@domain/facts/criterion-guidance";
 import { evaluateCriteria } from "@domain/facts/criterion-evaluation";
-import type { CriterionEvaluation } from "@domain/facts/criterion-types";
+import { isDynamicGuestSupportSourceDefinition } from "@domain/facts/derived-fact-definition";
+import { normalizeFactInstant } from "@domain/facts/fact-observation";
+import type {
+  CriterionEvaluation,
+  CriterionFactSnapshot,
+} from "@domain/facts/criterion-types";
 import type {
   VenueCompatibilityInputs,
   VenueCompatibilityQueryPort,
@@ -24,24 +29,55 @@ export interface VenueCompatibilityQuery {
   readonly targetGuestCountOverride?: number | null;
 }
 
+export type VenueCompatibilityTargetSource = "project" | "explicit_context";
+export type VenueCompatibilityFreshness = "fresh" | "stale" | "unknown";
+
+export interface DynamicGuestCountComparison {
+  readonly targetGuestCount: number;
+  readonly supportMaximumGuestCount: number;
+  readonly passes: boolean;
+}
+
+export interface DynamicGuestCountExplanation {
+  readonly targetGuestCount: number | null;
+  readonly targetSource: VenueCompatibilityTargetSource;
+  readonly supportSourceKey: "two_dance_areas_max_guest_estimate";
+  readonly supportSourceState: CriterionFactSnapshot["state"];
+  readonly supportSourceValue: unknown;
+  readonly supportSourceObservationStatus: CriterionFactSnapshot["retainedObservationStatus"];
+  readonly supportSourceStaleAt: string | null;
+  readonly supportSourceFreshness: VenueCompatibilityFreshness;
+  readonly ready: boolean;
+  readonly outcome: CriterionEvaluation["outcome"];
+  readonly reason: CriterionEvaluation["reason"];
+  readonly comparison: DynamicGuestCountComparison | null;
+}
+
 export interface VenueCompatibilityReadModel {
   readonly projectId: string;
   readonly venueId: string;
   readonly evaluatedAt: string;
   readonly targetGuestCount: number | null;
+  readonly targetGuestCountSource: VenueCompatibilityTargetSource;
   readonly evaluations: readonly CriterionEvaluation[];
   readonly aggregate: CriterionAggregate;
   readonly readiness: EvidenceReadiness;
   readonly guidance: readonly CriterionGuidance[];
+  readonly dynamicGuestCountExplanation: DynamicGuestCountExplanation | null;
 }
 
-function targetGuestCount(
+interface SelectedTarget {
+  readonly value: number | null;
+  readonly source: VenueCompatibilityTargetSource;
+}
+
+function selectedTarget(
   input: VenueCompatibilityInputs,
   query: VenueCompatibilityQuery,
-): number | null {
+): SelectedTarget {
   return query.targetGuestCountOverride === undefined
-    ? input.projectTargetGuestCount
-    : query.targetGuestCountOverride;
+    ? { value: input.projectTargetGuestCount, source: "project" }
+    : { value: query.targetGuestCountOverride, source: "explicit_context" };
 }
 
 function ensureIdentity(
@@ -73,6 +109,88 @@ function guidanceFor(
   return Object.freeze(guidance);
 }
 
+function supportSnapshot(
+  snapshots: readonly CriterionFactSnapshot[],
+): CriterionFactSnapshot | null {
+  const matches = snapshots.filter((snapshot) =>
+    isDynamicGuestSupportSourceDefinition(snapshot.definition),
+  );
+  return matches.length === 1 ? (matches[0] as CriterionFactSnapshot) : null;
+}
+
+function supportFreshness(
+  source: CriterionFactSnapshot | null,
+  evaluatedAt: string,
+): VenueCompatibilityFreshness {
+  if (source === null) return "unknown";
+  const normalizedEvaluation = normalizeFactInstant(evaluatedAt);
+  if (normalizedEvaluation === null) return "unknown";
+  if (source.staleAt === null) return "fresh";
+  const normalizedStaleAt = normalizeFactInstant(source.staleAt);
+  if (normalizedStaleAt === null) return "unknown";
+  return normalizedStaleAt <= normalizedEvaluation ? "stale" : "fresh";
+}
+
+function guestCount(value: unknown): number | null {
+  return Number.isSafeInteger(value) && (value as number) >= 0
+    ? (value as number)
+    : null;
+}
+
+function comparisonFor(
+  target: SelectedTarget,
+  source: CriterionFactSnapshot | null,
+): DynamicGuestCountComparison | null {
+  const targetGuestCount = guestCount(target.value);
+  const supportMaximumGuestCount = guestCount(source?.retainedValue);
+  if (
+    targetGuestCount === null ||
+    source?.state !== "known" ||
+    supportMaximumGuestCount === null
+  ) {
+    return null;
+  }
+  return Object.freeze({
+    targetGuestCount,
+    supportMaximumGuestCount,
+    passes: targetGuestCount <= supportMaximumGuestCount,
+  });
+}
+
+function dynamicGuestCountExplanation(
+  input: VenueCompatibilityInputs,
+  evaluations: readonly CriterionEvaluation[],
+  target: SelectedTarget,
+  evaluatedAt: string,
+): DynamicGuestCountExplanation | null {
+  const evaluation = evaluations.find(
+    (item) => item.key === "target_guest_count_supported",
+  );
+  if (evaluation === undefined) return null;
+  const source = supportSnapshot(input.snapshots);
+  const freshness = supportFreshness(source, evaluatedAt);
+  const comparison = comparisonFor(target, source);
+  const ready =
+    comparison !== null &&
+    source?.retainedObservationStatus === "active" &&
+    freshness === "fresh" &&
+    ["PASS", "FAIL"].includes(evaluation.outcome);
+  return Object.freeze({
+    targetGuestCount: target.value,
+    targetSource: target.source,
+    supportSourceKey: "two_dance_areas_max_guest_estimate",
+    supportSourceState: source?.state ?? null,
+    supportSourceValue: source?.retainedValue ?? null,
+    supportSourceObservationStatus: source?.retainedObservationStatus ?? null,
+    supportSourceStaleAt: source?.staleAt ?? null,
+    supportSourceFreshness: freshness,
+    ready,
+    outcome: evaluation.outcome,
+    reason: evaluation.reason,
+    comparison,
+  });
+}
+
 export async function getVenueCompatibility(
   port: VenueCompatibilityQueryPort,
   query: VenueCompatibilityQuery,
@@ -83,14 +201,15 @@ export async function getVenueCompatibility(
   );
   if (input === null) return null;
   ensureIdentity(input, query);
-  const target = targetGuestCount(input, query);
-  const context = { targetGuestCount: target };
+  const target = selectedTarget(input, query);
+  const context = { targetGuestCount: target.value };
   const evaluations = evaluateCriteria(input.snapshots, context);
   return Object.freeze({
     projectId: input.projectId,
     venueId: input.venueId,
     evaluatedAt: query.evaluatedAt,
-    targetGuestCount: target,
+    targetGuestCount: target.value,
+    targetGuestCountSource: target.source,
     evaluations,
     aggregate: aggregateCriteria(evaluations),
     readiness: calculateEvidenceReadiness(
@@ -100,5 +219,11 @@ export async function getVenueCompatibility(
       query.evaluatedAt,
     ),
     guidance: guidanceFor(input, evaluations, query.evaluatedAt),
+    dynamicGuestCountExplanation: dynamicGuestCountExplanation(
+      input,
+      evaluations,
+      target,
+      query.evaluatedAt,
+    ),
   });
 }

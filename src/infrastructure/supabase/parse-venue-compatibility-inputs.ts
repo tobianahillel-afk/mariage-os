@@ -145,6 +145,7 @@ function expectedObservationFacts(
   const expected = new Map<string, string>();
   for (const fact of facts.values()) {
     if (fact.retainedObservationId !== null) {
+      if (expected.has(fact.retainedObservationId)) invalidResponse();
       expected.set(fact.retainedObservationId, fact.record.id);
     }
   }
@@ -217,11 +218,16 @@ function snapshots(
 export function retainedObservationIds(
   rows: readonly unknown[],
 ): readonly string[] {
-  const ids = rows.flatMap((value) => {
-    const retainedId = recordValue(value).retained_observation_id;
-    return retainedId === null ? [] : [uuidValue(retainedId)];
-  });
-  return Object.freeze([...new Set(ids)]);
+  const ids: string[] = [];
+  const seen = new Set<string>();
+  for (const value of rows) {
+    const retainedId = optionalUuid(recordValue(value).retained_observation_id);
+    if (retainedId === null) continue;
+    if (seen.has(retainedId)) invalidResponse();
+    seen.add(retainedId);
+    ids.push(retainedId);
+  }
+  return Object.freeze(ids);
 }
 
 export function parseVenueCompatibilityInputs(
