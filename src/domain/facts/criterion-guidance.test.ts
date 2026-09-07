@@ -94,7 +94,11 @@ describe("criterion guidance", () => {
   });
 
   it("excludes explicit not-applicable and non-critical criteria", () => {
-    const notApplicable = snapshot(definition("parking"), "not_applicable", null);
+    const notApplicable = snapshot(
+      definition("parking"),
+      "not_applicable",
+      null,
+    );
     const bonus = snapshot(
       definition("panorama", { priority: "bonus" }),
       "unknown",
