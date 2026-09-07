@@ -212,25 +212,44 @@ export function parseObservationSourceLinkRow(
   };
 }
 
+interface ResolvedFactIdentity {
+  readonly projectId: string;
+  readonly factId: string;
+  readonly venueId: string;
+  readonly definitionId: string;
+  readonly retainedObservationId: string;
+}
+
+function resolvedIdentityMatches(
+  identity: ResolvedFactIdentity,
+  context: VenueFactContext,
+  expectedObservationId: string,
+  targetType: unknown,
+): boolean {
+  return (
+    identity.projectId === context.projectId &&
+    identity.factId === context.factId &&
+    identity.venueId === context.venueId &&
+    identity.definitionId === context.definition.id &&
+    identity.retainedObservationId === expectedObservationId &&
+    targetType === "venue"
+  );
+}
+
 export function parseResolvedVenueFactEvidenceRow(
   value: unknown,
   context: VenueFactContext,
   expectedObservationId: string,
 ): ResolvedVenueFactRecord {
   const row = recordValue(value);
-  const projectId = uuidValue(row.project_id);
-  const factId = uuidValue(row.id);
-  const venueId = uuidValue(row.target_id);
-  const definitionId = uuidValue(row.definition_id);
-  const retainedObservationId = uuidValue(row.retained_observation_id);
-  if (
-    projectId !== context.projectId ||
-    factId !== context.factId ||
-    venueId !== context.venueId ||
-    definitionId !== context.definition.id ||
-    retainedObservationId !== expectedObservationId ||
-    row.target_type !== "venue"
-  ) {
+  const identity: ResolvedFactIdentity = {
+    projectId: uuidValue(row.project_id),
+    factId: uuidValue(row.id),
+    venueId: uuidValue(row.target_id),
+    definitionId: uuidValue(row.definition_id),
+    retainedObservationId: uuidValue(row.retained_observation_id),
+  };
+  if (!resolvedIdentityMatches(identity, context, expectedObservationId, row.target_type)) {
     invalidResponse();
   }
   const resolution = normalizeFactResolution({
@@ -248,13 +267,13 @@ export function parseResolvedVenueFactEvidenceRow(
   nullableInstantValue(row.last_verified_at);
   nullableInstantValue(row.stale_at);
   return {
-    id: factId,
-    projectId,
-    venueId,
-    definitionId,
+    id: identity.factId,
+    projectId: identity.projectId,
+    venueId: identity.venueId,
+    definitionId: identity.definitionId,
     state: resolution.value.state,
     retainedValue: retainedValue.value,
-    retainedObservationId,
+    retainedObservationId: identity.retainedObservationId,
     resolutionNote: resolution.value.resolutionNote,
     revision: revisionValue(row.revision),
   };
