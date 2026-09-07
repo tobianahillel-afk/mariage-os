@@ -60,10 +60,7 @@ function guidanceFor(
 ): readonly CriterionGuidance[] {
   const guidance: CriterionGuidance[] = [];
   input.snapshots.forEach((snapshot, index) => {
-    const evaluation = evaluations[index];
-    if (evaluation === undefined) {
-      throw new Error("Venue compatibility query failed.");
-    }
+    const evaluation = evaluations[index] as CriterionEvaluation;
     guidance.push(
       ...classifyCriterionGuidance(
         snapshot,

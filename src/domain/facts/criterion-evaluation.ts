@@ -129,9 +129,9 @@ function evaluateOrdinary(
   );
   if (!normalized.ok)
     return result(snapshot, "UNKNOWN", "invalid_retained_value");
-  const evaluated = evaluateKnownRule(normalized.value, rule);
-  if (evaluated === null)
-    return result(snapshot, "UNKNOWN", "configuration_incomplete");
+  const evaluated = evaluateKnownRule(normalized.value, rule) as NonNullable<
+    ReturnType<typeof evaluateKnownRule>
+  >;
   return result(snapshot, evaluated.outcome, evaluated.reason, {
     actual: normalized.value,
     target: evaluated.target,
