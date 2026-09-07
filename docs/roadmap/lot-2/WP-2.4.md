@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.4`
 - Lot: `2`
 - Name: Observations, sources, evidence/confidence/freshness and conflicts
-- State: `REVIEW_PENDING`
-- Current pass: `B-ADVERSARIAL-REVIEW — fresh re-review after WP2.4-B-004 / WP2.4-B-005`
+- State: `REVIEW_FAILED`
+- Current pass: `B-ADVERSARIAL-REVIEW — WP2.4-B-006`
 - Primary bounded context: `facts/evidence` for Venue targets
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Dependency: `WP-2.3 ACCEPTED`
@@ -16,11 +16,11 @@
 - Historical Pass-A head/run: `9f3ca2fb57adf124e50bf8c4888280854c5d846f` / `34106264873` — **5/5 SUCCESS**
 - First review-failure record: `3f6a750a97ca039c36dafd3dff5eca69eac683ad`
 - Verified first-remediation head/run: `5e229cada52c9b50ca3b2b820df3ab8291c2960c` / `34110071790` — **5/5 SUCCESS**
-- Fresh re-review transition: `48ddaa1cdca2bde7f2b9e639295a10455e7ba477`
 - B-003 review-failure record: `c43af7fc93ca36931b549d94a1d6e35316c6d173`
 - Verified B-003 remediation head/run: `527bdeff7840f244d749cd92a81d1eda3fc89017` / `34111887666` — **5/5 SUCCESS**
 - B-004/B-005 remediation implementation head: `e87f1b82059d371159ce1f35f2bafdbb85cdf3fa`
 - Verified B-004/B-005 remediation head/run: `d4d3ce84331d13809b5f7b97ed7bf1a263a2bf4a` / `34119950023` — **5/5 SUCCESS**
+- Fresh re-review baseline after B-004/B-005: `3ba8575ac32564197d823d7f01001a7b6f75fdfe`
 
 ## Scope and frozen responsibilities
 
@@ -50,57 +50,51 @@ Historical Pass-A run `34106264873` on `9f3ca2fb57adf124e50bf8c4888280854c5d846f
 
 ### `WP2.4-B-001` — RESOLVED / VERIFIED
 
-MAJOR: legacy `set_retained_venue_fact` could bypass observation-backed resolution after evidence existed. Remediation moved the old setter to a client-inaccessible core, added a guarded public wrapper and serialized direct-set versus observation append. Fresh re-review found no remaining direct `known` write-around.
+MAJOR: legacy `set_retained_venue_fact` could bypass observation-backed resolution after evidence existed. Remediation moved the old setter to a client-inaccessible core, added a guarded public wrapper and serialized direct-set versus observation append.
 
 ### `WP2.4-B-002` — RESOLVED / VERIFIED
 
-MAJOR: definition edits could invalidate persisted observations or conflict-retained typed truth. Remediation validates all non-null retained values and all persisted non-null observation values against proposed definition semantics. Fresh re-review found the definition-update/observation-append lock ordering closes the reviewed race.
+MAJOR: definition edits could invalidate persisted observations or conflict-retained typed truth. Remediation validates all non-null retained values and all persisted non-null observation values against proposed definition semantics and closes the reviewed definition-update/append race.
 
 First-remediation verification: run `34110071790` on `5e229cada52c9b50ca3b2b820df3ab8291c2960c` — **5/5 SUCCESS**, including clean-checkout `npm run verify`.
 
 ### `WP2.4-B-003` — RESOLVED / VERIFIED
 
-MAJOR: PostgreSQL/RPC blank-string semantics were weaker than the official TypeScript contract for source titles and conflict-resolution rationale (`btrim` versus JavaScript `String.trim()`). Remediation added `fact_ecmascript_trim`, canonical source-title and conflict-rationale table constraints, protected wrappers and direct Unicode pgTAP regression coverage.
+MAJOR: PostgreSQL/RPC blank-string semantics were weaker than the official TypeScript contract for source titles and conflict-resolution rationale. Remediation added ECMAScript trim parity, table constraints, protected wrappers and Unicode pgTAP regression coverage.
 
-Exact-head verification run `34111887666` on `527bdeff7840f244d749cd92a81d1eda3fc89017`: **5/5 SUCCESS**, including Local Supabase DB/RLS with 31 files / 707 pgTAP tests and clean-checkout `npm run verify`.
+Exact-head verification run `34111887666` on `527bdeff7840f244d749cd92a81d1eda3fc89017`: **5/5 SUCCESS**.
 
-### `WP2.4-B-004` — RESOLVED / VERIFIED; FRESH RE-REVIEW PENDING
+### `WP2.4-B-004` — RESOLVED / VERIFIED
 
-MAJOR: fact-definition canonicalization still used PostgreSQL default `btrim()` while the official TypeScript `normalizeFactDefinition` uses `String.trim()`. ECMAScript-whitespace-only values could be committed for definition metadata and poison the fact context used by WP-2.4.
+MAJOR: fact-definition canonicalization still used PostgreSQL `btrim()` while TypeScript used `String.trim()`. Remediation added ECMAScript-canonical definition constraints/trigger semantics, client-inaccessible definition cores, canonical wrappers and direct pgTAP bypass coverage.
 
-Remediation:
+### `WP2.4-B-005` — RESOLVED / VERIFIED
 
-- ECMAScript-canonical table constraints for fact-definition label, unit and freshness policy;
-- definition validation uses `fact_ecmascript_trim` while preserving retained-value/observation-history validation and system-definition protection;
-- create/update definition implementations live behind client-inaccessible `*_core` functions;
-- same-signature wrappers canonicalize key/label/unit/freshness with ECMAScript semantics and reject optional fields collapsing to blank;
-- pgTAP covers NBSP/BOM/ideographic boundaries, update non-mutation, wrapper canonicalization, core EXECUTE denial and privileged write-around rejection.
-
-### `WP2.4-B-005` — RESOLVED / VERIFIED; FRESH RE-REVIEW PENDING
-
-MAJOR: PostgreSQL `timestamptz` precision/non-finite semantics were broader than `normalizeFactInstant`; server-generated `resolved_at = now()` and direct evidence/freshness RPC input could create provider-invalid responses or persisted values.
-
-Remediation:
-
-- official instant parser accepts ISO timestamps with PostgreSQL microsecond precision (up to six fractional digits) and returns canonical millisecond UTC strings;
-- malformed, over-precision and non-finite textual instants remain rejected;
-- finite-timestamp DB constraints cover source `observed_at`, observation `observed_at`, fact `resolved_at`, `last_verified_at` and `stale_at`;
-- domain/provider tests cover microsecond source/observation/resolution/freshness responses;
-- pgTAP proves `infinity` cannot commit, failed freshness leaves revision unchanged, finite microsecond observations persist correctly and normal server-generated resolution remains finite.
+MAJOR: PostgreSQL `timestamptz` microsecond/non-finite semantics were broader than the instant parser. Remediation accepts PostgreSQL microseconds at the TypeScript boundary, canonicalizes to millisecond UTC, rejects non-finite persisted timestamps and adds domain/provider/pgTAP regressions.
 
 Exact-head verification run `34119950023` on `d4d3ce84331d13809b5f7b97ed7bf1a263a2bf4a`: **5/5 SUCCESS**. Core includes 80 test files / 811 tests with **100% statements/branches/functions/lines**; Local Supabase DB/RLS, Browser/mutation, privacy-safe preview and clean-checkout `npm run verify` all PASS.
 
-## Fresh Pass-B coverage completed so far
+### `WP2.4-B-006` — OPEN / MAJOR
 
-Previously re-reviewed without additional promoted findings: direct known-value setter versus observation append serialization; definition-update versus observation-append locking; freshness versus resolution revision serialization; supersession concurrency; withdrawal versus resolution; same-project source/observation links; retained observation same-fact integrity; append-only observation fields; core-function EXECUTE revocation.
+Fresh independent re-review found a remaining timestamp-domain parity gap. The B-005 database hardening checks only `isfinite(timestamptz)`, while the official TypeScript parser accepts exactly four-digit ISO years. PostgreSQL can represent finite timestamps outside that parser domain, so a direct RPC can still persist a finite value that a provider parser cannot read back. Conversely, `Date.parse` silently normalizes some invalid calendar inputs such as `2026-02-30` before persistence, rather than rejecting the invalid instant.
 
-The next action is a **new independent adversarial Pass B across the complete remediated WP-2.4 boundary**, explicitly re-attacking B-001..B-005 and nearby bypass/race/parser/RLS variants. CI success alone does not permit Pass C.
+This violates the frozen WP-2.4 boundary that database/RPC validation must not commit values rejected by the official parser and that canonicalization must not silently change evidence/freshness timestamps.
 
-Withdrawal preserving an existing retained pointer/value remains reviewed but not promoted to a finding: the frozen contracts preserve evidence history and do not clearly mandate automatic retained-truth invalidation on withdrawal, so WP-2.4 must not invent that semantic.
+Required remediation:
+
+- freeze the application instant domain to strict ISO calendar instants with years `0001..9999`, valid month/day/time and bounded offset syntax;
+- reject invalid calendar dates rather than relying on permissive `Date.parse` rollover;
+- add a database timestamp-domain primitive/constraints so all WP-2.4 persisted evidence/freshness/resolution instants remain inside the same application-readable year range, in addition to being finite;
+- add domain/provider tests for invalid calendar dates, year zero/beyond-four-digit inputs and valid PostgreSQL microseconds;
+- add direct pgTAP proving finite out-of-domain timestamps cannot commit and failed mutations remain atomic.
+
+Fresh re-review otherwise re-attacked without additional promoted findings: B-001 setter/append serialization, B-002 definition-update/append locking, B-003 source/conflict whitespace parity, B-004 definition whitespace/core bypasses, B-005 non-finite/microsecond handling, freshness/resolution revisions, supersession concurrency, withdrawal/resolution, same-project evidence links, retained-observation integrity, append-only observation fields, direct table grants/RLS and core-function EXECUTE revocation.
+
+Withdrawal preserving an existing retained pointer/value remains reviewed but not promoted: frozen contracts preserve evidence history and do not clearly mandate automatic retained-truth invalidation on withdrawal, so WP-2.4 must not invent that semantic.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started. Entry requires a fresh Pass B with no unresolved BLOCKING/MAJOR findings and state `ACCEPTANCE_PENDING`.
+Not started. Entry is prohibited while `WP2.4-B-006` remains open. After remediation and exact-head verification, another fresh independent Pass B is required before `ACCEPTANCE_PENDING`.
 
 ## Handoff
 
@@ -108,11 +102,12 @@ Not started. Entry requires a fresh Pass B with no unresolved BLOCKING/MAJOR fin
 Lot: 2 — Venues core
 Branch: lot-2/venues-core
 Packet: WP-2.4
-State: REVIEW_PENDING
-Pass: B-ADVERSARIAL-REVIEW — fresh re-review after WP2.4-B-004 / WP2.4-B-005
+State: REVIEW_FAILED
+Pass: B-ADVERSARIAL-REVIEW — WP2.4-B-006
 Primary Feature: FTR-020
 Dependency: WP-2.3 ACCEPTED
 Resolved/verified: WP2.4-B-001, WP2.4-B-002, WP2.4-B-003, WP2.4-B-004, WP2.4-B-005
+Open MAJOR: WP2.4-B-006
 Latest verified remediation: d4d3ce84331d13809b5f7b97ed7bf1a263a2bf4a / 34119950023 — 5/5 SUCCESS
-Next action: fresh independent Pass B across complete WP-2.4; if and only if no BLOCKING/MAJOR remains, transition ACCEPTANCE_PENDING and perform Pass C. Do not start WP-2.5.
+Next action: remediate B-006 only, verify exact head, then fresh independent Pass B. Do not start WP-2.5.
 ```
