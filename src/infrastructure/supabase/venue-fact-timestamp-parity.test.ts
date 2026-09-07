@@ -37,7 +37,7 @@ const context: VenueFactContext = {
   },
 };
 
-it("parses PostgreSQL microsecond evidence and server resolution timestamps", () => {
+it("parses PostgreSQL microsecond source and observation timestamps", () => {
   expect(
     parseVenueFactSourceRow(
       {
@@ -77,7 +77,9 @@ it("parses PostgreSQL microsecond evidence and server resolution timestamps", ()
       observationId,
     ).observedAt,
   ).toBe("2026-09-07T10:11:12.654Z");
+});
 
+it("parses a PostgreSQL microsecond server resolution timestamp", () => {
   expect(() =>
     parseResolvedVenueFactEvidenceRow(
       {
