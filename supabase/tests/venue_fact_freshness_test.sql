@@ -5,13 +5,13 @@ select no_plan();
 select has_function(
   'public',
   'set_venue_fact_freshness',
-  array['uuid','uuid','bigint','timestamp with time zone','timestamp with time zone'],
+  array['uuid','uuid','bigint','text','text'],
   'explicit venue fact freshness RPC exists'
 );
 select ok(
   has_function_privilege(
     'authenticated',
-    'public.set_venue_fact_freshness(uuid,uuid,bigint,timestamptz,timestamptz)',
+    'public.set_venue_fact_freshness(uuid,uuid,bigint,text,text)',
     'EXECUTE'
   ),
   'authenticated may execute freshness RPC'
@@ -19,7 +19,7 @@ select ok(
 select ok(
   not has_function_privilege(
     'anon',
-    'public.set_venue_fact_freshness(uuid,uuid,bigint,timestamptz,timestamptz)',
+    'public.set_venue_fact_freshness(uuid,uuid,bigint,text,text)',
     'EXECUTE'
   ),
   'anon cannot execute freshness RPC'
@@ -75,8 +75,8 @@ create function pg_temp.try_freshness(
   p uuid,
   f uuid,
   r bigint,
-  verified timestamptz,
-  stale timestamptz
+  verified text,
+  stale text
 ) returns boolean language plpgsql as $$
 begin
   perform public.set_venue_fact_freshness(p,f,r,verified,stale);
