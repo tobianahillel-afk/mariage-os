@@ -147,6 +147,9 @@ export async function updateVenueFactDefinition(
 ): Promise<DefinitionMutationResult> {
   const normalized = normalizeFactDefinition(draft);
   if (!normalized.ok) return normalized;
+  if (isDynamicGuestRule(normalized.value.evaluationRuleJson)) {
+    return { ok: false, error: "invalid_evaluation_rule" };
+  }
   const invalidRevision = validateExpectedVenueRevision(draft.expectedRevision);
   if (invalidRevision !== null) return { ok: false, error: invalidRevision };
   try {
