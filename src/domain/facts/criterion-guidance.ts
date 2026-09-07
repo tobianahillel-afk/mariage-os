@@ -9,7 +9,7 @@ import type {
   CriterionReason,
 } from "./criterion-types";
 
-export type CriterionGuidanceKind =
+type CriterionGuidanceKind =
   | "missing_or_unknown"
   | "conflicting"
   | "stale"
