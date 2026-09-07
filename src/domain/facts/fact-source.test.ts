@@ -43,15 +43,11 @@ describe("fact source normalization", () => {
   });
 
   it("rejects unknown source vocabulary", () => {
-    expect(
-      normalizeFactSource({ ...validDraft, sourceType: "email" }),
-    ).toEqual({
+    expect(normalizeFactSource({ ...validDraft, sourceType: "email" })).toEqual({
       ok: false,
       error: "invalid_source_type",
     });
-    expect(
-      normalizeFactSource({ ...validDraft, evidenceLevel: "high" }),
-    ).toEqual({
+    expect(normalizeFactSource({ ...validDraft, evidenceLevel: "high" })).toEqual({
       ok: false,
       error: "invalid_evidence_level",
     });
