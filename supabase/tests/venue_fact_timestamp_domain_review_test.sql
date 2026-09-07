@@ -60,7 +60,7 @@ insert into public.facts(
   'b1111111-1111-4111-8111-111111111111'
 );
 
-create function pg_temp.try_create_source_at(target_observed_at timestamptz)
+create function pg_temp.try_create_source_at(target_observed_at text)
 returns jsonb language plpgsql as $$
 declare result_row jsonb;
 begin
@@ -74,7 +74,7 @@ exception when others then
   return null;
 end$$;
 
-create function pg_temp.try_append_at(target_observed_at timestamptz)
+create function pg_temp.try_append_at(target_observed_at text)
 returns jsonb language plpgsql as $$
 declare result_row jsonb;
 begin
@@ -88,7 +88,7 @@ exception when others then
   return null;
 end$$;
 
-create function pg_temp.try_set_freshness(target_last_verified_at timestamptz)
+create function pg_temp.try_set_freshness(target_last_verified_at text)
 returns boolean language plpgsql as $$
 begin
   perform public.set_venue_fact_freshness(
@@ -170,7 +170,7 @@ select set_config(
 );
 
 select is(
-  pg_temp.try_create_source_at('10000-01-01 00:00:00+00'::timestamptz),
+  pg_temp.try_create_source_at('10000-01-01T00:00:00+00:00'),
   null::jsonb,
   'direct source RPC cannot persist a finite five-digit-year timestamp'
 );
@@ -181,7 +181,7 @@ select is(
 );
 
 select is(
-  pg_temp.try_append_at('0001-01-01 00:00:00+01'::timestamptz),
+  pg_temp.try_append_at('0001-01-01T00:00:00+01:00'),
   null::jsonb,
   'direct observation RPC cannot persist an offset-normalized pre-year-1 instant'
 );
@@ -192,7 +192,7 @@ select is(
 );
 
 select ok(
-  not pg_temp.try_set_freshness('10000-01-01 00:00:00+00'::timestamptz),
+  not pg_temp.try_set_freshness('10000-01-01T00:00:00+00:00'),
   'freshness RPC cannot persist a finite five-digit-year timestamp'
 );
 select is(
@@ -207,7 +207,7 @@ select is(
 );
 
 select isnt(
-  pg_temp.try_append_at('2026-09-07 10:11:12.123456+00'::timestamptz),
+  pg_temp.try_append_at('2026-09-07T10:11:12.123456+00:00'),
   null::jsonb,
   'valid PostgreSQL microseconds remain accepted after domain hardening'
 );
