@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.4`
 - Lot: `2`
 - Name: Observations, sources, evidence/confidence/freshness and conflicts
-- State: `REVIEW_PENDING`
-- Current pass: `B-ADVERSARIAL-REVIEW — fresh re-review after WP2.4-B-003`
+- State: `REVIEW_FAILED`
+- Current pass: `B-ADVERSARIAL-REVIEW — WP2.4-B-004 / WP2.4-B-005`
 - Primary bounded context: `facts/evidence` for Venue targets
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Dependency: `WP-2.3 ACCEPTED`
@@ -56,28 +56,37 @@ MAJOR: definition edits could invalidate persisted observations or conflict-reta
 
 First-remediation verification: run `34110071790` on `5e229cada52c9b50ca3b2b820df3ab8291c2960c` — **5/5 SUCCESS**, including clean-checkout `npm run verify`.
 
-### `WP2.4-B-003` — REMEDIATION VERIFIED / FRESH RE-REVIEW PENDING
+### `WP2.4-B-003` — RESOLVED / VERIFIED
 
-MAJOR found during the fresh re-review: PostgreSQL/RPC blank-string semantics were weaker than the official TypeScript contract for source titles and conflict-resolution rationale. SQL used default `btrim`, while `normalizeFactSource` / `normalizeFactResolution` use JavaScript `String.trim()`. TAB/NBSP-only input could therefore be accepted/committed by SQL and rejected by the official parser; conflict resolution could also persist an effectively blank required rationale.
+MAJOR: PostgreSQL/RPC blank-string semantics were weaker than the official TypeScript contract for source titles and conflict-resolution rationale (`btrim` versus JavaScript `String.trim()`). Remediation added `fact_ecmascript_trim`, canonical source-title and conflict-rationale table constraints, protected wrappers and direct Unicode pgTAP regression coverage.
 
-Remediation verified at exact head `527bdeff7840f244d749cd92a81d1eda3fc89017`:
+Exact-head verification run `34111887666` on `527bdeff7840f244d749cd92a81d1eda3fc89017`: **5/5 SUCCESS**, including Local Supabase DB/RLS with 31 files / 707 pgTAP tests and clean-checkout `npm run verify`.
 
-- add `public.fact_ecmascript_trim(text)`, an immutable PostgreSQL canonical trim primitive matching the ECMAScript whitespace/line-terminator set used by `String.trim()`;
-- add a `sources` canonical-title CHECK using that primitive;
-- add a `facts` conflict-resolution nonblank CHECK at the table integrity boundary;
-- move source create/update and observation-resolution implementations behind client-inaccessible `*_core` functions;
-- expose same-signature protected wrappers: source wrappers canonicalize titles before the previous validation/persistence path; conflict resolution rejects ECMAScript-blank rationale before delegating while preserving legitimate rationale verbatim;
-- add `venue_fact_unicode_whitespace_parity_test.sql` covering TAB-only and NBSP-only source titles, source update non-mutation, BOM/ideographic trim parity, TAB/NBSP-only conflict rationale, no partial fact mutation/revision/provenance on rejection, legitimate Unicode values, internal-core privilege denial and privileged table-level blank-rationale write-around denial.
+### `WP2.4-B-004` — OPEN / MAJOR
 
-Exact-head verification run `34111887666`: **5/5 SUCCESS**, including Local Supabase DB/RLS with 31 files / 707 pgTAP tests and clean-checkout `npm run verify`.
+Fresh re-review found that fact-definition canonicalization still uses PostgreSQL default `btrim()` while the official TypeScript `normalizeFactDefinition` uses `String.trim()`. The WP-2.4 B-002 hardening replaced `validate_fact_definition_row()` but retained the weaker `btrim` checks, and the public create/update definition RPCs also normalize with `btrim`.
 
-The packet is now `REVIEW_PENDING`. A fresh independent adversarial Pass B must re-attack the complete WP-2.4 implementation and all three resolved MAJOR classes before Pass C can start; exact-head CI success alone does not constitute acceptance.
+Impact: ECMAScript-whitespace-only values such as NBSP can still be committed for `label`, `unit` or `freshness_policy` in combinations accepted by SQL and then rejected by `parseVenueFactDefinitionRow`; boundary-wrapped values can also be persisted non-canonically. This violates the frozen DB/RPC ↔ official-parser parity invariant and can poison the fact context needed by WP-2.4 evidence operations.
 
-Reviewed but not promoted to a finding: withdrawal preserves retained pointer/value by explicit design; frozen contracts require evidence history preservation but do not clearly require automatic retained-truth invalidation, so WP-2.4 does not invent that semantic.
+Required remediation: use the already verified ECMAScript trim primitive at the fact-definition persistence boundary, protect client-facing definition RPCs from weaker legacy normalization, preserve system-definition immutability and B-002 observation/retained-value validation, and add direct DB regression proving no parser-invalid Unicode definition can commit.
+
+### `WP2.4-B-005` — OPEN / MAJOR
+
+Fresh re-review found a temporal representation mismatch. `normalizeFactInstant` accepts ISO instants with at most three fractional-second digits, while PostgreSQL `timestamptz` has microsecond precision and WP-2.4 returns `to_jsonb(saved_row)` values. In particular `resolve_venue_fact_from_observation` writes `resolved_at = now()` and `parseResolvedVenueFactEvidenceRow` immediately validates that returned timestamp through `normalizeFactInstant`. PostgreSQL also permits non-finite `timestamptz` values unless explicitly constrained.
+
+Impact: a successful database mutation can return or persist a timestamp the official adapter rejects as `provider_response_invalid`; server-generated resolution timestamps are on this path, and direct RPC writes can also introduce non-finite evidence/freshness instants. This violates the temporal transport contract and the same DB/provider parity invariant.
+
+Required remediation: make the official instant parser safely accept PostgreSQL microsecond ISO precision while still returning canonical millisecond UTC strings; reject non-finite persisted evidence/freshness/resolution instants at the database integrity boundary; and add unit + direct pgTAP regressions, including a normal server-generated resolution timestamp.
+
+## Fresh Pass-B coverage completed so far
+
+Re-reviewed without additional promoted findings: direct known-value setter versus observation append serialization; definition-update versus observation-append locking; freshness versus resolution revision serialization; supersession concurrency; withdrawal versus resolution; same-project source/observation links; retained observation same-fact integrity; append-only observation fields; core-function EXECUTE revocation introduced for B-001/B-003.
+
+Withdrawal preserving an existing retained pointer/value remains reviewed but not promoted to a finding: the frozen contracts preserve evidence history and do not clearly mandate automatic retained-truth invalidation on withdrawal, so WP-2.4 must not invent that semantic.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started. Entry requires a fresh Pass B with no unresolved BLOCKING/MAJOR findings and state `ACCEPTANCE_PENDING`.
+Not started. Entry requires remediation of all open BLOCKING/MAJOR findings, exact-head verification, then another fresh Pass B with no unresolved BLOCKING/MAJOR findings and state `ACCEPTANCE_PENDING`.
 
 ## Handoff
 
@@ -85,12 +94,13 @@ Not started. Entry requires a fresh Pass B with no unresolved BLOCKING/MAJOR fin
 Lot: 2 — Venues core
 Branch: lot-2/venues-core
 Packet: WP-2.4
-State: REVIEW_PENDING
-Pass: B-ADVERSARIAL-REVIEW — fresh re-review after WP2.4-B-003
+State: REVIEW_FAILED
+Pass: B-ADVERSARIAL-REVIEW — WP2.4-B-004 / WP2.4-B-005
 Primary Feature: FTR-020
 Dependency: WP-2.3 ACCEPTED
-Resolved: WP2.4-B-001, WP2.4-B-002
-B-003 review failure: c43af7fc93ca36931b549d94a1d6e35316c6d173
-B-003 verified remediation: 527bdeff7840f244d749cd92a81d1eda3fc89017 / 34111887666 — 5/5 SUCCESS
-Next action: perform fresh independent Pass B across the complete WP-2.4 boundary; if no unresolved BLOCKING/MAJOR findings remain, transition to ACCEPTANCE_PENDING and perform Pass C. Do not start WP-2.5.
+Resolved/verified: WP2.4-B-001, WP2.4-B-002, WP2.4-B-003
+Open MAJOR: WP2.4-B-004 definition Unicode canonicalization parity
+Open MAJOR: WP2.4-B-005 PostgreSQL timestamp/provider parser parity
+Last fully verified remediation: 527bdeff7840f244d749cd92a81d1eda3fc89017 / 34111887666 — 5/5 SUCCESS
+Next action: remediate B-004 and B-005 only, obtain exact-head full CI, then transition to REVIEW_PENDING and perform another fresh Pass B. Do not start WP-2.5.
 ```
