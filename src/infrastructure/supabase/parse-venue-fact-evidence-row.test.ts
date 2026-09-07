@@ -147,11 +147,14 @@ it("parses source metadata without deriving evidence or confidence", () => {
   });
 });
 
-it("rejects malformed source project, status and revision responses", () => {
+it("rejects malformed source project, identity, status and revision responses", () => {
   for (const row of [
     { ...sourceRow, project_id: otherProjectId },
+    { ...sourceRow, id: 42 },
+    { ...sourceRow, id: "not-a-uuid" },
     { ...sourceRow, status: "deleted" },
     { ...sourceRow, revision: 0 },
+    { ...sourceRow, revision: "1" },
   ]) {
     expect(() => parseVenueFactSourceRow(row, projectId, sourceId)).toThrow(
       "Invalid venue fact evidence response.",
@@ -178,9 +181,11 @@ it("parses an explicit known-false observation with independent confidence", () 
   });
 });
 
-it("rejects cross-fact, malformed typed value and invalid status observations", () => {
+it("rejects malformed observation identity, typed value and status", () => {
   for (const row of [
     { ...observationRow, fact_id: definitionId },
+    { ...observationRow, id: 42 },
+    { ...observationRow, id: "not-a-uuid" },
     { ...observationRow, value: "false" },
     { ...observationRow, observation_status: "deleted" },
   ]) {
@@ -188,6 +193,16 @@ it("rejects cross-fact, malformed typed value and invalid status observations", 
       parseVenueFactObservationRow(row, context, observationId),
     ).toThrow("Invalid venue fact evidence response.");
   }
+});
+
+it("parses a non-null superseded observation pointer", () => {
+  expect(
+    parseVenueFactObservationRow(
+      { ...observationRow, superseded_by_observation_id: sourceId },
+      context,
+      observationId,
+    ),
+  ).toMatchObject({ supersededByObservationId: sourceId });
 });
 
 it("parses same-project many-to-many evidence links", () => {
@@ -254,8 +269,11 @@ it("parses explicit retained-observation resolution audit safely", () => {
 it("rejects mismatched retained evidence and malformed resolution audit", () => {
   for (const row of [
     { ...resolvedRow, retained_observation_id: sourceId },
+    { ...resolvedRow, state: "unknown" },
+    { ...resolvedRow, retained_value: null },
     { ...resolvedRow, retained_value: "false" },
     { ...resolvedRow, resolved_by: null },
+    { ...resolvedRow, resolved_by: "not-a-uuid" },
     { ...resolvedRow, resolved_at: "yesterday" },
     { ...resolvedRow, stale_at: "not-an-instant" },
   ]) {
