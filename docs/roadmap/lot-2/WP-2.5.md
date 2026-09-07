@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.5`
 - Lot: `2`
 - Name: Deterministic criteria, blockers, score/readiness and missing information
-- State: `REVIEW_PENDING`
-- Current pass: `B-ADVERSARIAL-REVIEW — fresh independent re-review pending`
+- State: `REVIEW_FAILED`
+- Current pass: `B-ADVERSARIAL-REVIEW — WP2.5-B-004`
 - Primary bounded context: `facts/criteria` and Venue compatibility read models
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Dependencies: `WP-2.3 ACCEPTED`, `WP-2.4 ACCEPTED`
@@ -16,6 +16,7 @@
 - Verified remediation head/run: `68439bb0d152c60197fc8ae05f416300b3a81c35` / `34161773557` — **5/5 SUCCESS**, including clean-checkout `npm run verify`.
 - Fresh post-remediation reviewed head/run: `7eecdbfbf986d26faa2f7d98e67db2a674fdd3e2` / `34162443907` — **5/5 SUCCESS**, review decision **FAIL** on `WP2.5-B-003`.
 - Verified B-003 remediation head/run: `3ce8ddf6e14a25efc71d928def52efe2314d72ba` / `34163426797` — **5/5 SUCCESS**, including clean-checkout `npm run verify`.
+- Fresh post-B-003 reviewed head/run: `441d300c8de92b310fd84184dab708b55750b2fb` / `34164290470` — **5/5 SUCCESS**, review decision **FAIL** on `WP2.5-B-004`.
 
 ## Scope and current-lot responsibilities
 
@@ -197,7 +198,23 @@ Reviewed head `7eecdbfbf986d26faa2f7d98e67db2a674fdd3e2`; exact CI `34162443907`
 
 **Verification.** The functional guard was introduced in `1405490854d94b15d0e2129730a48b1c6815f55f`; that run stopped at the repository formatting gate before unit execution, so it is not used as behavioral verification. The formatting-only follow-up produced final remediation head `3ce8ddf6e14a25efc71d928def52efe2314d72ba`. Exact run `34163426797` is **5/5 SUCCESS**: Core quality/security including the B-003 regression, Local Supabase DB/RLS, Browser/mutation, privacy-safe preview and full clean-checkout `npm run verify` all passed.
 
-Historical fresh Pass B decision on reviewed head `7eecdbfbf986d26faa2f7d98e67db2a674fdd3e2`: **FAIL — `WP2.5-B-003 MAJOR` was open.** No other new BLOCKING/MAJOR finding was identified in the reviewed score/blocker, dynamic formula, readiness/guidance, derived-write or project-isolation surfaces. B-003 is now **RESOLVED / VERIFIED**, so the packet returns to `REVIEW_PENDING` for another fresh independent Pass B; this remediation does not itself constitute a Pass-B PASS.
+Historical fresh Pass B decision on reviewed head `7eecdbfbf986d26faa2f7d98e67db2a674fdd3e2`: **FAIL — `WP2.5-B-003 MAJOR` was open.** No other new BLOCKING/MAJOR finding was identified in the reviewed score/blocker, dynamic formula, readiness/guidance, derived-write or project-isolation surfaces. B-003 is now **RESOLVED / VERIFIED**, so the packet returned to `REVIEW_PENDING` for another fresh independent Pass B; that remediation did not itself constitute a Pass-B PASS.
+
+### Fresh independent Pass B after B-003 remediation
+
+Reviewed head `441d300c8de92b310fd84184dab708b55750b2fb`; exact CI `34164290470`: **5/5 SUCCESS**, including clean-checkout `npm run verify`. The review re-read the deterministic criteria/readiness contracts, dynamic guest-count addendum, ordinary/dynamic evaluators, aggregate/readiness/guidance, compatibility service/read model, Supabase provider parser/adapter, TypeScript definition mutation service, PostgreSQL criteria boundary migration and pgTAP parity coverage. B-001, B-002 and B-003 remain effective, but the fresh review found the new MAJOR finding below. Green CI is therefore not treated as a Pass-B PASS.
+
+### `WP2.5-B-004` — MAJOR — OPEN — update mutation does not enforce the reserved dynamic-rule boundary in TypeScript
+
+**Finding.** `createVenueFactDefinition()` rejects `project_target_guest_count_supported` rules before persistence by checking `isDynamicGuestRule()`. `updateVenueFactDefinition()` normalizes the draft and validates revision, but does not apply that same reserved-rule guard before calling `port.updateDefinition()`. Because generic `normalizeFactDefinition()` accepts the dynamic rule for a boolean definition, an ordinary boolean definition can therefore be submitted through the TypeScript update service with `{ "type": "project_target_guest_count_supported" }` and reach persistence.
+
+**Why this is not closed by PostgreSQL.** `20260907181500_harden_venue_criteria_boundaries.sql` correctly rejects the dynamic rule on any noncanonical key, so authoritative database corruption is prevented. That DB defense does not make the application boundary canonical: the same invalid semantic mutation is rejected deterministically before the port on create, but is allowed through the TypeScript update boundary and becomes a backend integrity/persistence failure on update.
+
+**Normative mismatch / impact.** WP-2.5 explicitly owns TypeScript↔PostgreSQL canonicality for criteria rules and Pass A claims the dynamic rule is restricted to the canonical derived-key semantics rather than arbitrary boolean definitions. The frozen criteria gate also requires TypeScript and PostgreSQL validation to be hardened together. The current update path violates that parity and makes validity depend on which mutation path is used. It cannot corrupt PostgreSQL, but it is a material deterministic-boundary defect and lacks the required regression proving fail-closed application behavior.
+
+**Required remediation.** Add a red-first application regression proving that an update draft carrying the reserved dynamic rule is rejected as `invalid_evaluation_rule` without calling the update port. Implement the minimal shared/symmetric guard so both create and update mutation paths reject reserved dynamic-rule writes before persistence, without weakening the canonical system seed/read-model behavior or changing PostgreSQL. Run exact-head full verification and then return to another fresh independent Pass B. No WP-2.6 work is permitted concurrently.
+
+Fresh Pass B decision on reviewed head `441d300c8de92b310fd84184dab708b55750b2fb`: **FAIL — `WP2.5-B-004 MAJOR` is open.** No other new BLOCKING/MAJOR finding was identified in the reviewed provider-integrity, score/blocker, dynamic formula/explanation, readiness/guidance, derived-fact write, PostgreSQL isolation or prior-remediation surfaces.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
@@ -205,16 +222,17 @@ Not started. Pass C may begin only from `ACCEPTANCE_PENDING` after a **fresh ind
 
 ## Handoff
 
-- Current state: `REVIEW_PENDING`
-- Current pass: `B-ADVERSARIAL-REVIEW — fresh independent re-review pending`
+- Current state: `REVIEW_FAILED`
+- Current pass: `B-ADVERSARIAL-REVIEW — WP2.5-B-004`
 - Verified Pass-A implementation head/run: `aef7bea53e9db32790ab19c3fffdd0a8f63dc89d` / `34158303997` — **5/5 SUCCESS**
 - Prior fresh reviewed head/run: `3948060eb541ae2ae3eac6f5b1a7e702eb057e64` / `34159043613` — **5/5 SUCCESS**, review decision FAIL
 - Verified remediation head/run: `68439bb0d152c60197fc8ae05f416300b3a81c35` / `34161773557` — **5/5 SUCCESS**
 - Fresh post-remediation reviewed head/run: `7eecdbfbf986d26faa2f7d98e67db2a674fdd3e2` / `34162443907` — **5/5 SUCCESS**, review decision FAIL
 - B-003 red-first proof: `6e382a02de227306952199828479e442d507e710` / `34163182953` — expected regression FAILURE before fix
 - Verified B-003 remediation head/run: `3ce8ddf6e14a25efc71d928def52efe2314d72ba` / `34163426797` — **5/5 SUCCESS**
+- Fresh post-B-003 reviewed head/run: `441d300c8de92b310fd84184dab708b55750b2fb` / `34164290470` — **5/5 SUCCESS**, review decision FAIL
 - `WP2.5-B-001`: **RESOLVED / VERIFIED**
 - `WP2.5-B-002`: **RESOLVED / VERIFIED**
 - `WP2.5-B-003`: **RESOLVED / VERIFIED**
-- Open WP-2.5 BLOCKING/MAJOR findings: **none at the remediation checkpoint; fresh Pass B still required**
-- Next permitted action: obtain exact-head full CI for the durable `REVIEW_PENDING` record/status transition, then perform another fresh independent Pass B of the whole WP-2.5 packet. Do not start WP-2.6 concurrently.
+- `WP2.5-B-004`: **OPEN / MAJOR**
+- Next permitted action: remediate `WP2.5-B-004` only with a red-first update-service regression and minimal symmetric TypeScript guard, obtain exact-head full CI, transition to `REVIEW_PENDING`, then perform another fresh independent Pass B. Do not start WP-2.6 concurrently.
