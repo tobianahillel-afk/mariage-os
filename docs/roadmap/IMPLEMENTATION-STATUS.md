@@ -32,7 +32,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.1 | venue identity, authorized persistence, lifecycle history | **ACCEPTED** |
 | WP-2.2 | spaces, capacity, member ratings/preferences | **ACCEPTED** |
 | WP-2.3 | fact definitions, typed retained facts, value validation | **ACCEPTED** |
-| WP-2.4 | observations, sources, evidence/confidence/freshness, conflicts | **REVIEW_PENDING — fresh Pass B after B-007** |
+| WP-2.4 | observations, sources, evidence/confidence/freshness, conflicts | **REVIEW_FAILED — B-008** |
 | WP-2.5 | deterministic criteria, blockers, score/readiness, missing information | PLANNED |
 | WP-2.6 | offers, availability, contacts/interactions basics | PLANNED |
 | WP-2.7 | contextual venue access-route observations | PLANNED |
@@ -68,10 +68,11 @@ Accepted packet evidence remains unchanged:
 - Verified B-006 remediation head/run: `06c38444a2e859f59f590477bd43c40255463f3e` / `34131416659` — **5/5 SUCCESS**, including Core, DB/RLS, Browser/mutation, privacy-safe preview and clean-checkout `npm run verify`.
 - `WP2.4-B-007` MAJOR — raw RPC timestamp grammar bypass through PostgreSQL `timestamptz` coercion: **RESOLVED / VERIFIED**.
 - Verified B-007 remediation head/run: `92e0f511d394448ccdcdd3143d29b4f2cf3df987` / `34134876299` — **5/5 SUCCESS**, including Core, DB/RLS (`db:verify`), Browser E2E/mutation, privacy-safe preview and clean-checkout `npm run verify`.
+- `WP2.4-B-008` MAJOR — observation/source link `isPrimary` parity: **OPEN**. Official TypeScript rejects non-boolean `isPrimary`, while direct RPC currently commits SQL/PostgREST `NULL` as `false` through `coalesce(target_is_primary, false)`.
 
-B-007 remediation moves public create/update-source, append-observation and freshness timestamp parameters to raw `text`, strictly validates the frozen Facts/evidence instant grammar before constructing `timestamptz`, keeps typed implementations behind client-inaccessible cores, and directly proves canonical/microsecond/null semantics plus rejection/atomicity for PostgreSQL-friendly non-canonical inputs.
+B-008 violates the frozen rule that DB/RPC canonical validation must not commit values rejected by the official TypeScript boundary. Required remediation: reject `NULL` before mutation, close/revoke any permissive core bypass, prove rejected-NULL atomicity plus canonical true/false behavior and core privilege denial, obtain exact-head full CI, then return to `REVIEW_PENDING` for another fresh independent Pass B.
 
-A fresh independent Pass B is now active on this verified baseline. No BLOCKING/MAJOR is assumed absent merely because remediation CI is green. Pass C remains prohibited until the fresh review clears. WP-2.5 remains PLANNED.
+Pass C remains prohibited while B-008 is open. WP-2.5 remains PLANNED and must not start concurrently.
 
 ## Durable cursor
 
@@ -80,14 +81,14 @@ Current Lot: 2 — Venues core
 Lot State: IN_PROGRESS
 Branch: lot-2/venues-core
 Current Packet: WP-2.4
-Packet State: REVIEW_PENDING
-Current Pass: B-ADVERSARIAL-REVIEW — fresh independent re-review after WP2.4-B-007
+Packet State: REVIEW_FAILED
+Current Pass: B-ADVERSARIAL-REVIEW — WP2.4-B-008
 Last completed packet: WP-2.3 — ACCEPTED
 Accepted packets: WP-2.1, WP-2.2, WP-2.3
 Resolved/verified WP-2.4 MAJOR findings: WP2.4-B-001, WP2.4-B-002, WP2.4-B-003, WP2.4-B-004, WP2.4-B-005, WP2.4-B-006, WP2.4-B-007
-Open WP-2.4 BLOCKING/MAJOR finding: none promoted yet from fresh re-review
+Open WP-2.4 BLOCKING/MAJOR finding: WP2.4-B-008 MAJOR — NULL primary-link flag canonicality bypass
 Latest verified remediation: 92e0f511d394448ccdcdd3143d29b4f2cf3df987 / 34134876299 — 5/5 SUCCESS
-Next permitted action: perform fresh independent Pass B on the verified B-007 baseline. Pass C and WP-2.5 remain prohibited until review clearance.
+Next permitted action: remediate WP2.4-B-008 only, obtain exact-head full CI, transition REVIEW_PENDING and perform another fresh independent Pass B. Pass C and WP-2.5 remain prohibited.
 ```
 
 ## Known localized specification repairs / stop-conditions
@@ -103,7 +104,7 @@ Next permitted action: perform fresh independent Pass B on the verified B-007 ba
 - V1 Feature inventory: 120 Feature IDs across both ledgers.
 - Lot-2 primary IDs: `FTR-013..FTR-028`; partial cross-lot responsibilities also include `FTR-012`, `FTR-089`, `FTR-092`, `FTR-093` and cross-cutting access/offline/security obligations.
 - Feature-level whole-capability status is not conflated with packet/current-lot responsibility; Lot Coverage Matrices remain the durable responsibility-level reconciliation source.
-- `FTR-020` remains feature-level **IN_PROGRESS** while WP-2.4 undergoes fresh Pass B after B-007.
+- `FTR-020` remains feature-level **IN_PROGRESS** while WP-2.4 is `REVIEW_FAILED` on B-008.
 
 ## Forward maintenance
 
@@ -132,9 +133,9 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted Lot-2 packets: WP-2.1, WP-2.2, WP-2.3
 Current packet: WP-2.4
-Current state/pass: REVIEW_PENDING / B-ADVERSARIAL-REVIEW — fresh independent re-review after WP2.4-B-007
+Current state/pass: REVIEW_FAILED / B-ADVERSARIAL-REVIEW — WP2.4-B-008
 Resolved/verified: WP2.4-B-001, WP2.4-B-002, WP2.4-B-003, WP2.4-B-004, WP2.4-B-005, WP2.4-B-006, WP2.4-B-007
-Open BLOCKING/MAJOR: none promoted yet from fresh re-review
-Next: fresh independent Pass B. Pass C and WP-2.5 remain prohibited until review clearance.
+Open BLOCKING/MAJOR: WP2.4-B-008 MAJOR — NULL primary-link flag canonicality bypass
+Next: remediate B-008 only, full exact-head CI, fresh Pass B. Pass C and WP-2.5 remain prohibited.
 Lots 3–12: NOT_STARTED
 ```
