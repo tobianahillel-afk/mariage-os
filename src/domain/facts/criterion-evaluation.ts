@@ -1,6 +1,6 @@
 import {
   isDerivedTargetGuestDefinition,
-  TWO_DANCE_AREAS_MAX_GUEST_KEY,
+  isDynamicGuestSupportSourceDefinition,
 } from "./derived-fact-definition";
 import { normalizeFactEvaluationRule } from "./fact-evaluation-rule";
 import { evaluateKnownRule } from "./criterion-rule-evaluators";
@@ -42,8 +42,8 @@ function validGuestCount(value: unknown): value is number {
 function sourceSnapshot(
   snapshots: readonly CriterionFactSnapshot[],
 ): CriterionFactSnapshot | null {
-  const candidates = snapshots.filter(
-    (snapshot) => snapshot.definition.key === TWO_DANCE_AREAS_MAX_GUEST_KEY,
+  const candidates = snapshots.filter((snapshot) =>
+    isDynamicGuestSupportSourceDefinition(snapshot.definition),
   );
   return candidates.length === 1
     ? (candidates[0] as CriterionFactSnapshot)
@@ -104,7 +104,7 @@ function evaluateDynamic(
     return result(snapshot, "UNKNOWN", "invalid_target_guest_count");
   }
   const source = sourceSnapshot(snapshots);
-  if (source === null || source.definition.valueType !== "number") {
+  if (source === null) {
     return result(snapshot, "UNKNOWN", "configuration_incomplete");
   }
   return evaluateSupportCeiling(context.targetGuestCount, source, snapshot);

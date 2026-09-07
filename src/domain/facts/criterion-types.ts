@@ -29,6 +29,7 @@ export type CriterionReason =
 export interface CriterionDefinition {
   readonly key: string;
   readonly valueType: FactValueType;
+  readonly unit: string | null;
   readonly optionsJson: FactOptions;
   readonly priority: FactPriority;
   readonly weight: number | null;

@@ -23,6 +23,7 @@ function snapshot(
 const ordinaryDefinition: CriterionDefinition = {
   key: "external_caterer_allowed",
   valueType: "boolean",
+  unit: null,
   optionsJson: null,
   priority: "blocking",
   weight: null,
@@ -33,6 +34,7 @@ const ordinaryDefinition: CriterionDefinition = {
 const derivedDefinition: CriterionDefinition = {
   key: "target_guest_count_supported",
   valueType: "boolean",
+  unit: null,
   optionsJson: null,
   priority: "blocking",
   weight: null,
@@ -43,6 +45,7 @@ const derivedDefinition: CriterionDefinition = {
 const ceilingDefinition: CriterionDefinition = {
   key: "two_dance_areas_max_guest_estimate",
   valueType: "number",
+  unit: "people",
   optionsJson: { min: 0, integer: true },
   priority: "important",
   weight: null,
@@ -97,4 +100,29 @@ it("uses source evidence for the derived target-support criterion", () => {
       "2026-09-07T17:00:00Z",
     ),
   ).toEqual({ evidenceReadiness: 1, readyCriteria: 2, applicableCriteria: 2 });
+});
+
+it("does not count inactive or stale source evidence as derived readiness", () => {
+  const derived: CriterionFactSnapshot = {
+    definition: derivedDefinition,
+    state: null,
+    retainedValue: null,
+    retainedObservationStatus: null,
+    staleAt: null,
+  };
+  const ceiling = {
+    ...snapshot(ceilingDefinition, 170, "2026-09-07T16:00:00Z"),
+    retainedObservationStatus: "withdrawn" as const,
+  };
+  const snapshots = [derived, ceiling];
+  const context = { targetGuestCount: 160 };
+  const evaluations = evaluateCriteria(snapshots, context);
+  expect(
+    calculateEvidenceReadiness(
+      snapshots,
+      evaluations,
+      context,
+      "2026-09-07T17:00:00Z",
+    ),
+  ).toEqual({ evidenceReadiness: 0, readyCriteria: 0, applicableCriteria: 2 });
 });

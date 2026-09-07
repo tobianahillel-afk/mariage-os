@@ -12,6 +12,7 @@ function definition(
   return {
     key,
     valueType: "boolean",
+    unit: null,
     optionsJson: null,
     priority: "blocking",
     weight: null,
@@ -61,10 +62,7 @@ describe("ordinary criterion evaluation", () => {
     const item = snapshot(definition("rain_plan"), state, null);
     expect(
       evaluateCriterion(item, [item], { targetGuestCount: 160 }),
-    ).toMatchObject({
-      outcome,
-      reason,
-    });
+    ).toMatchObject({ outcome, reason });
   });
 
   it("supports exact custom manual assessment", () => {
@@ -95,6 +93,7 @@ describe("dynamic guest-count evaluation", () => {
   );
   const ceilingDefinition = definition("two_dance_areas_max_guest_estimate", {
     valueType: "number",
+    unit: "people",
     optionsJson: { min: 0, integer: true },
     priority: "important",
     evaluationRuleJson: { type: "number_min", minimum: 0 },
@@ -102,6 +101,7 @@ describe("dynamic guest-count evaluation", () => {
   });
 
   it.each([
+    [0, "PASS"],
     [169, "PASS"],
     [170, "PASS"],
     [171, "FAIL"],
@@ -112,22 +112,44 @@ describe("dynamic guest-count evaluation", () => {
     ).toMatchObject({ outcome, actual: 170, target: targetGuestCount });
   });
 
-  it("fails safe for absent target and source conflict", () => {
-    const ceiling = snapshot(ceilingDefinition, "conflict", null);
+  it.each([
+    ["unknown", "UNKNOWN", "missing_support_ceiling"],
+    ["not_applicable", "UNKNOWN", "support_ceiling_not_applicable"],
+    ["conflict", "CONFLICT", "conflict"],
+  ] as const)("maps support source state %s", (state, outcome, reason) => {
+    const ceiling = snapshot(ceilingDefinition, state, null);
+    expect(
+      evaluateCriterion(derived, [derived, ceiling], { targetGuestCount: 170 }),
+    ).toMatchObject({ outcome, reason });
+  });
+
+  it("fails safe for absent target and malformed source value", () => {
+    const ceiling = snapshot(ceilingDefinition, "known", 170.5);
     expect(
       evaluateCriterion(derived, [derived, ceiling], { targetGuestCount: null })
         .reason,
     ).toBe("missing_target_guest_count");
     expect(
-      evaluateCriterion(derived, [derived, ceiling], { targetGuestCount: 170 })
-        .outcome,
-    ).toBe("CONFLICT");
+      evaluateCriterion(derived, [derived, ceiling], { targetGuestCount: 170 }),
+    ).toMatchObject({ outcome: "UNKNOWN", reason: "invalid_support_ceiling" });
+  });
+
+  it("requires the exact system support-source definition", () => {
+    const wrongUnit = snapshot(
+      { ...ceilingDefinition, unit: null },
+      "known",
+      500,
+    );
+    expect(
+      evaluateCriterion(derived, [derived, wrongUnit], { targetGuestCount: 160 }),
+    ).toMatchObject({ outcome: "UNKNOWN", reason: "configuration_incomplete" });
   });
 
   it("never falls back to advertised capacity", () => {
     const advertised = snapshot(
       definition("capacity_seated_advertised", {
         valueType: "number",
+        unit: "people",
         priority: "important",
         evaluationRuleJson: { type: "number_min", minimum: 1 },
       }),
@@ -135,9 +157,17 @@ describe("dynamic guest-count evaluation", () => {
       500,
     );
     expect(
-      evaluateCriterion(derived, [derived, advertised], {
+      evaluateCriterion(derived, [derived, advertised], { targetGuestCount: 160 }),
+    ).toMatchObject({ outcome: "UNKNOWN", reason: "configuration_incomplete" });
+  });
+
+  it("ignores a legacy retained value on the derived criterion", () => {
+    const legacyDerived = { ...derived, state: "known" as const, retainedValue: false };
+    const ceiling = snapshot(ceilingDefinition, "known", 170);
+    expect(
+      evaluateCriterion(legacyDerived, [legacyDerived, ceiling], {
         targetGuestCount: 160,
       }),
-    ).toMatchObject({ outcome: "UNKNOWN", reason: "configuration_incomplete" });
+    ).toMatchObject({ outcome: "PASS", actual: 170, target: 160 });
   });
 });

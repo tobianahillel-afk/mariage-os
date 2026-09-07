@@ -1,6 +1,6 @@
 import {
   isDerivedTargetGuestDefinition,
-  TWO_DANCE_AREAS_MAX_GUEST_KEY,
+  isDynamicGuestSupportSourceDefinition,
 } from "./derived-fact-definition";
 import { normalizeFactInstant } from "./fact-observation";
 import type {
@@ -55,8 +55,8 @@ function dynamicReady(
   ) {
     return false;
   }
-  const sources = snapshots.filter(
-    (item) => item.definition.key === TWO_DANCE_AREAS_MAX_GUEST_KEY,
+  const sources = snapshots.filter((item) =>
+    isDynamicGuestSupportSourceDefinition(item.definition),
   );
   if (sources.length !== 1) return false;
   const source = sources[0] as CriterionFactSnapshot;
