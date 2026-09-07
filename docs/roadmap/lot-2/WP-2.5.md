@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.5`
 - Lot: `2`
 - Name: Deterministic criteria, blockers, score/readiness and missing information
-- State: `ACCEPTANCE_PENDING`
-- Current pass: `C-ACCEPTANCE — reconciliation pending`
+- State: `ACCEPTED`
+- Current pass: `COMPLETE`
 - Primary bounded context: `facts/criteria` and Venue compatibility read models
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Dependencies: `WP-2.3 ACCEPTED`, `WP-2.4 ACCEPTED`
@@ -19,6 +19,7 @@
 - Fresh post-B-003 reviewed head/run: `441d300c8de92b310fd84184dab708b55750b2fb` / `34164290470` — **5/5 SUCCESS**, review decision **FAIL** on `WP2.5-B-004`.
 - Verified B-004 remediation head/run: `589f82ca5735e9a27064697957bd3250c852c592` / `34165218864` — **5/5 SUCCESS**, including clean-checkout `npm run verify`.
 - Final fresh Pass-B reviewed head/run: `65410a3dc032208644911f29e79b70bd49e89277` / `34165826166` — **5/5 SUCCESS**, review decision **PASS**.
+- Pass-C entry head/run: `931bac6a7145bc31a4bce24d4ea5cff354753ed4` / `34166488903` — **5/5 SUCCESS**, including clean-checkout `npm run verify`.
 
 ## Scope and current-lot responsibilities
 
@@ -59,7 +60,7 @@ Closed by the same exact-head specification commit/run above.
 
 Frozen V1 rule shape is exactly `{ "type": "custom_manual_assessment", "accepted": ... }` for `boolean`, `select` and `rating`; `accepted` must validate through the same canonical value boundary as the referenced definition and PASS requires strict canonical equality. Threshold/set semantics use dedicated rules instead of overloading this rule.
 
-Pass A must harden TypeScript and PostgreSQL validators together; the accepted WP-2.3 implementation still recognizes the pre-gate `{type}`-only shape and must not be seeded/executed with the new rule until both boundaries and parity tests are updated.
+Pass A hardened TypeScript and PostgreSQL validators together before the new rule shape was treated as executable packet behavior.
 
 ### Gate C / `WP2.5-S-001` — dynamic project-target guest-count semantics — RESOLVED / VERIFIED
 
@@ -236,12 +237,40 @@ Pass B decision: **PASS — no unresolved BLOCKING/MAJOR finding remains on the 
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-**PENDING.** Pass C must reconcile the bounded WP-2.5 responsibilities against the Lot-2 coverage matrix and objective evidence. The documentary `ACCEPTANCE_PENDING` transition must receive exact-head full CI before the final acceptance decision. WP-2.6 remains prohibited until WP-2.5 is `ACCEPTED`.
+Pass-C entry head/run `931bac6a7145bc31a4bce24d4ea5cff354753ed4` / `34166488903`: **5/5 SUCCESS**, including Core quality/security, Local Supabase DB/RLS, Browser/mutation, privacy-safe preview and full clean-checkout `npm run verify`.
+
+| Responsibility | Expected | Implemented | Verified |
+|---|---|---|---|
+| canonical criterion rules and ordinary evaluation | explicit rule validation, canonical retained-value semantics and deterministic PASS/FAIL/UNKNOWN/CONFLICT | `fact-evaluation-rule.ts`, `criterion-rule-evaluators.ts`, `criterion-evaluation.ts`, TypeScript/PostgreSQL rule-boundary hardening | domain/unit coverage, canonical parity, `venue_criteria_boundaries_test.sql`, full CI |
+| blockers and weighted compatibility score | blocking outcomes remain independent from weighted score; only eligible important/bonus PASS/FAIL inputs enter the score | `criterion-aggregate.ts` and reconstructible evaluation output | aggregate/coverage tests, fresh Pass-B review, full CI |
+| evidence readiness and missing-information guidance | unweighted critical-information readiness plus deterministic missing/stale/conflict/configuration reasons; no silent Task creation | `criterion-readiness.ts`, `criterion-guidance.ts`, compatibility read model | readiness/guidance coverage, FAC-006/008/010 review, full CI |
+| dynamic project-target guest-count criterion | canonical `T <= M` rule using only `two_dance_areas_max_guest_estimate`, provenance, source readiness/freshness, no unsafe capacity fallback | dynamic addendum, `derived-fact-definition.ts`, dynamic evaluation/read-model explanation | dynamic provenance/recompute/regression coverage, B-001 remediation, fresh Pass B |
+| derived-data immutability | `target_guest_count_supported` is synthetic/read-only and target changes recompute without rewriting facts/observations | TypeScript write guards plus PostgreSQL canonical derived-key/write protections | pgTAP direct-write rejection, application tests, ACC-028 review |
+| trusted project/venue provider boundary | authorized project-scoped reads and fail-closed semantic validation of relationally impossible responses | compatibility query port/adapter and `parse-venue-compatibility-inputs.ts` | adapter/parser tests, B-002/B-003 regressions, RLS suite |
+| TypeScript↔PostgreSQL reserved-rule parity | ordinary create/update paths reject the reserved dynamic rule before persistence while DB remains defense in depth | symmetric `isDynamicGuestRule()` create/update guard + DB trigger | B-004 red-first proof and 5/5 remediation run `34165218864` |
+| documentation/FIR-equivalent traceability | frozen gates, scope boundaries, findings, remediation evidence, final review and reconciliation remain durable | this packet record + Lot-2 coverage matrix + implementation status board | Pass-B reviewed head `65410a3d...`, Pass-C entry run `34166488903`, responsibility reconciliation below |
+
+Requirements / acceptance reconciliation:
+
+- `FAC-006`, `FAC-008`, `FAC-010`: missing/stale/conflicting information remains visible through deterministic readiness/guidance without silently creating Tasks — **PASS**;
+- `FAC-011`, `FAC-013`: explicit criterion evaluation, blocker severity and separate weighted score/explanation are deterministic — **PASS**;
+- `VEN-007`: missing critical Venue information has a deterministic read-model/guidance representation; presentation remains WP-2.11 — **PASS for WP-2.5 responsibility**;
+- `VEN-010`, `VEN-011`, `ACC-022`, `ACC-023`: blockers precede score and criterion rules remain explicit/configurable under the canonical rule boundary — **PASS**;
+- `ACC-028`: changing project/scenario target inputs recomputes derived compatibility without rewriting historical fact/observation truth — **PASS**;
+- `SEC-VAL-001`, `SEC-VAL-008`, `SEC-VER-005`: malformed provider relationships discovered during review fail closed with durable regressions — **PASS**.
+
+FIR-equivalent durable record: **COMPLETE**. All specification gates are closed; Pass A is verified; `WP2.5-B-001..B-004` are resolved/verified; final fresh Pass B is PASS; architecture/static/quality/security gates are green; downstream ownership remains explicit.
+
+Required WP-2.5 responsibilities minus accepted/evidenced WP-2.5 responsibilities: **∅**.
+
+Deferred ownership is intentional and not a packet gap: FTR-022 rendering/presentation and Compare/Detail UI remain WP-2.11; Venue local/offline integration remains WP-2.10/2.12; automatic Task workflow remains Lot 3; real default criteria/research data remain Lot 12.
+
+Pass C decision: **PASS — WP-2.5 ACCEPTED.**
 
 ## Handoff
 
-- Current state: `ACCEPTANCE_PENDING`
-- Current pass: `C-ACCEPTANCE — reconciliation pending`
+- Current state: `ACCEPTED`
+- Current pass: `COMPLETE`
 - Verified Pass-A implementation head/run: `aef7bea53e9db32790ab19c3fffdd0a8f63dc89d` / `34158303997` — **5/5 SUCCESS**
 - Prior fresh reviewed head/run: `3948060eb541ae2ae3eac6f5b1a7e702eb057e64` / `34159043613` — **5/5 SUCCESS**, review decision FAIL
 - Verified remediation head/run: `68439bb0d152c60197fc8ae05f416300b3a81c35` / `34161773557` — **5/5 SUCCESS**
@@ -252,9 +281,11 @@ Pass B decision: **PASS — no unresolved BLOCKING/MAJOR finding remains on the 
 - B-004 red-first proof: `0d996515d5541cb6af1e9986bd6e833b8057fb32` / `34165097206` — expected regression FAILURE before fix
 - Verified B-004 remediation head/run: `589f82ca5735e9a27064697957bd3250c852c592` / `34165218864` — **5/5 SUCCESS**
 - Final fresh Pass-B reviewed head/run: `65410a3dc032208644911f29e79b70bd49e89277` / `34165826166` — **5/5 SUCCESS**, review decision **PASS**
+- Pass-C entry head/run: `931bac6a7145bc31a4bce24d4ea5cff354753ed4` / `34166488903` — **5/5 SUCCESS**
 - `WP2.5-B-001`: **RESOLVED / VERIFIED**
 - `WP2.5-B-002`: **RESOLVED / VERIFIED**
 - `WP2.5-B-003`: **RESOLVED / VERIFIED**
 - `WP2.5-B-004`: **RESOLVED / VERIFIED**
 - Open BLOCKING/MAJOR findings: **∅**
-- Next permitted action: obtain exact-head full CI for this `ACCEPTANCE_PENDING` transition, then perform Pass C responsibility reconciliation. Do not start WP-2.6 concurrently.
+- Responsibility gap: **∅**
+- Next permitted packet after final WP-2.5 acceptance-governance CI: `WP-2.6 — Venue offers, availability, contacts and interactions basics`. Do not start WP-2.6 until that exact-head CI is 5/5 SUCCESS.
