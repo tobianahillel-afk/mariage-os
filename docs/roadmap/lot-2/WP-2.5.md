@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.5`
 - Lot: `2`
 - Name: Deterministic criteria, blockers, score/readiness and missing information
-- State: `REVIEW_PENDING`
-- Current pass: `B-ADVERSARIAL-REVIEW — fresh independent re-review pending`
+- State: `ACCEPTANCE_PENDING`
+- Current pass: `C-ACCEPTANCE — reconciliation pending`
 - Primary bounded context: `facts/criteria` and Venue compatibility read models
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Dependencies: `WP-2.3 ACCEPTED`, `WP-2.4 ACCEPTED`
@@ -18,6 +18,7 @@
 - Verified B-003 remediation head/run: `3ce8ddf6e14a25efc71d928def52efe2314d72ba` / `34163426797` — **5/5 SUCCESS**, including clean-checkout `npm run verify`.
 - Fresh post-B-003 reviewed head/run: `441d300c8de92b310fd84184dab708b55750b2fb` / `34164290470` — **5/5 SUCCESS**, review decision **FAIL** on `WP2.5-B-004`.
 - Verified B-004 remediation head/run: `589f82ca5735e9a27064697957bd3250c852c592` / `34165218864` — **5/5 SUCCESS**, including clean-checkout `npm run verify`.
+- Final fresh Pass-B reviewed head/run: `65410a3dc032208644911f29e79b70bd49e89277` / `34165826166` — **5/5 SUCCESS**, review decision **PASS**.
 
 ## Scope and current-lot responsibilities
 
@@ -221,16 +222,26 @@ Reviewed head `441d300c8de92b310fd84184dab708b55750b2fb`; exact CI `34164290470`
 
 **Verification.** Final remediation head `589f82ca5735e9a27064697957bd3250c852c592`, exact run `34165218864`: **5/5 SUCCESS**. Core quality/security passed with **94/94 test files, 926/926 tests and 100% statements/branches/functions/lines**; Local Supabase DB/RLS passed; Browser E2E and mutation passed; privacy-safe preview passed; full clean-checkout `npm run verify` passed.
 
-Historical fresh Pass B decision on reviewed head `441d300c8de92b310fd84184dab708b55750b2fb`: **FAIL — `WP2.5-B-004 MAJOR` was open.** No other new BLOCKING/MAJOR finding was identified in the reviewed provider-integrity, score/blocker, dynamic formula/explanation, readiness/guidance, derived-fact write, PostgreSQL isolation or prior-remediation surfaces. B-004 is now **RESOLVED / VERIFIED**, so the packet returns to `REVIEW_PENDING` for another fresh independent Pass B; this remediation does not itself constitute a Pass-B PASS.
+Historical fresh Pass B decision on reviewed head `441d300c8de92b310fd84184dab708b55750b2fb`: **FAIL — `WP2.5-B-004 MAJOR` was open.** No other new BLOCKING/MAJOR finding was identified in the reviewed provider-integrity, score/blocker, dynamic formula/explanation, readiness/guidance, derived-fact write, PostgreSQL isolation or prior-remediation surfaces. B-004 is now **RESOLVED / VERIFIED**, so the packet returned to `REVIEW_PENDING` for another fresh independent Pass B; this remediation did not itself constitute a Pass-B PASS.
+
+### Fresh independent Pass B after B-004 remediation
+
+Reviewed head `65410a3dc032208644911f29e79b70bd49e89277`; exact CI `34165826166`: **5/5 SUCCESS**, including clean-checkout `npm run verify`. The review independently re-read the frozen criteria/evidenceReadiness contract, dynamic guest-count addendum, ordinary/dynamic evaluation, blocker aggregation, weighted-score denominator, readiness/guidance, dynamic explanation/provenance, TypeScript create/update mutation boundaries, authorized Supabase compatibility adapter/provider parser, PostgreSQL validation/write protections and `venue_criteria_boundaries_test.sql`.
+
+B-001 through B-004 remain effective. The provider parser still fails closed on impossible retained-observation ownership and duplicate fact identities; the reserved dynamic rule is rejected symmetrically by ordinary TypeScript create/update mutations and by PostgreSQL canonical-shape protection; derived facts/evidence remain read-only; dynamic `T <= M` evaluation uses only the canonical couple-specific support source; staleness changes readiness/guidance without rewriting semantic truth; blocking status remains independent from weighted score; and compatibility recomputation does not persist or rewrite fact/observation authority.
+
+The review also rechecked `FAC-006`, `FAC-008`, `FAC-010`, `FAC-011`, `FAC-013`, `VEN-007`, `VEN-010`, `VEN-011`, `ACC-022`, `ACC-023` and `ACC-028`. No unresolved BLOCKING/MAJOR mismatch was found. Green CI is used only as verification evidence, not as the basis of the review verdict.
+
+Pass B decision: **PASS — no unresolved BLOCKING/MAJOR finding remains on the verified reviewed state. Packet transitions to `ACCEPTANCE_PENDING`.**
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started. Pass C may begin only from `ACCEPTANCE_PENDING` after a **fresh independent Pass B** of the verified post-remediation state finds no unresolved BLOCKING/MAJOR finding.
+**PENDING.** Pass C must reconcile the bounded WP-2.5 responsibilities against the Lot-2 coverage matrix and objective evidence. The documentary `ACCEPTANCE_PENDING` transition must receive exact-head full CI before the final acceptance decision. WP-2.6 remains prohibited until WP-2.5 is `ACCEPTED`.
 
 ## Handoff
 
-- Current state: `REVIEW_PENDING`
-- Current pass: `B-ADVERSARIAL-REVIEW — fresh independent re-review pending`
+- Current state: `ACCEPTANCE_PENDING`
+- Current pass: `C-ACCEPTANCE — reconciliation pending`
 - Verified Pass-A implementation head/run: `aef7bea53e9db32790ab19c3fffdd0a8f63dc89d` / `34158303997` — **5/5 SUCCESS**
 - Prior fresh reviewed head/run: `3948060eb541ae2ae3eac6f5b1a7e702eb057e64` / `34159043613` — **5/5 SUCCESS**, review decision FAIL
 - Verified remediation head/run: `68439bb0d152c60197fc8ae05f416300b3a81c35` / `34161773557` — **5/5 SUCCESS**
@@ -240,8 +251,10 @@ Not started. Pass C may begin only from `ACCEPTANCE_PENDING` after a **fresh ind
 - Fresh post-B-003 reviewed head/run: `441d300c8de92b310fd84184dab708b55750b2fb` / `34164290470` — **5/5 SUCCESS**, review decision FAIL
 - B-004 red-first proof: `0d996515d5541cb6af1e9986bd6e833b8057fb32` / `34165097206` — expected regression FAILURE before fix
 - Verified B-004 remediation head/run: `589f82ca5735e9a27064697957bd3250c852c592` / `34165218864` — **5/5 SUCCESS**
+- Final fresh Pass-B reviewed head/run: `65410a3dc032208644911f29e79b70bd49e89277` / `34165826166` — **5/5 SUCCESS**, review decision **PASS**
 - `WP2.5-B-001`: **RESOLVED / VERIFIED**
 - `WP2.5-B-002`: **RESOLVED / VERIFIED**
 - `WP2.5-B-003`: **RESOLVED / VERIFIED**
 - `WP2.5-B-004`: **RESOLVED / VERIFIED**
-- Next permitted action: obtain exact-head full CI for this documentary transition, then perform another fresh independent Pass B of WP-2.5. Do not start WP-2.6 concurrently.
+- Open BLOCKING/MAJOR findings: **∅**
+- Next permitted action: obtain exact-head full CI for this `ACCEPTANCE_PENDING` transition, then perform Pass C responsibility reconciliation. Do not start WP-2.6 concurrently.
