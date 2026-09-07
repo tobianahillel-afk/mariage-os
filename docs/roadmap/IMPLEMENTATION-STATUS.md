@@ -32,7 +32,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.1 | venue identity, authorized persistence, lifecycle history | **ACCEPTED** |
 | WP-2.2 | spaces, capacity, member ratings/preferences | **ACCEPTED** |
 | WP-2.3 | fact definitions, typed retained facts, value validation | **ACCEPTED** |
-| WP-2.4 | observations, sources, evidence/confidence/freshness, conflicts | **IN_PROGRESS / B-REMEDIATION (B-004+B-005)** |
+| WP-2.4 | observations, sources, evidence/confidence/freshness, conflicts | **REVIEW_PENDING / B-ADVERSARIAL-REVIEW** |
 | WP-2.5 | deterministic criteria, blockers, score/readiness, missing information | PLANNED |
 | WP-2.6 | offers, availability, contacts/interactions basics | PLANNED |
 | WP-2.7 | contextual venue access-route observations | PLANNED |
@@ -58,20 +58,21 @@ Accepted packet evidence remains unchanged:
 ### Pass-B history
 
 - First review-failure record: `3f6a750a97ca039c36dafd3dff5eca69eac683ad`.
-- `WP2.4-B-001` MAJOR — legacy retained setter write-around: **RESOLVED**.
-- `WP2.4-B-002` MAJOR — definition edits invalidating persisted evidence: **RESOLVED**.
+- `WP2.4-B-001` MAJOR — legacy retained setter write-around: **RESOLVED / VERIFIED**.
+- `WP2.4-B-002` MAJOR — definition edits invalidating persisted evidence: **RESOLVED / VERIFIED**.
 - Verified first-remediation head/run: `5e229cada52c9b50ca3b2b820df3ab8291c2960c` / `34110071790` — **5/5 SUCCESS**, including clean-checkout verify.
 - Fresh re-review baseline: `48ddaa1cdca2bde7f2b9e639295a10455e7ba477`.
 - B-003 review-failure record: `c43af7fc93ca36931b549d94a1d6e35316c6d173`.
 - `WP2.4-B-003` MAJOR — PostgreSQL/RPC versus TypeScript Unicode-whitespace parity for source titles/conflict rationale: **RESOLVED / VERIFIED**.
 - Verified B-003 remediation head/run: `527bdeff7840f244d749cd92a81d1eda3fc89017` / `34111887666` — **5/5 SUCCESS**, including 31 DB files / 707 pgTAP tests and clean-checkout `npm run verify`.
-- `WP2.4-B-004` MAJOR — fact-definition ECMAScript whitespace canonicalization: **REMEDIATION IMPLEMENTED / VERIFICATION PENDING**.
-- `WP2.4-B-005` MAJOR — PostgreSQL microsecond/non-finite timestamp versus provider parser parity: **REMEDIATION IMPLEMENTED / VERIFICATION PENDING**.
-- B-004/B-005 remediation implementation head: `e87f1b82059d371159ce1f35f2bafdbb85cdf3fa`.
+- `WP2.4-B-004` MAJOR — fact-definition ECMAScript whitespace canonicalization: **RESOLVED / VERIFIED; FRESH RE-REVIEW PENDING**.
+- `WP2.4-B-005` MAJOR — PostgreSQL microsecond/non-finite timestamp versus provider parser parity: **RESOLVED / VERIFIED; FRESH RE-REVIEW PENDING**.
+- B-004/B-005 implementation head: `e87f1b82059d371159ce1f35f2bafdbb85cdf3fa`.
+- Verified B-004/B-005 remediation head/run: `d4d3ce84331d13809b5f7b97ed7bf1a263a2bf4a` / `34119950023` — **5/5 SUCCESS**.
 
-The remediation adds protected ECMAScript-canonical definition wrappers/table constraints, preserves B-002 definition-history validation, extends `normalizeFactInstant` to PostgreSQL microsecond precision with canonical millisecond UTC output, rejects non-finite persisted evidence/freshness/resolution timestamps, and adds direct unit/provider/pgTAP regressions.
+The verified remediation adds protected ECMAScript-canonical definition wrappers/table constraints, preserves B-002 definition-history validation, accepts finite PostgreSQL microsecond precision at the TypeScript boundary while canonicalizing to millisecond UTC, rejects non-finite persisted evidence/freshness/resolution timestamps, and carries direct domain/provider/pgTAP regressions. Core verification is 80 test files / 811 tests with 100% statements/branches/functions/lines.
 
-Affected verification is stale until exact-head full CI succeeds. Pass C is prohibited and WP-2.5 remains PLANNED.
+WP-2.4 is now `REVIEW_PENDING`. The next required action is a fresh independent adversarial Pass B across the complete remediated packet, explicitly re-attacking B-001..B-005 plus nearby bypass/race/parser/RLS variants. CI success alone does not permit Pass C. WP-2.5 remains PLANNED.
 
 ## Durable cursor
 
@@ -80,15 +81,13 @@ Current Lot: 2 — Venues core
 Lot State: IN_PROGRESS
 Branch: lot-2/venues-core
 Current Packet: WP-2.4
-Packet State: IN_PROGRESS
-Current Pass: B-REMEDIATION — WP2.4-B-004 / WP2.4-B-005
+Packet State: REVIEW_PENDING
+Current Pass: B-ADVERSARIAL-REVIEW — fresh re-review after WP2.4-B-004 / WP2.4-B-005
 Last completed packet: WP-2.3 — ACCEPTED
 Accepted packets: WP-2.1, WP-2.2, WP-2.3
-Resolved/verified WP-2.4 MAJOR findings: WP2.4-B-001, WP2.4-B-002, WP2.4-B-003
-Remediation verification pending: WP2.4-B-004, WP2.4-B-005
-B-004/B-005 remediation implementation: e87f1b82059d371159ce1f35f2bafdbb85cdf3fa
-Last fully verified remediation: 527bdeff7840f244d749cd92a81d1eda3fc89017 / 34111887666 — 5/5 SUCCESS
-Next permitted action: obtain full CI for the exact remediation head/current documentation head. If green, transition to REVIEW_PENDING and perform another fresh Pass B. Do not start WP-2.5 concurrently.
+Resolved/verified WP-2.4 MAJOR findings: WP2.4-B-001, WP2.4-B-002, WP2.4-B-003, WP2.4-B-004, WP2.4-B-005
+Latest verified remediation: d4d3ce84331d13809b5f7b97ed7bf1a263a2bf4a / 34119950023 — 5/5 SUCCESS
+Next permitted action: fresh independent Pass B across complete WP-2.4. If no BLOCKING/MAJOR remains, transition to ACCEPTANCE_PENDING and perform Pass C. Do not start WP-2.5 concurrently.
 ```
 
 ## Known localized specification repairs / stop-conditions
@@ -96,7 +95,7 @@ Next permitted action: obtain full CI for the exact remediation head/current doc
 - WP-2.4 evidence/confidence gate: **CLOSED** (`c414549d...`, CI `34069692843`).
 - Before WP-2.5 implements `evidenceReadiness`, document its deterministic formula in `domain/CRITERIA-EVALUATION.md`.
 - Before WP-2.5 executes/seeds `custom_manual_assessment`, freeze exact acceptable-value representation for supported boolean/select/rating cases.
-- Before WP-2.8 relies on the security reading graph, repair the missing `docs/security/STORAGE-RLS.md` reference using already frozen Storage/RLS rules and tested Lot-1 policies.
+- Before WP-2.8 relies on the security reading graph, repair the missing `docs/security/STORAGE-RLS.md` reference using already frozen/tested Storage authorization semantics.
 - Venue lifecycle documentation conflict from WP-2.1 is closed by `docs/domain/STATE-MACHINES-VENUE-LIFECYCLE-ADDENDUM.md`.
 
 ## Feature lifecycle notes
@@ -104,7 +103,7 @@ Next permitted action: obtain full CI for the exact remediation head/current doc
 - V1 Feature inventory: 120 Feature IDs across both ledgers.
 - Lot-2 primary IDs: `FTR-013..FTR-028`; partial cross-lot responsibilities also include `FTR-012`, `FTR-089`, `FTR-092`, `FTR-093` and cross-cutting access/offline/security obligations.
 - Feature-level whole-capability status is not conflated with packet/current-lot responsibility; Lot Coverage Matrices remain the durable responsibility-level reconciliation source.
-- `FTR-020` remains feature-level **IN_PROGRESS** while WP-2.4 remediates fresh Pass-B findings.
+- `FTR-020` remains feature-level **IN_PROGRESS** while WP-2.4 is under fresh adversarial review.
 
 ## Forward maintenance
 
@@ -133,10 +132,9 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted Lot-2 packets: WP-2.1, WP-2.2, WP-2.3
 Current packet: WP-2.4
-Current state/pass: IN_PROGRESS / B-REMEDIATION — WP2.4-B-004 / WP2.4-B-005
-Resolved/verified: WP2.4-B-001, WP2.4-B-002, WP2.4-B-003
-B-004/B-005 remediation implementation: e87f1b82059d371159ce1f35f2bafdbb85cdf3fa
-Verification: pending exact-head full CI
-Next: verify exact head, then fresh Pass B if green. WP-2.5 remains PLANNED.
+Current state/pass: REVIEW_PENDING / B-ADVERSARIAL-REVIEW — fresh re-review after WP2.4-B-004 / WP2.4-B-005
+Resolved/verified: WP2.4-B-001, WP2.4-B-002, WP2.4-B-003, WP2.4-B-004, WP2.4-B-005
+Latest verified remediation: d4d3ce84331d13809b5f7b97ed7bf1a263a2bf4a / 34119950023 — 5/5 SUCCESS
+Next: fresh Pass B. If it passes, transition ACCEPTANCE_PENDING and perform Pass C. WP-2.5 remains PLANNED.
 Lots 3–12: NOT_STARTED
 ```
