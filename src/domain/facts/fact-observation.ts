@@ -53,10 +53,9 @@ export function normalizeFactInstant(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const match = INSTANT_PATTERN.exec(value);
   if (match === null) return null;
-  const base = match[1];
+  const base = match[1] as string;
   const fraction = match[2] ?? "";
-  const offset = match[3];
-  if (base === undefined || offset === undefined) return null;
+  const offset = match[3] as string;
   const milliseconds = fraction.padEnd(3, "0").slice(0, 3);
   const parsed = Date.parse(`${base}.${milliseconds}${offset}`);
   if (!Number.isFinite(parsed)) return null;
