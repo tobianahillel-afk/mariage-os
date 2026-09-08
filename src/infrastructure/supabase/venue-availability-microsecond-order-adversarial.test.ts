@@ -70,10 +70,16 @@ class FakeClient implements SupabaseVenueAvailabilityClientLike {
   }
 }
 
-it("preserves PostgreSQL microsecond observed_at recency before UUID tie-break", async () => {
-  const adapter = new SupabaseVenueAvailabilityAdapter(new FakeClient());
+it(
+  "preserves PostgreSQL microsecond observed_at recency before UUID tie-break",
+  async () => {
+    const adapter = new SupabaseVenueAvailabilityAdapter(new FakeClient());
 
-  const history = await adapter.listVenueAvailabilityHistory(projectId, venueId);
+    const history = await adapter.listVenueAvailabilityHistory(
+      projectId,
+      venueId,
+    );
 
-  expect(history.map((record) => record.id)).toEqual([newerId, olderId]);
-});
+    expect(history.map((record) => record.id)).toEqual([newerId, olderId]);
+  },
+);
