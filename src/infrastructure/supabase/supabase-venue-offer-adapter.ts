@@ -84,7 +84,9 @@ function exactCreationComponents(
 ): readonly VenueOfferComponentRecord[] {
   const unique = uniqueRecords(records);
   if (unique.length !== expected.length) failure(INVALID_RESPONSE);
-  const expectedIds = new Set(expected.map((component) => component.componentId));
+  const expectedIds = new Set(
+    expected.map((component) => component.componentId),
+  );
   for (const record of unique) {
     if (!expectedIds.has(record.id)) failure(INVALID_RESPONSE);
   }
