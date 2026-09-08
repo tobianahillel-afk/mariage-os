@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1..WP-2.5 ACCEPTED; WP-2.6 next planned packet**
+Status: **IN_PROGRESS — WP-2.1..WP-2.5 ACCEPTED; WP-2.6 decomposed into WP-2.6A/B/C; WP-2.6A READY**
 
 Purpose: durable responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`.
 
@@ -31,9 +31,10 @@ The previously accepted Lot 0 + Lot 1 implementation was promoted to `main` thro
 | multi-source append-oriented observations, sources/provenance, conflict retention and stronger-evidence protection inputs | FTR-020, FAC-002, FAC-004..009, ACC-015, ACC-025..027 | WP-2.4 | WP-2.3 | **WP-2.4 ACCEPTED**; append/history/RLS/conflict/freshness/canonicality evidence, B-001..B-008 closed |
 | deterministic criterion evaluation, blockers, weighted score explanation and dynamic recomputation | FTR-021, FAC-011, FAC-013, VEN-010, VEN-011, ACC-022, ACC-023, ACC-028 | WP-2.5 | WP-2.3, WP-2.4 | **WP-2.5 ACCEPTED**; deterministic unit/property coverage, explanation reconstruction, provider/DB boundary evidence and final fresh Pass B |
 | missing/stale/conflicting information guidance without silently creating tasks | FTR-022 (Lot 2 responsibility), VEN-007, FAC-006, FAC-008, FAC-010 | WP-2.5, WP-2.11 | criteria/facts | **WP-2.5 ACCEPTED read-model/guidance responsibility** + later WP-2.11 presentation/UI |
-| venue offers/date pricing and availability observation basics without full Budget engine | FTR-025 (Lot 2 responsibility), VEN-008, VEN-009 | WP-2.6 | WP-2.1, wedding dates | migration/RLS + date/source/history tests |
-| venue contacts/interactions/quote-follow-up data basics without Task workflow | FTR-026 (Lot 2 responsibility) | WP-2.6, WP-2.11 | WP-2.1 | same-project tests + detail read model |
-| contextual access-route observations by origin/mode; default-origin switch never overwrites route history | Lot-2 acceptance, VEN-016, ACC-030, access responsibility | WP-2.7, WP-2.11 | Lot 1 reference origins | access.read/write RLS + contextual-history tests |
+| venue offer/date-pricing commercial history without full Budget engine | FTR-025 (Lot 2 responsibility), VEN-008 | WP-2.6A | WP-2.1, wedding dates | offer/component lifecycle, migration/RLS, money/date/source/history tests |
+| venue availability observation history and latest/relevant read model | FTR-025 (Lot 2 responsibility), VEN-009 | WP-2.6B | WP-2.1, wedding dates, WP-2.6A accepted by default sequence | append/replay, migration/RLS, strict instant/date/source/history tests |
+| venue contacts/interactions/quote-follow-up data basics without Task workflow | FTR-026 (Lot 2 responsibility) | WP-2.6C, WP-2.11 | WP-2.1, WP-2.6A/B accepted by default sequence | contact revision, interaction append/replay, same-project/parent tests + later detail UI |
+| contextual access-route observations by origin/mode; default-origin switch never overwrites route history | Lot-2 acceptance, VEN-016, ACC-030, access responsibility | WP-2.7, WP-2.11 | WP-2.1, Lot-1 reference origins | access.read/write RLS + contextual-history tests |
 | remote image references, archived/private venue photo metadata and source privacy | FTR-024, FTR-092 (Lot 2 media responsibility), VEN-013, MED-004..010, MED-013 | WP-2.8, WP-2.11, WP-2.12 | Lot 1 private Storage | metadata/RLS/Storage tests + external-image security tests |
 | venue-linked ordinary document basics and generic venue tag/link basics | FTR-089 (Lot 2 responsibility), FTR-093 (Lot 2 responsibility), MED-001..003, MED-010 | WP-2.9, WP-2.11 | Lot 1 Storage/permissions | same-project link tests + safe metadata UI |
 | venue repository/read-model ports and Supabase adapters use accepted architecture boundaries | Lot acceptance, AUTHZ-006/020, architecture controls | WP-2.1..WP-2.10 as owning adapters are introduced | Lot 1 ports/composition | static architecture + adapter tests |
@@ -51,7 +52,7 @@ The previously accepted Lot 0 + Lot 1 implementation was promoted to `main` thro
 
 Required current-lot responsibilities minus assigned packet responsibilities: **∅**.
 
-Accepted/evidenced packet responsibilities so far: **WP-2.1, WP-2.2, WP-2.3, WP-2.4 and WP-2.5**. Required WP-2.5 responsibilities minus accepted/evidenced WP-2.5 responsibilities: **∅**. The FTR-022 presentation/UI responsibility remains explicitly assigned to WP-2.11 and is not claimed by WP-2.5. Lot-level accepted/evidenced reconciliation remains intentionally incomplete until all packets and the separate Integration Pass finish.
+Accepted/evidenced packet responsibilities so far: **WP-2.1, WP-2.2, WP-2.3, WP-2.4 and WP-2.5**. Required WP-2.5 responsibilities minus accepted/evidenced WP-2.5 responsibilities: **∅**. The original WP-2.6 responsibility remains fully assigned after orchestration decomposition: offers/components → WP-2.6A, availability → WP-2.6B, contacts/interactions → WP-2.6C. The FTR-022 presentation/UI responsibility remains explicitly assigned to WP-2.11 and is not claimed by WP-2.5. Lot-level accepted/evidenced reconciliation remains intentionally incomplete until all packets and the separate Integration Pass finish.
 
 ## Work Packet plan
 
@@ -133,19 +134,46 @@ Pass C reconciliation: **PASS**.
 Required WP-2.5 responsibilities minus accepted/evidenced WP-2.5 responsibilities: **∅**.  
 Boundary retained: FTR-022 rendering/presentation remains WP-2.11; automatic Task creation remains Lot 3; local/offline Venue integration remains WP-2.10/2.12; real default criteria/research data remain Lot 12.
 
-### WP-2.6 — Venue offers, availability, contacts and interactions basics
+### WP-2.6A — Venue offers and offer components
 
-State: **PLANNED**
+State: **READY**  
+Current pass: **PLAN**
 
-Primary Features: FTR-025 and FTR-026 Lot-2 responsibilities.  
-Dependencies: WP-2.1, Lot-1 wedding dates. WP-2.5 is now **ACCEPTED** and no longer blocks packet sequencing.
+Primary Feature: FTR-025 Venue offer/date-pricing responsibility.  
+Dependencies: WP-2.1 and WP-2.5 **ACCEPTED**, Lot-1 wedding dates.  
+Packet record: `WP-2.6A.md`.  
+Specification gates: commercial workflow freeze through `cf46c731bd45b77feaa514b22036096301280755` / CI `34170253114`; boundary addendum `6dce81a49ccdbb7bc9da54b2491a0c8746e12e50` / CI `34171320200`; both **5/5 SUCCESS**.  
+Sizing: 10 points with explicit cohesion rationale; if actual command surface increases above 10, split before implementation.  
+Boundary retained: availability → WP-2.6B; contacts/interactions → WP-2.6C; Budget/Vendor/Documents/offline/UI remain downstream/out of scope.
+
+### WP-2.6B — Venue availability observations
+
+State: **PLANNED**  
+Current pass: **PLAN**
+
+Primary Feature: FTR-025 Venue availability responsibility.  
+Dependency: WP-2.6A **ACCEPTED** by default sequential orchestration.  
+Packet record: `WP-2.6B.md`.  
+Sizing: 9 points with explicit append-history/replay cohesion rationale.  
+Owns immutable availability evidence, strict instant/date/source semantics, stable-UUID replay and relevant/latest read model.
+
+### WP-2.6C — Venue contacts and interactions
+
+State: **PLANNED**  
+Current pass: **PLAN**
+
+Primary Feature: FTR-026 Lot-2 responsibility.  
+Dependency: WP-2.6A/B **ACCEPTED** by default sequential orchestration.  
+Packet record: `WP-2.6C.md`.  
+Sizing: 10 points with contact/interaction parent-integrity cohesion rationale. If actual required privileged command count pushes the packet above 10, split contacts and interactions before code.  
+Owns canonical contact values/revision semantics and append/replay interaction history; Task/provider messaging/Vendor/UI remain out of scope.
 
 ### WP-2.7 — Contextual venue access-route observations
 
 State: **PLANNED**
 
 Primary control: Lot-2 acceptance + VEN-016 access-route basics.  
-Dependencies: WP-2.1, Lot-1 reference origins.
+Dependencies: WP-2.1, Lot-1 reference origins, and completion of the decomposed WP-2.6 sequence under current orchestration.
 
 ### WP-2.8 — Venue media/photo foundation and private/remote media safety
 
@@ -191,8 +219,15 @@ Provides the complete visit workflow and the final packet-owned synthetic venue 
 ```text
 WP-2.1 [ACCEPTED]
   ├─→ WP-2.2 [ACCEPTED]
-  ├─→ WP-2.3 [ACCEPTED] → WP-2.4 [ACCEPTED] → WP-2.5 [ACCEPTED] → WP-2.6 [NEXT / PLANNED]
-  ├─→ WP-2.7
+  ├─→ WP-2.3 [ACCEPTED] → WP-2.4 [ACCEPTED] → WP-2.5 [ACCEPTED]
+  │                                           ↓
+  │                               WP-2.6A [READY / NEXT]
+  │                                           ↓
+  │                               WP-2.6B [PLANNED]
+  │                                           ↓
+  │                               WP-2.6C [PLANNED]
+  │                                           ↓
+  ├────────────────────────────────────────→ WP-2.7 [PLANNED]
   └─→ WP-2.8 → WP-2.9
 
 WP-2.1..2.9
@@ -210,7 +245,7 @@ separate Lot 2 Integration Pass
 Lot 2 acceptance
 ```
 
-Default execution remains one packet in active work/review at a time. WP-2.5 is complete and accepted after Pass-C reconciliation. WP-2.6 is the next permitted planned packet, but must not be treated as `IN_PROGRESS` until the final WP-2.5 acceptance-governance HEAD has exact 5/5 CI evidence.
+Default execution remains one packet in active work/review at a time. The original WP-2.6 responsibility was decomposed before implementation because its five-table/multi-command/RLS scope exceeded the orchestration `>10` split threshold and no atomicity/safety reason justified a mega-packet. This decomposition changes implementation granularity only; product/Feature scope is unchanged and required current-lot responsibilities minus assigned packet responsibilities remains **∅**. WP-2.6A is the only READY packet; B/C remain PLANNED and WP-2.7 must not start concurrently.
 
 ## Explicitly out of Lot 2
 

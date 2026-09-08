@@ -34,7 +34,9 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.3 | fact definitions, typed retained facts, value validation | **ACCEPTED** |
 | WP-2.4 | observations, sources, evidence/confidence/freshness, conflicts | **ACCEPTED** |
 | WP-2.5 | deterministic criteria, blockers, score/readiness, missing information | **ACCEPTED** |
-| WP-2.6 | offers, availability, contacts/interactions basics | PLANNED |
+| WP-2.6A | Venue offers and offer components | **READY — PLAN** |
+| WP-2.6B | Venue availability observations | PLANNED |
+| WP-2.6C | Venue contacts and interactions | PLANNED |
 | WP-2.7 | contextual venue access-route observations | PLANNED |
 | WP-2.8 | venue media/photo foundation and media safety | PLANNED |
 | WP-2.9 | venue document/tag/link basics | PLANNED |
@@ -102,23 +104,41 @@ Pass C:
 
 Final acceptance-governance head/run: `902ac6f56b84fed56da0113efc610617943e9449` / `34167062632` — **SUCCESS**.
 
+## WP-2.6 — pre-implementation freeze and orchestration split
+
+Parent product responsibility: Venue offers/date pricing/availability (`FTR-025`, `VEN-008`, `VEN-009`) plus Venue contacts/interactions (`FTR-026`).
+
+Specification gates:
+
+- base Venue-commercial workflow semantics frozen through `cf46c731bd45b77feaa514b22036096301280755`, exact CI `34170253114` — **5/5 SUCCESS**;
+- canonical phone/WhatsApp and append-replay boundaries frozen by `docs/domain/VENUE-COMMERCIAL-WORKFLOW-BOUNDARY-ADDENDUM.md`, commit `6dce81a49ccdbb7bc9da54b2491a0c8746e12e50`, exact CI `34171320200` — **5/5 SUCCESS**.
+
+The original single WP-2.6 packet was rejected at sizing review before production code. Five new tables plus migration/RLS and multiple command surfaces exceeded the normative `>10` split threshold in `AI-LOT-ORCHESTRATION.md`, and no cross-domain atomicity/safety reason justified a mega-packet.
+
+Implementation-only decomposition, with product scope unchanged:
+
+- `WP-2.6A` — Venue offers + Venue-owned offer components — **READY / PLAN**, estimated 10 points with explicit offer/component lifecycle cohesion rationale;
+- `WP-2.6B` — append-oriented Venue availability observations — **PLANNED / PLAN**, estimated 9 points with evidence-history/replay cohesion rationale;
+- `WP-2.6C` — Venue contacts + interactions — **PLANNED / PLAN**, estimated 10 points with same-Venue contact/interaction parent-integrity cohesion rationale. If actual privileged command count raises C above 10, split contacts/interactions before code.
+
+Required original WP-2.6 responsibilities minus assigned A/B/C responsibilities: **∅**. No code/schema has been implemented by the specification/split work itself.
+
 ## Durable cursor
 
 ```text
 Current Lot: 2 — Venues core
 Lot State: IN_PROGRESS
 Branch: lot-2/venues-core
-Current Packet: WP-2.6
-Packet State: PLANNED
+Current Packet: WP-2.6A
+Packet State: READY
 Current Pass: PLAN
 Last completed packet: WP-2.5 — ACCEPTED
 Accepted packets: WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5
-WP-2.5 final fresh Pass-B reviewed head/run: 65410a3dc032208644911f29e79b70bd49e89277 / 34165826166 — 5/5 SUCCESS, review PASS
-WP-2.5 Pass-C entry head/run: 931bac6a7145bc31a4bce24d4ea5cff354753ed4 / 34166488903 — 5/5 SUCCESS
-WP-2.5 final acceptance-governance head/run: 902ac6f56b84fed56da0113efc610617943e9449 / 34167062632 — SUCCESS
-Resolved/verified WP-2.5 findings: WP2.5-B-001; WP2.5-B-002; WP2.5-B-003; WP2.5-B-004
-Open WP-2.5 BLOCKING/MAJOR findings: ∅
-Next permitted action: prepare WP-2.6 (Venue offers, availability, contacts and interactions basics), perform pre-implementation contract/sizing review, then transition WP-2.6 to READY/Pass A only if no unresolved material specification blocker exists. Do not start WP-2.7 concurrently.
+Planned commercial subpackets: WP-2.6B, WP-2.6C
+WP-2.6 base freeze head/run: cf46c731bd45b77feaa514b22036096301280755 / 34170253114 — 5/5 SUCCESS
+WP-2.6 boundary freeze head/run: 6dce81a49ccdbb7bc9da54b2491a0c8746e12e50 / 34171320200 — 5/5 SUCCESS
+Open WP-2.6A BLOCKING/MAJOR findings: ∅
+Next permitted action: obtain exact full CI on the split/governance HEAD, then transition WP-2.6A only to IN_PROGRESS / A-IMPLEMENT. Do not start WP-2.6B/C or WP-2.7 concurrently.
 ```
 
 ## Known localized specification repairs / stop-conditions
@@ -128,6 +148,8 @@ Next permitted action: prepare WP-2.6 (Venue offers, availability, contacts and 
 - WP-2.5 `custom_manual_assessment.accepted` representation: **CLOSED** (`5fd9be01...`, CI `34143567491`).
 - WP-2.5 `project_target_guest_count_supported` deterministic semantics / `WP2.5-S-001`: **CLOSED** (`01136a76...`, CI `34146113235`).
 - WP-2.5 `WP2.5-B-001..B-004`: **RESOLVED / VERIFIED**; final fresh Pass B PASS and Pass C PASS.
+- WP-2.6 commercial workflow semantics: **CLOSED** through `cf46c731...` / CI `34170253114`.
+- WP-2.6 canonical phone/WhatsApp and append retry semantics: **CLOSED** by `6dce81a4...` / CI `34171320200`.
 - Before WP-2.8 relies on the security reading graph, repair the missing `docs/security/STORAGE-RLS.md` reference using already frozen/tested Storage authorization semantics.
 - Venue lifecycle documentation conflict from WP-2.1 is closed by `docs/domain/STATE-MACHINES-VENUE-LIFECYCLE-ADDENDUM.md`.
 
@@ -138,7 +160,7 @@ Next permitted action: prepare WP-2.6 (Venue offers, availability, contacts and 
 - Feature-level whole-capability status is not conflated with packet/current-lot responsibility; Lot Coverage Matrices remain the durable responsibility-level reconciliation source.
 - WP-2.4 packet responsibility for `FTR-020` is **ACCEPTED**.
 - WP-2.5 packet responsibility for `FTR-021` and the Lot-2 read-model/guidance responsibility of `FTR-022` is **ACCEPTED**. This does not claim downstream WP-2.11 presentation/UI, WP-2.10/2.12 offline integration, Lot-3 Task workflow or Lot-12 real-data/default-criteria work.
-- WP-2.6 remains **PLANNED** until its packet record, contract/sizing review and pre-implementation gates are complete.
+- Original WP-2.6 product responsibility is now execution-mapped to WP-2.6A/B/C. No FTR-025/FTR-026 implementation completion is claimed by the specification or orchestration split.
 
 ## Forward maintenance
 
@@ -167,10 +189,9 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted Lot-2 packets: WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5
 Last completed packet: WP-2.5 — ACCEPTED / COMPLETE
-Current packet: WP-2.6 — PLANNED / PLAN
-WP-2.5 final fresh Pass-B head/run: 65410a3dc032208644911f29e79b70bd49e89277 / 34165826166 — 5/5 SUCCESS, review PASS
-WP-2.5 Pass-C entry head/run: 931bac6a7145bc31a4bce24d4ea5cff354753ed4 / 34166488903 — 5/5 SUCCESS
-WP-2.5 final acceptance-governance head/run: 902ac6f56b84fed56da0113efc610617943e9449 / 34167062632 — SUCCESS
-Next permitted action: prepare WP-2.6 only; WP-2.7 remains prohibited concurrently.
+Current packet: WP-2.6A — READY / PLAN
+Planned next commercial packets: WP-2.6B, WP-2.6C
+WP-2.6 specification gates: cf46c731... / 34170253114 and 6dce81a4... / 34171320200 — both 5/5 SUCCESS
+Next permitted action: verify this split/governance HEAD, then start WP-2.6A Pass A only. WP-2.6B/C and WP-2.7 remain prohibited concurrently.
 Lots 3–12: NOT_STARTED
 ```
