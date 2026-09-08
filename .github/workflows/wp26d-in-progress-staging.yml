@@ -1,0 +1,102 @@
+name: WP-2.6D IN_PROGRESS transition staging
+
+on:
+  push:
+    branches:
+      - lot-2/wp26d-in-progress-staging
+
+permissions:
+  contents: write
+
+jobs:
+  transition:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          fetch-depth: 0
+      - name: Apply asserted WP-2.6D IN_PROGRESS transition
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_exact(path, old, new, expected=1):
+              p = Path(path)
+              text = p.read_text()
+              count = text.count(old)
+              if count != expected:
+                  raise SystemExit(f"{path}: expected {expected}, found {count}: {old[:180]!r}")
+              p.write_text(text.replace(old, new))
+
+          d = "docs/roadmap/lot-2/WP-2.6D.md"
+          replace_exact(d, "- State: `READY`\n- Current pass: `A-IMPLEMENT`", "- State: `IN_PROGRESS`\n- Current pass: `A-IMPLEMENT`")
+          replace_exact(
+              d,
+              "- Specification-freeze gate `1bf2640e20aa7cf7cb7d3b3524aa069b37a09c4b` / `34289908898` is **5/5 SUCCESS**, including clean-checkout `npm run verify`; the activation stop-condition is CLOSED and the packet may enter Pass A after this READY transition head is itself verified.",
+              "- Specification-freeze gate `1bf2640e20aa7cf7cb7d3b3524aa069b37a09c4b` / `34289908898` is **5/5 SUCCESS**, including clean-checkout `npm run verify`; the activation stop-condition is CLOSED.\n- READY-transition gate `3c51873c7503366950b4551d1c01be51202926f5` / `34290710472` is **5/5 SUCCESS**, including clean-checkout `npm run verify`; the packet may now enter Pass A as `IN_PROGRESS` before any red-first product test is committed."
+          )
+          replace_exact(
+              d,
+              "- Current state: `READY`\n- Current/next pass: `A-IMPLEMENT`",
+              "- Current state: `IN_PROGRESS`\n- Current/next pass: `A-IMPLEMENT`"
+          )
+          replace_exact(
+              d,
+              "- Pass A implementation status: **Not started**\n- Next permitted action: verify this READY-transition HEAD 5/5. Only then begin WP-2.6D Pass A with red-first vertical-slice evidence. Do not start WP-2.7 concurrently.",
+              "- READY-transition gate: `3c51873c7503366950b4551d1c01be51202926f5` / `34290710472` — **5/5 SUCCESS**\n- Pass A implementation status: **Not started**\n- Next permitted action: verify this IN_PROGRESS-transition HEAD 5/5. Only then commit the WP-2.6D red-first vertical-slice evidence. Do not start WP-2.7 concurrently."
+          )
+
+          status = "docs/roadmap/IMPLEMENTATION-STATUS.md"
+          replace_exact(status, "| WP-2.6D | Venue interaction history | **READY** |", "| WP-2.6D | Venue interaction history | **IN_PROGRESS** |")
+          replace_exact(
+              status,
+              "- `WP-2.6D` — Venue interaction history — **READY / A-IMPLEMENT**, estimated 9 points with append/replay/history cohesion; specification-freeze gate `1bf2640e20aa7cf7cb7d3b3524aa069b37a09c4b` / `34289908898` is **5/5 SUCCESS**. Pass A product implementation has not started.",
+              "- `WP-2.6D` — Venue interaction history — **IN_PROGRESS / A-IMPLEMENT**, estimated 9 points with append/replay/history cohesion; specification-freeze `1bf2640e20aa7cf7cb7d3b3524aa069b37a09c4b` / `34289908898` and READY-transition `3c51873c7503366950b4551d1c01be51202926f5` / `34290710472` are both **5/5 SUCCESS**. Pass A product implementation has not started."
+          )
+          replace_exact(
+              status,
+              "Current packet: WP-2.6D — READY / A-IMPLEMENT\nCurrent commercial packet: WP-2.6D — READY / A-IMPLEMENT",
+              "Current packet: WP-2.6D — IN_PROGRESS / A-IMPLEMENT\nCurrent commercial packet: WP-2.6D — IN_PROGRESS / A-IMPLEMENT"
+          )
+          replace_exact(
+              status,
+              "WP-2.6D state: READY / A-IMPLEMENT; Pass A product implementation not started\nNext permitted action: verify the exact WP-2.6D READY-transition HEAD 5/5; then begin red-first Pass A. WP-2.7 remains prohibited concurrently.",
+              "WP-2.6D READY transition: 3c51873c... / 34290710472 — 5/5 SUCCESS\nWP-2.6D state: IN_PROGRESS / A-IMPLEMENT; Pass A product implementation not started\nNext permitted action: verify the exact WP-2.6D IN_PROGRESS-transition HEAD 5/5; then commit red-first Pass A evidence. WP-2.7 remains prohibited concurrently."
+          )
+
+          matrix = "docs/roadmap/lot-2/LOT-2-COVERAGE-MATRIX.md"
+          replace_exact(matrix, "Status: **IN_PROGRESS — WP-2.1..WP-2.6C ACCEPTED; WP-2.6D READY**", "Status: **IN_PROGRESS — WP-2.1..WP-2.6C ACCEPTED; WP-2.6D IN_PROGRESS**")
+          replace_exact(
+              matrix,
+              "A+B+C are accepted and D is READY for Pass A after exact transition-head verification.",
+              "A+B+C are accepted and D is IN_PROGRESS in Pass A after READY-transition verification."
+          )
+          replace_exact(
+              matrix,
+              "### WP-2.6D — Venue interaction history\n\nState: **READY**\nCurrent pass: **A-IMPLEMENT**",
+              "### WP-2.6D — Venue interaction history\n\nState: **IN_PROGRESS**\nCurrent pass: **A-IMPLEMENT**"
+          )
+          replace_exact(
+              matrix,
+              "Specification-freeze gate `1bf2640e20aa7cf7cb7d3b3524aa069b37a09c4b` / `34289908898` is **5/5 SUCCESS**. Packet is **READY / A-IMPLEMENT**; Pass A product implementation remains not started until this READY-transition head is itself verified 5/5.",
+              "Specification-freeze gate `1bf2640e20aa7cf7cb7d3b3524aa069b37a09c4b` / `34289908898` and READY-transition gate `3c51873c7503366950b4551d1c01be51202926f5` / `34290710472` are **5/5 SUCCESS**. Packet is **IN_PROGRESS / A-IMPLEMENT**; Pass A product implementation remains not started until this IN_PROGRESS-transition head is itself verified 5/5."
+          )
+
+          dtext = Path(d).read_text()
+          if "- State: `IN_PROGRESS`" not in dtext or "- Current pass: `A-IMPLEMENT`" not in dtext:
+              raise SystemExit("WP-2.6D IN_PROGRESS state/pass missing")
+          if "## Pass A — IMPLEMENT\n\nNot started." not in dtext:
+              raise SystemExit("WP-2.6D Pass A must remain not started")
+          PY
+
+          rm .github/workflows/wp26d-in-progress-staging.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          changed="$(git diff --cached --name-only | sort | tr '\n' ' ')"
+          expected=".github/workflows/wp26d-in-progress-staging.yml docs/roadmap/IMPLEMENTATION-STATUS.md docs/roadmap/lot-2/LOT-2-COVERAGE-MATRIX.md docs/roadmap/lot-2/WP-2.6D.md "
+          test "$changed" = "$expected"
+          git commit -m "docs: enter WP-2.6D Pass A"
+          git push
