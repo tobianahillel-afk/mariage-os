@@ -368,3 +368,46 @@ it("fails all mutation methods closed on provider errors or malformed data", asy
     }),
   ).rejects.toThrow("Invalid venue commercial response.");
 });
+
+it("rejects duplicate offer identities from provider collections", async () => {
+  const client = new FakeClient();
+  client.offerQueryResult = { data: [offerRow(), offerRow()], error: null };
+  const adapter = new SupabaseVenueOfferAdapter(client);
+  await expect(adapter.listVenueOffers(projectId, venueId)).rejects.toThrow(
+    "Invalid venue commercial response.",
+  );
+});
+
+it("rejects duplicate component identities from provider collections", async () => {
+  const client = new FakeClient();
+  client.componentQueryResult = {
+    data: [componentRow(), componentRow()],
+    error: null,
+  };
+  const adapter = new SupabaseVenueOfferAdapter(client);
+  await expect(
+    adapter.listVenueOfferComponents(projectId, offerId),
+  ).rejects.toThrow("Invalid venue commercial response.");
+});
+
+it("rejects duplicate component identities in atomic create receipts", async () => {
+  const client = new FakeClient();
+  client.rpcResult = {
+    data: {
+      offer: offerRow(),
+      components: [componentRow(), componentRow()],
+    },
+    error: null,
+  };
+  const adapter = new SupabaseVenueOfferAdapter(client);
+  await expect(
+    adapter.createVenueOffer({
+      offerId,
+      projectId,
+      venueId,
+      status: "draft",
+      terms,
+      components: [{ componentId, ...component }],
+    }),
+  ).rejects.toThrow("Invalid venue commercial response.");
+});
