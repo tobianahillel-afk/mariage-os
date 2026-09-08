@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1..WP-2.6C ACCEPTED; WP-2.6D READY**
+Status: **IN_PROGRESS — WP-2.1..WP-2.6C ACCEPTED; WP-2.6D IN_PROGRESS**
 
 Purpose: durable responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`.
 
@@ -52,7 +52,7 @@ The previously accepted Lot 0 + Lot 1 implementation was promoted to `main` thro
 
 Required current-lot responsibilities minus assigned packet responsibilities: **∅**.
 
-Accepted/evidenced packet responsibilities so far: **WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5, WP-2.6A, WP-2.6B and WP-2.6C**. Required WP-2.6A responsibilities minus accepted/evidenced WP-2.6A responsibilities: **∅**. Required WP-2.6B responsibilities minus accepted/evidenced WP-2.6B responsibilities: **∅**. Required WP-2.6C responsibilities minus accepted/evidenced WP-2.6C responsibilities: **∅**. The original WP-2.6 responsibility remains fully assigned after orchestration decomposition: offers/components → WP-2.6A, availability → WP-2.6B, contacts → WP-2.6C, interactions → WP-2.6D; A+B+C are accepted and D is READY for Pass A after exact transition-head verification. Whole `FTR-026` remains incomplete because interaction history, Venue presentation and Lot-3 follow-up/Task responsibilities are downstream. The FTR-022 presentation/UI responsibility remains explicitly assigned to WP-2.11 and is not claimed by WP-2.5. Lot-level accepted/evidenced reconciliation remains intentionally incomplete until all packets and the separate Integration Pass finish.
+Accepted/evidenced packet responsibilities so far: **WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5, WP-2.6A, WP-2.6B and WP-2.6C**. Required WP-2.6A responsibilities minus accepted/evidenced WP-2.6A responsibilities: **∅**. Required WP-2.6B responsibilities minus accepted/evidenced WP-2.6B responsibilities: **∅**. Required WP-2.6C responsibilities minus accepted/evidenced WP-2.6C responsibilities: **∅**. The original WP-2.6 responsibility remains fully assigned after orchestration decomposition: offers/components → WP-2.6A, availability → WP-2.6B, contacts → WP-2.6C, interactions → WP-2.6D; A+B+C are accepted and D is IN_PROGRESS in Pass A after READY-transition verification. Whole `FTR-026` remains incomplete because interaction history, Venue presentation and Lot-3 follow-up/Task responsibilities are downstream. The FTR-022 presentation/UI responsibility remains explicitly assigned to WP-2.11 and is not claimed by WP-2.5. Lot-level accepted/evidenced reconciliation remains intentionally incomplete until all packets and the separate Integration Pass finish.
 
 ## Work Packet plan
 
@@ -187,13 +187,13 @@ Next permitted action: WP-2.6D specification/activation revalidation; WP-2.7 rem
 
 ### WP-2.6D — Venue interaction history
 
-State: **READY**
+State: **IN_PROGRESS**
 Current pass: **A-IMPLEMENT**
 
 Primary Feature: FTR-026 Lot-2 interaction responsibility.
 Dependency gate: WP-2.6C **ACCEPTED / acceptance-governance verified** on `f6c93b7991d832363da92a9081540b9bad95441b` / `34287865010` attempt 2.
 Activation stop-condition frozen before code: canonical interaction history is `occurred_at DESC, created_at DESC, id ASC`; provider order preserves PostgreSQL microsecond chronology and TypeScript does not re-sort after millisecond canonicalization; `next_follow_up_at` remains independently strict metadata with no invented ordering/inequality semantics.
-Specification-freeze gate `1bf2640e20aa7cf7cb7d3b3524aa069b37a09c4b` / `34289908898` is **5/5 SUCCESS**. Packet is **READY / A-IMPLEMENT**; Pass A product implementation remains not started until this READY-transition head is itself verified 5/5.
+Specification-freeze gate `1bf2640e20aa7cf7cb7d3b3524aa069b37a09c4b` / `34289908898` and READY-transition gate `3c51873c7503366950b4551d1c01be51202926f5` / `34290710472` are **5/5 SUCCESS**. Packet is **IN_PROGRESS / A-IMPLEMENT**; Pass A product implementation remains not started until this IN_PROGRESS-transition head is itself verified 5/5.
 Dependencies: WP-2.6C **ACCEPTED** plus prior WP-2.6A/B acceptance.
 Acceptance record: `WP-2.6D.md`.
 Estimated size: **9 points** — one append-only interaction table, one migration family, one atomic append/replay command and one RLS/authorization boundary.
