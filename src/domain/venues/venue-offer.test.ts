@@ -164,9 +164,9 @@ it("accepts only draft or quoted venue offer creation states", () => {
   expect(
     normalizeVenueOfferCreate({ ...terms(), status: "quoted" }),
   ).toMatchObject({ ok: true, value: { status: "quoted" } });
-  expect(
-    normalizeVenueOfferCreate({ ...terms(), status: "accepted" }),
-  ).toEqual({ ok: false, error: "creation_status_invalid" });
+  expect(normalizeVenueOfferCreate({ ...terms(), status: "accepted" })).toEqual(
+    { ok: false, error: "creation_status_invalid" },
+  );
   expect(
     normalizeVenueOfferCreate({ ...terms({ name: "" }), status: "draft" }),
   ).toEqual({ ok: false, error: "name_required_or_too_long" });

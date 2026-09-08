@@ -87,8 +87,8 @@ class FakeVenueOfferPort implements VenueOfferPort {
       components: [componentRecord()],
     }),
   );
-  readonly updateVenueOfferDraft = vi.fn(
-    async (): Promise<VenueOfferRecord> => offerRecord(),
+  readonly updateVenueOfferDraft = vi.fn(async (): Promise<VenueOfferRecord> =>
+    offerRecord(),
   );
   readonly transitionVenueOffer = vi.fn(
     async (input: TransitionVenueOfferInput): Promise<VenueOfferRecord> =>
@@ -100,7 +100,9 @@ class FakeVenueOfferPort implements VenueOfferPort {
   readonly updateVenueOfferComponent = vi.fn(
     async (): Promise<VenueOfferComponentRecord> => componentRecord(),
   );
-  readonly removeVenueOfferComponent = vi.fn(async (): Promise<void> => undefined);
+  readonly removeVenueOfferComponent = vi.fn(
+    async (): Promise<void> => undefined,
+  );
 }
 
 function validCreate() {
@@ -268,7 +270,9 @@ it("validates venue offer lifecycle transition identity, revision and target", a
 
 it("creates normalized draft components with parent revision protection", async () => {
   const port = new FakeVenueOfferPort();
-  expect((await createVenueOfferComponent(port, validComponent())).ok).toBe(true);
+  expect((await createVenueOfferComponent(port, validComponent())).ok).toBe(
+    true,
+  );
   expect(port.createVenueOfferComponent).toHaveBeenCalledWith(
     expect.objectContaining({
       projectId,
@@ -279,7 +283,10 @@ it("creates normalized draft components with parent revision protection", async 
     }),
   );
   await expect(
-    createVenueOfferComponent(port, { ...validComponent(), componentId: "bad" }),
+    createVenueOfferComponent(port, {
+      ...validComponent(),
+      componentId: "bad",
+    }),
   ).resolves.toEqual({ ok: false, error: "identity_invalid" });
   await expect(
     createVenueOfferComponent(port, {
@@ -291,9 +298,9 @@ it("creates normalized draft components with parent revision protection", async 
     createVenueOfferComponent(port, { ...validComponent(), label: "" }),
   ).resolves.toEqual({ ok: false, error: "label_required_or_too_long" });
   port.createVenueOfferComponent.mockRejectedValueOnce(new Error("backend"));
-  await expect(createVenueOfferComponent(port, validComponent())).resolves.toEqual(
-    { ok: false, error: "persistence_failed" },
-  );
+  await expect(
+    createVenueOfferComponent(port, validComponent()),
+  ).resolves.toEqual({ ok: false, error: "persistence_failed" });
 });
 
 it("updates draft components with parent and component revisions", async () => {
