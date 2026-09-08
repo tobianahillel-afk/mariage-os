@@ -148,9 +148,7 @@ export class SupabaseVenueAvailabilityAdapter implements VenueAvailabilityPort {
     let records: readonly VenueAvailabilityRecord[];
     try {
       records = uniqueRecords(
-        data.map((row) =>
-          parseVenueAvailabilityRow(row, projectId, venueId),
-        ),
+        data.map((row) => parseVenueAvailabilityRow(row, projectId, venueId)),
       );
     } catch (errorValue) {
       if (errorValue instanceof VenueAvailabilityPersistenceError) {

@@ -44,9 +44,7 @@ export function parseVenueAvailabilityRow(
   const projectId = isVenueCommercialUuid(row.project_id)
     ? row.project_id
     : fail();
-  const venueId = isVenueCommercialUuid(row.venue_id)
-    ? row.venue_id
-    : fail();
+  const venueId = isVenueCommercialUuid(row.venue_id) ? row.venue_id : fail();
   const dateOptionId = optionalUuid(row.date_option_id);
   const sourceId = optionalUuid(row.source_id);
   if (

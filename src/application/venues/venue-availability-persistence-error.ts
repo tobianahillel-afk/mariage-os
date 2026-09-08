@@ -1,7 +1,5 @@
 export type VenueAvailabilityPersistenceErrorCode =
-  | "conflict"
-  | "provider_response_invalid"
-  | "persistence_failed";
+  "conflict" | "provider_response_invalid" | "persistence_failed";
 
 export class VenueAvailabilityPersistenceError extends Error {
   readonly code: VenueAvailabilityPersistenceErrorCode;
@@ -16,7 +14,5 @@ export class VenueAvailabilityPersistenceError extends Error {
 export function venueAvailabilityPersistenceErrorCode(
   value: unknown,
 ): VenueAvailabilityPersistenceErrorCode | null {
-  return value instanceof VenueAvailabilityPersistenceError
-    ? value.code
-    : null;
+  return value instanceof VenueAvailabilityPersistenceError ? value.code : null;
 }

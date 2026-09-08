@@ -30,7 +30,9 @@ function row(overrides: Record<string, unknown> = {}) {
 }
 
 it("parses canonical provider rows and optional null relationships", () => {
-  expect(parseVenueAvailabilityRow(row(), projectId, venueId, availabilityId)).toEqual({
+  expect(
+    parseVenueAvailabilityRow(row(), projectId, venueId, availabilityId),
+  ).toEqual({
     id: availabilityId,
     projectId,
     venueId,
@@ -47,12 +49,29 @@ it("parses canonical provider rows and optional null relationships", () => {
     updatedBy: actorId,
     revision: 1,
   });
-  expect(parseVenueAvailabilityRow(row({ date_option_id: null, source_id: null, option_expires_at: null, status: "available", notes: null }))).toMatchObject({ dateOptionId: null, sourceId: null, optionExpiresAt: null, notes: null });
+  expect(
+    parseVenueAvailabilityRow(
+      row({
+        date_option_id: null,
+        source_id: null,
+        option_expires_at: null,
+        status: "available",
+        notes: null,
+      }),
+    ),
+  ).toMatchObject({
+    dateOptionId: null,
+    sourceId: null,
+    optionExpiresAt: null,
+    notes: null,
+  });
 });
 
 it("rejects non-object and malformed identity provider rows", () => {
   for (const value of [null, [], "row"]) {
-    expect(() => parseVenueAvailabilityRow(value)).toThrow("Invalid venue availability response.");
+    expect(() => parseVenueAvailabilityRow(value)).toThrow(
+      "Invalid venue availability response.",
+    );
   }
   for (const overrides of [
     { id: "bad" },
@@ -61,15 +80,23 @@ it("rejects non-object and malformed identity provider rows", () => {
     { date_option_id: "bad" },
     { source_id: "bad" },
   ]) {
-    expect(() => parseVenueAvailabilityRow(row(overrides))).toThrow("Invalid venue availability response.");
+    expect(() => parseVenueAvailabilityRow(row(overrides))).toThrow(
+      "Invalid venue availability response.",
+    );
   }
 });
 
 it("rejects request-identity substitution", () => {
   const other = "77777777-7777-4777-8777-777777777777";
-  expect(() => parseVenueAvailabilityRow(row(), other, venueId, availabilityId)).toThrow();
-  expect(() => parseVenueAvailabilityRow(row(), projectId, other, availabilityId)).toThrow();
-  expect(() => parseVenueAvailabilityRow(row(), projectId, venueId, other)).toThrow();
+  expect(() =>
+    parseVenueAvailabilityRow(row(), other, venueId, availabilityId),
+  ).toThrow();
+  expect(() =>
+    parseVenueAvailabilityRow(row(), projectId, other, availabilityId),
+  ).toThrow();
+  expect(() =>
+    parseVenueAvailabilityRow(row(), projectId, venueId, other),
+  ).toThrow();
 });
 
 it("rejects malformed or noncanonical commercial payloads", () => {
@@ -83,7 +110,9 @@ it("rejects malformed or noncanonical commercial payloads", () => {
     { observed_at: "2026-09-08T12:00:00+02:00" },
     { option_expires_at: "2026-09-10T18:00:00+02:00" },
   ]) {
-    expect(() => parseVenueAvailabilityRow(row(overrides))).toThrow("Invalid venue availability response.");
+    expect(() => parseVenueAvailabilityRow(row(overrides))).toThrow(
+      "Invalid venue availability response.",
+    );
   }
 });
 
@@ -98,6 +127,8 @@ it("rejects malformed audit identities, timestamps and revisions", () => {
     { revision: 0 },
     { revision: 1.5 },
   ]) {
-    expect(() => parseVenueAvailabilityRow(row(overrides))).toThrow("Invalid venue availability response.");
+    expect(() => parseVenueAvailabilityRow(row(overrides))).toThrow(
+      "Invalid venue availability response.",
+    );
   }
 });

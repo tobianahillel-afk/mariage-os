@@ -26,8 +26,7 @@ export interface AppendVenueAvailabilityInput {
   readonly notes: unknown;
 }
 
-export interface NormalizedAppendVenueAvailabilityInput
-  extends NormalizedVenueAvailabilityDraft {
+export interface NormalizedAppendVenueAvailabilityInput extends NormalizedVenueAvailabilityDraft {
   readonly projectId: string;
   readonly venueId: string;
   readonly availabilityId: string;
@@ -109,10 +108,7 @@ export class VenueAvailabilityService {
     projectId: unknown,
     venueId: unknown,
   ): Promise<VenueAvailabilityResult<readonly VenueAvailabilityRecord[]>> {
-    if (
-      !isVenueCommercialUuid(projectId) ||
-      !isVenueCommercialUuid(venueId)
-    ) {
+    if (!isVenueCommercialUuid(projectId) || !isVenueCommercialUuid(venueId)) {
       return { ok: false, error: "invalid_identity" };
     }
     try {

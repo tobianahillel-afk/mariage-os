@@ -48,8 +48,12 @@ const command: NormalizedAppendVenueAvailabilityInput = {
 
 class QueryBuilder implements PromiseLike<Result> {
   constructor(private readonly result: Result) {}
-  eq(): QueryBuilder { return this; }
-  order(): PromiseLike<Result> { return Promise.resolve(this.result); }
+  eq(): QueryBuilder {
+    return this;
+  }
+  order(): PromiseLike<Result> {
+    return Promise.resolve(this.result);
+  }
   then<TResult1 = Result, TResult2 = never>(
     onfulfilled?: ((value: Result) => TResult1 | PromiseLike<TResult1>) | null,
     onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
@@ -61,7 +65,8 @@ class QueryBuilder implements PromiseLike<Result> {
 class FakeClient implements SupabaseVenueAvailabilityClientLike {
   queryResult: Result = { data: [row()], error: null };
   rpcResult: Result = { data: row(), error: null };
-  lastRpc: { name: string; args: Readonly<Record<string, unknown>> } | null = null;
+  lastRpc: { name: string; args: Readonly<Record<string, unknown>> } | null =
+    null;
 
   from() {
     return { select: () => new QueryBuilder(this.queryResult) };
@@ -79,12 +84,14 @@ class FakeClient implements SupabaseVenueAvailabilityClientLike {
 it("appends canonical evidence and validates the returned request identity", async () => {
   const client = new FakeClient();
   const adapter = new SupabaseVenueAvailabilityAdapter(client);
-  await expect(adapter.appendVenueAvailability(command)).resolves.toMatchObject({
-    id: availabilityId,
-    projectId,
-    venueId,
-    status: "available",
-  });
+  await expect(adapter.appendVenueAvailability(command)).resolves.toMatchObject(
+    {
+      id: availabilityId,
+      projectId,
+      venueId,
+      status: "available",
+    },
+  );
   expect(client.lastRpc).toEqual({
     name: "append_venue_availability",
     args: {
@@ -107,13 +114,19 @@ it("maps unique replay conflicts and generic RPC failures", async () => {
   const adapter = new SupabaseVenueAvailabilityAdapter(client);
 
   client.rpcResult = { data: null, error: { code: "23505" } };
-  await expect(adapter.appendVenueAvailability(command)).rejects.toMatchObject({ code: "conflict" });
+  await expect(adapter.appendVenueAvailability(command)).rejects.toMatchObject({
+    code: "conflict",
+  });
 
   client.rpcResult = { data: null, error: { code: 23505 } };
-  await expect(adapter.appendVenueAvailability(command)).rejects.toMatchObject({ code: "persistence_failed" });
+  await expect(adapter.appendVenueAvailability(command)).rejects.toMatchObject({
+    code: "persistence_failed",
+  });
 
   client.rpcResult = { data: null, error: "down" };
-  await expect(adapter.appendVenueAvailability(command)).rejects.toMatchObject({ code: "persistence_failed" });
+  await expect(adapter.appendVenueAvailability(command)).rejects.toMatchObject({
+    code: "persistence_failed",
+  });
 });
 
 it("fails closed on malformed or substituted append receipts", async () => {
@@ -121,7 +134,9 @@ it("fails closed on malformed or substituted append receipts", async () => {
   const adapter = new SupabaseVenueAvailabilityAdapter(client);
 
   client.rpcResult = { data: { nope: true }, error: null };
-  await expect(adapter.appendVenueAvailability(command)).rejects.toMatchObject({ code: "provider_response_invalid" });
+  await expect(adapter.appendVenueAvailability(command)).rejects.toMatchObject({
+    code: "provider_response_invalid",
+  });
 
   for (const overrides of [
     { id: "55555555-5555-4555-8555-555555555555" },
@@ -132,7 +147,9 @@ it("fails closed on malformed or substituted append receipts", async () => {
     { notes: "different" },
   ]) {
     client.rpcResult = { data: row(overrides), error: null };
-    await expect(adapter.appendVenueAvailability(command)).rejects.toMatchObject({ code: "provider_response_invalid" });
+    await expect(
+      adapter.appendVenueAvailability(command),
+    ).rejects.toMatchObject({ code: "provider_response_invalid" });
   }
 });
 
@@ -148,13 +165,14 @@ it("lists, validates, de-duplicates and deterministically sorts history", async 
     ],
     error: null,
   };
-  await expect(adapter.listVenueAvailabilityHistory(projectId, venueId)).resolves.toMatchObject([
-    { id: laterId },
-    { id: earlierId },
-  ]);
+  await expect(
+    adapter.listVenueAvailabilityHistory(projectId, venueId),
+  ).resolves.toMatchObject([{ id: laterId }, { id: earlierId }]);
 
   client.queryResult = { data: [row(), row()], error: null };
-  await expect(adapter.listVenueAvailabilityHistory(projectId, venueId)).rejects.toMatchObject({ code: "provider_response_invalid" });
+  await expect(
+    adapter.listVenueAvailabilityHistory(projectId, venueId),
+  ).rejects.toMatchObject({ code: "provider_response_invalid" });
 });
 
 it("fails closed on query transport, shape and row errors", async () => {
@@ -162,11 +180,17 @@ it("fails closed on query transport, shape and row errors", async () => {
   const adapter = new SupabaseVenueAvailabilityAdapter(client);
 
   client.queryResult = { data: [], error: { code: "500" } };
-  await expect(adapter.listVenueAvailabilityHistory(projectId, venueId)).rejects.toMatchObject({ code: "persistence_failed" });
+  await expect(
+    adapter.listVenueAvailabilityHistory(projectId, venueId),
+  ).rejects.toMatchObject({ code: "persistence_failed" });
 
   client.queryResult = { data: null, error: null };
-  await expect(adapter.listVenueAvailabilityHistory(projectId, venueId)).rejects.toMatchObject({ code: "persistence_failed" });
+  await expect(
+    adapter.listVenueAvailabilityHistory(projectId, venueId),
+  ).rejects.toMatchObject({ code: "persistence_failed" });
 
   client.queryResult = { data: [row({ event_date: "bad" })], error: null };
-  await expect(adapter.listVenueAvailabilityHistory(projectId, venueId)).rejects.toMatchObject({ code: "provider_response_invalid" });
+  await expect(
+    adapter.listVenueAvailabilityHistory(projectId, venueId),
+  ).rejects.toMatchObject({ code: "provider_response_invalid" });
 });
