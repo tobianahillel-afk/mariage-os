@@ -109,7 +109,10 @@ export class VenueAvailabilityService {
     projectId: unknown,
     venueId: unknown,
   ): Promise<VenueAvailabilityResult<readonly VenueAvailabilityRecord[]>> {
-    if (!isVenueCommercialUuid(projectId) || !isVenueCommercialUuid(venueId)) {
+    if (
+      !isVenueCommercialUuid(projectId) ||
+      !isVenueCommercialUuid(venueId)
+    ) {
       return { ok: false, error: "invalid_identity" };
     }
     try {
@@ -145,7 +148,10 @@ export class VenueAvailabilityService {
       ok: true,
       value: {
         record: latest,
-        effectiveStatus: effectiveVenueAvailabilityStatus(latest, normalizedNow),
+        effectiveStatus: effectiveVenueAvailabilityStatus(
+          latest,
+          normalizedNow,
+        ),
       },
     };
   }

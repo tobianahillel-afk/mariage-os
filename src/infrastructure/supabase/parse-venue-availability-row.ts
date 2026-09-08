@@ -12,7 +12,8 @@ function fail(): never {
 }
 
 function objectRow(value: unknown): Record<string, unknown> {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) fail();
+  if (typeof value !== "object" || value === null || Array.isArray(value))
+    fail();
   return value as Record<string, unknown>;
 }
 
@@ -40,8 +41,12 @@ export function parseVenueAvailabilityRow(
 ): VenueAvailabilityRecord {
   const row = objectRow(value);
   const id = isVenueCommercialUuid(row.id) ? row.id : fail();
-  const projectId = isVenueCommercialUuid(row.project_id) ? row.project_id : fail();
-  const venueId = isVenueCommercialUuid(row.venue_id) ? row.venue_id : fail();
+  const projectId = isVenueCommercialUuid(row.project_id)
+    ? row.project_id
+    : fail();
+  const venueId = isVenueCommercialUuid(row.venue_id)
+    ? row.venue_id
+    : fail();
   const dateOptionId = optionalUuid(row.date_option_id);
   const sourceId = optionalUuid(row.source_id);
   if (
@@ -72,8 +77,12 @@ export function parseVenueAvailabilityRow(
     fail();
   }
 
-  const createdBy = isVenueCommercialUuid(row.created_by) ? row.created_by : fail();
-  const updatedBy = isVenueCommercialUuid(row.updated_by) ? row.updated_by : fail();
+  const createdBy = isVenueCommercialUuid(row.created_by)
+    ? row.created_by
+    : fail();
+  const updatedBy = isVenueCommercialUuid(row.updated_by)
+    ? row.updated_by
+    : fail();
 
   return {
     id,

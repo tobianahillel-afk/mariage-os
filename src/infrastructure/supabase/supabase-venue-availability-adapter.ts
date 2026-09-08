@@ -106,7 +106,9 @@ export class SupabaseVenueAvailabilityAdapter implements VenueAvailabilityPort {
     });
     if (error !== null) {
       throw new VenueAvailabilityPersistenceError(
-        providerErrorCode(error) === "23505" ? "conflict" : "persistence_failed",
+        providerErrorCode(error) === "23505"
+          ? "conflict"
+          : "persistence_failed",
         "Venue availability append failed.",
       );
     }
@@ -146,7 +148,9 @@ export class SupabaseVenueAvailabilityAdapter implements VenueAvailabilityPort {
     let records: readonly VenueAvailabilityRecord[];
     try {
       records = uniqueRecords(
-        data.map((row) => parseVenueAvailabilityRow(row, projectId, venueId)),
+        data.map((row) =>
+          parseVenueAvailabilityRow(row, projectId, venueId),
+        ),
       );
     } catch (errorValue) {
       if (errorValue instanceof VenueAvailabilityPersistenceError) {

@@ -16,5 +16,7 @@ export class VenueAvailabilityPersistenceError extends Error {
 export function venueAvailabilityPersistenceErrorCode(
   value: unknown,
 ): VenueAvailabilityPersistenceErrorCode | null {
-  return value instanceof VenueAvailabilityPersistenceError ? value.code : null;
+  return value instanceof VenueAvailabilityPersistenceError
+    ? value.code
+    : null;
 }
