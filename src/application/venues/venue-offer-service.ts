@@ -41,7 +41,7 @@ export interface VenueOfferAggregateRecord {
   readonly components: readonly VenueOfferComponentRecord[];
 }
 
-export interface CreateVenueOfferComponentDraft extends VenueOfferComponentDraft {
+interface CreateVenueOfferComponentDraft extends VenueOfferComponentDraft {
   readonly componentId: string;
 }
 
@@ -144,7 +144,7 @@ export interface VenueOfferPort {
   ): Promise<void>;
 }
 
-export type VenueOfferServiceError =
+type VenueOfferServiceError =
   | VenueOfferError
   | VenueOfferComponentError
   | VenueRevisionError
