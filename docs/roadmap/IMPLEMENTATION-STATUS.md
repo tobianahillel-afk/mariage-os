@@ -35,7 +35,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.4 | observations, sources, evidence/confidence/freshness, conflicts | **ACCEPTED** |
 | WP-2.5 | deterministic criteria, blockers, score/readiness, missing information | **ACCEPTED** |
 | WP-2.6A | Venue offers and offer components | **ACCEPTED** |
-| WP-2.6B | Venue availability observations | **ACCEPTANCE_PENDING — C-ACCEPTANCE** |
+| WP-2.6B | Venue availability observations | **ACCEPTED** |
 | WP-2.6C | Venue contacts and interactions | PLANNED |
 | WP-2.7 | contextual venue access-route observations | PLANNED |
 | WP-2.8 | venue media/photo foundation and media safety | PLANNED |
@@ -52,6 +52,7 @@ Accepted packet evidence:
 - WP-2.4 ACCEPTED; `WP2.4-B-001..008` resolved/verified; final fresh reviewed head `93262f9459e720d97a6dfa3a83f84f02f3a02c7c`, CI `34137822804` 5/5; Pass C responsibility gap **∅**.
 - WP-2.5 ACCEPTED; `WP2.5-B-001..004` resolved/verified; final fresh reviewed head `65410a3dc032208644911f29e79b70bd49e89277`, CI `34165826166` 5/5; Pass-C entry `931bac6a7145bc31a4bce24d4ea5cff354753ed4` / `34166488903` 5/5; final acceptance governance head `902ac6f56b84fed56da0113efc610617943e9449`, CI `34167062632` SUCCESS; responsibility gap **∅**.
 - WP-2.6A ACCEPTED; `WP2.6A-B-001..006` resolved/verified; final fresh reviewed head `c7339227126e0df6969809644b5d0eb2512d350c`, CI `34233201350` 5/5; Pass-C entry `d348abdb42a2ca8319fb6711c08551cfb3bcfbae` / `34235598936` 5/5; final acceptance-governance head `186933ed0af8c45ddaa1b5c883bfd3f70086c6fe` / `34238484533` 5/5; responsibility gap **∅**.
+- WP-2.6B ACCEPTED; `WP2.6B-B-001..005` resolved/verified; final fresh reviewed head `e92af194f774895b3b397d3be60350d09d42d8ff`, CI `34263468532` 5/5; corrected Pass-C entry `6e091cc5088fece027f13c6764092453da18f418` / `34274455248` 5/5; responsibility gap **∅**.
 
 ## WP-2.4 — accepted packet closure
 
@@ -121,7 +122,7 @@ The original single WP-2.6 packet was rejected at sizing review before productio
 Implementation-only decomposition, with product scope unchanged:
 
 - `WP-2.6A` — Venue offers + Venue-owned offer components — **ACCEPTED / COMPLETE**, estimated 10 points with explicit offer/component lifecycle cohesion rationale;
-- `WP-2.6B` — append-oriented Venue availability observations — **ACCEPTANCE_PENDING / C-ACCEPTANCE**, estimated 9 points with evidence-history/replay cohesion rationale;
+- `WP-2.6B` — append-oriented Venue availability observations — **ACCEPTED / COMPLETE**, estimated 9 points with evidence-history/replay cohesion rationale;
 - `WP-2.6C` — Venue contacts + interactions — **PLANNED / PLAN**, estimated 10 points with same-Venue contact/interaction parent-integrity cohesion rationale. If actual privileged command count raises C above 10, split contacts/interactions before code.
 
 Required original WP-2.6 responsibilities minus assigned A/B/C responsibilities: **∅**. WP-2.6A-owned responsibility is accepted/evidenced with gap **∅**; the original parent responsibility remains incomplete until B/C are accepted.
@@ -157,20 +158,22 @@ Required original WP-2.6 responsibilities minus assigned A/B/C responsibilities:
 
 Final acceptance-governance head/run: `186933ed0af8c45ddaa1b5c883bfd3f70086c6fe` / `34238484533` — **5/5 SUCCESS**.
 
-### WP-2.6B Pass A / Pass B transition
+### WP-2.6B — accepted packet closure
 
 - dependency gate: WP-2.6A final acceptance-governance `186933ed0af8c45ddaa1b5c883bfd3f70086c6fe` / `34238484533` — **5/5 SUCCESS**;
 - deterministic availability read-model repair `9f5c8af30c58c146d89b1464cad96cb8e43dbc7b` / `34239745903` — **5/5 SUCCESS**;
 - READY/governance baseline `1ff69cd2e599a72a6cf703a658b836b2b3431619` / `34242853512` — **5/5 SUCCESS**;
-- Pass-A implementation head/run `1c1dd4db875e5253fc9affdcf498991c4c6a5f64` / `34253821826` — **5/5 SUCCESS**, including clean-checkout `npm run verify`;
-- Pass-B findings `WP2.6B-B-001..005`: **RESOLVED / VERIFIED**; B-005 microsecond-order red-first proof `f9150897084d9485e97bffe0b1d9b45dac9287a5` / `34262386054` failed exactly the expected unit assertion;
-- final fresh Pass-B reviewed remediation head/run `e92af194f774895b3b397d3be60350d09d42d8ff` / `34263468532`: **5/5 SUCCESS**, including clean-checkout `npm run verify`;
-- Core on the exact final reviewed head: **107 unit files / 1022 tests PASS at 100% statements / branches / functions / lines**; static quality/security and build PASS;
-- Local Supabase DB/RLS, Browser E2E + mutation, privacy-safe preview and Full verify all **SUCCESS** on the same head; explicit Source mutation/deletion history proof is green;
-- fresh post-remediation rereview found no additional BLOCKING/MAJOR mismatch and no migration/RPC/scope expansion was introduced by B-005;
-- open WP-2.6B BLOCKING/MAJOR findings: **∅**;
-- Pass B decision: **PASS**; WP-2.6B transitions to `ACCEPTANCE_PENDING / C-ACCEPTANCE` but is not ACCEPTED until Pass C reconciliation and acceptance governance are green;
-- WP-2.6C and WP-2.7 remain blocked while B is current.
+- Pass-A implementation head/run `1c1dd4db875e5253fc9affdcf498991c4c6a5f64` / `34253821826` — **5/5 SUCCESS**;
+- Pass-B findings `WP2.6B-B-001..005`: **RESOLVED / VERIFIED**; final fresh Pass-B reviewed head/run `e92af194f774895b3b397d3be60350d09d42d8ff` / `34263468532` — **5/5 SUCCESS**;
+- corrected canonical Pass-C entry head/run `6e091cc5088fece027f13c6764092453da18f418` / `34274455248` — **5/5 SUCCESS**;
+- exact Pass-C entry evidence: 107 unit files / 1022 tests PASS at 100% measured statements/branches/functions/lines; 44 DB files / 902 pgTAP tests PASS; Browser E2E + mutation, privacy-safe preview and Full verify from clean checkout PASS;
+- Pass C reconciled immutable history, date/date-option and strict instant boundaries, source history, stable-UUID replay/non-disclosure, deterministic latest/effective selection, live authorization/RLS and fail-closed provider parsing: **PASS**;
+- `VEN-009`, applicable AUTHZ IDs and explicit applicable SEC IDs: **PASS** for the WP-2.6B-owned responsibility;
+- `ACC-031` / `ACC-049` remain whole-feature/cross-lot date/Budget scenarios and are not claimed as packet-owned evidence;
+- required WP-2.6B responsibilities minus accepted/evidenced WP-2.6B responsibilities: **∅**;
+- whole `FTR-025` remains **IN_PROGRESS** because Budget/scenario integration continues in Lot 5;
+- deferred ownership remains explicit: contacts/interactions → WP-2.6C; Documents/offline/UI and later Budget/Vendor responsibilities remain downstream;
+- Pass C decision: **PASS — WP-2.6B ACCEPTED**.
 
 ## Durable cursor
 
@@ -179,10 +182,10 @@ Current Lot: 2 — Venues core
 Lot State: IN_PROGRESS
 Branch: lot-2/venues-core
 Current Packet: WP-2.6B
-Packet State: ACCEPTANCE_PENDING
-Current Pass: C-ACCEPTANCE
-Last completed packet: WP-2.6A — ACCEPTED
-Accepted packets: WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5, WP-2.6A
+Packet State: ACCEPTED
+Current Pass: COMPLETE
+Last completed packet: WP-2.6B — ACCEPTED
+Accepted packets: WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5, WP-2.6A, WP-2.6B
 Planned commercial subpacket after current: WP-2.6C
 WP-2.6 base freeze head/run: cf46c731bd45b77feaa514b22036096301280755 / 34170253114 — 5/5 SUCCESS
 WP-2.6 boundary freeze head/run: 6dce81a49ccdbb7bc9da54b2491a0c8746e12e50 / 34171320200 — 5/5 SUCCESS
@@ -191,8 +194,10 @@ WP-2.6B deterministic availability spec head/run: 9f5c8af30c58c146d89b1464cad96c
 WP-2.6B READY/governance head/run: 1ff69cd2e599a72a6cf703a658b836b2b3431619 / 34242853512 — 5/5 SUCCESS
 WP-2.6B Pass-A head/run: 1c1dd4db875e5253fc9affdcf498991c4c6a5f64 / 34253821826 — 5/5 SUCCESS
 WP-2.6B final Pass-B reviewed head/run: e92af194f774895b3b397d3be60350d09d42d8ff / 34263468532 — 5/5 SUCCESS
+WP-2.6B corrected Pass-C entry head/run: 6e091cc5088fece027f13c6764092453da18f418 / 34274455248 — 5/5 SUCCESS
 Open WP-2.6B BLOCKING/MAJOR findings: ∅
-Next permitted action: verify the exact corrected C-ACCEPTANCE governance HEAD, then perform WP-2.6B Pass C reconciliation. Do not start WP-2.6C or WP-2.7 concurrently.
+Required WP-2.6B responsibilities minus accepted/evidenced responsibilities: ∅
+Next permitted action: verify the exact WP-2.6B acceptance-governance HEAD containing this decision, then activate/revalidate WP-2.6C. Do not start WP-2.7 concurrently.
 ```
 
 ## Known localized specification repairs / stop-conditions
@@ -206,7 +211,7 @@ Next permitted action: verify the exact corrected C-ACCEPTANCE governance HEAD, 
 - WP-2.6 canonical phone/WhatsApp and append retry semantics: **CLOSED** by `6dce81a4...` / CI `34171320200`.
 - WP-2.6B deterministic availability selection/effective-expiry semantics: **CLOSED** by `9f5c8af...` / CI `34239745903` — **5/5 SUCCESS**.
 - WP-2.6B Pass A implementation: **COMPLETE / VERIFIED** on `1c1dd4db...` / CI `34253821826` — **5/5 SUCCESS**, including 100% measured statements/branches/functions/lines and clean-checkout `npm run verify`.
-- WP-2.6B `WP2.6B-B-001..B-005`: **RESOLVED / VERIFIED**; final fresh Pass B reviewed head `e92af194...` / CI `34263468532` — **5/5 SUCCESS**; Pass B decision **PASS**, Pass C active.
+- WP-2.6B `WP2.6B-B-001..B-005`: **RESOLVED / VERIFIED**; final fresh Pass B reviewed head `e92af194...` / CI `34263468532` — **5/5 SUCCESS**; corrected Pass-C entry `6e091cc...` / CI `34274455248` — **5/5 SUCCESS**; Pass C decision **PASS — ACCEPTED**.
 - WP-2.6A NULL creation-status fail-closed boundary: **RESOLVED / VERIFIED** on `e027bbbb...` / CI `34223226316` after red-first control `0149f0b1...` / `34222772124`.
 - WP-2.6A `WP2.6A-B-001..B-006`: **RESOLVED / VERIFIED**; final fresh Pass B reviewed head `c7339227...` / CI `34233201350` — **5/5 SUCCESS**; Pass C **PASS** on `d348abdb...` / `34235598936`; acceptance governance `186933ed...` / `34238484533` — **5/5 SUCCESS**.
 - Before WP-2.8 relies on the security reading graph, repair the missing `docs/security/STORAGE-RLS.md` reference using already frozen/tested Storage authorization semantics.
@@ -219,8 +224,9 @@ Next permitted action: verify the exact corrected C-ACCEPTANCE governance HEAD, 
 - Feature-level whole-capability status is not conflated with packet/current-lot responsibility; Lot Coverage Matrices remain the durable responsibility-level reconciliation source.
 - WP-2.4 packet responsibility for `FTR-020` is **ACCEPTED**.
 - WP-2.5 packet responsibility for `FTR-021` and the Lot-2 read-model/guidance responsibility of `FTR-022` is **ACCEPTED**. This does not claim downstream WP-2.11 presentation/UI, WP-2.10/2.12 offline integration, Lot-3 Task workflow or Lot-12 real-data/default-criteria work.
-- WP-2.6A commercial offer/component responsibility for the Lot-2 slice of `FTR-025` / `VEN-008` is **ACCEPTED**. Whole FTR-025 remains intentionally incomplete because availability is WP-2.6B and Budget/scenario integration continues in Lot 5.
-- Original WP-2.6 product responsibility remains execution-mapped to WP-2.6A/B/C; WP-2.6B passed adversarial review and is in acceptance/reconciliation, while WP-2.6C remains not started.
+- WP-2.6A commercial offer/component responsibility for the Lot-2 slice of `FTR-025` / `VEN-008` is **ACCEPTED**.
+- WP-2.6B availability responsibility for the Lot-2 slice of `FTR-025` / `VEN-009` is **ACCEPTED**. Whole `FTR-025` remains **IN_PROGRESS** because Budget/scenario integration continues in Lot 5.
+- Original WP-2.6 product responsibility remains execution-mapped to WP-2.6A/B/C; A+B are accepted while WP-2.6C remains not started.
 
 ## Forward maintenance
 

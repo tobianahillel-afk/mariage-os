@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.6B`
 - Lot: `2`
 - Name: Venue availability observations
-- State: `ACCEPTANCE_PENDING`
-- Current pass: `C-ACCEPTANCE`
+- State: `ACCEPTED`
+- Current pass: `COMPLETE`
 - Primary bounded context: Venue availability evidence
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Parent responsibility: original matrix packet `WP-2.6`, decomposed for orchestration sizing only
@@ -132,17 +132,59 @@ Implementation remained restricted to WP-2.6B-owned domain/application/adapter/p
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-**ACCEPTANCE_PENDING / C-ACCEPTANCE.** The prior Pass-C entry head `cd3d62121687baca1f8deb34915b58baf115427d` / CI `34264925852` is **5/5 SUCCESS**. This repair restores the canonical state/pass pair required by the Work Packet state machine; WP-2.6B remains not ACCEPTED until mechanical Pass C reconciliation and acceptance governance are green.
+Entry head/run `6e091cc5088fece027f13c6764092453da18f418` / `34274455248`: **5/5 SUCCESS**, including Core quality/security, Local Supabase DB/RLS, Browser E2E + mutation, privacy-safe preview and Full verify from clean checkout.
+
+### Entry gate
+
+- [x] packet entered Pass C from `ACCEPTANCE_PENDING`
+- [x] current pass was `C-ACCEPTANCE`
+- [x] no unresolved BLOCKING/MAJOR Pass B finding exists
+- [x] exact corrected Pass-C governance head is 5/5 green
+
+| Responsibility | Expected | Implemented evidence | Verified evidence | Result |
+|---|---|---|---|---|
+| Availability identity and immutable history | Multiple observations may coexist for one Venue/date; caller UUID is stable retry identity; historical rows are not ordinarily rewritten/deleted | `venue_availabilities`, domain/service/ports/adapter, append RPC and immutability triggers | domain/service tests + direct DB append/history/update/delete tests + `34274455248` | PASS |
+| Date/date-option and instant semantics | exact civil date; optional same-project date option must match `event_date`; strict observed/expiry instants; referenced candidate date cannot drift away from immutable history | TS normalizers, strict SQL instant/date parsing/checks, composite `(project_id,date_option_id,event_date)` FK | invalid date/instant/expiry tests, date-option mismatch/cross-project tests, adversarial referenced-date `23503` regression | PASS |
+| Source provenance/history | optional source is same-project; source breakage/URL removal never erases the availability observation | same-project source FK and immutable cited `source_id` | source-history pgTAP + cross-project source denial | PASS |
+| Replay/idempotency/non-disclosure | same ID + same payload is idempotent; same ID + different payload is typed conflict; foreign-project UUID collision discloses nothing | caller-owned UUID, canonical payload equality, append RPC conflict/non-disclosure branches | domain/service/adapter replay tests + pgTAP replay/conflict + cross-project collision `42501` adversarial proof | PASS |
+| Latest/effective read model | latest uses `observed_at DESC, created_at DESC, id ASC`; no observation remains distinct from explicit `unknown`; elapsed hold derives `expired` without history mutation | ordered Supabase query, validated provider order, service first same-date selection, pure effective-status derivation | domain/service/adapter tests + microsecond-order adversarial regression | PASS |
+| Authorization/isolation | reads require `venues.read`; writes require live `venues.write`; direct table mutation is denied; project/revocation isolation is preserved | SELECT-only authenticated grant + RLS + writer-authorized RPC + project lock before permission check | owner/editor/viewer/anon/outsider/project-B/revoked matrix + authorization-concurrency regression | PASS |
+| Provider trust boundary | malformed, duplicated or identity/payload-substituted provider responses fail closed | strict row parser, expected project/Venue/id checks, duplicate-ID rejection and exact receipt payload verification | parser/adapter/provider-time adversarial unit tests | PASS |
+| Scope boundaries | no contacts/interactions, Task, Budget, Vendor, Document, offline queue or Venue UI authority is introduced | WP-2.6B-only domain/application/adapter/migrations/tests | packet diff review + architecture/static/dead-code gates on exact Pass-C entry head | PASS |
+
+### Acceptance checks
+
+- [x] all packet responsibilities reconciled
+- [x] FIR-equivalent durable packet fields and links are complete for the WP-2.6B-owned slice
+- [x] required automated evidence is green on the exact Pass-C entry head
+- [x] no BLOCKING/MAJOR finding remains
+- [x] architecture/complexity/static gates are green
+- [x] documentation/status/coverage are synchronized for acceptance
+- [x] downstream prerequisites remain explicit
+
+Requirements/control reconciliation for the WP-2.6B-owned slice of `FTR-025` / `VEN-009`, applicable `AUTHZ-001..008`, `AUTHZ-009`, `AUTHZ-012`, `AUTHZ-017`, `AUTHZ-018`, `AUTHZ-019`, `AUTHZ-020`, and the explicit applicable `SEC-*` controls listed above: **PASS**.
+
+Global Feature scenarios `ACC-031` (candidate dates / atomic selection) and `ACC-049` (historical quote under scenario change) remain whole-feature/cross-lot evidence tied to date/Budget responsibilities; WP-2.6B does **not** falsely claim them as availability-packet acceptance evidence. The direct packet requirement is `VEN-009` plus the frozen availability/replay/security invariants and their dedicated evidence.
+
+Whole `FTR-025` remains **IN_PROGRESS**, not ACCEPTED: WP-2.6A and WP-2.6B Lot-2 responsibilities are accepted, while Budget/scenario integration continues in Lot 5.
+
+Required WP-2.6B responsibilities minus accepted/evidenced WP-2.6B responsibilities: **∅**.
+
+Deferred ownership remains explicit and is not claimed by this acceptance: contacts/interactions/FTR-026 → WP-2.6C; Budget/scenario truth → Lot 5; Vendor availability/commercial workflow → Lot 7; quote-document relationship → WP-2.9; local/offline integration → WP-2.10/2.12; Venue presentation/UI → WP-2.11.
+
+**Pass C decision: PASS — WP-2.6B ACCEPTED.**
 
 ## Handoff
 
-- Current state: `ACCEPTANCE_PENDING`
-- Current/next pass: `C-ACCEPTANCE`
+- Current state: `ACCEPTED`
+- Current/next pass: `COMPLETE`
 - WP-2.6A acceptance-governance verification: `186933ed0af8c45ddaa1b5c883bfd3f70086c6fe` / `34238484533` — **5/5 SUCCESS**
 - Last green specification verification: `9f5c8af30c58c146d89b1464cad96cb8e43dbc7b` / `34239745903` — **5/5 SUCCESS**
 - WP-2.6B READY/governance verification: `1ff69cd2e599a72a6cf703a658b836b2b3431619` / `34242853512` — **5/5 SUCCESS**
 - WP-2.6B Pass-A verification: `1c1dd4db875e5253fc9affdcf498991c4c6a5f64` / `34253821826` — **5/5 SUCCESS**
 - Pass-B findings `WP2.6B-B-001..005`: **RESOLVED / VERIFIED**
 - Final fresh Pass-B reviewed head/run: `e92af194f774895b3b397d3be60350d09d42d8ff` / `34263468532` — **5/5 SUCCESS**
-- Open Pass-B BLOCKING/MAJOR findings: **∅**
-- Next permitted action: verify the exact corrected Pass-C governance HEAD, then perform WP-2.6B acceptance/reconciliation. Do not start WP-2.6C or WP-2.7 concurrently.
+- Corrected Pass-C entry head/run: `6e091cc5088fece027f13c6764092453da18f418` / `34274455248` — **5/5 SUCCESS**
+- Required responsibilities minus accepted/evidenced responsibilities: **∅**
+- Remaining blocker/finding: **∅** for WP-2.6B
+- Next permitted action: verify the exact acceptance-governance HEAD containing this decision, then activate/revalidate WP-2.6C. Do not start WP-2.7 concurrently.
