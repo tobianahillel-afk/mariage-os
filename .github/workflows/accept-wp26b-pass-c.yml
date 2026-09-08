@@ -19,6 +19,7 @@ jobs:
           persist-credentials: true
       - name: Apply guarded Pass C acceptance record
         run: |
+          sed -i 's/[[:space:]]*$//' .tmp/accept_wp26b_pass_c.py
           python .tmp/accept_wp26b_pass_c.py
           git diff --check
           git config user.name "github-actions[bot]"
