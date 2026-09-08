@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.6A`
 - Lot: `2`
 - Name: Venue offers and offer components
-- State: `READY`
-- Current pass: `PLAN`
+- State: `IN_PROGRESS`
+- Current pass: `A-IMPLEMENT`
 - Primary bounded context: Venue commercial offers
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Parent responsibility: original matrix packet `WP-2.6`, decomposed for orchestration sizing only
@@ -55,6 +55,7 @@
 
 - Core Venue-commercial workflow freeze through `cf46c731bd45b77feaa514b22036096301280755`; exact CI `34170253114`: **5/5 SUCCESS**.
 - Contact/retry boundary addendum `6dce81a49ccdbb7bc9da54b2491a0c8746e12e50`; exact CI `34171320200`: **5/5 SUCCESS**.
+- Split/governance implementation-entry head `c99c4ac091bc21cb55a9b634710a3b7d694a7285`; exact CI `34171995654`: **5/5 SUCCESS**, including clean-checkout `npm run verify`.
 - The boundary addendum has no additional behavior owned by A except preserving application-owned UUID identity; its phone and append-replay rules are implemented by B/C where applicable.
 - No unresolved material specification blocker remains for WP-2.6A.
 
@@ -94,15 +95,15 @@ Offers and components are one commercial-history aggregate. Component editabilit
 
 ## Pass A — IMPLEMENT
 
-Not started. Production code must not begin until the governance/split HEAD carrying this READY state has exact full CI evidence.
+Started only after exact split/governance verification succeeded on `c99c4ac091bc21cb55a9b634710a3b7d694a7285` / run `34171995654` — **5/5 SUCCESS**. Production implementation is now authorized for WP-2.6A only.
 
 ### Implementation evidence
 
-- code/modules: pending
-- migrations/schema: pending
-- tests added: pending
+- code/modules: in progress
+- migrations/schema: in progress
+- tests added: in progress
 - FIRs updated: this packet record is the FIR-equivalent durable record
-- docs/status updated: split/READY governance pending verification
+- docs/status updated: implementation-entry transition recorded from exact green split/governance head
 
 ### Pass A exit
 
@@ -122,8 +123,8 @@ Not started.
 
 ## Handoff
 
-- Current state: `READY`
-- Current/next pass: `PLAN` → `A-IMPLEMENT`
-- Last green specification verification: `6dce81a49ccdbb7bc9da54b2491a0c8746e12e50` / `34171320200` — **5/5 SUCCESS**
-- Remaining blocker/finding: none at pre-implementation entry
-- Next permitted action: verify the split/governance HEAD, then transition only `WP-2.6A` to `IN_PROGRESS / A-IMPLEMENT`. Do not start WP-2.6B/C or WP-2.7 concurrently.
+- Current state: `IN_PROGRESS`
+- Current/next pass: `A-IMPLEMENT`
+- Implementation-entry verification: `c99c4ac091bc21cb55a9b634710a3b7d694a7285` / `34171995654` — **5/5 SUCCESS**
+- Remaining blocker/finding: none at Pass-A entry
+- Next permitted action: implement and verify WP-2.6A only. Do not start WP-2.6B/C or WP-2.7 concurrently.
