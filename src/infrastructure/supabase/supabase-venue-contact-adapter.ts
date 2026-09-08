@@ -40,25 +40,33 @@ function providerFailure(message: string): VenueContactPersistenceError {
   return new VenueContactPersistenceError("provider_response_invalid", message);
 }
 
+function savedRecordMatches(
+  record: VenueContactRecord,
+  input: SaveVenueContactInput,
+  expectedRevision: number,
+): boolean {
+  return [
+    record.id === input.contactId,
+    record.projectId === input.projectId,
+    record.venueId === input.venueId,
+    record.parentType === "venue",
+    record.name === input.name,
+    record.roleLabel === input.roleLabel,
+    record.email === input.email,
+    record.phone === input.phone,
+    record.preferredChannel === input.preferredChannel,
+    record.notes === input.notes,
+    record.revision === expectedRevision,
+  ].every(Boolean);
+}
+
 function expectedSavedRecord(
   record: VenueContactRecord,
   input: SaveVenueContactInput,
 ): VenueContactRecord {
   const expectedRevision =
     input.expectedRevision === null ? 1 : input.expectedRevision + 1;
-  if (
-    record.id !== input.contactId ||
-    record.projectId !== input.projectId ||
-    record.venueId !== input.venueId ||
-    record.parentType !== "venue" ||
-    record.name !== input.name ||
-    record.roleLabel !== input.roleLabel ||
-    record.email !== input.email ||
-    record.phone !== input.phone ||
-    record.preferredChannel !== input.preferredChannel ||
-    record.notes !== input.notes ||
-    record.revision !== expectedRevision
-  ) {
+  if (!savedRecordMatches(record, input, expectedRevision)) {
     throw providerFailure("Invalid venue contact save response.");
   }
   return record;

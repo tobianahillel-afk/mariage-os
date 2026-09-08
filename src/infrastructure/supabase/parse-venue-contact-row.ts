@@ -1,5 +1,6 @@
 import {
   normalizeVenueContact,
+  type NormalizedVenueContact,
   type VenueContactRecord,
 } from "@domain/venues/venue-contact";
 import { isVenueCommercialUuid } from "@domain/venues/venue-commercial-values";
@@ -33,6 +34,37 @@ function revisionValue(value: unknown): number {
   return value as number;
 }
 
+function identityMatches(
+  row: Record<string, unknown>,
+  id: string,
+  projectId: string,
+  parentId: string,
+  expectedProjectId: string,
+  expectedVenueId: string,
+  expectedContactId: string | undefined,
+): boolean {
+  return [
+    projectId === expectedProjectId,
+    parentId === expectedVenueId,
+    row.parent_type === "venue",
+    expectedContactId === undefined || id === expectedContactId,
+  ].every(Boolean);
+}
+
+function canonicalPayloadMatches(
+  normalized: NormalizedVenueContact,
+  raw: NormalizedVenueContact,
+): boolean {
+  return [
+    [normalized.name, raw.name],
+    [normalized.roleLabel, raw.roleLabel],
+    [normalized.email, raw.email],
+    [normalized.phone, raw.phone],
+    [normalized.preferredChannel, raw.preferredChannel],
+    [normalized.notes, raw.notes],
+  ].every(([canonical, provider]) => canonical === provider);
+}
+
 export function parseVenueContactRow(
   value: unknown,
   expectedProjectId: string,
@@ -44,15 +76,20 @@ export function parseVenueContactRow(
   const projectId = uuidValue(row.project_id);
   const parentId = uuidValue(row.parent_id);
   if (
-    projectId !== expectedProjectId ||
-    parentId !== expectedVenueId ||
-    row.parent_type !== "venue" ||
-    (expectedContactId !== undefined && id !== expectedContactId)
+    !identityMatches(
+      row,
+      id,
+      projectId,
+      parentId,
+      expectedProjectId,
+      expectedVenueId,
+      expectedContactId,
+    )
   ) {
     invalidContactResponse();
   }
 
-  const raw = {
+  const raw: NormalizedVenueContact = {
     name: nullableString(row.name),
     roleLabel: nullableString(row.role_label),
     email: nullableString(row.email),
@@ -62,16 +99,7 @@ export function parseVenueContactRow(
   };
   const normalized = normalizeVenueContact(raw);
   if (!normalized.ok) invalidContactResponse();
-  if (
-    normalized.value.name !== raw.name ||
-    normalized.value.roleLabel !== raw.roleLabel ||
-    normalized.value.email !== raw.email ||
-    normalized.value.phone !== raw.phone ||
-    normalized.value.preferredChannel !== raw.preferredChannel ||
-    normalized.value.notes !== raw.notes
-  ) {
-    invalidContactResponse();
-  }
+  if (!canonicalPayloadMatches(normalized.value, raw)) invalidContactResponse();
 
   return {
     id,
