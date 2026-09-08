@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.6C`
 - Lot: `2`
 - Name: Venue contacts
-- State: `ACCEPTANCE_PENDING`
-- Current pass: `C-ACCEPTANCE`
+- State: `ACCEPTED`
+- Current pass: `COMPLETE`
 - Primary bounded context: Venue contact identity/reference data
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Parent responsibility: original matrix packet `WP-2.6`, split again at activation because the combined contacts/interactions packet exceeded the hard complexity threshold once its real command surfaces were revalidated
@@ -117,15 +117,51 @@ Dedicated Pass-B evidence hardening `supabase/tests/venue_contacts_adversarial_r
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-**READY TO START.** Perform the mechanical EXPECTED → IMPLEMENTED → VERIFIED reconciliation for the WP-2.6C-owned contact responsibility, applicable AUTHZ/SEC controls and explicit scope boundaries. Whole `FTR-026` must remain broader than this packet because interaction history and later presentation responsibilities are downstream.
+Entry head/run `b8d451ec0d39239894fc9d6e1b84142015610fbe` / `34286647702`: **5/5 SUCCESS**, including Core quality/security, Local Supabase DB/RLS, Browser E2E + mutation, privacy-safe preview and Full verify from clean checkout.
+
+### Entry gate
+
+- [x] packet entered Pass C from `ACCEPTANCE_PENDING`
+- [x] current pass was `C-ACCEPTANCE`
+- [x] no unresolved BLOCKING/MAJOR Pass-B finding exists
+- [x] exact Pass-C transition governance head is 5/5 green
+
+| Responsibility | Expected | Implemented evidence | Verified evidence | Result |
+|---|---|---|---|---|
+| Contact identity/details and canonical values | Venue-owned caller-UUID contact reference; bounded optional text; exact ASCII international phone/WhatsApp grammar; canonical null/trim semantics | `venue-contact` domain normalization, contact service/ports, `contacts` persistence and SQL checks | domain/service tests, TypeScript↔PostgreSQL phone/text parity, dedicated Pass-B pgTAP + `34286647702` | PASS |
+| Atomic create/update and revision semantics | one save command family; create requires expected revision 0; update requires exact current revision; stale writes fail without partial mutation | `save_venue_contact`, expected-revision service mapping and privileged RPC | service/adapter tests + DB stale-revision/create-update assertions | PASS |
+| Immutable project/Venue parent identity | updates cannot reparent a contact to another project or Venue | immutable parent fields/SQL command checks and exact receipt identity validation | same-project reparent adversarial pgTAP + provider identity tests | PASS |
+| UUID conflict and cross-project non-disclosure | same-project duplicate create remains typed uniqueness conflict; foreign-project UUID collision reveals no resource existence/content | hardened cross-project identity branch in `save_venue_contact` | red-first `56c79ee...` plus final DB proof: same-project `23505`, foreign-project `42501` | PASS |
+| Authorization, RLS and revocation concurrency | reads require live `venues.read`; writes require live `venues.write`; direct table mutation denied; downgrade/revocation takes effect without relogin and serializes with writes | SELECT-only authenticated grant, project-scoped RLS, writer helper/RPC taking the shared project lock before permission evaluation | owner/editor/viewer/outsider/project-B/revoked matrix + same-session downgrade/revocation adversarial pgTAP | PASS |
+| Provider/list trust boundary | save receipt must match exact identity/payload/resulting revision; malformed rows, duplicate list IDs and provider inconsistencies fail closed | strict contact parser and Supabase adapter receipt/list validation | parser/adapter malformed-success, duplicate-identity and receipt tests | PASS |
+| Scope boundaries | no contact delete lifecycle, interaction history, Task/Vendor/offline/UI authority is introduced | contact-only domain/application/adapter/migrations/tests | Pass-B diff review + architecture/static/dead-code gates on exact Pass-C entry head | PASS |
+
+### Acceptance checks
+
+- [x] all WP-2.6C-owned responsibilities reconciled
+- [x] FIR-equivalent durable packet fields/evidence are complete for the contact slice
+- [x] required automated evidence is green on the exact Pass-C entry head
+- [x] no BLOCKING/MAJOR finding remains
+- [x] architecture/complexity/static/security gates are green
+- [x] documentation/status/coverage are synchronized for packet acceptance
+- [x] downstream ownership remains explicit
+
+Applicable `AUTHZ-001..008`, `AUTHZ-009`, `AUTHZ-012`, `AUTHZ-017`, `AUTHZ-018`, `AUTHZ-020` and the explicit applicable `SEC-*` controls listed above reconcile **PASS** for the WP-2.6C contact slice.
+
+`FTR-026` has no dedicated `VEN-xxx` requirement or direct `ACC-xxx` scenario in the normative Requirement/Feature and Acceptance/Feature matrices. Pass C therefore does not invent one: direct packet proof is the frozen contact contract, packet invariants and AUTHZ/SEC evidence. Whole `FTR-026` is **not accepted by this packet** because interaction history remains WP-2.6D, Venue presentation remains WP-2.11 and follow-up/Task workflow remains Lot 3.
+
+Required WP-2.6C responsibilities minus accepted/evidenced WP-2.6C responsibilities: **∅**.
+
+**Pass C decision: PASS — WP-2.6C ACCEPTED.**
 
 ## Handoff
 
-- Current state: `ACCEPTANCE_PENDING`
-- Current/next pass: `C-ACCEPTANCE`
+- Current state: `ACCEPTED`
+- Current/next pass: `COMPLETE`
 - WP-2.6C split-governance entry: `caa01a39c73a68a9f03df8a6d4a2c7ec6d12fd84` / `34278672342` — **5/5 SUCCESS**
 - Pass-A final implementation head/run: `aee0572cebddc0eae26e898fe68a008009263d11` / `34282995400` — **5/5 SUCCESS**
 - Red-first security hardening: `56c79ee3064384b5425699742a3b8c2a21fd4aa7` / `34282681713` — expected DB FAILURE, foreign-project collision `23505` vs required `42501`; **RESOLVED / VERIFIED** on the final Pass-A head/run
 - Split finding: combined contacts/interactions packet would exceed 10 points once real contact command/revision boundaries are counted; **RESOLVED by decomposition before production code**
 - Final fresh Pass-B reviewed head/run: `4f43d59f113f2aa0a857ed147965fd65a8b02413` / `34285562087` — **5/5 SUCCESS**; dedicated authorization/concurrency/parent/phone-parity pgTAP PASS; open BLOCKING/MAJOR findings **∅**
-- Next permitted action: verify the exact WP-2.6C Pass-C transition governance HEAD, then perform mechanical Pass C reconciliation. Do not start WP-2.6D or WP-2.7 concurrently.
+- Pass-C entry head/run: `b8d451ec0d39239894fc9d6e1b84142015610fbe` / `34286647702` — **5/5 SUCCESS**; responsibility gap **∅**; Pass C **PASS**
+- Next permitted action: verify the exact WP-2.6C acceptance-governance HEAD. Only after that 5/5 verification may WP-2.6D activation/revalidation begin; WP-2.7 remains blocked.
