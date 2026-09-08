@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.6C`
 - Lot: `2`
 - Name: Venue contacts
-- State: `READY`
-- Current pass: `PLAN`
+- State: `IN_PROGRESS`
+- Current pass: `A-IMPLEMENT`
 - Primary bounded context: Venue contact identity/reference data
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Parent responsibility: original matrix packet `WP-2.6`, split again at activation because the combined contacts/interactions packet exceeded the hard complexity threshold once its real command surfaces were revalidated
@@ -51,6 +51,7 @@ No ordinary contact hard-delete command is introduced by this packet. The frozen
 
 - Required prior packets/features: WP-2.1, WP-2.6A and WP-2.6B **ACCEPTED**.
 - WP-2.6B final acceptance-governance verification: `8911f1523d96b95cf1329c4b144bfec2356a4a47` / `34275967235` — **5/5 SUCCESS**, including clean-checkout `npm run verify`.
+- WP-2.6C split-governance entry head/run: `caa01a39c73a68a9f03df8a6d4a2c7ec6d12fd84` / `34278672342` — **5/5 SUCCESS**, including clean-checkout `npm run verify`.
 - Downstream packet blocked by this packet: `WP-2.6D`; WP-2.7 remains blocked until C and D are accepted.
 - Shared interfaces/contracts relied on: both Venue commercial workflow addenda, repository/service contracts, RLS matrix and runtime input validation.
 
@@ -60,6 +61,7 @@ No ordinary contact hard-delete command is introduced by this packet. The frozen
 - Canonical phone/WhatsApp and mutable-contact boundaries frozen by `6dce81a49ccdbb7bc9da54b2491a0c8746e12e50`; CI `34171320200`: **5/5 SUCCESS**.
 - Activation revalidation found that the former combined C packet's 10-point estimate depended on direct ordinary RLS contact mutation. Accepted Lot-2 revisioned mutation precedent instead uses atomic RPC command boundaries. Keeping contacts plus interaction append/replay would therefore exceed 10 points and violate the mandatory split rule.
 - Split decision: **CONTACTS / INTERACTIONS**, product scope unchanged; no unresolved material contact specification blocker remains.
+- Exact READY/split-governance gate `caa01a39c73a68a9f03df8a6d4a2c7ec6d12fd84` / `34278672342`: **5/5 SUCCESS**. Pass A entry is open.
 
 ## Sizing review
 
@@ -97,7 +99,7 @@ The contact table, canonical value grammar, one atomic save command, expected-re
 
 ## Pass A — IMPLEMENT
 
-Not started. Entry requires exact full CI success on this READY/split-governance head, followed by a durable `READY → IN_PROGRESS / A-IMPLEMENT` transition for WP-2.6C only.
+**IN_PROGRESS.** Entry gate `caa01a39c73a68a9f03df8a6d4a2c7ec6d12fd84` / `34278672342` is 5/5 SUCCESS. Implement only the Venue-contact vertical slice. Start with an explicit red-first proof before migration/domain/adapter remediation; do not activate WP-2.6D concurrently.
 
 ## Pass B — ADVERSARIAL REVIEW
 
@@ -109,9 +111,9 @@ Not started.
 
 ## Handoff
 
-- Current state: `READY`
-- Current/next pass: `PLAN`
-- WP-2.6B acceptance-governance verification: `8911f1523d96b95cf1329c4b144bfec2356a4a47` / `34275967235` — **5/5 SUCCESS**
+- Current state: `IN_PROGRESS`
+- Current/next pass: `A-IMPLEMENT`
+- WP-2.6C split-governance entry: `caa01a39c73a68a9f03df8a6d4a2c7ec6d12fd84` / `34278672342` — **5/5 SUCCESS**
 - Split finding: combined contacts/interactions packet would exceed 10 points once real contact command/revision boundaries are counted; **RESOLVED by decomposition before production code**
-- Remaining blocker/finding: none; exact split-governance CI is the only gate before implementation activation
-- Next permitted action: verify this exact READY/split-governance HEAD, then transition WP-2.6C only to `IN_PROGRESS / A-IMPLEMENT`. Do not start WP-2.6D or WP-2.7 concurrently.
+- Remaining blocker/finding: none at Pass-A entry
+- Next permitted action: execute WP-2.6C Pass A with red-first evidence, then verify the exact implementation head. Do not start WP-2.6D or WP-2.7 concurrently.
