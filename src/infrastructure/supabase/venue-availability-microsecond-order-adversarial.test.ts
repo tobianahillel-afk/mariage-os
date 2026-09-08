@@ -44,12 +44,8 @@ class QueryBuilder implements PromiseLike<Result> {
   }
 
   then<TResult1 = Result, TResult2 = never>(
-    onfulfilled?:
-      | ((value: Result) => TResult1 | PromiseLike<TResult1>)
-      | null,
-    onrejected?:
-      | ((reason: unknown) => TResult2 | PromiseLike<TResult2>)
-      | null,
+    onfulfilled?: ((value: Result) => TResult1 | PromiseLike<TResult1>) | null,
+    onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
   ): PromiseLike<TResult1 | TResult2> {
     return Promise.resolve(this.result).then(onfulfilled, onrejected);
   }
@@ -74,16 +70,13 @@ class FakeClient implements SupabaseVenueAvailabilityClientLike {
   }
 }
 
-it(
-  "preserves PostgreSQL microsecond observed_at recency before UUID tie-break",
-  async () => {
-    const adapter = new SupabaseVenueAvailabilityAdapter(new FakeClient());
+it("preserves PostgreSQL microsecond observed_at recency before UUID tie-break", async () => {
+  const adapter = new SupabaseVenueAvailabilityAdapter(new FakeClient());
 
-    const history = await adapter.listVenueAvailabilityHistory(
-      projectId,
-      venueId,
-    );
+  const history = await adapter.listVenueAvailabilityHistory(
+    projectId,
+    venueId,
+  );
 
-    expect(history.map((record) => record.id)).toEqual([newerId, olderId]);
-  },
-);
+  expect(history.map((record) => record.id)).toEqual([newerId, olderId]);
+});
