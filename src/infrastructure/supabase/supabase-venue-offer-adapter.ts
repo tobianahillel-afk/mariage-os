@@ -70,6 +70,27 @@ function uniqueRecords<T extends { readonly id: string }>(
   return records;
 }
 
+function expectedStatus(
+  record: VenueOfferRecord,
+  status: string,
+): VenueOfferRecord {
+  if (record.status !== status) failure(INVALID_RESPONSE);
+  return record;
+}
+
+function exactCreationComponents(
+  records: readonly VenueOfferComponentRecord[],
+  expected: CreateVenueOfferInput["components"],
+): readonly VenueOfferComponentRecord[] {
+  const unique = uniqueRecords(records);
+  if (unique.length !== expected.length) failure(INVALID_RESPONSE);
+  const expectedIds = new Set(expected.map((component) => component.componentId));
+  for (const record of unique) {
+    if (!expectedIds.has(record.id)) failure(INVALID_RESPONSE);
+  }
+  return unique;
+}
+
 function offerTermsPayload(
   terms: NormalizedVenueOfferTerms,
 ): Readonly<Record<string, unknown>> {
@@ -202,7 +223,8 @@ export class SupabaseVenueOfferAdapter implements VenueOfferPort {
       input.venueId,
       input.offerId,
     );
-    uniqueRecords(aggregate.components);
+    expectedStatus(aggregate.offer, input.status);
+    exactCreationComponents(aggregate.components, input.components);
     return aggregate;
   }
 
@@ -219,12 +241,13 @@ export class SupabaseVenueOfferAdapter implements VenueOfferPort {
       }),
       "Venue offer update failed.",
     );
-    return parseVenueOfferRow(
+    const record = parseVenueOfferRow(
       data,
       input.projectId,
       input.venueId,
       input.offerId,
     );
+    return expectedStatus(record, "draft");
   }
 
   async transitionVenueOffer(
@@ -240,12 +263,13 @@ export class SupabaseVenueOfferAdapter implements VenueOfferPort {
       }),
       "Venue offer transition failed.",
     );
-    return parseVenueOfferRow(
+    const record = parseVenueOfferRow(
       data,
       input.projectId,
       input.venueId,
       input.offerId,
     );
+    return expectedStatus(record, input.targetStatus);
   }
 
   async createVenueOfferComponent(
