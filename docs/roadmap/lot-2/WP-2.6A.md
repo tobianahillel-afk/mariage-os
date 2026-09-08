@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.6A`
 - Lot: `2`
 - Name: Venue offers and offer components
-- State: `ACCEPTANCE_PENDING`
-- Current pass: `C-ACCEPTANCE`
+- State: `ACCEPTED`
+- Current pass: `COMPLETE`
 - Primary bounded context: Venue commercial offers
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Parent responsibility: original matrix packet `WP-2.6`, decomposed for orchestration sizing only
@@ -48,7 +48,7 @@
 ## Dependency / sequencing
 
 - Required prior packets/features: WP-2.1 **ACCEPTED**; Lot-1 project/wedding-date foundation; WP-2.5 **ACCEPTED**.
-- Downstream packets blocked by this packet: `WP-2.6B`, `WP-2.6C` by default sequential orchestration; WP-2.7 remains blocked until the full decomposed WP-2.6 responsibility is accepted.
+- Downstream packets: `WP-2.6B` becomes eligible for activation after this packet's acceptance-governance head is verified; `WP-2.6C` remains dependent on A+B; WP-2.7 remains blocked until the full decomposed WP-2.6 responsibility is accepted.
 - Shared interfaces/contracts relied on: `VENUE-COMMERCIAL-WORKFLOW-ADDENDUM.md`, `VENUE-COMMERCIAL-WORKFLOW-BOUNDARY-ADDENDUM.md`, `MONEY.md`, `REPOSITORY-SERVICE-CONTRACTS.md`, `RLS-MATRIX-V1.md`, `INPUT-VALIDATION.md`.
 
 ## Specification gates
@@ -202,16 +202,52 @@ Pass A completed on implementation head `e027bbbba93d73546ed19fffac7c26471f45ecb
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started. Entry requires exact full CI success on the Pass-B governance transition head before reconciliation begins.
+Entry head/run `d348abdb42a2ca8319fb6711c08551cfb3bcfbae` / `34235598936`: **5/5 SUCCESS**, including Core quality/security, Local Supabase DB/RLS, Browser/mutation, privacy-safe preview and clean-checkout `npm run verify`.
+
+### Entry gate
+
+- [x] packet entered Pass C from `ACCEPTANCE_PENDING`
+- [x] current pass was `C-ACCEPTANCE`
+- [x] no unresolved BLOCKING/MAJOR Pass B finding exists
+
+| Responsibility | Expected | Implemented evidence | Verified evidence | Result |
+|---|---|---|---|---|
+| Venue offer identity/ownership/history | Multiple same-project Venue offers retain stable UUID identity and historical rows | `venue_offers`, service/port/adapter, same-project FKs and no ordinary hard delete | unit/provider tests + commercial pgTAP/RLS + `34235598936` | PASS |
+| Lifecycle and concurrency | exact create/status matrix, draft-only term edits, expected-revision safety, immutable quoted/terminal history | offer domain/service + protected RPCs + lifecycle/immutability triggers + same-state hardening migration | lifecycle/stale-write/same-state red-first regression + final full verify | PASS |
+| Quoted readiness | entering `quoted` requires valid commercial readiness rather than incomplete historical state | authoritative integrity trigger in `20260908140000_enforce_venue_offer_quote_readiness.sql` | six-case red-first DB proof then final DB/RLS + clean verify | PASS |
+| Money/tax/date/time terms | integer minor units, explicit currency/tax, civil dates, weekday, local-time/day-offset and bounded quoted deposit/security-deposit terms | centralized TS normalizers + SQL constraints/RPC validation | unit boundary tests + pgTAP numeric/date/time/fractional-money/tax tests | PASS |
+| Venue-owned offer components | staged `owner_type='venue_offer'`, exact enums/quantity, same-project owner, draft-only mutation | component domain/service/adapter + `offer_components` schema/triggers/RPCs | unit/provider/pgTAP component, immutability and exact `numeric(12,3)` parity tests | PASS |
+| Authorization/isolation | `venues.read` for reads; `venues.write` for mutation; grants + RLS + active membership/project isolation | direct SELECT grants only plus writer-authorized RPCs and same-project relational constraints | owner/editor/viewer/anon/outsider/project-B/revoked direct DB/RLS matrix | PASS |
+| Provider trust boundary | API/provider data cannot substitute project/Venue/offer/component/source/status identities or duplicate canonical rows | fail-closed parsers, duplicate rejection, exact receipt status/source/component identity checks | adversarial adapter/receipt tests including B-002..B-004 | PASS |
+| Scope boundaries | no Budget calculation/payment schedule, Vendor offer, Document link, availability, contact, offline or UI authority | staged schema/addendum boundaries; only offer/component modules and migrations introduced | compare/review of packet changes + full architecture/static gates | PASS |
+
+### Acceptance checks
+
+- [x] all packet responsibilities reconciled
+- [x] applicable FIR-equivalent fields complete in this packet record
+- [x] required automated evidence green on exact Pass-C entry head
+- [x] no BLOCKING/MAJOR finding open
+- [x] architecture/complexity/static gates green
+- [x] documentation/status/handoff synchronized for acceptance
+- [x] downstream prerequisites clearly recorded
+
+Requirements/control reconciliation for the WP-2.6A-owned slice of `FTR-025`, `VEN-008`, applicable `AUTHZ-001..008`, `AUTHZ-009`, `AUTHZ-012`, `AUTHZ-017`, `AUTHZ-018`, `AUTHZ-020`, and applicable validation/verification/data-boundary controls: **PASS**.
+
+Required WP-2.6A responsibilities minus accepted/evidenced WP-2.6A responsibilities: **∅**.
+
+Deferred ownership remains explicit and is not claimed by this acceptance: `VEN-009` availability → WP-2.6B; contacts/interactions/FTR-026 → WP-2.6C; Budget/scenario/payment truth → Lot 5; Vendor offers → Lot 7; quote-document relationship → WP-2.9; local/offline integration → WP-2.10/2.12; presentation/UI → WP-2.11.
+
+**Pass C decision: PASS — WP-2.6A ACCEPTED.**
 
 ## Handoff
 
-- Current state: `ACCEPTANCE_PENDING`
-- Current/next pass: `C-ACCEPTANCE`
+- Current state: `ACCEPTED`
+- Current/next pass: `COMPLETE`
 - Implementation-entry verification: `c99c4ac091bc21cb55a9b634710a3b7d694a7285` / `34171995654` — **5/5 SUCCESS**
 - Verified Pass-A implementation head/run: `e027bbbba93d73546ed19fffac7c26471f45ecb5` / `34223226316` — **5/5 SUCCESS**
-- Pass-A red-first hardening control: `0149f0b1b77335228af9bf53379a47735c6ec9b6` / `34222772124` — expected DB FAILURE, resolved
 - Pass-B findings `WP2.6A-B-001..006`: **RESOLVED / VERIFIED**
 - Final fresh Pass-B reviewed head/run: `c7339227126e0df6969809644b5d0eb2512d350c` / `34233201350` — **5/5 SUCCESS**
-- Open BLOCKING/MAJOR findings: ∅
-- Next permitted action: verify this Pass-B governance transition on its exact HEAD, then execute WP-2.6A Pass C only. Do not start WP-2.6B/C or WP-2.7 concurrently.
+- Pass-C entry head/run: `d348abdb42a2ca8319fb6711c08551cfb3bcfbae` / `34235598936` — **5/5 SUCCESS**
+- Required responsibilities minus accepted/evidenced responsibilities: ∅
+- Remaining blocker/finding: ∅ for WP-2.6A
+- Next permitted action: verify the exact acceptance-governance HEAD containing this decision, then activate/revalidate WP-2.6B. Do not start WP-2.6C or WP-2.7 concurrently.
