@@ -64,8 +64,8 @@ insert into public.sources (
   id, project_id, source_type, title, evidence_level, status, created_by, updated_by
 )
 values
-  ('da300000-0000-4000-8000-000000000001', 'daaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'venue', 'Synthetic availability source A', 'confirmed_for_event', 'active', 'd1111111-1111-4111-8111-111111111111', 'd1111111-1111-4111-8111-111111111111'),
-  ('db300000-0000-4000-8000-000000000001', 'dbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'venue', 'Synthetic availability source B', 'confirmed_for_event', 'active', 'd4444444-4444-4444-8444-444444444444', 'd4444444-4444-4444-8444-444444444444');
+  ('da300000-0000-4000-8000-000000000001', 'daaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'quote', 'Synthetic availability source A', 'confirmed_for_event', 'active', 'd1111111-1111-4111-8111-111111111111', 'd1111111-1111-4111-8111-111111111111'),
+  ('db300000-0000-4000-8000-000000000001', 'dbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'quote', 'Synthetic availability source B', 'confirmed_for_event', 'active', 'd4444444-4444-4444-8444-444444444444', 'd4444444-4444-4444-8444-444444444444');
 
 create function pg_temp.try_append_availability(
   target_project uuid,
