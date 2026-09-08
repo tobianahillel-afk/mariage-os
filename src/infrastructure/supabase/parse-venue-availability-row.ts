@@ -17,9 +17,13 @@ function objectRow(value: unknown): Record<string, unknown> {
   return value as Record<string, unknown>;
 }
 
+function requiredUuid(value: unknown): string {
+  return isVenueCommercialUuid(value) ? value : fail();
+}
+
 function optionalUuid(value: unknown): string | null {
   if (value === null) return null;
-  return isVenueCommercialUuid(value) ? value : fail();
+  return requiredUuid(value);
 }
 
 function canonicalInstant(value: unknown): string {
@@ -33,28 +37,17 @@ function positiveRevision(value: unknown): number {
   return value as number;
 }
 
-export function parseVenueAvailabilityRow(
-  value: unknown,
-  expectedProjectId?: string,
-  expectedVenueId?: string,
-  expectedId?: string,
-): VenueAvailabilityRecord {
-  const row = objectRow(value);
-  const id = isVenueCommercialUuid(row.id) ? row.id : fail();
-  const projectId = isVenueCommercialUuid(row.project_id)
-    ? row.project_id
-    : fail();
-  const venueId = isVenueCommercialUuid(row.venue_id) ? row.venue_id : fail();
-  const dateOptionId = optionalUuid(row.date_option_id);
-  const sourceId = optionalUuid(row.source_id);
-  if (
-    (expectedProjectId !== undefined && projectId !== expectedProjectId) ||
-    (expectedVenueId !== undefined && venueId !== expectedVenueId) ||
-    (expectedId !== undefined && id !== expectedId)
-  ) {
-    fail();
-  }
+function assertExpectedIdentity(
+  actual: string,
+  expected: string | undefined,
+): void {
+  if (expected !== undefined && actual !== expected) fail();
+}
 
+function canonicalAvailability(
+  row: Record<string, unknown>,
+  sourceId: string | null,
+) {
   const normalized = normalizeVenueAvailability({
     eventDate: row.event_date,
     status: row.status,
@@ -64,34 +57,49 @@ export function parseVenueAvailabilityRow(
     notes: row.notes,
   });
   if (!normalized.ok) fail();
-  if (
-    normalized.value.eventDate !== row.event_date ||
-    normalized.value.status !== row.status ||
-    normalized.value.optionExpiresAt !== row.option_expires_at ||
-    normalized.value.observedAt !== row.observed_at ||
-    normalized.value.sourceId !== sourceId ||
-    normalized.value.notes !== row.notes
-  ) {
-    fail();
-  }
 
-  const createdBy = isVenueCommercialUuid(row.created_by)
-    ? row.created_by
-    : fail();
-  const updatedBy = isVenueCommercialUuid(row.updated_by)
-    ? row.updated_by
-    : fail();
+  const value = normalized.value;
+  const canonicalPairs: readonly (readonly [unknown, unknown])[] = [
+    [value.eventDate, row.event_date],
+    [value.status, row.status],
+    [value.optionExpiresAt, row.option_expires_at],
+    [value.observedAt, row.observed_at],
+    [value.sourceId, sourceId],
+    [value.notes, row.notes],
+  ];
+  if (!canonicalPairs.every(([canonical, raw]) => canonical === raw)) fail();
+  return value;
+}
+
+export function parseVenueAvailabilityRow(
+  value: unknown,
+  expectedProjectId?: string,
+  expectedVenueId?: string,
+  expectedId?: string,
+): VenueAvailabilityRecord {
+  const row = objectRow(value);
+  const id = requiredUuid(row.id);
+  const projectId = requiredUuid(row.project_id);
+  const venueId = requiredUuid(row.venue_id);
+  const dateOptionId = optionalUuid(row.date_option_id);
+  const sourceId = optionalUuid(row.source_id);
+
+  assertExpectedIdentity(projectId, expectedProjectId);
+  assertExpectedIdentity(venueId, expectedVenueId);
+  assertExpectedIdentity(id, expectedId);
+
+  const normalized = canonicalAvailability(row, sourceId);
 
   return {
     id,
     projectId,
     venueId,
     dateOptionId,
-    ...normalized.value,
+    ...normalized,
     createdAt: canonicalInstant(row.created_at),
-    createdBy,
+    createdBy: requiredUuid(row.created_by),
     updatedAt: canonicalInstant(row.updated_at),
-    updatedBy,
+    updatedBy: requiredUuid(row.updated_by),
     revision: positiveRevision(row.revision),
   };
 }

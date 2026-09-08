@@ -58,6 +58,31 @@ export type VenueAvailabilityValidationResult =
   | { readonly ok: true; readonly value: NormalizedVenueAvailabilityDraft }
   | { readonly ok: false; readonly error: VenueAvailabilityValidationError };
 
+type VenueAvailabilityPayload = Pick<
+  VenueAvailabilityRecord,
+  | "projectId"
+  | "venueId"
+  | "dateOptionId"
+  | "eventDate"
+  | "status"
+  | "optionExpiresAt"
+  | "observedAt"
+  | "sourceId"
+  | "notes"
+>;
+
+const VENUE_AVAILABILITY_PAYLOAD_KEYS: readonly (keyof VenueAvailabilityPayload)[] = [
+  "projectId",
+  "venueId",
+  "dateOptionId",
+  "eventDate",
+  "status",
+  "optionExpiresAt",
+  "observedAt",
+  "sourceId",
+  "notes",
+];
+
 export function isVenueAvailabilityStatus(
   value: unknown,
 ): value is VenueAvailabilityStatus {
@@ -65,6 +90,27 @@ export function isVenueAvailabilityStatus(
     typeof value === "string" &&
     (VENUE_AVAILABILITY_STATUSES as readonly string[]).includes(value)
   );
+}
+
+function normalizeOptionExpiresAt(
+  value: unknown,
+  status: VenueAvailabilityStatus,
+): string | null | undefined {
+  if (value === null || value === undefined) return null;
+  const normalized = normalizeFactInstant(value);
+  if (normalized === null || status !== "option_held") return undefined;
+  return normalized;
+}
+
+function normalizeSourceId(value: unknown): string | null | undefined {
+  if (value === null || value === undefined) return null;
+  return isVenueCommercialUuid(value) ? value : undefined;
+}
+
+function normalizeNotes(value: unknown): string | null | undefined {
+  if (value === null || value === undefined) return null;
+  if (typeof value !== "string") return undefined;
+  return normalizeCommercialOptionalText(value, 5_000);
 }
 
 export function normalizeVenueAvailability(
@@ -82,33 +128,20 @@ export function normalizeVenueAvailability(
     return { ok: false, error: "invalid_observed_at" };
   }
 
-  let optionExpiresAt: string | null = null;
-  if (draft.optionExpiresAt !== null && draft.optionExpiresAt !== undefined) {
-    optionExpiresAt = normalizeFactInstant(draft.optionExpiresAt);
-    if (optionExpiresAt === null || draft.status !== "option_held") {
-      return { ok: false, error: "invalid_option_expires_at" };
-    }
-  }
-
-  let sourceId: string | null = null;
-  if (draft.sourceId !== null && draft.sourceId !== undefined) {
-    if (!isVenueCommercialUuid(draft.sourceId)) {
-      return { ok: false, error: "invalid_source_id" };
-    }
-    sourceId = draft.sourceId;
-  }
-
-  if (
-    draft.notes !== null &&
-    draft.notes !== undefined &&
-    typeof draft.notes !== "string"
-  ) {
-    return { ok: false, error: "invalid_notes" };
-  }
-  const notes = normalizeCommercialOptionalText(
-    draft.notes as string | null | undefined,
-    5_000,
+  const optionExpiresAt = normalizeOptionExpiresAt(
+    draft.optionExpiresAt,
+    draft.status,
   );
+  if (optionExpiresAt === undefined) {
+    return { ok: false, error: "invalid_option_expires_at" };
+  }
+
+  const sourceId = normalizeSourceId(draft.sourceId);
+  if (sourceId === undefined) {
+    return { ok: false, error: "invalid_source_id" };
+  }
+
+  const notes = normalizeNotes(draft.notes);
   if (notes === undefined) return { ok: false, error: "invalid_notes" };
 
   return {
@@ -125,30 +158,11 @@ export function normalizeVenueAvailability(
 }
 
 export function venueAvailabilityPayloadEquals(
-  left: Pick<
-    VenueAvailabilityRecord,
-    | "projectId"
-    | "venueId"
-    | "dateOptionId"
-    | "eventDate"
-    | "status"
-    | "optionExpiresAt"
-    | "observedAt"
-    | "sourceId"
-    | "notes"
-  >,
-  right: typeof left,
+  left: VenueAvailabilityPayload,
+  right: VenueAvailabilityPayload,
 ): boolean {
-  return (
-    left.projectId === right.projectId &&
-    left.venueId === right.venueId &&
-    left.dateOptionId === right.dateOptionId &&
-    left.eventDate === right.eventDate &&
-    left.status === right.status &&
-    left.optionExpiresAt === right.optionExpiresAt &&
-    left.observedAt === right.observedAt &&
-    left.sourceId === right.sourceId &&
-    left.notes === right.notes
+  return VENUE_AVAILABILITY_PAYLOAD_KEYS.every(
+    (key) => left[key] === right[key],
   );
 }
 
