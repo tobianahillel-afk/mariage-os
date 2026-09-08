@@ -5,7 +5,7 @@
 - Work Packet ID: `WP-2.6D`
 - Lot: `2`
 - Name: Venue interaction history
-- State: `READY`
+- State: `IN_PROGRESS`
 - Current pass: `A-IMPLEMENT`
 - Primary bounded context: Venue interaction and quote-follow-up history
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
@@ -62,7 +62,8 @@
 - This freeze closes it normatively: interaction history is `occurred_at DESC`, then `created_at DESC`, then canonical UUID `id ASC`; the provider requests this complete order and application code preserves it after fail-closed validation instead of re-sorting parsed millisecond timestamps.
 - `next_follow_up_at` remains independently validated optional metadata. No `next_follow_up_at > occurred_at` rule is invented, and follow-up never participates in history ordering.
 - Accepted WP-2.6C exposes stable project + Venue + contact UUID semantics, so same-Venue `contact_id` integrity is implementable without reopening contact mutation scope.
-- Specification-freeze gate `1bf2640e20aa7cf7cb7d3b3524aa069b37a09c4b` / `34289908898` is **5/5 SUCCESS**, including clean-checkout `npm run verify`; the activation stop-condition is CLOSED and the packet may enter Pass A after this READY transition head is itself verified.
+- Specification-freeze gate `1bf2640e20aa7cf7cb7d3b3524aa069b37a09c4b` / `34289908898` is **5/5 SUCCESS**, including clean-checkout `npm run verify`; the activation stop-condition is CLOSED.
+- READY-transition gate `3c51873c7503366950b4551d1c01be51202926f5` / `34290710472` is **5/5 SUCCESS**, including clean-checkout `npm run verify`; the packet may now enter Pass A as `IN_PROGRESS` before any red-first product test is committed.
 
 ## Sizing review
 
@@ -112,9 +113,10 @@ Not started.
 
 ## Handoff
 
-- Current state: `READY`
+- Current state: `IN_PROGRESS`
 - Current/next pass: `A-IMPLEMENT`
 - Dependency gate: WP-2.6C **ACCEPTED / acceptance-governance verified** on `f6c93b7991d832363da92a9081540b9bad95441b` / `34287865010` attempt 2
 - Specification-freeze gate: `1bf2640e20aa7cf7cb7d3b3524aa069b37a09c4b` / `34289908898` — **5/5 SUCCESS**; deterministic history ordering/provider precision and accepted contact interface are frozen; no material specification ambiguity remains
+- READY-transition gate: `3c51873c7503366950b4551d1c01be51202926f5` / `34290710472` — **5/5 SUCCESS**
 - Pass A implementation status: **Not started**
-- Next permitted action: verify this READY-transition HEAD 5/5. Only then begin WP-2.6D Pass A with red-first vertical-slice evidence. Do not start WP-2.7 concurrently.
+- Next permitted action: verify this IN_PROGRESS-transition HEAD 5/5. Only then commit the WP-2.6D red-first vertical-slice evidence. Do not start WP-2.7 concurrently.

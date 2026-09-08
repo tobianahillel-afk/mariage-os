@@ -37,7 +37,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.6A | Venue offers and offer components | **ACCEPTED** |
 | WP-2.6B | Venue availability observations | **ACCEPTED** |
 | WP-2.6C | Venue contacts | **ACCEPTED** |
-| WP-2.6D | Venue interaction history | **READY** |
+| WP-2.6D | Venue interaction history | **IN_PROGRESS** |
 | WP-2.7 | contextual venue access-route observations | PLANNED |
 | WP-2.8 | venue media/photo foundation and media safety | PLANNED |
 | WP-2.9 | venue document/tag/link basics | PLANNED |
@@ -126,7 +126,7 @@ Implementation-only decomposition, with product scope unchanged:
 - `WP-2.6A` — Venue offers + Venue-owned offer components — **ACCEPTED / COMPLETE**, estimated 10 points with explicit offer/component lifecycle cohesion rationale;
 - `WP-2.6B` — append-oriented Venue availability observations — **ACCEPTED / COMPLETE**, estimated 9 points with evidence-history/replay cohesion rationale;
 - `WP-2.6C` — Venue contacts — **ACCEPTED / COMPLETE**, Pass-C entry `b8d451ec0d39239894fc9d6e1b84142015610fbe` / `34286647702` 5/5; required contact responsibility gap **∅**; whole `FTR-026` remains incomplete;
-- `WP-2.6D` — Venue interaction history — **READY / A-IMPLEMENT**, estimated 9 points with append/replay/history cohesion; specification-freeze gate `1bf2640e20aa7cf7cb7d3b3524aa069b37a09c4b` / `34289908898` is **5/5 SUCCESS**. Pass A product implementation has not started.
+- `WP-2.6D` — Venue interaction history — **IN_PROGRESS / A-IMPLEMENT**, estimated 9 points with append/replay/history cohesion; specification-freeze `1bf2640e20aa7cf7cb7d3b3524aa069b37a09c4b` / `34289908898` and READY-transition `3c51873c7503366950b4551d1c01be51202926f5` / `34290710472` are both **5/5 SUCCESS**. Pass A product implementation has not started.
 
 Activation sizing review: **MANDATORY SPLIT PERFORMED BEFORE PRODUCTION CODE**. The former combined C packet's 10-point estimate assumed direct ordinary-RLS contact mutation; accepted revisioned mutation precedent requires a real command boundary, so keeping contact mutation plus interaction append/replay would exceed 10. Fragmentation review: **PASS** — C and D are distinct mutable-reference vs immutable-history slices, not file-level fragments.
 
@@ -292,8 +292,8 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted Lot-2 packets: WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5, WP-2.6A, WP-2.6B, WP-2.6C
 Last completed packet: WP-2.6C — ACCEPTED / COMPLETE
-Current packet: WP-2.6D — READY / A-IMPLEMENT
-Current commercial packet: WP-2.6D — READY / A-IMPLEMENT
+Current packet: WP-2.6D — IN_PROGRESS / A-IMPLEMENT
+Current commercial packet: WP-2.6D — IN_PROGRESS / A-IMPLEMENT
 Previous commercial packet: WP-2.6C — ACCEPTED / COMPLETE
 WP-2.6 specification gates: cf46c731... / 34170253114, 6dce81a4... / 34171320200 and 9f5c8af... / 34239745903 — all 5/5 SUCCESS
 WP-2.6A acceptance governance: 186933ed... / 34238484533 — 5/5 SUCCESS
@@ -303,7 +303,8 @@ WP-2.6C final fresh Pass B: 4f43d59f... / 34285562087 — 5/5 SUCCESS; open BLOC
 WP-2.6C Pass-C entry: b8d451ec... / 34286647702 — 5/5 SUCCESS; responsibility gap ∅; Pass C PASS
 WP-2.6C acceptance governance: f6c93b79... / 34287865010 attempt 2 — 5/5 SUCCESS; attempt-1 clean-checkout failure was runner-local port 54322 collision only
 WP-2.6D specification freeze: 1bf2640e... / 34289908898 — 5/5 SUCCESS; deterministic interaction ordering/provider precision stop-condition CLOSED
-WP-2.6D state: READY / A-IMPLEMENT; Pass A product implementation not started
-Next permitted action: verify the exact WP-2.6D READY-transition HEAD 5/5; then begin red-first Pass A. WP-2.7 remains prohibited concurrently.
+WP-2.6D READY transition: 3c51873c... / 34290710472 — 5/5 SUCCESS
+WP-2.6D state: IN_PROGRESS / A-IMPLEMENT; Pass A product implementation not started
+Next permitted action: verify the exact WP-2.6D IN_PROGRESS-transition HEAD 5/5; then commit red-first Pass A evidence. WP-2.7 remains prohibited concurrently.
 Lots 3–12: NOT_STARTED
 ```
