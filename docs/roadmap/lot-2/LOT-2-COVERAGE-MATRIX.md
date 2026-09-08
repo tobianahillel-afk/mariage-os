@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1..WP-2.6B ACCEPTED; WP-2.6C ACCEPTANCE_PENDING / C-ACCEPTANCE; WP-2.6D PLANNED**
+Status: **IN_PROGRESS — WP-2.1..WP-2.6C ACCEPTED; WP-2.6D PLANNED**
 
 Purpose: durable responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`.
 
@@ -52,7 +52,7 @@ The previously accepted Lot 0 + Lot 1 implementation was promoted to `main` thro
 
 Required current-lot responsibilities minus assigned packet responsibilities: **∅**.
 
-Accepted/evidenced packet responsibilities so far: **WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5, WP-2.6A and WP-2.6B**. Required WP-2.6A responsibilities minus accepted/evidenced WP-2.6A responsibilities: **∅**. Required WP-2.6B responsibilities minus accepted/evidenced WP-2.6B responsibilities: **∅**. The original WP-2.6 responsibility remains fully assigned after orchestration decomposition: offers/components → WP-2.6A, availability → WP-2.6B, contacts → WP-2.6C, interactions → WP-2.6D; A+B are accepted, C has completed Pass A and fresh Pass B and is ACCEPTANCE_PENDING / C-ACCEPTANCE, and D remains planned. The FTR-022 presentation/UI responsibility remains explicitly assigned to WP-2.11 and is not claimed by WP-2.5. Lot-level accepted/evidenced reconciliation remains intentionally incomplete until all packets and the separate Integration Pass finish.
+Accepted/evidenced packet responsibilities so far: **WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5, WP-2.6A, WP-2.6B and WP-2.6C**. Required WP-2.6A responsibilities minus accepted/evidenced WP-2.6A responsibilities: **∅**. Required WP-2.6B responsibilities minus accepted/evidenced WP-2.6B responsibilities: **∅**. Required WP-2.6C responsibilities minus accepted/evidenced WP-2.6C responsibilities: **∅**. The original WP-2.6 responsibility remains fully assigned after orchestration decomposition: offers/components → WP-2.6A, availability → WP-2.6B, contacts → WP-2.6C, interactions → WP-2.6D; A+B+C are accepted and D remains planned. Whole `FTR-026` remains incomplete because interaction history, Venue presentation and Lot-3 follow-up/Task responsibilities are downstream. The FTR-022 presentation/UI responsibility remains explicitly assigned to WP-2.11 and is not claimed by WP-2.5. Lot-level accepted/evidenced reconciliation remains intentionally incomplete until all packets and the separate Integration Pass finish.
 
 ## Work Packet plan
 
@@ -170,8 +170,8 @@ Boundary retained: contacts proceed through WP-2.6C Pass C; interactions remain 
 
 ### WP-2.6C — Venue contacts
 
-State: **ACCEPTANCE_PENDING**
-Current pass: **C-ACCEPTANCE**
+State: **ACCEPTED**
+Current pass: **COMPLETE**
 
 Primary Feature: FTR-026 Lot-2 contact responsibility.
 Dependencies: WP-2.1, WP-2.6A and WP-2.6B **ACCEPTED**.
@@ -181,7 +181,8 @@ Split rationale: the former combined 10-point packet assumed direct ordinary RLS
 Scope: caller-owned Venue contact identity, canonical phone/text validation, create/update with expected revision, immutable parent identity, RLS and fail-closed provider parsing. Interaction history is now WP-2.6D.
 Verified Pass-A implementation head/run: `aee0572cebddc0eae26e898fe68a008009263d11` / `34282995400` — **5/5 SUCCESS**; 111 unit files / 1037 tests at 100% measured statements/branches/functions/lines; DB/RLS, Browser+mutation, preview and clean-checkout verify PASS. Cross-project UUID non-disclosure red-first `56c79ee3064384b5425699742a3b8c2a21fd4aa7` / `34282681713` failed exactly `23505` vs required `42501` and is resolved on the final Pass-A head.
 Final fresh Pass-B reviewed head/run: `4f43d59f113f2aa0a857ed147965fd65a8b02413` / `34285562087` — **5/5 SUCCESS**; direct grants/RLS, shared authorization locks, same-session downgrade/revocation, revision/parent immutability, UUID non-disclosure, full PostgreSQL phone parity and fail-closed provider boundaries reviewed; dedicated adversarial pgTAP passed without product-semantic remediation; open BLOCKING/MAJOR findings **∅**; review **PASS**.
-Next permitted action: verify this Pass-C transition governance head, then perform mechanical WP-2.6C Pass C reconciliation; WP-2.6D remains blocked.
+Pass-C entry head/run: `b8d451ec0d39239894fc9d6e1b84142015610fbe` / `34286647702` — **5/5 SUCCESS**. Mechanical contact reconciliation: **PASS**; required WP-2.6C responsibilities minus accepted/evidenced responsibilities: **∅**. No dedicated `VEN-xxx`/`ACC-xxx` is invented for `FTR-026`; whole feature remains incomplete downstream.
+Next permitted action: verify this WP-2.6C acceptance-governance head, then activate/revalidate WP-2.6D; WP-2.7 remains blocked.
 
 ### WP-2.6D — Venue interaction history
 
