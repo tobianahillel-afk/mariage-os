@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { expect, it } from "vitest";
 import {
   SupabaseVenueOfferAdapter,
   type SupabaseVenueOfferClientLike,
@@ -64,14 +64,11 @@ function componentRow() {
 class QueryBuilder implements PromiseLike<Result> {
   constructor(private readonly result: Result) {}
 
-  eq(_column: string, _value: string): QueryBuilder {
+  eq(): QueryBuilder {
     return this;
   }
 
-  order(
-    _column: string,
-    _options: Readonly<{ ascending: boolean }>,
-  ): PromiseLike<Result> {
+  order(): PromiseLike<Result> {
     return Promise.resolve(this.result);
   }
 
@@ -96,7 +93,7 @@ class FakeClient implements SupabaseVenueOfferClientLike {
         ? this.offerQueryResult
         : this.componentQueryResult;
     return {
-      select: (_columns: string) => new QueryBuilder(result),
+      select: () => new QueryBuilder(result),
     };
   }
 
@@ -151,225 +148,223 @@ const component = {
   notes: null,
 };
 
-describe("SupabaseVenueOfferAdapter", () => {
-  it("lists project and Venue-bound offers", async () => {
-    const client = new FakeClient();
-    const adapter = new SupabaseVenueOfferAdapter(client);
-    await expect(adapter.listVenueOffers(projectId, venueId)).resolves.toEqual([
-      expect.objectContaining({ id: offerId, projectId, venueId }),
-    ]);
-    client.offerQueryResult = { data: null, error: null };
-    await expect(adapter.listVenueOffers(projectId, venueId)).rejects.toThrow(
-      "Venue offer query failed.",
-    );
-    client.offerQueryResult = { data: [], error: { message: "no" } };
-    await expect(adapter.listVenueOffers(projectId, venueId)).rejects.toThrow(
-      "Venue offer query failed.",
-    );
+it("lists project and Venue-bound offers", async () => {
+  const client = new FakeClient();
+  const adapter = new SupabaseVenueOfferAdapter(client);
+  await expect(adapter.listVenueOffers(projectId, venueId)).resolves.toEqual([
+    expect.objectContaining({ id: offerId, projectId, venueId }),
+  ]);
+  client.offerQueryResult = { data: null, error: null };
+  await expect(adapter.listVenueOffers(projectId, venueId)).rejects.toThrow(
+    "Venue offer query failed.",
+  );
+  client.offerQueryResult = { data: [], error: { message: "no" } };
+  await expect(adapter.listVenueOffers(projectId, venueId)).rejects.toThrow(
+    "Venue offer query failed.",
+  );
+});
+
+it("lists project and offer-bound components", async () => {
+  const client = new FakeClient();
+  const adapter = new SupabaseVenueOfferAdapter(client);
+  await expect(
+    adapter.listVenueOfferComponents(projectId, offerId),
+  ).resolves.toEqual([
+    expect.objectContaining({ id: componentId, projectId, offerId }),
+  ]);
+  client.componentQueryResult = { data: null, error: null };
+  await expect(
+    adapter.listVenueOfferComponents(projectId, offerId),
+  ).rejects.toThrow("Venue offer component query failed.");
+});
+
+it("creates offer and components atomically through one RPC", async () => {
+  const client = new FakeClient();
+  client.rpcResult = {
+    data: { offer: offerRow(), components: [componentRow()] },
+    error: null,
+  };
+  const adapter = new SupabaseVenueOfferAdapter(client);
+  await expect(
+    adapter.createVenueOffer({
+      offerId,
+      projectId,
+      venueId,
+      status: "draft",
+      terms,
+      components: [{ componentId, ...component }],
+    }),
+  ).resolves.toMatchObject({ offer: { id: offerId } });
+  expect(client.lastRpc).toMatchObject({
+    name: "create_venue_offer",
+    args: {
+      target_project_id: projectId,
+      target_venue_id: venueId,
+      target_offer_id: offerId,
+      target_status: "draft",
+      target_components: [
+        expect.objectContaining({ id: componentId, label: "Room" }),
+      ],
+    },
+  });
+});
+
+it("updates draft offer terms and transitions lifecycle", async () => {
+  const client = new FakeClient();
+  const adapter = new SupabaseVenueOfferAdapter(client);
+  await expect(
+    adapter.updateVenueOfferDraft({
+      projectId,
+      venueId,
+      offerId,
+      expectedRevision: 1,
+      terms,
+    }),
+  ).resolves.toMatchObject({ id: offerId });
+  expect(client.lastRpc).toMatchObject({
+    name: "update_venue_offer_draft",
+    args: { target_expected_revision: 1 },
   });
 
-  it("lists project and offer-bound components", async () => {
-    const client = new FakeClient();
-    const adapter = new SupabaseVenueOfferAdapter(client);
-    await expect(
-      adapter.listVenueOfferComponents(projectId, offerId),
-    ).resolves.toEqual([
-      expect.objectContaining({ id: componentId, projectId, offerId }),
-    ]);
-    client.componentQueryResult = { data: null, error: null };
-    await expect(
-      adapter.listVenueOfferComponents(projectId, offerId),
-    ).rejects.toThrow("Venue offer component query failed.");
+  client.rpcResult = {
+    data: { ...offerRow(), status: "quoted" },
+    error: null,
+  };
+  await expect(
+    adapter.transitionVenueOffer({
+      projectId,
+      venueId,
+      offerId,
+      targetStatus: "quoted",
+      expectedRevision: 1,
+    }),
+  ).resolves.toMatchObject({ status: "quoted" });
+  expect(client.lastRpc).toMatchObject({
+    name: "transition_venue_offer_status",
+    args: { target_status: "quoted" },
+  });
+});
+
+it("creates and updates draft components", async () => {
+  const client = new FakeClient();
+  client.rpcResult = { data: componentRow(), error: null };
+  const adapter = new SupabaseVenueOfferAdapter(client);
+  await expect(
+    adapter.createVenueOfferComponent({
+      projectId,
+      offerId,
+      componentId,
+      expectedOfferRevision: 1,
+      ...component,
+    }),
+  ).resolves.toMatchObject({ id: componentId });
+  expect(client.lastRpc).toMatchObject({
+    name: "create_venue_offer_component",
   });
 
-  it("creates offer and components atomically through one RPC", async () => {
-    const client = new FakeClient();
-    client.rpcResult = {
-      data: { offer: offerRow(), components: [componentRow()] },
-      error: null,
-    };
-    const adapter = new SupabaseVenueOfferAdapter(client);
-    await expect(
-      adapter.createVenueOffer({
-        offerId,
-        projectId,
-        venueId,
-        status: "draft",
-        terms,
-        components: [{ componentId, ...component }],
-      }),
-    ).resolves.toMatchObject({ offer: { id: offerId } });
-    expect(client.lastRpc).toMatchObject({
-      name: "create_venue_offer",
-      args: {
-        target_project_id: projectId,
-        target_venue_id: venueId,
-        target_offer_id: offerId,
-        target_status: "draft",
-        target_components: [
-          expect.objectContaining({ id: componentId, label: "Room" }),
-        ],
-      },
-    });
+  await expect(
+    adapter.updateVenueOfferComponent({
+      projectId,
+      offerId,
+      componentId,
+      expectedOfferRevision: 1,
+      expectedComponentRevision: 1,
+      ...component,
+    }),
+  ).resolves.toMatchObject({ id: componentId });
+  expect(client.lastRpc).toMatchObject({
+    name: "update_venue_offer_component",
+    args: { target_expected_component_revision: 1 },
   });
+});
 
-  it("updates draft offer terms and transitions lifecycle", async () => {
-    const client = new FakeClient();
-    const adapter = new SupabaseVenueOfferAdapter(client);
-    await expect(
-      adapter.updateVenueOfferDraft({
-        projectId,
-        venueId,
-        offerId,
-        expectedRevision: 1,
-        terms,
-      }),
-    ).resolves.toMatchObject({ id: offerId });
-    expect(client.lastRpc).toMatchObject({
-      name: "update_venue_offer_draft",
-      args: { target_expected_revision: 1 },
-    });
-
-    client.rpcResult = {
-      data: { ...offerRow(), status: "quoted" },
-      error: null,
-    };
-    await expect(
-      adapter.transitionVenueOffer({
-        projectId,
-        venueId,
-        offerId,
-        targetStatus: "quoted",
-        expectedRevision: 1,
-      }),
-    ).resolves.toMatchObject({ status: "quoted" });
-    expect(client.lastRpc).toMatchObject({
-      name: "transition_venue_offer_status",
-      args: { target_status: "quoted" },
-    });
+it("removes draft components only after validating receipt", async () => {
+  const client = new FakeClient();
+  client.rpcResult = {
+    data: {
+      project_id: projectId,
+      offer_id: offerId,
+      component_id: componentId,
+      removed: true,
+    },
+    error: null,
+  };
+  const adapter = new SupabaseVenueOfferAdapter(client);
+  await expect(
+    adapter.removeVenueOfferComponent({
+      projectId,
+      offerId,
+      componentId,
+      expectedOfferRevision: 1,
+      expectedComponentRevision: 1,
+    }),
+  ).resolves.toBeUndefined();
+  expect(client.lastRpc).toMatchObject({
+    name: "remove_venue_offer_component",
   });
+});
 
-  it("creates and updates draft components", async () => {
-    const client = new FakeClient();
-    client.rpcResult = { data: componentRow(), error: null };
-    const adapter = new SupabaseVenueOfferAdapter(client);
-    await expect(
-      adapter.createVenueOfferComponent({
-        projectId,
-        offerId,
-        componentId,
-        expectedOfferRevision: 1,
-        ...component,
-      }),
-    ).resolves.toMatchObject({ id: componentId });
-    expect(client.lastRpc).toMatchObject({
-      name: "create_venue_offer_component",
-    });
+it("fails all mutation methods closed on provider errors or malformed data", async () => {
+  const client = new FakeClient();
+  const adapter = new SupabaseVenueOfferAdapter(client);
+  client.rpcResult = { data: null, error: { message: "backend" } };
+  await expect(
+    adapter.updateVenueOfferDraft({
+      projectId,
+      venueId,
+      offerId,
+      expectedRevision: 1,
+      terms,
+    }),
+  ).rejects.toThrow("Venue offer update failed.");
 
-    await expect(
-      adapter.updateVenueOfferComponent({
-        projectId,
-        offerId,
-        componentId,
-        expectedOfferRevision: 1,
-        expectedComponentRevision: 1,
-        ...component,
-      }),
-    ).resolves.toMatchObject({ id: componentId });
-    expect(client.lastRpc).toMatchObject({
-      name: "update_venue_offer_component",
-      args: { target_expected_component_revision: 1 },
-    });
-  });
+  client.rpcResult = {
+    data: { ...offerRow(), project_id: venueId },
+    error: null,
+  };
+  await expect(
+    adapter.transitionVenueOffer({
+      projectId,
+      venueId,
+      offerId,
+      targetStatus: "quoted",
+      expectedRevision: 1,
+    }),
+  ).rejects.toThrow("Invalid venue commercial response.");
 
-  it("removes draft components only after validating receipt", async () => {
-    const client = new FakeClient();
-    client.rpcResult = {
-      data: {
-        project_id: projectId,
-        offer_id: offerId,
-        component_id: componentId,
-        removed: true,
-      },
-      error: null,
-    };
-    const adapter = new SupabaseVenueOfferAdapter(client);
-    await expect(
-      adapter.removeVenueOfferComponent({
-        projectId,
-        offerId,
-        componentId,
-        expectedOfferRevision: 1,
-        expectedComponentRevision: 1,
-      }),
-    ).resolves.toBeUndefined();
-    expect(client.lastRpc).toMatchObject({
-      name: "remove_venue_offer_component",
-    });
-  });
+  client.rpcResult = {
+    data: { ...componentRow(), owner_type: "vendor_offer" },
+    error: null,
+  };
+  await expect(
+    adapter.createVenueOfferComponent({
+      projectId,
+      offerId,
+      componentId,
+      expectedOfferRevision: 1,
+      ...component,
+    }),
+  ).rejects.toThrow("Invalid venue commercial response.");
 
-  it("fails all mutation methods closed on provider errors or malformed data", async () => {
-    const client = new FakeClient();
-    const adapter = new SupabaseVenueOfferAdapter(client);
-    client.rpcResult = { data: null, error: { message: "backend" } };
-    await expect(
-      adapter.updateVenueOfferDraft({
-        projectId,
-        venueId,
-        offerId,
-        expectedRevision: 1,
-        terms,
-      }),
-    ).rejects.toThrow("Venue offer update failed.");
+  await expect(
+    adapter.updateVenueOfferComponent({
+      projectId,
+      offerId,
+      componentId,
+      expectedOfferRevision: 1,
+      expectedComponentRevision: 1,
+      ...component,
+    }),
+  ).rejects.toThrow("Invalid venue commercial response.");
 
-    client.rpcResult = {
-      data: { ...offerRow(), project_id: venueId },
-      error: null,
-    };
-    await expect(
-      adapter.transitionVenueOffer({
-        projectId,
-        venueId,
-        offerId,
-        targetStatus: "quoted",
-        expectedRevision: 1,
-      }),
-    ).rejects.toThrow("Invalid venue commercial response.");
-
-    client.rpcResult = {
-      data: { ...componentRow(), owner_type: "vendor_offer" },
-      error: null,
-    };
-    await expect(
-      adapter.createVenueOfferComponent({
-        projectId,
-        offerId,
-        componentId,
-        expectedOfferRevision: 1,
-        ...component,
-      }),
-    ).rejects.toThrow("Invalid venue commercial response.");
-
-    await expect(
-      adapter.updateVenueOfferComponent({
-        projectId,
-        offerId,
-        componentId,
-        expectedOfferRevision: 1,
-        expectedComponentRevision: 1,
-        ...component,
-      }),
-    ).rejects.toThrow("Invalid venue commercial response.");
-
-    client.rpcResult = { data: { removed: false }, error: null };
-    await expect(
-      adapter.removeVenueOfferComponent({
-        projectId,
-        offerId,
-        componentId,
-        expectedOfferRevision: 1,
-        expectedComponentRevision: 1,
-      }),
-    ).rejects.toThrow("Invalid venue commercial response.");
-  });
+  client.rpcResult = { data: { removed: false }, error: null };
+  await expect(
+    adapter.removeVenueOfferComponent({
+      projectId,
+      offerId,
+      componentId,
+      expectedOfferRevision: 1,
+      expectedComponentRevision: 1,
+    }),
+  ).rejects.toThrow("Invalid venue commercial response.");
 });

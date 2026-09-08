@@ -70,6 +70,32 @@ export type VenueOfferComponentNormalization =
   | { readonly ok: true; readonly value: NormalizedVenueOfferComponent }
   | { readonly ok: false; readonly error: VenueOfferComponentError };
 
+type ComponentFieldResult<T> =
+  | { readonly ok: true; readonly value: T }
+  | { readonly ok: false; readonly error: VenueOfferComponentError };
+
+interface ComponentIdentityFields {
+  readonly label: string;
+  readonly componentType: VenueOfferComponentType;
+  readonly calculationType: VenueOfferCalculationType;
+}
+
+interface ComponentAmountFields {
+  readonly unitAmountMinor: number | null;
+  readonly quantity: number | null;
+}
+
+interface ComponentTaxFields {
+  readonly currency: string;
+  readonly taxMode: VenueOfferTaxMode;
+  readonly taxRateBasisPoints: number | null;
+}
+
+interface ComponentTextFields {
+  readonly unitLabel: string | null;
+  readonly notes: string | null;
+}
+
 export function isVenueOfferComponentType(
   value: unknown,
 ): value is VenueOfferComponentType {
@@ -88,9 +114,9 @@ export function isVenueOfferCalculationType(
   );
 }
 
-export function normalizeVenueOfferComponent(
+function normalizeIdentityFields(
   draft: VenueOfferComponentDraft,
-): VenueOfferComponentNormalization {
+): ComponentFieldResult<ComponentIdentityFields> {
   const label = normalizeCommercialRequiredText(draft.label, 240);
   if (label === null) {
     return { ok: false, error: "label_required_or_too_long" };
@@ -101,6 +127,19 @@ export function normalizeVenueOfferComponent(
   if (!isVenueOfferCalculationType(draft.calculationType)) {
     return { ok: false, error: "calculation_type_invalid" };
   }
+  return {
+    ok: true,
+    value: {
+      label,
+      componentType: draft.componentType,
+      calculationType: draft.calculationType,
+    },
+  };
+}
+
+function normalizeAmountFields(
+  draft: VenueOfferComponentDraft,
+): ComponentFieldResult<ComponentAmountFields> {
   const unitAmountMinor = draft.unitAmountMinor ?? null;
   if (unitAmountMinor !== null && !isCommercialMoney(unitAmountMinor)) {
     return { ok: false, error: "unit_amount_invalid" };
@@ -109,10 +148,12 @@ export function normalizeVenueOfferComponent(
   if (quantity !== null && !isCommercialQuantity(quantity)) {
     return { ok: false, error: "quantity_invalid" };
   }
-  const unitLabel = normalizeCommercialOptionalText(draft.unitLabel, 80);
-  if (unitLabel === undefined) {
-    return { ok: false, error: "unit_label_too_long" };
-  }
+  return { ok: true, value: { unitAmountMinor, quantity } };
+}
+
+function normalizeTaxFields(
+  draft: VenueOfferComponentDraft,
+): ComponentFieldResult<ComponentTaxFields> {
   const currency = draft.currency ?? "EUR";
   if (!isCommercialCurrency(currency)) {
     return { ok: false, error: "currency_invalid" };
@@ -128,21 +169,39 @@ export function normalizeVenueOfferComponent(
   ) {
     return { ok: false, error: "tax_rate_invalid" };
   }
+  return { ok: true, value: { currency, taxMode, taxRateBasisPoints } };
+}
+
+function normalizeTextFields(
+  draft: VenueOfferComponentDraft,
+): ComponentFieldResult<ComponentTextFields> {
+  const unitLabel = normalizeCommercialOptionalText(draft.unitLabel, 80);
+  if (unitLabel === undefined) {
+    return { ok: false, error: "unit_label_too_long" };
+  }
   const notes = normalizeCommercialOptionalText(draft.notes, 5_000);
   if (notes === undefined) return { ok: false, error: "notes_too_long" };
+  return { ok: true, value: { unitLabel, notes } };
+}
+
+export function normalizeVenueOfferComponent(
+  draft: VenueOfferComponentDraft,
+): VenueOfferComponentNormalization {
+  const identity = normalizeIdentityFields(draft);
+  if (!identity.ok) return identity;
+  const amounts = normalizeAmountFields(draft);
+  if (!amounts.ok) return amounts;
+  const tax = normalizeTaxFields(draft);
+  if (!tax.ok) return tax;
+  const text = normalizeTextFields(draft);
+  if (!text.ok) return text;
   return {
     ok: true,
     value: {
-      label,
-      componentType: draft.componentType,
-      calculationType: draft.calculationType,
-      unitAmountMinor,
-      quantity,
-      unitLabel,
-      currency,
-      taxMode,
-      taxRateBasisPoints,
-      notes,
+      ...identity.value,
+      ...amounts.value,
+      ...text.value,
+      ...tax.value,
     },
   };
 }

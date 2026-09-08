@@ -106,6 +106,19 @@ export type VenueOfferNormalization<T> =
   | { readonly ok: true; readonly value: T }
   | { readonly ok: false; readonly error: VenueOfferError };
 
+type OfferFieldResult<T> = VenueOfferNormalization<T>;
+
+interface OfferTextMetadata {
+  readonly name: string;
+  readonly sourceId: string | null;
+  readonly notes: string | null;
+}
+
+interface OfferTaxMetadata {
+  readonly currency: string;
+  readonly taxMode: VenueOfferTaxMode;
+}
+
 function isVenueOfferCreationStatus(
   value: string,
 ): value is VenueOfferCreationStatus {
@@ -170,9 +183,7 @@ function nullableTime(
 
 function validateDates(
   draft: VenueOfferTermsDraft,
-): VenueOfferNormalization<
-  Pick<NormalizedVenueOfferTerms, "validFrom" | "validTo">
-> {
+): OfferFieldResult<Pick<NormalizedVenueOfferTerms, "validFrom" | "validTo">> {
   const validFrom = nullableCivilDate(draft.validFrom);
   const validTo = nullableCivilDate(draft.validTo);
   if (validFrom === undefined || validTo === undefined) {
@@ -184,9 +195,18 @@ function validateDates(
   return { ok: true, value: { validFrom, validTo } };
 }
 
+function allOptionalNumbersValid(
+  values: readonly (number | null | undefined)[],
+  validator: (candidate: unknown) => boolean,
+): boolean {
+  return values.every(
+    (value) => value === null || value === undefined || validator(value),
+  );
+}
+
 function validateMoneyAndCounts(
   draft: VenueOfferTermsDraft,
-): VenueOfferNormalization<
+): OfferFieldResult<
   Pick<
     NormalizedVenueOfferTerms,
     | "weekday"
@@ -209,12 +229,7 @@ function validateMoneyAndCounts(
     draft.securityDepositMinor,
     draft.extraHourAmountMinor,
   ] as const;
-  if (
-    amounts.some(
-      (value) =>
-        value !== null && value !== undefined && !isCommercialMoney(value),
-    )
-  ) {
+  if (!allOptionalNumbersValid(amounts, isCommercialMoney)) {
     return { ok: false, error: "money_invalid" };
   }
 
@@ -251,7 +266,7 @@ function validateMoneyAndCounts(
 
 function validateTimes(
   draft: VenueOfferTermsDraft,
-): VenueOfferNormalization<
+): OfferFieldResult<
   Pick<
     NormalizedVenueOfferTerms,
     "includedStartTime" | "includedEndTime" | "includedEndDayOffset"
@@ -272,19 +287,25 @@ function validateTimes(
   };
 }
 
-export function normalizeVenueOfferTerms(
+function validateTextMetadata(
   draft: VenueOfferTermsDraft,
-): VenueOfferNormalization<NormalizedVenueOfferTerms> {
+): OfferFieldResult<OfferTextMetadata> {
   const name = normalizeCommercialRequiredText(draft.name, 240);
   if (name === null) {
     return { ok: false, error: "name_required_or_too_long" };
   }
+  const sourceId = draft.sourceId ?? null;
+  if (sourceId !== null && !isVenueCommercialUuid(sourceId)) {
+    return { ok: false, error: "source_id_invalid" };
+  }
+  const notes = normalizeCommercialOptionalText(draft.notes, 5_000);
+  if (notes === undefined) return { ok: false, error: "notes_too_long" };
+  return { ok: true, value: { name, sourceId, notes } };
+}
 
-  const dates = validateDates(draft);
-  if (!dates.ok) return dates;
-  const commercial = validateMoneyAndCounts(draft);
-  if (!commercial.ok) return commercial;
-
+function validateTaxMetadata(
+  draft: VenueOfferTermsDraft,
+): OfferFieldResult<OfferTaxMetadata> {
   const currency = draft.currency ?? "EUR";
   if (!isCommercialCurrency(currency)) {
     return { ok: false, error: "currency_invalid" };
@@ -293,30 +314,33 @@ export function normalizeVenueOfferTerms(
   if (!isVenueOfferTaxMode(taxMode)) {
     return { ok: false, error: "tax_mode_invalid" };
   }
+  return { ok: true, value: { currency, taxMode } };
+}
 
+export function normalizeVenueOfferTerms(
+  draft: VenueOfferTermsDraft,
+): VenueOfferNormalization<NormalizedVenueOfferTerms> {
+  const text = validateTextMetadata(draft);
+  if (!text.ok) return text;
+  const dates = validateDates(draft);
+  if (!dates.ok) return dates;
+  const commercial = validateMoneyAndCounts(draft);
+  if (!commercial.ok) return commercial;
+  const tax = validateTaxMetadata(draft);
+  if (!tax.ok) return tax;
   const times = validateTimes(draft);
   if (!times.ok) return times;
-
-  const sourceId = draft.sourceId ?? null;
-  if (sourceId !== null && !isVenueCommercialUuid(sourceId)) {
-    return { ok: false, error: "source_id_invalid" };
-  }
-  const notes = normalizeCommercialOptionalText(draft.notes, 5_000);
-  if (notes === undefined) return { ok: false, error: "notes_too_long" };
 
   return {
     ok: true,
     value: {
-      name,
+      ...text.value,
       ...dates.value,
       ...commercial.value,
-      currency,
-      taxMode,
+      ...tax.value,
       depositRefundable: draft.depositRefundable ?? null,
       securityDepositRefundable: draft.securityDepositRefundable ?? null,
       ...times.value,
-      sourceId,
-      notes,
     },
   };
 }
