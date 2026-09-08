@@ -117,11 +117,12 @@ Implementation remained restricted to WP-2.6B-owned domain/application/adapter/p
 
 **REVIEW FAILED — REMEDIATION IN PROGRESS.**
 
-Fresh independent review started from exact Pass-A head `1c1dd4db875e5253fc9affdcf498991c4c6a5f64` / run `34253821826`. Three MAJOR findings were reproduced red-first on test-only head `4d4ba74be7810bf28a8887a5e2a2d09b04bf18c6`, run `34257531367`:
+Fresh independent review started from exact Pass-A head `1c1dd4db875e5253fc9affdcf498991c4c6a5f64` / run `34253821826`. Three initial MAJOR findings were reproduced red-first on test-only head `4d4ba74be7810bf28a8887a5e2a2d09b04bf18c6`, run `34257531367`:
 
 - `WP2.6B-B-001` — provider `timestamptz` parsing required textual `.000Z` identity instead of accepting and canonicalizing the frozen strict instant grammar. Core red control: 1/1020 unit tests failed exactly on strict PostgreSQL offset/microsecond provider representations.
 - `WP2.6B-B-002` — date-option/event-date equality was checked only when availability was appended. A referenced `candidate` wedding date could later move, leaving immutable history inconsistent. DB red control: update returned `00000` where durable integrity requires `23503`.
 - `WP2.6B-B-003` — a foreign-project UUID collision surfaced `23505` and therefore a typed same-project `replay_conflict`. This violates the cross-project non-disclosure boundary / `AUTHZ-019`. DB red control: `23505` observed where the foreign identity must remain unavailable (`42501`).
+- `WP2.6B-B-004` — availability append authorization evaluated live `venues.write` without first taking the project serialization lock used by accepted membership-revocation/downgrade boundaries. Test-only red-first head `12ea6aca2341b9a9006a036df706dc8b8388af42`, run `34258715277`: DB/RLS failed exactly the 1/1 authorization-concurrency contract test, while the pre-existing availability adversarial and functional DB tests remained green.
 
 Remediation is restricted to these findings. Pass B cannot pass until the remediation is green on an exact head and a fresh adversarial rereview finds no BLOCKING/MAJOR issue.
 
@@ -137,5 +138,5 @@ Not started.
 - Last green specification verification: `9f5c8af30c58c146d89b1464cad96cb8e43dbc7b` / `34239745903` — **5/5 SUCCESS**
 - WP-2.6B READY/governance verification: `1ff69cd2e599a72a6cf703a658b836b2b3431619` / `34242853512` — **5/5 SUCCESS**
 - WP-2.6B Pass-A verification: `1c1dd4db875e5253fc9affdcf498991c4c6a5f64` / `34253821826` — **5/5 SUCCESS**
-- Open Pass-B findings: `WP2.6B-B-001`, `WP2.6B-B-002`, `WP2.6B-B-003` — MAJOR — remediation pending exact-head verification
+- Open Pass-B findings: `WP2.6B-B-001`, `WP2.6B-B-002`, `WP2.6B-B-003`, `WP2.6B-B-004` — MAJOR — remediation pending exact-head verification
 - Next permitted action: verify the exact WP-2.6B remediation head, then perform a fresh Pass B adversarial rereview. Do not start WP-2.6C or WP-2.7 concurrently.

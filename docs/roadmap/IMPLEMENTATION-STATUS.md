@@ -167,7 +167,8 @@ Final acceptance-governance head/run: `186933ed0af8c45ddaa1b5c883bfd3f70086c6fe`
 - Local Supabase DB/RLS, Browser E2E + mutation, privacy-safe preview and Full verify all **SUCCESS** on the same head;
 - Pass A decision: **COMPLETE / VERIFIED**; fresh Pass B adversarial review is now in progress from that exact implementation head;
 - Pass-B red-first head/run `4d4ba74be7810bf28a8887a5e2a2d09b04bf18c6` / `34257531367`: expected Core and DB failures reproduced `WP2.6B-B-001..003`;
-- open WP-2.6B BLOCKING/MAJOR findings: `WP2.6B-B-001`, `WP2.6B-B-002`, `WP2.6B-B-003` — **MAJOR / remediation pending exact-head verification**;
+- authorization-serialization red-first head/run `12ea6aca2341b9a9006a036df706dc8b8388af42` / `34258715277`: expected DB failure reproduced `WP2.6B-B-004` while the existing availability DB suites remained green;
+- open WP-2.6B BLOCKING/MAJOR findings: `WP2.6B-B-001`, `WP2.6B-B-002`, `WP2.6B-B-003`, `WP2.6B-B-004` — **MAJOR / remediation pending exact-head verification**;
 - WP-2.6C and WP-2.7 remain blocked while B is current.
 
 ## Durable cursor
@@ -188,7 +189,7 @@ WP-2.6A final acceptance-governance head/run: 186933ed0af8c45ddaa1b5c883bfd3f700
 WP-2.6B deterministic availability spec head/run: 9f5c8af30c58c146d89b1464cad96cb8e43dbc7b / 34239745903 — 5/5 SUCCESS
 WP-2.6B READY/governance head/run: 1ff69cd2e599a72a6cf703a658b836b2b3431619 / 34242853512 — 5/5 SUCCESS
 WP-2.6B Pass-A head/run: 1c1dd4db875e5253fc9affdcf498991c4c6a5f64 / 34253821826 — 5/5 SUCCESS
-Open WP-2.6B BLOCKING/MAJOR findings: WP2.6B-B-001, WP2.6B-B-002, WP2.6B-B-003 — MAJOR
+Open WP-2.6B BLOCKING/MAJOR findings: WP2.6B-B-001, WP2.6B-B-002, WP2.6B-B-003, WP2.6B-B-004 — MAJOR
 Next permitted action: verify the exact WP-2.6B remediation head, then perform a fresh Pass B adversarial rereview. Do not start WP-2.6C or WP-2.7 concurrently.
 ```
 
