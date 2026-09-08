@@ -35,7 +35,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.4 | observations, sources, evidence/confidence/freshness, conflicts | **ACCEPTED** |
 | WP-2.5 | deterministic criteria, blockers, score/readiness, missing information | **ACCEPTED** |
 | WP-2.6A | Venue offers and offer components | **ACCEPTED** |
-| WP-2.6B | Venue availability observations | PLANNED |
+| WP-2.6B | Venue availability observations | **READY — PLAN** |
 | WP-2.6C | Venue contacts and interactions | PLANNED |
 | WP-2.7 | contextual venue access-route observations | PLANNED |
 | WP-2.8 | venue media/photo foundation and media safety | PLANNED |
@@ -51,7 +51,7 @@ Accepted packet evidence:
 - WP-2.3 ACCEPTED; `WP2.3-B-001..008` resolved; final reviewed head `2e3194f7109eb30eee4e73ace7ecbdd329fd321c`, CI `34068703691` 5/5.
 - WP-2.4 ACCEPTED; `WP2.4-B-001..008` resolved/verified; final fresh reviewed head `93262f9459e720d97a6dfa3a83f84f02f3a02c7c`, CI `34137822804` 5/5; Pass C responsibility gap **∅**.
 - WP-2.5 ACCEPTED; `WP2.5-B-001..004` resolved/verified; final fresh reviewed head `65410a3dc032208644911f29e79b70bd49e89277`, CI `34165826166` 5/5; Pass-C entry `931bac6a7145bc31a4bce24d4ea5cff354753ed4` / `34166488903` 5/5; final acceptance governance head `902ac6f56b84fed56da0113efc610617943e9449`, CI `34167062632` SUCCESS; responsibility gap **∅**.
-- WP-2.6A ACCEPTED; `WP2.6A-B-001..006` resolved/verified; final fresh reviewed head `c7339227126e0df6969809644b5d0eb2512d350c`, CI `34233201350` 5/5; Pass-C entry `d348abdb42a2ca8319fb6711c08551cfb3bcfbae` / `34235598936` 5/5; responsibility gap **∅**.
+- WP-2.6A ACCEPTED; `WP2.6A-B-001..006` resolved/verified; final fresh reviewed head `c7339227126e0df6969809644b5d0eb2512d350c`, CI `34233201350` 5/5; Pass-C entry `d348abdb42a2ca8319fb6711c08551cfb3bcfbae` / `34235598936` 5/5; final acceptance-governance head `186933ed0af8c45ddaa1b5c883bfd3f70086c6fe` / `34238484533` 5/5; responsibility gap **∅**.
 
 ## WP-2.4 — accepted packet closure
 
@@ -113,6 +113,7 @@ Specification gates:
 
 - base Venue-commercial workflow semantics frozen through `cf46c731bd45b77feaa514b22036096301280755`, exact CI `34170253114` — **5/5 SUCCESS**;
 - canonical phone/WhatsApp and append-replay boundaries frozen by `docs/domain/VENUE-COMMERCIAL-WORKFLOW-BOUNDARY-ADDENDUM.md`, commit `6dce81a49ccdbb7bc9da54b2491a0c8746e12e50`, exact CI `34171320200` — **5/5 SUCCESS**;
+- deterministic WP-2.6B latest/effective availability semantics frozen by `9f5c8af30c58c146d89b1464cad96cb8e43dbc7b`, exact CI `34239745903` — **5/5 SUCCESS**, including clean-checkout `npm run verify`;
 - split/governance implementation-entry head `c99c4ac091bc21cb55a9b634710a3b7d694a7285`, exact CI `34171995654` — **5/5 SUCCESS**, including clean-checkout `npm run verify`.
 
 The original single WP-2.6 packet was rejected at sizing review before production code. Five new tables plus migration/RLS and multiple command surfaces exceeded the normative `>10` split threshold in `AI-LOT-ORCHESTRATION.md`, and no cross-domain atomicity/safety reason justified a mega-packet.
@@ -120,7 +121,7 @@ The original single WP-2.6 packet was rejected at sizing review before productio
 Implementation-only decomposition, with product scope unchanged:
 
 - `WP-2.6A` — Venue offers + Venue-owned offer components — **ACCEPTED / COMPLETE**, estimated 10 points with explicit offer/component lifecycle cohesion rationale;
-- `WP-2.6B` — append-oriented Venue availability observations — **PLANNED / PLAN**, estimated 9 points with evidence-history/replay cohesion rationale;
+- `WP-2.6B` — append-oriented Venue availability observations — **READY / PLAN**, estimated 9 points with evidence-history/replay cohesion rationale;
 - `WP-2.6C` — Venue contacts + interactions — **PLANNED / PLAN**, estimated 10 points with same-Venue contact/interaction parent-integrity cohesion rationale. If actual privileged command count raises C above 10, split contacts/interactions before code.
 
 Required original WP-2.6 responsibilities minus assigned A/B/C responsibilities: **∅**. WP-2.6A-owned responsibility is accepted/evidenced with gap **∅**; the original parent responsibility remains incomplete until B/C are accepted.
@@ -154,27 +155,34 @@ Required original WP-2.6 responsibilities minus assigned A/B/C responsibilities:
 - deferred ownership remains explicit: availability/VEN-009 → WP-2.6B; contacts/interactions → WP-2.6C; Budget/Vendor/Documents/offline/UI remain later packets/lots;
 - Pass C decision: **PASS — WP-2.6A ACCEPTED**.
 
+Final acceptance-governance head/run: `186933ed0af8c45ddaa1b5c883bfd3f70086c6fe` / `34238484533` — **5/5 SUCCESS**.
+
+### WP-2.6B readiness
+
+- dependency gate: WP-2.6A final acceptance-governance `186933ed0af8c45ddaa1b5c883bfd3f70086c6fe` / `34238484533` — **5/5 SUCCESS**;
+- deterministic availability read-model repair `9f5c8af30c58c146d89b1464cad96cb8e43dbc7b` / `34239745903` — **5/5 SUCCESS**;
+- activation revalidation found no WP-2.6A shared-interface incompatibility and sizing remains 9 points;
+- no unresolved material specification blocker remains;
+- WP-2.6C and WP-2.7 remain blocked while B is current.
+
 ## Durable cursor
 
 ```text
 Current Lot: 2 — Venues core
 Lot State: IN_PROGRESS
 Branch: lot-2/venues-core
-Current Packet: WP-2.6A
-Packet State: ACCEPTED
-Current Pass: COMPLETE
+Current Packet: WP-2.6B
+Packet State: READY
+Current Pass: PLAN
 Last completed packet: WP-2.6A — ACCEPTED
 Accepted packets: WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5, WP-2.6A
-Planned commercial subpackets: WP-2.6B, WP-2.6C
+Planned commercial subpacket after current: WP-2.6C
 WP-2.6 base freeze head/run: cf46c731bd45b77feaa514b22036096301280755 / 34170253114 — 5/5 SUCCESS
 WP-2.6 boundary freeze head/run: 6dce81a49ccdbb7bc9da54b2491a0c8746e12e50 / 34171320200 — 5/5 SUCCESS
-WP-2.6A implementation-entry head/run: c99c4ac091bc21cb55a9b634710a3b7d694a7285 / 34171995654 — 5/5 SUCCESS
-WP-2.6A verified Pass-A implementation head/run: e027bbbba93d73546ed19fffac7c26471f45ecb5 / 34223226316 — 5/5 SUCCESS
-WP-2.6A final fresh Pass-B reviewed head/run: c7339227126e0df6969809644b5d0eb2512d350c / 34233201350 — 5/5 SUCCESS
-WP-2.6A Pass-C entry head/run: d348abdb42a2ca8319fb6711c08551cfb3bcfbae / 34235598936 — 5/5 SUCCESS
-WP-2.6A Pass-B findings: WP2.6A-B-001..006 — RESOLVED / VERIFIED
-Open WP-2.6A BLOCKING/MAJOR findings: ∅
-Next permitted action: verify the exact WP-2.6A acceptance-governance HEAD, then activate/revalidate WP-2.6B. Do not start WP-2.6C or WP-2.7 concurrently.
+WP-2.6A final acceptance-governance head/run: 186933ed0af8c45ddaa1b5c883bfd3f70086c6fe / 34238484533 — 5/5 SUCCESS
+WP-2.6B deterministic availability spec head/run: 9f5c8af30c58c146d89b1464cad96cb8e43dbc7b / 34239745903 — 5/5 SUCCESS
+Open WP-2.6B BLOCKING/MAJOR findings: ∅
+Next permitted action: verify the exact WP-2.6B READY/governance HEAD, then transition WP-2.6B only to IN_PROGRESS / A-IMPLEMENT. Do not start WP-2.6C or WP-2.7 concurrently.
 ```
 
 ## Known localized specification repairs / stop-conditions
@@ -186,8 +194,9 @@ Next permitted action: verify the exact WP-2.6A acceptance-governance HEAD, then
 - WP-2.5 `WP2.5-B-001..B-004`: **RESOLVED / VERIFIED**; final fresh Pass B PASS and Pass C PASS.
 - WP-2.6 commercial workflow semantics: **CLOSED** through `cf46c731...` / CI `34170253114`.
 - WP-2.6 canonical phone/WhatsApp and append retry semantics: **CLOSED** by `6dce81a4...` / CI `34171320200`.
+- WP-2.6B deterministic availability selection/effective-expiry semantics: **CLOSED** by `9f5c8af...` / CI `34239745903` — **5/5 SUCCESS**.
 - WP-2.6A NULL creation-status fail-closed boundary: **RESOLVED / VERIFIED** on `e027bbbb...` / CI `34223226316` after red-first control `0149f0b1...` / `34222772124`.
-- WP-2.6A `WP2.6A-B-001..B-006`: **RESOLVED / VERIFIED**; final fresh Pass B reviewed head `c7339227...` / CI `34233201350` — **5/5 SUCCESS**; Pass C **PASS** on `d348abdb...` / `34235598936`.
+- WP-2.6A `WP2.6A-B-001..B-006`: **RESOLVED / VERIFIED**; final fresh Pass B reviewed head `c7339227...` / CI `34233201350` — **5/5 SUCCESS**; Pass C **PASS** on `d348abdb...` / `34235598936`; acceptance governance `186933ed...` / `34238484533` — **5/5 SUCCESS**.
 - Before WP-2.8 relies on the security reading graph, repair the missing `docs/security/STORAGE-RLS.md` reference using already frozen/tested Storage authorization semantics.
 - Venue lifecycle documentation conflict from WP-2.1 is closed by `docs/domain/STATE-MACHINES-VENUE-LIFECYCLE-ADDENDUM.md`.
 
@@ -228,13 +237,10 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted Lot-2 packets: WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5, WP-2.6A
 Last completed packet: WP-2.6A — ACCEPTED / COMPLETE
-Current packet: WP-2.6A — ACCEPTED / COMPLETE
-Planned next commercial packets: WP-2.6B, WP-2.6C
-WP-2.6 specification gates: cf46c731... / 34170253114 and 6dce81a4... / 34171320200 — both 5/5 SUCCESS
-WP-2.6A implementation-entry gate: c99c4ac... / 34171995654 — 5/5 SUCCESS
-WP-2.6A verified Pass-A implementation: e027bbbb... / 34223226316 — 5/5 SUCCESS
-WP-2.6A final fresh Pass-B review: c7339227... / 34233201350 — 5/5 SUCCESS; findings B-001..B-006 resolved/verified
-WP-2.6A Pass-C entry: d348abdb... / 34235598936 — 5/5 SUCCESS; responsibility gap ∅; Pass C PASS
-Next permitted action: verify the exact WP-2.6A acceptance-governance HEAD, then activate/revalidate WP-2.6B. WP-2.6C and WP-2.7 remain prohibited concurrently.
+Current packet: WP-2.6B — READY / PLAN
+Next commercial packet: WP-2.6C — PLANNED / PLAN
+WP-2.6 specification gates: cf46c731... / 34170253114, 6dce81a4... / 34171320200 and 9f5c8af... / 34239745903 — all 5/5 SUCCESS
+WP-2.6A acceptance governance: 186933ed... / 34238484533 — 5/5 SUCCESS
+Next permitted action: verify the exact WP-2.6B READY/governance HEAD, then transition WP-2.6B only to IN_PROGRESS / A-IMPLEMENT. WP-2.6C and WP-2.7 remain prohibited concurrently.
 Lots 3–12: NOT_STARTED
 ```

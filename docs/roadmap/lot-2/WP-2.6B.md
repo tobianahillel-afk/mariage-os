@@ -5,7 +5,7 @@
 - Work Packet ID: `WP-2.6B`
 - Lot: `2`
 - Name: Venue availability observations
-- State: `PLANNED`
+- State: `READY`
 - Current pass: `PLAN`
 - Primary bounded context: Venue availability evidence
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
@@ -45,6 +45,7 @@
 ## Dependency / sequencing
 
 - Required prior packets/features: WP-2.1 **ACCEPTED**; Lot-1 wedding-date/date-option foundation; `WP-2.6A ACCEPTED` under default sequential execution.
+- WP-2.6A final acceptance-governance head/run: `186933ed0af8c45ddaa1b5c883bfd3f70086c6fe` / `34238484533` — **5/5 SUCCESS**, including clean-checkout `npm run verify`.
 - Downstream packets blocked by this packet: `WP-2.6C`; WP-2.7 until all WP-2.6 subpackets are accepted.
 - Shared interfaces/contracts relied on: both Venue commercial workflow addenda, strict Lot-2 instant contract, repository/service contracts, RLS matrix and input validation.
 
@@ -52,7 +53,9 @@
 
 - Core commercial workflow freeze through `cf46c731bd45b77feaa514b22036096301280755`; CI `34170253114`: **5/5 SUCCESS**.
 - Stable append replay semantics frozen by `6dce81a49ccdbb7bc9da54b2491a0c8746e12e50`; CI `34171320200`: **5/5 SUCCESS**.
-- No unresolved material specification blocker is known. Revalidate at packet activation in case A introduces a shared-interface change.
+- Deterministic availability selection/expiry semantics frozen by `9f5c8af30c58c146d89b1464cad96cb8e43dbc7b`; CI `34239745903`: **5/5 SUCCESS**, including clean-checkout `npm run verify`.
+- Canonical latest ordering is `observed_at DESC`, `created_at DESC`, `id ASC`; elapsed `option_held` derives effective `expired` without rewriting history; no observation remains distinct from explicit stored `unknown`.
+- Revalidation after WP-2.6A found no shared-interface incompatibility and no unresolved material specification blocker.
 
 ## Sizing review
 
@@ -76,11 +79,13 @@
 
 The table, append command, same-ID replay semantics, strict timestamp validation, RLS and latest/relevant read model are one evidence-history vertical slice. Splitting the append command from its immutable persistence/retry/read boundary would make independent review weaker rather than easier.
 
+Activation revalidation confirms the packet remains **9 points**. WP-2.6A introduced no additional B-owned command/schema boundary and no split is required.
+
 ## Expected vertical slice
 
 - UI/route: none.
 - application command/query/service: append/replay availability observation and list/read relevant history.
-- domain rules/invariants: status/date/expiry/source semantics and replay equality.
+- domain rules/invariants: status/date/expiry/source semantics and replay equality; deterministic latest/effective read model.
 - ports/interfaces: availability command/query port.
 - infrastructure adapters: Supabase adapter with fail-closed provider parsing.
 - cloud persistence/RLS: `venue_availabilities`, immutable rows, atomic replay command, project isolation.
@@ -90,7 +95,7 @@ The table, append command, same-ID replay semantics, strict timestamp validation
 
 ## Pass A — IMPLEMENT
 
-Not started.
+Not started. Entry requires exact full CI success on the WP-2.6B READY/governance head, followed by the durable `READY → IN_PROGRESS / A-IMPLEMENT` transition for WP-2.6B only.
 
 ## Pass B — ADVERSARIAL REVIEW
 
@@ -102,8 +107,9 @@ Not started.
 
 ## Handoff
 
-- Current state: `PLANNED`
+- Current state: `READY`
 - Current/next pass: `PLAN`
-- Last green specification verification: `6dce81a49ccdbb7bc9da54b2491a0c8746e12e50` / `34171320200` — **5/5 SUCCESS**
-- Remaining blocker/finding: sequencing only; WP-2.6A must be accepted first by default
-- Next permitted action: none while WP-2.6A is current. Revalidate contracts/sizing when activated.
+- WP-2.6A acceptance-governance verification: `186933ed0af8c45ddaa1b5c883bfd3f70086c6fe` / `34238484533` — **5/5 SUCCESS**
+- Last green specification verification: `9f5c8af30c58c146d89b1464cad96cb8e43dbc7b` / `34239745903` — **5/5 SUCCESS**
+- Remaining blocker/finding: none; readiness-governance CI is the only gate before implementation activation
+- Next permitted action: verify the exact WP-2.6B READY/governance HEAD, then transition WP-2.6B only to `IN_PROGRESS / A-IMPLEMENT`. Do not start WP-2.6C or WP-2.7 concurrently.
