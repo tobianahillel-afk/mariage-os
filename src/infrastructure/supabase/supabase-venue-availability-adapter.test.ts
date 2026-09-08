@@ -1,6 +1,5 @@
 import { expect, it } from "vitest";
 import type { NormalizedAppendVenueAvailabilityInput } from "@application/venues/venue-availability-service";
-import { VenueAvailabilityPersistenceError } from "@application/venues/venue-availability-persistence-error";
 import {
   SupabaseVenueAvailabilityAdapter,
   type SupabaseVenueAvailabilityClientLike,
@@ -108,13 +107,13 @@ it("maps unique replay conflicts and generic RPC failures", async () => {
   const adapter = new SupabaseVenueAvailabilityAdapter(client);
 
   client.rpcResult = { data: null, error: { code: "23505" } };
-  await expect(adapter.appendVenueAvailability(command)).rejects.toMatchObject<VenueAvailabilityPersistenceError>({ code: "conflict" });
+  await expect(adapter.appendVenueAvailability(command)).rejects.toMatchObject({ code: "conflict" });
 
   client.rpcResult = { data: null, error: { code: 23505 } };
-  await expect(adapter.appendVenueAvailability(command)).rejects.toMatchObject<VenueAvailabilityPersistenceError>({ code: "persistence_failed" });
+  await expect(adapter.appendVenueAvailability(command)).rejects.toMatchObject({ code: "persistence_failed" });
 
   client.rpcResult = { data: null, error: "down" };
-  await expect(adapter.appendVenueAvailability(command)).rejects.toMatchObject<VenueAvailabilityPersistenceError>({ code: "persistence_failed" });
+  await expect(adapter.appendVenueAvailability(command)).rejects.toMatchObject({ code: "persistence_failed" });
 });
 
 it("fails closed on malformed or substituted append receipts", async () => {
@@ -122,7 +121,7 @@ it("fails closed on malformed or substituted append receipts", async () => {
   const adapter = new SupabaseVenueAvailabilityAdapter(client);
 
   client.rpcResult = { data: { nope: true }, error: null };
-  await expect(adapter.appendVenueAvailability(command)).rejects.toMatchObject<VenueAvailabilityPersistenceError>({ code: "provider_response_invalid" });
+  await expect(adapter.appendVenueAvailability(command)).rejects.toMatchObject({ code: "provider_response_invalid" });
 
   for (const overrides of [
     { id: "55555555-5555-4555-8555-555555555555" },
@@ -133,7 +132,7 @@ it("fails closed on malformed or substituted append receipts", async () => {
     { notes: "different" },
   ]) {
     client.rpcResult = { data: row(overrides), error: null };
-    await expect(adapter.appendVenueAvailability(command)).rejects.toMatchObject<VenueAvailabilityPersistenceError>({ code: "provider_response_invalid" });
+    await expect(adapter.appendVenueAvailability(command)).rejects.toMatchObject({ code: "provider_response_invalid" });
   }
 });
 
@@ -155,7 +154,7 @@ it("lists, validates, de-duplicates and deterministically sorts history", async 
   ]);
 
   client.queryResult = { data: [row(), row()], error: null };
-  await expect(adapter.listVenueAvailabilityHistory(projectId, venueId)).rejects.toMatchObject<VenueAvailabilityPersistenceError>({ code: "provider_response_invalid" });
+  await expect(adapter.listVenueAvailabilityHistory(projectId, venueId)).rejects.toMatchObject({ code: "provider_response_invalid" });
 });
 
 it("fails closed on query transport, shape and row errors", async () => {
@@ -163,11 +162,11 @@ it("fails closed on query transport, shape and row errors", async () => {
   const adapter = new SupabaseVenueAvailabilityAdapter(client);
 
   client.queryResult = { data: [], error: { code: "500" } };
-  await expect(adapter.listVenueAvailabilityHistory(projectId, venueId)).rejects.toMatchObject<VenueAvailabilityPersistenceError>({ code: "persistence_failed" });
+  await expect(adapter.listVenueAvailabilityHistory(projectId, venueId)).rejects.toMatchObject({ code: "persistence_failed" });
 
   client.queryResult = { data: null, error: null };
-  await expect(adapter.listVenueAvailabilityHistory(projectId, venueId)).rejects.toMatchObject<VenueAvailabilityPersistenceError>({ code: "persistence_failed" });
+  await expect(adapter.listVenueAvailabilityHistory(projectId, venueId)).rejects.toMatchObject({ code: "persistence_failed" });
 
   client.queryResult = { data: [row({ event_date: "bad" })], error: null };
-  await expect(adapter.listVenueAvailabilityHistory(projectId, venueId)).rejects.toMatchObject<VenueAvailabilityPersistenceError>({ code: "provider_response_invalid" });
+  await expect(adapter.listVenueAvailabilityHistory(projectId, venueId)).rejects.toMatchObject({ code: "provider_response_invalid" });
 });
