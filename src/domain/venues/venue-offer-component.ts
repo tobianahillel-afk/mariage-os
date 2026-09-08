@@ -8,13 +8,13 @@ import {
 } from "./venue-commercial-values";
 import { isVenueOfferTaxMode, type VenueOfferTaxMode } from "./venue-offer";
 
-export const venueOfferComponentTypes = [
+const venueOfferComponentTypes = [
   "included",
   "mandatory_extra",
   "optional",
 ] as const;
 
-export const venueOfferCalculationTypes = [
+const venueOfferCalculationTypes = [
   "fixed",
   "per_guest",
   "per_adult",
