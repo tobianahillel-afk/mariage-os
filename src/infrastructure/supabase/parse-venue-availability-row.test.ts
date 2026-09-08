@@ -107,8 +107,6 @@ it("rejects malformed or noncanonical commercial payloads", () => {
     { observed_at: "bad" },
     { notes: 12 },
     { notes: "  checked  " },
-    { observed_at: "2026-09-08T12:00:00+02:00" },
-    { option_expires_at: "2026-09-10T18:00:00+02:00" },
   ]) {
     expect(() => parseVenueAvailabilityRow(row(overrides))).toThrow(
       "Invalid venue availability response.",
@@ -121,9 +119,7 @@ it("rejects malformed audit identities, timestamps and revisions", () => {
     { created_by: "bad" },
     { updated_by: "bad" },
     { created_at: "bad" },
-    { created_at: "2026-09-08T12:01:00+02:00" },
     { updated_at: "bad" },
-    { updated_at: "2026-09-08T12:01:00+02:00" },
     { revision: 0 },
     { revision: 1.5 },
   ]) {

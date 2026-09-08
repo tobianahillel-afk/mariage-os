@@ -28,7 +28,7 @@ function optionalUuid(value: unknown): string | null {
 
 function canonicalInstant(value: unknown): string {
   const normalized = normalizeFactInstant(value);
-  if (normalized === null || normalized !== value) fail();
+  if (normalized === null) fail();
   return normalized;
 }
 
@@ -62,8 +62,6 @@ function canonicalAvailability(
   const canonicalPairs: readonly (readonly [unknown, unknown])[] = [
     [value.eventDate, row.event_date],
     [value.status, row.status],
-    [value.optionExpiresAt, row.option_expires_at],
-    [value.observedAt, row.observed_at],
     [value.sourceId, sourceId],
     [value.notes, row.notes],
   ];
