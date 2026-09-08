@@ -83,10 +83,12 @@ describe("venue contact domain", () => {
       ok: false,
       error: "email_invalid",
     });
-    expect(normalizeVenueContact({ preferredChannel: "x".repeat(81) })).toEqual({
-      ok: false,
-      error: "preferred_channel_invalid",
-    });
+    expect(normalizeVenueContact({ preferredChannel: "x".repeat(81) })).toEqual(
+      {
+        ok: false,
+        error: "preferred_channel_invalid",
+      },
+    );
     expect(normalizeVenueContact({ notes: "x".repeat(5_001) })).toEqual({
       ok: false,
       error: "notes_invalid",

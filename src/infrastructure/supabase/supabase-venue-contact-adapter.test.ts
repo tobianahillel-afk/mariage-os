@@ -43,7 +43,8 @@ function queryResult(data: unknown, error: unknown = null) {
   const builder: any = {
     select: vi.fn(() => builder),
     eq: vi.fn(() => builder),
-    then: (resolve: (value: unknown) => unknown) => Promise.resolve(result).then(resolve),
+    then: (resolve: (value: unknown) => unknown) =>
+      Promise.resolve(result).then(resolve),
   };
   return builder;
 }
@@ -117,7 +118,10 @@ describe("SupabaseVenueContactAdapter", () => {
       from: vi.fn(() => goodBuilder),
     } as unknown as SupabaseVenueContactClientLike;
     await expect(
-      new SupabaseVenueContactAdapter(client).listVenueContacts(projectId, venueId),
+      new SupabaseVenueContactAdapter(client).listVenueContacts(
+        projectId,
+        venueId,
+      ),
     ).resolves.toHaveLength(1);
 
     const duplicate = {
@@ -125,7 +129,10 @@ describe("SupabaseVenueContactAdapter", () => {
       from: vi.fn(() => queryResult([row(), row()])),
     } as unknown as SupabaseVenueContactClientLike;
     await expect(
-      new SupabaseVenueContactAdapter(duplicate).listVenueContacts(projectId, venueId),
+      new SupabaseVenueContactAdapter(duplicate).listVenueContacts(
+        projectId,
+        venueId,
+      ),
     ).rejects.toMatchObject({ code: "provider_response_invalid" });
 
     const failed = {
@@ -133,7 +140,10 @@ describe("SupabaseVenueContactAdapter", () => {
       from: vi.fn(() => queryResult(null, { code: "x" })),
     } as unknown as SupabaseVenueContactClientLike;
     await expect(
-      new SupabaseVenueContactAdapter(failed).listVenueContacts(projectId, venueId),
+      new SupabaseVenueContactAdapter(failed).listVenueContacts(
+        projectId,
+        venueId,
+      ),
     ).rejects.toMatchObject({ code: "persistence_failed" });
   });
 });

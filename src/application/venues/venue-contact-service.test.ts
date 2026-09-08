@@ -121,7 +121,9 @@ describe("VenueContactService", () => {
     ).toEqual({ ok: false, error: "conflict" });
 
     const failedService = new VenueContactService(
-      port({ saveVenueContact: vi.fn(async () => Promise.reject(new Error("x"))) }),
+      port({
+        saveVenueContact: vi.fn(async () => Promise.reject(new Error("x"))),
+      }),
     );
     expect(
       await failedService.saveVenueContact({ projectId, venueId, contactId }),
@@ -140,7 +142,9 @@ describe("VenueContactService", () => {
       error: "invalid_identity",
     });
     const failed = new VenueContactService(
-      port({ listVenueContacts: vi.fn(async () => Promise.reject(new Error("x"))) }),
+      port({
+        listVenueContacts: vi.fn(async () => Promise.reject(new Error("x"))),
+      }),
     );
     expect(await failed.listVenueContacts(projectId, venueId)).toEqual({
       ok: false,

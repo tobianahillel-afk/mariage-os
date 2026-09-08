@@ -80,7 +80,9 @@ function uniqueRecords(
 export class SupabaseVenueContactAdapter implements VenueContactPort {
   constructor(private readonly client: SupabaseVenueContactClientLike) {}
 
-  async saveVenueContact(input: SaveVenueContactInput): Promise<VenueContactRecord> {
+  async saveVenueContact(
+    input: SaveVenueContactInput,
+  ): Promise<VenueContactRecord> {
     const { data, error } = await this.client.rpc("save_venue_contact", {
       target_project_id: input.projectId,
       target_venue_id: input.venueId,
@@ -96,7 +98,9 @@ export class SupabaseVenueContactAdapter implements VenueContactPort {
     if (error !== null) {
       const code = providerErrorCode(error);
       throw new VenueContactPersistenceError(
-        code === "23505" || code === "40001" ? "conflict" : "persistence_failed",
+        code === "23505" || code === "40001"
+          ? "conflict"
+          : "persistence_failed",
         "Venue contact save failed.",
       );
     }
