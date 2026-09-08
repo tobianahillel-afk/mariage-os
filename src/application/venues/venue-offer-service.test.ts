@@ -198,7 +198,13 @@ describe("venue offer application service", () => {
 
   it("supports creation without components and maps persistence failures", async () => {
     const port = new FakeVenueOfferPort();
-    const noComponents = { ...validCreate(), components: undefined };
+    const noComponents = {
+      offerId,
+      projectId,
+      venueId,
+      status: "draft",
+      name: "Quote",
+    } as const;
     expect((await createVenueOffer(port, noComponents)).ok).toBe(true);
     expect(port.createVenueOffer).toHaveBeenLastCalledWith(
       expect.objectContaining({ components: [] }),
