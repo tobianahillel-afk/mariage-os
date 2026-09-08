@@ -262,6 +262,23 @@ exception when others then
 end;
 $$;
 
+create function pg_temp.lifecycle_component(target_component uuid)
+returns jsonb language sql immutable as $$
+  select jsonb_build_array(jsonb_build_object(
+    'id', target_component,
+    'label', 'Lifecycle component',
+    'component_type', 'included',
+    'calculation_type', 'fixed',
+    'unit_amount_minor', 1000,
+    'quantity', 1,
+    'unit_label', 'package',
+    'currency', 'EUR',
+    'tax_mode', 'included',
+    'tax_rate_basis_points', 2000,
+    'notes', 'synthetic lifecycle component'
+  ));
+$$;
+
 set local role anon;
 select throws_ok(
   $$select * from public.venue_offers$$,
@@ -531,25 +548,25 @@ select ok(
 );
 
 select ok(
-  pg_temp.try_create_offer('caaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'ca100000-0000-4000-8000-000000000001', 'ca300000-0000-4000-8000-000000000020', 'quoted', 'ca200000-0000-4000-8000-000000000001', '[]'::jsonb)
+  pg_temp.try_create_offer('caaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'ca100000-0000-4000-8000-000000000001', 'ca300000-0000-4000-8000-000000000020', 'quoted', 'ca200000-0000-4000-8000-000000000001', pg_temp.lifecycle_component('ca400000-0000-4000-8000-000000000020'))
   and pg_temp.try_transition_offer('caaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'ca100000-0000-4000-8000-000000000001', 'ca300000-0000-4000-8000-000000000020', 'accepted', 2)
   and pg_temp.try_transition_offer('caaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'ca100000-0000-4000-8000-000000000001', 'ca300000-0000-4000-8000-000000000020', 'superseded', 3),
   'quoted -> accepted -> superseded lifecycle path is allowed'
 );
 select ok(
-  pg_temp.try_create_offer('caaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'ca100000-0000-4000-8000-000000000001', 'ca300000-0000-4000-8000-000000000021', 'quoted', 'ca200000-0000-4000-8000-000000000001', '[]'::jsonb)
+  pg_temp.try_create_offer('caaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'ca100000-0000-4000-8000-000000000001', 'ca300000-0000-4000-8000-000000000021', 'quoted', 'ca200000-0000-4000-8000-000000000001', pg_temp.lifecycle_component('ca400000-0000-4000-8000-000000000021'))
   and pg_temp.try_transition_offer('caaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'ca100000-0000-4000-8000-000000000001', 'ca300000-0000-4000-8000-000000000021', 'rejected', 2)
   and not pg_temp.try_transition_offer('caaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'ca100000-0000-4000-8000-000000000001', 'ca300000-0000-4000-8000-000000000021', 'accepted', 3),
   'rejected offer is terminal'
 );
 select ok(
-  pg_temp.try_create_offer('caaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'ca100000-0000-4000-8000-000000000001', 'ca300000-0000-4000-8000-000000000022', 'quoted', 'ca200000-0000-4000-8000-000000000001', '[]'::jsonb)
+  pg_temp.try_create_offer('caaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'ca100000-0000-4000-8000-000000000001', 'ca300000-0000-4000-8000-000000000022', 'quoted', 'ca200000-0000-4000-8000-000000000001', pg_temp.lifecycle_component('ca400000-0000-4000-8000-000000000022'))
   and pg_temp.try_transition_offer('caaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'ca100000-0000-4000-8000-000000000001', 'ca300000-0000-4000-8000-000000000022', 'expired', 2)
   and not pg_temp.try_transition_offer('caaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'ca100000-0000-4000-8000-000000000001', 'ca300000-0000-4000-8000-000000000022', 'superseded', 3),
   'expired offer is terminal'
 );
 select ok(
-  pg_temp.try_create_offer('caaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'ca100000-0000-4000-8000-000000000001', 'ca300000-0000-4000-8000-000000000023', 'quoted', 'ca200000-0000-4000-8000-000000000001', '[]'::jsonb)
+  pg_temp.try_create_offer('caaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'ca100000-0000-4000-8000-000000000001', 'ca300000-0000-4000-8000-000000000023', 'quoted', 'ca200000-0000-4000-8000-000000000001', pg_temp.lifecycle_component('ca400000-0000-4000-8000-000000000023'))
   and pg_temp.try_transition_offer('caaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'ca100000-0000-4000-8000-000000000001', 'ca300000-0000-4000-8000-000000000023', 'superseded', 2),
   'quoted -> superseded lifecycle path is allowed'
 );
