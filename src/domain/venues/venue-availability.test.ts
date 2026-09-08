@@ -203,6 +203,7 @@ it("selects latest deterministically by observedAt, createdAt, then id", () => {
     idWinner,
   );
   expect(latestVenueAvailability([])).toBeNull();
+  expect(latestVenueAvailability(new Array<VenueAvailabilityRecord>(1))).toBeNull();
 });
 
 it("derives elapsed option holds as expired without rewriting stored status", () => {
