@@ -2,7 +2,7 @@
 
 Status: **Normative V1 addendum for WP-2.6 implementation boundaries**
 
-Purpose: close the implementation-level ambiguities left intentionally open by `VENUE-COMMERCIAL-WORKFLOW-ADDENDUM.md`: canonical phone/WhatsApp storage, retry/idempotency semantics for append-oriented Venue commercial history, and deterministic availability read-model selection.
+Purpose: close the implementation-level ambiguities left intentionally open by `VENUE-COMMERCIAL-WORKFLOW-ADDENDUM.md`: canonical phone/WhatsApp storage, retry/idempotency semantics for append-oriented Venue commercial history, deterministic availability read-model selection, and deterministic interaction-history ordering across PostgreSQL/provider/TypeScript precision boundaries.
 
 This addendum controls WP-2.6 where it is more specific. It does not widen WP-2.6 scope, add a communications provider, create Task/Budget authority, or change the accepted project/auth/RLS foundations.
 
@@ -93,6 +93,26 @@ For the selected latest observation, effective availability at an explicit evalu
 
 The evaluation instant uses the frozen strict absolute-instant profile in `DATES-TIME.md`. Tests must prove equal-`observed_at` ordering, equal-`observed_at`/`created_at` UUID tie-breaking, explicit-unknown versus no-observation, held-before-expiry, held-at-expiry, held-after-expiry and non-mutation of history.
 
+### 2.4 Deterministic Venue interaction-history read model
+
+Venue-owned `interactions` remains append-only historical evidence. Listing history is a derived read-model operation only and never changes a stored interaction.
+
+For one authorized project and Venue, the canonical complete history order is:
+
+1. `occurred_at DESC` — the most recent business interaction instant first;
+2. `created_at DESC` — if business instants are equal, the most recently appended stored interaction first;
+3. canonical UUID `id ASC` — final stable tie-break only when both instants are equal.
+
+The UUID tie-break has no business-recency meaning. `contact_id`, `source_id`, `interaction_type` and `next_follow_up_at` do not partition or reorder canonical Venue history.
+
+Both `occurred_at` and non-null `next_follow_up_at` independently use the frozen strict absolute-instant profile in `DATES-TIME.md`. V1 does **not** impose `next_follow_up_at > occurred_at`: follow-up is optional planning metadata, not another historical event or Task transition, and never participates in history ordering.
+
+PostgreSQL can retain microseconds while TypeScript canonical instant strings may retain only milliseconds. A Supabase/provider query supplying canonical interaction history therefore requests the complete database order `occurred_at DESC, created_at DESC, id ASC`. After fail-closed row, identity and domain validation, application code preserves that provider order and must not re-sort parsed millisecond timestamps. Otherwise distinct PostgreSQL instants inside one JavaScript millisecond could be inverted by a later UUID tie-break.
+
+Provider responses remain untrusted: every row must belong to the requested project/Venue, duplicate row identities fail closed, and malformed identities, timestamps or payloads are rejected.
+
+Required regression evidence includes same-JavaScript-millisecond/different-microsecond chronology, equal-`occurred_at` `created_at DESC`, equal-instant `id ASC`, follow-up non-ordering, duplicate-ID rejection and wrong-project/Venue fail-closed behavior.
+
 ## 3. Mutable create/update entities
 
 `venue_offers`, Venue-owned `offer_components` and Venue-owned `contacts` keep their frozen create/update and expected-revision semantics. This addendum does not turn their mutable lifecycle into append-only history.
@@ -111,6 +131,9 @@ In addition to `VENUE-COMMERCIAL-WORKFLOW-ADDENDUM.md` §12, WP-2.6 Pass A must 
 - replay cannot cross project, venue, date/contact/source parent boundaries or disclose a foreign row;
 - retry uses the caller-supplied stable UUID rather than server-generated replacement identity;
 - availability latest/relevant selection follows the complete canonical `observed_at DESC, created_at DESC, id ASC` order independently from provider row order;
+- interaction history follows the complete canonical `occurred_at DESC, created_at DESC, id ASC` database order and is not re-sorted after TypeScript millisecond canonicalization;
+- interaction ordering remains stable for PostgreSQL microsecond values inside one JavaScript millisecond and for equal-instant ties;
+- `next_follow_up_at` is independently strict optional metadata, has no ordering role and has no invented temporal inequality against `occurred_at`;
 - elapsed `option_held` derives effective `expired` without mutating or appending history;
 - direct SQL/RPC write-around attempts cannot bypass append immutability or the replay conflict rule;
 - malformed provider responses remain fail-closed.
@@ -126,4 +149,4 @@ This addendum does not implement or specify:
 - imported communication-message reconciliation;
 - Vendor contacts/interactions (Lot 7).
 
-It only freezes the deterministic WP-2.6 contact-value, append-retry and availability read-model boundaries needed before Pass A.
+It only freezes the deterministic WP-2.6 contact-value, append-retry, availability read-model and interaction-history ordering boundaries needed before the owning packet enters Pass A.

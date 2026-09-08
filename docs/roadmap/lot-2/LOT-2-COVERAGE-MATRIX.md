@@ -182,7 +182,8 @@ Scope: caller-owned Venue contact identity, canonical phone/text validation, cre
 Verified Pass-A implementation head/run: `aee0572cebddc0eae26e898fe68a008009263d11` / `34282995400` — **5/5 SUCCESS**; 111 unit files / 1037 tests at 100% measured statements/branches/functions/lines; DB/RLS, Browser+mutation, preview and clean-checkout verify PASS. Cross-project UUID non-disclosure red-first `56c79ee3064384b5425699742a3b8c2a21fd4aa7` / `34282681713` failed exactly `23505` vs required `42501` and is resolved on the final Pass-A head.
 Final fresh Pass-B reviewed head/run: `4f43d59f113f2aa0a857ed147965fd65a8b02413` / `34285562087` — **5/5 SUCCESS**; direct grants/RLS, shared authorization locks, same-session downgrade/revocation, revision/parent immutability, UUID non-disclosure, full PostgreSQL phone parity and fail-closed provider boundaries reviewed; dedicated adversarial pgTAP passed without product-semantic remediation; open BLOCKING/MAJOR findings **∅**; review **PASS**.
 Pass-C entry head/run: `b8d451ec0d39239894fc9d6e1b84142015610fbe` / `34286647702` — **5/5 SUCCESS**. Mechanical contact reconciliation: **PASS**; required WP-2.6C responsibilities minus accepted/evidenced responsibilities: **∅**. No dedicated `VEN-xxx`/`ACC-xxx` is invented for `FTR-026`; whole feature remains incomplete downstream.
-Next permitted action: verify this WP-2.6C acceptance-governance head, then activate/revalidate WP-2.6D; WP-2.7 remains blocked.
+Final WP-2.6C acceptance-governance head/run: `f6c93b7991d832363da92a9081540b9bad95441b` / `34287865010` attempt 2 — **5/5 SUCCESS**; attempt 1 failed only from runner-local Supabase port `54322` collision and required no repo change.
+Next permitted action: WP-2.6D specification/activation revalidation; WP-2.7 remains blocked.
 
 ### WP-2.6D — Venue interaction history
 
@@ -190,6 +191,9 @@ State: **PLANNED**
 Current pass: **PLAN**
 
 Primary Feature: FTR-026 Lot-2 interaction responsibility.
+Dependency gate: WP-2.6C **ACCEPTED / acceptance-governance verified** on `f6c93b7991d832363da92a9081540b9bad95441b` / `34287865010` attempt 2.
+Activation stop-condition frozen before code: canonical interaction history is `occurred_at DESC, created_at DESC, id ASC`; provider order preserves PostgreSQL microsecond chronology and TypeScript does not re-sort after millisecond canonicalization; `next_follow_up_at` remains independently strict metadata with no invented ordering/inequality semantics.
+Packet remains **PLANNED / PLAN** until this specification-freeze HEAD is verified 5/5; only then may the READY transition occur.
 Dependencies: WP-2.6C **ACCEPTED** plus prior WP-2.6A/B acceptance.
 Acceptance record: `WP-2.6D.md`.
 Estimated size: **9 points** — one append-only interaction table, one migration family, one atomic append/replay command and one RLS/authorization boundary.

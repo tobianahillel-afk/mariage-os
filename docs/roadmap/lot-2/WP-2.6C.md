@@ -164,4 +164,5 @@ Required WP-2.6C responsibilities minus accepted/evidenced WP-2.6C responsibilit
 - Split finding: combined contacts/interactions packet would exceed 10 points once real contact command/revision boundaries are counted; **RESOLVED by decomposition before production code**
 - Final fresh Pass-B reviewed head/run: `4f43d59f113f2aa0a857ed147965fd65a8b02413` / `34285562087` — **5/5 SUCCESS**; dedicated authorization/concurrency/parent/phone-parity pgTAP PASS; open BLOCKING/MAJOR findings **∅**
 - Pass-C entry head/run: `b8d451ec0d39239894fc9d6e1b84142015610fbe` / `34286647702` — **5/5 SUCCESS**; responsibility gap **∅**; Pass C **PASS**
-- Next permitted action: verify the exact WP-2.6C acceptance-governance HEAD. Only after that 5/5 verification may WP-2.6D activation/revalidation begin; WP-2.7 remains blocked.
+- Final acceptance-governance head/run: `f6c93b7991d832363da92a9081540b9bad95441b` / `34287865010` attempt 2 — **5/5 SUCCESS**. Attempt 1 failed only because the clean-checkout runner could not bind local Supabase port `54322`; rerunning that exact failed job on the unchanged HEAD passed, so no product or test remediation was required.
+- Next permitted action: WP-2.6D activation specification may proceed. WP-2.7 remains blocked until WP-2.6D is accepted.
