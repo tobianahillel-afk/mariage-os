@@ -1,5 +1,6 @@
 name: Repair WP-2.6B Pass C governance
 
+# Retry after guarded pattern correction.
 on:
   push:
     branches:

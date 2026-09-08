@@ -52,8 +52,8 @@ replace_once(
 )
 replace_once(
     status,
-    "-- Pass B decision: **PASS**; WP-2.6B transitions to `C-ACCEPTANCE` but is not ACCEPTED until Pass C reconciliation and acceptance governance are green;",
-    "-- Pass B decision: **PASS**; WP-2.6B transitions to `ACCEPTANCE_PENDING / C-ACCEPTANCE` but is not ACCEPTED until Pass C reconciliation and acceptance governance are green;",
+    "- Pass B decision: **PASS**; WP-2.6B transitions to `C-ACCEPTANCE` but is not ACCEPTED until Pass C reconciliation and acceptance governance are green;",
+    "- Pass B decision: **PASS**; WP-2.6B transitions to `ACCEPTANCE_PENDING / C-ACCEPTANCE` but is not ACCEPTED until Pass C reconciliation and acceptance governance are green;",
 )
 replace_once(
     status,
