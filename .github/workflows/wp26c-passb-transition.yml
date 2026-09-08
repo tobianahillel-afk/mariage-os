@@ -1,0 +1,132 @@
+name: WP-2.6C Pass B transition staging
+
+on:
+  push:
+    branches:
+      - lot-2/wp26c-passb-transition-staging
+
+permissions:
+  contents: write
+
+jobs:
+  transition:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          fetch-depth: 0
+      - name: Apply asserted governance transition
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_exact(path: str, old: str, new: str, expected: int = 1) -> None:
+              p = Path(path)
+              text = p.read_text()
+              count = text.count(old)
+              if count != expected:
+                  raise SystemExit(f"{path}: expected {expected} occurrence(s), found {count}: {old[:100]!r}")
+              p.write_text(text.replace(old, new))
+
+          wp = "docs/roadmap/lot-2/WP-2.6C.md"
+          replace_exact(wp, "- State: `REVIEW_PENDING`", "- State: `ACCEPTANCE_PENDING`")
+          replace_exact(wp, "- Current pass: `B-ADVERSARIAL`", "- Current pass: `C-ACCEPTANCE`")
+          replace_exact(
+              wp,
+              "**READY FOR FRESH REVIEW.** Reconstruct authorization, revision/concurrency, cross-project UUID non-disclosure, parent immutability, canonical value parity, provider fail-closed behavior and direct-table denial independently from the Pass-A implementation. Pass-A green evidence is necessary but not sufficient for Pass B.",
+              """**PASS — fresh independent review complete.** Final reviewed head/run `4f43d59f113f2aa0a857ed147965fd65a8b02413` / `34285562087` is **5/5 SUCCESS**, including clean-checkout `npm run verify`. Pass B independently reconstructed the contact slice from frozen contracts and current implementation rather than treating Pass-A green evidence as acceptance proof.\n\n- authorization/grants/RLS: authenticated direct contact mutation remains denied; reads require live `venues.read`; writes flow only through the atomic command and live `venues.write`;\n- authority concurrency: contact writes, role downgrade and revocation serialize on the same project lock before live permission evaluation; same-session downgrade/revocation immediately removes write authority;\n- revision/identity: stale expected revisions remain typed conflicts; project/Venue parent identity is immutable; same-project reparent attempts fail without rewriting the row;\n- UUID non-disclosure: same-project duplicate create remains `23505`, while foreign-project UUID collision remains generic `42501`;\n- canonical values: TypeScript and PostgreSQL agree on optional trimming/null semantics, frozen text bounds and exact ASCII international phone grammar, including min/max and adversarial invalid forms;\n- provider boundary: save receipts must match exact identity/payload/resulting revision; malformed rows, duplicate list identities and provider inconsistencies fail closed;\n- scope: no contact delete lifecycle, interaction append/history, Task, Vendor, offline or Venue UI behavior was introduced.\n\nDedicated Pass-B evidence hardening `supabase/tests/venue_contacts_adversarial_review_test.sql` was added on the reviewed head. It changed tests only and passed against the existing product implementation; no product-semantic remediation was required during Pass B. Open BLOCKING/MAJOR findings: **∅**. Pass B decision: **PASS**."""
+          )
+          replace_exact(
+              wp,
+              "## Pass C — ACCEPTANCE / RECONCILIATION\n\nNot started.",
+              "## Pass C — ACCEPTANCE / RECONCILIATION\n\n**READY TO START.** Perform the mechanical EXPECTED → IMPLEMENTED → VERIFIED reconciliation for the WP-2.6C-owned contact responsibility, applicable AUTHZ/SEC controls and explicit scope boundaries. Whole `FTR-026` must remain broader than this packet because interaction history and later presentation responsibilities are downstream."
+          )
+          replace_exact(wp, "- Current state: `REVIEW_PENDING`", "- Current state: `ACCEPTANCE_PENDING`")
+          replace_exact(wp, "- Current/next pass: `B-ADVERSARIAL`", "- Current/next pass: `C-ACCEPTANCE`")
+          replace_exact(
+              wp,
+              "- Remaining BLOCKING/MAJOR finding at Pass-A handoff: none known; Pass B must reconstruct independently",
+              "- Final fresh Pass-B reviewed head/run: `4f43d59f113f2aa0a857ed147965fd65a8b02413` / `34285562087` — **5/5 SUCCESS**; dedicated authorization/concurrency/parent/phone-parity pgTAP PASS; open BLOCKING/MAJOR findings **∅**"
+          )
+          replace_exact(
+              wp,
+              "- Next permitted action: perform fresh WP-2.6C Pass B adversarial review on the exact verified governance head. Do not start WP-2.6D or WP-2.7 concurrently.",
+              "- Next permitted action: verify the exact WP-2.6C Pass-C transition governance HEAD, then perform mechanical Pass C reconciliation. Do not start WP-2.6D or WP-2.7 concurrently."
+          )
+
+          status = "docs/roadmap/IMPLEMENTATION-STATUS.md"
+          replace_exact(status, "| WP-2.6C | Venue contacts | **REVIEW_PENDING** |", "| WP-2.6C | Venue contacts | **ACCEPTANCE_PENDING** |")
+          replace_exact(
+              status,
+              "- `WP-2.6C` — Venue contacts — **REVIEW_PENDING / B-ADVERSARIAL**, Pass A complete on `aee0572cebddc0eae26e898fe68a008009263d11` / `34282995400` with contact persistence/RLS/revision/provider boundaries and cross-project UUID non-disclosure verified;",
+              "- `WP-2.6C` — Venue contacts — **ACCEPTANCE_PENDING / C-ACCEPTANCE**, Pass A complete on `aee0572cebddc0eae26e898fe68a008009263d11` / `34282995400`; fresh Pass B PASS on `4f43d59f113f2aa0a857ed147965fd65a8b02413` / `34285562087` with no open BLOCKING/MAJOR finding;"
+          )
+          replace_exact(
+              status,
+              "Required original WP-2.6 responsibilities minus assigned A/B/C/D responsibilities: **∅**. WP-2.6A and WP-2.6B responsibilities are accepted/evidenced with gap **∅**; WP-2.6C has completed Pass A but is not accepted; the original parent responsibility remains incomplete until C/D are accepted.",
+              "Required original WP-2.6 responsibilities minus assigned A/B/C/D responsibilities: **∅**. WP-2.6A and WP-2.6B responsibilities are accepted/evidenced with gap **∅**; WP-2.6C has completed Pass A and fresh Pass B but is not accepted pending Pass C; the original parent responsibility remains incomplete until C/D are accepted."
+          )
+          pass_a_tail = "- Pass A decision: **COMPLETE / VERIFIED — transition to REVIEW_PENDING / B-ADVERSARIAL**; interactions (WP-2.6D) and WP-2.7 remain unstarted."
+          replace_exact(
+              status,
+              pass_a_tail,
+              pass_a_tail + """\n\n### WP-2.6C Pass B\n\n- fresh independent reviewed head/run `4f43d59f113f2aa0a857ed147965fd65a8b02413` / `34285562087`: **5/5 SUCCESS**, including clean-checkout `npm run verify`;\n- review reconstructed direct-table grants/RLS, live write authorization, shared project-lock serialization with role downgrade/revocation, same-session authority loss, stale revisions, immutable project/Venue parent identity, UUID collision non-disclosure, canonical phone/text parity and fail-closed provider save/list receipts;\n- dedicated evidence hardening `supabase/tests/venue_contacts_adversarial_review_test.sql` passed without product-semantic remediation; the fresh-review diff from the Pass-A governance head added tests only;\n- explicit scope retained: no contact delete lifecycle, interactions, Tasks, Vendors, offline queue or Venue UI;\n- open BLOCKING/MAJOR findings: **∅**;\n- Pass B decision: **PASS — transition to ACCEPTANCE_PENDING / C-ACCEPTANCE**."""
+          )
+          replace_exact(status, "Packet State: REVIEW_PENDING\nCurrent Pass: B-ADVERSARIAL", "Packet State: ACCEPTANCE_PENDING\nCurrent Pass: C-ACCEPTANCE")
+          replace_exact(
+              status,
+              "Open WP-2.6C BLOCKING/MAJOR findings at Pass-A handoff: none known; fresh Pass B pending\nWP-2.6C Pass-A implementation responsibility is VERIFIED but not yet ACCEPTED; packet acceptance remains pending Pass B + Pass C.\nNext permitted action: perform fresh WP-2.6C Pass B adversarial review after verifying this governance transition head. Do not start WP-2.6D or WP-2.7 concurrently.",
+              "WP-2.6C final fresh Pass-B reviewed head/run: 4f43d59f113f2aa0a857ed147965fd65a8b02413 / 34285562087 — 5/5 SUCCESS\nOpen WP-2.6C BLOCKING/MAJOR findings after fresh Pass B: ∅\nWP-2.6C Pass-A implementation + Pass-B adversarial review are VERIFIED but not yet ACCEPTED; packet acceptance remains pending Pass C.\nNext permitted action: verify this Pass-C transition governance head, then perform WP-2.6C mechanical Pass C reconciliation. Do not start WP-2.6D or WP-2.7 concurrently."
+          )
+          replace_exact(
+              status,
+              "- Original WP-2.6 product responsibility remains execution-mapped to WP-2.6A/B/C/D; A+B are accepted, WP-2.6C is **REVIEW_PENDING / B-ADVERSARIAL**, and WP-2.6D remains planned.",
+              "- Original WP-2.6 product responsibility remains execution-mapped to WP-2.6A/B/C/D; A+B are accepted, WP-2.6C is **ACCEPTANCE_PENDING / C-ACCEPTANCE**, and WP-2.6D remains planned."
+          )
+          replace_exact(status, "Current packet: WP-2.6C — REVIEW_PENDING / B-ADVERSARIAL", "Current packet: WP-2.6C — ACCEPTANCE_PENDING / C-ACCEPTANCE")
+          replace_exact(status, "Current commercial packet: WP-2.6C — REVIEW_PENDING / B-ADVERSARIAL", "Current commercial packet: WP-2.6C — ACCEPTANCE_PENDING / C-ACCEPTANCE")
+          replace_exact(
+              status,
+              "Next permitted action: verify the exact WP-2.6C Pass-A transition governance HEAD, then perform fresh WP-2.6C Pass B adversarial review. WP-2.6D and WP-2.7 remain prohibited concurrently.",
+              "WP-2.6C final fresh Pass B: 4f43d59f... / 34285562087 — 5/5 SUCCESS; open BLOCKING/MAJOR findings ∅\nNext permitted action: verify the exact WP-2.6C Pass-C transition governance HEAD, then perform mechanical WP-2.6C Pass C reconciliation. WP-2.6D and WP-2.7 remain prohibited concurrently."
+          )
+
+          matrix = "docs/roadmap/lot-2/LOT-2-COVERAGE-MATRIX.md"
+          replace_exact(
+              matrix,
+              "Status: **IN_PROGRESS — WP-2.1..WP-2.6B ACCEPTED; WP-2.6C REVIEW_PENDING / B-ADVERSARIAL; WP-2.6D PLANNED**",
+              "Status: **IN_PROGRESS — WP-2.1..WP-2.6B ACCEPTED; WP-2.6C ACCEPTANCE_PENDING / C-ACCEPTANCE; WP-2.6D PLANNED**"
+          )
+          replace_exact(
+              matrix,
+              "A+B are accepted, C has completed Pass A and is REVIEW_PENDING / B-ADVERSARIAL, and D remains planned.",
+              "A+B are accepted, C has completed Pass A and fresh Pass B and is ACCEPTANCE_PENDING / C-ACCEPTANCE, and D remains planned."
+          )
+          replace_exact(
+              matrix,
+              "Next permitted action: verify the exact WP-2.6C Pass-A transition governance HEAD, then perform fresh `B-ADVERSARIAL`. WP-2.6D and WP-2.7 remain blocked concurrently.",
+              "Boundary retained: contacts proceed through WP-2.6C Pass C; interactions remain WP-2.6D. WP-2.6D and WP-2.7 remain blocked concurrently."
+          )
+          replace_exact(matrix, "State: **REVIEW_PENDING**\nCurrent pass: **B-ADVERSARIAL**", "State: **ACCEPTANCE_PENDING**\nCurrent pass: **C-ACCEPTANCE**")
+          replace_exact(
+              matrix,
+              "Verified Pass-A implementation head/run: `aee0572cebddc0eae26e898fe68a008009263d11` / `34282995400` — **5/5 SUCCESS**; 111 unit files / 1037 tests at 100% measured statements/branches/functions/lines; DB/RLS, Browser+mutation, preview and clean-checkout verify PASS. Cross-project UUID non-disclosure red-first `56c79ee3064384b5425699742a3b8c2a21fd4aa7` / `34282681713` failed exactly `23505` vs required `42501` and is resolved on the final Pass-A head.\nNext permitted action: verify this Pass-A governance transition, then perform fresh WP-2.6C `B-ADVERSARIAL`; WP-2.6D remains blocked.",
+              "Verified Pass-A implementation head/run: `aee0572cebddc0eae26e898fe68a008009263d11` / `34282995400` — **5/5 SUCCESS**; 111 unit files / 1037 tests at 100% measured statements/branches/functions/lines; DB/RLS, Browser+mutation, preview and clean-checkout verify PASS. Cross-project UUID non-disclosure red-first `56c79ee3064384b5425699742a3b8c2a21fd4aa7` / `34282681713` failed exactly `23505` vs required `42501` and is resolved on the final Pass-A head.\nFinal fresh Pass-B reviewed head/run: `4f43d59f113f2aa0a857ed147965fd65a8b02413` / `34285562087` — **5/5 SUCCESS**; direct grants/RLS, shared authorization locks, same-session downgrade/revocation, revision/parent immutability, UUID non-disclosure, full PostgreSQL phone parity and fail-closed provider boundaries reviewed; dedicated adversarial pgTAP passed without product-semantic remediation; open BLOCKING/MAJOR findings **∅**; review **PASS**.\nNext permitted action: verify this Pass-C transition governance head, then perform mechanical WP-2.6C Pass C reconciliation; WP-2.6D remains blocked."
+          )
+          replace_exact(matrix, "WP-2.6C [REVIEW_PENDING]", "WP-2.6C [ACCEPTANCE_PENDING]")
+          replace_exact(
+              matrix,
+              "WP-2.6A and WP-2.6B are ACCEPTED; WP-2.6C has completed verified Pass A and is REVIEW_PENDING / B-ADVERSARIAL. WP-2.6D and WP-2.7 must not start concurrently.",
+              "WP-2.6A and WP-2.6B are ACCEPTED; WP-2.6C has completed verified Pass A and fresh Pass B and is ACCEPTANCE_PENDING / C-ACCEPTANCE. WP-2.6D and WP-2.7 must not start concurrently."
+          )
+          PY
+
+          rm .github/workflows/wp26c-passb-transition.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          test "$(git diff --cached --name-only | sort | tr '\n' ' ')" = "docs/roadmap/IMPLEMENTATION-STATUS.md docs/roadmap/lot-2/LOT-2-COVERAGE-MATRIX.md docs/roadmap/lot-2/WP-2.6C.md "
+          git commit -m "docs: advance WP-2.6C to Pass C"
+          git push
