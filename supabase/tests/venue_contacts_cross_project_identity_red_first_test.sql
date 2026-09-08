@@ -1,3 +1,4 @@
+-- WP-2.6C red-first proof: foreign-project contact UUID collisions must not disclose existence.
 begin;
 
 create extension if not exists pgtap with schema extensions;
