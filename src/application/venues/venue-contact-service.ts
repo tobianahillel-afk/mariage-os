@@ -42,9 +42,7 @@ export type VenueContactResult<T> =
   | { readonly ok: true; readonly value: T }
   | { readonly ok: false; readonly error: VenueContactServiceError };
 
-function normalizeExpectedRevision(
-  value: unknown,
-): number | null | undefined {
+function normalizeExpectedRevision(value: unknown): number | null | undefined {
   if (value === null || value === undefined) return null;
   if (typeof value !== "number") return undefined;
   return validateExpectedVenueRevision(value) === null ? value : undefined;

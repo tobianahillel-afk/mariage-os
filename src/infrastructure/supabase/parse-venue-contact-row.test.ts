@@ -52,12 +52,17 @@ describe("parseVenueContactRow", () => {
       row({ notes: 3 }),
       row({ revision: 0 }),
     ]) {
-      expect(() => parseVenueContactRow(invalid, projectId, venueId, contactId)).toThrow(
-        "Invalid venue contact response.",
-      );
+      expect(() =>
+        parseVenueContactRow(invalid, projectId, venueId, contactId),
+      ).toThrow("Invalid venue contact response.");
     }
     expect(() =>
-      parseVenueContactRow(row(), projectId, venueId, "55555555-5555-4555-8555-555555555555"),
+      parseVenueContactRow(
+        row(),
+        projectId,
+        venueId,
+        "55555555-5555-4555-8555-555555555555",
+      ),
     ).toThrow("Invalid venue contact response.");
   });
 });

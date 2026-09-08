@@ -1,7 +1,5 @@
 export type VenueContactPersistenceErrorCode =
-  | "conflict"
-  | "persistence_failed"
-  | "provider_response_invalid";
+  "conflict" | "persistence_failed" | "provider_response_invalid";
 
 export class VenueContactPersistenceError extends Error {
   constructor(
