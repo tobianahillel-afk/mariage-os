@@ -212,7 +212,7 @@ WP-2.6C split decision: mandatory >10 prevention; contacts → C (9 points), int
 WP-2.6C Pass-A final head/run: aee0572cebddc0eae26e898fe68a008009263d11 / 34282995400 — 5/5 SUCCESS
 WP-2.6C cross-project non-disclosure red-first: 56c79ee3064384b5425699742a3b8c2a21fd4aa7 / 34282681713 — expected DB FAILURE; resolved on final Pass-A head
 Open WP-2.6C BLOCKING/MAJOR findings at Pass-A handoff: none known; fresh Pass B pending
-Required WP-2.6B responsibilities minus accepted/evidenced responsibilities: ∅
+WP-2.6C Pass-A implementation responsibility is VERIFIED but not yet ACCEPTED; packet acceptance remains pending Pass B + Pass C.
 Next permitted action: perform fresh WP-2.6C Pass B adversarial review after verifying this governance transition head. Do not start WP-2.6D or WP-2.7 concurrently.
 ```
 
