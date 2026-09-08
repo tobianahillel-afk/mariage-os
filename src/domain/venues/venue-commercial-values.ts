@@ -111,5 +111,5 @@ export function normalizeCommercialProviderTime(value: unknown): string | null {
 export function isCommercialQuantity(value: unknown): value is number {
   if (typeof value !== "number" || !Number.isFinite(value)) return false;
   if (value < 0 || value > QUANTITY_MAX) return false;
-  return Math.abs(value * 1_000 - Math.round(value * 1_000)) < 1e-7;
+  return value === Math.round(value * 1_000) / 1_000;
 }
