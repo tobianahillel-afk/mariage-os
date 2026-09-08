@@ -178,9 +178,7 @@ export class SupabaseVenueOfferAdapter implements VenueOfferPort {
     );
     if (!Array.isArray(data)) failure("Venue offer component query failed.");
     return uniqueRecords(
-      data.map((row) =>
-        parseVenueOfferComponentRow(row, projectId, offerId),
-      ),
+      data.map((row) => parseVenueOfferComponentRow(row, projectId, offerId)),
     );
   }
 
