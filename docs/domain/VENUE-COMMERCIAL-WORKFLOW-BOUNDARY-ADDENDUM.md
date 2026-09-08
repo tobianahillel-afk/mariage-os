@@ -2,7 +2,7 @@
 
 Status: **Normative V1 addendum for WP-2.6 implementation boundaries**
 
-Purpose: close the two remaining implementation-level ambiguities left intentionally open by `VENUE-COMMERCIAL-WORKFLOW-ADDENDUM.md`: canonical phone/WhatsApp storage and retry/idempotency semantics for append-oriented Venue commercial history.
+Purpose: close the implementation-level ambiguities left intentionally open by `VENUE-COMMERCIAL-WORKFLOW-ADDENDUM.md`: canonical phone/WhatsApp storage, retry/idempotency semantics for append-oriented Venue commercial history, and deterministic availability read-model selection.
 
 This addendum controls WP-2.6 where it is more specific. It does not widen WP-2.6 scope, add a communications provider, create Task/Budget authority, or change the accepted project/auth/RLS foundations.
 
@@ -67,6 +67,32 @@ WP-2.6 may describe **same-ID replay as idempotent**. It must not claim global e
 
 This aligns with the repository contract that application-owned entities may use secure client-generated UUIDs and mutation context may carry operation identity, without introducing a parallel idempotency table in WP-2.6.
 
+### 2.3 Deterministic Venue availability read model
+
+`venue_availabilities` remains append-only historical evidence. "Latest" or "relevant" is a derived read-model decision only; it never mutates, deletes or rewrites an observation.
+
+For one authorized project, Venue and `event_date`, the relevant observation set is every availability row matching that exact project/Venue/date. `date_option_id` is retained contextual provenance and does not partition observations for the same civil event date; changing which candidate date option is selected therefore changes which `event_date` the caller asks about, not historical rows.
+
+When more than one observation exists for that Venue/date, the canonical deterministic order is:
+
+1. `observed_at DESC` — most recently observed business evidence first;
+2. `created_at DESC` — if business observation instants are equal, the most recently appended stored observation first;
+3. canonical UUID `id ASC` — final stable tie-break only when both instants are equal.
+
+The UUID tie-break carries **no** business recency meaning. It exists only so every conforming read model returns the same row under an otherwise indistinguishable tie. Provider queries may return rows in any order; application/domain selection must not trust provider ordering unless the complete canonical order is enforced and then still validates returned identities/rows.
+
+Absence of an observation is **not** synthesized into a stored or effective `unknown` observation. No observation and an explicit historical observation whose status is `unknown` remain distinguishable.
+
+For the selected latest observation, effective availability at an explicit evaluation instant follows:
+
+- when stored `status != 'option_held'`, effective status equals the stored status;
+- when stored `status = 'option_held'` and `option_expires_at` is strictly later than the evaluation instant, effective status remains `option_held`;
+- when stored `status = 'option_held'` and `option_expires_at` is equal to or earlier than the evaluation instant, effective status is derived as `expired`;
+- deriving `expired` never changes the stored historical `status='option_held'` row and never appends an `expired` row automatically;
+- if an explicit later `expired` observation exists, ordinary canonical latest-selection rules select it like any other observation.
+
+The evaluation instant uses the frozen strict absolute-instant profile in `DATES-TIME.md`. Tests must prove equal-`observed_at` ordering, equal-`observed_at`/`created_at` UUID tie-breaking, explicit-unknown versus no-observation, held-before-expiry, held-at-expiry, held-after-expiry and non-mutation of history.
+
 ## 3. Mutable create/update entities
 
 `venue_offers`, Venue-owned `offer_components` and Venue-owned `contacts` keep their frozen create/update and expected-revision semantics. This addendum does not turn their mutable lifecycle into append-only history.
@@ -84,6 +110,8 @@ In addition to `VENUE-COMMERCIAL-WORKFLOW-ADDENDUM.md` §12, WP-2.6 Pass A must 
 - same-ID/different-payload replay fails atomically and preserves the first row;
 - replay cannot cross project, venue, date/contact/source parent boundaries or disclose a foreign row;
 - retry uses the caller-supplied stable UUID rather than server-generated replacement identity;
+- availability latest/relevant selection follows the complete canonical `observed_at DESC, created_at DESC, id ASC` order independently from provider row order;
+- elapsed `option_held` derives effective `expired` without mutating or appending history;
 - direct SQL/RPC write-around attempts cannot bypass append immutability or the replay conflict rule;
 - malformed provider responses remain fail-closed.
 
@@ -98,4 +126,4 @@ This addendum does not implement or specify:
 - imported communication-message reconciliation;
 - Vendor contacts/interactions (Lot 7).
 
-It only freezes the deterministic WP-2.6 contact-value and append-retry boundaries needed before Pass A.
+It only freezes the deterministic WP-2.6 contact-value, append-retry and availability read-model boundaries needed before Pass A.
