@@ -9,10 +9,12 @@ const venueId = "22222222-2222-4222-8222-222222222222";
 const offerId = "33333333-3333-4333-8333-333333333333";
 const componentId = "44444444-4444-4444-8444-444444444444";
 const substitutedComponentId = "55555555-5555-4555-8555-555555555555";
+const sourceId = "66666666-6666-4666-8666-666666666666";
+const substitutedSourceId = "77777777-7777-4777-8777-777777777777";
 
 type Result = { readonly data: unknown; readonly error: unknown };
 
-function offerRow(status = "draft") {
+function offerRow(status = "draft", rowSourceId: string | null = null) {
   return {
     id: offerId,
     project_id: projectId,
@@ -36,7 +38,7 @@ function offerRow(status = "draft") {
     included_end_time: null,
     included_end_day_offset: 0,
     extra_hour_amount_minor: null,
-    source_id: null,
+    source_id: rowSourceId,
     notes: null,
     revision: 1,
   };
@@ -197,6 +199,40 @@ it("rejects mutation receipts whose lifecycle status contradicts the command", a
       offerId,
       expectedRevision: 1,
       terms,
+    }),
+  ).rejects.toThrow("Invalid venue commercial response.");
+});
+
+it("rejects create and update receipts with substituted source identity", async () => {
+  const client = new FakeClient();
+  const adapter = new SupabaseVenueOfferAdapter(client);
+  const sourcedTerms = { ...terms, sourceId };
+
+  client.rpcResult = {
+    data: {
+      offer: offerRow("draft", substitutedSourceId),
+      components: [componentRow()],
+    },
+    error: null,
+  };
+  await expect(
+    adapter.createVenueOffer({
+      ...createInput(),
+      terms: sourcedTerms,
+    }),
+  ).rejects.toThrow("Invalid venue commercial response.");
+
+  client.rpcResult = {
+    data: offerRow("draft", substitutedSourceId),
+    error: null,
+  };
+  await expect(
+    adapter.updateVenueOfferDraft({
+      projectId,
+      venueId,
+      offerId,
+      expectedRevision: 1,
+      terms: sourcedTerms,
     }),
   ).rejects.toThrow("Invalid venue commercial response.");
 });
