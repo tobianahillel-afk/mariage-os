@@ -12,7 +12,7 @@ import {
   normalizeCommercialRequiredText,
 } from "./venue-commercial-values";
 
-export const venueOfferStatuses = [
+const venueOfferStatuses = [
   "draft",
   "quoted",
   "accepted",
@@ -21,7 +21,7 @@ export const venueOfferStatuses = [
   "superseded",
 ] as const;
 
-export const venueOfferTaxModes = [
+const venueOfferTaxModes = [
   "included",
   "excluded",
   "unknown",
@@ -30,7 +30,7 @@ export const venueOfferTaxModes = [
 
 export type VenueOfferStatus = (typeof venueOfferStatuses)[number];
 export type VenueOfferTaxMode = (typeof venueOfferTaxModes)[number];
-export type VenueOfferCreationStatus = "draft" | "quoted";
+type VenueOfferCreationStatus = "draft" | "quoted";
 
 export interface VenueOfferTermsDraft {
   readonly name: string;
