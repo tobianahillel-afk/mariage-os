@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1..WP-2.6C ACCEPTED; WP-2.6D PLANNED**
+Status: **IN_PROGRESS — WP-2.1..WP-2.6C ACCEPTED; WP-2.6D READY**
 
 Purpose: durable responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`.
 
@@ -52,7 +52,7 @@ The previously accepted Lot 0 + Lot 1 implementation was promoted to `main` thro
 
 Required current-lot responsibilities minus assigned packet responsibilities: **∅**.
 
-Accepted/evidenced packet responsibilities so far: **WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5, WP-2.6A, WP-2.6B and WP-2.6C**. Required WP-2.6A responsibilities minus accepted/evidenced WP-2.6A responsibilities: **∅**. Required WP-2.6B responsibilities minus accepted/evidenced WP-2.6B responsibilities: **∅**. Required WP-2.6C responsibilities minus accepted/evidenced WP-2.6C responsibilities: **∅**. The original WP-2.6 responsibility remains fully assigned after orchestration decomposition: offers/components → WP-2.6A, availability → WP-2.6B, contacts → WP-2.6C, interactions → WP-2.6D; A+B+C are accepted and D remains planned. Whole `FTR-026` remains incomplete because interaction history, Venue presentation and Lot-3 follow-up/Task responsibilities are downstream. The FTR-022 presentation/UI responsibility remains explicitly assigned to WP-2.11 and is not claimed by WP-2.5. Lot-level accepted/evidenced reconciliation remains intentionally incomplete until all packets and the separate Integration Pass finish.
+Accepted/evidenced packet responsibilities so far: **WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5, WP-2.6A, WP-2.6B and WP-2.6C**. Required WP-2.6A responsibilities minus accepted/evidenced WP-2.6A responsibilities: **∅**. Required WP-2.6B responsibilities minus accepted/evidenced WP-2.6B responsibilities: **∅**. Required WP-2.6C responsibilities minus accepted/evidenced WP-2.6C responsibilities: **∅**. The original WP-2.6 responsibility remains fully assigned after orchestration decomposition: offers/components → WP-2.6A, availability → WP-2.6B, contacts → WP-2.6C, interactions → WP-2.6D; A+B+C are accepted and D is READY for Pass A after exact transition-head verification. Whole `FTR-026` remains incomplete because interaction history, Venue presentation and Lot-3 follow-up/Task responsibilities are downstream. The FTR-022 presentation/UI responsibility remains explicitly assigned to WP-2.11 and is not claimed by WP-2.5. Lot-level accepted/evidenced reconciliation remains intentionally incomplete until all packets and the separate Integration Pass finish.
 
 ## Work Packet plan
 
@@ -187,18 +187,18 @@ Next permitted action: WP-2.6D specification/activation revalidation; WP-2.7 rem
 
 ### WP-2.6D — Venue interaction history
 
-State: **PLANNED**
-Current pass: **PLAN**
+State: **READY**
+Current pass: **A-IMPLEMENT**
 
 Primary Feature: FTR-026 Lot-2 interaction responsibility.
 Dependency gate: WP-2.6C **ACCEPTED / acceptance-governance verified** on `f6c93b7991d832363da92a9081540b9bad95441b` / `34287865010` attempt 2.
 Activation stop-condition frozen before code: canonical interaction history is `occurred_at DESC, created_at DESC, id ASC`; provider order preserves PostgreSQL microsecond chronology and TypeScript does not re-sort after millisecond canonicalization; `next_follow_up_at` remains independently strict metadata with no invented ordering/inequality semantics.
-Packet remains **PLANNED / PLAN** until this specification-freeze HEAD is verified 5/5; only then may the READY transition occur.
+Specification-freeze gate `1bf2640e20aa7cf7cb7d3b3524aa069b37a09c4b` / `34289908898` is **5/5 SUCCESS**. Packet is **READY / A-IMPLEMENT**; Pass A product implementation remains not started until this READY-transition head is itself verified 5/5.
 Dependencies: WP-2.6C **ACCEPTED** plus prior WP-2.6A/B acceptance.
 Acceptance record: `WP-2.6D.md`.
 Estimated size: **9 points** — one append-only interaction table, one migration family, one atomic append/replay command and one RLS/authorization boundary.
 Scope: immutable interaction history, strict occurred/follow-up instants, same-Venue optional contact, same-project source, stable UUID replay, project isolation and fail-closed provider parsing. Automatic Task/reminder workflow remains Lot 3.
-Activation review retained: revalidate deterministic history ordering/provider timestamp precision and the accepted contact interface before READY.
+Activation review: **CLOSED** — deterministic history ordering/provider timestamp precision and the accepted contact interface are frozen and verified by `1bf2640e20aa7cf7cb7d3b3524aa069b37a09c4b` / `34289908898` 5/5.
 
 #### Fragmentation review — PASS
 

@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.6D`
 - Lot: `2`
 - Name: Venue interaction history
-- State: `PLANNED`
-- Current pass: `PLAN`
+- State: `READY`
+- Current pass: `A-IMPLEMENT`
 - Primary bounded context: Venue interaction and quote-follow-up history
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Parent responsibility: original matrix packet `WP-2.6`, split from former WP-2.6C at activation sizing review
@@ -62,7 +62,7 @@
 - This freeze closes it normatively: interaction history is `occurred_at DESC`, then `created_at DESC`, then canonical UUID `id ASC`; the provider requests this complete order and application code preserves it after fail-closed validation instead of re-sorting parsed millisecond timestamps.
 - `next_follow_up_at` remains independently validated optional metadata. No `next_follow_up_at > occurred_at` rule is invented, and follow-up never participates in history ordering.
 - Accepted WP-2.6C exposes stable project + Venue + contact UUID semantics, so same-Venue `contact_id` integrity is implementable without reopening contact mutation scope.
-- WP-2.6D remains `PLANNED / PLAN` until this specification-freeze HEAD itself is 5/5 green; only then may a separate governance transition mark it `READY`.
+- Specification-freeze gate `1bf2640e20aa7cf7cb7d3b3524aa069b37a09c4b` / `34289908898` is **5/5 SUCCESS**, including clean-checkout `npm run verify`; the activation stop-condition is CLOSED and the packet may enter Pass A after this READY transition head is itself verified.
 
 ## Sizing review
 
@@ -112,8 +112,9 @@ Not started.
 
 ## Handoff
 
-- Current state: `PLANNED`
-- Current/next pass: `PLAN`
+- Current state: `READY`
+- Current/next pass: `A-IMPLEMENT`
 - Dependency gate: WP-2.6C **ACCEPTED / acceptance-governance verified** on `f6c93b7991d832363da92a9081540b9bad95441b` / `34287865010` attempt 2
-- Activation specification: deterministic history ordering/provider precision and accepted contact interface are frozen; no material specification ambiguity remains, subject to exact-head CI of this freeze
-- Next permitted action: verify this specification-freeze HEAD 5/5. If green, perform the separate `PLANNED / PLAN` → `READY / A-IMPLEMENT` governance transition. Do not start product code or WP-2.7 before that transition is verified.
+- Specification-freeze gate: `1bf2640e20aa7cf7cb7d3b3524aa069b37a09c4b` / `34289908898` — **5/5 SUCCESS**; deterministic history ordering/provider precision and accepted contact interface are frozen; no material specification ambiguity remains
+- Pass A implementation status: **Not started**
+- Next permitted action: verify this READY-transition HEAD 5/5. Only then begin WP-2.6D Pass A with red-first vertical-slice evidence. Do not start WP-2.7 concurrently.
