@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.6A`
 - Lot: `2`
 - Name: Venue offers and offer components
-- State: `IN_PROGRESS`
-- Current pass: `A-IMPLEMENT`
+- State: `REVIEW_PENDING`
+- Current pass: `B-ADVERSARIAL-REVIEW`
 - Primary bounded context: Venue commercial offers
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Parent responsibility: original matrix packet `WP-2.6`, decomposed for orchestration sizing only
@@ -95,27 +95,61 @@ Offers and components are one commercial-history aggregate. Component editabilit
 
 ## Pass A — IMPLEMENT
 
-Started only after exact split/governance verification succeeded on `c99c4ac091bc21cb55a9b634710a3b7d694a7285` / run `34171995654` — **5/5 SUCCESS**. Production implementation is now authorized for WP-2.6A only.
+Started only after exact split/governance verification succeeded on `c99c4ac091bc21cb55a9b634710a3b7d694a7285` / run `34171995654` — **5/5 SUCCESS**. Production implementation was authorized for WP-2.6A only.
+
+Pass A completed on implementation head `e027bbbba93d73546ed19fffac7c26471f45ecb5`; exact CI `34223226316`: **5/5 SUCCESS**, including clean-checkout `npm run verify`.
 
 ### Implementation evidence
 
-- code/modules: in progress
-- migrations/schema: in progress
-- tests added: in progress
-- FIRs updated: this packet record is the FIR-equivalent durable record
-- docs/status updated: implementation-entry transition recorded from exact green split/governance head
+- domain/application:
+  - `src/domain/venues/venue-commercial-values.ts` — strict UUID, civil-date, local-time, weekday/day-offset, integer-minor money, basis-point and quantity boundaries;
+  - `src/domain/venues/venue-offer.ts` — canonical offer vocabulary, lifecycle and draft/create normalization;
+  - `src/domain/venues/venue-offer-component.ts` — staged Venue-owned component vocabulary and normalization;
+  - `src/application/venues/venue-offer-service.ts` — identity/revision validation and provider-neutral offer/component commands;
+- infrastructure/provider boundary:
+  - `src/infrastructure/supabase/parse-venue-offer-row.ts` — fail-closed offer/component provider response parsing;
+  - `src/infrastructure/supabase/supabase-venue-offer-adapter.ts` — project/Venue-scoped Supabase reads and protected RPC mutations;
+- migrations/schema:
+  - `supabase/migrations/20260908120500_create_venue_offers.sql` — `venue_offers`, staged `offer_components`, same-project integrity, RLS/grants, lifecycle/revision/immutability triggers and protected mutation functions;
+  - `supabase/migrations/20260908130000_harden_venue_offer_creation_status.sql` — forward-only fail-closed hardening for NULL creation status;
+- dedicated DB/RLS proof:
+  - `supabase/tests/venue_offer_commercial_test.sql` — grants/RLS, owner/editor/viewer/outsider/project-B/revoked isolation, draft edits, stale writes, lifecycle, quoted immutability, components, atomic quoted create and numeric fail-closed boundaries;
+  - `supabase/tests/venue_offer_null_boundary_test.sql` — explicit NULL creation-status fail-closed regression proof;
+- Pass-A hardening discovery:
+  - red-first head/run `0149f0b1b77335228af9bf53379a47735c6ec9b6` / `34222772124` — expected DB FAILURE proving NULL `target_status` could otherwise be silently coerced into persisted `draft` state;
+  - forward-only remediation head/run `e027bbbba93d73546ed19fffac7c26471f45ecb5` / `34223226316` — **5/5 SUCCESS**; NULL is rejected before insertion and all prior commercial/RLS proofs remain green;
+- quality evidence on the verified implementation head:
+  - TypeScript typecheck, formatting, lint, architecture, dead-code and marker gates PASS;
+  - unit suite PASS at **100% statements/branches/functions/lines**;
+  - local Supabase reset + all pgTAP/RLS tests PASS;
+  - Playwright E2E and mutation harness PASS;
+  - dependency/security gates and build PASS;
+  - privacy-safe preview PASS;
+  - clean-checkout `npm run verify` PASS;
+- FIRs/docs: this packet record is the FIR-equivalent durable implementation record; status board transition queues an independent Pass B.
 
 ### Pass A exit
 
-- [ ] intended vertical slice exists
-- [ ] applicable tests written
-- [ ] no known untracked stub/TODO
-- [ ] packet moved from `IN_PROGRESS` to `REVIEW_PENDING`
-- [ ] current/next pass recorded as `B-ADVERSARIAL-REVIEW`
+- [x] intended vertical slice exists
+- [x] applicable tests written
+- [x] no known untracked stub/TODO
+- [x] packet moved from `IN_PROGRESS` to `REVIEW_PENDING`
+- [x] current/next pass recorded as `B-ADVERSARIAL-REVIEW`
 
 ## Pass B — ADVERSARIAL REVIEW
 
-Not started.
+Queued after verified Pass A. Fresh independent review has not yet been executed against the post-transition governance head.
+
+Required review emphasis:
+
+- TypeScript/domain/provider/PostgreSQL parity for money, tax, civil dates, local time/day offset and lifecycle vocabulary;
+- NULL/tri-valued SQL and malformed-provider fail-closed behavior;
+- project/Venue/source/component identity confusion and duplicate/foreign provider rows;
+- direct-grant/RLS bypass attempts for anon, viewer, outsider, project-B and revoked users;
+- stale/concurrent offer and component writes, lock/revision behavior and same-state lifecycle semantics;
+- draft-only component/term mutation and quoted/terminal history immutability;
+- atomic quoted creation with its initial component set;
+- staged `owner_type='venue_offer'` boundary without premature Vendor/Document/Budget authority.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
@@ -123,8 +157,10 @@ Not started.
 
 ## Handoff
 
-- Current state: `IN_PROGRESS`
-- Current/next pass: `A-IMPLEMENT`
+- Current state: `REVIEW_PENDING`
+- Current/next pass: `B-ADVERSARIAL-REVIEW`
 - Implementation-entry verification: `c99c4ac091bc21cb55a9b634710a3b7d694a7285` / `34171995654` — **5/5 SUCCESS**
-- Remaining blocker/finding: none at Pass-A entry
-- Next permitted action: implement and verify WP-2.6A only. Do not start WP-2.6B/C or WP-2.7 concurrently.
+- Verified Pass-A implementation head/run: `e027bbbba93d73546ed19fffac7c26471f45ecb5` / `34223226316` — **5/5 SUCCESS**
+- Pass-A red-first hardening control: `0149f0b1b77335228af9bf53379a47735c6ec9b6` / `34222772124` — expected DB FAILURE, then resolved on verified implementation head
+- Open BLOCKING/MAJOR findings at Pass-B entry: ∅
+- Next permitted action: verify this governance transition on its exact HEAD, then execute a fresh independent WP-2.6A Pass B only. Do not start WP-2.6B/C or WP-2.7 concurrently.
