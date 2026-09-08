@@ -6,7 +6,7 @@
 - Lot: `2`
 - Name: Venue availability observations
 - State: `IN_PROGRESS`
-- Current pass: `A-IMPLEMENT`
+- Current pass: `B-ADVERSARIAL REVIEW`
 - Primary bounded context: Venue availability evidence
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Parent responsibility: original matrix packet `WP-2.6`, decomposed for orchestration sizing only
@@ -96,15 +96,30 @@ Activation revalidation confirms the packet remains **9 points**. WP-2.6A introd
 
 ## Pass A — IMPLEMENT
 
-**IN PROGRESS.**
+**COMPLETE / VERIFIED.**
 
-Entry gate is closed by the exact READY/governance head/run `1ff69cd2e599a72a6cf703a658b836b2b3431619` / `34242853512` — **5/5 SUCCESS**, including clean-checkout `npm run verify`.
+Entry gate was closed by the exact READY/governance head/run `1ff69cd2e599a72a6cf703a658b836b2b3431619` / `34242853512` — **5/5 SUCCESS**, including clean-checkout `npm run verify`.
 
-Implementation is restricted to WP-2.6B-owned domain/application/adapter/persistence/tests. WP-2.6C and WP-2.7 remain prohibited concurrently.
+Verified implementation head/run: `1c1dd4db875e5253fc9affdcf498991c4c6a5f64` / `34253821826` — **5/5 SUCCESS**, including clean-checkout `npm run verify`.
+
+Pass-A evidence on that exact head includes:
+
+- Core quality/security **SUCCESS**: format, lint, architecture, deadcode, negative quality/security controls, dependency policy and production build all pass;
+- 105 unit test files / 1019 tests **PASS** at **100% statements / branches / functions / lines** measured coverage;
+- Local Supabase DB/RLS **SUCCESS**;
+- Browser E2E and mutation harnesses **SUCCESS**;
+- privacy-safe preview artifact **SUCCESS**;
+- `Full verify from clean checkout` **SUCCESS**.
+
+Implementation remained restricted to WP-2.6B-owned domain/application/adapter/persistence/tests. WP-2.6C and WP-2.7 were not started concurrently.
 
 ## Pass B — ADVERSARIAL REVIEW
 
-Not started.
+**IN PROGRESS.**
+
+Fresh independent review starts from exact Pass-A head `1c1dd4db875e5253fc9affdcf498991c4c6a5f64` / run `34253821826`. The review must challenge persistence/RLS, retry identity and cross-project non-disclosure, date-option/source integrity, timestamp parity, provider parsing, effective-expiry/latest ordering and negative-test completeness before any Pass-C transition.
+
+Open BLOCKING/MAJOR findings at Pass-B entry: **∅**.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
@@ -113,9 +128,10 @@ Not started.
 ## Handoff
 
 - Current state: `IN_PROGRESS`
-- Current/next pass: `A-IMPLEMENT`
+- Current/next pass: `B-ADVERSARIAL REVIEW`
 - WP-2.6A acceptance-governance verification: `186933ed0af8c45ddaa1b5c883bfd3f70086c6fe` / `34238484533` — **5/5 SUCCESS**
 - Last green specification verification: `9f5c8af30c58c146d89b1464cad96cb8e43dbc7b` / `34239745903` — **5/5 SUCCESS**
 - WP-2.6B READY/governance verification: `1ff69cd2e599a72a6cf703a658b836b2b3431619` / `34242853512` — **5/5 SUCCESS**
-- Remaining blocker/finding: none
-- Next permitted action: implement and verify WP-2.6B Pass A only. Do not start WP-2.6C or WP-2.7 concurrently.
+- WP-2.6B Pass-A verification: `1c1dd4db875e5253fc9affdcf498991c4c6a5f64` / `34253821826` — **5/5 SUCCESS**
+- Remaining blocker/finding at Pass-B entry: none
+- Next permitted action: perform fresh WP-2.6B Pass B adversarial review only. Do not start WP-2.6C or WP-2.7 concurrently.
