@@ -105,6 +105,7 @@ it("validates exact numeric(12,3) component quantities", () => {
   expect(isCommercialQuantity(-0.001)).toBe(false);
   expect(isCommercialQuantity(1_000_000_000)).toBe(false);
   expect(isCommercialQuantity(1.2345)).toBe(false);
+  expect(isCommercialQuantity(0.00000000001)).toBe(false);
   expect(isCommercialQuantity(Number.NaN)).toBe(false);
   expect(isCommercialQuantity("1.000")).toBe(false);
 });
