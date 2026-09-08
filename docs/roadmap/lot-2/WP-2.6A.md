@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.6A`
 - Lot: `2`
 - Name: Venue offers and offer components
-- State: `REVIEW_PENDING`
-- Current pass: `B-ADVERSARIAL-REVIEW`
+- State: `ACCEPTANCE_PENDING`
+- Current pass: `C-ACCEPTANCE`
 - Primary bounded context: Venue commercial offers
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Parent responsibility: original matrix packet `WP-2.6`, decomposed for orchestration sizing only
@@ -138,29 +138,80 @@ Pass A completed on implementation head `e027bbbba93d73546ed19fffac7c26471f45ecb
 
 ## Pass B — ADVERSARIAL REVIEW
 
-Queued after verified Pass A. Fresh independent review has not yet been executed against the post-transition governance head.
+**COMPLETE / PASS.** Fresh independent review was executed against the post-Pass-A implementation and governance state. Green CI was not treated as sufficient evidence; six MAJOR mismatches were exposed red-first, remediated, and re-reviewed.
 
-Required review emphasis:
+### `WP2.6A-B-001` — MAJOR — RESOLVED / VERIFIED — same-state lifecycle transition bypassed the exact transition matrix
 
-- TypeScript/domain/provider/PostgreSQL parity for money, tax, civil dates, local time/day offset and lifecycle vocabulary;
-- NULL/tri-valued SQL and malformed-provider fail-closed behavior;
-- project/Venue/source/component identity confusion and duplicate/foreign provider rows;
-- direct-grant/RLS bypass attempts for anon, viewer, outsider, project-B and revoked users;
-- stale/concurrent offer and component writes, lock/revision behavior and same-state lifecycle semantics;
-- draft-only component/term mutation and quoted/terminal history immutability;
-- atomic quoted creation with its initial component set;
-- staged `owner_type='venue_offer'` boundary without premature Vendor/Document/Budget authority.
+**Historical finding.** `transition_venue_offer_status` returned the current row when `current_row.status = target_status`, even though the frozen commercial transition matrix defines only explicit source→different-target transitions. A direct authenticated writer could therefore issue a same-state protected lifecycle command and receive success instead of a denied transition.
+
+**Remediation.** Forward-only migration `20260908134500_reject_same_state_venue_offer_transitions.sql` removes the same-state success shortcut and requires every status mutation to satisfy `venue_offer_transition_allowed` after writer authorization, row lock and expected-revision validation.
+
+**Evidence.** Red-first `509bc14309e7c911cf5acf1d56c42ea90801a56c` / `34225335069` — expected FAILURE. Remediation `177e8379807e9018f036693566667e40d3cc3d9b` / `34225597966` — **5/5 SUCCESS**.
+
+### `WP2.6A-B-002` — MAJOR — RESOLVED / VERIFIED — duplicate provider identities were accepted in collections/atomic create receipts
+
+**Historical finding.** Provider collections and atomic-create component receipts were parsed row-by-row but did not reject duplicate record IDs. A malformed/untrusted provider response could therefore project duplicate identities into an application read model that cannot exist canonically in PostgreSQL.
+
+**Remediation.** The adapter now rejects duplicate IDs in Venue-offer and component collections and requires the atomic create receipt to contain the exact unique component identity set requested by the command.
+
+**Evidence.** Red-first `e6397a441d1fa4810dfc8d6bae54c7cee35e813b` / `34226318216` — expected FAILURE. Code remediation landed on `6b2c5d39ead06f03a88da8ea1cfd800e358e37b7`; the first fully green verification containing that remediation is `d471b198a5a32919d58da6dbd3880f1c6d4f358b` / `34227416769` — **5/5 SUCCESS**.
+
+### `WP2.6A-B-003` — MAJOR — RESOLVED / VERIFIED — mutation receipts were not bound to command lifecycle intent
+
+**Historical finding.** A structurally valid provider response with the correct project/Venue/offer identity could return a lifecycle status contradicting the requested create/update/transition command and still be accepted by the adapter.
+
+**Remediation.** Mutation receipts now verify the exact expected status: create must return the requested `draft|quoted`, draft update must return `draft`, and transition must return the requested target status.
+
+**Evidence.** Red-first `ab5369ab6cd59746dc0a4b6339f75cbcb1e71935` / `34228042878` reached `npm run test:unit` and failed as expected before the workflow was cancelled by the superseding remediation push. The remediation is retained in the final reviewed head `c7339227126e0df6969809644b5d0eb2512d350c` / `34233201350` — **5/5 SUCCESS**.
+
+### `WP2.6A-B-004` — MAJOR — RESOLVED / VERIFIED — create/update receipts were not bound to commanded source identity
+
+**Historical finding.** A malformed provider response could substitute another valid same-shaped `source_id` in a create/update receipt. Project/Venue/offer parsing alone did not prove that the returned commercial provenance matched the command input.
+
+**Remediation.** Create and draft-update receipts now require exact `source_id` equality with the normalized command terms; source substitution fails closed.
+
+**Evidence.** Red-first `9ef4dc1fe42da5ec9b1e6876ab5f667e45b95d84` / `34228937549` reached `npm run test:unit` and failed as expected before cancellation by the superseding remediation push. The remediation is retained and fully verified in `61aa9bf52660e984fce2ff3d77982b4853c68976` / `34231035762` and in the final reviewed head.
+
+### `WP2.6A-B-005` — MAJOR — RESOLVED / VERIFIED — TypeScript quantity precision accepted values PostgreSQL rejects
+
+**Historical finding.** `isCommercialQuantity` used a tolerance-style rounded comparison that could accept sub-mill precision values outside the exact `numeric(12,3)` contract, while PostgreSQL correctly rejected values where `target_quantity <> trunc(target_quantity, 3)`.
+
+**Remediation.** The TypeScript validator now requires exact equality to the three-decimal rounded representation, preserving the non-negative `999999999.999` ceiling and exact TypeScript↔PostgreSQL parity.
+
+**Evidence.** Red-first `905bcd36fa9750430413d7cbc6729e91e3d0d2a9` / `34229413676` — expected unit FAILURE. Remediation `61aa9bf52660e984fce2ff3d77982b4853c68976` / `34231035762` — **5/5 SUCCESS**, including clean-checkout `npm run verify`.
+
+### `WP2.6A-B-006` — MAJOR — RESOLVED / VERIFIED — SQL lifecycle boundary allowed incomplete `quoted` state
+
+**Historical finding.** The public authenticated mutation boundary could create an offer directly as `quoted`, or transition `draft → quoted`, without enforcing the quote-readiness preconditions exercised by the bounded commercial workflow. Six red-first DB cases proved the bypass: missing validity, missing price signal and missing initial component, both for direct quoted creation and draft transition.
+
+**Remediation.** Forward-only migration `20260908140000_enforce_venue_offer_quote_readiness.sql` moves quote-readiness into the authoritative offer integrity trigger. Any transition into `quoted` now requires the frozen validity/price/component readiness conditions. Existing lifecycle fixtures that intentionally exercised later states were updated only to provide a valid synthetic initial component; production invariants were not weakened.
+
+**Evidence.** Red-first `41db57cb8adff6e33c4edf346f50d2a67bc7323b` / `34232111029` — expected DB FAILURE on the six readiness assertions. Production remediation `4418629d0032d70f64490251d5e286b4496e4a8c`, fixture alignment `c7339227126e0df6969809644b5d0eb2512d350c`; final exact run `34233201350` — **5/5 SUCCESS**, including Local Supabase DB/RLS and clean-checkout `npm run verify`.
+
+### Final fresh independent Pass B
+
+- final reviewed head/run: `c7339227126e0df6969809644b5d0eb2512d350c` / `34233201350` — **5/5 SUCCESS**;
+- Core quality/security, Local Supabase DB/RLS, Browser/mutation, privacy-safe preview and Full verify from clean checkout all succeeded;
+- B-001 through B-006 remained effective under re-review;
+- direct table grants remain read-only for authenticated users; writes remain behind writer-authorized RPC boundaries;
+- same-project Venue/source/offer/component integrity, expected-revision locks, draft-only edits, quoted/history immutability, staged `owner_type='venue_offer'`, exact money/tax/date/time/quantity boundaries and fail-closed provider identity/intent parsing were rechecked;
+- fractional nested component minor-unit money and tax basis points are explicitly rejected by pgTAP rather than rounded;
+- no Vendor, Document, Budget, availability, contacts, offline or UI authority leaked into WP-2.6A;
+- open BLOCKING/MAJOR findings: **∅**;
+- Pass B decision: **PASS**.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started.
+Not started. Entry requires exact full CI success on the Pass-B governance transition head before reconciliation begins.
 
 ## Handoff
 
-- Current state: `REVIEW_PENDING`
-- Current/next pass: `B-ADVERSARIAL-REVIEW`
+- Current state: `ACCEPTANCE_PENDING`
+- Current/next pass: `C-ACCEPTANCE`
 - Implementation-entry verification: `c99c4ac091bc21cb55a9b634710a3b7d694a7285` / `34171995654` — **5/5 SUCCESS**
 - Verified Pass-A implementation head/run: `e027bbbba93d73546ed19fffac7c26471f45ecb5` / `34223226316` — **5/5 SUCCESS**
-- Pass-A red-first hardening control: `0149f0b1b77335228af9bf53379a47735c6ec9b6` / `34222772124` — expected DB FAILURE, then resolved on verified implementation head
-- Open BLOCKING/MAJOR findings at Pass-B entry: ∅
-- Next permitted action: verify this governance transition on its exact HEAD, then execute a fresh independent WP-2.6A Pass B only. Do not start WP-2.6B/C or WP-2.7 concurrently.
+- Pass-A red-first hardening control: `0149f0b1b77335228af9bf53379a47735c6ec9b6` / `34222772124` — expected DB FAILURE, resolved
+- Pass-B findings `WP2.6A-B-001..006`: **RESOLVED / VERIFIED**
+- Final fresh Pass-B reviewed head/run: `c7339227126e0df6969809644b5d0eb2512d350c` / `34233201350` — **5/5 SUCCESS**
+- Open BLOCKING/MAJOR findings: ∅
+- Next permitted action: verify this Pass-B governance transition on its exact HEAD, then execute WP-2.6A Pass C only. Do not start WP-2.6B/C or WP-2.7 concurrently.
