@@ -71,17 +71,18 @@ type VenueAvailabilityPayload = Pick<
   | "notes"
 >;
 
-const VENUE_AVAILABILITY_PAYLOAD_KEYS: readonly (keyof VenueAvailabilityPayload)[] = [
-  "projectId",
-  "venueId",
-  "dateOptionId",
-  "eventDate",
-  "status",
-  "optionExpiresAt",
-  "observedAt",
-  "sourceId",
-  "notes",
-];
+const VENUE_AVAILABILITY_PAYLOAD_KEYS: readonly (keyof VenueAvailabilityPayload)[] =
+  [
+    "projectId",
+    "venueId",
+    "dateOptionId",
+    "eventDate",
+    "status",
+    "optionExpiresAt",
+    "observedAt",
+    "sourceId",
+    "notes",
+  ];
 
 export function isVenueAvailabilityStatus(
   value: unknown,
