@@ -373,8 +373,8 @@ select is(
     'db400000-0000-4000-8000-000000000001',
     '2027-06-12', 'available', '2026-09-10T10:00:00Z'
   ),
-  '23505',
-  'cross-project UUID collision is the same generic replay conflict'
+  '42501',
+  'cross-project UUID collision is unavailable and does not surface a same-project replay conflict'
 );
 
 reset role;
