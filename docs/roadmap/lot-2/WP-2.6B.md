@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.6B`
 - Lot: `2`
 - Name: Venue availability observations
-- State: `READY`
-- Current pass: `PLAN`
+- State: `IN_PROGRESS`
+- Current pass: `A-IMPLEMENT`
 - Primary bounded context: Venue availability evidence
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Parent responsibility: original matrix packet `WP-2.6`, decomposed for orchestration sizing only
@@ -56,6 +56,7 @@
 - Deterministic availability selection/expiry semantics frozen by `9f5c8af30c58c146d89b1464cad96cb8e43dbc7b`; CI `34239745903`: **5/5 SUCCESS**, including clean-checkout `npm run verify`.
 - Canonical latest ordering is `observed_at DESC`, `created_at DESC`, `id ASC`; elapsed `option_held` derives effective `expired` without rewriting history; no observation remains distinct from explicit stored `unknown`.
 - Revalidation after WP-2.6A found no shared-interface incompatibility and no unresolved material specification blocker.
+- WP-2.6B READY/governance head/run: `1ff69cd2e599a72a6cf703a658b836b2b3431619` / `34242853512` — **5/5 SUCCESS**, including clean-checkout `npm run verify`; 101 unit files / 996 tests, 40/40 Playwright tests and 40 DB files / 858 pgTAP tests passed on the clean-checkout baseline.
 
 ## Sizing review
 
@@ -95,7 +96,11 @@ Activation revalidation confirms the packet remains **9 points**. WP-2.6A introd
 
 ## Pass A — IMPLEMENT
 
-Not started. Entry requires exact full CI success on the WP-2.6B READY/governance head, followed by the durable `READY → IN_PROGRESS / A-IMPLEMENT` transition for WP-2.6B only.
+**IN PROGRESS.**
+
+Entry gate is closed by the exact READY/governance head/run `1ff69cd2e599a72a6cf703a658b836b2b3431619` / `34242853512` — **5/5 SUCCESS**, including clean-checkout `npm run verify`.
+
+Implementation is restricted to WP-2.6B-owned domain/application/adapter/persistence/tests. WP-2.6C and WP-2.7 remain prohibited concurrently.
 
 ## Pass B — ADVERSARIAL REVIEW
 
@@ -107,9 +112,10 @@ Not started.
 
 ## Handoff
 
-- Current state: `READY`
-- Current/next pass: `PLAN`
+- Current state: `IN_PROGRESS`
+- Current/next pass: `A-IMPLEMENT`
 - WP-2.6A acceptance-governance verification: `186933ed0af8c45ddaa1b5c883bfd3f70086c6fe` / `34238484533` — **5/5 SUCCESS**
 - Last green specification verification: `9f5c8af30c58c146d89b1464cad96cb8e43dbc7b` / `34239745903` — **5/5 SUCCESS**
-- Remaining blocker/finding: none; readiness-governance CI is the only gate before implementation activation
-- Next permitted action: verify the exact WP-2.6B READY/governance HEAD, then transition WP-2.6B only to `IN_PROGRESS / A-IMPLEMENT`. Do not start WP-2.6C or WP-2.7 concurrently.
+- WP-2.6B READY/governance verification: `1ff69cd2e599a72a6cf703a658b836b2b3431619` / `34242853512` — **5/5 SUCCESS**
+- Remaining blocker/finding: none
+- Next permitted action: implement and verify WP-2.6B Pass A only. Do not start WP-2.6C or WP-2.7 concurrently.
