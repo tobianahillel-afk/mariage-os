@@ -74,6 +74,8 @@ it("validates safe integer commercial boundaries", () => {
 it("validates strict commercial civil dates including leap years", () => {
   expect(isCommercialCivilDate("2028-02-29")).toBe(true);
   expect(isCommercialCivilDate("2027-02-29")).toBe(false);
+  expect(isCommercialCivilDate("2000-02-29")).toBe(true);
+  expect(isCommercialCivilDate("1900-02-29")).toBe(false);
   expect(isCommercialCivilDate("2026-04-30")).toBe(true);
   expect(isCommercialCivilDate("2026-04-31")).toBe(false);
   expect(isCommercialCivilDate("0000-01-01")).toBe(false);
