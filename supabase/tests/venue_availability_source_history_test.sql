@@ -116,7 +116,7 @@ select lives_ok(
     'Synthetic availability source'::text,
     null::text,
     'confirmed_for_event'::text,
-    '2026-09-08T10:00:00Z'::timestamptz,
+    '2026-09-08T10:00:00Z'::text,
     'URL removed after link breakage'::text,
     'broken'::text
   )$$,

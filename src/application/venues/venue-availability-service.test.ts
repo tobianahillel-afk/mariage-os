@@ -227,6 +227,36 @@ it("returns no observation distinctly from explicit unknown and derives effectiv
   });
 });
 
+it("uses canonical port order when normalized timestamps are indistinguishable", async () => {
+  const newest = record({
+    id: "77777777-7777-4777-8777-777777777777",
+    observedAt: "2026-09-08T10:00:00.000Z",
+    createdAt: "2026-09-08T10:01:00.000Z",
+  });
+  const olderWithLowerUuid = record({
+    id: "11111111-1111-4111-8111-111111111111",
+    observedAt: "2026-09-08T10:00:00.000Z",
+    createdAt: "2026-09-08T10:01:00.000Z",
+  });
+  const service = new VenueAvailabilityService(
+    port({
+      listVenueAvailabilityHistory: async () => [newest, olderWithLowerUuid],
+    }),
+  );
+
+  await expect(
+    service.latestVenueAvailability(
+      projectId,
+      venueId,
+      "2027-06-12",
+      "2026-09-08T12:00:00Z",
+    ),
+  ).resolves.toEqual({
+    ok: true,
+    value: { record: newest, effectiveStatus: "available" },
+  });
+});
+
 it("validates latest-query date and clock and propagates history failures", async () => {
   const service = new VenueAvailabilityService(port());
   await expect(

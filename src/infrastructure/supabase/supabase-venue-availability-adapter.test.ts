@@ -11,6 +11,7 @@ const availabilityId = "33333333-3333-4333-8333-333333333333";
 const actorId = "44444444-4444-4444-8444-444444444444";
 
 type Result = { readonly data: unknown; readonly error: unknown };
+type OrderCall = { readonly column: string; readonly ascending: boolean };
 
 function row(overrides: Record<string, unknown> = {}) {
   return {
@@ -47,12 +48,19 @@ const command: NormalizedAppendVenueAvailabilityInput = {
 };
 
 class QueryBuilder implements PromiseLike<Result> {
-  constructor(private readonly result: Result) {}
+  constructor(
+    private readonly result: Result,
+    private readonly orderCalls: OrderCall[],
+  ) {}
   eq(): QueryBuilder {
     return this;
   }
-  order(): PromiseLike<Result> {
-    return Promise.resolve(this.result);
+  order(
+    column: string,
+    options: Readonly<{ ascending: boolean }>,
+  ): QueryBuilder {
+    this.orderCalls.push({ column, ascending: options.ascending });
+    return this;
   }
   then<TResult1 = Result, TResult2 = never>(
     onfulfilled?: ((value: Result) => TResult1 | PromiseLike<TResult1>) | null,
@@ -67,9 +75,12 @@ class FakeClient implements SupabaseVenueAvailabilityClientLike {
   rpcResult: Result = { data: row(), error: null };
   lastRpc: { name: string; args: Readonly<Record<string, unknown>> } | null =
     null;
+  readonly orderCalls: OrderCall[] = [];
 
   from() {
-    return { select: () => new QueryBuilder(this.queryResult) };
+    return {
+      select: () => new QueryBuilder(this.queryResult, this.orderCalls),
+    };
   }
 
   rpc(
@@ -153,21 +164,26 @@ it("fails closed on malformed or substituted append receipts", async () => {
   }
 });
 
-it("lists, validates, de-duplicates and deterministically sorts history", async () => {
+it("lists, validates, de-duplicates and requests canonical history order", async () => {
   const client = new FakeClient();
   const adapter = new SupabaseVenueAvailabilityAdapter(client);
   const earlierId = "66666666-6666-4666-8666-666666666666";
   const laterId = "55555555-5555-4555-8555-555555555555";
   client.queryResult = {
     data: [
-      row({ id: earlierId, observed_at: "2026-09-08T09:00:00.000Z" }),
       row({ id: laterId, observed_at: "2026-09-08T11:00:00.000Z" }),
+      row({ id: earlierId, observed_at: "2026-09-08T09:00:00.000Z" }),
     ],
     error: null,
   };
   await expect(
     adapter.listVenueAvailabilityHistory(projectId, venueId),
   ).resolves.toMatchObject([{ id: laterId }, { id: earlierId }]);
+  expect(client.orderCalls).toEqual([
+    { column: "observed_at", ascending: false },
+    { column: "created_at", ascending: false },
+    { column: "id", ascending: true },
+  ]);
 
   client.queryResult = { data: [row(), row()], error: null };
   await expect(

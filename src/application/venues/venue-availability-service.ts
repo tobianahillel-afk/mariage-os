@@ -1,6 +1,5 @@
 import {
   effectiveVenueAvailabilityStatus,
-  latestVenueAvailability,
   normalizeVenueAvailability,
   type NormalizedVenueAvailabilityDraft,
   type VenueAvailabilityRecord,
@@ -136,9 +135,8 @@ export class VenueAvailabilityService {
 
     const history = await this.listVenueAvailabilityHistory(projectId, venueId);
     if (!history.ok) return history;
-    const latest = latestVenueAvailability(
-      history.value.filter((record) => record.eventDate === eventDate),
-    );
+    const latest =
+      history.value.find((record) => record.eventDate === eventDate) ?? null;
     if (latest === null) return { ok: true, value: null };
     return {
       ok: true,

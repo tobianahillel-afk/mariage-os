@@ -39,8 +39,8 @@ class QueryBuilder implements PromiseLike<Result> {
     return this;
   }
 
-  order(): PromiseLike<Result> {
-    return Promise.resolve(this.result);
+  order(): QueryBuilder {
+    return this;
   }
 
   then<TResult1 = Result, TResult2 = never>(

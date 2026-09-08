@@ -1,5 +1,4 @@
 import {
-  compareVenueAvailabilityRecency,
   venueAvailabilityPayloadEquals,
   type VenueAvailabilityRecord,
 } from "@domain/venues/venue-availability";
@@ -23,7 +22,7 @@ interface FilterBuilder extends PromiseLike<SupabaseResult> {
   order(
     column: string,
     options: Readonly<{ ascending: boolean }>,
-  ): PromiseLike<SupabaseResult>;
+  ): FilterBuilder;
 }
 
 interface AvailabilityTable {
@@ -138,16 +137,17 @@ export class SupabaseVenueAvailabilityAdapter implements VenueAvailabilityPort {
       .select(AVAILABILITY_COLUMNS)
       .eq("project_id", projectId)
       .eq("venue_id", venueId)
-      .order("observed_at", { ascending: false });
+      .order("observed_at", { ascending: false })
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: true });
     if (error !== null || !Array.isArray(data)) {
       throw new VenueAvailabilityPersistenceError(
         "persistence_failed",
         "Venue availability query failed.",
       );
     }
-    let records: readonly VenueAvailabilityRecord[];
     try {
-      records = uniqueRecords(
+      return uniqueRecords(
         data.map((row) => parseVenueAvailabilityRow(row, projectId, venueId)),
       );
     } catch (errorValue) {
@@ -159,6 +159,5 @@ export class SupabaseVenueAvailabilityAdapter implements VenueAvailabilityPort {
         "Invalid venue availability response.",
       );
     }
-    return [...records].sort(compareVenueAvailabilityRecency);
   }
 }
