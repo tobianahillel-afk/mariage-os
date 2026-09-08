@@ -109,16 +109,16 @@ select lives_ok(
 
 select lives_ok(
   $$select public.update_venue_fact_source(
-    'faaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-    'fa300000-0000-4000-8000-000000000001',
-    1,
-    'official_website',
-    'Synthetic availability source',
-    null,
-    'confirmed_for_event',
+    'faaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'::uuid,
+    'fa300000-0000-4000-8000-000000000001'::uuid,
+    1::bigint,
+    'official_website'::text,
+    'Synthetic availability source'::text,
+    null::text,
+    'confirmed_for_event'::text,
     '2026-09-08T10:00:00Z'::timestamptz,
-    'URL removed after link breakage',
-    'broken'
+    'URL removed after link breakage'::text,
+    'broken'::text
   )$$,
   'linked source can become broken and remove its URL'
 );
