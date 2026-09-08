@@ -1,0 +1,31 @@
+name: WP-2.6B exact single-file formatting
+
+on:
+  push:
+    branches:
+      - lot-2/venues-core
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Format venue availability domain file
+        run: npx prettier --write src/domain/venues/venue-availability.ts
+      - name: Upload exact formatted file
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: wp26b-domain-formatted
+          path: src/domain/venues/venue-availability.ts
+          if-no-files-found: error
+          retention-days: 1
