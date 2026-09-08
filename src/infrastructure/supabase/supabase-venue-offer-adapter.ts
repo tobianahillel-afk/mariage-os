@@ -78,6 +78,14 @@ function expectedStatus(
   return record;
 }
 
+function expectedSource(
+  record: VenueOfferRecord,
+  sourceId: string | null,
+): VenueOfferRecord {
+  if (record.sourceId !== sourceId) failure(INVALID_RESPONSE);
+  return record;
+}
+
 function exactCreationComponents(
   records: readonly VenueOfferComponentRecord[],
   expected: CreateVenueOfferInput["components"],
@@ -226,6 +234,7 @@ export class SupabaseVenueOfferAdapter implements VenueOfferPort {
       input.offerId,
     );
     expectedStatus(aggregate.offer, input.status);
+    expectedSource(aggregate.offer, input.terms.sourceId);
     exactCreationComponents(aggregate.components, input.components);
     return aggregate;
   }
@@ -249,7 +258,10 @@ export class SupabaseVenueOfferAdapter implements VenueOfferPort {
       input.venueId,
       input.offerId,
     );
-    return expectedStatus(record, "draft");
+    return expectedSource(
+      expectedStatus(record, "draft"),
+      input.terms.sourceId,
+    );
   }
 
   async transitionVenueOffer(
