@@ -5,7 +5,7 @@
 - Work Packet ID: `WP-2.6B`
 - Lot: `2`
 - Name: Venue availability observations
-- State: `IN_PROGRESS`
+- State: `ACCEPTANCE_PENDING`
 - Current pass: `C-ACCEPTANCE`
 - Primary bounded context: Venue availability evidence
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
@@ -33,7 +33,7 @@
 
 - `VEN-009`;
 - applicable `AUTHZ-001..008`, `AUTHZ-009`, `AUTHZ-012`, `AUTHZ-017`, `AUTHZ-018`, `AUTHZ-019`, `AUTHZ-020`;
-- applicable `SEC-VAL-*`, `SEC-VER-*`, `SEC-DATA-*` controls;
+- applicable `SEC-AUTH-012`, `SEC-AUTH-013`, `SEC-AUTHZ-001..005`, `SEC-AUTHZ-007..009`, `SEC-VAL-001..006`, `SEC-VAL-008`, `SEC-INJ-001`, `SEC-INJ-002`, `SEC-ABUSE-004`, `SEC-VER-001`, `SEC-VER-005` controls;
 - Lot-2 FTR-025 availability responsibility.
 
 ### Explicitly out of scope for this packet
@@ -132,11 +132,11 @@ Implementation remained restricted to WP-2.6B-owned domain/application/adapter/p
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-**IN PROGRESS.** This governance transition activates `C-ACCEPTANCE`. Acceptance reconciliation must use the exact governance HEAD only after its own CI is **5/5 SUCCESS**; WP-2.6B is not ACCEPTED yet.
+**ACCEPTANCE_PENDING / C-ACCEPTANCE.** The prior Pass-C entry head `cd3d62121687baca1f8deb34915b58baf115427d` / CI `34264925852` is **5/5 SUCCESS**. This repair restores the canonical state/pass pair required by the Work Packet state machine; WP-2.6B remains not ACCEPTED until mechanical Pass C reconciliation and acceptance governance are green.
 
 ## Handoff
 
-- Current state: `IN_PROGRESS`
+- Current state: `ACCEPTANCE_PENDING`
 - Current/next pass: `C-ACCEPTANCE`
 - WP-2.6A acceptance-governance verification: `186933ed0af8c45ddaa1b5c883bfd3f70086c6fe` / `34238484533` — **5/5 SUCCESS**
 - Last green specification verification: `9f5c8af30c58c146d89b1464cad96cb8e43dbc7b` / `34239745903` — **5/5 SUCCESS**
@@ -145,4 +145,4 @@ Implementation remained restricted to WP-2.6B-owned domain/application/adapter/p
 - Pass-B findings `WP2.6B-B-001..005`: **RESOLVED / VERIFIED**
 - Final fresh Pass-B reviewed head/run: `e92af194f774895b3b397d3be60350d09d42d8ff` / `34263468532` — **5/5 SUCCESS**
 - Open Pass-B BLOCKING/MAJOR findings: **∅**
-- Next permitted action: verify the exact Pass-C governance HEAD, then perform WP-2.6B acceptance/reconciliation. Do not start WP-2.6C or WP-2.7 concurrently.
+- Next permitted action: verify the exact corrected Pass-C governance HEAD, then perform WP-2.6B acceptance/reconciliation. Do not start WP-2.6C or WP-2.7 concurrently.

@@ -46,7 +46,7 @@ Before implementation gate opens, every V1 row remains `SPECIFIED`.
 | FTR-022 | Missing/stale/conflicting information guidance | 2/3 | VENUES, TASKS | SPECIFIED |
 | FTR-023 | Individual partner favorites/ratings/preferences | 2 | RLS, PHYSICAL-SCHEMA | IN_PROGRESS |
 | FTR-024 | Venue photos remote references/private archive/gallery | 2 | STORAGE, DOCUMENTS-MEDIA | SPECIFIED |
-| FTR-025 | Venue offers/date pricing/availability context | 2/5 | VENUES, BUDGET | SPECIFIED |
+| FTR-025 | Venue offers/date pricing/availability context | 2/5 | VENUES, BUDGET | IN_PROGRESS |
 | FTR-026 | Venue contacts/interactions/quote follow-up | 2/3 | VENUES, TASKS | SPECIFIED |
 | FTR-027 | Venue comparison 2–5 candidates/differences | 2 | VENUES, UX | SPECIFIED |
 | FTR-028 | Mobile venue visit/offline package | 2/10 | OFFLINE, USER-FLOWS | SPECIFIED |

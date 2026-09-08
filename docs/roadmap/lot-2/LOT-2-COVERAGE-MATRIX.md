@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1..WP-2.6A ACCEPTED; WP-2.6B READY / NEXT**
+Status: **IN_PROGRESS — WP-2.1..WP-2.6A ACCEPTED; WP-2.6B ACCEPTANCE_PENDING / C-ACCEPTANCE**
 
 Purpose: durable responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`.
 
@@ -52,7 +52,7 @@ The previously accepted Lot 0 + Lot 1 implementation was promoted to `main` thro
 
 Required current-lot responsibilities minus assigned packet responsibilities: **∅**.
 
-Accepted/evidenced packet responsibilities so far: **WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5 and WP-2.6A**. Required WP-2.6A responsibilities minus accepted/evidenced WP-2.6A responsibilities: **∅**. The original WP-2.6 responsibility remains fully assigned after orchestration decomposition: offers/components → WP-2.6A, availability → WP-2.6B, contacts/interactions → WP-2.6C; only the A-owned slice is accepted so far. The FTR-022 presentation/UI responsibility remains explicitly assigned to WP-2.11 and is not claimed by WP-2.5. Lot-level accepted/evidenced reconciliation remains intentionally incomplete until all packets and the separate Integration Pass finish.
+Accepted/evidenced packet responsibilities so far: **WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5 and WP-2.6A**. Required WP-2.6A responsibilities minus accepted/evidenced WP-2.6A responsibilities: **∅**. WP-2.6B Pass A and Pass B are complete with no open BLOCKING/MAJOR finding; its acceptance remains pending Pass C. The original WP-2.6 responsibility remains fully assigned after orchestration decomposition: offers/components → WP-2.6A, availability → WP-2.6B, contacts/interactions → WP-2.6C; only the A-owned slice is accepted so far. The FTR-022 presentation/UI responsibility remains explicitly assigned to WP-2.11 and is not claimed by WP-2.5. Lot-level accepted/evidenced reconciliation remains intentionally incomplete until all packets and the separate Integration Pass finish.
 
 ## Work Packet plan
 
