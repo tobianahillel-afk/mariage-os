@@ -204,6 +204,70 @@ function allOptionalNumbersValid(
   );
 }
 
+function validateWeekday(
+  value: number | null | undefined,
+): OfferFieldResult<number | null> {
+  const weekday = nullableNumber(value, isCommercialWeekday);
+  return weekday === undefined
+    ? { ok: false, error: "weekday_invalid" }
+    : { ok: true, value: weekday };
+}
+
+function validateMoneyAmounts(
+  draft: VenueOfferTermsDraft,
+): OfferFieldResult<
+  Pick<
+    NormalizedVenueOfferTerms,
+    | "baseAmountMinor"
+    | "extraGuestAmountMinor"
+    | "depositAmountMinor"
+    | "securityDepositMinor"
+    | "extraHourAmountMinor"
+  >
+> {
+  const amounts = [
+    draft.baseAmountMinor,
+    draft.extraGuestAmountMinor,
+    draft.depositAmountMinor,
+    draft.securityDepositMinor,
+    draft.extraHourAmountMinor,
+  ] as const;
+  if (!allOptionalNumbersValid(amounts, isCommercialMoney)) {
+    return { ok: false, error: "money_invalid" };
+  }
+  return {
+    ok: true,
+    value: {
+      baseAmountMinor: draft.baseAmountMinor ?? null,
+      extraGuestAmountMinor: draft.extraGuestAmountMinor ?? null,
+      depositAmountMinor: draft.depositAmountMinor ?? null,
+      securityDepositMinor: draft.securityDepositMinor ?? null,
+      extraHourAmountMinor: draft.extraHourAmountMinor ?? null,
+    },
+  };
+}
+
+function validateTaxRate(
+  value: number | null | undefined,
+): OfferFieldResult<number | null> {
+  const taxRateBasisPoints = nullableNumber(value, isCommercialBasisPoints);
+  return taxRateBasisPoints === undefined
+    ? { ok: false, error: "tax_rate_invalid" }
+    : { ok: true, value: taxRateBasisPoints };
+}
+
+function validateGuestCount(
+  value: number | null | undefined,
+): OfferFieldResult<number | null> {
+  const includedGuestCount = nullableNumber(
+    value,
+    isCommercialNonNegativeInt32,
+  );
+  return includedGuestCount === undefined
+    ? { ok: false, error: "guest_count_invalid" }
+    : { ok: true, value: includedGuestCount };
+}
+
 function validateMoneyAndCounts(
   draft: VenueOfferTermsDraft,
 ): OfferFieldResult<
@@ -219,47 +283,22 @@ function validateMoneyAndCounts(
     | "extraHourAmountMinor"
   >
 > {
-  const weekday = nullableNumber(draft.weekday, isCommercialWeekday);
-  if (weekday === undefined) return { ok: false, error: "weekday_invalid" };
-
-  const amounts = [
-    draft.baseAmountMinor,
-    draft.extraGuestAmountMinor,
-    draft.depositAmountMinor,
-    draft.securityDepositMinor,
-    draft.extraHourAmountMinor,
-  ] as const;
-  if (!allOptionalNumbersValid(amounts, isCommercialMoney)) {
-    return { ok: false, error: "money_invalid" };
-  }
-
-  const taxRateBasisPoints = nullableNumber(
-    draft.taxRateBasisPoints,
-    isCommercialBasisPoints,
-  );
-  if (taxRateBasisPoints === undefined) {
-    return { ok: false, error: "tax_rate_invalid" };
-  }
-
-  const includedGuestCount = nullableNumber(
-    draft.includedGuestCount,
-    isCommercialNonNegativeInt32,
-  );
-  if (includedGuestCount === undefined) {
-    return { ok: false, error: "guest_count_invalid" };
-  }
+  const weekday = validateWeekday(draft.weekday);
+  if (!weekday.ok) return weekday;
+  const money = validateMoneyAmounts(draft);
+  if (!money.ok) return money;
+  const taxRate = validateTaxRate(draft.taxRateBasisPoints);
+  if (!taxRate.ok) return taxRate;
+  const guestCount = validateGuestCount(draft.includedGuestCount);
+  if (!guestCount.ok) return guestCount;
 
   return {
     ok: true,
     value: {
-      weekday,
-      baseAmountMinor: draft.baseAmountMinor ?? null,
-      taxRateBasisPoints,
-      includedGuestCount,
-      extraGuestAmountMinor: draft.extraGuestAmountMinor ?? null,
-      depositAmountMinor: draft.depositAmountMinor ?? null,
-      securityDepositMinor: draft.securityDepositMinor ?? null,
-      extraHourAmountMinor: draft.extraHourAmountMinor ?? null,
+      weekday: weekday.value,
+      ...money.value,
+      taxRateBasisPoints: taxRate.value,
+      includedGuestCount: guestCount.value,
     },
   };
 }
