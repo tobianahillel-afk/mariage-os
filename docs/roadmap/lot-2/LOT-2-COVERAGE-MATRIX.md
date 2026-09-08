@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1..WP-2.6B ACCEPTED; WP-2.6C REVIEW_PENDING / B-ADVERSARIAL; WP-2.6D PLANNED**
+Status: **IN_PROGRESS — WP-2.1..WP-2.6B ACCEPTED; WP-2.6C ACCEPTANCE_PENDING / C-ACCEPTANCE; WP-2.6D PLANNED**
 
 Purpose: durable responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`.
 
@@ -52,7 +52,7 @@ The previously accepted Lot 0 + Lot 1 implementation was promoted to `main` thro
 
 Required current-lot responsibilities minus assigned packet responsibilities: **∅**.
 
-Accepted/evidenced packet responsibilities so far: **WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5, WP-2.6A and WP-2.6B**. Required WP-2.6A responsibilities minus accepted/evidenced WP-2.6A responsibilities: **∅**. Required WP-2.6B responsibilities minus accepted/evidenced WP-2.6B responsibilities: **∅**. The original WP-2.6 responsibility remains fully assigned after orchestration decomposition: offers/components → WP-2.6A, availability → WP-2.6B, contacts → WP-2.6C, interactions → WP-2.6D; A+B are accepted, C has completed Pass A and is REVIEW_PENDING / B-ADVERSARIAL, and D remains planned. The FTR-022 presentation/UI responsibility remains explicitly assigned to WP-2.11 and is not claimed by WP-2.5. Lot-level accepted/evidenced reconciliation remains intentionally incomplete until all packets and the separate Integration Pass finish.
+Accepted/evidenced packet responsibilities so far: **WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5, WP-2.6A and WP-2.6B**. Required WP-2.6A responsibilities minus accepted/evidenced WP-2.6A responsibilities: **∅**. Required WP-2.6B responsibilities minus accepted/evidenced WP-2.6B responsibilities: **∅**. The original WP-2.6 responsibility remains fully assigned after orchestration decomposition: offers/components → WP-2.6A, availability → WP-2.6B, contacts → WP-2.6C, interactions → WP-2.6D; A+B are accepted, C has completed Pass A and fresh Pass B and is ACCEPTANCE_PENDING / C-ACCEPTANCE, and D remains planned. The FTR-022 presentation/UI responsibility remains explicitly assigned to WP-2.11 and is not claimed by WP-2.5. Lot-level accepted/evidenced reconciliation remains intentionally incomplete until all packets and the separate Integration Pass finish.
 
 ## Work Packet plan
 
@@ -166,12 +166,12 @@ Corrected Pass-C entry head/run: `6e091cc5088fece027f13c6764092453da18f418` / `3
 Pass C reconciliation: **PASS**.
 Required WP-2.6B responsibilities minus accepted/evidenced WP-2.6B responsibilities: **∅**.
 Boundary retained: contacts → WP-2.6C; interactions → WP-2.6D; Budget/scenario integration → Lot 5; Documents/offline/UI remain downstream/out of scope; whole `FTR-025` stays **IN_PROGRESS**.
-Next permitted action: verify the exact WP-2.6C Pass-A transition governance HEAD, then perform fresh `B-ADVERSARIAL`. WP-2.6D and WP-2.7 remain blocked concurrently.
+Boundary retained: contacts proceed through WP-2.6C Pass C; interactions remain WP-2.6D. WP-2.6D and WP-2.7 remain blocked concurrently.
 
 ### WP-2.6C — Venue contacts
 
-State: **REVIEW_PENDING**
-Current pass: **B-ADVERSARIAL**
+State: **ACCEPTANCE_PENDING**
+Current pass: **C-ACCEPTANCE**
 
 Primary Feature: FTR-026 Lot-2 contact responsibility.
 Dependencies: WP-2.1, WP-2.6A and WP-2.6B **ACCEPTED**.
@@ -180,7 +180,8 @@ Estimated size after activation revalidation: **9 points** — one contact table
 Split rationale: the former combined 10-point packet assumed direct ordinary RLS contact mutation; accepted revisioned mutation precedent requires a real command boundary, which would push contacts + interaction append/replay above 10. The hard split occurred before production code.
 Scope: caller-owned Venue contact identity, canonical phone/text validation, create/update with expected revision, immutable parent identity, RLS and fail-closed provider parsing. Interaction history is now WP-2.6D.
 Verified Pass-A implementation head/run: `aee0572cebddc0eae26e898fe68a008009263d11` / `34282995400` — **5/5 SUCCESS**; 111 unit files / 1037 tests at 100% measured statements/branches/functions/lines; DB/RLS, Browser+mutation, preview and clean-checkout verify PASS. Cross-project UUID non-disclosure red-first `56c79ee3064384b5425699742a3b8c2a21fd4aa7` / `34282681713` failed exactly `23505` vs required `42501` and is resolved on the final Pass-A head.
-Next permitted action: verify this Pass-A governance transition, then perform fresh WP-2.6C `B-ADVERSARIAL`; WP-2.6D remains blocked.
+Final fresh Pass-B reviewed head/run: `4f43d59f113f2aa0a857ed147965fd65a8b02413` / `34285562087` — **5/5 SUCCESS**; direct grants/RLS, shared authorization locks, same-session downgrade/revocation, revision/parent immutability, UUID non-disclosure, full PostgreSQL phone parity and fail-closed provider boundaries reviewed; dedicated adversarial pgTAP passed without product-semantic remediation; open BLOCKING/MAJOR findings **∅**; review **PASS**.
+Next permitted action: verify this Pass-C transition governance head, then perform mechanical WP-2.6C Pass C reconciliation; WP-2.6D remains blocked.
 
 ### WP-2.6D — Venue interaction history
 
@@ -255,7 +256,7 @@ WP-2.1 [ACCEPTED]
   │                                           ↓
   │                               WP-2.6B [ACCEPTED]
   │                                           ↓
-  │                               WP-2.6C [REVIEW_PENDING]
+  │                               WP-2.6C [ACCEPTANCE_PENDING]
   │                                           ↓
   ├────────────────────────────────────────→ WP-2.7 [PLANNED]
   └─→ WP-2.8 → WP-2.9
@@ -275,7 +276,7 @@ separate Lot 2 Integration Pass
 Lot 2 acceptance
 ```
 
-Default execution remains one packet in active work/review at a time. The original WP-2.6 responsibility was decomposed before implementation because its five-table/multi-command/RLS scope exceeded the orchestration `>10` split threshold and no atomicity/safety reason justified a mega-packet. This decomposition changes implementation granularity only; product/Feature scope is unchanged and required current-lot responsibilities minus assigned packet responsibilities remains **∅**. WP-2.6A and WP-2.6B are ACCEPTED; WP-2.6C has completed verified Pass A and is REVIEW_PENDING / B-ADVERSARIAL. WP-2.6D and WP-2.7 must not start concurrently.
+Default execution remains one packet in active work/review at a time. The original WP-2.6 responsibility was decomposed before implementation because its five-table/multi-command/RLS scope exceeded the orchestration `>10` split threshold and no atomicity/safety reason justified a mega-packet. This decomposition changes implementation granularity only; product/Feature scope is unchanged and required current-lot responsibilities minus assigned packet responsibilities remains **∅**. WP-2.6A and WP-2.6B are ACCEPTED; WP-2.6C has completed verified Pass A and fresh Pass B and is ACCEPTANCE_PENDING / C-ACCEPTANCE. WP-2.6D and WP-2.7 must not start concurrently.
 
 ## Explicitly out of Lot 2
 

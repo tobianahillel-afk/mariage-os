@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.6C`
 - Lot: `2`
 - Name: Venue contacts
-- State: `REVIEW_PENDING`
-- Current pass: `B-ADVERSARIAL`
+- State: `ACCEPTANCE_PENDING`
+- Current pass: `C-ACCEPTANCE`
 - Primary bounded context: Venue contact identity/reference data
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Parent responsibility: original matrix packet `WP-2.6`, split again at activation because the combined contacts/interactions packet exceeded the hard complexity threshold once its real command surfaces were revalidated
@@ -103,19 +103,29 @@ The contact table, canonical value grammar, one atomic save command, expected-re
 
 ## Pass B — ADVERSARIAL REVIEW
 
-**READY FOR FRESH REVIEW.** Reconstruct authorization, revision/concurrency, cross-project UUID non-disclosure, parent immutability, canonical value parity, provider fail-closed behavior and direct-table denial independently from the Pass-A implementation. Pass-A green evidence is necessary but not sufficient for Pass B.
+**PASS — fresh independent review complete.** Final reviewed head/run `4f43d59f113f2aa0a857ed147965fd65a8b02413` / `34285562087` is **5/5 SUCCESS**, including clean-checkout `npm run verify`. Pass B independently reconstructed the contact slice from frozen contracts and current implementation rather than treating Pass-A green evidence as acceptance proof.
+
+- authorization/grants/RLS: authenticated direct contact mutation remains denied; reads require live `venues.read`; writes flow only through the atomic command and live `venues.write`;
+- authority concurrency: contact writes, role downgrade and revocation serialize on the same project lock before live permission evaluation; same-session downgrade/revocation immediately removes write authority;
+- revision/identity: stale expected revisions remain typed conflicts; project/Venue parent identity is immutable; same-project reparent attempts fail without rewriting the row;
+- UUID non-disclosure: same-project duplicate create remains `23505`, while foreign-project UUID collision remains generic `42501`;
+- canonical values: TypeScript and PostgreSQL agree on optional trimming/null semantics, frozen text bounds and exact ASCII international phone grammar, including min/max and adversarial invalid forms;
+- provider boundary: save receipts must match exact identity/payload/resulting revision; malformed rows, duplicate list identities and provider inconsistencies fail closed;
+- scope: no contact delete lifecycle, interaction append/history, Task, Vendor, offline or Venue UI behavior was introduced.
+
+Dedicated Pass-B evidence hardening `supabase/tests/venue_contacts_adversarial_review_test.sql` was added on the reviewed head. It changed tests only and passed against the existing product implementation; no product-semantic remediation was required during Pass B. Open BLOCKING/MAJOR findings: **∅**. Pass B decision: **PASS**.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started.
+**READY TO START.** Perform the mechanical EXPECTED → IMPLEMENTED → VERIFIED reconciliation for the WP-2.6C-owned contact responsibility, applicable AUTHZ/SEC controls and explicit scope boundaries. Whole `FTR-026` must remain broader than this packet because interaction history and later presentation responsibilities are downstream.
 
 ## Handoff
 
-- Current state: `REVIEW_PENDING`
-- Current/next pass: `B-ADVERSARIAL`
+- Current state: `ACCEPTANCE_PENDING`
+- Current/next pass: `C-ACCEPTANCE`
 - WP-2.6C split-governance entry: `caa01a39c73a68a9f03df8a6d4a2c7ec6d12fd84` / `34278672342` — **5/5 SUCCESS**
 - Pass-A final implementation head/run: `aee0572cebddc0eae26e898fe68a008009263d11` / `34282995400` — **5/5 SUCCESS**
 - Red-first security hardening: `56c79ee3064384b5425699742a3b8c2a21fd4aa7` / `34282681713` — expected DB FAILURE, foreign-project collision `23505` vs required `42501`; **RESOLVED / VERIFIED** on the final Pass-A head/run
 - Split finding: combined contacts/interactions packet would exceed 10 points once real contact command/revision boundaries are counted; **RESOLVED by decomposition before production code**
-- Remaining BLOCKING/MAJOR finding at Pass-A handoff: none known; Pass B must reconstruct independently
-- Next permitted action: perform fresh WP-2.6C Pass B adversarial review on the exact verified governance head. Do not start WP-2.6D or WP-2.7 concurrently.
+- Final fresh Pass-B reviewed head/run: `4f43d59f113f2aa0a857ed147965fd65a8b02413` / `34285562087` — **5/5 SUCCESS**; dedicated authorization/concurrency/parent/phone-parity pgTAP PASS; open BLOCKING/MAJOR findings **∅**
+- Next permitted action: verify the exact WP-2.6C Pass-C transition governance HEAD, then perform mechanical Pass C reconciliation. Do not start WP-2.6D or WP-2.7 concurrently.
