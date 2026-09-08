@@ -5,7 +5,7 @@ import {
   normalizeCommercialOptionalText,
 } from "./venue-commercial-values";
 
-export const VENUE_AVAILABILITY_STATUSES = [
+const VENUE_AVAILABILITY_STATUSES = [
   "unknown",
   "available",
   "unavailable",

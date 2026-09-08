@@ -43,7 +43,7 @@ export interface VenueAvailabilityPort {
   ): Promise<readonly VenueAvailabilityRecord[]>;
 }
 
-export type VenueAvailabilityServiceError =
+type VenueAvailabilityServiceError =
   | "invalid_identity"
   | VenueAvailabilityValidationError
   | "invalid_now"
