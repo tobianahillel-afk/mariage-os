@@ -36,7 +36,33 @@ jobs:
               "Purpose: close the implementation-level ambiguities left intentionally open by `VENUE-COMMERCIAL-WORKFLOW-ADDENDUM.md`: canonical phone/WhatsApp storage, retry/idempotency semantics for append-oriented Venue commercial history, deterministic availability read-model selection, and deterministic interaction-history ordering across PostgreSQL/provider/TypeScript precision boundaries."
           )
           marker = "## 3. Mutable create/update entities"
-          section = """### 2.4 Deterministic Venue interaction-history read model\n\nVenue-owned `interactions` remains append-only historical evidence. Listing history is a derived read-model operation only and never changes a stored interaction.\n\nFor one authorized project and Venue, the canonical complete history order is:\n\n1. `occurred_at DESC` — the most recent business interaction instant first;\n2. `created_at DESC` — if business instants are equal, the most recently appended stored interaction first;\n3. canonical UUID `id ASC` — final stable tie-break only when both instants are equal.\n\nThe UUID tie-break carries no business-recency meaning. `contact_id`, `source_id`, `interaction_type` and `next_follow_up_at` do not partition or reorder the Venue history. Filters or later UI projections may narrow a result set, but any chronological interaction-history projection that claims canonical order uses the complete order above.\n\nBoth `occurred_at` and non-null `next_follow_up_at` independently use the frozen strict absolute-instant profile in `DATES-TIME.md`. V1 does **not** impose `next_follow_up_at > occurred_at`: the follow-up instant is optional planning metadata, not a second historical event or a Task lifecycle transition. It is excluded from replay ordering and from chronological-history selection.\n\nPostgreSQL retains up to microsecond precision while TypeScript canonical instant strings may retain only milliseconds. Therefore a provider/Supabase query that supplies canonical interaction history must request the complete database order `occurred_at DESC, created_at DESC, id ASC`; after fail-closed row/identity validation, application code preserves that provider order. It must not parse rows to millisecond precision and then re-sort them in TypeScript, because two distinct PostgreSQL instants inside the same millisecond could be inverted by a later UUID tie-break.\n\nProvider responses are still untrusted: every row must belong to the requested project/Venue and satisfy the frozen interaction domain/replay invariants, duplicate row identities fail closed, and malformed timestamps/payloads are rejected. Preserving provider order is permitted only because the query itself explicitly requests the full canonical order and the returned rows are then validated without reordering.\n\nRequired regression evidence includes:\n\n- two `occurred_at` values in the same JavaScript millisecond but distinct PostgreSQL microseconds retain database chronology after provider parsing;\n- equal `occurred_at` rows use `created_at DESC`;\n- equal `occurred_at` and `created_at` rows use `id ASC`;\n- `next_follow_up_at` does not affect history ordering and is accepted/rejected solely by the strict instant grammar when non-null;\n- provider rows with malformed identity/timestamps, duplicate IDs or wrong project/Venue fail closed.\n\n"""
+          section = """### 2.4 Deterministic Venue interaction-history read model
+
+Venue-owned `interactions` remains append-only historical evidence. Listing history is a derived read-model operation only and never changes a stored interaction.
+
+For one authorized project and Venue, the canonical complete history order is:
+
+1. `occurred_at DESC` — the most recent business interaction instant first;
+2. `created_at DESC` — if business instants are equal, the most recently appended stored interaction first;
+3. canonical UUID `id ASC` — final stable tie-break only when both instants are equal.
+
+The UUID tie-break carries no business-recency meaning. `contact_id`, `source_id`, `interaction_type` and `next_follow_up_at` do not partition or reorder the Venue history. Filters or later UI projections may narrow a result set, but any chronological interaction-history projection that claims canonical order uses the complete order above.
+
+Both `occurred_at` and non-null `next_follow_up_at` independently use the frozen strict absolute-instant profile in `DATES-TIME.md`. V1 does **not** impose `next_follow_up_at > occurred_at`: the follow-up instant is optional planning metadata, not a second historical event or a Task lifecycle transition. It is excluded from replay ordering and from chronological-history selection.
+
+PostgreSQL retains up to microsecond precision while TypeScript canonical instant strings may retain only milliseconds. Therefore a provider/Supabase query that supplies canonical interaction history must request the complete database order `occurred_at DESC, created_at DESC, id ASC`; after fail-closed row/identity validation, application code preserves that provider order. It must not parse rows to millisecond precision and then re-sort them in TypeScript, because two distinct PostgreSQL instants inside the same millisecond could be inverted by a later UUID tie-break.
+
+Provider responses are still untrusted: every row must belong to the requested project/Venue and satisfy the frozen interaction domain/replay invariants, duplicate row identities fail closed, and malformed timestamps/payloads are rejected. Preserving provider order is permitted only because the query itself explicitly requests the full canonical order and the returned rows are then validated without reordering.
+
+Required regression evidence includes:
+
+- two `occurred_at` values in the same JavaScript millisecond but distinct PostgreSQL microseconds retain database chronology after provider parsing;
+- equal `occurred_at` rows use `created_at DESC`;
+- equal `occurred_at` and `created_at` rows use `id ASC`;
+- `next_follow_up_at` does not affect history ordering and is accepted/rejected solely by the strict instant grammar when non-null;
+- provider rows with malformed identity/timestamps, duplicate IDs or wrong project/Venue fail closed.
+
+"""
           replace_exact(boundary, marker, section + marker)
           replace_exact(
               boundary,
@@ -108,11 +134,10 @@ jobs:
           )
           replace_exact(
               matrix,
-              "Primary Feature: FTR-026 Lot-2 interaction responsibility.  ",
-              "Primary Feature: FTR-026 Lot-2 interaction responsibility.  \nDependency gate: WP-2.6C **ACCEPTED / acceptance-governance verified** on `f6c93b7991d832363da92a9081540b9bad95441b` / `34287865010` attempt 2.  \nActivation stop-condition identified and frozen before code: deterministic interaction history is `occurred_at DESC, created_at DESC, id ASC`; provider order must preserve PostgreSQL microsecond chronology and TypeScript must not re-sort after millisecond canonicalization; `next_follow_up_at` is independently strict metadata and has no invented ordering/inequality semantics.  \nPacket remains **PLANNED / PLAN** until this specification-freeze HEAD is verified 5/5; only then may the READY transition occur.  "
+              "Primary Feature: FTR-026 Lot-2 interaction responsibility.\n",
+              "Primary Feature: FTR-026 Lot-2 interaction responsibility.\nDependency gate: WP-2.6C **ACCEPTED / acceptance-governance verified** on `f6c93b7991d832363da92a9081540b9bad95441b` / `34287865010` attempt 2.  \nActivation stop-condition identified and frozen before code: deterministic interaction history is `occurred_at DESC, created_at DESC, id ASC`; provider order must preserve PostgreSQL microsecond chronology and TypeScript must not re-sort after millisecond canonicalization; `next_follow_up_at` is independently strict metadata and has no invented ordering/inequality semantics.  \nPacket remains **PLANNED / PLAN** until this specification-freeze HEAD is verified 5/5; only then may the READY transition occur.  \n"
           )
 
-          # Live-state guardrails: D must still be planned and no product implementation claim may appear.
           dtext = Path(d).read_text()
           if "- State: `PLANNED`" not in dtext or "- Current pass: `PLAN`" not in dtext:
               raise SystemExit("WP-2.6D state/pass changed unexpectedly")
