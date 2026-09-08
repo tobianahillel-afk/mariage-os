@@ -36,7 +36,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.5 | deterministic criteria, blockers, score/readiness, missing information | **ACCEPTED** |
 | WP-2.6A | Venue offers and offer components | **ACCEPTED** |
 | WP-2.6B | Venue availability observations | **ACCEPTED** |
-| WP-2.6C | Venue contacts | **REVIEW_PENDING** |
+| WP-2.6C | Venue contacts | **ACCEPTANCE_PENDING** |
 | WP-2.6D | Venue interaction history | PLANNED |
 | WP-2.7 | contextual venue access-route observations | PLANNED |
 | WP-2.8 | venue media/photo foundation and media safety | PLANNED |
@@ -124,12 +124,12 @@ Implementation-only decomposition, with product scope unchanged:
 
 - `WP-2.6A` — Venue offers + Venue-owned offer components — **ACCEPTED / COMPLETE**, estimated 10 points with explicit offer/component lifecycle cohesion rationale;
 - `WP-2.6B` — append-oriented Venue availability observations — **ACCEPTED / COMPLETE**, estimated 9 points with evidence-history/replay cohesion rationale;
-- `WP-2.6C` — Venue contacts — **REVIEW_PENDING / B-ADVERSARIAL**, Pass A complete on `aee0572cebddc0eae26e898fe68a008009263d11` / `34282995400` with contact persistence/RLS/revision/provider boundaries and cross-project UUID non-disclosure verified;
+- `WP-2.6C` — Venue contacts — **ACCEPTANCE_PENDING / C-ACCEPTANCE**, Pass A complete on `aee0572cebddc0eae26e898fe68a008009263d11` / `34282995400`; fresh Pass B PASS on `4f43d59f113f2aa0a857ed147965fd65a8b02413` / `34285562087` with no open BLOCKING/MAJOR finding;
 - `WP-2.6D` — Venue interaction history — **PLANNED / PLAN**, estimated 9 points with append/replay/history cohesion.
 
 Activation sizing review: **MANDATORY SPLIT PERFORMED BEFORE PRODUCTION CODE**. The former combined C packet's 10-point estimate assumed direct ordinary-RLS contact mutation; accepted revisioned mutation precedent requires a real command boundary, so keeping contact mutation plus interaction append/replay would exceed 10. Fragmentation review: **PASS** — C and D are distinct mutable-reference vs immutable-history slices, not file-level fragments.
 
-Required original WP-2.6 responsibilities minus assigned A/B/C/D responsibilities: **∅**. WP-2.6A and WP-2.6B responsibilities are accepted/evidenced with gap **∅**; WP-2.6C has completed Pass A but is not accepted; the original parent responsibility remains incomplete until C/D are accepted.
+Required original WP-2.6 responsibilities minus assigned A/B/C/D responsibilities: **∅**. WP-2.6A and WP-2.6B responsibilities are accepted/evidenced with gap **∅**; WP-2.6C has completed Pass A and fresh Pass B but is not accepted pending Pass C; the original parent responsibility remains incomplete until C/D are accepted.
 
 ### WP-2.6C Pass A
 
@@ -138,6 +138,15 @@ Required original WP-2.6 responsibilities minus assigned A/B/C/D responsibilitie
 - foreign-project UUID non-disclosure red-first `56c79ee3064384b5425699742a3b8c2a21fd4aa7` / `34282681713`: expected DB FAILURE with `have: 23505`, `want: 42501`;
 - final remediation/implementation `aee0572cebddc0eae26e898fe68a008009263d11` / `34282995400`: **5/5 SUCCESS**; Core 111 files / 1037 tests at 100% measured statements/branches/functions/lines, DB/RLS PASS, Browser E2E + mutation PASS, privacy-safe preview PASS, clean-checkout `npm run verify` PASS;
 - Pass A decision: **COMPLETE / VERIFIED — transition to REVIEW_PENDING / B-ADVERSARIAL**; interactions (WP-2.6D) and WP-2.7 remain unstarted.
+
+### WP-2.6C Pass B
+
+- fresh independent reviewed head/run `4f43d59f113f2aa0a857ed147965fd65a8b02413` / `34285562087`: **5/5 SUCCESS**, including clean-checkout `npm run verify`;
+- review reconstructed direct-table grants/RLS, live write authorization, shared project-lock serialization with role downgrade/revocation, same-session authority loss, stale revisions, immutable project/Venue parent identity, UUID collision non-disclosure, canonical phone/text parity and fail-closed provider save/list receipts;
+- dedicated evidence hardening `supabase/tests/venue_contacts_adversarial_review_test.sql` passed without product-semantic remediation; the fresh-review diff from the Pass-A governance head added tests only;
+- explicit scope retained: no contact delete lifecycle, interactions, Tasks, Vendors, offline queue or Venue UI;
+- open BLOCKING/MAJOR findings: **∅**;
+- Pass B decision: **PASS — transition to ACCEPTANCE_PENDING / C-ACCEPTANCE**.
 
 ### WP-2.6A Pass A
 
@@ -194,8 +203,8 @@ Current Lot: 2 — Venues core
 Lot State: IN_PROGRESS
 Branch: lot-2/venues-core
 Current Packet: WP-2.6C
-Packet State: REVIEW_PENDING
-Current Pass: B-ADVERSARIAL
+Packet State: ACCEPTANCE_PENDING
+Current Pass: C-ACCEPTANCE
 Last completed packet: WP-2.6B — ACCEPTED
 Accepted packets: WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5, WP-2.6A, WP-2.6B
 Planned commercial subpacket after current: WP-2.6D
@@ -211,9 +220,10 @@ WP-2.6B final acceptance-governance head/run: 8911f1523d96b95cf1329c4b144bfec235
 WP-2.6C split decision: mandatory >10 prevention; contacts → C (9 points), interactions → D (9 points); fragmentation review PASS
 WP-2.6C Pass-A final head/run: aee0572cebddc0eae26e898fe68a008009263d11 / 34282995400 — 5/5 SUCCESS
 WP-2.6C cross-project non-disclosure red-first: 56c79ee3064384b5425699742a3b8c2a21fd4aa7 / 34282681713 — expected DB FAILURE; resolved on final Pass-A head
-Open WP-2.6C BLOCKING/MAJOR findings at Pass-A handoff: none known; fresh Pass B pending
-WP-2.6C Pass-A implementation responsibility is VERIFIED but not yet ACCEPTED; packet acceptance remains pending Pass B + Pass C.
-Next permitted action: perform fresh WP-2.6C Pass B adversarial review after verifying this governance transition head. Do not start WP-2.6D or WP-2.7 concurrently.
+WP-2.6C final fresh Pass-B reviewed head/run: 4f43d59f113f2aa0a857ed147965fd65a8b02413 / 34285562087 — 5/5 SUCCESS
+Open WP-2.6C BLOCKING/MAJOR findings after fresh Pass B: ∅
+WP-2.6C Pass-A implementation + Pass-B adversarial review are VERIFIED but not yet ACCEPTED; packet acceptance remains pending Pass C.
+Next permitted action: verify this Pass-C transition governance head, then perform WP-2.6C mechanical Pass C reconciliation. Do not start WP-2.6D or WP-2.7 concurrently.
 ```
 
 ## Known localized specification repairs / stop-conditions
@@ -242,7 +252,7 @@ Next permitted action: perform fresh WP-2.6C Pass B adversarial review after ver
 - WP-2.5 packet responsibility for `FTR-021` and the Lot-2 read-model/guidance responsibility of `FTR-022` is **ACCEPTED**. This does not claim downstream WP-2.11 presentation/UI, WP-2.10/2.12 offline integration, Lot-3 Task workflow or Lot-12 real-data/default-criteria work.
 - WP-2.6A commercial offer/component responsibility for the Lot-2 slice of `FTR-025` / `VEN-008` is **ACCEPTED**.
 - WP-2.6B availability responsibility for the Lot-2 slice of `FTR-025` / `VEN-009` is **ACCEPTED**. Whole `FTR-025` remains **IN_PROGRESS** because Budget/scenario integration continues in Lot 5.
-- Original WP-2.6 product responsibility remains execution-mapped to WP-2.6A/B/C/D; A+B are accepted, WP-2.6C is **REVIEW_PENDING / B-ADVERSARIAL**, and WP-2.6D remains planned.
+- Original WP-2.6 product responsibility remains execution-mapped to WP-2.6A/B/C/D; A+B are accepted, WP-2.6C is **ACCEPTANCE_PENDING / C-ACCEPTANCE**, and WP-2.6D remains planned.
 
 ## Forward maintenance
 
@@ -271,13 +281,14 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted Lot-2 packets: WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5, WP-2.6A, WP-2.6B
 Last completed packet: WP-2.6B — ACCEPTED / COMPLETE
-Current packet: WP-2.6C — REVIEW_PENDING / B-ADVERSARIAL
-Current commercial packet: WP-2.6C — REVIEW_PENDING / B-ADVERSARIAL
+Current packet: WP-2.6C — ACCEPTANCE_PENDING / C-ACCEPTANCE
+Current commercial packet: WP-2.6C — ACCEPTANCE_PENDING / C-ACCEPTANCE
 Following commercial packet: WP-2.6D — PLANNED / PLAN
 WP-2.6 specification gates: cf46c731... / 34170253114, 6dce81a4... / 34171320200 and 9f5c8af... / 34239745903 — all 5/5 SUCCESS
 WP-2.6A acceptance governance: 186933ed... / 34238484533 — 5/5 SUCCESS
 WP-2.6B Pass A: 1c1dd4db... / 34253821826 — 5/5 SUCCESS
 WP-2.6B final Pass B: e92af194... / 34263468532 — 5/5 SUCCESS; open BLOCKING/MAJOR findings ∅
-Next permitted action: verify the exact WP-2.6C Pass-A transition governance HEAD, then perform fresh WP-2.6C Pass B adversarial review. WP-2.6D and WP-2.7 remain prohibited concurrently.
+WP-2.6C final fresh Pass B: 4f43d59f... / 34285562087 — 5/5 SUCCESS; open BLOCKING/MAJOR findings ∅
+Next permitted action: verify the exact WP-2.6C Pass-C transition governance HEAD, then perform mechanical WP-2.6C Pass C reconciliation. WP-2.6D and WP-2.7 remain prohibited concurrently.
 Lots 3–12: NOT_STARTED
 ```
