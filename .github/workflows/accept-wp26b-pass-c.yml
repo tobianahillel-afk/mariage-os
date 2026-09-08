@@ -1,0 +1,30 @@
+name: Accept WP-2.6B after Pass C
+
+on:
+  push:
+    branches:
+      - lot-2/venues-core
+    paths:
+      - .github/workflows/accept-wp26b-pass-c.yml
+
+permissions:
+  contents: write
+
+jobs:
+  accept_packet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: true
+      - name: Apply guarded Pass C acceptance record
+        run: |
+          test "$(git rev-parse HEAD)" = "6e091cc5088fece027f13c6764092453da18f418"
+          python .tmp/accept_wp26b_pass_c.py
+          git diff --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/roadmap/lot-2/WP-2.6B.md docs/roadmap/IMPLEMENTATION-STATUS.md docs/roadmap/lot-2/LOT-2-COVERAGE-MATRIX.md
+          git rm .tmp/accept_wp26b_pass_c.py .github/workflows/accept-wp26b-pass-c.yml
+          git commit -m "docs: accept WP-2.6B after reconciliation"
+          git push origin HEAD:lot-2/venues-core
