@@ -63,18 +63,21 @@ function queryTable(data: unknown, error: unknown = null): QueryTable {
   return { select: vi.fn(() => filter) };
 }
 
-it("saves through one RPC and validates the exact returned payload/revision", async () => {
-  const rpc = vi.fn(async () => ({ data: row(), error: null }));
-  const client = {
-    rpc,
+function clientWithRpc(data: unknown, error: unknown = null) {
+  return {
+    rpc: vi.fn(async () => ({ data, error })),
     from: vi.fn(() => queryTable([])),
   } as unknown as SupabaseVenueContactClientLike;
+}
+
+it("saves through one RPC and validates the exact returned payload/revision", async () => {
+  const client = clientWithRpc(row());
   const adapter = new SupabaseVenueContactAdapter(client);
   await expect(adapter.saveVenueContact(input)).resolves.toMatchObject({
     id: contactId,
     revision: 1,
   });
-  expect(rpc).toHaveBeenCalledWith(
+  expect(client.rpc).toHaveBeenCalledWith(
     "save_venue_contact",
     expect.objectContaining({
       target_project_id: projectId,
@@ -85,10 +88,7 @@ it("saves through one RPC and validates the exact returned payload/revision", as
     }),
   );
 
-  const updateClient = {
-    rpc: vi.fn(async () => ({ data: row({ revision: 5 }), error: null })),
-    from: vi.fn(() => queryTable([])),
-  } as unknown as SupabaseVenueContactClientLike;
+  const updateClient = clientWithRpc(row({ revision: 5 }));
   await expect(
     new SupabaseVenueContactAdapter(updateClient).saveVenueContact({
       ...input,
@@ -97,34 +97,41 @@ it("saves through one RPC and validates the exact returned payload/revision", as
   ).resolves.toMatchObject({ revision: 5 });
 });
 
-it("maps server conflicts and rejects malformed save responses", async () => {
+it("maps typed server conflict SQLSTATEs", async () => {
   for (const code of ["23505", "40001"]) {
-    const client = {
-      rpc: vi.fn(async () => ({ data: null, error: { code } })),
-      from: vi.fn(() => queryTable([])),
-    } as unknown as SupabaseVenueContactClientLike;
     await expect(
-      new SupabaseVenueContactAdapter(client).saveVenueContact(input),
+      new SupabaseVenueContactAdapter(
+        clientWithRpc(null, { code }),
+      ).saveVenueContact(input),
     ).rejects.toMatchObject({ code: "conflict" });
   }
-  const generic = {
-    rpc: vi.fn(async () => ({ data: null, error: { code: "42501" } })),
-    from: vi.fn(() => queryTable([])),
-  } as unknown as SupabaseVenueContactClientLike;
-  await expect(
-    new SupabaseVenueContactAdapter(generic).saveVenueContact(input),
-  ).rejects.toMatchObject({ code: "persistence_failed" });
-
-  const malformed = {
-    rpc: vi.fn(async () => ({ data: row({ phone: "bad" }), error: null })),
-    from: vi.fn(() => queryTable([])),
-  } as unknown as SupabaseVenueContactClientLike;
-  await expect(
-    new SupabaseVenueContactAdapter(malformed).saveVenueContact(input),
-  ).rejects.toBeInstanceOf(VenueContactPersistenceError);
 });
 
-it("lists same-parent canonical rows and fails closed on duplicates/provider errors", async () => {
+it("maps generic and malformed provider errors to persistence failure", async () => {
+  for (const error of [{ code: "42501" }, "failed", {}, { code: 42 }]) {
+    await expect(
+      new SupabaseVenueContactAdapter(
+        clientWithRpc(null, error),
+      ).saveVenueContact(input),
+    ).rejects.toMatchObject({ code: "persistence_failed" });
+  }
+});
+
+it("rejects malformed or semantically inconsistent save receipts", async () => {
+  await expect(
+    new SupabaseVenueContactAdapter(
+      clientWithRpc(row({ phone: "bad" })),
+    ).saveVenueContact(input),
+  ).rejects.toBeInstanceOf(VenueContactPersistenceError);
+
+  await expect(
+    new SupabaseVenueContactAdapter(
+      clientWithRpc(row({ revision: 2 })),
+    ).saveVenueContact(input),
+  ).rejects.toMatchObject({ code: "provider_response_invalid" });
+});
+
+it("lists canonical same-parent rows and rejects duplicate identities", async () => {
   const client = {
     rpc: vi.fn(),
     from: vi.fn(() => queryTable([row()])),
@@ -142,6 +149,19 @@ it("lists same-parent canonical rows and fails closed on duplicates/provider err
   } as unknown as SupabaseVenueContactClientLike;
   await expect(
     new SupabaseVenueContactAdapter(duplicate).listVenueContacts(
+      projectId,
+      venueId,
+    ),
+  ).rejects.toMatchObject({ code: "provider_response_invalid" });
+});
+
+it("fails closed on malformed list rows and provider query errors", async () => {
+  const malformed = {
+    rpc: vi.fn(),
+    from: vi.fn(() => queryTable([row({ phone: "bad" })])),
+  } as unknown as SupabaseVenueContactClientLike;
+  await expect(
+    new SupabaseVenueContactAdapter(malformed).listVenueContacts(
       projectId,
       venueId,
     ),
