@@ -102,9 +102,7 @@ export function parseVenueOfferRow(
     depositAmountMinor: nullableNumber(row.deposit_amount_minor),
     depositRefundable: nullableBoolean(row.deposit_refundable),
     securityDepositMinor: nullableNumber(row.security_deposit_minor),
-    securityDepositRefundable: nullableBoolean(
-      row.security_deposit_refundable,
-    ),
+    securityDepositRefundable: nullableBoolean(row.security_deposit_refundable),
     includedStartTime: providerTime(row.included_start_time),
     includedEndTime: providerTime(row.included_end_time),
     includedEndDayOffset: numberValue(row.included_end_day_offset),

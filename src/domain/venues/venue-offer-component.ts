@@ -24,8 +24,7 @@ export const venueOfferCalculationTypes = [
   "quantity_unit",
 ] as const;
 
-export type VenueOfferComponentType =
-  (typeof venueOfferComponentTypes)[number];
+export type VenueOfferComponentType = (typeof venueOfferComponentTypes)[number];
 export type VenueOfferCalculationType =
   (typeof venueOfferCalculationTypes)[number];
 

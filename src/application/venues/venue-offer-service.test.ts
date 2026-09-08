@@ -24,7 +24,9 @@ const venueId = "22222222-2222-4222-8222-222222222222";
 const offerId = "33333333-3333-4333-8333-333333333333";
 const componentId = "44444444-4444-4444-8444-444444444444";
 
-function offerRecord(status: VenueOfferRecord["status"] = "draft"): VenueOfferRecord {
+function offerRecord(
+  status: VenueOfferRecord["status"] = "draft",
+): VenueOfferRecord {
   return {
     id: offerId,
     projectId,
@@ -84,7 +86,9 @@ class FakeVenueOfferPort implements VenueOfferPort {
     ],
   );
   readonly createVenueOffer = vi.fn(
-    async (_input: CreateVenueOfferInput): Promise<VenueOfferAggregateRecord> => ({
+    async (
+      _input: CreateVenueOfferInput,
+    ): Promise<VenueOfferAggregateRecord> => ({
       offer: offerRecord(),
       components: [componentRecord()],
     }),
@@ -174,18 +178,13 @@ describe("venue offer application service", () => {
     await expect(
       createVenueOffer(port, {
         ...validCreate(),
-        components: [
-          { ...validCreate().components[0], componentId: "bad" },
-        ],
+        components: [{ ...validCreate().components[0], componentId: "bad" }],
       }),
     ).resolves.toEqual({ ok: false, error: "identity_invalid" });
     await expect(
       createVenueOffer(port, {
         ...validCreate(),
-        components: [
-          validCreate().components[0],
-          validCreate().components[0],
-        ],
+        components: [validCreate().components[0], validCreate().components[0]],
       }),
     ).resolves.toEqual({ ok: false, error: "duplicate_component_id" });
     await expect(
@@ -324,7 +323,10 @@ describe("venue offer application service", () => {
       expect.objectContaining({ expectedComponentRevision: 2 }),
     );
     await expect(
-      updateVenueOfferComponent(port, { ...input, expectedComponentRevision: 0 }),
+      updateVenueOfferComponent(port, {
+        ...input,
+        expectedComponentRevision: 0,
+      }),
     ).resolves.toEqual({ ok: false, error: "expected_revision_invalid" });
     await expect(
       updateVenueOfferComponent(port, { ...input, projectId: "bad" }),

@@ -156,7 +156,9 @@ describe("venue offer domain", () => {
   });
 
   it("accepts only draft or quoted at creation", () => {
-    expect(normalizeVenueOfferCreate({ ...terms(), status: "draft" })).toMatchObject({
+    expect(
+      normalizeVenueOfferCreate({ ...terms(), status: "draft" }),
+    ).toMatchObject({
       ok: true,
       value: { status: "draft" },
     });

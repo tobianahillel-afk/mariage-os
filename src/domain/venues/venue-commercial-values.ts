@@ -51,15 +51,27 @@ export function isCommercialNonNegativeInt32(value: unknown): value is number {
 }
 
 export function isCommercialBasisPoints(value: unknown): value is number {
-  return Number.isSafeInteger(value) && (value as number) >= 0 && (value as number) <= 10_000;
+  return (
+    Number.isSafeInteger(value) &&
+    (value as number) >= 0 &&
+    (value as number) <= 10_000
+  );
 }
 
 export function isCommercialWeekday(value: unknown): value is number {
-  return Number.isSafeInteger(value) && (value as number) >= 0 && (value as number) <= 6;
+  return (
+    Number.isSafeInteger(value) &&
+    (value as number) >= 0 &&
+    (value as number) <= 6
+  );
 }
 
 export function isCommercialDayOffset(value: unknown): value is number {
-  return Number.isSafeInteger(value) && (value as number) >= 0 && (value as number) <= 2;
+  return (
+    Number.isSafeInteger(value) &&
+    (value as number) >= 0 &&
+    (value as number) <= 2
+  );
 }
 
 function daysInMonth(year: number, month: number): number {
@@ -69,7 +81,8 @@ function daysInMonth(year: number, month: number): number {
 }
 
 export function isCommercialCivilDate(value: unknown): value is string {
-  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value))
+    return false;
   const [yearText, monthText, dayText] = value.split("-");
   const year = Number(yearText);
   const month = Number(monthText);

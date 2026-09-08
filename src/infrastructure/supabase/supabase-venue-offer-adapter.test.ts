@@ -230,7 +230,10 @@ describe("SupabaseVenueOfferAdapter", () => {
       args: { target_expected_revision: 1 },
     });
 
-    client.rpcResult = { data: { ...offerRow(), status: "quoted" }, error: null };
+    client.rpcResult = {
+      data: { ...offerRow(), status: "quoted" },
+      error: null,
+    };
     await expect(
       adapter.transitionVenueOffer({
         projectId,
@@ -259,7 +262,9 @@ describe("SupabaseVenueOfferAdapter", () => {
         ...component,
       }),
     ).resolves.toMatchObject({ id: componentId });
-    expect(client.lastRpc).toMatchObject({ name: "create_venue_offer_component" });
+    expect(client.lastRpc).toMatchObject({
+      name: "create_venue_offer_component",
+    });
 
     await expect(
       adapter.updateVenueOfferComponent({
@@ -298,7 +303,9 @@ describe("SupabaseVenueOfferAdapter", () => {
         expectedComponentRevision: 1,
       }),
     ).resolves.toBeUndefined();
-    expect(client.lastRpc).toMatchObject({ name: "remove_venue_offer_component" });
+    expect(client.lastRpc).toMatchObject({
+      name: "remove_venue_offer_component",
+    });
   });
 
   it("fails all mutation methods closed on provider errors or malformed data", async () => {
@@ -315,7 +322,10 @@ describe("SupabaseVenueOfferAdapter", () => {
       }),
     ).rejects.toThrow("Venue offer update failed.");
 
-    client.rpcResult = { data: { ...offerRow(), project_id: venueId }, error: null };
+    client.rpcResult = {
+      data: { ...offerRow(), project_id: venueId },
+      error: null,
+    };
     await expect(
       adapter.transitionVenueOffer({
         projectId,
@@ -326,7 +336,10 @@ describe("SupabaseVenueOfferAdapter", () => {
       }),
     ).rejects.toThrow("Invalid venue commercial response.");
 
-    client.rpcResult = { data: { ...componentRow(), owner_type: "vendor_offer" }, error: null };
+    client.rpcResult = {
+      data: { ...componentRow(), owner_type: "vendor_offer" },
+      error: null,
+    };
     await expect(
       adapter.createVenueOfferComponent({
         projectId,

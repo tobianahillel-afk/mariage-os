@@ -28,8 +28,7 @@ export interface VenueOfferRecord extends NormalizedVenueOfferTerms {
   readonly revision: number;
 }
 
-export interface VenueOfferComponentRecord
-  extends NormalizedVenueOfferComponent {
+export interface VenueOfferComponentRecord extends NormalizedVenueOfferComponent {
   readonly id: string;
   readonly projectId: string;
   readonly ownerType: "venue_offer";
@@ -42,8 +41,7 @@ export interface VenueOfferAggregateRecord {
   readonly components: readonly VenueOfferComponentRecord[];
 }
 
-export interface CreateVenueOfferComponentDraft
-  extends VenueOfferComponentDraft {
+export interface CreateVenueOfferComponentDraft extends VenueOfferComponentDraft {
   readonly componentId: string;
 }
 
@@ -69,16 +67,14 @@ export interface TransitionVenueOfferInput {
   readonly expectedRevision: number;
 }
 
-export interface MutateVenueOfferComponentDraft
-  extends VenueOfferComponentDraft {
+export interface MutateVenueOfferComponentDraft extends VenueOfferComponentDraft {
   readonly projectId: string;
   readonly offerId: string;
   readonly componentId: string;
   readonly expectedOfferRevision: number;
 }
 
-export interface UpdateVenueOfferComponentDraft
-  extends MutateVenueOfferComponentDraft {
+export interface UpdateVenueOfferComponentDraft extends MutateVenueOfferComponentDraft {
   readonly expectedComponentRevision: number;
 }
 
@@ -90,8 +86,7 @@ export interface RemoveVenueOfferComponentInput {
   readonly expectedComponentRevision: number;
 }
 
-interface CreateVenueOfferComponentInput
-  extends NormalizedVenueOfferComponent {
+interface CreateVenueOfferComponentInput extends NormalizedVenueOfferComponent {
   readonly componentId: string;
 }
 
@@ -112,8 +107,7 @@ export interface UpdateVenueOfferInput {
   readonly terms: NormalizedVenueOfferTerms;
 }
 
-export interface VenueOfferComponentMutationInput
-  extends NormalizedVenueOfferComponent {
+export interface VenueOfferComponentMutationInput extends NormalizedVenueOfferComponent {
   readonly projectId: string;
   readonly offerId: string;
   readonly componentId: string;
@@ -130,16 +124,24 @@ export interface VenueOfferPort {
     projectId: string,
     offerId: string,
   ): Promise<readonly VenueOfferComponentRecord[]>;
-  createVenueOffer(input: CreateVenueOfferInput): Promise<VenueOfferAggregateRecord>;
-  updateVenueOfferDraft(input: UpdateVenueOfferInput): Promise<VenueOfferRecord>;
-  transitionVenueOffer(input: TransitionVenueOfferInput): Promise<VenueOfferRecord>;
+  createVenueOffer(
+    input: CreateVenueOfferInput,
+  ): Promise<VenueOfferAggregateRecord>;
+  updateVenueOfferDraft(
+    input: UpdateVenueOfferInput,
+  ): Promise<VenueOfferRecord>;
+  transitionVenueOffer(
+    input: TransitionVenueOfferInput,
+  ): Promise<VenueOfferRecord>;
   createVenueOfferComponent(
     input: VenueOfferComponentMutationInput,
   ): Promise<VenueOfferComponentRecord>;
   updateVenueOfferComponent(
     input: VenueOfferComponentMutationInput,
   ): Promise<VenueOfferComponentRecord>;
-  removeVenueOfferComponent(input: RemoveVenueOfferComponentInput): Promise<void>;
+  removeVenueOfferComponent(
+    input: RemoveVenueOfferComponentInput,
+  ): Promise<void>;
 }
 
 export type VenueOfferServiceError =
@@ -164,7 +166,9 @@ function revisionError(value: number): VenueOfferMutationResult<never> | null {
   return error === null ? null : { ok: false, error };
 }
 
-async function persist<T>(operation: () => Promise<T>): Promise<VenueOfferMutationResult<T>> {
+async function persist<T>(
+  operation: () => Promise<T>,
+): Promise<VenueOfferMutationResult<T>> {
   try {
     return { ok: true, value: await operation() };
   } catch {
@@ -247,7 +251,10 @@ export async function transitionVenueOffer(
   }
   const stale = revisionError(input.expectedRevision);
   if (stale !== null) return stale;
-  if (!isVenueOfferStatus(input.targetStatus) || input.targetStatus === "draft") {
+  if (
+    !isVenueOfferStatus(input.targetStatus) ||
+    input.targetStatus === "draft"
+  ) {
     return { ok: false, error: "transition_target_invalid" };
   }
   return persist(() => port.transitionVenueOffer(input));

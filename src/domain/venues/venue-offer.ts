@@ -119,7 +119,9 @@ export function isVenueOfferStatus(value: unknown): value is VenueOfferStatus {
   );
 }
 
-export function isVenueOfferTaxMode(value: unknown): value is VenueOfferTaxMode {
+export function isVenueOfferTaxMode(
+  value: unknown,
+): value is VenueOfferTaxMode {
   return (
     typeof value === "string" &&
     venueOfferTaxModes.includes(value as VenueOfferTaxMode)
@@ -210,9 +212,7 @@ function validateMoneyAndCounts(
   if (
     amounts.some(
       (value) =>
-        value !== null &&
-        value !== undefined &&
-        !isCommercialMoney(value),
+        value !== null && value !== undefined && !isCommercialMoney(value),
     )
   ) {
     return { ok: false, error: "money_invalid" };

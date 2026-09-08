@@ -124,12 +124,12 @@ describe("venue commercial provider parsing", () => {
   });
 
   it("fails closed on malformed offer containers, identity and status", () => {
-    expect(() =>
-      parseVenueOfferRow(null, projectId, venueId),
-    ).toThrow("Invalid venue commercial response.");
-    expect(() =>
-      parseVenueOfferRow([], projectId, venueId),
-    ).toThrow("Invalid venue commercial response.");
+    expect(() => parseVenueOfferRow(null, projectId, venueId)).toThrow(
+      "Invalid venue commercial response.",
+    );
+    expect(() => parseVenueOfferRow([], projectId, venueId)).toThrow(
+      "Invalid venue commercial response.",
+    );
     expectOfferFailure({ id: 42 });
     expectOfferFailure({ id: "bad" });
     expectOfferFailure({ project_id: venueId });
@@ -207,12 +207,7 @@ describe("venue commercial provider parsing", () => {
     expectComponentFailure({ notes: 42 });
     expectComponentFailure({ revision: 0 });
     expect(() =>
-      parseVenueOfferComponentRow(
-        componentRow(),
-        projectId,
-        offerId,
-        sourceId,
-      ),
+      parseVenueOfferComponentRow(componentRow(), projectId, offerId, sourceId),
     ).toThrow("Invalid venue commercial response.");
   });
 
@@ -283,12 +278,7 @@ describe("venue commercial provider parsing", () => {
       },
     ]) {
       expect(() =>
-        parseVenueOfferRemovalReceipt(
-          payload,
-          projectId,
-          offerId,
-          componentId,
-        ),
+        parseVenueOfferRemovalReceipt(payload, projectId, offerId, componentId),
       ).toThrow("Invalid venue commercial response.");
     }
   });

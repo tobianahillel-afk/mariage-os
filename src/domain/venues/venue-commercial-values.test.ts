@@ -17,9 +17,9 @@ import {
 
 describe("venue commercial canonical values", () => {
   it("validates UUID, currency and bounded text", () => {
-    expect(
-      isVenueCommercialUuid("11111111-1111-4111-8111-111111111111"),
-    ).toBe(true);
+    expect(isVenueCommercialUuid("11111111-1111-4111-8111-111111111111")).toBe(
+      true,
+    );
     expect(isVenueCommercialUuid("not-a-uuid")).toBe(false);
     expect(isVenueCommercialUuid(42)).toBe(false);
     expect(isCommercialCurrency("EUR")).toBe(true);
