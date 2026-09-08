@@ -127,6 +127,6 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           git diff --cached --check
-          test "$(git diff --cached --name-only | sort | tr '\n' ' ')" = "docs/roadmap/IMPLEMENTATION-STATUS.md docs/roadmap/lot-2/LOT-2-COVERAGE-MATRIX.md docs/roadmap/lot-2/WP-2.6C.md "
+          test "$(git diff --cached --name-only | sort | tr '\n' ' ')" = ".github/workflows/wp26c-passb-transition.yml docs/roadmap/IMPLEMENTATION-STATUS.md docs/roadmap/lot-2/LOT-2-COVERAGE-MATRIX.md docs/roadmap/lot-2/WP-2.6C.md "
           git commit -m "docs: advance WP-2.6C to Pass C"
           git push
