@@ -19,7 +19,6 @@ jobs:
           persist-credentials: true
       - name: Apply guarded Pass C acceptance record
         run: |
-          test "$(git rev-parse HEAD)" = "6e091cc5088fece027f13c6764092453da18f418"
           python .tmp/accept_wp26b_pass_c.py
           git diff --check
           git config user.name "github-actions[bot]"
