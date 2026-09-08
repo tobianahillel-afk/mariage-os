@@ -34,7 +34,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.3 | fact definitions, typed retained facts, value validation | **ACCEPTED** |
 | WP-2.4 | observations, sources, evidence/confidence/freshness, conflicts | **ACCEPTED** |
 | WP-2.5 | deterministic criteria, blockers, score/readiness, missing information | **ACCEPTED** |
-| WP-2.6A | Venue offers and offer components | **REVIEW_PENDING — B-ADVERSARIAL-REVIEW** |
+| WP-2.6A | Venue offers and offer components | **ACCEPTANCE_PENDING — C-ACCEPTANCE** |
 | WP-2.6B | Venue availability observations | PLANNED |
 | WP-2.6C | Venue contacts and interactions | PLANNED |
 | WP-2.7 | contextual venue access-route observations | PLANNED |
@@ -118,7 +118,7 @@ The original single WP-2.6 packet was rejected at sizing review before productio
 
 Implementation-only decomposition, with product scope unchanged:
 
-- `WP-2.6A` — Venue offers + Venue-owned offer components — **REVIEW_PENDING / B-ADVERSARIAL-REVIEW**, estimated 10 points with explicit offer/component lifecycle cohesion rationale;
+- `WP-2.6A` — Venue offers + Venue-owned offer components — **ACCEPTANCE_PENDING / C-ACCEPTANCE**, estimated 10 points with explicit offer/component lifecycle cohesion rationale;
 - `WP-2.6B` — append-oriented Venue availability observations — **PLANNED / PLAN**, estimated 9 points with evidence-history/replay cohesion rationale;
 - `WP-2.6C` — Venue contacts + interactions — **PLANNED / PLAN**, estimated 10 points with same-Venue contact/interaction parent-integrity cohesion rationale. If actual privileged command count raises C above 10, split contacts/interactions before code.
 
@@ -131,7 +131,19 @@ Required original WP-2.6 responsibilities minus assigned A/B/C responsibilities:
 - Pass-A hardening control `0149f0b1b77335228af9bf53379a47735c6ec9b6` / `34222772124`: expected DB FAILURE demonstrated that NULL creation status could be coerced to `draft`;
 - forward-only migration hardening on `e027bbbba93d73546ed19fffac7c26471f45ecb5` rejects NULL before insertion while preserving all prior green proofs;
 - unit coverage is 100% statements/branches/functions/lines on the verified implementation head;
-- Pass A is complete and WP-2.6A is queued for a fresh independent Pass B. WP-2.6B/C and WP-2.7 remain blocked.
+- Pass A is complete.
+
+### WP-2.6A Pass B
+
+- findings `WP2.6A-B-001..006`: **RESOLVED / VERIFIED**;
+- B-001 same-state lifecycle mismatch: red-first `509bc143...` / `34225335069`; verified remediation `177e8379...` / `34225597966` — **5/5 SUCCESS**;
+- B-002 duplicate provider identities: red-first `e6397a44...` / `34226318216`; first fully green remediation head `d471b198...` / `34227416769` — **5/5 SUCCESS**;
+- B-003 mutation receipt lifecycle-intent mismatch and B-004 source receipt identity substitution were exposed by red-first unit failures `ab5369ab...` / `34228042878` and `9ef4dc1f...` / `34228937549`; both remain fixed on the final reviewed head;
+- B-005 exact `numeric(12,3)` quantity parity: red-first `905bcd36...` / `34229413676`; remediation `61aa9bf5...` / `34231035762` — **5/5 SUCCESS**;
+- B-006 incomplete `quoted` SQL bypass: red-first `41db57cb...` / `34232111029`; forward-only trigger hardening plus lifecycle fixture alignment verified on `c7339227...` / `34233201350` — **5/5 SUCCESS**;
+- final fresh reviewed head/run `c7339227126e0df6969809644b5d0eb2512d350c` / `34233201350`: **5/5 SUCCESS**, including clean-checkout `npm run verify`;
+- no unresolved BLOCKING/MAJOR finding remains; Pass B decision **PASS**;
+- WP-2.6B/C and WP-2.7 remain blocked until WP-2.6A Pass C completes.
 
 ## Durable cursor
 
@@ -140,8 +152,8 @@ Current Lot: 2 — Venues core
 Lot State: IN_PROGRESS
 Branch: lot-2/venues-core
 Current Packet: WP-2.6A
-Packet State: REVIEW_PENDING
-Current Pass: B-ADVERSARIAL-REVIEW
+Packet State: ACCEPTANCE_PENDING
+Current Pass: C-ACCEPTANCE
 Last completed packet: WP-2.5 — ACCEPTED
 Accepted packets: WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5
 Planned commercial subpackets: WP-2.6B, WP-2.6C
@@ -149,9 +161,10 @@ WP-2.6 base freeze head/run: cf46c731bd45b77feaa514b22036096301280755 / 34170253
 WP-2.6 boundary freeze head/run: 6dce81a49ccdbb7bc9da54b2491a0c8746e12e50 / 34171320200 — 5/5 SUCCESS
 WP-2.6A implementation-entry head/run: c99c4ac091bc21cb55a9b634710a3b7d694a7285 / 34171995654 — 5/5 SUCCESS
 WP-2.6A verified Pass-A implementation head/run: e027bbbba93d73546ed19fffac7c26471f45ecb5 / 34223226316 — 5/5 SUCCESS
-WP-2.6A red-first NULL-boundary control: 0149f0b1b77335228af9bf53379a47735c6ec9b6 / 34222772124 — expected DB FAILURE, resolved
+WP-2.6A final fresh Pass-B reviewed head/run: c7339227126e0df6969809644b5d0eb2512d350c / 34233201350 — 5/5 SUCCESS
+WP-2.6A Pass-B findings: WP2.6A-B-001..006 — RESOLVED / VERIFIED
 Open WP-2.6A BLOCKING/MAJOR findings: ∅
-Next permitted action: verify the Pass-A governance transition on its exact HEAD, then execute fresh independent WP-2.6A Pass B only. Do not start WP-2.6B/C or WP-2.7 concurrently.
+Next permitted action: verify the Pass-B governance transition on its exact HEAD, then execute WP-2.6A Pass C only. Do not start WP-2.6B/C or WP-2.7 concurrently.
 ```
 
 ## Known localized specification repairs / stop-conditions
@@ -164,6 +177,7 @@ Next permitted action: verify the Pass-A governance transition on its exact HEAD
 - WP-2.6 commercial workflow semantics: **CLOSED** through `cf46c731...` / CI `34170253114`.
 - WP-2.6 canonical phone/WhatsApp and append retry semantics: **CLOSED** by `6dce81a4...` / CI `34171320200`.
 - WP-2.6A NULL creation-status fail-closed boundary: **RESOLVED / VERIFIED** on `e027bbbb...` / CI `34223226316` after red-first control `0149f0b1...` / `34222772124`.
+- WP-2.6A `WP2.6A-B-001..B-006`: **RESOLVED / VERIFIED**; final fresh Pass B reviewed head `c7339227...` / CI `34233201350` — **5/5 SUCCESS**.
 - Before WP-2.8 relies on the security reading graph, repair the missing `docs/security/STORAGE-RLS.md` reference using already frozen/tested Storage authorization semantics.
 - Venue lifecycle documentation conflict from WP-2.1 is closed by `docs/domain/STATE-MACHINES-VENUE-LIFECYCLE-ADDENDUM.md`.
 
@@ -174,7 +188,7 @@ Next permitted action: verify the Pass-A governance transition on its exact HEAD
 - Feature-level whole-capability status is not conflated with packet/current-lot responsibility; Lot Coverage Matrices remain the durable responsibility-level reconciliation source.
 - WP-2.4 packet responsibility for `FTR-020` is **ACCEPTED**.
 - WP-2.5 packet responsibility for `FTR-021` and the Lot-2 read-model/guidance responsibility of `FTR-022` is **ACCEPTED**. This does not claim downstream WP-2.11 presentation/UI, WP-2.10/2.12 offline integration, Lot-3 Task workflow or Lot-12 real-data/default-criteria work.
-- Original WP-2.6 product responsibility is now execution-mapped to WP-2.6A/B/C. WP-2.6A Pass A is complete, but no FTR-025/FTR-026 acceptance is claimed before Pass B/C and the remaining B/C subpackets.
+- Original WP-2.6 product responsibility is execution-mapped to WP-2.6A/B/C. WP-2.6A Pass A and Pass B are complete, but no FTR-025/FTR-026 acceptance is claimed before WP-2.6A Pass C and the remaining B/C subpackets.
 
 ## Forward maintenance
 
@@ -203,11 +217,12 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted Lot-2 packets: WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5
 Last completed packet: WP-2.5 — ACCEPTED / COMPLETE
-Current packet: WP-2.6A — REVIEW_PENDING / B-ADVERSARIAL-REVIEW
+Current packet: WP-2.6A — ACCEPTANCE_PENDING / C-ACCEPTANCE
 Planned next commercial packets: WP-2.6B, WP-2.6C
 WP-2.6 specification gates: cf46c731... / 34170253114 and 6dce81a4... / 34171320200 — both 5/5 SUCCESS
 WP-2.6A implementation-entry gate: c99c4ac... / 34171995654 — 5/5 SUCCESS
 WP-2.6A verified Pass-A implementation: e027bbbb... / 34223226316 — 5/5 SUCCESS
-Next permitted action: verify the Pass-A governance transition on its exact HEAD, then execute fresh independent WP-2.6A Pass B only. WP-2.6B/C and WP-2.7 remain prohibited concurrently.
+WP-2.6A final fresh Pass-B review: c7339227... / 34233201350 — 5/5 SUCCESS; findings B-001..B-006 resolved/verified
+Next permitted action: verify the Pass-B governance transition on its exact HEAD, then execute WP-2.6A Pass C only. WP-2.6B/C and WP-2.7 remain prohibited concurrently.
 Lots 3–12: NOT_STARTED
 ```
