@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.6C`
 - Lot: `2`
 - Name: Venue contacts
-- State: `IN_PROGRESS`
-- Current pass: `A-IMPLEMENT`
+- State: `REVIEW_PENDING`
+- Current pass: `B-ADVERSARIAL`
 - Primary bounded context: Venue contact identity/reference data
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Parent responsibility: original matrix packet `WP-2.6`, split again at activation because the combined contacts/interactions packet exceeded the hard complexity threshold once its real command surfaces were revalidated
@@ -99,11 +99,11 @@ The contact table, canonical value grammar, one atomic save command, expected-re
 
 ## Pass A — IMPLEMENT
 
-**IN_PROGRESS.** Entry gate `caa01a39c73a68a9f03df8a6d4a2c7ec6d12fd84` / `34278672342` is 5/5 SUCCESS. Implement only the Venue-contact vertical slice. Start with an explicit red-first proof before migration/domain/adapter remediation; do not activate WP-2.6D concurrently.
+**COMPLETE / VERIFIED.** Entry gate `caa01a39c73a68a9f03df8a6d4a2c7ec6d12fd84` / `34278672342` was 5/5 SUCCESS. Initial red-first `937da5b7124e9a93b9e4fa62e9bf8ae1bbec42e1` / `34280436812` proved the contact table and atomic `save_venue_contact` command were absent before implementation. The bounded vertical slice now includes canonical contact domain validation, one create/update service with expected revision, fail-closed provider parser/adapter, project-scoped contact persistence/RLS and the atomic security-definer save command. Baseline implementation head `b8106fb7139829ea99392853837dd602f08c60fe` / `34281764493` was 5/5 SUCCESS. A separate non-disclosure red-first on `56c79ee3064384b5425699742a3b8c2a21fd4aa7` / `34282681713` failed exactly because a foreign-project UUID collision returned `23505` instead of generic `42501`; forward-only migration `20260908235500_harden_venue_contact_cross_project_identity.sql` closes that oracle without changing same-project duplicate conflict semantics. Final Pass-A implementation head `aee0572cebddc0eae26e898fe68a008009263d11` / `34282995400` is 5/5 SUCCESS: 111 unit files / 1037 tests PASS at 100% measured statements/branches/functions/lines; DB/RLS PASS including the red-first collision proof; Browser E2E + mutation PASS; privacy-safe preview PASS; clean-checkout `npm run verify` PASS. Scope remained contact-only; WP-2.6D and WP-2.7 were not started.
 
 ## Pass B — ADVERSARIAL REVIEW
 
-Not started.
+**READY FOR FRESH REVIEW.** Reconstruct authorization, revision/concurrency, cross-project UUID non-disclosure, parent immutability, canonical value parity, provider fail-closed behavior and direct-table denial independently from the Pass-A implementation. Pass-A green evidence is necessary but not sufficient for Pass B.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
@@ -111,9 +111,11 @@ Not started.
 
 ## Handoff
 
-- Current state: `IN_PROGRESS`
-- Current/next pass: `A-IMPLEMENT`
+- Current state: `REVIEW_PENDING`
+- Current/next pass: `B-ADVERSARIAL`
 - WP-2.6C split-governance entry: `caa01a39c73a68a9f03df8a6d4a2c7ec6d12fd84` / `34278672342` — **5/5 SUCCESS**
+- Pass-A final implementation head/run: `aee0572cebddc0eae26e898fe68a008009263d11` / `34282995400` — **5/5 SUCCESS**
+- Red-first security hardening: `56c79ee3064384b5425699742a3b8c2a21fd4aa7` / `34282681713` — expected DB FAILURE, foreign-project collision `23505` vs required `42501`; **RESOLVED / VERIFIED** on the final Pass-A head/run
 - Split finding: combined contacts/interactions packet would exceed 10 points once real contact command/revision boundaries are counted; **RESOLVED by decomposition before production code**
-- Remaining blocker/finding: none at Pass-A entry
-- Next permitted action: execute WP-2.6C Pass A with red-first evidence, then verify the exact implementation head. Do not start WP-2.6D or WP-2.7 concurrently.
+- Remaining BLOCKING/MAJOR finding at Pass-A handoff: none known; Pass B must reconstruct independently
+- Next permitted action: perform fresh WP-2.6C Pass B adversarial review on the exact verified governance head. Do not start WP-2.6D or WP-2.7 concurrently.
