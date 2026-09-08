@@ -22,6 +22,7 @@ const OFFER_COLUMNS =
   "id,project_id,venue_id,name,status,valid_from,valid_to,weekday,base_amount_minor,currency,tax_mode,tax_rate_basis_points,included_guest_count,extra_guest_amount_minor,deposit_amount_minor,deposit_refundable,security_deposit_minor,security_deposit_refundable,included_start_time,included_end_time,included_end_day_offset,extra_hour_amount_minor,source_id,notes,revision";
 const COMPONENT_COLUMNS =
   "id,project_id,owner_type,owner_id,label,component_type,calculation_type,unit_amount_minor,quantity,unit_label,currency,tax_mode,tax_rate_basis_points,notes,revision";
+const INVALID_RESPONSE = "Invalid venue commercial response.";
 
 interface SupabaseResult {
   readonly data: unknown;
@@ -56,6 +57,17 @@ export interface SupabaseVenueOfferClientLike {
 
 function failure(message: string): never {
   throw new Error(message);
+}
+
+function uniqueRecords<T extends { readonly id: string }>(
+  records: readonly T[],
+): readonly T[] {
+  const ids = new Set<string>();
+  for (const record of records) {
+    if (ids.has(record.id)) failure(INVALID_RESPONSE);
+    ids.add(record.id);
+  }
+  return records;
 }
 
 function offerTermsPayload(
@@ -146,7 +158,9 @@ export class SupabaseVenueOfferAdapter implements VenueOfferPort {
       "Venue offer query failed.",
     );
     if (!Array.isArray(data)) failure("Venue offer query failed.");
-    return data.map((row) => parseVenueOfferRow(row, projectId, venueId));
+    return uniqueRecords(
+      data.map((row) => parseVenueOfferRow(row, projectId, venueId)),
+    );
   }
 
   async listVenueOfferComponents(
@@ -163,8 +177,10 @@ export class SupabaseVenueOfferAdapter implements VenueOfferPort {
       "Venue offer component query failed.",
     );
     if (!Array.isArray(data)) failure("Venue offer component query failed.");
-    return data.map((row) =>
-      parseVenueOfferComponentRow(row, projectId, offerId),
+    return uniqueRecords(
+      data.map((row) =>
+        parseVenueOfferComponentRow(row, projectId, offerId),
+      ),
     );
   }
 
@@ -182,12 +198,14 @@ export class SupabaseVenueOfferAdapter implements VenueOfferPort {
       }),
       "Venue offer creation failed.",
     );
-    return parseVenueOfferAggregate(
+    const aggregate = parseVenueOfferAggregate(
       data,
       input.projectId,
       input.venueId,
       input.offerId,
     );
+    uniqueRecords(aggregate.components);
+    return aggregate;
   }
 
   async updateVenueOfferDraft(
