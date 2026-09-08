@@ -1,0 +1,51 @@
+name: WP-2.6B exact Prettier tooling
+
+on:
+  push:
+    branches:
+      - lot-2/venues-core
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Format WP-2.6B files
+        run: |
+          npx prettier --write \
+            src/application/venues/venue-availability-persistence-error.ts \
+            src/application/venues/venue-availability-service.ts \
+            src/application/venues/venue-availability-service.test.ts \
+            src/domain/venues/venue-availability.test.ts \
+            src/infrastructure/supabase/parse-venue-availability-row.ts \
+            src/infrastructure/supabase/parse-venue-availability-row.test.ts \
+            src/infrastructure/supabase/supabase-venue-availability-adapter.ts \
+            src/infrastructure/supabase/supabase-venue-availability-adapter.test.ts
+      - name: Emit exact formatted files
+        shell: bash
+        run: |
+          for f in \
+            src/application/venues/venue-availability-persistence-error.ts \
+            src/application/venues/venue-availability-service.ts \
+            src/application/venues/venue-availability-service.test.ts \
+            src/domain/venues/venue-availability.test.ts \
+            src/infrastructure/supabase/parse-venue-availability-row.ts \
+            src/infrastructure/supabase/parse-venue-availability-row.test.ts \
+            src/infrastructure/supabase/supabase-venue-availability-adapter.ts \
+            src/infrastructure/supabase/supabase-venue-availability-adapter.test.ts
+          do
+            echo "===BEGIN:${f}==="
+            base64 -w0 "$f"
+            echo
+            echo "===END:${f}==="
+          done
