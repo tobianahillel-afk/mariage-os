@@ -34,23 +34,6 @@ function revisionValue(value: unknown): number {
   return value as number;
 }
 
-function identityMatches(
-  row: Record<string, unknown>,
-  id: string,
-  projectId: string,
-  parentId: string,
-  expectedProjectId: string,
-  expectedVenueId: string,
-  expectedContactId: string | undefined,
-): boolean {
-  return [
-    projectId === expectedProjectId,
-    parentId === expectedVenueId,
-    row.parent_type === "venue",
-    expectedContactId === undefined || id === expectedContactId,
-  ].every(Boolean);
-}
-
 function canonicalPayloadMatches(
   normalized: NormalizedVenueContact,
   raw: NormalizedVenueContact,
@@ -75,19 +58,13 @@ export function parseVenueContactRow(
   const id = uuidValue(row.id);
   const projectId = uuidValue(row.project_id);
   const parentId = uuidValue(row.parent_id);
-  if (
-    !identityMatches(
-      row,
-      id,
-      projectId,
-      parentId,
-      expectedProjectId,
-      expectedVenueId,
-      expectedContactId,
-    )
-  ) {
-    invalidContactResponse();
-  }
+  const identityChecks = [
+    projectId === expectedProjectId,
+    parentId === expectedVenueId,
+    row.parent_type === "venue",
+    expectedContactId === undefined || id === expectedContactId,
+  ];
+  if (!identityChecks.every(Boolean)) invalidContactResponse();
 
   const raw: NormalizedVenueContact = {
     name: nullableString(row.name),
