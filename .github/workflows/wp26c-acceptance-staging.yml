@@ -74,8 +74,11 @@ jobs:
               pass_b_tail + """\n\n### WP-2.6C Pass C\n\n- exact Pass-C entry head/run `b8d451ec0d39239894fc9d6e1b84142015610fbe` / `34286647702`: **5/5 SUCCESS**, including clean-checkout `npm run verify`;\n- mechanical EXPECTED → IMPLEMENTED → VERIFIED reconciliation covers contact identity/canonical values, atomic create/update revision semantics, immutable project/Venue parent, UUID conflict/non-disclosure, live authorization/revocation concurrency, fail-closed provider/list boundaries and explicit scope exclusions: **PASS**;\n- applicable AUTHZ/SEC controls: **PASS** for the WP-2.6C-owned contact slice; no fake `VEN-xxx` or `ACC-xxx` ownership is claimed because the normative matrices do not assign a dedicated one to `FTR-026`;\n- required WP-2.6C responsibilities minus accepted/evidenced WP-2.6C responsibilities: **∅**;\n- whole `FTR-026` remains incomplete: interaction history → WP-2.6D, Venue presentation → WP-2.11, follow-up/Task workflow → Lot 3;\n- Pass C decision: **PASS — WP-2.6C ACCEPTED**."""
           )
           replace_exact(status, "Packet State: ACCEPTANCE_PENDING\nCurrent Pass: C-ACCEPTANCE", "Packet State: ACCEPTED\nCurrent Pass: COMPLETE")
-          replace_exact(status, "Last completed packet: WP-2.6B — ACCEPTED", "Last completed packet: WP-2.6C — ACCEPTED")
-          replace_exact(status, "Accepted packets: WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5, WP-2.6A, WP-2.6B", "Accepted packets: WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5, WP-2.6A, WP-2.6B, WP-2.6C")
+          replace_exact(
+              status,
+              "Last completed packet: WP-2.6B — ACCEPTED\nAccepted packets: WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5, WP-2.6A, WP-2.6B",
+              "Last completed packet: WP-2.6C — ACCEPTED\nAccepted packets: WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5, WP-2.6A, WP-2.6B, WP-2.6C"
+          )
           replace_exact(
               status,
               "WP-2.6C final fresh Pass-B reviewed head/run: 4f43d59f113f2aa0a857ed147965fd65a8b02413 / 34285562087 — 5/5 SUCCESS\nOpen WP-2.6C BLOCKING/MAJOR findings after fresh Pass B: ∅\nWP-2.6C Pass-A implementation + Pass-B adversarial review are VERIFIED but not yet ACCEPTED; packet acceptance remains pending Pass C.\nNext permitted action: verify this Pass-C transition governance head, then perform WP-2.6C mechanical Pass C reconciliation. Do not start WP-2.6D or WP-2.7 concurrently.",
@@ -114,7 +117,6 @@ jobs:
               "Final fresh Pass-B reviewed head/run: `4f43d59f113f2aa0a857ed147965fd65a8b02413` / `34285562087` — **5/5 SUCCESS**; direct grants/RLS, shared authorization locks, same-session downgrade/revocation, revision/parent immutability, UUID non-disclosure, full PostgreSQL phone parity and fail-closed provider boundaries reviewed; dedicated adversarial pgTAP passed without product-semantic remediation; open BLOCKING/MAJOR findings **∅**; review **PASS**.\nPass-C entry head/run: `b8d451ec0d39239894fc9d6e1b84142015610fbe` / `34286647702` — **5/5 SUCCESS**. Mechanical contact reconciliation: **PASS**; required WP-2.6C responsibilities minus accepted/evidenced responsibilities: **∅**. No dedicated `VEN-xxx`/`ACC-xxx` is invented for `FTR-026`; whole feature remains incomplete downstream.\nNext permitted action: verify this WP-2.6C acceptance-governance head, then activate/revalidate WP-2.6D; WP-2.7 remains blocked."
           )
 
-          # Current-state guardrails: historical transition text may remain, but no live cursor may remain pending.
           for path in (wp, status, matrix):
               text = Path(path).read_text()
               if "Current packet: WP-2.6C — ACCEPTANCE_PENDING / C-ACCEPTANCE" in text:
