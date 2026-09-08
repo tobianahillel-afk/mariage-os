@@ -6,7 +6,7 @@
 - Lot: `2`
 - Name: Venue availability observations
 - State: `IN_PROGRESS`
-- Current pass: `B-ADVERSARIAL REVIEW`
+- Current pass: `C-ACCEPTANCE`
 - Primary bounded context: Venue availability evidence
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Parent responsibility: original matrix packet `WP-2.6`, decomposed for orchestration sizing only
@@ -115,28 +115,34 @@ Implementation remained restricted to WP-2.6B-owned domain/application/adapter/p
 
 ## Pass B — ADVERSARIAL REVIEW
 
-**REVIEW FAILED — REMEDIATION IN PROGRESS.**
+**COMPLETE / PASS.** Fresh independent review was executed against the Pass-A implementation and every remediation candidate. Green CI was not treated as sufficient evidence: five MAJOR mismatches were reproduced red-first, remediated, and re-reviewed.
 
-Fresh independent review started from exact Pass-A head `1c1dd4db875e5253fc9affdcf498991c4c6a5f64` / run `34253821826`. Three initial MAJOR findings were reproduced red-first on test-only head `4d4ba74be7810bf28a8887a5e2a2d09b04bf18c6`, run `34257531367`:
-
-- `WP2.6B-B-001` — provider `timestamptz` parsing required textual `.000Z` identity instead of accepting and canonicalizing the frozen strict instant grammar. Core red control: 1/1020 unit tests failed exactly on strict PostgreSQL offset/microsecond provider representations.
-- `WP2.6B-B-002` — date-option/event-date equality was checked only when availability was appended. A referenced `candidate` wedding date could later move, leaving immutable history inconsistent. DB red control: update returned `00000` where durable integrity requires `23503`.
-- `WP2.6B-B-003` — a foreign-project UUID collision surfaced `23505` and therefore a typed same-project `replay_conflict`. This violates the cross-project non-disclosure boundary / `AUTHZ-019`. DB red control: `23505` observed where the foreign identity must remain unavailable (`42501`).
-- `WP2.6B-B-004` — availability append authorization evaluated live `venues.write` without first taking the project serialization lock used by accepted membership-revocation/downgrade boundaries. Test-only red-first head `12ea6aca2341b9a9006a036df706dc8b8388af42`, run `34258715277`: DB/RLS failed exactly the 1/1 authorization-concurrency contract test, while the pre-existing availability adversarial and functional DB tests remained green.
-
-Remediation is restricted to these findings. Pass B cannot pass until the remediation is green on an exact head and a fresh adversarial rereview finds no BLOCKING/MAJOR issue.
+- `WP2.6B-B-001` — provider `timestamptz` parsing required textual `.000Z` identity instead of accepting/canonicalizing the frozen strict instant grammar: **RESOLVED / VERIFIED**.
+- `WP2.6B-B-002` — referenced candidate wedding dates could move after append and leave immutable availability history inconsistent: **RESOLVED / VERIFIED** with durable relational protection.
+- `WP2.6B-B-003` — a foreign-project UUID collision could surface a typed replay conflict and violate cross-project non-disclosure: **RESOLVED / VERIFIED**.
+- `WP2.6B-B-004` — append authorization was not serialized with the accepted project membership downgrade/revocation boundary: **RESOLVED / VERIFIED**.
+- `WP2.6B-B-005` — PostgreSQL preserves microsecond `observed_at` precision while TypeScript canonicalizes instants to milliseconds; re-sorting parsed rows could therefore select an older observation by UUID when two observations fell inside the same millisecond: **RESOLVED / VERIFIED**. Red-first `f9150897084d9485e97bffe0b1d9b45dac9287a5` / `34262386054` failed exactly the adversarial ordering test. The adapter now requests the frozen full order `observed_at DESC`, `created_at DESC`, `id ASC` from Supabase and preserves that validated order; the service consumes the first same-date record rather than re-sorting timestamps after precision loss.
+- Explicit Source-history evidence now proves that a linked Source may become `broken` and lose its URL without destroying the immutable availability observation, while physical Source deletion remains restricted while cited.
+- Final fresh reviewed remediation head/run: `e92af194f774895b3b397d3be60350d09d42d8ff` / `34263468532` — **5/5 SUCCESS**, including clean-checkout `npm run verify`.
+- Core quality/security: **107 test files / 1022 tests PASS** at **100% statements / branches / functions / lines**; format, lint, architecture, dead-code, negative controls, dependency policy and build PASS.
+- Local Supabase DB/RLS, Browser E2E + mutation, privacy-safe preview and Full verify from clean checkout all **SUCCESS** on the same exact head.
+- Fresh post-remediation rereview found no additional BLOCKING/MAJOR mismatch; provider rows remain fail-closed for shape/identity/domain validity and the remediation introduced no migration, RPC or cross-packet authority.
+- Open BLOCKING/MAJOR findings: **∅**.
+- Pass B decision: **PASS**.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started.
+**IN PROGRESS.** This governance transition activates `C-ACCEPTANCE`. Acceptance reconciliation must use the exact governance HEAD only after its own CI is **5/5 SUCCESS**; WP-2.6B is not ACCEPTED yet.
 
 ## Handoff
 
 - Current state: `IN_PROGRESS`
-- Current/next pass: `B-REMEDIATION`
+- Current/next pass: `C-ACCEPTANCE`
 - WP-2.6A acceptance-governance verification: `186933ed0af8c45ddaa1b5c883bfd3f70086c6fe` / `34238484533` — **5/5 SUCCESS**
 - Last green specification verification: `9f5c8af30c58c146d89b1464cad96cb8e43dbc7b` / `34239745903` — **5/5 SUCCESS**
 - WP-2.6B READY/governance verification: `1ff69cd2e599a72a6cf703a658b836b2b3431619` / `34242853512` — **5/5 SUCCESS**
 - WP-2.6B Pass-A verification: `1c1dd4db875e5253fc9affdcf498991c4c6a5f64` / `34253821826` — **5/5 SUCCESS**
-- Open Pass-B findings: `WP2.6B-B-001`, `WP2.6B-B-002`, `WP2.6B-B-003`, `WP2.6B-B-004` — MAJOR — remediation pending exact-head verification
-- Next permitted action: verify the exact WP-2.6B remediation head, then perform a fresh Pass B adversarial rereview. Do not start WP-2.6C or WP-2.7 concurrently.
+- Pass-B findings `WP2.6B-B-001..005`: **RESOLVED / VERIFIED**
+- Final fresh Pass-B reviewed head/run: `e92af194f774895b3b397d3be60350d09d42d8ff` / `34263468532` — **5/5 SUCCESS**
+- Open Pass-B BLOCKING/MAJOR findings: **∅**
+- Next permitted action: verify the exact Pass-C governance HEAD, then perform WP-2.6B acceptance/reconciliation. Do not start WP-2.6C or WP-2.7 concurrently.
