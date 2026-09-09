@@ -38,7 +38,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.6B | Venue availability observations | **ACCEPTED** |
 | WP-2.6C | Venue contacts | **ACCEPTED** |
 | WP-2.6D | Venue interaction history | **ACCEPTED** |
-| WP-2.7 | contextual venue access-route observations | PLANNED |
+| WP-2.7 | contextual venue access-route observations | **READY** |
 | WP-2.8 | venue media/photo foundation and media safety | PLANNED |
 | WP-2.9 | venue document/tag/link basics | PLANNED |
 | WP-2.10 | repositories, local cache, pending/offline mutations | PLANNED |
@@ -53,9 +53,9 @@ Accepted packet evidence:
 - WP-2.4 ACCEPTED; `WP2.4-B-001..008` resolved/verified; final fresh reviewed head `93262f9459e720d97a6dfa3a83f84f02f3a02c7c`, CI `34137822804` 5/5; Pass C responsibility gap **∅**.
 - WP-2.5 ACCEPTED; `WP2.5-B-001..004` resolved/verified; final fresh reviewed head `65410a3dc032208644911f29e79b70bd49e89277`, CI `34165826166` 5/5; Pass-C entry `931bac6a7145bc31a4bce24d4ea5cff354753ed4` / `34166488903` 5/5; final acceptance governance head `902ac6f56b84fed56da0113efc610617943e9449`, CI `34167062632` SUCCESS; responsibility gap **∅**.
 - WP-2.6A ACCEPTED; `WP2.6A-B-001..006` resolved/verified; final fresh reviewed head `c7339227126e0df6969809644b5d0eb2512d350c`, CI `34233201350` 5/5; Pass-C entry `d348abdb42a2ca8319fb6711c08551cfb3bcfbae` / `34235598936` 5/5; final acceptance-governance head `186933ed0af8c45ddaa1b5c883bfd3f70086c6fe` / `34238484533` 5/5; responsibility gap **∅**.
-- WP-2.6B ACCEPTED; `WP2.6B-B-001..005` resolved/verified; final fresh reviewed head `e92af194f774895b3b397d3be60350d09d42d8ff`, CI `34263468532` 5/5; corrected Pass-C entry `6e091cc5088fece027f13c6764092453da18f418` / `34274455248` 5/5; responsibility gap **∅**; final acceptance-governance verification `8911f1523d96b95cf1329c4b144bfec2356a4a47` / `34275967235` 5/5.
+- WP-2.6B ACCEPTED; `WP2.6B-B-001..005` resolved/verified; final fresh Pass-B reviewed head `e92af194f774895b3b397d3be60350d09d42d8ff`, CI `34263468532` 5/5; corrected Pass-C entry `6e091cc5088fece027f13c6764092453da18f418` / `34274455248` 5/5; responsibility gap **∅**; final acceptance-governance verification `8911f1523d96b95cf1329c4b144bfec2356a4a47` / `34275967235` 5/5.
 - WP-2.6C ACCEPTED; fresh Pass B `4f43d59f113f2aa0a857ed147965fd65a8b02413` / `34285562087` 5/5; Pass-C entry `b8d451ec0d39239894fc9d6e1b84142015610fbe` / `34286647702` 5/5; final acceptance-governance `f6c93b7991d832363da92a9081540b9bad95441b` / `34287865010` attempt 2 **5/5 SUCCESS** after retrying an attempt-1 runner-only Supabase port collision; contact responsibility gap **∅**.
-- WP-2.6D ACCEPTED; `WP2.6D-B-001..002` resolved/verified on `b39670b1236d081d7e93ae9559bf66c459cd5a3e` / `34299796056` 5/5; final fresh Pass B `d416c6dce810fd05fc3610797f800d746876a631` / `34300303989` 5/5; Pass-C entry `eefd07821e011ea61cba30f13042b7eb35931620` / `34321381397` 5/5; interaction responsibility gap **∅**; final acceptance-governance verification is pending on the current closure head before WP-2.7 activation.
+- WP-2.6D ACCEPTED; `WP2.6D-B-001..002` resolved/verified on `b39670b1236d081d7e93ae9559bf66c459cd5a3e` / `34299796056` 5/5; final fresh Pass B `d416c6dce810fd05fc3610797f800d746876a631` / `34300303989` 5/5; Pass-C entry `eefd07821e011ea61cba30f13042b7eb35931620` / `34321381397` 5/5; interaction responsibility gap **∅**; final acceptance-governance `767017112445a38863abd114e8c62feb27af6421` / `34322712448` **5/5 SUCCESS**.
 
 ## WP-2.4 — accepted packet closure
 
@@ -127,7 +127,7 @@ Implementation-only decomposition, with product scope unchanged:
 - `WP-2.6A` — Venue offers + Venue-owned offer components — **ACCEPTED / COMPLETE**, estimated 10 points with explicit offer/component lifecycle cohesion rationale;
 - `WP-2.6B` — append-oriented Venue availability observations — **ACCEPTED / COMPLETE**, estimated 9 points with evidence-history/replay cohesion rationale;
 - `WP-2.6C` — Venue contacts — **ACCEPTED / COMPLETE**, Pass-C entry `b8d451ec0d39239894fc9d6e1b84142015610fbe` / `34286647702` 5/5; required contact responsibility gap **∅**;
-- `WP-2.6D` — Venue interaction history — **ACCEPTED / COMPLETE**, estimated 9 points with append/replay/history cohesion; Pass-A implementation `24364e63ca3ef223b8610fd820fe3d2061582eef` / `34294280214` 5/5; Pass-B remediation `b39670b1236d081d7e93ae9559bf66c459cd5a3e` / `34299796056` 5/5; final fresh reviewed head `d416c6dce810fd05fc3610797f800d746876a631` / `34300303989` 5/5; Pass-C entry `eefd07821e011ea61cba30f13042b7eb35931620` / `34321381397` **5/5 SUCCESS**; responsibility gap **∅**.
+- `WP-2.6D` — Venue interaction history — **ACCEPTED / COMPLETE**, estimated 9 points with append/replay/history cohesion; Pass-A implementation `24364e63ca3ef223b8610fd820fe3d2061582eef` / `34294280214` 5/5; Pass-B remediation `b39670b1236d081d7e93ae9559bf66c459cd5a3e` / `34299796056` 5/5; final fresh reviewed head `d416c6dce810fd05fc3610797f800d746876a631` / `34300303989` 5/5; Pass-C entry `eefd07821e011ea61cba30f13042b7eb35931620` / `34321381397` **5/5 SUCCESS**; responsibility gap **∅**; acceptance governance `767017112445a38863abd114e8c62feb27af6421` / `34322712448` **5/5 SUCCESS**.
 
 Activation sizing review: **MANDATORY SPLIT PERFORMED BEFORE PRODUCTION CODE**. The former combined C packet's 10-point estimate assumed direct ordinary-RLS contact mutation; accepted revisioned mutation precedent requires a real command boundary, so keeping contact mutation plus interaction append/replay would exceed 10. Fragmentation review: **PASS** — C and D are distinct mutable-reference vs immutable-history slices, not file-level fragments.
 
@@ -186,6 +186,8 @@ Required original WP-2.6 responsibilities minus accepted/evidenced A/B/C/D respo
 - whole `FTR-026` remains **IN_PROGRESS** because Venue presentation → WP-2.11 and follow-up/Task workflow → Lot 3;
 - Pass C decision: **PASS — WP-2.6D ACCEPTED**.
 
+Final WP-2.6D acceptance-governance head/run: `767017112445a38863abd114e8c62feb27af6421` / `34322712448` — **5/5 SUCCESS**.
+
 ### WP-2.6A Pass A
 
 - implementation head/run `e027bbbba93d73546ed19fffac7c26471f45ecb5` / `34223226316`: **5/5 SUCCESS**, including clean-checkout `npm run verify`;
@@ -234,18 +236,26 @@ Final acceptance-governance head/run: `186933ed0af8c45ddaa1b5c883bfd3f70086c6fe`
 - deferred ownership remains explicit: contacts/interactions are accepted in WP-2.6C/D; Documents/offline/UI and later Budget/Vendor responsibilities remain downstream;
 - Pass C decision: **PASS — WP-2.6B ACCEPTED**.
 
+## WP-2.7 — activation and specification gates
+
+- WP-2.6D sequencing dependency: **CLOSED**, final acceptance-governance `767017112445a38863abd114e8c62feb27af6421` / `34322712448` — **5/5 SUCCESS**.
+- Physical reference-origin snapshot semantics: **CLOSED / VERIFIED** by `4baa335b5f964ee13e806cd9a5170f28ff179835` / `34336841778` — **5/5 SUCCESS**.
+- Canonical JSON historical route portability: **CLOSED / VERIFIED** by `05f9695d5e437a69dfd0cf5b839ad00bdc7afc38` / `34343241298` — **5/5 SUCCESS**, including clean-checkout `npm run verify`.
+- Packet state: **READY / A-IMPLEMENT**.
+- Product implementation status: **Not started**. Exact READY-transition CI is required before the separate IN_PROGRESS transition.
+
 ## Durable cursor
 
 ```text
 Current Lot: 2 — Venues core
 Lot State: IN_PROGRESS
 Branch: lot-2/venues-core
-Current Packet: WP-2.6D
-Packet State: ACCEPTED
-Current Pass: COMPLETE
+Current Packet: WP-2.7
+Packet State: READY
+Current Pass: A-IMPLEMENT
 Last completed packet: WP-2.6D — ACCEPTED
 Accepted packets: WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5, WP-2.6A, WP-2.6B, WP-2.6C, WP-2.6D
-Planned packet after current: WP-2.7
+Planned packet after current: WP-2.8
 WP-2.6 base freeze head/run: cf46c731bd45b77feaa514b22036096301280755 / 34170253114 — 5/5 SUCCESS
 WP-2.6 boundary freeze head/run: 6dce81a49ccdbb7bc9da54b2491a0c8746e12e50 / 34171320200 — 5/5 SUCCESS
 WP-2.6A final acceptance-governance head/run: 186933ed0af8c45ddaa1b5c883bfd3f70086c6fe / 34238484533 — 5/5 SUCCESS
@@ -269,9 +279,13 @@ WP-2.6D Pass-A final head/run: 24364e63ca3ef223b8610fd820fe3d2061582eef / 342942
 WP-2.6D Pass-B remediation head/run: b39670b1236d081d7e93ae9559bf66c459cd5a3e / 34299796056 — 5/5 SUCCESS
 WP-2.6D final fresh Pass-B reviewed head/run: d416c6dce810fd05fc3610797f800d746876a631 / 34300303989 — 5/5 SUCCESS
 WP-2.6D Pass-C entry head/run: eefd07821e011ea61cba30f13042b7eb35931620 / 34321381397 — 5/5 SUCCESS
+WP-2.6D final acceptance-governance head/run: 767017112445a38863abd114e8c62feb27af6421 / 34322712448 — 5/5 SUCCESS
 Open WP-2.6D BLOCKING/MAJOR findings after Pass C: ∅
 WP-2.6D interaction responsibility: ACCEPTED / COMPLETE; required minus accepted/evidenced = ∅; whole FTR-026 remains IN_PROGRESS downstream.
-Next permitted action: verify the current WP-2.6D acceptance-governance closure HEAD 5/5; then activate/revalidate WP-2.7. WP-2.7 product code remains prohibited before that gate.
+WP-2.7 origin-location snapshot freeze head/run: 4baa335b5f964ee13e806cd9a5170f28ff179835 / 34336841778 — 5/5 SUCCESS
+WP-2.7 canonical portability repair head/run: 05f9695d5e437a69dfd0cf5b839ad00bdc7afc38 / 34343241298 — 5/5 SUCCESS
+WP-2.7 state: READY / A-IMPLEMENT; Pass A product implementation not started
+Next permitted action: verify the exact WP-2.7 READY-transition HEAD 5/5; then enter WP-2.7 IN_PROGRESS / A-IMPLEMENT. Do not commit red-first or product code before that gate.
 ```
 
 ## Known localized specification repairs / stop-conditions
@@ -288,7 +302,8 @@ Next permitted action: verify the current WP-2.6D acceptance-governance closure 
 - WP-2.6B `WP2.6B-B-001..B-005`: **RESOLVED / VERIFIED**; final fresh Pass B reviewed head `e92af194...` / CI `34263468532` — **5/5 SUCCESS**; corrected Pass-C entry `6e091cc...` / CI `34274455248` — **5/5 SUCCESS**; Pass C decision **PASS — ACCEPTED**.
 - WP-2.6A NULL creation-status fail-closed boundary: **RESOLVED / VERIFIED** on `e027bbbb...` / CI `34223226316` after red-first control `0149f0b1...` / `34222772124`.
 - WP-2.6A `WP2.6A-B-001..B-006`: **RESOLVED / VERIFIED**; final fresh Pass B reviewed head `c7339227...` / CI `34233201350` — **5/5 SUCCESS**; Pass C **PASS** on `d348abdb...` / `34235598936`; acceptance governance `186933ed...` / `34238484533` — **5/5 SUCCESS**.
-- WP-2.6D deterministic interaction ordering/provider precision: **CLOSED** by `1bf2640e...` / CI `34289908898`; Pass A **COMPLETE / VERIFIED** on `24364e63...` / `34294280214`; `WP2.6D-B-001..002` **RESOLVED / VERIFIED** on `b39670b...` / `34299796056`; final fresh Pass B **PASS** on `d416c6dc...` / `34300303989`; Pass C **PASS / ACCEPTED** on entry evidence `eefd0782...` / `34321381397`, all cited verification runs **5/5 SUCCESS**.
+- WP-2.6D deterministic interaction ordering/provider precision: **CLOSED** by `1bf2640e...` / CI `34289908898`; Pass A **COMPLETE / VERIFIED** on `24364e63...` / `34294280214`; `WP2.6D-B-001..002` **RESOLVED / VERIFIED** on `b39670b...` / `34299796056`; final fresh Pass B **PASS** on `d416c6dc...` / `34300303989`; Pass C **PASS / ACCEPTED** on entry evidence `eefd0782...` / `34321381397`; final acceptance governance `76701711...` / `34322712448`; all cited verification runs **5/5 SUCCESS**.
+- WP-2.7 physical reference-origin location snapshots and canonical historical portability: **CLOSED / VERIFIED** by `4baa335b...` / `34336841778` and `05f9695d...` / `34343241298`, both **5/5 SUCCESS**.
 - Before WP-2.8 relies on the security reading graph, repair the missing `docs/security/STORAGE-RLS.md` reference using already frozen/tested Storage authorization semantics.
 - Venue lifecycle documentation conflict from WP-2.1 is closed by `docs/domain/STATE-MACHINES-VENUE-LIFECYCLE-ADDENDUM.md`.
 
@@ -302,6 +317,7 @@ Next permitted action: verify the current WP-2.6D acceptance-governance closure 
 - WP-2.6A commercial offer/component responsibility for the Lot-2 slice of `FTR-025` / `VEN-008` is **ACCEPTED**.
 - WP-2.6B availability responsibility for the Lot-2 slice of `FTR-025` / `VEN-009` is **ACCEPTED**. Whole `FTR-025` remains **IN_PROGRESS** because Budget/scenario integration continues in Lot 5.
 - Original WP-2.6 execution responsibility is accepted/evidenced across WP-2.6A/B/C/D with gap **∅**. The Lot-2 contact responsibility and interaction-history responsibility of `FTR-026` are **ACCEPTED** at packet level, while whole `FTR-026` remains **IN_PROGRESS** because Venue presentation and Lot-3 follow-up/Task responsibilities are downstream.
+- WP-2.7 is **READY / A-IMPLEMENT** for the Lot-2 access-route responsibility; whole downstream Map/access presentation features remain later Lot 9 / WP-2.11 responsibilities and are not claimed here.
 
 ## Forward maintenance
 
@@ -330,8 +346,8 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted Lot-2 packets: WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5, WP-2.6A, WP-2.6B, WP-2.6C, WP-2.6D
 Last completed packet: WP-2.6D — ACCEPTED / COMPLETE
-Current packet: WP-2.6D — ACCEPTED / COMPLETE (acceptance-governance closure verification pending)
-Next packet: WP-2.7 — PLANNED; activation/revalidation not yet entered
+Current packet: WP-2.7 — READY / A-IMPLEMENT
+Next packet: WP-2.8 — PLANNED; prohibited concurrently while WP-2.7 is active
 WP-2.6 specification gates: cf46c731... / 34170253114, 6dce81a4... / 34171320200 and 9f5c8af... / 34239745903 — all 5/5 SUCCESS
 WP-2.6A acceptance governance: 186933ed... / 34238484533 — 5/5 SUCCESS
 WP-2.6B Pass A: 1c1dd4db... / 34253821826 — 5/5 SUCCESS
@@ -346,7 +362,10 @@ WP-2.6D Pass A: 24364e63... / 34294280214 — 5/5 SUCCESS
 WP-2.6D Pass B remediation: b39670b... / 34299796056 — 5/5 SUCCESS; B-001/B-002 resolved
 WP-2.6D final fresh Pass B: d416c6dc... / 34300303989 — 5/5 SUCCESS; open BLOCKING/MAJOR findings ∅
 WP-2.6D Pass-C entry: eefd0782... / 34321381397 — 5/5 SUCCESS; responsibility gap ∅; Pass C PASS / packet ACCEPTED
-WP-2.6D acceptance-governance closure: pending exact-head CI on current closure HEAD
-Next permitted action: verify current closure HEAD 5/5; then activate/revalidate WP-2.7. No WP-2.7 product code before that gate.
+WP-2.6D acceptance-governance closure: 76701711... / 34322712448 — 5/5 SUCCESS
+WP-2.7 origin-location snapshot freeze: 4baa335b... / 34336841778 — 5/5 SUCCESS
+WP-2.7 canonical portability repair: 05f9695d... / 34343241298 — 5/5 SUCCESS
+WP-2.7 product implementation: not started
+Next permitted action: verify the exact WP-2.7 READY-transition HEAD 5/5; then enter IN_PROGRESS / A-IMPLEMENT. No red-first or product code before that gate.
 Lots 3–12: NOT_STARTED
 ```

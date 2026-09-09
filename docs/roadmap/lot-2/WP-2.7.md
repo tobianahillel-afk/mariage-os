@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.7`
 - Lot: `2`
 - Name: Contextual venue access-route observations
-- State: `PLANNED`
-- Current pass: `PLAN`
+- State: `READY`
+- Current pass: `A-IMPLEMENT`
 - Primary bounded context: Venue access-route observation history and default-origin summary selection
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 
@@ -123,7 +123,7 @@ Legacy canonical route objects without snapshots may be accepted only as compati
 
 This closes the round-trip contradiction before persistence exists: after the addendum, canonical export can preserve contextual route history even when a reference origin is later edited.
 
-Activation stop-condition: **CLOSED BY THE PHYSICAL-SCHEMA + CANONICAL-JSON FREEZE**, subject to exact-head CI verification before READY transition.
+Activation stop-condition: **CLOSED / VERIFIED**. Physical-origin snapshot freeze `4baa335b5f964ee13e806cd9a5170f28ff179835` / `34336841778` and canonical portability repair `05f9695d5e437a69dfd0cf5b839ad00bdc7afc38` / `34343241298` are both **5/5 SUCCESS**, including clean-checkout `npm run verify`.
 
 ## Input boundaries
 
@@ -210,10 +210,10 @@ The context snapshot adds no second public command and no second bounded workflo
 
 ## Execution gates
 
-1. The physical-origin snapshot freeze plus canonical historical-snapshot portability repair must be committed and exact-head CI must be **5/5 SUCCESS**.
-2. Only then may WP-2.7 transition to `READY`.
-3. READY/governance head itself must be **5/5 SUCCESS** before transition to `IN_PROGRESS / A-IMPLEMENT`.
-4. IN_PROGRESS transition head itself must be **5/5 SUCCESS** before production code.
+1. Physical-origin snapshot freeze `4baa335b5f964ee13e806cd9a5170f28ff179835` / `34336841778` and canonical historical-snapshot portability repair `05f9695d5e437a69dfd0cf5b839ad00bdc7afc38` / `34343241298` are **5/5 SUCCESS**.
+2. WP-2.7 is now `READY / A-IMPLEMENT`; Pass A product implementation has not started.
+3. This READY/governance head itself must be **5/5 SUCCESS** before transition to `IN_PROGRESS / A-IMPLEMENT`.
+4. The IN_PROGRESS transition head itself must be **5/5 SUCCESS** before the red-first product test.
 5. Pass A begins red-first at the route persistence/append boundary.
 6. Pass B independently reconstructs the complete slice; any BLOCKING/MAJOR finding returns to remediation.
 7. Pass C reconciles every responsibility/control before acceptance.
@@ -221,8 +221,9 @@ The context snapshot adds no second public command and no second bounded workflo
 
 ## Handoff
 
-- Current state: `PLANNED`
-- Current pass: `PLAN`
+- Current state: `READY`
+- Current/next pass: `A-IMPLEMENT`
 - Previous packet: WP-2.6D — **ACCEPTED / COMPLETE**, final acceptance-governance closure `767017112445a38863abd114e8c62feb27af6421` / `34322712448` — **5/5 SUCCESS**.
-- Current stop-condition: physical-origin snapshot binding and canonical historical portability are closed normatively; exact-head CI on the combined repair head is required before READY.
-- Next permitted action after combined repair CI success: transition WP-2.7 to `READY`; do not write product code before READY and IN_PROGRESS gates are separately green.
+- Specification gates: physical-origin snapshot freeze `4baa335b5f964ee13e806cd9a5170f28ff179835` / `34336841778`; canonical portability repair `05f9695d5e437a69dfd0cf5b839ad00bdc7afc38` / `34343241298`; both **5/5 SUCCESS**.
+- Pass A product implementation status: **Not started**.
+- Next permitted action: verify this READY-transition HEAD 5/5. If green, perform the separate `READY / A-IMPLEMENT` → `IN_PROGRESS / A-IMPLEMENT` governance transition. Do not commit red-first or product code before that transition is itself verified.

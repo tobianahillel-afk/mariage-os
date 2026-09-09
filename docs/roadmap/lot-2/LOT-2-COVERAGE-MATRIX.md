@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1..WP-2.6D ACCEPTED; WP-2.7 PLANNED / NEXT**
+Status: **IN_PROGRESS — WP-2.1..WP-2.6D ACCEPTED; WP-2.7 READY**
 
 Purpose: durable responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`.
 
@@ -198,6 +198,7 @@ Verified Pass-A implementation head/run `24364e63ca3ef223b8610fd820fe3d2061582ee
 Fresh Pass-B findings `WP2.6D-B-001..002` were exposed red-first on `0d0714085b27f041da0048d18f0a4415d4302294` / `34299175470`, then **RESOLVED / VERIFIED** on `b39670b1236d081d7e93ae9559bf66c459cd5a3e` / `34299796056` — **5/5 SUCCESS**.
 Final fresh Pass-B reviewed head/run `d416c6dce810fd05fc3610797f800d746876a631` / `34300303989`: **5/5 SUCCESS**, including interaction-specific downgrade/revocation authorization evidence; open BLOCKING/MAJOR findings **∅**.
 Pass-C entry head/run `eefd07821e011ea61cba30f13042b7eb35931620` / `34321381397`: **5/5 SUCCESS**, including clean-checkout `npm run verify`.
+Final acceptance-governance head/run `767017112445a38863abd114e8c62feb27af6421` / `34322712448`: **5/5 SUCCESS**.
 Pass C mechanical reconciliation: **PASS**; append history, strict instants/text, same-Venue contact, same-project source, stable replay/conflict/non-disclosure, immutability, RLS/live authorization, deterministic microsecond-safe ordering, fail-closed provider parsing and applicable AUTHZ/SEC controls all reconcile EXPECTED → IMPLEMENTED → VERIFIED.
 Required WP-2.6D responsibilities minus accepted/evidenced WP-2.6D responsibilities: **∅**.
 Boundary retained: whole `FTR-026` stays **IN_PROGRESS** because Venue presentation remains WP-2.11 and Task/follow-up workflow remains Lot 3; no provider messaging, offline queue or Venue UI is pulled into WP-2.6D.
@@ -208,11 +209,16 @@ The Lot contains one additional execution unit because the normative `>10` hard 
 
 ### WP-2.7 — Contextual venue access-route observations
 
-State: **PLANNED**
+State: **READY**
+Current pass: **A-IMPLEMENT**
 
-Primary control: Lot-2 acceptance + VEN-016 access-route basics.  
-Dependencies: WP-2.1, Lot-1 reference origins, and completion of the decomposed WP-2.6 sequence under current orchestration.  
-Activation may begin only after the WP-2.6D acceptance-governance closure head is verified by exact-head CI.
+Primary control: Lot-2 acceptance + `VEN-016` / `ACC-030` access-route responsibility.  
+Dependencies: WP-2.1, Lot-1 reference origins, and decomposed WP-2.6 sequence — all packet dependencies **ACCEPTED**. WP-2.6D acceptance-governance `767017112445a38863abd114e8c62feb27af6421` / `34322712448`: **5/5 SUCCESS**.  
+Specification gates: physical origin-location snapshot freeze `4baa335b5f964ee13e806cd9a5170f28ff179835` / `34336841778` and canonical historical-snapshot portability repair `05f9695d5e437a69dfd0cf5b839ad00bdc7afc38` / `34343241298`: both **5/5 SUCCESS**, including clean-checkout `npm run verify`.  
+Acceptance record: `WP-2.7.md`.  
+Estimated size: **9 points** — one append-only route table, one migration family, one atomic append/replay command and one RLS/authorization boundary.  
+Scope: immutable contextual route observations, server-captured reference-origin location snapshots, stable UUID replay/non-disclosure, deterministic provider order and current default-origin summary selection. No map provider/UI/offline/import implementation is pulled into this packet.  
+Pass A product implementation: **Not started** pending exact-head verification of this READY transition.
 
 ### WP-2.8 — Venue media/photo foundation and private/remote media safety
 
@@ -268,7 +274,7 @@ WP-2.1 [ACCEPTED]
   │                                           ↓
   │                               WP-2.6D [ACCEPTED]
   │                                           ↓
-  ├────────────────────────────────────────→ WP-2.7 [PLANNED / NEXT]
+  ├────────────────────────────────────────→ WP-2.7 [READY]
   └─→ WP-2.8 → WP-2.9
 
 WP-2.1..2.9
@@ -286,7 +292,7 @@ separate Lot 2 Integration Pass
 Lot 2 acceptance
 ```
 
-Default execution remains one packet in active work/review at a time. The original WP-2.6 responsibility was decomposed before implementation because its five-table/multi-command/RLS scope exceeded the orchestration `>10` split threshold and no atomicity/safety reason justified a mega-packet. This decomposition changes implementation granularity only; product/Feature scope is unchanged and required current-lot responsibilities minus assigned packet responsibilities remains **∅**. WP-2.6A, WP-2.6B, WP-2.6C and WP-2.6D are ACCEPTED. WP-2.7 remains PLANNED until WP-2.6D acceptance-governance verification is green; it must not be started prematurely.
+Default execution remains one packet in active work/review at a time. The original WP-2.6 responsibility was decomposed before implementation because its five-table/multi-command/RLS scope exceeded the orchestration `>10` split threshold and no atomicity/safety reason justified a mega-packet. This decomposition changes implementation granularity only; product/Feature scope is unchanged and required current-lot responsibilities minus assigned packet responsibilities remains **∅**. WP-2.6A, WP-2.6B, WP-2.6C and WP-2.6D are ACCEPTED. WP-2.7 is READY after verified physical-snapshot and canonical-portability gates; product code remains prohibited until this READY-transition head is green and a separate IN_PROGRESS transition is also green. WP-2.8 remains prohibited concurrently.
 
 ## Explicitly out of Lot 2
 
