@@ -130,6 +130,14 @@ it("rejects non-object, malformed identities and request substitution", () => {
 it("rejects malformed or noncanonical caller-owned fields", () => {
   for (const overrides of [
     { route_type: "bad" },
+    {
+      reference_origin_id: null,
+      route_type: "custom",
+      origin_label: "  Airport  ",
+      reference_origin_address_snapshot: null,
+      reference_origin_latitude_snapshot: null,
+      reference_origin_longitude_snapshot: null,
+    },
     { destination_label: 12 },
     { destination_label: "  Venue  " },
     { mode: "bad" },
