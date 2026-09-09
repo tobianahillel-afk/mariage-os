@@ -1,0 +1,62 @@
+name: WP-2.6D staging format and proof fix
+
+on:
+  push:
+    branches:
+      - lot-2/wp26d-pass-a-staging
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Format WP-2.6D TypeScript
+        run: |
+          npx prettier --write \
+            src/application/venues/venue-interaction-service.test.ts \
+            src/application/venues/venue-interaction-service.ts \
+            src/domain/venues/venue-interaction.test.ts \
+            src/domain/venues/venue-interaction.ts \
+            src/infrastructure/supabase/supabase-venue-interaction-adapter.test.ts \
+            src/infrastructure/supabase/supabase-venue-interaction-adapter.ts
+      - name: Make same-Venue FK proof privileged
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('supabase/tests/venue_interactions_test.sql')
+          text = path.read_text()
+          old = """create function pg_temp.try_direct_wrong_parent_contact()\nreturns boolean language plpgsql as $$"""
+          new = """create function pg_temp.try_direct_wrong_parent_contact()\nreturns boolean\nlanguage plpgsql\nsecurity definer\nas $$"""
+          if old not in text:
+              raise SystemExit('expected FK helper shape not found')
+          path.write_text(text.replace(old, new, 1))
+          PY
+      - run: git diff --check
+      - name: Commit staging corrections
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            src/application/venues/venue-interaction-service.test.ts \
+            src/application/venues/venue-interaction-service.ts \
+            src/domain/venues/venue-interaction.test.ts \
+            src/domain/venues/venue-interaction.ts \
+            src/infrastructure/supabase/supabase-venue-interaction-adapter.test.ts \
+            src/infrastructure/supabase/supabase-venue-interaction-adapter.ts \
+            supabase/tests/venue_interactions_test.sql
+          if git diff --cached --quiet; then
+            echo 'No staging corrections required.'
+          else
+            git commit -m 'style: format WP-2.6D staging implementation'
+            git push origin HEAD:lot-2/wp26d-pass-a-staging
+          fi
