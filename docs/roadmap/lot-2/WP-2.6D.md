@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.6D`
 - Lot: `2`
 - Name: Venue interaction history
-- State: `REVIEW_PENDING`
-- Current pass: `B-ADVERSARIAL-REVIEW`
+- State: `REVIEW_FAILED`
+- Current pass: `B-REMEDIATION`
 - Primary bounded context: Venue interaction and quote-follow-up history
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Parent responsibility: original matrix packet `WP-2.6`, split from former WP-2.6C at activation sizing review
@@ -105,7 +105,14 @@ The append-only interaction table, same-Venue contact/source integrity, stable U
 
 ## Pass B — ADVERSARIAL REVIEW
 
-Not started.
+Entry transition head `3d08528593c98840389677b877a5a85fd9f4f594`, CI `34297669821` attempt 2: **5/5 SUCCESS** on the unchanged SHA. Attempt 1 failed only because the clean-checkout runner could not bind the local Supabase `54322` port; rerunning the same failed job succeeded without repository changes.
+
+Fresh repository reconstruction found two MAJOR mismatches. Both were converted to dedicated red-first tests in `0d0714085b27f041da0048d18f0a4415d4302294`, CI `34299175470`:
+
+- `WP2.6D-B-001` — **MAJOR / OPEN**: same-project replay identity is misclassified when the caller reuses an interaction UUID for another Venue. The frozen rule requires same-ID/different-payload to raise typed conflict `23505`; current RPC returns authorization-style `42501`. Red-first DB proof: `venue_interactions_adversarial_review_test.sql`, where expected `23505` receives `42501` while all previously existing interaction DB tests remain green.
+- `WP2.6D-B-002` — **MAJOR / OPEN**: the provider parser accepts a response that omits nullable `next_follow_up_at`, silently interpreting missing `undefined` as canonical `null`. The packet requires fail-closed provider parsing. Red-first unit proof: `parse-venue-interaction-row.adversarial.test.ts`; CI has 115 test files / 1058 tests passing and only this deliberate assertion failing.
+
+Pass-B decision: **REVIEW_FAILED — remediation required before fresh independent re-review**. No WP-2.7 work may start.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
@@ -113,12 +120,14 @@ Not started.
 
 ## Handoff
 
-- Current state: `REVIEW_PENDING`
-- Current/next pass: `B-ADVERSARIAL-REVIEW`
+- Current state: `REVIEW_FAILED`
+- Current/next pass: `B-REMEDIATION`
 - Dependency gate: WP-2.6C **ACCEPTED / acceptance-governance verified** on `f6c93b7991d832363da92a9081540b9bad95441b` / `34287865010` attempt 2
 - Specification-freeze gate: `1bf2640e20aa7cf7cb7d3b3524aa069b37a09c4b` / `34289908898` — **5/5 SUCCESS**; deterministic history ordering/provider precision and accepted contact interface are frozen; no material specification ambiguity remains
 - READY-transition gate: `3c51873c7503366950b4551d1c01be51202926f5` / `34290710472` — **5/5 SUCCESS**
 - Red-first Pass-A boundary: `380a6f8fb5ee30a0ca39188d8018114b535bf8b6` / `34291932020` — expected FAILURE before persistence/command existed
 - Pass-A final implementation head/run: `24364e63ca3ef223b8610fd820fe3d2061582eef` / `34294280214` — **5/5 SUCCESS**
+- Pass-B entry transition: `3d08528593c98840389677b877a5a85fd9f4f594` / `34297669821` attempt 2 — **5/5 SUCCESS** on unchanged SHA after runner-only Supabase port retry
+- Pass-B red-first findings: `WP2.6D-B-001`, `WP2.6D-B-002` on `0d0714085b27f041da0048d18f0a4415d4302294` / `34299175470` — expected semantic FAILURES confirmed independently in DB and unit boundaries
 - Pass A implementation status: **COMPLETE / VERIFIED, not accepted**
-- Next permitted action: verify this `REVIEW_PENDING / B-ADVERSARIAL-REVIEW` transition HEAD 5/5. Only then perform a fresh adversarial Pass B review reconstructed from repository contracts. Do not start WP-2.7 concurrently.
+- Next permitted action: remediate only `WP2.6D-B-001` and `WP2.6D-B-002`, run exact-head CI, then perform a fresh adversarial Pass B review. Do not start WP-2.7 concurrently.
