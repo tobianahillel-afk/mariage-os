@@ -1,7 +1,5 @@
 export type VenueAccessPersistenceErrorCode =
-  | "conflict"
-  | "provider_response_invalid"
-  | "persistence_failed";
+  "conflict" | "provider_response_invalid" | "persistence_failed";
 
 export class VenueAccessPersistenceError extends Error {
   readonly code: VenueAccessPersistenceErrorCode;

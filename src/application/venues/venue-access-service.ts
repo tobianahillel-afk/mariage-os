@@ -28,8 +28,7 @@ export interface AppendVenueAccessRouteInput {
   readonly notes: unknown;
 }
 
-export interface NormalizedAppendVenueAccessRouteInput
-  extends NormalizedVenueAccessRouteDraft {
+export interface NormalizedAppendVenueAccessRouteInput extends NormalizedVenueAccessRouteDraft {
   readonly projectId: string;
   readonly venueId: string;
   readonly routeId: string;
