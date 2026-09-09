@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.6D`
 - Lot: `2`
 - Name: Venue interaction history
-- State: `ACCEPTANCE_PENDING`
-- Current pass: `C-ACCEPTANCE`
+- State: `ACCEPTED`
+- Current pass: `COMPLETE`
 - Primary bounded context: Venue interaction and quote-follow-up history
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Parent responsibility: original matrix packet `WP-2.6`, split from former WP-2.6C at activation sizing review
@@ -50,7 +50,7 @@
 ## Dependency / sequencing
 
 - Required prior packets/features: WP-2.1, WP-2.6A, WP-2.6B and WP-2.6C **ACCEPTED**. WP-2.6C final acceptance-governance verification is `f6c93b7991d832363da92a9081540b9bad95441b` / `34287865010` attempt 2 — **5/5 SUCCESS**; contact-parent integrity can therefore rely on stable accepted contact semantics.
-- Downstream packet blocked by this packet: WP-2.7 until the decomposed WP-2.6 responsibility is fully accepted.
+- Downstream packet formerly blocked by this packet: WP-2.7. WP-2.6D is now accepted; WP-2.7 may be activated only after this acceptance-governance head itself is verified by exact-head CI.
 - Shared interfaces/contracts relied on: both Venue commercial workflow addenda, strict instant contract, contact contract from WP-2.6C, repository/service contracts, RLS matrix and runtime input validation.
 
 ## Specification gates
@@ -116,16 +116,46 @@ Independent authorization hardening then added interaction-specific evidence onl
 
 Fresh re-review retained deterministic provider ordering, PostgreSQL microsecond chronology, strict instant boundaries, same-Venue contact integrity, same-project source integrity, immutable history, stable UUID replay, foreign-project non-disclosure, direct-table mutation denial and fail-closed provider parsing. Open BLOCKING/MAJOR findings: **∅**.
 
-Pass-B decision: **PASS — transition to ACCEPTANCE_PENDING / C-ACCEPTANCE**. No WP-2.7 work may start until Pass C accepts WP-2.6D.
+Pass-B decision: **PASS — transition to ACCEPTANCE_PENDING / C-ACCEPTANCE**.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-**IN PROGRESS.** Entry is permitted from `ACCEPTANCE_PENDING / C-ACCEPTANCE` because Pass B is green with no unresolved BLOCKING/MAJOR finding. Mechanical EXPECTED → IMPLEMENTED → VERIFIED reconciliation is the next action; acceptance has not yet been claimed.
+Pass-C entry head `eefd07821e011ea61cba30f13042b7eb35931620`, exact CI `34321381397`: **5/5 SUCCESS**, including clean-checkout `npm run verify`.
+
+Mechanical reconciliation:
+
+| Responsibility / control | Expected | Implemented evidence | Verified evidence | Result |
+|---|---|---|---|---|
+| Venue-owned append history | Multiple immutable historical interactions can coexist under one Venue. | `interactions` persistence + `VenueInteractionService` append/list port. | `venue_interactions_test.sql` proves multiple rows coexist without rewrite. | PASS |
+| Strict interaction payload | `interaction_type` 1..80, summary 1..5000, strict `occurred_at`, optional independently strict `next_follow_up_at`; no invented follow-up ordering rule. | Domain normalizer + SQL checks/RPC canonicalization. | Domain/provider tests + `venue_interactions_test.sql` invalid/boundary controls. | PASS |
+| Same-Venue contact integrity | Optional contact belongs to the same project and same Venue parent. | Composite contact FK + RPC relationship check. | `venue_interactions_test.sql` rejects same-project other-Venue and cross-project contacts, including direct FK bypass. | PASS |
+| Same-project source integrity | Optional source belongs to the same project and remains historically referenced. | Composite source FK with restricted deletion. | `venue_interactions_test.sql` rejects cross-project source and proves cited-source deletion cannot erase interaction history. | PASS |
+| Stable caller UUID / replay | Retry reuses caller-generated `interactionId`; same-ID/same-payload returns one row. | Application command forwards stable UUID; atomic RPC `ON CONFLICT(id)` replay equality. | Application/adapter tests + `venue_interactions_test.sql` prove one-row idempotent replay. | PASS |
+| Same-ID/different-payload conflict | Differing semantic payload in the same project is typed `23505` and never overwrites history. | Hardening migration `20260909014000_harden_venue_interaction_replay_identity.sql`; service maps conflict to `replay_conflict`. | `venue_interactions_adversarial_review_test.sql` + ordinary replay-conflict regression; B-001 resolved. | PASS |
+| Foreign-project UUID non-disclosure | UUID collision in another project must not disclose whether/payload of foreign row. | Effective append RPC returns generic `42501` for foreign-project existing identity. | `venue_interactions_test.sql` project-B collision probe. | PASS |
+| Append immutability | Recorded interaction cannot be updated/deleted through ordinary or privileged direct paths. | Update/delete protection triggers; direct table DML grants revoked. | `venue_interactions_test.sql` direct update/delete denial and GRANT assertions. | PASS |
+| Project-scoped read authorization | Active `venues.read` membership required; anon/outsider/revoked/cross-project denied. | RLS + SELECT-only authenticated grant + permission policy. | `venue_interactions_test.sql` covers anon, viewer allow, outsider deny, revoked deny and project-B isolation. | PASS |
+| Live write authorization / revocation | Active `venues.write` required at command time; downgrade/revocation must affect subsequent writes in same session and serialize with mutation. | SECURITY DEFINER writer helper locks project `FOR UPDATE` before live permission evaluation; minimal helper/append grants. | `venue_interactions_authorization_adversarial_review_test.sql` proves editor allow, immediate downgrade deny, restored live allow, immediate revoke deny and shared lock ordering. | PASS |
+| Deterministic history order | Provider requests `occurred_at DESC`, `created_at DESC`, `id ASC`; TypeScript preserves provider order across PostgreSQL microsecond→JS millisecond collapse. | Supabase adapter fixed order and no application re-sort. | Adapter tests assert all three order clauses, duplicate rejection and microsecond-collapse preservation. | PASS |
+| Fail-closed provider boundary | Wrong project/Venue/id, substituted payload, malformed timestamps/shape, duplicate IDs and missing required nullable fields fail closed. | `parseVenueInteractionRow` + adapter expected-identity/payload verification. | Provider unit tests and B-002 regression reject omitted `next_follow_up_at`. | PASS |
+| AUTHZ catalog | Applicable `AUTHZ-001..008`, `AUTHZ-009`, `AUTHZ-012`, `AUTHZ-017`, `AUTHZ-018`, `AUTHZ-020` apply at cloud/resource boundary. | GRANT + RLS + protected RPC + same-project FKs + live permission helper. | Direct allow/deny/project-B/revoked/downgrade tests above. | PASS |
+| Security catalog | Applicable `SEC-AUTH-012/013`, `SEC-AUTHZ-001..005/007..009`, `SEC-VAL-001..006/008/010`, `SEC-INJ-001/002`, `SEC-LOG-002/004`, `SEC-ABUSE-004`, `SEC-VER-001/005`. | Current authorization, parameterized provider/RPC SQL, bounded validation, generic failure mapping and stable replay boundary; packet adds no raw payload logging. | Core security/static checks + direct pgTAP/provider tests + regression tests for both discovered defects. | PASS |
+| Scope fence | No contact mutation, offer/availability implementation, communications provider sending, Tasks, Vendor interactions, offline queue or Venue UI in this packet. | Production diff remains interaction-history vertical slice. | Pass B reconstruction + Pass C responsibility audit. | PASS |
+
+Traceability reconciliation:
+
+- `FTR-026` → accepted contact responsibility `WP-2.6C` + accepted interaction-history responsibility `WP-2.6D` + downstream Venue presentation `WP-2.11` + downstream follow-up/Task workflow in Lot 3.
+- No dedicated `VEN-xxx` or `ACC-xxx` requirement is falsely claimed for the FTR-026 interaction slice; packet acceptance is grounded in the frozen commercial workflow contracts, FTR responsibility and applicable AUTHZ/SEC controls.
+- Whole `FTR-026` remains **IN_PROGRESS**, not globally accepted, because WP-2.11 and Lot-3 responsibilities remain downstream.
+- Required WP-2.6D responsibilities minus accepted/evidenced WP-2.6D responsibilities: **∅**.
+- Original decomposed WP-2.6 execution responsibility is now accepted/evidenced across WP-2.6A + WP-2.6B + WP-2.6C + WP-2.6D with packet-level gap **∅**; later UI/Task/other-lot responsibilities remain explicit and are not pulled forward.
+
+Pass-C decision: **PASS — WP-2.6D ACCEPTED**.
 
 ## Handoff
 
-- Current state: `ACCEPTANCE_PENDING`
-- Current/next pass: `C-ACCEPTANCE`
+- Current state: `ACCEPTED`
+- Current/next pass: `COMPLETE`
 - Dependency gate: WP-2.6C **ACCEPTED / acceptance-governance verified** on `f6c93b7991d832363da92a9081540b9bad95441b` / `34287865010` attempt 2
 - Specification-freeze gate: `1bf2640e20aa7cf7cb7d3b3524aa069b37a09c4b` / `34289908898` — **5/5 SUCCESS**
 - READY-transition gate: `3c51873c7503366950b4551d1c01be51202926f5` / `34290710472` — **5/5 SUCCESS**
@@ -135,5 +165,6 @@ Pass-B decision: **PASS — transition to ACCEPTANCE_PENDING / C-ACCEPTANCE**. N
 - Pass-B red-first findings: `WP2.6D-B-001`, `WP2.6D-B-002` on `0d0714085b27f041da0048d18f0a4415d4302294` / `34299175470` — expected semantic FAILURES confirmed independently
 - Pass-B remediation head/run: `b39670b1236d081d7e93ae9559bf66c459cd5a3e` / `34299796056` — **5/5 SUCCESS**
 - Final fresh Pass-B reviewed head/run: `d416c6dce810fd05fc3610797f800d746876a631` / `34300303989` — **5/5 SUCCESS**; open BLOCKING/MAJOR findings **∅**
-- Pass A implementation status: **COMPLETE / VERIFIED, not accepted**
-- Next permitted action: perform Pass C mechanical reconciliation for every WP-2.6D responsibility and applicable control. If any mismatch appears, return to `IN_PROGRESS`; otherwise accept WP-2.6D and only then permit WP-2.7 activation.
+- Pass-C entry head/run: `eefd07821e011ea61cba30f13042b7eb35931620` / `34321381397` — **5/5 SUCCESS**
+- Pass C decision: **PASS — ACCEPTED**, responsibility gap **∅**
+- Next permitted action: synchronize Lot-2 coverage/feature/status traceability and verify the final acceptance-governance HEAD 5/5. Only then activate/revalidate WP-2.7; no WP-2.7 product code begins before that gate.
