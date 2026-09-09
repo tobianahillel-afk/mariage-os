@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.8A`
 - Lot: `2`
 - Name: Venue remote-image metadata and links
-- State: `ACCEPTANCE_PENDING`
-- Current pass: `C-ACCEPTANCE`
+- State: `ACCEPTED`
+- Current pass: `COMPLETE`
 - Primary bounded context: Documents/Media metadata for Venue remote image references
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 
@@ -99,6 +99,7 @@ Product scope is unchanged:
 - Pass-B finding `WP2.8A-B-001` red-first head `fc973ab5538d86573164705164a16ab0bd78db99` / `34415717118` — **EXPECTED FAILURE**.
 - Pass-B remediation head `db892fe02a324859f5bf3f3ac79a0687e95f3736` / `34416328055` — **5/5 SUCCESS**.
 - Final fresh Pass-B authorization/review evidence `556ebab4ca642dd3d86d1d1a5c5761d18446eb7c` / `34416889470` — **5/5 SUCCESS**, including clean-checkout verify.
+- Pass-C entry transition `756143192d38aa042cfee6c99d26734b9b587c82` / `34418038428` — **5/5 SUCCESS**, including clean-checkout `npm run verify`.
 - WP-2.8B and WP-2.8C remain PLANNED and cannot run concurrently with WP-2.8A.
 
 ## Activation specification freeze
@@ -219,4 +220,68 @@ Pass-A decision: **COMPLETE / VERIFIED — transition to `REVIEW_PENDING / B-ADV
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-**NEXT / START AFTER THIS GOVERNANCE TRANSITION IS EXACT-HEAD 5/5 GREEN.** Mechanically reconcile every item in Expected vertical slice + Verification plan + Acceptance responsibility against committed implementation and evidence. Required WP-2.8A responsibilities minus implemented/evidenced responsibilities must equal **∅** before packet acceptance. Whole `FTR-024` / `FTR-092` and later rendering/private-upload/deletion responsibilities must remain unclaimed.
+Pass-C entry transition `756143192d38aa042cfee6c99d26734b9b587c82`, exact CI `34418038428`: **5/5 SUCCESS**, including clean-checkout `npm run verify`. The same run re-executed the existing domain/application/provider/DB acceptance evidence on the exact Pass-C entry head; because WP-2.8A owns only a foundation slice toward `ACC-057`/`ACC-058`, no duplicate packet-only acceptance test or fabricated whole-feature ACC was added.
+
+Mechanical reconciliation:
+
+| Responsibility / control | Expected | Implemented evidence | Verified evidence | Result |
+|---|---|---|---|---|
+| Frozen Venue remote-image domain | `media_type='image'`, exact nullable category allowlist, canonical remote/source metadata and bounded caption. | `src/domain/documents/venue-remote-media.ts` owns category/type constants, normalization, scalar counting and replay equality. | `venue-remote-media.test.ts` plus coverage tests prove exact categories, normalization, unsafe URL rejection, malformed-surrogate rejection and boundary behavior. | PASS |
+| Remote-reference-only media state | No private Storage path, filename/MIME/hash/size/dimensions/derivative; original+ready metadata only; no `source_id`. | `media` checks and protected RPC write only the frozen null/ready state; command/application payload has no `source_id`; parser rejects any substituted non-remote state. | `venue_remote_media_test.sql` inspects the persisted synthetic row; parser tests reject `storage_path`/wrong upload state. | PASS |
+| Remote/source URL privacy and canonicality | Remote image HTTPS only; no credentials/local/private forms; source provenance uses public HTTP/HTTPS navigation contract; no command-generated private decoration. | Domain URL normalizer + `media_public_url_is_valid`; forward-only canonicality migration `20260909230000_harden_venue_remote_media_url_canonicality.sql`; adapter sends canonical URLs verbatim and has no private-data URL decoration path. | Domain tests reject active/local/private forms; base pgTAP verifies URL security/bounds; Pass-A adversarial regression rejects non-canonical direct-RPC remote/source URLs. | PASS |
+| Exact user-controlled bounds | Remote URL 2048, source-page URL 2048, caption 5000; over-limit rejected, no truncation. | Domain scalar-length validation + SQL command/table checks. | Domain tests exercise scalar boundaries; `venue_remote_media_test.sql` accepts exact 2048/2048/5000 and rejects 2049/2049/5001 at PostgreSQL boundary. | PASS |
+| Atomic media + Venue gallery relationship | One semantic command creates the remote media and same-project `venue/gallery` link; no partial media on link failure. | `media`/`media_links` composite project FKs + `create_venue_remote_media` transaction semantics. | Base pgTAP verifies persisted remote row/link and proves link failure rolls back the newly inserted media row. | PASS |
+| Stable create/replay identity | Same media/link IDs + same semantic payload replay; same-project drift conflicts; existing media cannot acquire a different Venue/link under replay. | Domain replay equality + RPC exact existing-media/existing-link comparison; forward-only `20260909232500_harden_venue_remote_media_replay_identity.sql`. | Base pgTAP verifies identical replay and `23505` payload conflict; `venue_remote_media_replay_adversarial_review_test.sql` proves `WP2.8A-B-001` regression and one-link invariant. | PASS |
+| Foreign-project non-disclosure / relational isolation | Known media/link/Venue identities from another project cannot be read, written or linked and do not reveal existence. | Composite same-project FKs, project-scoped RLS, writer check and generic `42501` foreign-identity paths. | Base/adversarial pgTAP prove foreign Venue/media/link collision rejection, rollback and project-B inability to read project-A known UUIDs. | PASS |
+| `media.read` / `media.write` authorization | Owner/editor write as mapped, viewer read-only, anon/outsider/revoked denied; writes evaluate live authority. | Authenticated SELECT + RLS `has_project_permission(...,'media.read')`; SECURITY DEFINER writer locks project before `media.write` permission evaluation; public mutation only through RPC. | Base pgTAP covers owner/editor/viewer/outsider/revoked/project-B; `venue_remote_media_authorization_adversarial_review_test.sql` proves same-session downgrade/revocation behavior. | PASS |
+| Privileged RPC/helper hardening | Internal helper not client-executable; anon cannot invoke public command; trusted fixed search path. | Explicit REVOKE/GRANT and `security definer set search_path=pg_catalog`. | Authorization adversarial pgTAP directly asserts privileges, project-lock ordering and exact `proconfig`. | PASS |
+| Application/service error contract | Validate identities/domain before persistence; same-project replay conflict is typed; all other provider failures remain generic. | `MediaService` + `MediaPersistenceError` (`conflict`, `provider_response_invalid`, `persistence_failed`). | `media-service.test.ts` proves canonicalized create, invalid-input short circuit, `23505` mapping and generic failure/list behavior. | PASS |
+| Fail-closed Supabase provider boundary | RPC/list success must match expected project/media/link/Venue and exact remote-only semantics; duplicates/malformed/substituted rows fail closed. | `parse-venue-remote-media-receipt.ts` + `SupabaseMediaAdapter`, expected caller-payload equality and duplicate detection. | Parser/adapter tests reject wrong project/media/type/storage/URL/payload, malformed responses and duplicate media/link identities. | PASS |
+| Active Venue remote-media list | Read only same-project `target_type='venue'`, requested Venue, `relationship_type='gallery'` rows in deterministic provider order. | `SupabaseMediaAdapter.listVenueRemoteMedia` filters project/type/target/relation and orders `created_at DESC`, `id ASC`; `MediaService` exposes the validated query. | Adapter/service tests assert exact filters/order, identity validation, duplicate rejection and generic provider failure. | PASS |
+| Composition-root responsibility | No UI/route consumer exists in A; do not instantiate an unused browser runtime service or create a parallel composition root. | Current `src/main.ts`/`src/app/bootstrap/start-application.ts` compose shell/auth/project-access only. Accepted WP-2.7 follows the same backend-foundation pattern with `UI/route: none` and an application service not yet wired into browser bootstrap. | Pass-C architecture read confirms no active Venue consumer exists; runtime composition of MediaService is therefore N/A in A and must be performed by the downstream UI consumer packet (WP-2.11), not hidden here. | PASS |
+| Scope fence / deferred lifecycle | No private upload/archive, binary validation/hash, derivative, orphan Storage recovery, remote delete/restore, rendering/proxy/fetch, offline queue, document-version or importer implementation. | Production diff is limited to Documents/Media remote metadata service/domain/provider plus `media`/`media_links` migrations and tests. | Pass-B reconstruction and Pass-C changed-file/responsibility audit found no downstream lifecycle implementation or parallel `domain/media` architecture. | PASS |
+| Traceability / feature boundary | Accept A's responsibility only; keep broader `FTR-024` and downstream acceptance responsibilities incomplete. | WP-2.8A Acceptance record + WP-2.8 coverage addendum; Feature Ledger stays `SPECIFIED`. | Pass-C reread of playbook, Feature Ledger and Lot-2 matrix confirms Work Packet record is the durable responsibility-level acceptance record and whole-feature promotion would be false. | PASS |
+
+Traceability reconciliation:
+
+- `VEN-013`, `MED-007`, `MED-008`, `MED-010` and `MED-013` → **accepted/evidenced for the WP-2.8A remote-reference slice**.
+- `FTR-024` → **WP-2.8A foundation responsibility accepted**, but the Feature Ledger remains `SPECIFIED`: private archive/derivative lifecycle (WP-2.8B), rendering/gallery behavior (WP-2.11) and local/offline capture (WP-2.12) remain downstream.
+- `ACC-057` / `ACC-058` → **foundation only**. A proves privacy-safe metadata/reference persistence and absence of private Storage claims; full remote DOM no-referrer/fallback behavior and private archive-path acceptance remain assigned to downstream packets.
+- `ACC-055` / `ACC-056` → **not claimed**; private binary validation/archive responsibility remains WP-2.8B.
+- Remote-reference metadata soft-delete/restore → **not claimed**; remains WP-2.8C.
+- Local/offline/import/rendering/proxy/fetch/document-version responsibilities → **not claimed** and remain in their mapped packets/lots.
+- Required WP-2.8A responsibilities minus accepted/evidenced WP-2.8A responsibilities: **∅**.
+- Open BLOCKING/MAJOR findings: **∅**.
+
+Pass-C decision: **PASS — WP-2.8A ACCEPTED**.
+
+## Execution gates
+
+1. Pre-READY contract/coverage repair `8908eecd3eb25e89cf0b70937722f0ccf9257bb4` / `34390723409`: **5/5 SUCCESS**.
+2. READY transition `c49d182c50ee882751bb73b63f3720f40356e5a7` / `34401165950`: **5/5 SUCCESS**.
+3. `READY → IN_PROGRESS / A-IMPLEMENT` transition `2462a70cbf20444eed579370f25b58facd7adce9` / `34401969811`: **5/5 SUCCESS**.
+4. RED-first Pass-A boundary `56b931e66324cf34d8e898c8e50fed079e4d48ab` / `34402670623`: **EXPECTED FAILURE** before media persistence/RPC existed.
+5. Final Pass-A hardening head `3c9d53af80ee11f7c276ed9f0bb14118988a95b3` / `34414303456`: **5/5 SUCCESS**.
+6. REVIEW_PENDING / Pass-B entry `ac5e2c6aaf6c98ddaec8a85261d254c6395dcb46` / `34415090306`: **5/5 SUCCESS**.
+7. Pass-B finding `WP2.8A-B-001` red-first `fc973ab5538d86573164705164a16ab0bd78db99` / `34415717118`: **EXPECTED FAILURE**.
+8. Pass-B remediation `db892fe02a324859f5bf3f3ac79a0687e95f3736` / `34416328055`: **5/5 SUCCESS**.
+9. Final fresh Pass-B authorization/review head `556ebab4ca642dd3d86d1d1a5c5761d18446eb7c` / `34416889470`: **5/5 SUCCESS**.
+10. ACCEPTANCE_PENDING / Pass-C entry `756143192d38aa042cfee6c99d26734b9b587c82` / `34418038428`: **5/5 SUCCESS**; existing acceptance evidence rerun on exact head.
+11. Pass C responsibility gap is **∅**; packet decision is **ACCEPTED**.
+12. WP-2.8B remains prohibited until this packet-acceptance commit and final Lot-2 acceptance-governance reconciliation are exact-head green.
+
+## Handoff
+
+- Current state: `ACCEPTED`
+- Current/next pass: `COMPLETE`
+- Previous packet: WP-2.7 — **ACCEPTED / COMPLETE**, final acceptance-governance closure `db1dae663129c3281618c932fa7f5a8184a5a2ad` / `34377221997` — **5/5 SUCCESS**.
+- Final Pass-A implementation/hardening: `3c9d53af80ee11f7c276ed9f0bb14118988a95b3` / `34414303456` — **5/5 SUCCESS**.
+- Pass-B entry: `ac5e2c6aaf6c98ddaec8a85261d254c6395dcb46` / `34415090306` — **5/5 SUCCESS**.
+- Pass-B finding: `WP2.8A-B-001` on `fc973ab5538d86573164705164a16ab0bd78db99` / `34415717118` — expected FAILURE.
+- Pass-B remediation: `db892fe02a324859f5bf3f3ac79a0687e95f3736` / `34416328055` — **5/5 SUCCESS**.
+- Final fresh Pass-B reviewed head: `556ebab4ca642dd3d86d1d1a5c5761d18446eb7c` / `34416889470` — **5/5 SUCCESS**.
+- Pass-C entry: `756143192d38aa042cfee6c99d26734b9b587c82` / `34418038428` — **5/5 SUCCESS**.
+- Open BLOCKING/MAJOR findings after Pass B and Pass C: `∅`.
+- Required WP-2.8A responsibilities minus accepted/evidenced responsibilities: `∅`.
+- Whole `FTR-024` remains incomplete by design; no downstream private-upload/rendering/delete/offline responsibility is promoted by this packet.
+- Next permitted action: verify this packet-acceptance HEAD 5/5; then reconcile the Lot-2 coverage matrix and implementation-status cursor. WP-2.8B remains prohibited until final acceptance-governance closure is green.
