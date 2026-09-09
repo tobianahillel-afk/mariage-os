@@ -193,9 +193,8 @@ function valid<T>(value: T): Validation<T> {
 
 function originLabelAllowed(
   referenceOriginId: string | null,
-  originLabel: string | null | undefined,
+  originLabel: string | null,
 ): boolean {
-  if (originLabel === undefined) return false;
   if (referenceOriginId === null) return true;
   return originLabel === null;
 }
@@ -211,6 +210,7 @@ function normalizeRouteContext(
   if (!isVenueAccessMode(draft.mode)) return invalid("invalid_mode");
 
   const originLabel = optionalText(draft.originLabel, 160);
+  if (originLabel === undefined) return invalid("invalid_origin_label");
   if (!originLabelAllowed(referenceOriginId, originLabel))
     return invalid("invalid_origin_label");
   const destinationLabel = optionalText(draft.destinationLabel, 160);
