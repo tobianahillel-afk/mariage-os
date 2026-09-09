@@ -124,6 +124,30 @@ export interface VenueAccessRouteCallerPayload extends NormalizedVenueAccessRout
   readonly venueId: string;
 }
 
+type Validation<T> =
+  | { readonly ok: true; readonly value: T }
+  | { readonly ok: false; readonly error: VenueAccessRouteValidationError };
+
+interface RouteContext {
+  readonly referenceOriginId: string | null;
+  readonly routeType: VenueAccessRouteType;
+  readonly originLabel: string | null;
+  readonly destinationLabel: string | null;
+  readonly mode: VenueAccessMode;
+}
+
+interface RouteMetrics {
+  readonly durationMinutes: number | null;
+  readonly distanceMeters: number | null;
+  readonly transfersCount: number | null;
+}
+
+interface RouteEvidence {
+  readonly observedAt: string;
+  readonly sourceId: string | null;
+  readonly notes: string | null;
+}
+
 export function isVenueAccessRouteType(
   value: unknown,
 ): value is VenueAccessRouteType {
@@ -159,82 +183,122 @@ function optionalMetric(value: unknown): number | null | undefined {
   return isCommercialNonNegativeInt32(value) ? value : undefined;
 }
 
+function invalid<T>(error: VenueAccessRouteValidationError): Validation<T> {
+  return { ok: false, error };
+}
+
+function valid<T>(value: T): Validation<T> {
+  return { ok: true, value };
+}
+
+function originLabelAllowed(
+  referenceOriginId: string | null,
+  originLabel: string | null | undefined,
+): boolean {
+  if (originLabel === undefined) return false;
+  if (referenceOriginId === null) return true;
+  return originLabel === null;
+}
+
+function normalizeRouteContext(
+  draft: VenueAccessRouteDraft,
+): Validation<RouteContext> {
+  const referenceOriginId = optionalUuid(draft.referenceOriginId);
+  if (referenceOriginId === undefined)
+    return invalid("invalid_reference_origin_id");
+  if (!isVenueAccessRouteType(draft.routeType))
+    return invalid("invalid_route_type");
+  if (!isVenueAccessMode(draft.mode)) return invalid("invalid_mode");
+
+  const originLabel = optionalText(draft.originLabel, 160);
+  if (!originLabelAllowed(referenceOriginId, originLabel))
+    return invalid("invalid_origin_label");
+  const destinationLabel = optionalText(draft.destinationLabel, 160);
+  if (destinationLabel === undefined)
+    return invalid("invalid_destination_label");
+
+  return valid({
+    referenceOriginId,
+    routeType: draft.routeType,
+    originLabel,
+    destinationLabel,
+    mode: draft.mode,
+  });
+}
+
+function normalizeRouteMetrics(
+  draft: VenueAccessRouteDraft,
+): Validation<RouteMetrics> {
+  const durationMinutes = optionalMetric(draft.durationMinutes);
+  if (durationMinutes === undefined)
+    return invalid("invalid_duration_minutes");
+  const distanceMeters = optionalMetric(draft.distanceMeters);
+  if (distanceMeters === undefined) return invalid("invalid_distance_meters");
+  const transfersCount = optionalMetric(draft.transfersCount);
+  if (transfersCount === undefined) return invalid("invalid_transfers_count");
+  return valid({ durationMinutes, distanceMeters, transfersCount });
+}
+
+function normalizeRouteEvidence(
+  draft: VenueAccessRouteDraft,
+): Validation<RouteEvidence> {
+  const observedAt = normalizeFactInstant(draft.observedAt);
+  if (observedAt === null) return invalid("invalid_observed_at");
+  const sourceId = optionalUuid(draft.sourceId);
+  if (sourceId === undefined) return invalid("invalid_source_id");
+  const notes = optionalText(draft.notes, 5_000);
+  if (notes === undefined) return invalid("invalid_notes");
+  return valid({ observedAt, sourceId, notes });
+}
+
 export function normalizeVenueAccessRoute(
   draft: VenueAccessRouteDraft,
 ): VenueAccessRouteValidationResult {
-  const referenceOriginId = optionalUuid(draft.referenceOriginId);
-  if (referenceOriginId === undefined)
-    return { ok: false, error: "invalid_reference_origin_id" };
-  if (!isVenueAccessRouteType(draft.routeType))
-    return { ok: false, error: "invalid_route_type" };
-  if (!isVenueAccessMode(draft.mode))
-    return { ok: false, error: "invalid_mode" };
-
-  const originLabel = optionalText(draft.originLabel, 160);
-  if (
-    originLabel === undefined ||
-    (referenceOriginId !== null && originLabel !== null)
-  )
-    return { ok: false, error: "invalid_origin_label" };
-  const destinationLabel = optionalText(draft.destinationLabel, 160);
-  if (destinationLabel === undefined)
-    return { ok: false, error: "invalid_destination_label" };
-
-  const durationMinutes = optionalMetric(draft.durationMinutes);
-  if (durationMinutes === undefined)
-    return { ok: false, error: "invalid_duration_minutes" };
-  const distanceMeters = optionalMetric(draft.distanceMeters);
-  if (distanceMeters === undefined)
-    return { ok: false, error: "invalid_distance_meters" };
-  const transfersCount = optionalMetric(draft.transfersCount);
-  if (transfersCount === undefined)
-    return { ok: false, error: "invalid_transfers_count" };
-
-  const observedAt = normalizeFactInstant(draft.observedAt);
-  if (observedAt === null) return { ok: false, error: "invalid_observed_at" };
-  const sourceId = optionalUuid(draft.sourceId);
-  if (sourceId === undefined) return { ok: false, error: "invalid_source_id" };
-  const notes = optionalText(draft.notes, 5_000);
-  if (notes === undefined) return { ok: false, error: "invalid_notes" };
+  const context = normalizeRouteContext(draft);
+  if (!context.ok) return context;
+  const metrics = normalizeRouteMetrics(draft);
+  if (!metrics.ok) return metrics;
+  const evidence = normalizeRouteEvidence(draft);
+  if (!evidence.ok) return evidence;
 
   return {
     ok: true,
     value: {
-      referenceOriginId,
-      routeType: draft.routeType,
-      originLabel,
-      destinationLabel,
-      mode: draft.mode,
-      durationMinutes,
-      distanceMeters,
-      transfersCount,
-      observedAt,
-      sourceId,
-      notes,
+      ...context.value,
+      ...metrics.value,
+      ...evidence.value,
     },
   };
+}
+
+function callerOriginLabelMatches(
+  record: VenueAccessRouteRecord,
+  payload: VenueAccessRouteCallerPayload,
+): boolean {
+  if (record.referenceOriginId !== null) return true;
+  return record.originLabel === payload.originLabel;
 }
 
 export function venueAccessRouteCallerPayloadEquals(
   record: VenueAccessRouteRecord,
   payload: VenueAccessRouteCallerPayload,
 ): boolean {
-  return (
-    record.projectId === payload.projectId &&
-    record.venueId === payload.venueId &&
-    record.referenceOriginId === payload.referenceOriginId &&
-    record.routeType === payload.routeType &&
-    (record.referenceOriginId !== null ||
-      record.originLabel === payload.originLabel) &&
-    record.destinationLabel === payload.destinationLabel &&
-    record.mode === payload.mode &&
-    record.durationMinutes === payload.durationMinutes &&
-    record.distanceMeters === payload.distanceMeters &&
-    record.transfersCount === payload.transfersCount &&
-    record.observedAt === payload.observedAt &&
-    record.sourceId === payload.sourceId &&
-    record.notes === payload.notes
-  );
+  if (!callerOriginLabelMatches(record, payload)) return false;
+  const pairs: readonly (readonly [unknown, unknown])[] = [
+    [record.projectId, payload.projectId],
+    [record.venueId, payload.venueId],
+    [record.referenceOriginId, payload.referenceOriginId],
+    [record.routeType, payload.routeType],
+    [record.destinationLabel, payload.destinationLabel],
+    [record.mode, payload.mode],
+    [record.durationMinutes, payload.durationMinutes],
+    [record.distanceMeters, payload.distanceMeters],
+    [record.transfersCount, payload.transfersCount],
+    [record.observedAt, payload.observedAt],
+    [record.sourceId, payload.sourceId],
+    [record.notes, payload.notes],
+  ];
+  return pairs.every(([left, right]) => left === right);
 }
 
 export function venueAccessRouteMatchesCurrentOrigin(

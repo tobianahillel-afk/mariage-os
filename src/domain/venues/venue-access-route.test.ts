@@ -130,7 +130,7 @@ it("recognizes exactly the frozen route types and modes", () => {
   expect(isVenueAccessMode(null)).toBe(false);
 });
 
-it("normalizes caller-owned route evidence and nullables", () => {
+it("normalizes caller-owned route evidence", () => {
   expect(normalizeVenueAccessRoute(draft())).toEqual({
     ok: true,
     value: {
@@ -147,6 +147,9 @@ it("normalizes caller-owned route evidence and nullables", () => {
       notes: "checked",
     },
   });
+});
+
+it("normalizes referenced route nullables", () => {
   expect(
     normalizeVenueAccessRoute(
       draft({
@@ -177,6 +180,9 @@ it("normalizes caller-owned route evidence and nullables", () => {
       notes: null,
     },
   });
+});
+
+it("accepts explicit nullables and frozen upper boundaries", () => {
   expect(
     normalizeVenueAccessRoute(
       draft({
@@ -228,7 +234,7 @@ it("rejects each invalid route input boundary", () => {
   }
 });
 
-it("compares replay caller payloads while excluding referenced origin snapshots", () => {
+it("compares referenced replay payloads without server snapshots", () => {
   expect(venueAccessRouteCallerPayloadEquals(record(), payload())).toBe(true);
   expect(
     venueAccessRouteCallerPayloadEquals(
@@ -241,7 +247,9 @@ it("compares replay caller payloads while excluding referenced origin snapshots"
       payload(),
     ),
   ).toBe(true);
+});
 
+it("compares custom replay origin labels", () => {
   const custom = record({
     referenceOriginId: null,
     routeType: "custom",
@@ -270,7 +278,9 @@ it("compares replay caller payloads while excluding referenced origin snapshots"
       }),
     ),
   ).toBe(false);
+});
 
+it("rejects every caller-owned replay payload change", () => {
   const changes: readonly Partial<VenueAccessRouteCallerPayload>[] = [
     { projectId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" },
     { venueId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" },
