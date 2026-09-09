@@ -54,7 +54,9 @@ function input(overrides: Record<string, unknown> = {}) {
   };
 }
 
-function port(overrides: Partial<VenueInteractionPort> = {}): VenueInteractionPort {
+function port(
+  overrides: Partial<VenueInteractionPort> = {},
+): VenueInteractionPort {
   return {
     appendVenueInteraction: async () => record(),
     listVenueInteractionHistory: async () => [record()],
@@ -98,9 +100,9 @@ it("rejects invalid command identities before persistence", async () => {
     { contactId: "bad" },
     { sourceId: "bad" },
   ]) {
-    await expect(service.appendVenueInteraction(input(overrides))).resolves.toEqual(
-      { ok: false, error: "invalid_identity" },
-    );
+    await expect(
+      service.appendVenueInteraction(input(overrides)),
+    ).resolves.toEqual({ ok: false, error: "invalid_identity" });
   }
   await expect(
     service.appendVenueInteraction(

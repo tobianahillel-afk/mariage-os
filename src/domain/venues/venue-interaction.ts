@@ -1,7 +1,5 @@
 import { normalizeFactInstant } from "@domain/facts/fact-observation";
-import {
-  normalizeCommercialRequiredText,
-} from "./venue-commercial-values";
+import { normalizeCommercialRequiredText } from "./venue-commercial-values";
 
 export interface VenueInteractionDraft {
   readonly interactionType: unknown;
@@ -53,16 +51,17 @@ type VenueInteractionPayload = Pick<
   | "sourceId"
 >;
 
-const VENUE_INTERACTION_PAYLOAD_KEYS: readonly (keyof VenueInteractionPayload)[] = [
-  "projectId",
-  "venueId",
-  "contactId",
-  "interactionType",
-  "occurredAt",
-  "summary",
-  "nextFollowUpAt",
-  "sourceId",
-];
+const VENUE_INTERACTION_PAYLOAD_KEYS: readonly (keyof VenueInteractionPayload)[] =
+  [
+    "projectId",
+    "venueId",
+    "contactId",
+    "interactionType",
+    "occurredAt",
+    "summary",
+    "nextFollowUpAt",
+    "sourceId",
+  ];
 
 function requiredText(value: unknown, maximum: number): string | null {
   return typeof value === "string"

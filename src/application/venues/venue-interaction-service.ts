@@ -19,8 +19,7 @@ export interface AppendVenueInteractionInput {
   readonly sourceId: unknown;
 }
 
-export interface NormalizedAppendVenueInteractionInput
-  extends NormalizedVenueInteractionDraft {
+export interface NormalizedAppendVenueInteractionInput extends NormalizedVenueInteractionDraft {
   readonly projectId: string;
   readonly venueId: string;
   readonly interactionId: string;

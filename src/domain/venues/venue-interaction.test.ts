@@ -91,9 +91,9 @@ it("rejects invalid required text and instant boundaries", () => {
       error: "invalid_summary",
     });
   }
-  expect(
-    normalizeVenueInteraction(draft({ nextFollowUpAt: "later" })),
-  ).toEqual({ ok: false, error: "invalid_next_follow_up_at" });
+  expect(normalizeVenueInteraction(draft({ nextFollowUpAt: "later" }))).toEqual(
+    { ok: false, error: "invalid_next_follow_up_at" },
+  );
 });
 
 it("compares replay payloads independently of audit fields", () => {

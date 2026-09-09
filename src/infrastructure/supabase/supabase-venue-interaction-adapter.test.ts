@@ -157,9 +157,11 @@ it("fails closed on malformed or substituted append receipts", async () => {
     { source_id: null },
   ]) {
     client.rpcResult = { data: row(overrides), error: null };
-    await expect(adapter.appendVenueInteraction(command)).rejects.toMatchObject({
-      code: "provider_response_invalid",
-    });
+    await expect(adapter.appendVenueInteraction(command)).rejects.toMatchObject(
+      {
+        code: "provider_response_invalid",
+      },
+    );
   }
 });
 

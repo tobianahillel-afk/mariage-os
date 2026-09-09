@@ -44,7 +44,10 @@ function providerErrorCode(value: unknown): string | null {
 }
 
 function providerFailure(message: string): VenueInteractionPersistenceError {
-  return new VenueInteractionPersistenceError("provider_response_invalid", message);
+  return new VenueInteractionPersistenceError(
+    "provider_response_invalid",
+    message,
+  );
 }
 
 function expectedAppendRecord(
@@ -89,7 +92,9 @@ export class SupabaseVenueInteractionAdapter implements VenueInteractionPort {
     });
     if (error !== null) {
       throw new VenueInteractionPersistenceError(
-        providerErrorCode(error) === "23505" ? "conflict" : "persistence_failed",
+        providerErrorCode(error) === "23505"
+          ? "conflict"
+          : "persistence_failed",
         "Venue interaction append failed.",
       );
     }
@@ -104,7 +109,8 @@ export class SupabaseVenueInteractionAdapter implements VenueInteractionPort {
         input,
       );
     } catch (errorValue) {
-      if (errorValue instanceof VenueInteractionPersistenceError) throw errorValue;
+      if (errorValue instanceof VenueInteractionPersistenceError)
+        throw errorValue;
       throw providerFailure("Invalid venue interaction append response.");
     }
   }
@@ -133,7 +139,8 @@ export class SupabaseVenueInteractionAdapter implements VenueInteractionPort {
         data.map((row) => parseVenueInteractionRow(row, projectId, venueId)),
       );
     } catch (errorValue) {
-      if (errorValue instanceof VenueInteractionPersistenceError) throw errorValue;
+      if (errorValue instanceof VenueInteractionPersistenceError)
+        throw errorValue;
       throw providerFailure("Invalid venue interaction list response.");
     }
   }

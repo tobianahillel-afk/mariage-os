@@ -174,7 +174,10 @@ end;
 $$;
 
 create function pg_temp.try_direct_wrong_parent_contact()
-returns boolean language plpgsql as $$
+returns boolean
+language plpgsql
+security definer
+as $$
 begin
   insert into public.interactions (
     id, project_id, parent_type, parent_id, contact_id,
