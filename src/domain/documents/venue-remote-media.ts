@@ -236,9 +236,7 @@ function normalizeCaption(value: unknown): string | null | undefined {
   if (typeof value !== "string") return undefined;
   const normalized = value.trim();
   if (normalized.length === 0) return null;
-  return hasScalarLengthBetween(normalized, 1, 5_000)
-    ? normalized
-    : undefined;
+  return hasScalarLengthBetween(normalized, 1, 5_000) ? normalized : undefined;
 }
 
 export function normalizeVenueRemoteMediaDraft(
