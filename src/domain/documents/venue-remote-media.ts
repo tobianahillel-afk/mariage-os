@@ -248,7 +248,8 @@ export function normalizeVenueRemoteMediaDraft(
   if (category === undefined) return { ok: false, error: "invalid_category" };
 
   const remoteUrl = normalizedPublicUrl(draft.remoteUrl, "remote");
-  if (remoteUrl === undefined) return { ok: false, error: "invalid_remote_url" };
+  if (remoteUrl === undefined)
+    return { ok: false, error: "invalid_remote_url" };
 
   let sourcePageUrl: string | null = null;
   if (draft.sourcePageUrl !== null && draft.sourcePageUrl !== undefined) {
