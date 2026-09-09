@@ -134,10 +134,6 @@ function inRange(value: number, minimum: number, maximum: number): boolean {
   return value >= minimum && value <= maximum;
 }
 
-function isValidIpv4Octet(value: number): boolean {
-  return Number.isInteger(value) && inRange(value, 0, 255);
-}
-
 function hasReservedIpv4Prefix(a: number, b: number): boolean {
   if ([0, 10, 127].includes(a)) return true;
   if (a === 100) return inRange(b, 64, 127);
@@ -147,10 +143,7 @@ function hasReservedIpv4Prefix(a: number, b: number): boolean {
 }
 
 function ipv4IsPublic(host: string): boolean {
-  const parts = host.split(".");
-  if (parts.length !== 4) return false;
-  const octets = parts.map(Number);
-  if (!octets.every(isValidIpv4Octet)) return false;
+  const octets = host.split(".").map(Number);
   const [a, b] = octets as [number, number, number, number];
   return !hasReservedIpv4Prefix(a, b);
 }

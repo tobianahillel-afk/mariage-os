@@ -4,6 +4,15 @@ import {
   normalizeVenueRemoteMediaDraft,
 } from "./venue-remote-media";
 
+const oversizedLabelHost = `${"a".repeat(64)}.example.com`;
+const oversizedDnsHost = [
+  "a".repeat(63),
+  "b".repeat(63),
+  "c".repeat(63),
+  "d".repeat(62),
+  "com",
+].join(".");
+
 function normalize(
   remoteUrl: unknown,
   sourcePageUrl: unknown = null,
@@ -29,6 +38,8 @@ it.each([
   "https://bad_host.example.com/photo.jpg",
   "https://xn--bcher-kva.example/photo.jpg",
   "https://example.123/photo.jpg",
+  `https://${oversizedLabelHost}/photo.jpg`,
+  `https://${oversizedDnsHost}/photo.jpg`,
 ])("rejects additional non-public remote URL form %s", (remoteUrl) => {
   expect(normalize(remoteUrl)).toEqual({
     ok: false,
