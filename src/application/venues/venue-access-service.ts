@@ -47,7 +47,7 @@ export interface VenueAccessPort {
   ): Promise<VenueReferenceOrigin | null>;
 }
 
-export type VenueAccessServiceError =
+type VenueAccessServiceError =
   | "invalid_identity"
   | VenueAccessRouteValidationError
   | "replay_conflict"
