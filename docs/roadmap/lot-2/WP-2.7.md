@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.7`
 - Lot: `2`
 - Name: Contextual venue access-route observations
-- State: `IN_PROGRESS`
-- Current pass: `A-IMPLEMENT`
+- State: `REVIEW_PENDING`
+- Current pass: `B-ADVERSARIAL-REVIEW`
 - Primary bounded context: Venue access-route observation history and default-origin summary selection
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 
@@ -208,23 +208,31 @@ The context snapshot adds no second public command and no second bounded workflo
 
 `ACC-030`: persist at least two `reference_to_venue` / `car` observations for two distinct reference origins; switch default origin through the already accepted origin command; verify summary moves to the new origin while both historical route rows remain unchanged and the newly default origin's existing matching route remains eligible. Then edit that origin's address/coordinates and verify the old row remains history but current summary becomes missing/review-needed until a new route observation is appended.
 
+## Pass A — IMPLEMENT
+
+**COMPLETE / VERIFIED.** The red-first route boundary `a9b8909d2225e54da9e9dc1fddd57ec9aa3463b5` / `34347040335` failed as expected before `venue_access_routes` and the atomic append/replay command existed. Final Pass-A implementation head `004aec0ee30e5f228c55ecd6fe7fae8d5ba98794` / `34364195509` is **5/5 SUCCESS**. The vertical slice now contains strict route domain validation and replay equality, deterministic current-default-origin summary selection, Venue-owned `AccessService`, fail-closed Supabase parser/adapter preserving canonical provider order, immutable project-scoped persistence/RLS and the atomic append command, plus domain/application/provider and DB/RLS tests. Forward-only migrations `20260909120500_create_venue_access_routes.sql` and `20260909122000_harden_venue_access_route_text_bounds.sql` implement the persistence and text-boundary hardening. Exact-head verification passed 121 unit-test files / 1093 tests at 100% measured statements/branches/functions/lines, 54 DB files / 1060 pgTAP tests, 40/40 Playwright tests, mutation, privacy-safe preview and Full verify from clean checkout. Scope remained access-route-only; WP-2.8 was not started.
+
+Pass-A decision: **COMPLETE / VERIFIED — transition to REVIEW_PENDING / B-ADVERSARIAL-REVIEW**.
+
 ## Execution gates
 
 1. Physical-origin snapshot freeze `4baa335b5f964ee13e806cd9a5170f28ff179835` / `34336841778` and canonical historical-snapshot portability repair `05f9695d5e437a69dfd0cf5b839ad00bdc7afc38` / `34343241298` are **5/5 SUCCESS**.
 2. READY-transition head `bb93ad517130c2c0d6ce8f4ac7dec812e3e0d135` / `34344326696` is **5/5 SUCCESS**.
-3. WP-2.7 is now `IN_PROGRESS / A-IMPLEMENT`; Pass A product implementation has not started.
-4. This IN_PROGRESS transition head itself must be **5/5 SUCCESS** before the red-first product test.
-5. Pass A begins red-first at the route persistence/append boundary.
-6. Pass B independently reconstructs the complete slice; any BLOCKING/MAJOR finding returns to remediation.
-7. Pass C reconciles every responsibility/control before acceptance.
+3. Pass A implementation head `004aec0ee30e5f228c55ecd6fe7fae8d5ba98794` / `34364195509` is **5/5 SUCCESS**; Pass A is complete and verified.
+4. WP-2.7 is `REVIEW_PENDING / B-ADVERSARIAL-REVIEW`; this transition head itself must be **5/5 SUCCESS** before fresh Pass B begins.
+5. Pass B independently reconstructs the complete slice; any BLOCKING/MAJOR finding returns to remediation with dedicated evidence.
+6. Only a fresh Pass-B PASS may transition the packet to `ACCEPTANCE_PENDING / C-ACCEPTANCE`.
+7. Pass C reconciles every responsibility/control before packet acceptance.
 8. WP-2.8 remains prohibited until WP-2.7 is ACCEPTED and its acceptance-governance head is green.
 
 ## Handoff
 
-- Current state: `IN_PROGRESS`
-- Current/next pass: `A-IMPLEMENT`
+- Current state: `REVIEW_PENDING`
+- Current/next pass: `B-ADVERSARIAL-REVIEW`
 - Previous packet: WP-2.6D — **ACCEPTED / COMPLETE**, final acceptance-governance closure `767017112445a38863abd114e8c62feb27af6421` / `34322712448` — **5/5 SUCCESS**.
 - Specification gates: physical-origin snapshot freeze `4baa335b5f964ee13e806cd9a5170f28ff179835` / `34336841778`; canonical portability repair `05f9695d5e437a69dfd0cf5b839ad00bdc7afc38` / `34343241298`; both **5/5 SUCCESS**.
 - READY transition: `bb93ad517130c2c0d6ce8f4ac7dec812e3e0d135` / `34344326696` — **5/5 SUCCESS**.
-- Pass A product implementation status: **Not started**.
-- Next permitted action: verify this IN_PROGRESS-transition HEAD 5/5. If green, commit the narrow red-first pgTAP boundary proving `venue_access_routes` and the atomic append command are absent. Do not implement persistence/product code before that expected red failure is confirmed.
+- Red-first Pass-A boundary: `a9b8909d2225e54da9e9dc1fddd57ec9aa3463b5` / `34347040335` — expected FAILURE before persistence/append existed.
+- Final Pass-A implementation: `004aec0ee30e5f228c55ecd6fe7fae8d5ba98794` / `34364195509` — **5/5 SUCCESS**.
+- Open BLOCKING/MAJOR findings at Pass-A handoff: none known; fresh Pass B pending.
+- Next permitted action: verify this REVIEW_PENDING transition HEAD 5/5; then perform a fresh WP-2.7 Pass B adversarial review. Do not start WP-2.8 concurrently.
