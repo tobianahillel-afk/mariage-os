@@ -44,12 +44,15 @@ it.each([
 });
 
 it("covers source-navigation host and protocol boundaries", () => {
-  expect(normalize("https://example.com/photo.jpg", "http://intranet/source"))
-    .toMatchObject({ ok: true });
-  expect(normalize("https://example.com/photo.jpg", "ftp://example.com/source"))
-    .toEqual({ ok: false, error: "invalid_source_page_url" });
-  expect(normalize("https://example.com/photo.jpg", "http://8.8.8.8/source"))
-    .toEqual({ ok: false, error: "invalid_source_page_url" });
+  expect(
+    normalize("https://example.com/photo.jpg", "http://intranet/source"),
+  ).toMatchObject({ ok: true });
+  expect(
+    normalize("https://example.com/photo.jpg", "ftp://example.com/source"),
+  ).toEqual({ ok: false, error: "invalid_source_page_url" });
+  expect(
+    normalize("https://example.com/photo.jpg", "http://8.8.8.8/source"),
+  ).toEqual({ ok: false, error: "invalid_source_page_url" });
 });
 
 it("rejects non-string and invalid optional metadata", () => {
@@ -66,8 +69,9 @@ it("rejects non-string and invalid optional metadata", () => {
 });
 
 it("rejects malformed low surrogate and canonical URL expansion overflow", () => {
-  expect(normalize("https://example.com/photo.jpg", null, null, "\udc00"))
-    .toEqual({ ok: false, error: "invalid_caption" });
+  expect(
+    normalize("https://example.com/photo.jpg", null, null, "\udc00"),
+  ).toEqual({ ok: false, error: "invalid_caption" });
   expect(normalize(`https://example.com/${"é".repeat(400)}`)).toEqual({
     ok: false,
     error: "invalid_remote_url",

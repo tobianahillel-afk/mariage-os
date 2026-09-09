@@ -50,11 +50,14 @@ function link(overrides: Record<string, unknown> = {}) {
   };
 }
 
-it.each([null, [], "invalid"])("fails closed on non-object receipt %#", (value) => {
-  expect(() => parseVenueRemoteMediaReceipt(value)).toThrow(
-    "Invalid venue remote media response.",
-  );
-});
+it.each([null, [], "invalid"])(
+  "fails closed on non-object receipt %#",
+  (value) => {
+    expect(() => parseVenueRemoteMediaReceipt(value)).toThrow(
+      "Invalid venue remote media response.",
+    );
+  },
+);
 
 it("accepts a valid receipt without optional expected identities", () => {
   expect(

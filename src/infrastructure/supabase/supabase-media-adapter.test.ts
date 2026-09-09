@@ -173,10 +173,7 @@ it("maps provider conflict and rejects substituted success receipts", async () =
 it.each(["provider-down", { code: 500 }])(
   "maps non-conflict provider failure %#",
   async (error) => {
-    const client = new Client(
-      { data: [], error: null },
-      { data: null, error },
-    );
+    const client = new Client({ data: [], error: null }, { data: null, error });
     await expect(
       new SupabaseMediaAdapter(client).createVenueRemoteMedia(input),
     ).rejects.toMatchObject({ code: "persistence_failed" });
