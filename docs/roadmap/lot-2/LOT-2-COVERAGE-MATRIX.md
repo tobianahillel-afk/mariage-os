@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1..WP-2.6D ACCEPTED; WP-2.7 IN_PROGRESS**
+Status: **IN_PROGRESS — WP-2.1..WP-2.7 ACCEPTED; WP-2.8 PLANNED / NEXT**
 
 Purpose: durable responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`.
 
@@ -34,7 +34,7 @@ The previously accepted Lot 0 + Lot 1 implementation was promoted to `main` thro
 | venue offer/date-pricing commercial history without full Budget engine | FTR-025 (Lot 2 responsibility), VEN-008 | WP-2.6A | WP-2.1, wedding dates | **WP-2.6A ACCEPTED**; lifecycle/migration/RLS/money/date/source/history/provider evidence; gap ∅ |
 | venue availability observation history and latest/relevant read model | FTR-025 (Lot 2 responsibility), VEN-009 | WP-2.6B | WP-2.1, wedding dates, WP-2.6A accepted by default sequence | **WP-2.6B ACCEPTED**; append/replay, migration/RLS, strict instant/date/source/history/read-model evidence; gap ∅ |
 | venue contacts/interactions/quote-follow-up data basics without Task workflow | FTR-026 (Lot 2 responsibility) | WP-2.6C, WP-2.6D, WP-2.11 | WP-2.1, WP-2.6A/B accepted; C before D | **WP-2.6C + WP-2.6D ACCEPTED** for contact + interaction persistence; later detail UI remains WP-2.11 |
-| contextual access-route observations by origin/mode; default-origin switch never overwrites route history | Lot-2 acceptance, VEN-016, ACC-030, access responsibility | WP-2.7, WP-2.11 | WP-2.1, Lot-1 reference origins | access.read/write RLS + contextual-history tests |
+| contextual access-route observations by origin/mode; default-origin switch never overwrites route history | Lot-2 acceptance, VEN-016, ACC-030, access responsibility | WP-2.7, WP-2.11 | WP-2.1, Lot-1 reference origins | **WP-2.7 ACCEPTED**; immutable contextual history, server-captured origin snapshots, persisted default-switch/stale-context acceptance, `access.read`/`access.write` RLS and fail-closed provider evidence; gap ∅ |
 | remote image references, archived/private venue photo metadata and source privacy | FTR-024, FTR-092 (Lot 2 media responsibility), VEN-013, MED-004..010, MED-013 | WP-2.8, WP-2.11, WP-2.12 | Lot 1 private Storage | metadata/RLS/Storage tests + external-image security tests |
 | venue-linked ordinary document basics and generic venue tag/link basics | FTR-089 (Lot 2 responsibility), FTR-093 (Lot 2 responsibility), MED-001..003, MED-010 | WP-2.9, WP-2.11 | Lot 1 Storage/permissions | same-project link tests + safe metadata UI |
 | venue repository/read-model ports and Supabase adapters use accepted architecture boundaries | Lot acceptance, AUTHZ-006/020, architecture controls | WP-2.1..WP-2.10 as owning adapters are introduced | Lot 1 ports/composition | static architecture + adapter tests |
@@ -52,7 +52,7 @@ The previously accepted Lot 0 + Lot 1 implementation was promoted to `main` thro
 
 Required current-lot responsibilities minus assigned packet responsibilities: **∅**.
 
-Accepted/evidenced packet responsibilities so far: **WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5, WP-2.6A, WP-2.6B, WP-2.6C and WP-2.6D**. Required WP-2.6A/B/C/D responsibilities minus accepted/evidenced responsibilities for each packet: **∅**. The original WP-2.6 responsibility is fully assigned and accepted/evidenced after orchestration decomposition: offers/components → WP-2.6A, availability → WP-2.6B, contacts → WP-2.6C, interactions → WP-2.6D. Whole `FTR-026` remains **IN_PROGRESS** because Venue presentation remains WP-2.11 and follow-up/Task workflow remains Lot 3. The FTR-022 presentation/UI responsibility remains explicitly assigned to WP-2.11 and is not claimed by WP-2.5. Lot-level accepted/evidenced reconciliation remains intentionally incomplete until all packets and the separate Integration Pass finish.
+Accepted/evidenced packet responsibilities so far: **WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5, WP-2.6A, WP-2.6B, WP-2.6C, WP-2.6D and WP-2.7**. Required WP-2.6A/B/C/D responsibilities minus accepted/evidenced responsibilities for each packet: **∅**. Required WP-2.7 responsibilities minus accepted/evidenced WP-2.7 responsibilities: **∅**. The original WP-2.6 responsibility is fully assigned and accepted/evidenced after orchestration decomposition: offers/components → WP-2.6A, availability → WP-2.6B, contacts → WP-2.6C, interactions → WP-2.6D. Whole `FTR-026` remains **IN_PROGRESS** because Venue presentation remains WP-2.11 and follow-up/Task workflow remains Lot 3. The Lot-2 access-route data responsibility is accepted in WP-2.7, while Venue access presentation remains WP-2.11 and rendered map/routing-provider capabilities mapped to downstream `FTR-080` / `FTR-081` remain Lot 9 rather than being globally accepted here. The FTR-022 presentation/UI responsibility remains explicitly assigned to WP-2.11 and is not claimed by WP-2.5. Lot-level accepted/evidenced reconciliation remains intentionally incomplete until all packets and the separate Integration Pass finish.
 
 ## Work Packet plan
 
@@ -209,8 +209,8 @@ The Lot contains one additional execution unit because the normative `>10` hard 
 
 ### WP-2.7 — Contextual venue access-route observations
 
-State: **IN_PROGRESS**
-Current pass: **A-IMPLEMENT**
+State: **ACCEPTED**
+Current pass: **COMPLETE**
 
 Primary control: Lot-2 acceptance + `VEN-016` / `ACC-030` access-route responsibility.  
 Dependencies: WP-2.1, Lot-1 reference origins, and decomposed WP-2.6 sequence — all packet dependencies **ACCEPTED**. WP-2.6D acceptance-governance `767017112445a38863abd114e8c62feb27af6421` / `34322712448`: **5/5 SUCCESS**.  
@@ -219,7 +219,14 @@ READY-transition gate: `bb93ad517130c2c0d6ce8f4ac7dec812e3e0d135` / `34344326696
 Acceptance record: `WP-2.7.md`.  
 Estimated size: **9 points** — one append-only route table, one migration family, one atomic append/replay command and one RLS/authorization boundary.  
 Scope: immutable contextual route observations, server-captured reference-origin location snapshots, stable UUID replay/non-disclosure, deterministic provider order and current default-origin summary selection. No map provider/UI/offline/import implementation is pulled into this packet.  
-Pass A product implementation: **Not started** pending exact-head verification of this IN_PROGRESS transition.
+Verified Pass-A implementation head/run: `004aec0ee30e5f228c55ecd6fe7fae8d5ba98794` / `34364195509` — **5/5 SUCCESS**.  
+Pass B: finding `WP2.7-B-001` was exposed red-first and **RESOLVED / VERIFIED** on `cc85c0167e40eb2250d9143b6f4ded28d94118d6` / `34369744964`; final fresh reviewed head/run `c1cb06bf6fdd4b33bc966f985f668938a7edf158` / `34370566573` — **5/5 SUCCESS**; open BLOCKING/MAJOR findings **∅**.  
+Pass-C entry head/run: `30807e355f85b5146ceba449a0115542e393b69d` / `34372335839` — **5/5 SUCCESS**.  
+Dedicated persisted `ACC-030` acceptance evidence: `3501a6056361dfa792743bf928464520f2538499` / `34373382884` — **5/5 SUCCESS**; two origin/mode histories coexist, switching the default origin through the accepted Lot-1 command changes the selected context without rewriting history, physical-location change makes prior context stale, and a new matching observation restores current context.  
+Packet Pass-C acceptance head/run: `f2e98ad4738231bfe6582e5f13b3676ff7eaaed6` / `34374522697` — **5/5 SUCCESS**, including clean-checkout `npm run verify`.  
+Pass C reconciliation: **PASS**. `VEN-016` and `ACC-030` are accepted/evidenced for the WP-2.7 responsibility; applicable AUTHZ/SEC controls, immutable history, replay/conflict/non-disclosure, live authorization, snapshot integrity, deterministic ordering and fail-closed provider boundaries reconcile EXPECTED → IMPLEMENTED → VERIFIED.  
+Required WP-2.7 responsibilities minus accepted/evidenced WP-2.7 responsibilities: **∅**.  
+Boundary retained: Venue access presentation remains WP-2.11; local/offline Venue persistence remains WP-2.10/2.12; import/restore implementation remains Lot 4; rendered map/routing-provider capability remains Lot 9. Whole downstream `FTR-080` / `FTR-081` capability is therefore not falsely marked accepted by this packet.
 
 ### WP-2.8 — Venue media/photo foundation and private/remote media safety
 
@@ -275,8 +282,8 @@ WP-2.1 [ACCEPTED]
   │                                           ↓
   │                               WP-2.6D [ACCEPTED]
   │                                           ↓
-  ├────────────────────────────────────────→ WP-2.7 [IN_PROGRESS]
-  └─→ WP-2.8 → WP-2.9
+  ├────────────────────────────────────────→ WP-2.7 [ACCEPTED]
+  └─→ WP-2.8 [PLANNED / NEXT] → WP-2.9
 
 WP-2.1..2.9
   ↓
@@ -293,7 +300,7 @@ separate Lot 2 Integration Pass
 Lot 2 acceptance
 ```
 
-Default execution remains one packet in active work/review at a time. The original WP-2.6 responsibility was decomposed before implementation because its five-table/multi-command/RLS scope exceeded the orchestration `>10` split threshold and no atomicity/safety reason justified a mega-packet. This decomposition changes implementation granularity only; product/Feature scope is unchanged and required current-lot responsibilities minus assigned packet responsibilities remains **∅**. WP-2.6A, WP-2.6B, WP-2.6C and WP-2.6D are ACCEPTED. WP-2.7 is IN_PROGRESS after verified physical-snapshot, canonical-portability and READY-transition gates; product code remains prohibited until the separate IN_PROGRESS transition head is green. WP-2.8 remains prohibited concurrently.
+Default execution remains one packet in active work/review at a time. The original WP-2.6 responsibility was decomposed before implementation because its five-table/multi-command/RLS scope exceeded the orchestration `>10` split threshold and no atomicity/safety reason justified a mega-packet. This decomposition changes implementation granularity only; product/Feature scope is unchanged and required current-lot responsibilities minus assigned packet responsibilities remains **∅**. WP-2.6A, WP-2.6B, WP-2.6C, WP-2.6D and WP-2.7 are ACCEPTED with their packet-level responsibility gaps **∅**. WP-2.8 is the next planned packet but remains prohibited until the WP-2.7 matrix/status acceptance-governance closure is exact-head green; its own pre-implementation governance repair must restore `docs/security/STORAGE-RLS.md` before media/security implementation starts.
 
 ## Explicitly out of Lot 2
 
