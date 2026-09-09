@@ -1,5 +1,4 @@
 import { expect, it } from "vitest";
-import { MediaPersistenceError } from "@application/documents/media-persistence-error";
 import type { NormalizedCreateVenueRemoteMediaInput } from "@application/documents/media-service";
 import {
   SupabaseMediaAdapter,
@@ -76,6 +75,10 @@ class Builder implements PromiseLike<Result> {
 
   constructor(private readonly result: Result) {}
 
+  select(_columns: string): Builder {
+    return this;
+  }
+
   eq(column: string, value: string): Builder {
     this.filters.push([column, value]);
     return this;
@@ -104,7 +107,7 @@ class Client implements SupabaseMediaClientLike {
     this.rpcResult = rpcResult;
   }
 
-  from(): Builder {
+  from(_table: "media_links"): Builder {
     return this.builder;
   }
 
@@ -143,7 +146,7 @@ it("maps provider conflict and rejects substituted success receipts", async () =
   );
   await expect(
     new SupabaseMediaAdapter(conflictClient).createVenueRemoteMedia(input),
-  ).rejects.toMatchObject<Partial<MediaPersistenceError>>({ code: "conflict" });
+  ).rejects.toMatchObject({ code: "conflict" });
 
   const malformedClient = new Client(
     { data: [], error: null },
@@ -157,7 +160,7 @@ it("maps provider conflict and rejects substituted success receipts", async () =
   );
   await expect(
     new SupabaseMediaAdapter(malformedClient).createVenueRemoteMedia(input),
-  ).rejects.toMatchObject<Partial<MediaPersistenceError>>({
+  ).rejects.toMatchObject({
     code: "provider_response_invalid",
   });
 });
@@ -192,7 +195,7 @@ it("fails closed on duplicate or malformed list rows", async () => {
   );
   await expect(
     new SupabaseMediaAdapter(client).listVenueRemoteMedia(projectId, venueId),
-  ).rejects.toMatchObject<Partial<MediaPersistenceError>>({
+  ).rejects.toMatchObject({
     code: "provider_response_invalid",
   });
 });
