@@ -45,6 +45,7 @@ function assertExpectedIdentity(
 }
 
 function canonicalInteraction(row: Record<string, unknown>) {
+  if (row.next_follow_up_at === undefined) fail();
   const normalized = normalizeVenueInteraction({
     interactionType: row.interaction_type,
     occurredAt: row.occurred_at,
