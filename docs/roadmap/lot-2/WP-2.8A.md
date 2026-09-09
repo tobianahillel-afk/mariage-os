@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.8A`
 - Lot: `2`
 - Name: Venue remote-image metadata and links
-- State: `REVIEW_PENDING`
-- Current pass: `B-ADVERSARIAL-REVIEW`
+- State: `ACCEPTANCE_PENDING`
+- Current pass: `C-ACCEPTANCE`
 - Primary bounded context: Documents/Media metadata for Venue remote image references
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 
@@ -49,10 +49,16 @@ Product scope is unchanged:
 - project-scoped `media.read` / `media.write` authorization and direct RLS allow/deny tests;
 - fail-closed Supabase provider parsing/receipts.
 
+### Requirements / Acceptance / Security IDs
+
+- Product/requirements: `FTR-024` Lot-2 foundation, `VEN-013`, `MED-007`, `MED-008`, `MED-010`, `MED-013`;
+- acceptance responsibility: foundation toward `ACC-057` and `ACC-058` only; no claim for later DOM rendering, private upload or deletion lifecycle;
+- authorization: `AUTHZ-001`, `AUTHZ-002`, `AUTHZ-004`, `AUTHZ-005`, `AUTHZ-006`, `AUTHZ-007`, `AUTHZ-008`, `AUTHZ-012`, `AUTHZ-018`, `AUTHZ-019`, `AUTHZ-020`;
+- security: `SEC-AUTH-012`, `SEC-AUTH-013`, `SEC-AUTHZ-001..009`, `SEC-VAL-001`, `SEC-VAL-002`, `SEC-VAL-003`, `SEC-VAL-004`, `SEC-VAL-007`, `SEC-VAL-008`, `SEC-INJ-001`, `SEC-INJ-002`, `SEC-SRV-001`, `SEC-VER-001`, `SEC-VER-002`, `SEC-VER-005`, `SEC-VER-006`;
+- invariants `63`, `66`, `67`, `72`, `100` where applicable to this remote-reference slice.
+
 ### Applicable normative controls
 
-- `FTR-024` Lot-2 foundation, `VEN-013`, `MED-007`, `MED-008`, `MED-010`, `MED-013`;
-- invariants `63`, `66`, `67`, `72`, `100` where applicable to this remote-reference slice;
 - `PHYSICAL-SCHEMA-V1.md` media/media_links shape;
 - `MEDIA-LIFECYCLE-ADDENDUM.md`;
 - `LOT-2-COVERAGE-MATRIX-ADDENDUM.md` for the corrected WP-2.8 responsibility decomposition;
@@ -89,6 +95,10 @@ Product scope is unchanged:
 - `PLANNED → READY` governance transition: **CLOSED / VERIFIED** by `c49d182c50ee882751bb73b63f3720f40356e5a7` / `34401165950` — **5/5 SUCCESS**.
 - `READY → IN_PROGRESS / A-IMPLEMENT` governance transition: **CLOSED / VERIFIED** by `2462a70cbf20444eed579370f25b58facd7adce9` / `34401969811` — **5/5 SUCCESS**.
 - Pass-A implementation/hardening head `3c9d53af80ee11f7c276ed9f0bb14118988a95b3` / `34414303456` — **5/5 SUCCESS**, including clean-checkout `npm run verify`.
+- `IN_PROGRESS/A → REVIEW_PENDING/B` transition `ac5e2c6aaf6c98ddaec8a85261d254c6395dcb46` / `34415090306` — **5/5 SUCCESS**.
+- Pass-B finding `WP2.8A-B-001` red-first head `fc973ab5538d86573164705164a16ab0bd78db99` / `34415717118` — **EXPECTED FAILURE**.
+- Pass-B remediation head `db892fe02a324859f5bf3f3ac79a0687e95f3736` / `34416328055` — **5/5 SUCCESS**.
+- Final fresh Pass-B authorization/review evidence `556ebab4ca642dd3d86d1d1a5c5761d18446eb7c` / `34416889470` — **5/5 SUCCESS**, including clean-checkout verify.
 - WP-2.8B and WP-2.8C remain PLANNED and cannot run concurrently with WP-2.8A.
 
 ## Activation specification freeze
@@ -180,6 +190,10 @@ The packet deliberately excludes private Storage bytes/file validation/derivativ
 - Do **not** claim full `ACC-057` until WP-2.11 proves actual rendering uses no-referrer/fallback behavior.
 - Do **not** claim `ACC-055`/`ACC-056`; those belong to WP-2.8B.
 
+## Feature-record / traceability boundary
+
+`LOT-2-COVERAGE-MATRIX.md` explicitly treats each `WP-2.x.md` as the packet **Acceptance record**. For WP-2.8A, this packet record plus the WP-2.8 coverage addendum and repository test/code evidence are therefore the durable responsibility-level record used for Pass C. Whole `FTR-024` is deliberately broader than this packet (WP-2.8B, WP-2.11 and WP-2.12 remain downstream), so this packet must not promote the whole Feature Ledger row or claim a complete feature-level FIR. The feature-level record/status remains incomplete until all assigned feature responsibilities are implemented and reconciled.
+
 ## Pass A — IMPLEMENT
 
 **COMPLETE / VERIFIED.** Readiness head `c49d182c50ee882751bb73b63f3720f40356e5a7` / `34401165950` and the separate `READY → IN_PROGRESS` transition `2462a70cbf20444eed579370f25b58facd7adce9` / `34401969811` were both **5/5 SUCCESS**. The first product change was the RED-first boundary `56b931e66324cf34d8e898c8e50fed079e4d48ab` / `34402670623`, which failed as intended because `media`, `media_links` and the atomic create/replay RPC did not yet exist.
@@ -192,10 +206,17 @@ Pass-A decision: **COMPLETE / VERIFIED — transition to `REVIEW_PENDING / B-ADV
 
 ## Pass B — ADVERSARIAL REVIEW
 
-**NEXT / RUNNING AFTER THIS GOVERNANCE TRANSITION IS EXACT-HEAD GREEN.** Reconstruct the packet from the normative media/addendum/security contracts, rerun the canonicality regression independently, and search for authorization/RLS/cross-project, replay/race, provider fail-closed, architecture/complexity and scope-drift defects. The pre-transition diagnostic above is evidence to retain, not a completed Pass-B decision.
-
-Open BLOCKING/MAJOR findings at transition: **∅ known after Pass-A hardening; fresh Pass B still required.**
+- `REVIEW_PENDING / B-ADVERSARIAL-REVIEW` transition `ac5e2c6aaf6c98ddaec8a85261d254c6395dcb46` / `34415090306`: **5/5 SUCCESS**, including clean-checkout verify.
+- Fresh review reconstructed the remote-media slice from the packet, media lifecycle addendum, authorization/security contracts and implemented SQL/provider boundaries rather than relying on Pass-A conclusions.
+- Canonical remote/source URL parity retained its direct-RPC regression coverage after the Pass-A hardening.
+- `WP2.8A-B-001` **MAJOR** — replay identity was incomplete at the SQL boundary: after an existing `media_id` matched media metadata, the RPC could still accept a different `link_id` and/or Venue target and create a second gallery relationship. RED-first `fc973ab5538d86573164705164a16ab0bd78db99` / `34415717118` failed as intended because the drift returned success and left a second link.
+- `WP2.8A-B-001` is **RESOLVED / VERIFIED** by forward-only migration `20260909232500_harden_venue_remote_media_replay_identity.sql` on `db892fe02a324859f5bf3f3ac79a0687e95f3736` / `34416328055`: **5/5 SUCCESS**. Existing-media replay now requires the original same-project link identity, Venue target, target type and relationship; same-project drift is `23505`, foreign-project link identity remains generic `42501`, and no second link is created.
+- Fresh authorization evidence `556ebab4ca642dd3d86d1d1a5c5761d18446eb7c` / `34416889470` directly proves project-lock-before-live-permission evaluation, authenticated-only public RPC execution, internal helper non-exposure, `search_path=pg_catalog`, editor write success, immediate same-session downgrade denial, restored editor success and immediate same-session revocation denial. Exact CI: **5/5 SUCCESS**, including clean-checkout verify.
+- Existing RLS/cross-project tests continue to cover direct table isolation, foreign-project UUID non-disclosure and same-project relational integrity; provider/domain/application tests retain fail-closed malformed/substituted/wrong-project/wrong-link behavior and exact URL/caption boundaries.
+- Architecture/scope review found no parallel `domain/media` or `application/media` boundary, no binary Storage lifecycle, no remote fetch/proxy/rendering, no deletion/restore and no offline/import scope drift.
+- Open BLOCKING/MAJOR findings: **∅**.
+- Pass-B decision: **PASS — transition to `ACCEPTANCE_PENDING / C-ACCEPTANCE`.**
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started. Pass C is prohibited until a fresh Pass B records no unresolved BLOCKING/MAJOR finding and the packet transitions to `ACCEPTANCE_PENDING / C-ACCEPTANCE`.
+**NEXT / START AFTER THIS GOVERNANCE TRANSITION IS EXACT-HEAD 5/5 GREEN.** Mechanically reconcile every item in Expected vertical slice + Verification plan + Acceptance responsibility against committed implementation and evidence. Required WP-2.8A responsibilities minus implemented/evidenced responsibilities must equal **∅** before packet acceptance. Whole `FTR-024` / `FTR-092` and later rendering/private-upload/deletion responsibilities must remain unclaimed.
