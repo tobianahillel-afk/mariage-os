@@ -73,8 +73,7 @@ export interface VenueRemoteMediaBundle {
   readonly link: VenueRemoteMediaLinkRecord;
 }
 
-export interface VenueRemoteMediaCallerPayload
-  extends NormalizedVenueRemoteMediaDraft {
+export interface VenueRemoteMediaCallerPayload extends NormalizedVenueRemoteMediaDraft {
   readonly projectId: string;
   readonly venueId: string;
   readonly mediaId: string;
