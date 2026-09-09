@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1..WP-2.6C ACCEPTED; WP-2.6D IN_PROGRESS**
+Status: **IN_PROGRESS — WP-2.1..WP-2.6D ACCEPTED; WP-2.7 PLANNED / NEXT**
 
 Purpose: durable responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`.
 
@@ -32,8 +32,8 @@ The previously accepted Lot 0 + Lot 1 implementation was promoted to `main` thro
 | deterministic criterion evaluation, blockers, weighted score explanation and dynamic recomputation | FTR-021, FAC-011, FAC-013, VEN-010, VEN-011, ACC-022, ACC-023, ACC-028 | WP-2.5 | WP-2.3, WP-2.4 | **WP-2.5 ACCEPTED**; deterministic unit/property coverage, explanation reconstruction, provider/DB boundary evidence and final fresh Pass B |
 | missing/stale/conflicting information guidance without silently creating tasks | FTR-022 (Lot 2 responsibility), VEN-007, FAC-006, FAC-008, FAC-010 | WP-2.5, WP-2.11 | criteria/facts | **WP-2.5 ACCEPTED read-model/guidance responsibility** + later WP-2.11 presentation/UI |
 | venue offer/date-pricing commercial history without full Budget engine | FTR-025 (Lot 2 responsibility), VEN-008 | WP-2.6A | WP-2.1, wedding dates | **WP-2.6A ACCEPTED**; lifecycle/migration/RLS/money/date/source/history/provider evidence; gap ∅ |
-| venue availability observation history and latest/relevant read model | FTR-025 (Lot 2 responsibility), VEN-009 | WP-2.6B | WP-2.1, wedding dates, WP-2.6A accepted by default sequence | append/replay, migration/RLS, strict instant/date/source/history/read-model tests |
-| venue contacts/interactions/quote-follow-up data basics without Task workflow | FTR-026 (Lot 2 responsibility) | WP-2.6C, WP-2.6D, WP-2.11 | WP-2.1, WP-2.6A/B accepted; C before D | contact revision + interaction append/replay + same-project/parent tests + later detail UI |
+| venue availability observation history and latest/relevant read model | FTR-025 (Lot 2 responsibility), VEN-009 | WP-2.6B | WP-2.1, wedding dates, WP-2.6A accepted by default sequence | **WP-2.6B ACCEPTED**; append/replay, migration/RLS, strict instant/date/source/history/read-model evidence; gap ∅ |
+| venue contacts/interactions/quote-follow-up data basics without Task workflow | FTR-026 (Lot 2 responsibility) | WP-2.6C, WP-2.6D, WP-2.11 | WP-2.1, WP-2.6A/B accepted; C before D | **WP-2.6C + WP-2.6D ACCEPTED** for contact + interaction persistence; later detail UI remains WP-2.11 |
 | contextual access-route observations by origin/mode; default-origin switch never overwrites route history | Lot-2 acceptance, VEN-016, ACC-030, access responsibility | WP-2.7, WP-2.11 | WP-2.1, Lot-1 reference origins | access.read/write RLS + contextual-history tests |
 | remote image references, archived/private venue photo metadata and source privacy | FTR-024, FTR-092 (Lot 2 media responsibility), VEN-013, MED-004..010, MED-013 | WP-2.8, WP-2.11, WP-2.12 | Lot 1 private Storage | metadata/RLS/Storage tests + external-image security tests |
 | venue-linked ordinary document basics and generic venue tag/link basics | FTR-089 (Lot 2 responsibility), FTR-093 (Lot 2 responsibility), MED-001..003, MED-010 | WP-2.9, WP-2.11 | Lot 1 Storage/permissions | same-project link tests + safe metadata UI |
@@ -52,7 +52,7 @@ The previously accepted Lot 0 + Lot 1 implementation was promoted to `main` thro
 
 Required current-lot responsibilities minus assigned packet responsibilities: **∅**.
 
-Accepted/evidenced packet responsibilities so far: **WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5, WP-2.6A, WP-2.6B and WP-2.6C**. Required WP-2.6A responsibilities minus accepted/evidenced WP-2.6A responsibilities: **∅**. Required WP-2.6B responsibilities minus accepted/evidenced WP-2.6B responsibilities: **∅**. Required WP-2.6C responsibilities minus accepted/evidenced WP-2.6C responsibilities: **∅**. The original WP-2.6 responsibility remains fully assigned after orchestration decomposition: offers/components → WP-2.6A, availability → WP-2.6B, contacts → WP-2.6C, interactions → WP-2.6D; A+B+C are accepted and D is IN_PROGRESS in Pass A after READY-transition verification. Whole `FTR-026` remains incomplete because interaction history, Venue presentation and Lot-3 follow-up/Task responsibilities are downstream. The FTR-022 presentation/UI responsibility remains explicitly assigned to WP-2.11 and is not claimed by WP-2.5. Lot-level accepted/evidenced reconciliation remains intentionally incomplete until all packets and the separate Integration Pass finish.
+Accepted/evidenced packet responsibilities so far: **WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5, WP-2.6A, WP-2.6B, WP-2.6C and WP-2.6D**. Required WP-2.6A/B/C/D responsibilities minus accepted/evidenced responsibilities for each packet: **∅**. The original WP-2.6 responsibility is fully assigned and accepted/evidenced after orchestration decomposition: offers/components → WP-2.6A, availability → WP-2.6B, contacts → WP-2.6C, interactions → WP-2.6D. Whole `FTR-026` remains **IN_PROGRESS** because Venue presentation remains WP-2.11 and follow-up/Task workflow remains Lot 3. The FTR-022 presentation/UI responsibility remains explicitly assigned to WP-2.11 and is not claimed by WP-2.5. Lot-level accepted/evidenced reconciliation remains intentionally incomplete until all packets and the separate Integration Pass finish.
 
 ## Work Packet plan
 
@@ -165,8 +165,7 @@ Resolved/verified fresh-review findings: `WP2.6B-B-001..B-005`; final fresh Pass
 Corrected Pass-C entry head/run: `6e091cc5088fece027f13c6764092453da18f418` / `34274455248` — **5/5 SUCCESS**, including clean-checkout `npm run verify`.
 Pass C reconciliation: **PASS**.
 Required WP-2.6B responsibilities minus accepted/evidenced WP-2.6B responsibilities: **∅**.
-Boundary retained: contacts → WP-2.6C; interactions → WP-2.6D; Budget/scenario integration → Lot 5; Documents/offline/UI remain downstream/out of scope; whole `FTR-025` stays **IN_PROGRESS**.
-Boundary retained: contacts proceed through WP-2.6C Pass C; interactions remain WP-2.6D. WP-2.6D and WP-2.7 remain blocked concurrently.
+Boundary retained: contacts/interactions are accepted through WP-2.6C/D; Budget/scenario integration remains Lot 5; Documents/offline/UI remain downstream/out of scope; whole `FTR-025` stays **IN_PROGRESS**.
 
 ### WP-2.6C — Venue contacts
 
@@ -178,38 +177,42 @@ Dependencies: WP-2.1, WP-2.6A and WP-2.6B **ACCEPTED**.
 Acceptance record: `WP-2.6C.md`.
 Estimated size after activation revalidation: **9 points** — one contact table, one migration family, one atomic save command family and one RLS/authorization boundary.
 Split rationale: the former combined 10-point packet assumed direct ordinary RLS contact mutation; accepted revisioned mutation precedent requires a real command boundary, which would push contacts + interaction append/replay above 10. The hard split occurred before production code.
-Scope: caller-owned Venue contact identity, canonical phone/text validation, create/update with expected revision, immutable parent identity, RLS and fail-closed provider parsing. Interaction history is now WP-2.6D.
+Scope: caller-owned Venue contact identity, canonical phone/text validation, create/update with expected revision, immutable parent identity, RLS and fail-closed provider parsing. Interaction history is WP-2.6D.
 Verified Pass-A implementation head/run: `aee0572cebddc0eae26e898fe68a008009263d11` / `34282995400` — **5/5 SUCCESS**; 111 unit files / 1037 tests at 100% measured statements/branches/functions/lines; DB/RLS, Browser+mutation, preview and clean-checkout verify PASS. Cross-project UUID non-disclosure red-first `56c79ee3064384b5425699742a3b8c2a21fd4aa7` / `34282681713` failed exactly `23505` vs required `42501` and is resolved on the final Pass-A head.
 Final fresh Pass-B reviewed head/run: `4f43d59f113f2aa0a857ed147965fd65a8b02413` / `34285562087` — **5/5 SUCCESS**; direct grants/RLS, shared authorization locks, same-session downgrade/revocation, revision/parent immutability, UUID non-disclosure, full PostgreSQL phone parity and fail-closed provider boundaries reviewed; dedicated adversarial pgTAP passed without product-semantic remediation; open BLOCKING/MAJOR findings **∅**; review **PASS**.
 Pass-C entry head/run: `b8d451ec0d39239894fc9d6e1b84142015610fbe` / `34286647702` — **5/5 SUCCESS**. Mechanical contact reconciliation: **PASS**; required WP-2.6C responsibilities minus accepted/evidenced responsibilities: **∅**. No dedicated `VEN-xxx`/`ACC-xxx` is invented for `FTR-026`; whole feature remains incomplete downstream.
 Final WP-2.6C acceptance-governance head/run: `f6c93b7991d832363da92a9081540b9bad95441b` / `34287865010` attempt 2 — **5/5 SUCCESS**; attempt 1 failed only from runner-local Supabase port `54322` collision and required no repo change.
-Next permitted action: WP-2.6D specification/activation revalidation; WP-2.7 remains blocked.
+Boundary retained: interaction history is accepted through WP-2.6D; Venue presentation remains WP-2.11 and follow-up/Task workflow remains Lot 3.
 
 ### WP-2.6D — Venue interaction history
 
-State: **IN_PROGRESS**
-Current pass: **A-IMPLEMENT**
+State: **ACCEPTED**
+Current pass: **COMPLETE**
 
 Primary Feature: FTR-026 Lot-2 interaction responsibility.
-Dependency gate: WP-2.6C **ACCEPTED / acceptance-governance verified** on `f6c93b7991d832363da92a9081540b9bad95441b` / `34287865010` attempt 2.
-Activation stop-condition frozen before code: canonical interaction history is `occurred_at DESC, created_at DESC, id ASC`; provider order preserves PostgreSQL microsecond chronology and TypeScript does not re-sort after millisecond canonicalization; `next_follow_up_at` remains independently strict metadata with no invented ordering/inequality semantics.
-Specification-freeze gate `1bf2640e20aa7cf7cb7d3b3524aa069b37a09c4b` / `34289908898` and READY-transition gate `3c51873c7503366950b4551d1c01be51202926f5` / `34290710472` are **5/5 SUCCESS**. Packet is **IN_PROGRESS / A-IMPLEMENT**; Pass A product implementation remains not started until this IN_PROGRESS-transition head is itself verified 5/5.
-Dependencies: WP-2.6C **ACCEPTED** plus prior WP-2.6A/B acceptance.
+Dependencies: WP-2.6C **ACCEPTED / acceptance-governance verified** on `f6c93b7991d832363da92a9081540b9bad95441b` / `34287865010` attempt 2, plus prior WP-2.6A/B acceptance.
 Acceptance record: `WP-2.6D.md`.
 Estimated size: **9 points** — one append-only interaction table, one migration family, one atomic append/replay command and one RLS/authorization boundary.
-Scope: immutable interaction history, strict occurred/follow-up instants, same-Venue optional contact, same-project source, stable UUID replay, project isolation and fail-closed provider parsing. Automatic Task/reminder workflow remains Lot 3.
-Activation review: **CLOSED** — deterministic history ordering/provider timestamp precision and the accepted contact interface are frozen and verified by `1bf2640e20aa7cf7cb7d3b3524aa069b37a09c4b` / `34289908898` 5/5.
+Specification-freeze gate `1bf2640e20aa7cf7cb7d3b3524aa069b37a09c4b` / `34289908898` and READY-transition gate `3c51873c7503366950b4551d1c01be51202926f5` / `34290710472`: **5/5 SUCCESS**.
+Verified Pass-A implementation head/run `24364e63ca3ef223b8610fd820fe3d2061582eef` / `34294280214`: **5/5 SUCCESS**.
+Fresh Pass-B findings `WP2.6D-B-001..002` were exposed red-first on `0d0714085b27f041da0048d18f0a4415d4302294` / `34299175470`, then **RESOLVED / VERIFIED** on `b39670b1236d081d7e93ae9559bf66c459cd5a3e` / `34299796056` — **5/5 SUCCESS**.
+Final fresh Pass-B reviewed head/run `d416c6dce810fd05fc3610797f800d746876a631` / `34300303989`: **5/5 SUCCESS**, including interaction-specific downgrade/revocation authorization evidence; open BLOCKING/MAJOR findings **∅**.
+Pass-C entry head/run `eefd07821e011ea61cba30f13042b7eb35931620` / `34321381397`: **5/5 SUCCESS**, including clean-checkout `npm run verify`.
+Pass C mechanical reconciliation: **PASS**; append history, strict instants/text, same-Venue contact, same-project source, stable replay/conflict/non-disclosure, immutability, RLS/live authorization, deterministic microsecond-safe ordering, fail-closed provider parsing and applicable AUTHZ/SEC controls all reconcile EXPECTED → IMPLEMENTED → VERIFIED.
+Required WP-2.6D responsibilities minus accepted/evidenced WP-2.6D responsibilities: **∅**.
+Boundary retained: whole `FTR-026` stays **IN_PROGRESS** because Venue presentation remains WP-2.11 and Task/follow-up workflow remains Lot 3; no provider messaging, offline queue or Venue UI is pulled into WP-2.6D.
 
 #### Fragmentation review — PASS
 
-The Lot now contains one additional execution unit because the normative `>10` hard split rule was triggered by real command-boundary revalidation. This is not file-level fragmentation: WP-2.6C is the mutable contact/revision slice and WP-2.6D is the immutable interaction/replay slice, each independently reviewable at 9 points with distinct persistence and failure modes. Product Feature scope is unchanged, `FTR-026` remains cross-lot/unfinished, and required Lot-2 responsibilities minus assigned packet responsibilities remains **∅**.
+The Lot contains one additional execution unit because the normative `>10` hard split rule was triggered by real command-boundary revalidation. This is not file-level fragmentation: WP-2.6C is the mutable contact/revision slice and WP-2.6D is the immutable interaction/replay slice, each independently reviewable at 9 points with distinct persistence and failure modes. Product Feature scope is unchanged, `FTR-026` remains cross-lot/unfinished, and required Lot-2 responsibilities minus assigned packet responsibilities remains **∅**.
 
 ### WP-2.7 — Contextual venue access-route observations
 
 State: **PLANNED**
 
 Primary control: Lot-2 acceptance + VEN-016 access-route basics.  
-Dependencies: WP-2.1, Lot-1 reference origins, and completion of the decomposed WP-2.6 sequence under current orchestration.
+Dependencies: WP-2.1, Lot-1 reference origins, and completion of the decomposed WP-2.6 sequence under current orchestration.  
+Activation may begin only after the WP-2.6D acceptance-governance closure head is verified by exact-head CI.
 
 ### WP-2.8 — Venue media/photo foundation and private/remote media safety
 
@@ -261,9 +264,11 @@ WP-2.1 [ACCEPTED]
   │                                           ↓
   │                               WP-2.6B [ACCEPTED]
   │                                           ↓
-  │                               WP-2.6C [ACCEPTANCE_PENDING]
+  │                               WP-2.6C [ACCEPTED]
   │                                           ↓
-  ├────────────────────────────────────────→ WP-2.7 [PLANNED]
+  │                               WP-2.6D [ACCEPTED]
+  │                                           ↓
+  ├────────────────────────────────────────→ WP-2.7 [PLANNED / NEXT]
   └─→ WP-2.8 → WP-2.9
 
 WP-2.1..2.9
@@ -281,7 +286,7 @@ separate Lot 2 Integration Pass
 Lot 2 acceptance
 ```
 
-Default execution remains one packet in active work/review at a time. The original WP-2.6 responsibility was decomposed before implementation because its five-table/multi-command/RLS scope exceeded the orchestration `>10` split threshold and no atomicity/safety reason justified a mega-packet. This decomposition changes implementation granularity only; product/Feature scope is unchanged and required current-lot responsibilities minus assigned packet responsibilities remains **∅**. WP-2.6A and WP-2.6B are ACCEPTED; WP-2.6C has completed verified Pass A and fresh Pass B and is ACCEPTANCE_PENDING / C-ACCEPTANCE. WP-2.6D and WP-2.7 must not start concurrently.
+Default execution remains one packet in active work/review at a time. The original WP-2.6 responsibility was decomposed before implementation because its five-table/multi-command/RLS scope exceeded the orchestration `>10` split threshold and no atomicity/safety reason justified a mega-packet. This decomposition changes implementation granularity only; product/Feature scope is unchanged and required current-lot responsibilities minus assigned packet responsibilities remains **∅**. WP-2.6A, WP-2.6B, WP-2.6C and WP-2.6D are ACCEPTED. WP-2.7 remains PLANNED until WP-2.6D acceptance-governance verification is green; it must not be started prematurely.
 
 ## Explicitly out of Lot 2
 
