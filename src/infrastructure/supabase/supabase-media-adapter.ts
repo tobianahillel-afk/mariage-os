@@ -154,7 +154,9 @@ export class SupabaseMediaAdapter implements MediaPort {
     }
     try {
       return uniqueBundles(
-        data.map((row) => parseVenueRemoteMediaListRow(row, projectId, venueId)),
+        data.map((row) =>
+          parseVenueRemoteMediaListRow(row, projectId, venueId),
+        ),
       );
     } catch (errorValue) {
       if (errorValue instanceof MediaPersistenceError) throw errorValue;

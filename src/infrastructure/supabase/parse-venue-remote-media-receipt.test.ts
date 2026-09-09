@@ -89,12 +89,6 @@ it.each([
   { media: media(), link: link({ media_id: venueId }) },
 ])("fails closed on malformed or substituted receipt %#", (receipt) => {
   expect(() =>
-    parseVenueRemoteMediaReceipt(
-      receipt,
-      projectId,
-      venueId,
-      mediaId,
-      linkId,
-    ),
+    parseVenueRemoteMediaReceipt(receipt, projectId, venueId, mediaId, linkId),
   ).toThrow("Invalid venue remote media response.");
 });
