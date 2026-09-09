@@ -230,8 +230,7 @@ function normalizeRouteMetrics(
   draft: VenueAccessRouteDraft,
 ): Validation<RouteMetrics> {
   const durationMinutes = optionalMetric(draft.durationMinutes);
-  if (durationMinutes === undefined)
-    return invalid("invalid_duration_minutes");
+  if (durationMinutes === undefined) return invalid("invalid_duration_minutes");
   const distanceMeters = optionalMetric(draft.distanceMeters);
   if (distanceMeters === undefined) return invalid("invalid_distance_meters");
   const transfersCount = optionalMetric(draft.transfersCount);
