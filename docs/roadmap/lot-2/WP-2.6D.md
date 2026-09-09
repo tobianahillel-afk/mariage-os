@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.6D`
 - Lot: `2`
 - Name: Venue interaction history
-- State: `IN_PROGRESS`
-- Current pass: `A-IMPLEMENT`
+- State: `REVIEW_PENDING`
+- Current pass: `B-ADVERSARIAL-REVIEW`
 - Primary bounded context: Venue interaction and quote-follow-up history
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Parent responsibility: original matrix packet `WP-2.6`, split from former WP-2.6C at activation sizing review
@@ -101,7 +101,7 @@ The append-only interaction table, same-Venue contact/source integrity, stable U
 
 ## Pass A — IMPLEMENT
 
-Not started.
+**COMPLETE / VERIFIED.** The red-first interaction boundary `380a6f8fb5ee30a0ca39188d8018114b535bf8b6` / `34291932020` failed as expected before the `interactions` table and atomic `append_venue_interaction` command existed. Final Pass-A implementation head `24364e63ca3ef223b8610fd820fe3d2061582eef` / `34294280214` is **5/5 SUCCESS**. The vertical slice now contains the Venue interaction domain and replay equality rules, application append/list service with typed replay conflict mapping, fail-closed Supabase row parser/adapter preserving canonical provider order, migration `20260909002000_create_venue_interactions.sql` with immutable project-scoped persistence/RLS and the atomic security-definer append command, plus domain/application/provider/DB-RLS tests. Core quality/security, Local Supabase DB/RLS, Browser E2E + mutation, privacy-safe preview and Full verify from clean checkout all passed on the exact implementation HEAD. Scope remained interaction-only; WP-2.7 was not started.
 
 ## Pass B — ADVERSARIAL REVIEW
 
@@ -113,10 +113,12 @@ Not started.
 
 ## Handoff
 
-- Current state: `IN_PROGRESS`
-- Current/next pass: `A-IMPLEMENT`
+- Current state: `REVIEW_PENDING`
+- Current/next pass: `B-ADVERSARIAL-REVIEW`
 - Dependency gate: WP-2.6C **ACCEPTED / acceptance-governance verified** on `f6c93b7991d832363da92a9081540b9bad95441b` / `34287865010` attempt 2
 - Specification-freeze gate: `1bf2640e20aa7cf7cb7d3b3524aa069b37a09c4b` / `34289908898` — **5/5 SUCCESS**; deterministic history ordering/provider precision and accepted contact interface are frozen; no material specification ambiguity remains
 - READY-transition gate: `3c51873c7503366950b4551d1c01be51202926f5` / `34290710472` — **5/5 SUCCESS**
-- Pass A implementation status: **Not started**
-- Next permitted action: verify this IN_PROGRESS-transition HEAD 5/5. Only then commit the WP-2.6D red-first vertical-slice evidence. Do not start WP-2.7 concurrently.
+- Red-first Pass-A boundary: `380a6f8fb5ee30a0ca39188d8018114b535bf8b6` / `34291932020` — expected FAILURE before persistence/command existed
+- Pass-A final implementation head/run: `24364e63ca3ef223b8610fd820fe3d2061582eef` / `34294280214` — **5/5 SUCCESS**
+- Pass A implementation status: **COMPLETE / VERIFIED, not accepted**
+- Next permitted action: verify this `REVIEW_PENDING / B-ADVERSARIAL-REVIEW` transition HEAD 5/5. Only then perform a fresh adversarial Pass B review reconstructed from repository contracts. Do not start WP-2.7 concurrently.
