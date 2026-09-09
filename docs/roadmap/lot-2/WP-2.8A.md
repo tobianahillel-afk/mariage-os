@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.8A`
 - Lot: `2`
 - Name: Venue remote-image metadata and links
-- State: `READY`
-- Current pass: `A-READY`
+- State: `IN_PROGRESS`
+- Current pass: `A-IMPLEMENT`
 - Primary bounded context: Documents/Media metadata for Venue remote image references
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 
@@ -86,8 +86,9 @@ Product scope is unchanged:
 - Previous split/lifecycle specification gate: `cb4c95120c976d2238a57a02aa874867ff9bcca3` / `34379734883` — **5/5 SUCCESS**.
 - Status-board exact-head gate before this repair: `5d0fa2e57a340450fa9431cc3057709cdc2b655a` / `34383169499` — **5/5 SUCCESS**, including 40/40 rerun E2E, mutation and clean-checkout verify.
 - Pre-READY contract/coverage repair: **CLOSED / VERIFIED** by `8908eecd3eb25e89cf0b70937722f0ccf9257bb4` / `34390723409` — **5/5 SUCCESS**.
+- `PLANNED → READY` governance transition: **CLOSED / VERIFIED** by `c49d182c50ee882751bb73b63f3720f40356e5a7` / `34401165950` — **5/5 SUCCESS**.
 - WP-2.8B and WP-2.8C remain PLANNED and cannot run concurrently with WP-2.8A.
-- This `PLANNED → READY` governance transition must itself become exact-head **5/5 SUCCESS** before A may transition separately to `IN_PROGRESS`.
+- This `READY → IN_PROGRESS` governance transition must itself become exact-head **5/5 SUCCESS** before the first product change may be committed.
 
 ## Activation specification freeze
 
@@ -180,7 +181,7 @@ The packet deliberately excludes private Storage bytes/file validation/derivativ
 
 ## Pass A — IMPLEMENT
 
-Not started. WP-2.8A is READY, but product implementation remains prohibited until this READY governance commit is exact-head green and a separate `READY → IN_PROGRESS` governance transition is itself exact-head green. The first product-code change must then be red-first evidence for the absent media/media-link command boundary.
+Implementation is activated from readiness HEAD `c49d182c50ee882751bb73b63f3720f40356e5a7`, whose CI run `34401165950` is **5/5 SUCCESS**. Product implementation remains prohibited until this `READY → IN_PROGRESS` governance commit is itself exact-head green. The first product-code change after that gate must be red-first evidence for the absent media/media-link command boundary.
 
 ## Pass B — ADVERSARIAL REVIEW
 
