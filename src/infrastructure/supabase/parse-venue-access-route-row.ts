@@ -96,7 +96,8 @@ function canonicalCallerFields(
     [value.notes, row.notes],
   ];
   if (!canonicalPairs.every(([canonical, raw]) => canonical === raw)) fail();
-  if (referenceOriginId === null && value.originLabel !== row.origin_label) fail();
+  if (referenceOriginId === null && value.originLabel !== row.origin_label)
+    fail();
   return value;
 }
 

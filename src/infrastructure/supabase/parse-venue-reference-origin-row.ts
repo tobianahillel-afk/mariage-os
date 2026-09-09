@@ -50,7 +50,8 @@ export function parseVenueReferenceOriginRow(
 ): VenueReferenceOrigin {
   const row = objectRow(value);
   const projectId = requiredUuid(row.project_id);
-  if (expectedProjectId !== undefined && projectId !== expectedProjectId) fail();
+  if (expectedProjectId !== undefined && projectId !== expectedProjectId)
+    fail();
   if (row.is_default !== true) fail();
 
   const latitude = coordinate(row.latitude, -90, 90);
