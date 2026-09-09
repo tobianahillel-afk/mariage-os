@@ -47,7 +47,7 @@ Before implementation gate opens, every V1 row remains `SPECIFIED`.
 | FTR-023 | Individual partner favorites/ratings/preferences | 2 | RLS, PHYSICAL-SCHEMA | IN_PROGRESS |
 | FTR-024 | Venue photos remote references/private archive/gallery | 2 | STORAGE, DOCUMENTS-MEDIA | SPECIFIED |
 | FTR-025 | Venue offers/date pricing/availability context | 2/5 | VENUES, BUDGET | IN_PROGRESS |
-| FTR-026 | Venue contacts/interactions/quote follow-up | 2/3 | VENUES, TASKS | SPECIFIED |
+| FTR-026 | Venue contacts/interactions/quote follow-up | 2/3 | VENUES, TASKS | IN_PROGRESS |
 | FTR-027 | Venue comparison 2–5 candidates/differences | 2 | VENUES, UX | SPECIFIED |
 | FTR-028 | Mobile venue visit/offline package | 2/10 | OFFLINE, USER-FLOWS | SPECIFIED |
 
@@ -57,7 +57,7 @@ Before implementation gate opens, every V1 row remains `SPECIFIED`.
 |---|---|---:|---|---|
 | FTR-029 | Task creation/ownership/status/due/priority | 3 | TASKS-DECISIONS | SPECIFIED |
 | FTR-030 | Waiting externally / follow-up workflow | 3 | TASKS, DASHBOARD | SPECIFIED |
-| FTR-031 | Task dependencies/blockers/cycle protection | 3 | INVARIANTS, STATE-MACHINES | SPECIFIED |
+| FTR-031 | Task dependencies/blockers/cycle protection | 3 | TASKS, STATE-MACHINES | SPECIFIED |
 | FTR-032 | Joint decisions/options/approvals/rationale | 3 | DECISIONS | SPECIFIED |
 | FTR-033 | Discuss-together queue and locked/reopen history | 3 | DECISIONS | SPECIFIED |
 | FTR-034 | Global Inbox quick capture text/URL/hints | 3 | INBOX | SPECIFIED |
