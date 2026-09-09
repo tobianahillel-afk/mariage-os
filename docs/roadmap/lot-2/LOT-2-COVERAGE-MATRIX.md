@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1..WP-2.7 ACCEPTED; WP-2.8 PLANNED / NEXT**
+Status: **IN_PROGRESS — WP-2.1..WP-2.7 ACCEPTED; WP-2.8A PLANNED / NEXT; WP-2.8B PLANNED**
 
 Purpose: durable responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`.
 
@@ -35,24 +35,24 @@ The previously accepted Lot 0 + Lot 1 implementation was promoted to `main` thro
 | venue availability observation history and latest/relevant read model | FTR-025 (Lot 2 responsibility), VEN-009 | WP-2.6B | WP-2.1, wedding dates, WP-2.6A accepted by default sequence | **WP-2.6B ACCEPTED**; append/replay, migration/RLS, strict instant/date/source/history/read-model evidence; gap ∅ |
 | venue contacts/interactions/quote-follow-up data basics without Task workflow | FTR-026 (Lot 2 responsibility) | WP-2.6C, WP-2.6D, WP-2.11 | WP-2.1, WP-2.6A/B accepted; C before D | **WP-2.6C + WP-2.6D ACCEPTED** for contact + interaction persistence; later detail UI remains WP-2.11 |
 | contextual access-route observations by origin/mode; default-origin switch never overwrites route history | Lot-2 acceptance, VEN-016, ACC-030, access responsibility | WP-2.7, WP-2.11 | WP-2.1, Lot-1 reference origins | **WP-2.7 ACCEPTED**; immutable contextual history, server-captured origin snapshots, persisted default-switch/stale-context acceptance, `access.read`/`access.write` RLS and fail-closed provider evidence; gap ∅ |
-| remote image references, archived/private venue photo metadata and source privacy | FTR-024, FTR-092 (Lot 2 media responsibility), VEN-013, MED-004..010, MED-013 | WP-2.8, WP-2.11, WP-2.12 | Lot 1 private Storage | metadata/RLS/Storage tests + external-image security tests |
-| venue-linked ordinary document basics and generic venue tag/link basics | FTR-089 (Lot 2 responsibility), FTR-093 (Lot 2 responsibility), MED-001..003, MED-010 | WP-2.9, WP-2.11 | Lot 1 Storage/permissions | same-project link tests + safe metadata UI |
+| remote image references, archived/private venue photo metadata and source privacy | FTR-024, FTR-092 (Lot 2 media responsibility), VEN-013, MED-004..010, MED-013 | WP-2.8A, WP-2.8B, WP-2.11, WP-2.12 | Lot 1 private Storage; WP-2.8A before WP-2.8B | A: remote metadata/link/RLS/privacy tests; B: Storage/file lifecycle/original-derivative/orphan tests |
+| venue-linked ordinary document basics and generic venue tag/link basics | FTR-089 (Lot 2 responsibility), FTR-093 (Lot 2 responsibility), MED-001..003, MED-010 | WP-2.9, WP-2.11 | Lot 1 Storage/permissions, WP-2.8A/B where shared media/file primitives are reused | same-project link tests + safe metadata UI |
 | venue repository/read-model ports and Supabase adapters use accepted architecture boundaries | Lot acceptance, AUTHZ-006/020, architecture controls | WP-2.1..WP-2.10 as owning adapters are introduced | Lot 1 ports/composition | static architecture + adapter tests |
 | local cache/pending venue edits reuse account+project+device LocalProjectStore; no parallel IndexedDB design | FTR-028 (Lot 2 responsibility), SYN-001..003, SYN-007..011, PWA-003/004/006 | WP-2.10, WP-2.12 | Lot 1 WP-1.7/1.8 | local persistence/reload/isolation/offline tests |
-| gallery is default venue browse surface with robust empty/loading/offline states | FTR-015 | WP-2.11 | WP-2.10 read models, WP-2.8 media | browser/accessibility/performance evidence |
+| gallery is default venue browse surface with robust empty/loading/offline states | FTR-015 | WP-2.11 | WP-2.10 read models, WP-2.8A/B media | browser/accessibility/performance evidence |
 | analytical table with controlled columns and personal saved preferences | FTR-016, FTR-012 (Lot 2 responsibility), VEN-015 | WP-2.11 | WP-2.2, WP-2.10 | sort/filter/prefs/browser tests |
 | summary-first venue detail with spaces/facts/missing/commercial/access/media/docs/history | FTR-017 | WP-2.11 | WP-2.1..WP-2.10 | detail E2E + visual/accessibility review |
 | compare 2–5 venues, blockers before score, differences-only and ratings separate from facts | FTR-027, VEN-010, VEN-011 | WP-2.11 | WP-2.5 + read models | compare E2E + blocked criterion visibility |
 | protected venue deep links preserve project authorization and generic outsider denial | FTR-014/FTR-017/FTR-027 routing responsibility, VEN-014 | WP-2.11 | Lot 1 protected shell | route/unit/E2E outsider tests |
-| mobile visit mode: cached detail/checklist/notes/measurement/photo/rating/finish summary with queued local edits | FTR-028, PWA-004, venue feature contract | WP-2.12 | WP-2.2, WP-2.5, WP-2.8, WP-2.10 | mobile Playwright/offline reload tests |
-| remote-image/file/content validation and no private data in public fixtures/artifacts | MED-002/003/009/010/013, security/quality controls | WP-2.8, WP-2.9, WP-2.12 | Lot 1 security foundation | adversarial tests + secret/privacy scans |
+| mobile visit mode: cached detail/checklist/notes/measurement/photo/rating/finish summary with queued local edits | FTR-028, PWA-004, venue feature contract | WP-2.12 | WP-2.2, WP-2.5, WP-2.8A/B, WP-2.10 | mobile Playwright/offline reload tests |
+| remote-image/file/content validation and no private data in public fixtures/artifacts | MED-002/003/009/010/013, security/quality controls | WP-2.8A, WP-2.8B, WP-2.9, WP-2.12 | Lot 1 security foundation | adversarial tests + secret/privacy scans |
 | every new table/resource has explicit permissions, grants, RLS and direct anon/outsider/project-B/revoked allow/deny evidence | AUTHZ-001..008, AUTHZ-009, AUTHZ-012/017/018/020 | WP-2.1..WP-2.9 according to resource | Lot 1 authorization catalog | per-packet pgTAP direct security matrix |
 | synthetic complex venue exit fixture: conflicting evidence, multiple spaces, route observations, offers, two partner ratings, reject/restore/compare | Lot 2 acceptance | WP-2.12 + separate Lot Integration Pass | all packets | integrated DB/browser scenario |
 | Lot reconciliation + separate Integration Pass | AI-LOT-ORCHESTRATION | after WP-2.1..WP-2.12 | all packets | required - accepted/evidenced = ∅ + full verify + integration PASS |
 
 Required current-lot responsibilities minus assigned packet responsibilities: **∅**.
 
-Accepted/evidenced packet responsibilities so far: **WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5, WP-2.6A, WP-2.6B, WP-2.6C, WP-2.6D and WP-2.7**. Required WP-2.6A/B/C/D responsibilities minus accepted/evidenced responsibilities for each packet: **∅**. Required WP-2.7 responsibilities minus accepted/evidenced WP-2.7 responsibilities: **∅**. The original WP-2.6 responsibility is fully assigned and accepted/evidenced after orchestration decomposition: offers/components → WP-2.6A, availability → WP-2.6B, contacts → WP-2.6C, interactions → WP-2.6D. Whole `FTR-026` remains **IN_PROGRESS** because Venue presentation remains WP-2.11 and follow-up/Task workflow remains Lot 3. The Lot-2 access-route data responsibility is accepted in WP-2.7, while Venue access presentation remains WP-2.11 and rendered map/routing-provider capabilities mapped to downstream `FTR-080` / `FTR-081` remain Lot 9 rather than being globally accepted here. The FTR-022 presentation/UI responsibility remains explicitly assigned to WP-2.11 and is not claimed by WP-2.5. Lot-level accepted/evidenced reconciliation remains intentionally incomplete until all packets and the separate Integration Pass finish.
+Accepted/evidenced packet responsibilities so far: **WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5, WP-2.6A, WP-2.6B, WP-2.6C, WP-2.6D and WP-2.7**. Required WP-2.6A/B/C/D responsibilities minus accepted/evidenced responsibilities for each packet: **∅**. Required WP-2.7 responsibilities minus accepted/evidenced WP-2.7 responsibilities: **∅**. The original WP-2.6 responsibility is fully assigned and accepted/evidenced after orchestration decomposition: offers/components → WP-2.6A, availability → WP-2.6B, contacts → WP-2.6C, interactions → WP-2.6D. The original WP-2.8 responsibility is now fully assigned before product code: remote-reference metadata and Venue links → WP-2.8A; private archived bytes/original/derivative/hash/interrupted-orphan lifecycle → WP-2.8B; Venue presentation → WP-2.11; mobile/offline capture → WP-2.12. Whole `FTR-026` remains **IN_PROGRESS** because Venue presentation remains WP-2.11 and follow-up/Task workflow remains Lot 3. The Lot-2 access-route data responsibility is accepted in WP-2.7, while Venue access presentation remains WP-2.11 and rendered map/routing-provider capabilities mapped to downstream `FTR-080` / `FTR-081` remain Lot 9 rather than being globally accepted here. The FTR-022 presentation/UI responsibility remains explicitly assigned to WP-2.11 and is not claimed by WP-2.5. Lot-level accepted/evidenced reconciliation remains intentionally incomplete until all packets and the separate Integration Pass finish.
 
 ## Work Packet plan
 
@@ -228,20 +228,41 @@ Pass C reconciliation: **PASS**. `VEN-016` and `ACC-030` are accepted/evidenced 
 Required WP-2.7 responsibilities minus accepted/evidenced WP-2.7 responsibilities: **∅**.  
 Boundary retained: Venue access presentation remains WP-2.11; local/offline Venue persistence remains WP-2.10/2.12; import/restore implementation remains Lot 4; rendered map/routing-provider capability remains Lot 9. Whole downstream `FTR-080` / `FTR-081` capability is therefore not falsely marked accepted by this packet.
 
-### WP-2.8 — Venue media/photo foundation and private/remote media safety
+### WP-2.8A — Venue remote-image metadata and links
 
-State: **PLANNED**
+State: **PLANNED / NEXT**  
+Current pass: **PLAN**
 
-Primary Features: FTR-024, Lot-2 portion of FTR-092.  
-Dependencies: WP-2.1, Lot-1 Storage.  
-Pre-implementation governance repair: restore the missing `docs/security/STORAGE-RLS.md` contract from already frozen/tested Storage authorization semantics.
+Primary Features: `FTR-024` remote-reference foundation, Lot-2 media responsibility of `FTR-092`, `VEN-013`, `MED-007`, `MED-009`, `MED-010`, `MED-013`.  
+Dependencies: WP-2.1 **ACCEPTED** and Lot-1 private Storage/RLS foundation.  
+Packet record: `WP-2.8A.md`.  
+Estimated size: **10 points** — remote media metadata, Venue media links, protected mutation/read boundary, RLS/non-disclosure and privacy-safe URL semantics.  
+Pre-implementation Storage documentation repair: **CLOSED / VERIFIED** by `54fb49d11e16f3945eb2cb820e1f832768711e7e` / `34378129764` — **5/5 SUCCESS**, including clean-checkout `npm run verify`.  
+Split/lifecycle specification gate: `cb4c95120c976d2238a57a02aa874867ff9bcca3` / `34379734883` — **5/5 SUCCESS**; `MEDIA-LIFECYCLE-ADDENDUM.md`, `WP-2.8A.md` and `WP-2.8B.md` freeze the decomposition before product code.  
+Boundary retained: no binary upload, derivative generation, gallery UI, remote fetching/proxying, local/offline capture or import implementation in WP-2.8A.
+
+### WP-2.8B — Venue private archived media lifecycle
+
+State: **PLANNED**  
+Current pass: **PLAN**
+
+Primary Features: remaining Lot-2 private-media slice of `FTR-024` / `FTR-092`, `MED-004..006`, `MED-008..010`, `MED-013`.  
+Dependencies: WP-2.8A **ACCEPTED** before activation, plus Lot-1 private Storage/RLS foundation.  
+Packet record: `WP-2.8B.md`.  
+Provisional size: **8 points**, subject to mandatory activation revalidation after WP-2.8A acceptance.  
+Owns private archived image bytes, original/derivative distinction, hash/dedup inputs and interrupted/orphan recovery semantics.  
+Stop-condition: before `READY`, exact commit/rollback/orphan cleanup command semantics and Storage↔DB atomicity boundary must be frozen; do not implement this packet by guessing from provider behavior.
+
+#### WP-2.8 fragmentation review — PASS
+
+The split is responsibility-based, not file-based. WP-2.8A and WP-2.8B have independently reviewable persistence/security failure modes, together preserve the original WP-2.8 product scope, and keep gallery/offline/import responsibilities downstream. Required Lot-2 responsibilities minus assigned packet responsibilities remains **∅**.
 
 ### WP-2.9 — Venue document and tag/link basics
 
 State: **PLANNED**
 
 Primary Features: Lot-2 portions of FTR-089 and FTR-093.  
-Dependencies: WP-2.1, WP-2.8 where shared file/link primitives are reused.
+Dependencies: WP-2.1, WP-2.8A/B where shared file/link primitives are reused.
 
 ### WP-2.10 — Venue repositories, local cache and pending/offline mutation integration
 
@@ -264,7 +285,7 @@ Packet review must ensure one coherent Venues workspace rather than four disconn
 State: **PLANNED**
 
 Primary Feature: FTR-028 visit workflow.  
-Dependencies: WP-2.2, WP-2.5, WP-2.8, WP-2.10, WP-2.11.  
+Dependencies: WP-2.2, WP-2.5, WP-2.8A/B, WP-2.10, WP-2.11.  
 Provides the complete visit workflow and the final packet-owned synthetic venue journey; it does **not** replace the separate Lot Integration Pass.
 
 ## Sequencing
@@ -283,7 +304,7 @@ WP-2.1 [ACCEPTED]
   │                               WP-2.6D [ACCEPTED]
   │                                           ↓
   ├────────────────────────────────────────→ WP-2.7 [ACCEPTED]
-  └─→ WP-2.8 [PLANNED / NEXT] → WP-2.9
+  └─→ WP-2.8A [PLANNED / NEXT] → WP-2.8B [PLANNED] → WP-2.9
 
 WP-2.1..2.9
   ↓
@@ -300,7 +321,7 @@ separate Lot 2 Integration Pass
 Lot 2 acceptance
 ```
 
-Default execution remains one packet in active work/review at a time. The original WP-2.6 responsibility was decomposed before implementation because its five-table/multi-command/RLS scope exceeded the orchestration `>10` split threshold and no atomicity/safety reason justified a mega-packet. This decomposition changes implementation granularity only; product/Feature scope is unchanged and required current-lot responsibilities minus assigned packet responsibilities remains **∅**. WP-2.6A, WP-2.6B, WP-2.6C, WP-2.6D and WP-2.7 are ACCEPTED with their packet-level responsibility gaps **∅**. WP-2.8 is the next planned packet but remains prohibited until the WP-2.7 matrix/status acceptance-governance closure is exact-head green; its own pre-implementation governance repair must restore `docs/security/STORAGE-RLS.md` before media/security implementation starts.
+Default execution remains one packet in active work/review at a time. The original WP-2.6 responsibility was decomposed before implementation because its five-table/multi-command/RLS scope exceeded the orchestration `>10` split threshold and no atomicity/safety reason justified a mega-packet. The original WP-2.8 responsibility was likewise decomposed before product code because remote-reference metadata/link security and private binary Storage lifecycle are separate review/failure boundaries and together exceed the safe packet boundary. These decompositions change implementation granularity only; product/Feature scope is unchanged and required current-lot responsibilities minus assigned packet responsibilities remains **∅**. WP-2.6A, WP-2.6B, WP-2.6C, WP-2.6D and WP-2.7 are ACCEPTED with their packet-level responsibility gaps **∅**. WP-2.8A is the next planned packet. Its missing Storage-RLS documentation prerequisite is already restored and exact-head green; activation still requires this matrix reconciliation and the implementation-status cursor to become exact-head green before `READY`.
 
 ## Explicitly out of Lot 2
 
