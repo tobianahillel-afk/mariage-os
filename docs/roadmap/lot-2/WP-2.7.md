@@ -36,7 +36,7 @@
 
 - `VEN-016`, `ACC-030`;
 - applicable `AUTHZ-001..008`, `AUTHZ-012`, `AUTHZ-017`, `AUTHZ-018`, `AUTHZ-019`, `AUTHZ-020`;
-- applicable `SEC-AUTH-012`, `SEC-AUTH-013`, `SEC-AUTHZ-001..005`, `SEC-AUTHZ-007..009`, `SEC-VAL-001..006`, `SEC-VAL-008`, `SEC-VAL-010`, `SEC-INJ-001`, `SEC-INJ-002`, `SEC-LOG-002`, `SEC-LOG-004`, `SEC-ABUSE-004`, `SEC-VER-001`, `SEC-VER-005`, `SEC-VER-006`;
+- applicable `SEC-AUTH-012`, `SEC-AUTH-013`, `SEC-AUTHZ-001..005`, `SEC-AUTHZ-007..009`, `SEC-VAL-001..006`, `SEC-VAL-008`, `SEC-VAL-010`, `SEC-INJ-001`, `SEC-INJ-002`, `SEC-LOG-002`, `SEC-LOG-004`, `SEC-ABUSE-004`, `SEC-VER-001`, `SEC-VER-002`, `SEC-VER-005`, `SEC-VER-006`;
 - `PHYSICAL-SCHEMA-V1.md`, `PHYSICAL-SCHEMA-V1-ADDENDUM.md`, `DEPENDENCY-GRAPH.md`, `DEFAULT-CRITERIA.md`, `RLS-MATRIX-V1.md`, `RLS-PERMISSION-MAPPING.md`.
 
 ### Explicitly out of scope for this packet
@@ -168,7 +168,8 @@ The route observation, current-origin revision capture, immutable history, appen
 - owner/editor permitted according to `access.write`, viewer/read-only denied append but permitted read according to role mapping;
 - anon/outsider/project-B/revoked denied;
 - role downgrade/revocation affects subsequent writes in the same authenticated session;
-- helper/append grants and `SECURITY DEFINER search_path=pg_catalog` are directly asserted.
+- helper/append grants and `SECURITY DEFINER search_path=pg_catalog` are directly asserted;
+- adversarial SQL/auth/session tests exercise the exposed command and direct table boundary in CI.
 
 ### Acceptance
 
