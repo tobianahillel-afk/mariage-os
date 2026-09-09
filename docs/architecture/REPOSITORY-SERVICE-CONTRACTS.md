@@ -80,6 +80,8 @@ It never exposes service-role credentials or raw reusable token material to unre
 - default-origin derived convenience values;
 - external directions link construction with privacy constraints.
 
+`AccessService` is a logical V1 application boundary, not a requirement to create a new top-level physical bounded-context directory. Under the frozen `CODEBASE-STRUCTURE.md` hierarchy, Venue-owned route-observation domain and application behavior lives in the existing `domain/venues/` and `application/venues/` contexts, while canonical reference-origin mutation/read ownership remains in the existing Project context. Cross-context access behavior is coordinated through explicit application ports/read contracts and the composition root rather than by importing another context's internals. Do not create parallel `domain/access/`, `application/access/` or alternate infrastructure hierarchies without an ADR changing the frozen physical structure. Later routing/directions providers remain adapters/external-provider concerns and do not move canonical Venue or Project ownership.
+
 ### `FactService`
 
 - fact definitions and value-type validation;
