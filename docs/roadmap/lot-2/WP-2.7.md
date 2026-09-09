@@ -38,7 +38,7 @@
 - `VEN-016`, `ACC-030`;
 - applicable `AUTHZ-001..008`, `AUTHZ-012`, `AUTHZ-017`, `AUTHZ-018`, `AUTHZ-019`, `AUTHZ-020`;
 - applicable `SEC-AUTH-012`, `SEC-AUTH-013`, `SEC-AUTHZ-001..005`, `SEC-AUTHZ-007..009`, `SEC-VAL-001..006`, `SEC-VAL-008`, `SEC-VAL-010`, `SEC-INJ-001`, `SEC-INJ-002`, `SEC-LOG-002`, `SEC-LOG-004`, `SEC-ABUSE-004`, `SEC-VER-001`, `SEC-VER-002`, `SEC-VER-005`, `SEC-VER-006`;
-- `PHYSICAL-SCHEMA-V1.md`, `PHYSICAL-SCHEMA-V1-ADDENDUM.md`, `DEPENDENCY-GRAPH.md`, `DEFAULT-CRITERIA.md`, `RLS-MATRIX-V1.md`, `RLS-PERMISSION-MAPPING.md`.
+- `PHYSICAL-SCHEMA-V1.md`, `PHYSICAL-SCHEMA-V1-ADDENDUM.md`, `DEPENDENCY-GRAPH.md`, `DEFAULT-CRITERIA.md`, `RLS-MATRIX-V1.md`, `RLS-PERMISSION-MAPPING.md`, `CANONICAL-JSON-V1-ADDENDUM.md`.
 
 ### Explicitly out of scope for this packet
 
@@ -108,7 +108,22 @@ Rules:
 
 As with accepted availability and interaction history, PostgreSQL can retain microseconds while TypeScript canonicalizes instants to milliseconds. The Supabase adapter must request the complete database order and preserve provider order after validation; application code must not re-sort parsed millisecond timestamps.
 
-Activation stop-condition: **CLOSED BY THIS FREEZE**, subject to exact-head CI verification before READY transition.
+### Canonical JSON historical portability repair
+
+The route snapshot repair also changes what a lossless canonical route representation must preserve. `CANONICAL-JSON-V1-ADDENDUM.md` now freezes explicit historical reference-origin snapshot properties for route export/import:
+
+- `referenceOriginLabelSnapshot`;
+- `referenceOriginAddressSnapshot`;
+- `referenceOriginLatitudeSnapshot`;
+- `referenceOriginLongitudeSnapshot`.
+
+For a reference-origin-backed route, canonical export preserves the originally accepted snapshot instead of reconstructing it from the origin's current state. The ordinary runtime append API remains server-authoritative and does not accept caller overrides for these fields. Lot 4 import/restore will use its own reviewed boundary to validate and preserve historical snapshots without mutating the referenced origin.
+
+Legacy canonical route objects without snapshots may be accepted only as compatibility input with an explicit preview limitation: they cannot reconstruct unknown historical physical context after an origin changed. A committed compatibility object is treated as a new observation using the then-current server-captured origin context rather than fabricating lost history.
+
+This closes the round-trip contradiction before persistence exists: after the addendum, canonical export can preserve contextual route history even when a reference origin is later edited.
+
+Activation stop-condition: **CLOSED BY THE PHYSICAL-SCHEMA + CANONICAL-JSON FREEZE**, subject to exact-head CI verification before READY transition.
 
 ## Input boundaries
 
@@ -195,7 +210,7 @@ The context snapshot adds no second public command and no second bounded workflo
 
 ## Execution gates
 
-1. This PLANNED/PLAN specification freeze and the schema addendum repair must be committed and exact-head CI must be **5/5 SUCCESS**.
+1. The physical-origin snapshot freeze plus canonical historical-snapshot portability repair must be committed and exact-head CI must be **5/5 SUCCESS**.
 2. Only then may WP-2.7 transition to `READY`.
 3. READY/governance head itself must be **5/5 SUCCESS** before transition to `IN_PROGRESS / A-IMPLEMENT`.
 4. IN_PROGRESS transition head itself must be **5/5 SUCCESS** before production code.
@@ -209,5 +224,5 @@ The context snapshot adds no second public command and no second bounded workflo
 - Current state: `PLANNED`
 - Current pass: `PLAN`
 - Previous packet: WP-2.6D — **ACCEPTED / COMPLETE**, final acceptance-governance closure `767017112445a38863abd114e8c62feb27af6421` / `34322712448` — **5/5 SUCCESS**.
-- Current stop-condition: physical-origin-context snapshot binding closed normatively in this packet and `PHYSICAL-SCHEMA-V1-ADDENDUM.md`; exact-head freeze CI still required.
-- Next permitted action after freeze CI success: transition WP-2.7 to `READY`; do not write product code before READY and IN_PROGRESS gates are separately green.
+- Current stop-condition: physical-origin snapshot binding and canonical historical portability are closed normatively; exact-head CI on the combined repair head is required before READY.
+- Next permitted action after combined repair CI success: transition WP-2.7 to `READY`; do not write product code before READY and IN_PROGRESS gates are separately green.

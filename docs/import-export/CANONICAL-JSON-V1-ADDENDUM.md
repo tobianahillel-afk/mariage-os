@@ -64,7 +64,7 @@ Reference origin:
 }
 ```
 
-Venue access route:
+Venue access route backed by a reference origin:
 
 ```json
 {
@@ -72,15 +72,45 @@ Venue access route:
   "referenceOriginExternalId": "origin-paris",
   "routeType": "reference_to_venue",
   "mode": "car",
+  "originLabel": null,
+  "destinationLabel": null,
   "durationMinutes": 210,
   "distanceMeters": 690000,
   "transfersCount": 0,
   "observedAt": "2026-09-02T19:00:00Z",
-  "sourceExternalId": "src-route"
+  "sourceExternalId": "src-route",
+  "referenceOriginLabelSnapshot": "Paris",
+  "referenceOriginAddressSnapshot": "Paris, France",
+  "referenceOriginLatitudeSnapshot": null,
+  "referenceOriginLongitudeSnapshot": null
 }
 ```
 
 Route values are contextual. An origin-specific duration must not overwrite a route from another origin/mode.
+
+### Historical reference-origin snapshots
+
+Canonical route export preserves the physical reference-origin context that existed when a historical route observation was accepted. For a route with `referenceOriginExternalId`, canonical export therefore includes:
+
+- `referenceOriginLabelSnapshot` — the accepted historical label snapshot; non-null;
+- `referenceOriginAddressSnapshot` — nullable historical canonical address snapshot;
+- `referenceOriginLatitudeSnapshot` — nullable historical latitude snapshot;
+- `referenceOriginLongitudeSnapshot` — nullable historical longitude snapshot.
+
+The latitude/longitude snapshot pair follows the same pair semantics as `project_reference_origins`: either both coordinates are null or both are present. Coordinates use the canonical precision represented by the physical schema (`numeric(9,6)`).
+
+For a route without `referenceOriginExternalId`, all four `referenceOrigin*Snapshot` fields are `null` in canonical export. `originLabel` may then carry the caller-owned custom/station/airport origin context. For a route backed by a reference origin, `originLabel` is `null`; the historical label is represented by `referenceOriginLabelSnapshot` so canonical JSON does not confuse caller-owned input with server-captured history.
+
+The logical `referenceOriginExternalId` and the historical snapshots have different meanings:
+
+- the external ID resolves the referenced origin entity;
+- snapshot fields preserve what the route observation actually depended on at acceptance time;
+- importing/restoring a historical route must not rewrite the referenced origin from snapshot values;
+- importing/restoring a historical route must not silently replace supplied historical snapshots with the referenced origin's current location.
+
+The ordinary interactive append command is still server-authoritative for snapshots: callers cannot supply or override snapshot fields through the runtime route-append API. Lot 4 import/restore implementation must use a reviewed import boundary that validates and preserves canonical historical snapshots while maintaining same-project relationships and authorization.
+
+A v1 compatibility parser may accept a legacy route object that predates these snapshot fields. Such an object is **not** a lossless historical representation when its referenced origin has changed. Compatibility import must surface that limitation in preview and, if committed as a new observation, capture the then-current origin context rather than pretending to reconstruct unknown history. Canonical export produced after this addendum always emits the snapshot fields.
 
 ## 5. Observations may cite multiple sources
 
@@ -212,7 +242,7 @@ Lossless canonical round-trip must now preserve:
 - tax mode/rate;
 - parent-scoped nested identity;
 - candidate dates;
-- contextual access routes;
+- contextual access routes, including their historical reference-origin label/address/coordinate snapshots;
 - multi-source observations;
 - named budget scenarios;
 - payment/refund semantics;
