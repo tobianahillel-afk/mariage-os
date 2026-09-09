@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.6D`
 - Lot: `2`
 - Name: Venue interaction history
-- State: `REVIEW_FAILED`
-- Current pass: `B-REMEDIATION`
+- State: `ACCEPTANCE_PENDING`
+- Current pass: `C-ACCEPTANCE`
 - Primary bounded context: Venue interaction and quote-follow-up history
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 - Parent responsibility: original matrix packet `WP-2.6`, split from former WP-2.6C at activation sizing review
@@ -63,7 +63,7 @@
 - `next_follow_up_at` remains independently validated optional metadata. No `next_follow_up_at > occurred_at` rule is invented, and follow-up never participates in history ordering.
 - Accepted WP-2.6C exposes stable project + Venue + contact UUID semantics, so same-Venue `contact_id` integrity is implementable without reopening contact mutation scope.
 - Specification-freeze gate `1bf2640e20aa7cf7cb7d3b3524aa069b37a09c4b` / `34289908898` is **5/5 SUCCESS**, including clean-checkout `npm run verify`; the activation stop-condition is CLOSED.
-- READY-transition gate `3c51873c7503366950b4551d1c01be51202926f5` / `34290710472` is **5/5 SUCCESS**, including clean-checkout `npm run verify`; the packet may now enter Pass A as `IN_PROGRESS` before any red-first product test is committed.
+- READY-transition gate `3c51873c7503366950b4551d1c01be51202926f5` / `34290710472` is **5/5 SUCCESS**, including clean-checkout `npm run verify`.
 
 ## Sizing review
 
@@ -109,25 +109,31 @@ Entry transition head `3d08528593c98840389677b877a5a85fd9f4f594`, CI `3429766982
 
 Fresh repository reconstruction found two MAJOR mismatches. Both were converted to dedicated red-first tests in `0d0714085b27f041da0048d18f0a4415d4302294`, CI `34299175470`:
 
-- `WP2.6D-B-001` — **MAJOR / OPEN**: same-project replay identity is misclassified when the caller reuses an interaction UUID for another Venue. The frozen rule requires same-ID/different-payload to raise typed conflict `23505`; current RPC returns authorization-style `42501`. Red-first DB proof: `venue_interactions_adversarial_review_test.sql`, where expected `23505` receives `42501` while all previously existing interaction DB tests remain green.
-- `WP2.6D-B-002` — **MAJOR / OPEN**: the provider parser accepts a response that omits nullable `next_follow_up_at`, silently interpreting missing `undefined` as canonical `null`. The packet requires fail-closed provider parsing. Red-first unit proof: `parse-venue-interaction-row.adversarial.test.ts`; CI has 115 test files / 1058 tests passing and only this deliberate assertion failing.
+- `WP2.6D-B-001` — **MAJOR / RESOLVED / VERIFIED**: same-project replay identity was misclassified when the caller reused an interaction UUID for another Venue. Red-first DB proof received `42501` where the frozen same-ID/different-payload rule requires typed conflict `23505`. Forward-only migration `20260909014000_harden_venue_interaction_replay_identity.sql` now preserves `42501` only for foreign-project UUID non-disclosure and returns `23505` for a differing same-project payload. Exact remediation head `b39670b1236d081d7e93ae9559bf66c459cd5a3e`, CI `34299796056`: **5/5 SUCCESS**.
+- `WP2.6D-B-002` — **MAJOR / RESOLVED / VERIFIED**: the provider parser accepted a response omitting nullable `next_follow_up_at`, treating missing `undefined` as canonical `null`. The parser now requires the field to be present while still allowing explicit `null`. Red-first unit proof failed only this assertion before remediation; exact remediation head `b39670b1236d081d7e93ae9559bf66c459cd5a3e`, CI `34299796056`: **5/5 SUCCESS**.
 
-Pass-B decision: **REVIEW_FAILED — remediation required before fresh independent re-review**. No WP-2.7 work may start.
+Independent authorization hardening then added interaction-specific evidence only: `supabase/tests/venue_interactions_authorization_adversarial_review_test.sql` proves the interaction writer and membership downgrade/revocation commands serialize on the project lock before live permission evaluation; the same authenticated session loses write immediately after downgrade and after revocation, and helper execution is not exposed directly. Final fresh reviewed head `d416c6dce810fd05fc3610797f800d746876a631`, CI `34300303989`: **5/5 SUCCESS**, including Core quality/security, Local Supabase DB/RLS, Browser E2E + mutation, privacy-safe preview and Full verify from clean checkout.
+
+Fresh re-review retained deterministic provider ordering, PostgreSQL microsecond chronology, strict instant boundaries, same-Venue contact integrity, same-project source integrity, immutable history, stable UUID replay, foreign-project non-disclosure, direct-table mutation denial and fail-closed provider parsing. Open BLOCKING/MAJOR findings: **∅**.
+
+Pass-B decision: **PASS — transition to ACCEPTANCE_PENDING / C-ACCEPTANCE**. No WP-2.7 work may start until Pass C accepts WP-2.6D.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started.
+**IN PROGRESS.** Entry is permitted from `ACCEPTANCE_PENDING / C-ACCEPTANCE` because Pass B is green with no unresolved BLOCKING/MAJOR finding. Mechanical EXPECTED → IMPLEMENTED → VERIFIED reconciliation is the next action; acceptance has not yet been claimed.
 
 ## Handoff
 
-- Current state: `REVIEW_FAILED`
-- Current/next pass: `B-REMEDIATION`
+- Current state: `ACCEPTANCE_PENDING`
+- Current/next pass: `C-ACCEPTANCE`
 - Dependency gate: WP-2.6C **ACCEPTED / acceptance-governance verified** on `f6c93b7991d832363da92a9081540b9bad95441b` / `34287865010` attempt 2
-- Specification-freeze gate: `1bf2640e20aa7cf7cb7d3b3524aa069b37a09c4b` / `34289908898` — **5/5 SUCCESS**; deterministic history ordering/provider precision and accepted contact interface are frozen; no material specification ambiguity remains
+- Specification-freeze gate: `1bf2640e20aa7cf7cb7d3b3524aa069b37a09c4b` / `34289908898` — **5/5 SUCCESS**
 - READY-transition gate: `3c51873c7503366950b4551d1c01be51202926f5` / `34290710472` — **5/5 SUCCESS**
 - Red-first Pass-A boundary: `380a6f8fb5ee30a0ca39188d8018114b535bf8b6` / `34291932020` — expected FAILURE before persistence/command existed
 - Pass-A final implementation head/run: `24364e63ca3ef223b8610fd820fe3d2061582eef` / `34294280214` — **5/5 SUCCESS**
-- Pass-B entry transition: `3d08528593c98840389677b877a5a85fd9f4f594` / `34297669821` attempt 2 — **5/5 SUCCESS** on unchanged SHA after runner-only Supabase port retry
-- Pass-B red-first findings: `WP2.6D-B-001`, `WP2.6D-B-002` on `0d0714085b27f041da0048d18f0a4415d4302294` / `34299175470` — expected semantic FAILURES confirmed independently in DB and unit boundaries
+- Pass-B entry transition: `3d08528593c98840389677b877a5a85fd9f4f594` / `34297669821` attempt 2 — **5/5 SUCCESS**
+- Pass-B red-first findings: `WP2.6D-B-001`, `WP2.6D-B-002` on `0d0714085b27f041da0048d18f0a4415d4302294` / `34299175470` — expected semantic FAILURES confirmed independently
+- Pass-B remediation head/run: `b39670b1236d081d7e93ae9559bf66c459cd5a3e` / `34299796056` — **5/5 SUCCESS**
+- Final fresh Pass-B reviewed head/run: `d416c6dce810fd05fc3610797f800d746876a631` / `34300303989` — **5/5 SUCCESS**; open BLOCKING/MAJOR findings **∅**
 - Pass A implementation status: **COMPLETE / VERIFIED, not accepted**
-- Next permitted action: remediate only `WP2.6D-B-001` and `WP2.6D-B-002`, run exact-head CI, then perform a fresh adversarial Pass B review. Do not start WP-2.7 concurrently.
+- Next permitted action: perform Pass C mechanical reconciliation for every WP-2.6D responsibility and applicable control. If any mismatch appears, return to `IN_PROGRESS`; otherwise accept WP-2.6D and only then permit WP-2.7 activation.
