@@ -16,6 +16,8 @@ const MEDIA_CATEGORIES = [
   "other",
 ] as const;
 
+const LOCAL_DNS_SUFFIXES = [".localhost", ".local", ".lan", ".internal"];
+
 export type VenueMediaCategory = (typeof MEDIA_CATEGORIES)[number];
 
 export interface VenueRemoteMediaDraft {
@@ -128,19 +130,29 @@ export function isVenueMediaCategory(
   );
 }
 
+function inRange(value: number, minimum: number, maximum: number): boolean {
+  return value >= minimum && value <= maximum;
+}
+
+function isValidIpv4Octet(value: number): boolean {
+  return Number.isInteger(value) && inRange(value, 0, 255);
+}
+
+function hasReservedIpv4Prefix(a: number, b: number): boolean {
+  if ([0, 10, 127].includes(a)) return true;
+  if (a === 100) return inRange(b, 64, 127);
+  if (a === 169) return b === 254;
+  if (a === 172) return inRange(b, 16, 31);
+  return a === 192 && b === 168;
+}
+
 function ipv4IsPublic(host: string): boolean {
   const parts = host.split(".");
   if (parts.length !== 4) return false;
   const octets = parts.map(Number);
-  if (octets.some((part) => !Number.isInteger(part) || part < 0 || part > 255))
-    return false;
+  if (!octets.every(isValidIpv4Octet)) return false;
   const [a, b] = octets as [number, number, number, number];
-  if (a === 0 || a === 10 || a === 127) return false;
-  if (a === 100 && b >= 64 && b <= 127) return false;
-  if (a === 169 && b === 254) return false;
-  if (a === 172 && b >= 16 && b <= 31) return false;
-  if (a === 192 && b === 168) return false;
-  return true;
+  return !hasReservedIpv4Prefix(a, b);
 }
 
 function ipv6IsPublic(host: string): boolean {
@@ -152,73 +164,96 @@ function ipv6IsPublic(host: string): boolean {
   return true;
 }
 
+function isLocalDnsHost(host: string): boolean {
+  return (
+    host === "localhost" ||
+    LOCAL_DNS_SUFFIXES.some((suffix) => host.endsWith(suffix))
+  );
+}
+
+function isCanonicalDnsLabel(label: string): boolean {
+  if (!inRange(label.length, 1, 63)) return false;
+  if (!/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/.test(label)) return false;
+  return !label.startsWith("xn--");
+}
+
+function singleLabelIsAllowed(
+  labelCount: number,
+  allowSingleLabel: boolean,
+): boolean {
+  return labelCount !== 1 || allowSingleLabel;
+}
+
+function finalDnsLabelIsAllowed(labels: readonly string[]): boolean {
+  if (labels.length === 1) return true;
+  const finalLabel = labels[labels.length - 1] as string;
+  return /^[a-z]{2,63}$/.test(finalLabel);
+}
+
 function dnsHostIsAllowed(host: string, allowSingleLabel: boolean): boolean {
   const lower = host.toLowerCase();
-  if (
-    lower === "localhost" ||
-    lower.endsWith(".localhost") ||
-    lower.endsWith(".local") ||
-    lower.endsWith(".lan") ||
-    lower.endsWith(".internal")
-  ) {
-    return false;
-  }
-  const labels = lower.split(".");
-  if (!allowSingleLabel && labels.length === 1) return false;
+  if (isLocalDnsHost(lower)) return false;
   if (lower.length > 253) return false;
-  for (const label of labels) {
-    if (
-      label.length < 1 ||
-      label.length > 63 ||
-      !/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/.test(label) ||
-      label.startsWith("xn--")
-    ) {
-      return false;
-    }
+  const labels = lower.split(".");
+  if (!singleLabelIsAllowed(labels.length, allowSingleLabel)) return false;
+  if (!labels.every(isCanonicalDnsLabel)) return false;
+  return finalDnsLabelIsAllowed(labels);
+}
+
+function boundedUrlText(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  return hasScalarLengthBetween(trimmed, 1, 2_048) ? trimmed : undefined;
+}
+
+function parseUrl(value: string): URL | undefined {
+  try {
+    return new URL(value);
+  } catch {
+    return undefined;
   }
-  const finalLabel = labels[labels.length - 1] as string;
-  return labels.length === 1 || /^[a-z]{2,63}$/.test(finalLabel);
+}
+
+function urlHasCredentials(url: URL): boolean {
+  return url.username.length > 0 || url.password.length > 0;
+}
+
+function protocolIsAllowed(
+  protocol: string,
+  mode: "remote" | "source",
+): boolean {
+  if (mode === "remote") return protocol === "https:";
+  return protocol === "http:" || protocol === "https:";
+}
+
+function normalizedHostname(hostname: string): string {
+  const lower = hostname.toLowerCase();
+  if (lower.startsWith("[") && lower.endsWith("]")) {
+    return lower.slice(1, -1);
+  }
+  return lower;
+}
+
+function hostIsAllowed(hostname: string, mode: "remote" | "source"): boolean {
+  const host = normalizedHostname(hostname);
+  if (host.includes(":")) return mode === "remote" && ipv6IsPublic(host);
+  if (/^\d+(?:\.\d+){3}$/.test(host)) {
+    return mode === "remote" && ipv4IsPublic(host);
+  }
+  return dnsHostIsAllowed(host, mode === "source");
 }
 
 function normalizedPublicUrl(
   value: unknown,
   mode: "remote" | "source",
 ): string | undefined {
-  if (typeof value !== "string") return undefined;
-  const trimmed = value.trim();
-  if (!hasScalarLengthBetween(trimmed, 1, 2_048)) return undefined;
-
-  let parsed: URL;
-  try {
-    parsed = new URL(trimmed);
-  } catch {
-    return undefined;
-  }
-  if (parsed.username.length > 0 || parsed.password.length > 0)
-    return undefined;
-  if (
-    (mode === "remote" && parsed.protocol !== "https:") ||
-    (mode === "source" &&
-      parsed.protocol !== "https:" &&
-      parsed.protocol !== "http:")
-  ) {
-    return undefined;
-  }
-
-  let hostname = parsed.hostname.toLowerCase();
-  if (hostname.startsWith("[") && hostname.endsWith("]")) {
-    hostname = hostname.slice(1, -1);
-  }
-  const isIpv6 = hostname.includes(":");
-  const isIpv4 = /^\d+(?:\.\d+){3}$/.test(hostname);
-  if (isIpv6) {
-    if (mode === "source" || !ipv6IsPublic(hostname)) return undefined;
-  } else if (isIpv4) {
-    if (mode === "source" || !ipv4IsPublic(hostname)) return undefined;
-  } else if (!dnsHostIsAllowed(hostname, mode === "source")) {
-    return undefined;
-  }
-
+  const bounded = boundedUrlText(value);
+  if (bounded === undefined) return undefined;
+  const parsed = parseUrl(bounded);
+  if (parsed === undefined) return undefined;
+  if (urlHasCredentials(parsed)) return undefined;
+  if (!protocolIsAllowed(parsed.protocol, mode)) return undefined;
+  if (!hostIsAllowed(parsed.hostname, mode)) return undefined;
   const canonical = parsed.href;
   return hasScalarLengthBetween(canonical, 1, 2_048) ? canonical : undefined;
 }
@@ -264,24 +299,40 @@ export function normalizeVenueRemoteMediaDraft(
   };
 }
 
-export function venueRemoteMediaCallerPayloadEquals(
-  bundle: VenueRemoteMediaBundle,
+function mediaPayloadMatches(
+  media: VenueRemoteMediaRecord,
   payload: VenueRemoteMediaCallerPayload,
 ): boolean {
-  const media = bundle.media;
-  const link = bundle.link;
   return (
     media.id === payload.mediaId &&
     media.projectId === payload.projectId &&
     media.category === payload.category &&
     media.remoteUrl === payload.remoteUrl &&
     media.sourcePageUrl === payload.sourcePageUrl &&
-    media.caption === payload.caption &&
+    media.caption === payload.caption
+  );
+}
+
+function linkPayloadMatches(
+  link: VenueRemoteMediaLinkRecord,
+  payload: VenueRemoteMediaCallerPayload,
+): boolean {
+  return (
     link.id === payload.linkId &&
     link.projectId === payload.projectId &&
     link.mediaId === payload.mediaId &&
     link.targetType === "venue" &&
     link.targetId === payload.venueId &&
     link.relationshipType === "gallery"
+  );
+}
+
+export function venueRemoteMediaCallerPayloadEquals(
+  bundle: VenueRemoteMediaBundle,
+  payload: VenueRemoteMediaCallerPayload,
+): boolean {
+  return (
+    mediaPayloadMatches(bundle.media, payload) &&
+    linkPayloadMatches(bundle.link, payload)
   );
 }

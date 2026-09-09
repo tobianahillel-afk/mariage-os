@@ -9,6 +9,7 @@ const venueId = "22222222-2222-4222-8222-222222222222";
 const mediaId = "33333333-3333-4333-8333-333333333333";
 const linkId = "44444444-4444-4444-8444-444444444444";
 const actorId = "55555555-5555-4555-8555-555555555555";
+const expectedIds = { projectId, venueId, mediaId, linkId };
 
 function media(overrides: Record<string, unknown> = {}) {
   return {
@@ -55,10 +56,7 @@ function link(overrides: Record<string, unknown> = {}) {
 it("parses the exact metadata-only RPC receipt", () => {
   const parsed = parseVenueRemoteMediaReceipt(
     { media: media(), link: link() },
-    projectId,
-    venueId,
-    mediaId,
-    linkId,
+    expectedIds,
   );
   expect(parsed.media.remoteUrl).toBe("https://example.com/photo.jpg");
   expect(parsed.media.storagePath).toBeNull();
@@ -70,8 +68,7 @@ it("parses the exact metadata-only RPC receipt", () => {
 it("parses an embedded media row for the active Venue list", () => {
   const parsed = parseVenueRemoteMediaListRow(
     { ...link(), media: media() },
-    projectId,
-    venueId,
+    { projectId, venueId },
   );
   expect(parsed.media.id).toBe(mediaId);
   expect(parsed.link.id).toBe(linkId);
@@ -88,7 +85,7 @@ it.each([
   { media: media(), link: link({ target_type: "vendor" }) },
   { media: media(), link: link({ media_id: venueId }) },
 ])("fails closed on malformed or substituted receipt %#", (receipt) => {
-  expect(() =>
-    parseVenueRemoteMediaReceipt(receipt, projectId, venueId, mediaId, linkId),
-  ).toThrow("Invalid venue remote media response.");
+  expect(() => parseVenueRemoteMediaReceipt(receipt, expectedIds)).toThrow(
+    "Invalid venue remote media response.",
+  );
 });

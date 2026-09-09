@@ -75,7 +75,8 @@ class Builder implements PromiseLike<Result> {
 
   constructor(private readonly result: Result) {}
 
-  select(_columns: string): Builder {
+  select(columns: string): Builder {
+    void columns;
     return this;
   }
 
@@ -107,14 +108,16 @@ class Client implements SupabaseMediaClientLike {
     this.rpcResult = rpcResult;
   }
 
-  from(_table: "media_links"): Builder {
+  from(table: "media_links"): Builder {
+    void table;
     return this.builder;
   }
 
   rpc(
-    _functionName: "create_venue_remote_media",
+    functionName: "create_venue_remote_media",
     args: Readonly<Record<string, unknown>>,
   ): PromiseLike<Result> {
+    void functionName;
     this.rpcArgs = args;
     return Promise.resolve(this.rpcResult);
   }

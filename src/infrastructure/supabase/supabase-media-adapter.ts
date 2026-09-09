@@ -116,13 +116,12 @@ export class SupabaseMediaAdapter implements MediaPort {
 
     let bundle: VenueRemoteMediaBundle;
     try {
-      bundle = parseVenueRemoteMediaReceipt(
-        data,
-        input.projectId,
-        input.venueId,
-        input.mediaId,
-        input.linkId,
-      );
+      bundle = parseVenueRemoteMediaReceipt(data, {
+        projectId: input.projectId,
+        venueId: input.venueId,
+        mediaId: input.mediaId,
+        linkId: input.linkId,
+      });
     } catch {
       throw new MediaPersistenceError(
         "provider_response_invalid",
@@ -154,7 +153,7 @@ export class SupabaseMediaAdapter implements MediaPort {
     try {
       return uniqueBundles(
         data.map((row) =>
-          parseVenueRemoteMediaListRow(row, projectId, venueId),
+          parseVenueRemoteMediaListRow(row, { projectId, venueId }),
         ),
       );
     } catch (errorValue) {

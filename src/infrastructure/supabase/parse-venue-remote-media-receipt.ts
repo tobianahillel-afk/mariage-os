@@ -1,6 +1,7 @@
 import {
   isMediaUuid,
   normalizeVenueRemoteMediaDraft,
+  type NormalizedVenueRemoteMediaDraft,
   type VenueRemoteMediaBundle,
   type VenueRemoteMediaLinkRecord,
   type VenueRemoteMediaRecord,
@@ -8,6 +9,13 @@ import {
 import { normalizeFactInstant } from "@domain/facts/fact-observation";
 
 const INVALID_RESPONSE = "Invalid venue remote media response.";
+
+export interface ExpectedVenueRemoteMediaIds {
+  readonly projectId?: string;
+  readonly venueId?: string;
+  readonly mediaId?: string;
+  readonly linkId?: string;
+}
 
 function fail(): never {
   throw new Error(INVALID_RESPONSE);
@@ -32,17 +40,9 @@ function assertExpected(actual: string, expected?: string): void {
   if (expected !== undefined && actual !== expected) fail();
 }
 
-function parseMediaRow(
-  value: unknown,
-  expectedProjectId?: string,
-  expectedMediaId?: string,
-): VenueRemoteMediaRecord {
-  const row = objectRow(value);
-  const id = requiredUuid(row.id);
-  const projectId = requiredUuid(row.project_id);
-  assertExpected(id, expectedMediaId);
-  assertExpected(projectId, expectedProjectId);
-
+function normalizedMediaFields(
+  row: Record<string, unknown>,
+): NormalizedVenueRemoteMediaDraft {
   const normalized = normalizeVenueRemoteMediaDraft({
     category: row.category,
     remoteUrl: row.remote_url,
@@ -50,39 +50,52 @@ function parseMediaRow(
     caption: row.caption,
   });
   if (!normalized.ok) fail();
-  if (
-    normalized.value.category !== row.category ||
-    normalized.value.remoteUrl !== row.remote_url ||
-    normalized.value.sourcePageUrl !== row.source_page_url ||
-    normalized.value.caption !== row.caption
-  ) {
-    fail();
-  }
-  if (
-    row.media_type !== "image" ||
-    row.storage_path !== null ||
-    row.original_filename !== null ||
-    row.mime_type !== null ||
-    row.size_bytes !== null ||
-    row.sha256 !== null ||
-    row.width_px !== null ||
-    row.height_px !== null ||
-    row.derivative_of_id !== null ||
-    row.is_original !== true ||
-    row.upload_status !== "ready" ||
-    row.revision !== 1
-  ) {
-    fail();
-  }
+  const valuesAreCanonical = [
+    normalized.value.category === row.category,
+    normalized.value.remoteUrl === row.remote_url,
+    normalized.value.sourcePageUrl === row.source_page_url,
+    normalized.value.caption === row.caption,
+  ].every(Boolean);
+  return valuesAreCanonical ? normalized.value : fail();
+}
 
+function assertRemoteOnlyMediaState(row: Record<string, unknown>): void {
+  const stateIsExpected = [
+    row.media_type === "image",
+    row.storage_path === null,
+    row.original_filename === null,
+    row.mime_type === null,
+    row.size_bytes === null,
+    row.sha256 === null,
+    row.width_px === null,
+    row.height_px === null,
+    row.derivative_of_id === null,
+    row.is_original === true,
+    row.upload_status === "ready",
+    row.revision === 1,
+  ].every(Boolean);
+  if (!stateIsExpected) fail();
+}
+
+function parseMediaRow(
+  value: unknown,
+  expected: ExpectedVenueRemoteMediaIds = {},
+): VenueRemoteMediaRecord {
+  const row = objectRow(value);
+  const id = requiredUuid(row.id);
+  const projectId = requiredUuid(row.project_id);
+  assertExpected(id, expected.mediaId);
+  assertExpected(projectId, expected.projectId);
+  const normalized = normalizedMediaFields(row);
+  assertRemoteOnlyMediaState(row);
   return {
     id,
     projectId,
     mediaType: "image",
-    category: normalized.value.category,
+    category: normalized.category,
     storagePath: null,
-    remoteUrl: normalized.value.remoteUrl,
-    sourcePageUrl: normalized.value.sourcePageUrl,
+    remoteUrl: normalized.remoteUrl,
+    sourcePageUrl: normalized.sourcePageUrl,
     originalFilename: null,
     mimeType: null,
     sizeBytes: null,
@@ -92,7 +105,7 @@ function parseMediaRow(
     derivativeOfId: null,
     isOriginal: true,
     uploadStatus: "ready",
-    caption: normalized.value.caption,
+    caption: normalized.caption,
     createdAt: canonicalInstant(row.created_at),
     createdBy: requiredUuid(row.created_by),
     updatedAt: canonicalInstant(row.updated_at),
@@ -103,20 +116,17 @@ function parseMediaRow(
 
 function parseLinkRow(
   value: unknown,
-  expectedProjectId?: string,
-  expectedVenueId?: string,
-  expectedMediaId?: string,
-  expectedLinkId?: string,
+  expected: ExpectedVenueRemoteMediaIds = {},
 ): VenueRemoteMediaLinkRecord {
   const row = objectRow(value);
   const id = requiredUuid(row.id);
   const projectId = requiredUuid(row.project_id);
   const mediaId = requiredUuid(row.media_id);
   const targetId = requiredUuid(row.target_id);
-  assertExpected(id, expectedLinkId);
-  assertExpected(projectId, expectedProjectId);
-  assertExpected(mediaId, expectedMediaId);
-  assertExpected(targetId, expectedVenueId);
+  assertExpected(id, expected.linkId);
+  assertExpected(projectId, expected.projectId);
+  assertExpected(mediaId, expected.mediaId);
+  assertExpected(targetId, expected.venueId);
   if (row.target_type !== "venue" || row.relationship_type !== "gallery")
     fail();
   return {
@@ -133,31 +143,21 @@ function parseLinkRow(
 
 export function parseVenueRemoteMediaReceipt(
   value: unknown,
-  expectedProjectId?: string,
-  expectedVenueId?: string,
-  expectedMediaId?: string,
-  expectedLinkId?: string,
+  expected: ExpectedVenueRemoteMediaIds = {},
 ): VenueRemoteMediaBundle {
   const row = objectRow(value);
-  const media = parseMediaRow(row.media, expectedProjectId, expectedMediaId);
-  const link = parseLinkRow(
-    row.link,
-    expectedProjectId,
-    expectedVenueId,
-    expectedMediaId,
-    expectedLinkId,
-  );
+  const media = parseMediaRow(row.media, expected);
+  const link = parseLinkRow(row.link, expected);
   if (link.mediaId !== media.id || link.projectId !== media.projectId) fail();
   return { media, link };
 }
 
 export function parseVenueRemoteMediaListRow(
   value: unknown,
-  expectedProjectId?: string,
-  expectedVenueId?: string,
+  expected: ExpectedVenueRemoteMediaIds = {},
 ): VenueRemoteMediaBundle {
   const row = objectRow(value);
-  const media = parseMediaRow(row.media, expectedProjectId);
-  const link = parseLinkRow(row, expectedProjectId, expectedVenueId, media.id);
+  const media = parseMediaRow(row.media, expected);
+  const link = parseLinkRow(row, { ...expected, mediaId: media.id });
   return { media, link };
 }
