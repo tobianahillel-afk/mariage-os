@@ -14,7 +14,8 @@ function fail(): never {
 }
 
 function objectRow(value: unknown): Record<string, unknown> {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) fail();
+  if (typeof value !== "object" || value === null || Array.isArray(value))
+    fail();
   return value as Record<string, unknown>;
 }
 
@@ -116,7 +117,8 @@ function parseLinkRow(
   assertExpected(projectId, expectedProjectId);
   assertExpected(mediaId, expectedMediaId);
   assertExpected(targetId, expectedVenueId);
-  if (row.target_type !== "venue" || row.relationship_type !== "gallery") fail();
+  if (row.target_type !== "venue" || row.relationship_type !== "gallery")
+    fail();
   return {
     id,
     projectId,
@@ -156,11 +158,6 @@ export function parseVenueRemoteMediaListRow(
 ): VenueRemoteMediaBundle {
   const row = objectRow(value);
   const media = parseMediaRow(row.media, expectedProjectId);
-  const link = parseLinkRow(
-    row,
-    expectedProjectId,
-    expectedVenueId,
-    media.id,
-  );
+  const link = parseLinkRow(row, expectedProjectId, expectedVenueId, media.id);
   return { media, link };
 }

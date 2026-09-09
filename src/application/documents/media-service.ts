@@ -18,8 +18,7 @@ export interface CreateVenueRemoteMediaInput {
   readonly caption: unknown;
 }
 
-export interface NormalizedCreateVenueRemoteMediaInput
-  extends NormalizedVenueRemoteMediaDraft {
+export interface NormalizedCreateVenueRemoteMediaInput extends NormalizedVenueRemoteMediaDraft {
   readonly projectId: string;
   readonly venueId: string;
   readonly mediaId: string;

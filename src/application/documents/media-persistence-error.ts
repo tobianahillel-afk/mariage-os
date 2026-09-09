@@ -1,7 +1,5 @@
 export type MediaPersistenceErrorCode =
-  | "conflict"
-  | "provider_response_invalid"
-  | "persistence_failed";
+  "conflict" | "provider_response_invalid" | "persistence_failed";
 
 export class MediaPersistenceError extends Error {
   readonly code: MediaPersistenceErrorCode;

@@ -79,7 +79,10 @@ it("parses an embedded media row for the active Venue list", () => {
 
 it.each([
   { media: media({ project_id: venueId }), link: link() },
-  { media: media({ remote_url: "https://EXAMPLE.com/photo.jpg" }), link: link() },
+  {
+    media: media({ remote_url: "https://EXAMPLE.com/photo.jpg" }),
+    link: link(),
+  },
   { media: media({ storage_path: "private/path" }), link: link() },
   { media: media({ upload_status: "pending" }), link: link() },
   { media: media(), link: link({ target_type: "vendor" }) },

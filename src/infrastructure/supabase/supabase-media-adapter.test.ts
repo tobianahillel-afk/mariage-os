@@ -125,7 +125,8 @@ it("calls the protected RPC and validates its exact semantic receipt", async () 
     { data: [], error: null },
     { data: { media: media(), link: link() }, error: null },
   );
-  const result = await new SupabaseMediaAdapter(client).createVenueRemoteMedia(input);
+  const adapter = new SupabaseMediaAdapter(client);
+  const result = await adapter.createVenueRemoteMedia(input);
   expect(result.media.id).toBe(mediaId);
   expect(client.rpcArgs).toEqual({
     target_project_id: projectId,

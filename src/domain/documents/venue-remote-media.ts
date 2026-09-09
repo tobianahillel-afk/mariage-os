@@ -73,8 +73,7 @@ export interface VenueRemoteMediaBundle {
   readonly link: VenueRemoteMediaLinkRecord;
 }
 
-export interface VenueRemoteMediaCallerPayload
-  extends NormalizedVenueRemoteMediaDraft {
+export interface VenueRemoteMediaCallerPayload extends NormalizedVenueRemoteMediaDraft {
   readonly projectId: string;
   readonly venueId: string;
   readonly mediaId: string;
@@ -195,10 +194,13 @@ function normalizedPublicUrl(
   } catch {
     return undefined;
   }
-  if (parsed.username.length > 0 || parsed.password.length > 0) return undefined;
+  if (parsed.username.length > 0 || parsed.password.length > 0)
+    return undefined;
   if (
     (mode === "remote" && parsed.protocol !== "https:") ||
-    (mode === "source" && parsed.protocol !== "https:" && parsed.protocol !== "http:")
+    (mode === "source" &&
+      parsed.protocol !== "https:" &&
+      parsed.protocol !== "http:")
   ) {
     return undefined;
   }
