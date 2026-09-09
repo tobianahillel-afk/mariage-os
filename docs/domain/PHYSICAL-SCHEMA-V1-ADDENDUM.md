@@ -76,6 +76,32 @@ Generic keys such as `driving_duration_from_reference` are only a derived/defaul
 
 Changing default origin invalidates/recomputes summary but never rewrites route history.
 
+### 4.1 Access-route origin revision binding
+
+For WP-2.7, extend each `venue_access_routes` observation with:
+
+| Column | Type / meaning |
+|---|---|
+| `reference_origin_revision` | bigint nullable; positive server-captured revision of the referenced `project_reference_origins` row at observation acceptance time |
+
+Normative rules:
+
+- `reference_origin_id` is null if and only if `reference_origin_revision` is null;
+- when `reference_origin_id` is present, the append command resolves the origin inside the same project and captures its current positive `revision`; clients cannot supply or override that revision;
+- when a reference origin is present, `origin_label` is a server-captured snapshot of that origin's current canonical label; callers do not provide a competing origin label;
+- when no reference origin is present, an optional canonical caller-owned `origin_label` may describe custom/station/airport context;
+- route observations are immutable historical records. Later edits to origin label/address/coordinates/revision never rewrite prior observations;
+- a referenced origin cannot be physically deleted while route history cites it; route-history preservation takes precedence over deleting the origin row;
+- current default-origin summary selection accepts only `route_type='reference_to_venue'` rows whose `reference_origin_id` equals the current default origin, whose captured `reference_origin_revision` equals that origin's current revision, and whose transport mode matches the requested mode;
+- eligible summary rows use canonical history order `observed_at DESC`, then `created_at DESC`, then canonical UUID `id ASC`;
+- no default origin or no eligible current-revision row yields an explicit missing/review-needed result; no other origin, mode or stale revision is used as a silent fallback;
+- changing only which origin is default therefore changes derived summary selection without any historical mutation;
+- editing the referenced origin's location context makes older observations historical/stale for current-summary purposes until a new observation is appended.
+
+Append replay uses a stable caller-generated route UUID. Same-ID/same caller-owned semantic payload is idempotent. Server-captured origin revision/label are not caller-owned replay fields, so retry after a later origin edit returns the already accepted row rather than becoming a false conflict. Same-project same-ID/different caller-owned payload is a typed conflict; foreign-project UUID collision must not disclose existence/content.
+
+PostgreSQL may retain microseconds while TypeScript canonicalizes instants to milliseconds. Route-history adapters therefore request the complete database order above and preserve provider order after validation rather than re-sorting parsed timestamps.
+
 ## 5. Personal rating dimensions
 
 Initial system `member_ratings.dimension_key` values:
