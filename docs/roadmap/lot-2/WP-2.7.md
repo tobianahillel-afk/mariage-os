@@ -5,7 +5,7 @@
 - Work Packet ID: `WP-2.7`
 - Lot: `2`
 - Name: Contextual venue access-route observations
-- State: `READY`
+- State: `IN_PROGRESS`
 - Current pass: `A-IMPLEMENT`
 - Primary bounded context: Venue access-route observation history and default-origin summary selection
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
@@ -211,9 +211,9 @@ The context snapshot adds no second public command and no second bounded workflo
 ## Execution gates
 
 1. Physical-origin snapshot freeze `4baa335b5f964ee13e806cd9a5170f28ff179835` / `34336841778` and canonical historical-snapshot portability repair `05f9695d5e437a69dfd0cf5b839ad00bdc7afc38` / `34343241298` are **5/5 SUCCESS**.
-2. WP-2.7 is now `READY / A-IMPLEMENT`; Pass A product implementation has not started.
-3. This READY/governance head itself must be **5/5 SUCCESS** before transition to `IN_PROGRESS / A-IMPLEMENT`.
-4. The IN_PROGRESS transition head itself must be **5/5 SUCCESS** before the red-first product test.
+2. READY-transition head `bb93ad517130c2c0d6ce8f4ac7dec812e3e0d135` / `34344326696` is **5/5 SUCCESS**.
+3. WP-2.7 is now `IN_PROGRESS / A-IMPLEMENT`; Pass A product implementation has not started.
+4. This IN_PROGRESS transition head itself must be **5/5 SUCCESS** before the red-first product test.
 5. Pass A begins red-first at the route persistence/append boundary.
 6. Pass B independently reconstructs the complete slice; any BLOCKING/MAJOR finding returns to remediation.
 7. Pass C reconciles every responsibility/control before acceptance.
@@ -221,9 +221,10 @@ The context snapshot adds no second public command and no second bounded workflo
 
 ## Handoff
 
-- Current state: `READY`
+- Current state: `IN_PROGRESS`
 - Current/next pass: `A-IMPLEMENT`
 - Previous packet: WP-2.6D — **ACCEPTED / COMPLETE**, final acceptance-governance closure `767017112445a38863abd114e8c62feb27af6421` / `34322712448` — **5/5 SUCCESS**.
 - Specification gates: physical-origin snapshot freeze `4baa335b5f964ee13e806cd9a5170f28ff179835` / `34336841778`; canonical portability repair `05f9695d5e437a69dfd0cf5b839ad00bdc7afc38` / `34343241298`; both **5/5 SUCCESS**.
+- READY transition: `bb93ad517130c2c0d6ce8f4ac7dec812e3e0d135` / `34344326696` — **5/5 SUCCESS**.
 - Pass A product implementation status: **Not started**.
-- Next permitted action: verify this READY-transition HEAD 5/5. If green, perform the separate `READY / A-IMPLEMENT` → `IN_PROGRESS / A-IMPLEMENT` governance transition. Do not commit red-first or product code before that transition is itself verified.
+- Next permitted action: verify this IN_PROGRESS-transition HEAD 5/5. If green, commit the narrow red-first pgTAP boundary proving `venue_access_routes` and the atomic append command are absent. Do not implement persistence/product code before that expected red failure is confirmed.

@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1..WP-2.6D ACCEPTED; WP-2.7 READY**
+Status: **IN_PROGRESS — WP-2.1..WP-2.6D ACCEPTED; WP-2.7 IN_PROGRESS**
 
 Purpose: durable responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`.
 
@@ -209,16 +209,17 @@ The Lot contains one additional execution unit because the normative `>10` hard 
 
 ### WP-2.7 — Contextual venue access-route observations
 
-State: **READY**
+State: **IN_PROGRESS**
 Current pass: **A-IMPLEMENT**
 
 Primary control: Lot-2 acceptance + `VEN-016` / `ACC-030` access-route responsibility.  
 Dependencies: WP-2.1, Lot-1 reference origins, and decomposed WP-2.6 sequence — all packet dependencies **ACCEPTED**. WP-2.6D acceptance-governance `767017112445a38863abd114e8c62feb27af6421` / `34322712448`: **5/5 SUCCESS**.  
 Specification gates: physical origin-location snapshot freeze `4baa335b5f964ee13e806cd9a5170f28ff179835` / `34336841778` and canonical historical-snapshot portability repair `05f9695d5e437a69dfd0cf5b839ad00bdc7afc38` / `34343241298`: both **5/5 SUCCESS**, including clean-checkout `npm run verify`.  
+READY-transition gate: `bb93ad517130c2c0d6ce8f4ac7dec812e3e0d135` / `34344326696` — **5/5 SUCCESS**.  
 Acceptance record: `WP-2.7.md`.  
 Estimated size: **9 points** — one append-only route table, one migration family, one atomic append/replay command and one RLS/authorization boundary.  
 Scope: immutable contextual route observations, server-captured reference-origin location snapshots, stable UUID replay/non-disclosure, deterministic provider order and current default-origin summary selection. No map provider/UI/offline/import implementation is pulled into this packet.  
-Pass A product implementation: **Not started** pending exact-head verification of this READY transition.
+Pass A product implementation: **Not started** pending exact-head verification of this IN_PROGRESS transition.
 
 ### WP-2.8 — Venue media/photo foundation and private/remote media safety
 
@@ -274,7 +275,7 @@ WP-2.1 [ACCEPTED]
   │                                           ↓
   │                               WP-2.6D [ACCEPTED]
   │                                           ↓
-  ├────────────────────────────────────────→ WP-2.7 [READY]
+  ├────────────────────────────────────────→ WP-2.7 [IN_PROGRESS]
   └─→ WP-2.8 → WP-2.9
 
 WP-2.1..2.9
@@ -292,7 +293,7 @@ separate Lot 2 Integration Pass
 Lot 2 acceptance
 ```
 
-Default execution remains one packet in active work/review at a time. The original WP-2.6 responsibility was decomposed before implementation because its five-table/multi-command/RLS scope exceeded the orchestration `>10` split threshold and no atomicity/safety reason justified a mega-packet. This decomposition changes implementation granularity only; product/Feature scope is unchanged and required current-lot responsibilities minus assigned packet responsibilities remains **∅**. WP-2.6A, WP-2.6B, WP-2.6C and WP-2.6D are ACCEPTED. WP-2.7 is READY after verified physical-snapshot and canonical-portability gates; product code remains prohibited until this READY-transition head is green and a separate IN_PROGRESS transition is also green. WP-2.8 remains prohibited concurrently.
+Default execution remains one packet in active work/review at a time. The original WP-2.6 responsibility was decomposed before implementation because its five-table/multi-command/RLS scope exceeded the orchestration `>10` split threshold and no atomicity/safety reason justified a mega-packet. This decomposition changes implementation granularity only; product/Feature scope is unchanged and required current-lot responsibilities minus assigned packet responsibilities remains **∅**. WP-2.6A, WP-2.6B, WP-2.6C and WP-2.6D are ACCEPTED. WP-2.7 is IN_PROGRESS after verified physical-snapshot, canonical-portability and READY-transition gates; product code remains prohibited until the separate IN_PROGRESS transition head is green. WP-2.8 remains prohibited concurrently.
 
 ## Explicitly out of Lot 2
 
