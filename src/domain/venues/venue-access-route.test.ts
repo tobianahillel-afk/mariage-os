@@ -286,16 +286,16 @@ it("compares replay caller payloads while excluding referenced origin snapshots"
     { notes: "other" },
   ];
   for (const change of changes) {
-    expect(
-      venueAccessRouteCallerPayloadEquals(record(), payload(change)),
-    ).toBe(false);
+    expect(venueAccessRouteCallerPayloadEquals(record(), payload(change))).toBe(
+      false,
+    );
   }
 });
 
 it("matches only current physical origin context for the requested mode", () => {
-  expect(
-    venueAccessRouteMatchesCurrentOrigin(record(), origin(), "car"),
-  ).toBe(true);
+  expect(venueAccessRouteMatchesCurrentOrigin(record(), origin(), "car")).toBe(
+    true,
+  );
   expect(
     venueAccessRouteMatchesCurrentOrigin(
       record({ referenceOriginId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" }),

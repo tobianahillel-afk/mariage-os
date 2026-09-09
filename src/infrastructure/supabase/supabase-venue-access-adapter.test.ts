@@ -187,9 +187,11 @@ it("allows server snapshots to differ on replay but rejects caller-payload subst
     { notes: "different" },
   ]) {
     client.rpcResult = { data: routeRow(overrides), error: null };
-    await expect(adapter.appendVenueAccessRoute(command)).rejects.toMatchObject({
-      code: "provider_response_invalid",
-    });
+    await expect(adapter.appendVenueAccessRoute(command)).rejects.toMatchObject(
+      {
+        code: "provider_response_invalid",
+      },
+    );
   }
 });
 
@@ -207,10 +209,12 @@ it("maps replay conflicts and all other RPC failures safely", async () => {
       error === null
         ? { data: { malformed: true }, error: null }
         : { data: null, error };
-    await expect(adapter.appendVenueAccessRoute(command)).rejects.toMatchObject({
-      code:
-        error === null ? "provider_response_invalid" : "persistence_failed",
-    });
+    await expect(adapter.appendVenueAccessRoute(command)).rejects.toMatchObject(
+      {
+        code:
+          error === null ? "provider_response_invalid" : "persistence_failed",
+      },
+    );
   }
 });
 
@@ -281,7 +285,9 @@ it("returns exactly one canonical default origin and handles missing safely", as
   expect(client.eqCalls).toContainEqual({ column: "is_default", value: true });
 
   client.originQueryResult = { data: [], error: null };
-  await expect(adapter.getDefaultReferenceOrigin(projectId)).resolves.toBeNull();
+  await expect(
+    adapter.getDefaultReferenceOrigin(projectId),
+  ).resolves.toBeNull();
 });
 
 it("fails closed on invalid default-origin query responses", async () => {
@@ -289,17 +295,23 @@ it("fails closed on invalid default-origin query responses", async () => {
   const adapter = new SupabaseVenueAccessAdapter(client);
 
   client.originQueryResult = { data: [], error: { code: "500" } };
-  await expect(adapter.getDefaultReferenceOrigin(projectId)).rejects.toMatchObject({
+  await expect(
+    adapter.getDefaultReferenceOrigin(projectId),
+  ).rejects.toMatchObject({
     code: "persistence_failed",
   });
 
   client.originQueryResult = { data: null, error: null };
-  await expect(adapter.getDefaultReferenceOrigin(projectId)).rejects.toMatchObject({
+  await expect(
+    adapter.getDefaultReferenceOrigin(projectId),
+  ).rejects.toMatchObject({
     code: "persistence_failed",
   });
 
   client.originQueryResult = { data: [originRow(), originRow()], error: null };
-  await expect(adapter.getDefaultReferenceOrigin(projectId)).rejects.toMatchObject({
+  await expect(
+    adapter.getDefaultReferenceOrigin(projectId),
+  ).rejects.toMatchObject({
     code: "provider_response_invalid",
   });
 
@@ -307,7 +319,9 @@ it("fails closed on invalid default-origin query responses", async () => {
     data: [originRow({ is_default: false })],
     error: null,
   };
-  await expect(adapter.getDefaultReferenceOrigin(projectId)).rejects.toMatchObject({
+  await expect(
+    adapter.getDefaultReferenceOrigin(projectId),
+  ).rejects.toMatchObject({
     code: "provider_response_invalid",
   });
 });

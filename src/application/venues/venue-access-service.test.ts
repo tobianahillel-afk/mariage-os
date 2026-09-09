@@ -269,14 +269,8 @@ it("returns explicit missing states instead of falling back", async () => {
 });
 
 it("satisfies ACC-030 when the default origin changes while both histories remain", async () => {
-  const parisRoute = record(
-    "66666666-6666-4666-8666-666666666666",
-    parisId,
-  );
-  const homeRoute = record(
-    "77777777-7777-4777-8777-777777777777",
-    homeId,
-  );
+  const parisRoute = record("66666666-6666-4666-8666-666666666666", parisId);
+  const homeRoute = record("77777777-7777-4777-8777-777777777777", homeId);
   let currentOrigin = origin(parisId);
   let history: readonly VenueAccessRouteRecord[] = [parisRoute, homeRoute];
   const service = new AccessService(

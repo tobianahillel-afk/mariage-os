@@ -1,7 +1,5 @@
 import { expect, it } from "vitest";
-import {
-  parseVenueReferenceOriginRow,
-} from "./parse-venue-reference-origin-row";
+import { parseVenueReferenceOriginRow } from "./parse-venue-reference-origin-row";
 
 const projectId = "11111111-1111-4111-8111-111111111111";
 const originId = "22222222-2222-4222-8222-222222222222";
@@ -56,10 +54,7 @@ it("rejects malformed rows, identities and non-default origins", () => {
     );
   }
   expect(() =>
-    parseVenueReferenceOriginRow(
-      row(),
-      "33333333-3333-4333-8333-333333333333",
-    ),
+    parseVenueReferenceOriginRow(row(), "33333333-3333-4333-8333-333333333333"),
   ).toThrow();
 });
 
