@@ -76,29 +76,34 @@ Generic keys such as `driving_duration_from_reference` are only a derived/defaul
 
 Changing default origin invalidates/recomputes summary but never rewrites route history.
 
-### 4.1 Access-route origin revision binding
+### 4.1 Access-route origin-context snapshot
 
-For WP-2.7, extend each `venue_access_routes` observation with:
+For WP-2.7, extend each `venue_access_routes` observation with server-captured origin-location context when `reference_origin_id` is present:
 
 | Column | Type / meaning |
 |---|---|
-| `reference_origin_revision` | bigint nullable; positive server-captured revision of the referenced `project_reference_origins` row at observation acceptance time |
+| `reference_origin_address_snapshot` | text nullable; exact canonical `address_text` of the referenced origin at observation acceptance time |
+| `reference_origin_latitude_snapshot` | numeric(9,6) nullable; exact latitude at observation acceptance time |
+| `reference_origin_longitude_snapshot` | numeric(9,6) nullable; exact longitude at observation acceptance time |
 
 Normative rules:
 
-- `reference_origin_id` is null if and only if `reference_origin_revision` is null;
-- when `reference_origin_id` is present, the append command resolves the origin inside the same project and captures its current positive `revision`; clients cannot supply or override that revision;
-- when a reference origin is present, `origin_label` is a server-captured snapshot of that origin's current canonical label; callers do not provide a competing origin label;
+- when `reference_origin_id` is null, all three reference-origin snapshot fields are null;
+- when `reference_origin_id` is present, the append command resolves that origin inside the same project and server-captures its current canonical `label`, `address_text`, `latitude` and `longitude`; clients cannot supply or override these snapshot fields;
+- the existing `origin_label` column is the historical label snapshot when a reference origin is present;
 - when no reference origin is present, an optional canonical caller-owned `origin_label` may describe custom/station/airport context;
-- route observations are immutable historical records. Later edits to origin label/address/coordinates/revision never rewrite prior observations;
+- route observations are immutable historical records. Later edits to origin label/address/coordinates/default/sort state never rewrite prior observations;
 - a referenced origin cannot be physically deleted while route history cites it; route-history preservation takes precedence over deleting the origin row;
-- current default-origin summary selection accepts only `route_type='reference_to_venue'` rows whose `reference_origin_id` equals the current default origin, whose captured `reference_origin_revision` equals that origin's current revision, and whose transport mode matches the requested mode;
+- current default-origin summary selection accepts only `route_type='reference_to_venue'` rows whose `reference_origin_id` equals the current default origin, whose captured address/latitude/longitude are each `IS NOT DISTINCT FROM` the current origin's corresponding canonical location fields, and whose transport mode matches the requested mode;
 - eligible summary rows use canonical history order `observed_at DESC`, then `created_at DESC`, then canonical UUID `id ASC`;
-- no default origin or no eligible current-revision row yields an explicit missing/review-needed result; no other origin, mode or stale revision is used as a silent fallback;
-- changing only which origin is default therefore changes derived summary selection without any historical mutation;
-- editing the referenced origin's location context makes older observations historical/stale for current-summary purposes until a new observation is appended.
+- no default origin or no eligible current-location-context row yields an explicit missing/review-needed result; no other origin, mode or stale location snapshot is used as a silent fallback;
+- changing only `is_default`, `sort_order` or the origin label does **not** by itself invalidate route applicability because those fields do not change the physical route origin; the historical row still retains its captured label;
+- changing `address_text`, `latitude` or `longitude` makes older observations stale for current-summary purposes until a new observation is appended;
+- restoring the exact canonical location context may make an older observation eligible again because the authoritative comparison is the actual stored location context, not a general row revision counter.
 
-Append replay uses a stable caller-generated route UUID. Same-ID/same caller-owned semantic payload is idempotent. Server-captured origin revision/label are not caller-owned replay fields, so retry after a later origin edit returns the already accepted row rather than becoming a false conflict. Same-project same-ID/different caller-owned payload is a typed conflict; foreign-project UUID collision must not disclose existence/content.
+This snapshot rule deliberately does **not** use `project_reference_origins.revision`: the accepted origin command increments that general revision for changes such as default-origin switching, and binding route validity to it would incorrectly invalidate an otherwise unchanged route during the `ACC-030` default-origin switch.
+
+Append replay uses a stable caller-generated route UUID. Same-ID/same caller-owned semantic payload is idempotent. Server-captured origin label/location snapshots are not caller-owned replay fields, so retry after a later origin edit returns the already accepted row rather than becoming a false conflict. Same-project same-ID/different caller-owned payload is a typed conflict; foreign-project UUID collision must not disclose existence/content.
 
 PostgreSQL may retain microseconds while TypeScript canonicalizes instants to milliseconds. Route-history adapters therefore request the complete database order above and preserve provider order after validation rather than re-sorting parsed timestamps.
 
