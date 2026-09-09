@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.7`
 - Lot: `2`
 - Name: Contextual venue access-route observations
-- State: `ACCEPTANCE_PENDING`
-- Current pass: `C-ACCEPTANCE`
+- State: `ACCEPTED`
+- Current pass: `COMPLETE`
 - Primary bounded context: Venue access-route observation history and default-origin summary selection
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 
@@ -57,7 +57,7 @@
 - Lot-1 WP-1.5 is **ACCEPTED** and provides `project_reference_origins`, one-default semantics, `access.read` / `access.write`, protected origin save/delete commands and live authorization.
 - Decomposed WP-2.6A/B/C/D is fully **ACCEPTED** at packet level with responsibility gap `∅`.
 - WP-2.6D final acceptance-governance closure head `767017112445a38863abd114e8c62feb27af6421`, exact CI `34322712448`: **5/5 SUCCESS**. This closes the sequencing gate for WP-2.7 activation.
-- WP-2.8 remains prohibited concurrently under the one-active-packet default.
+- WP-2.8 remains prohibited until this WP-2.7 acceptance commit and subsequent acceptance-governance reconciliation are themselves exact-head green.
 
 ## Activation revalidation / specification repair
 
@@ -226,6 +226,41 @@ Pass-A decision: **COMPLETE / VERIFIED — transition to REVIEW_PENDING / B-ADVE
 - Open BLOCKING/MAJOR findings: **∅**.
 - Pass B decision: **PASS — transition to ACCEPTANCE_PENDING / C-ACCEPTANCE**.
 
+## Pass C — ACCEPTANCE / RECONCILIATION
+
+Pass-C entry transition `30807e355f85b5146ceba449a0115542e393b69d`, exact CI `34372335839`: **5/5 SUCCESS**, including clean-checkout `npm run verify`.
+
+Mechanical reconciliation:
+
+| Responsibility / control | Expected | Implemented evidence | Verified evidence | Result |
+|---|---|---|---|---|
+| `VEN-016` contextual route history | Multiple origin/mode observations coexist under one Venue without overwrite. | `venue_access_routes` + atomic append RPC + `AccessService` append/history port. | `venue_access_routes_test.sql` proves append-oriented coexistence/replay/history; `venue_access_routes_acceptance_test.sql` persists distinct Paris/Home driving routes. | PASS |
+| Frozen route/mode/input boundaries | Exact enum allowlists, strict instant, optional UUIDs, 160-code-point labels, int32-safe non-negative metrics and bounded notes. | Domain normalizer + SQL constraints/wrapper + forward text-boundary hardening. | Domain tests, `venue_access_routes_text_bounds_test.sql`, base pgTAP and B-001 regression. | PASS |
+| Server-owned historical origin snapshots | Referenced append captures canonical label/address/lat/lon; client cannot override snapshots or reinterpret old history. | Append RPC resolves same-project origin and stores server snapshots; parser exposes validated snapshot fields. | Base pgTAP proves capture, client override denial, immutable old snapshots and fresh capture after edit. | PASS |
+| Current physical-context applicability | Summary matches current default origin only when address/lat/lon snapshots still match; no general revision binding. | Domain `venueAccessRouteMatchesCurrentOrigin` / summary selector + default-origin read port. | Domain/application tests cover moved/stale/fresh context; acceptance pgTAP proves persisted moved context becomes ineligible then fresh route restores selection. | PASS |
+| Immutable history / origin preservation | Route rows cannot update/delete; cited reference origin cannot be physically deleted. | Immutable triggers, narrow grants, restrictive same-project origin FK and hardened origin delete command. | Base pgTAP denies direct route mutation, blocks cited-origin deletion and preserves history while allowing unreferenced origin deletion. | PASS |
+| Stable UUID replay / conflict / non-disclosure | Same ID + same caller payload is idempotent; differing same-project payload is typed conflict; foreign-project collision is generic. | Atomic append/replay equality excludes server snapshots; service maps `23505`; cross-project identity fails `42501`. | Domain/service/adapter tests + base pgTAP + Pass-B review. | PASS |
+| Deterministic history order | DB/provider order is `observed_at DESC`, `created_at DESC`, `id ASC`; JS must not destroy PostgreSQL microsecond ordering. | Supabase adapter requests all three order clauses and preserves provider order. | Adapter/application tests cover duplicate rejection and microsecond→millisecond collapse while retaining provider order; base pgTAP verifies DB chronology. | PASS |
+| `ACC-030` default-origin switch | Persist Paris/Home car observations; switch default through accepted origin command; summary moves without history rewrite. | Existing Lot-1 `save_project_reference_origin` + WP-2.7 persisted route history + deterministic summary predicate. | `venue-access-service.test.ts` covers read-model behavior; dedicated `venue_access_routes_acceptance_test.sql` on `3501a6056361dfa792743bf928464520f2538499` / `34373382884` proves the exact persisted switch, two-row preservation, stale-on-move and fresh-route recovery; **5/5 SUCCESS**. | PASS |
+| Explicit missing/stale outcome | No default or no eligible current-context observation returns missing/review-needed; no fallback to stale/other origin/mode. | `selectVenueAccessRouteSummary` + `AccessService.currentDefaultOriginSummary`. | Domain/application tests cover no-default and stale; acceptance pgTAP proves persisted physical-context mismatch yields no eligible row. | PASS |
+| `access.read` / `access.write` authorization | Owner/editor write, viewer read-only; anon/outsider/revoked/cross-project denied; authorization is live. | RLS + authenticated SELECT grant + protected SECURITY DEFINER writer locking project before `has_project_permission`. | Base pgTAP plus `venue_access_routes_authorization_adversarial_review_test.sql` prove role allow/deny, isolation, same-session downgrade/revocation and lock ordering. | PASS |
+| Privileged boundary hardening | Internal helper/core unavailable to client roles; public append minimal; trusted `search_path`. | Explicit REVOKE/GRANT + `search_path=pg_catalog` on privileged functions. | Authorization adversarial pgTAP directly asserts execute privileges and `proconfig`. | PASS |
+| Same-project relationships | Venue, reference origin and optional source cannot cross project. | Composite same-project FKs plus RPC relationship validation. | Base pgTAP rejects cross-project venue/origin/source, including foreign route UUID non-disclosure. | PASS |
+| Fail-closed provider boundary | Malformed/missing/substituted identities/payloads, duplicate rows or invalid snapshots cannot become application truth. | `parseVenueAccessRouteRow`, expected caller-payload verification and adapter duplicate detection. | Parser/adapter unit tests and fresh Pass-B reconstruction. | PASS |
+| Applicable AUTHZ/security controls | Identity, membership, permissions, relationships, validation, safe query/RPC boundary and verification controls apply end to end. | GRANT/RLS/RPC/FKs + strict domain/DB validation + generic provider/service error mapping. | Direct pgTAP allow/deny, security/static checks, unit/integration/DB/E2E/mutation/clean-checkout verification. | PASS |
+| Scope fence | No map provider/rendering, Venue UI, local/offline queue, Task workflow or Lot-4 import implementation is pulled forward. | Production diff remains the Venue access-route persistence/read-model slice only. | Pass-B reconstruction + Pass-C responsibility audit. | PASS |
+
+Traceability reconciliation:
+
+- `VEN-016` → **accepted/evidenced** by WP-2.7.
+- `ACC-030` → **accepted/evidenced** by application read-model tests plus the dedicated persisted acceptance scenario `3501a6056361dfa792743bf928464520f2538499` / `34373382884` — **5/5 SUCCESS**.
+- The Lot-2 data/access foundation mapped to `FTR-008` and downstream `FTR-080` / `FTR-081` is accepted for this packet only. Map rendering/routing-provider/UI capability remains downstream (not globally accepted) in Lot 9 / WP-2.11 as mapped.
+- Local/offline Venue persistence remains WP-2.10 / WP-2.12; canonical import/restore implementation remains Lot 4; none is falsely claimed by WP-2.7.
+- Required WP-2.7 responsibilities minus accepted/evidenced WP-2.7 responsibilities: **∅**.
+- Open BLOCKING/MAJOR findings: **∅**.
+
+Pass-C decision: **PASS — WP-2.7 ACCEPTED**.
+
 ## Execution gates
 
 1. Physical-origin snapshot freeze `4baa335b5f964ee13e806cd9a5170f28ff179835` / `34336841778` and canonical historical-snapshot portability repair `05f9695d5e437a69dfd0cf5b839ad00bdc7afc38` / `34343241298` are **5/5 SUCCESS**.
@@ -233,14 +268,15 @@ Pass-A decision: **COMPLETE / VERIFIED — transition to REVIEW_PENDING / B-ADVE
 3. Pass A implementation head `004aec0ee30e5f228c55ecd6fe7fae8d5ba98794` / `34364195509` is **5/5 SUCCESS**; Pass A is complete and verified.
 4. REVIEW_PENDING transition head `5f98e877275a9f4149f5e522e426b7f4347a9e9e` / `34366885380` is **5/5 SUCCESS**.
 5. Pass-B finding `WP2.7-B-001` is resolved/verified on `cc85c0167e40eb2250d9143b6f4ded28d94118d6` / `34369744964`; final fresh reviewed head `c1cb06bf6fdd4b33bc966f985f668938a7edf158` / `34370566573` is **5/5 SUCCESS**; open BLOCKING/MAJOR findings **∅**.
-6. WP-2.7 is `ACCEPTANCE_PENDING / C-ACCEPTANCE` only after the Pass-B PASS above.
-7. Pass C reconciles every responsibility/control before packet acceptance.
-8. WP-2.8 remains prohibited until WP-2.7 is ACCEPTED and its acceptance-governance head is green.
+6. ACCEPTANCE_PENDING / Pass-C entry `30807e355f85b5146ceba449a0115542e393b69d` / `34372335839` is **5/5 SUCCESS**.
+7. Dedicated persisted ACC-030 acceptance evidence `3501a6056361dfa792743bf928464520f2538499` / `34373382884` is **5/5 SUCCESS**.
+8. Pass C responsibility gap is **∅**; packet decision is **ACCEPTED**.
+9. WP-2.8 remains prohibited until this acceptance commit and final Lot-2 acceptance-governance reconciliation are exact-head green.
 
 ## Handoff
 
-- Current state: `ACCEPTANCE_PENDING`
-- Current/next pass: `C-ACCEPTANCE`
+- Current state: `ACCEPTED`
+- Current/next pass: `COMPLETE`
 - Previous packet: WP-2.6D — **ACCEPTED / COMPLETE**, final acceptance-governance closure `767017112445a38863abd114e8c62feb27af6421` / `34322712448` — **5/5 SUCCESS**.
 - Specification gates: physical-origin snapshot freeze `4baa335b5f964ee13e806cd9a5170f28ff179835` / `34336841778`; canonical portability repair `05f9695d5e437a69dfd0cf5b839ad00bdc7afc38` / `34343241298`; both **5/5 SUCCESS**.
 - READY transition: `bb93ad517130c2c0d6ce8f4ac7dec812e3e0d135` / `34344326696` — **5/5 SUCCESS**.
@@ -250,5 +286,8 @@ Pass-A decision: **COMPLETE / VERIFIED — transition to REVIEW_PENDING / B-ADVE
 - Pass-B red-first finding: `WP2.7-B-001` on `1fa53b8f9864ec4ab2f3999073bb0a99f95773a5` / `34369198622` — expected FAILURE.
 - Pass-B remediation: `cc85c0167e40eb2250d9143b6f4ded28d94118d6` / `34369744964` — **5/5 SUCCESS**.
 - Final fresh Pass-B reviewed head: `c1cb06bf6fdd4b33bc966f985f668938a7edf158` / `34370566573` — **5/5 SUCCESS**.
-- Open BLOCKING/MAJOR findings after Pass B: `∅`.
-- Next permitted action: verify this ACCEPTANCE_PENDING transition HEAD 5/5; then perform WP-2.7 Pass C mechanical reconciliation. WP-2.8 remains prohibited concurrently.
+- Pass-C entry: `30807e355f85b5146ceba449a0115542e393b69d` / `34372335839` — **5/5 SUCCESS**.
+- Persisted ACC-030 acceptance evidence: `3501a6056361dfa792743bf928464520f2538499` / `34373382884` — **5/5 SUCCESS**.
+- Open BLOCKING/MAJOR findings after Pass B and Pass C: `∅`.
+- Required WP-2.7 responsibilities minus accepted/evidenced responsibilities: `∅`.
+- Next permitted action: verify this packet-acceptance HEAD 5/5; then reconcile the Lot-2 coverage matrix and implementation-status cursor. WP-2.8 remains prohibited until final acceptance-governance closure is green.
