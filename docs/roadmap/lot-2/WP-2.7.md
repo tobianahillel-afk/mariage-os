@@ -24,6 +24,7 @@
 - exact frozen route types: `reference_to_venue | reference_to_tgv_station | tgv_station_to_venue | airport_to_venue | custom`;
 - exact frozen transport modes: `car | train | public_transport | taxi_vtc | shuttle | coach | walk | mixed | other`;
 - optional same-project `project_reference_origins` context and optional same-project source;
+- server-captured reference-origin label/location snapshots so route applicability tracks physical location context without depending on general origin revision;
 - bounded optional origin/destination labels, non-negative duration/distance/transfer metrics, strict observation instant and bounded notes;
 - immutable historical observation semantics;
 - stable caller-generated UUID for ambiguous append retries, same-ID/same-caller-payload replay and typed same-project conflict;
@@ -66,28 +67,40 @@ The frozen physical schema already defines `venue_access_routes` as project/Venu
 
 ### Stop-condition found
 
-The original physical table shape stored only `reference_origin_id`. That is insufficient to prove whether a historical route observation was calculated/observed against the **current** location revision of that origin. Without a revision binding, editing an origin address/coordinate could make an old route appear current, contradicting the dependency graph.
+The original physical table shape stored only `reference_origin_id`. That is insufficient to prove whether a historical route observation still matches the referenced origin's current physical location context.
 
-### Frozen repair
+A first activation draft considered binding observations to the general `project_reference_origins.revision`, but independent revalidation rejected that design before READY: the accepted `save_project_reference_origin` command increments the general revision for changes such as `is_default`, and switching defaults is precisely the action that `ACC-030` requires **not** to invalidate an otherwise unchanged route. General origin revision is therefore not a valid proxy for route-location context.
 
-The effective WP-2.7 contract therefore adds `reference_origin_revision bigint nullable` to each route observation:
+### Frozen repair — server-captured location snapshot
 
-1. `reference_origin_id IS NULL` iff `reference_origin_revision IS NULL`.
-2. When `reference_origin_id` is present, the append command resolves that origin in the same project and server-captures its current positive `revision`.
-3. When a reference origin is present, `origin_label` is a server-captured snapshot of that origin's current canonical label; callers do not provide a competing origin label. When no reference origin is present, a caller may provide an optional canonical `origin_label` for custom/station/airport context.
-4. The historical route row is immutable. A later origin edit increments the origin revision and does not rewrite the route observation or its captured label/revision.
-5. A referenced origin cannot be physically deleted while route history still cites it. Existing origin delete behavior may therefore fail through the new FK once history depends on the origin; this protects historical context rather than cascading deletion.
-6. A current default-origin summary considers only a row whose `reference_origin_id` equals the current default origin, whose captured `reference_origin_revision` equals that origin's current `revision`, whose `route_type` is `reference_to_venue`, and whose `mode` equals the requested mode.
+The effective WP-2.7 contract adds these server-owned fields to each route observation when `reference_origin_id` is present:
+
+- `reference_origin_address_snapshot text nullable`;
+- `reference_origin_latitude_snapshot numeric(9,6) nullable`;
+- `reference_origin_longitude_snapshot numeric(9,6) nullable`.
+
+The existing `origin_label` column is the server-captured historical origin-label snapshot when a reference origin is present.
+
+Rules:
+
+1. When `reference_origin_id` is null, all three reference-origin location snapshot fields are null.
+2. When `reference_origin_id` is present, the append command resolves that origin in the same project and server-captures its current canonical `label`, `address_text`, `latitude` and `longitude`; callers cannot supply or override those snapshots.
+3. When a reference origin is present, callers do not provide a competing origin label. When no reference origin is present, a caller may provide an optional canonical `origin_label` for custom/station/airport context.
+4. The historical route row is immutable. Later origin edits never rewrite its captured label/location context.
+5. A referenced origin cannot be physically deleted while route history cites it. Existing origin delete behavior may therefore fail through the new restrictive FK once history depends on the origin; this protects historical context rather than cascading deletion.
+6. A current default-origin summary considers only a row whose `reference_origin_id` equals the current default origin, whose captured address/latitude/longitude are each `IS NOT DISTINCT FROM` that origin's current canonical location fields, whose `route_type` is `reference_to_venue`, and whose `mode` equals the requested mode.
 7. Among eligible rows, the first row in canonical history order (`observed_at DESC`, `created_at DESC`, `id ASC`) is the summary observation.
-8. No default origin or no eligible current-revision observation yields an explicit missing/review-needed read-model outcome. The read model never falls back silently to another origin, mode or stale revision.
-9. Switching only which origin is default therefore changes summary selection immediately while retaining every route observation unchanged, satisfying `ACC-030`.
-10. Editing the address/coordinates/label of an origin makes previously captured rows historical/stale for current-summary purposes until a new observation is appended under a new UUID.
+8. No default origin or no eligible current-location-context observation yields an explicit missing/review-needed read-model outcome. The read model never falls back silently to another origin, mode or stale location snapshot.
+9. Switching only `is_default` changes summary selection immediately while retaining every route observation unchanged, satisfying `ACC-030`.
+10. Changing `sort_order` or only the origin label does not invalidate route applicability because it does not change the physical origin; the historical observation still retains its captured label.
+11. Changing `address_text`, `latitude` or `longitude` makes prior observations stale for current-summary purposes until a matching observation is appended.
+12. Restoring the exact canonical physical location context can make an older observation eligible again; applicability follows actual context equality rather than an unrelated monotonic row revision.
 
 ### Append replay semantics
 
 - The client supplies a stable route observation UUID.
 - Same route UUID + same caller-owned semantic payload in the same project is idempotent and returns the already accepted row.
-- Server-captured `reference_origin_revision` and server-captured label are not caller-owned replay fields; a retry after an origin edit returns the originally accepted observation rather than turning into a false conflict.
+- Server-captured origin label/location snapshots are not caller-owned replay fields; a retry after a later origin edit returns the originally accepted observation rather than turning into a false conflict.
 - Same route UUID + different caller-owned semantic payload in the same project is a typed conflict (`23505` boundary, mapped by application code).
 - A route UUID already owned by another project returns a generic authorization/non-disclosure failure (`42501`), not replay existence/content.
 
@@ -101,11 +114,12 @@ Activation stop-condition: **CLOSED BY THIS FREEZE**, subject to exact-head CI v
 
 - `route_type`: exact allowlist above.
 - `mode`: exact allowlist above.
-- `origin_label`, `destination_label`: optional canonical trimmed text, maximum 160 Unicode code points; empty becomes `null`.
+- caller-owned `origin_label` (only when `reference_origin_id` is null) and `destination_label`: optional canonical trimmed text, maximum 160 Unicode code points; empty becomes `null`.
 - `duration_minutes`, `distance_meters`, `transfers_count`: optional PostgreSQL int32-safe non-negative integers.
 - `observed_at`: strict absolute instant using the accepted fact-instant grammar/parity.
 - `notes`: optional text, maximum 5,000 Unicode code points; empty becomes `null`.
 - `reference_origin_id`, `source_id`: optional UUIDs; relationships must resolve inside the target project.
+- reference-origin address/coordinate snapshots and reference-origin-backed `origin_label` are server-owned outputs, not caller inputs.
 - Sparse observations are permitted: the frozen schema does not require at least one of duration/distance/transfers to be populated.
 
 ## Sizing review
@@ -128,16 +142,18 @@ Activation stop-condition: **CLOSED BY THIS FREEZE**, subject to exact-head CI v
 
 ### 9-point cohesion rationale
 
-The route observation, current-origin revision capture, immutable history, append/replay identity, deterministic current-summary selection and `access.*` authorization form one coherent historical-context vertical slice. Splitting persistence from origin-revision invalidation would make `ACC-030` and the dependency-graph invariant impossible to review end to end.
+The route observation, current-origin context capture, immutable history, append/replay identity, deterministic current-summary selection and `access.*` authorization form one coherent historical-context vertical slice. Splitting persistence from context invalidation would make `ACC-030` and the dependency-graph invariant impossible to review end to end.
+
+The context snapshot adds no second public command and no second bounded workflow; it is server-owned data captured atomically by the single append command, so the packet remains within the 9-point cohesion-reviewed size.
 
 ## Expected vertical slice
 
 - UI/route: none.
-- domain: route type/mode/value validation, immutable replay equality and current-summary eligibility/selection.
+- domain: route type/mode/value validation, immutable replay equality and current-summary context eligibility/selection.
 - application: append/replay service, ordered Venue route-history query and current default-origin summary query.
 - ports: route append/history plus minimal default-origin read required by the derived summary.
 - infrastructure: fail-closed Supabase route adapter/parser and accepted reference-origin read boundary.
-- cloud persistence/RLS: `venue_access_routes`, same-project Venue/origin/source integrity, immutable history, `access.read` RLS, authenticated append RPC using `access.write` after project-lock serialization.
+- cloud persistence/RLS: `venue_access_routes`, same-project Venue/origin/source integrity, immutable history, server-owned origin location snapshots, `access.read` RLS, authenticated append RPC using `access.write` after project-lock serialization.
 - local/offline: none in this packet.
 - external routing provider: none.
 
@@ -148,8 +164,9 @@ The route observation, current-origin revision capture, immutable history, appen
 - exact enum allowlists;
 - strict instant/text/int bounds;
 - optional UUID validation;
-- replay equality excludes server-captured revision/label fields;
-- deterministic current-summary selection and explicit missing/stale outcome;
+- reference-origin-backed origin label/location snapshots cannot be caller-controlled;
+- replay equality excludes server-captured origin label/location snapshot fields;
+- deterministic current-summary context comparison/selection and explicit missing/stale outcome;
 - adapter requests complete canonical order and preserves provider order across microsecond collapse;
 - malformed/missing/substituted provider rows fail closed;
 - duplicate provider IDs fail closed.
@@ -158,12 +175,13 @@ The route observation, current-origin revision capture, immutable history, appen
 
 - table/schema/check constraints and immutable update/delete denial;
 - same-project Venue/origin/source constraints;
-- server captures current origin revision/label atomically within append command;
-- origin edit leaves old observation untouched and makes it ineligible for current-revision summary;
+- server captures current canonical origin label/address/coordinates atomically within append command;
+- changing only default/sort/label state leaves route applicability intact and every route row unchanged;
+- origin address/coordinate edit leaves old observation untouched but makes it ineligible for current-summary context;
 - origin physical delete cannot erase cited route history;
 - multiple origins/modes and old observations coexist;
-- same-ID/same-payload replay returns one row;
-- same-project differing payload is `23505` conflict;
+- same-ID/same-payload replay returns one row, including retry after origin context later changed;
+- same-project differing caller payload is `23505` conflict;
 - foreign-project UUID collision is generic `42501` non-disclosure;
 - owner/editor permitted according to `access.write`, viewer/read-only denied append but permitted read according to role mapping;
 - anon/outsider/project-B/revoked denied;
@@ -173,7 +191,7 @@ The route observation, current-origin revision capture, immutable history, appen
 
 ### Acceptance
 
-`ACC-030`: persist at least two driving observations for two distinct reference origins; switch default origin through the already accepted origin command; verify summary moves to the new origin while both historical route rows remain unchanged. Then edit the selected origin location context and verify the old row remains history but current summary becomes missing/review-needed until a new route observation is appended.
+`ACC-030`: persist at least two `reference_to_venue` / `car` observations for two distinct reference origins; switch default origin through the already accepted origin command; verify summary moves to the new origin while both historical route rows remain unchanged and the newly default origin's existing matching route remains eligible. Then edit that origin's address/coordinates and verify the old row remains history but current summary becomes missing/review-needed until a new route observation is appended.
 
 ## Execution gates
 
@@ -191,5 +209,5 @@ The route observation, current-origin revision capture, immutable history, appen
 - Current state: `PLANNED`
 - Current pass: `PLAN`
 - Previous packet: WP-2.6D — **ACCEPTED / COMPLETE**, final acceptance-governance closure `767017112445a38863abd114e8c62feb27af6421` / `34322712448` — **5/5 SUCCESS**.
-- Current stop-condition: origin-revision binding closed normatively in this packet and `PHYSICAL-SCHEMA-V1-ADDENDUM.md`; exact-head freeze CI still required.
+- Current stop-condition: physical-origin-context snapshot binding closed normatively in this packet and `PHYSICAL-SCHEMA-V1-ADDENDUM.md`; exact-head freeze CI still required.
 - Next permitted action after freeze CI success: transition WP-2.7 to `READY`; do not write product code before READY and IN_PROGRESS gates are separately green.
