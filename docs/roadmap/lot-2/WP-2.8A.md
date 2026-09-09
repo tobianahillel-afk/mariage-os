@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.8A`
 - Lot: `2`
 - Name: Venue remote-image metadata and links
-- State: `IN_PROGRESS`
-- Current pass: `A-IMPLEMENT`
+- State: `REVIEW_PENDING`
+- Current pass: `B-ADVERSARIAL-REVIEW`
 - Primary bounded context: Documents/Media metadata for Venue remote image references
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 
@@ -87,8 +87,9 @@ Product scope is unchanged:
 - Status-board exact-head gate before this repair: `5d0fa2e57a340450fa9431cc3057709cdc2b655a` / `34383169499` — **5/5 SUCCESS**, including 40/40 rerun E2E, mutation and clean-checkout verify.
 - Pre-READY contract/coverage repair: **CLOSED / VERIFIED** by `8908eecd3eb25e89cf0b70937722f0ccf9257bb4` / `34390723409` — **5/5 SUCCESS**.
 - `PLANNED → READY` governance transition: **CLOSED / VERIFIED** by `c49d182c50ee882751bb73b63f3720f40356e5a7` / `34401165950` — **5/5 SUCCESS**.
+- `READY → IN_PROGRESS / A-IMPLEMENT` governance transition: **CLOSED / VERIFIED** by `2462a70cbf20444eed579370f25b58facd7adce9` / `34401969811` — **5/5 SUCCESS**.
+- Pass-A implementation/hardening head `3c9d53af80ee11f7c276ed9f0bb14118988a95b3` / `34414303456` — **5/5 SUCCESS**, including clean-checkout `npm run verify`.
 - WP-2.8B and WP-2.8C remain PLANNED and cannot run concurrently with WP-2.8A.
-- This `READY → IN_PROGRESS` governance transition must itself become exact-head **5/5 SUCCESS** before the first product change may be committed.
 
 ## Activation specification freeze
 
@@ -181,12 +182,20 @@ The packet deliberately excludes private Storage bytes/file validation/derivativ
 
 ## Pass A — IMPLEMENT
 
-Implementation is activated from readiness HEAD `c49d182c50ee882751bb73b63f3720f40356e5a7`, whose CI run `34401165950` is **5/5 SUCCESS**. Product implementation remains prohibited until this `READY → IN_PROGRESS` governance commit is itself exact-head green. The first product-code change after that gate must be red-first evidence for the absent media/media-link command boundary.
+**COMPLETE / VERIFIED.** Readiness head `c49d182c50ee882751bb73b63f3720f40356e5a7` / `34401165950` and the separate `READY → IN_PROGRESS` transition `2462a70cbf20444eed579370f25b58facd7adce9` / `34401969811` were both **5/5 SUCCESS**. The first product change was the RED-first boundary `56b931e66324cf34d8e898c8e50fed079e4d48ab` / `34402670623`, which failed as intended because `media`, `media_links` and the atomic create/replay RPC did not yet exist.
+
+Pass A implemented the complete remote-reference metadata slice: strict Documents/Media domain normalization and replay equality, `MediaService`, fail-closed Supabase parser/adapter, project-scoped `media` + `media_links` persistence, same-project composite relationships, `media.read` RLS, live `media.write` protected RPC authorization, atomic media+Venue-link create/replay, typed same-project conflict and foreign-project non-disclosure, plus domain/application/provider and pgTAP coverage. Static/lint complexity and measured branch-coverage gaps were closed without relaxing gates; head `12490e0e47c8a51d48eb3dac54973c950fa696b3` / `34412950692` was **5/5 SUCCESS** with 100% measured unit coverage.
+
+A pre-transition adversarial diagnostic was then run before the formal Pass-B state transition. `2dffe30470598e5a788340633fc2bb7ad3e1fb86` / `34413621642` proved link-ID foreign-project non-disclosure/atomic rollback and semantic-link conflict, but exposed one material boundary defect: direct RPC calls accepted non-canonical remote/source URLs that the TypeScript boundary would normalize. Forward-only migration `20260909230000_harden_venue_remote_media_url_canonicality.sql` fixed the PostgreSQL canonicality boundary on `3c9d53af80ee11f7c276ed9f0bb14118988a95b3` / `34414303456`, now **5/5 SUCCESS** including clean-checkout `npm run verify`. The diagnostic is retained transparently as Pass-A hardening and is not treated as a substitute for the required fresh formal Pass B.
+
+Pass-A decision: **COMPLETE / VERIFIED — transition to `REVIEW_PENDING / B-ADVERSARIAL-REVIEW`.**
 
 ## Pass B — ADVERSARIAL REVIEW
 
-Not started.
+**NEXT / RUNNING AFTER THIS GOVERNANCE TRANSITION IS EXACT-HEAD GREEN.** Reconstruct the packet from the normative media/addendum/security contracts, rerun the canonicality regression independently, and search for authorization/RLS/cross-project, replay/race, provider fail-closed, architecture/complexity and scope-drift defects. The pre-transition diagnostic above is evidence to retain, not a completed Pass-B decision.
+
+Open BLOCKING/MAJOR findings at transition: **∅ known after Pass-A hardening; fresh Pass B still required.**
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started.
+Not started. Pass C is prohibited until a fresh Pass B records no unresolved BLOCKING/MAJOR finding and the packet transitions to `ACCEPTANCE_PENDING / C-ACCEPTANCE`.

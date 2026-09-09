@@ -41,7 +41,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.6C | Venue contacts | **ACCEPTED** |
 | WP-2.6D | Venue interaction history | **ACCEPTED** |
 | WP-2.7 | contextual venue access-route observations | **ACCEPTED** |
-| WP-2.8A | Venue remote-image metadata and Venue links | **IN_PROGRESS / CURRENT** |
+| WP-2.8A | Venue remote-image metadata and Venue links | **REVIEW_PENDING / CURRENT** |
 | WP-2.8B | Venue private archived media lifecycle | PLANNED |
 | WP-2.8C | recoverable Venue remote-media metadata lifecycle | PLANNED |
 | WP-2.9 | venue document/tag/link basics | PLANNED |
@@ -70,14 +70,14 @@ The original WP-2.8 packet was decomposed **before product code** because remote
 
 ### WP-2.8A — Venue remote-image metadata and links
 
-- State: **IN_PROGRESS**.
-- Current pass: **A-IMPLEMENT**.
+- State: **REVIEW_PENDING**.
+- Current pass: **B-ADVERSARIAL-REVIEW**.
 - Packet record: `lot-2/WP-2.8A.md`.
 - Estimated size: **10 points**.
 - Owns remote image metadata, same-project Venue gallery links, exact 2048/2048/5000 user-input bounds, HTTPS/privacy-safe remote URL policy, atomic media+link create/replay, `media.read`/`media.write` RLS, UUID replay/conflict/non-disclosure and fail-closed provider boundaries.
 - `media_links` source FK is frozen as `media_id`; A does not add/accept `source_id`.
 - Does **not** own binary upload, thumbnails/derivatives, recoverable deletion/restore, gallery rendering, remote fetching/proxying, local/offline capture or import apply behavior.
-- Product implementation remains prohibited until this `READY → IN_PROGRESS` governance head is exact-head 5/5 green; after that, the first product commit must be RED-first evidence only.
+- Pass A is **COMPLETE / VERIFIED** on `3c9d53af80ee11f7c276ed9f0bb14118988a95b3` / `34414303456` — **5/5 SUCCESS**, clean-checkout included. Fresh formal Pass B begins only after this governance transition is itself exact-head green.
 
 ### WP-2.8B — Venue private archived media lifecycle
 
@@ -97,17 +97,22 @@ The original WP-2.8 packet was decomposed **before product code** because remote
 - Owns `media.deleted_at` soft-delete/restore for A-created remote Venue references, active-read filtering, retained `media_links`, idempotent lifecycle replay, live `media.write` authorization and non-disclosure.
 - Does **not** own the global 30-day Empty-trash/physical-purge scheduler or trash UI.
 
-### WP-2.8 preactivation gates
+### WP-2.8 preactivation and Pass-A gates
 
 - WP-2.7 final status-governance: `db1dae663129c3281618c932fa7f5a8184a5a2ad` / `34377221997` — **5/5 SUCCESS**.
 - Missing Storage-RLS documentation repair: `54fb49d11e16f3945eb2cb820e1f832768711e7e` / `34378129764` — **5/5 SUCCESS**, clean-checkout included.
 - Initial WP-2.8A/B split + media lifecycle specification: `cb4c95120c976d2238a57a02aa874867ff9bcca3` / `34379734883` — **5/5 SUCCESS**, clean-checkout included.
 - Lot-2 matrix reconciliation: `7b810bf1a812443184ca772c56f481083e5b2866` / `34381700196` — **5/5 SUCCESS**, clean-checkout included.
 - Status-board reconciliation before the present repair: `5d0fa2e57a340450fa9431cc3057709cdc2b655a` / `34383169499` — **5/5 SUCCESS** after an external Google mirror incident and one WebKit page-setup flake; the successful rerun executed 40/40 E2E, mutation and the full clean-checkout verify.
-- Pre-READY contract/coverage repair discovered by reread: exact URL/caption bounds, physical `media_links.media_id`, explicit no-`source_id` A contract, and the previously unassigned recoverable remote-media soft-delete/restore responsibility assigned to WP-2.8C — **CLOSED / VERIFIED** on `8908eecd3eb25e89cf0b70937722f0ccf9257bb4` / `34390723409`, **5/5 SUCCESS**.
-- WP-2.8A `PLANNED → READY` governance: `c49d182c50ee882751bb73b63f3720f40356e5a7` / `34401165950` — **5/5 SUCCESS**.
-- Historical transparency: transient accidental commit `f30346a189a5fffc55d22005e6fbf2fb1040e031` was corrected forward-only; history was not rewritten. Final governing semantics are the latest exact-head-green specification/addenda.
-- **No WP-2.8A product code, migration, `media` table, `media_links` table or remote-media command has been started yet.**
+- Pre-READY contract/coverage repair: `8908eecd3eb25e89cf0b70937722f0ccf9257bb4` / `34390723409` — **5/5 SUCCESS**.
+- WP-2.8A `PLANNED → READY`: `c49d182c50ee882751bb73b63f3720f40356e5a7` / `34401165950` — **5/5 SUCCESS**.
+- WP-2.8A `READY → IN_PROGRESS / A-IMPLEMENT`: `2462a70cbf20444eed579370f25b58facd7adce9` / `34401969811` — **5/5 SUCCESS**.
+- RED-first missing media/media_links/RPC proof: `56b931e66324cf34d8e898c8e50fed079e4d48ab` / `34402670623` — **EXPECTED FAILURE** before persistence existed.
+- First complete Pass-A green head before adversarial URL hardening: `12490e0e47c8a51d48eb3dac54973c950fa696b3` / `34412950692` — **5/5 SUCCESS**.
+- Pre-transition adversarial diagnostic: `2dffe30470598e5a788340633fc2bb7ad3e1fb86` / `34413621642` — DB **EXPECTED FAILURE** only on direct-RPC URL canonicality; cross-project link-ID and semantic duplicate-link assertions passed.
+- Forward-only canonical URL hardening: `3c9d53af80ee11f7c276ed9f0bb14118988a95b3` / `34414303456` — **5/5 SUCCESS**, including clean-checkout `npm run verify`.
+- Historical transparency: transient accidental commit `f30346a189a5fffc55d22005e6fbf2fb1040e031` and temporary diagnostic-format commits were corrected forward-only; history was not rewritten.
+- Product implementation now exists: `media`, `media_links`, protected atomic `create_venue_remote_media`, Documents/Media domain/application boundaries, fail-closed Supabase adapter/parser and direct DB/RLS/adversarial coverage. Private Storage bytes and recoverable deletion remain out of scope.
 
 ## Durable cursor
 
@@ -116,28 +121,27 @@ Current Lot: 2 — Venues core
 Lot State: IN_PROGRESS
 Branch: lot-2/venues-core
 Current Packet: WP-2.8A — Venue remote-image metadata and links
-Packet State: IN_PROGRESS
-Current Pass: A-IMPLEMENT
+Packet State: REVIEW_PENDING
+Current Pass: B-ADVERSARIAL-REVIEW
 Last completed packet: WP-2.7 — ACCEPTED / COMPLETE
 Accepted packets: WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5, WP-2.6A, WP-2.6B, WP-2.6C, WP-2.6D, WP-2.7
 Planned packets after current: WP-2.8B — PLANNED; WP-2.8C — PLANNED
-WP-2.8 Storage contract repair: 54fb49d11e16f3945eb2cb820e1f832768711e7e / 34378129764 — 5/5 SUCCESS
-WP-2.8 initial split specification: cb4c95120c976d2238a57a02aa874867ff9bcca3 / 34379734883 — 5/5 SUCCESS
-WP-2.8 matrix reconciliation: 7b810bf1a812443184ca772c56f481083e5b2866 / 34381700196 — 5/5 SUCCESS
-WP-2.8 status-board reconciliation: 5d0fa2e57a340450fa9431cc3057709cdc2b655a / 34383169499 — 5/5 SUCCESS
-WP-2.8 pre-READY contract/coverage repair: 8908eecd3eb25e89cf0b70937722f0ccf9257bb4 / 34390723409 — 5/5 SUCCESS
 WP-2.8A READY governance: c49d182c50ee882751bb73b63f3720f40356e5a7 / 34401165950 — 5/5 SUCCESS
-Current gate: exact-head CI for this WP-2.8A READY → IN_PROGRESS governance transition. Only if it is 5/5 SUCCESS may the first product change be committed, and that change must be RED-first evidence.
+WP-2.8A A-IMPLEMENT transition: 2462a70cbf20444eed579370f25b58facd7adce9 / 34401969811 — 5/5 SUCCESS
+WP-2.8A RED-first: 56b931e66324cf34d8e898c8e50fed079e4d48ab / 34402670623 — EXPECTED FAILURE
+WP-2.8A Pass-A final/hardening: 3c9d53af80ee11f7c276ed9f0bb14118988a95b3 / 34414303456 — 5/5 SUCCESS
+Current gate: exact-head CI for this REVIEW_PENDING / B-ADVERSARIAL-REVIEW governance transition.
+Next permitted product/evidence work after that gate: fresh formal Pass B only; no Pass C or WP-2.8B activation yet.
 ```
 
 ## Next execution sequence
 
-1. Exact-head CI for this `WP-2.8A READY → IN_PROGRESS` governance transition must be **5/5 SUCCESS**.
-2. First product change is **red-first evidence** for the absent `media` / `media_links` persistence and atomic remote-media command boundary.
-3. Confirm the red run fails only for the intended missing WP-2.8A behavior.
-4. Then implement Pass A; verify exact-head CI 5/5 before REVIEW_PENDING.
-5. Fresh Pass B adversarial review; remediate all BLOCKING/MAJOR findings.
-6. Pass C mechanical EXPECTED → IMPLEMENTED → VERIFIED reconciliation; required-minus-evidenced must be **∅** before packet acceptance.
+1. Exact-head CI for this `REVIEW_PENDING / B-ADVERSARIAL-REVIEW` governance transition must be **5/5 SUCCESS**.
+2. Perform a fresh Pass B reconstruction from packet/addendum/security contracts rather than relying on Pass-A conclusions.
+3. Extend/confirm adversarial URL canonicality, live authorization, RLS, cross-project non-disclosure, replay/conflict/atomicity and fail-closed provider evidence; classify every finding.
+4. Remediate every BLOCKING/MAJOR finding and rerun invalidated evidence; open BLOCKING/MAJOR must be **∅** before leaving Pass B.
+5. Only then transition to `ACCEPTANCE_PENDING / C-ACCEPTANCE`, with its own exact-head 5/5 gate.
+6. Pass C mechanically reconciles EXPECTED → IMPLEMENTED → VERIFIED; required-minus-evidenced must be **∅** before packet acceptance.
 7. Only after WP-2.8A acceptance may WP-2.8B activation be revalidated. WP-2.8C remains PLANNED until the linear media sequence reaches it.
 
 ## WP-2.8A implementation boundaries to preserve
@@ -164,6 +168,7 @@ Current gate: exact-head CI for this WP-2.8A READY → IN_PROGRESS governance tr
 - WP-2.8 media type/category/initial remote-reference lifecycle ambiguity: **CLOSED / VERIFIED** on `cb4c951...` / `34379734883`.
 - WP-2.8A exact text/URL bounds, physical media-link source FK and no-`source_id` contract: **CLOSED / VERIFIED** on `8908eecd...` / `34390723409`.
 - WP-2.8 recoverable remote-media metadata responsibility gap: **CLOSED / VERIFIED IN ASSIGNMENT** by planned WP-2.8C on `8908eecd...` / `34390723409`.
+- WP-2.8A direct-RPC URL canonicality parity: **CLOSED / VERIFIED** by `3c9d53af...` / `34414303456`; fresh Pass B must retain/extend the regression proof.
 - WP-2.8B Storage↔DB atomicity/orphan cleanup semantics: **OPEN for WP-2.8B only**; must close before B can become READY.
 - WP-2.8C optimistic revision/receipt activation detail: **OPEN for WP-2.8C only**; revalidate after A/B acceptance before C READY without changing its frozen soft-delete/restore semantics.
 - Venue lifecycle documentation conflict from WP-2.1: **CLOSED** by `docs/domain/STATE-MACHINES-VENUE-LIFECYCLE-ADDENDUM.md`.
@@ -203,16 +208,14 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted Lot-2 packets: WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5, WP-2.6A, WP-2.6B, WP-2.6C, WP-2.6D, WP-2.7
 Last completed packet: WP-2.7 — ACCEPTED / COMPLETE
-Current packet: WP-2.8A — IN_PROGRESS / A-IMPLEMENT
+Current packet: WP-2.8A — REVIEW_PENDING / B-ADVERSARIAL-REVIEW
 Next packets: WP-2.8B — PLANNED; WP-2.8C — PLANNED
-WP-2.8 Storage-RLS repair: 54fb49d1... / 34378129764 — 5/5 SUCCESS
-WP-2.8 initial split spec: cb4c9512... / 34379734883 — 5/5 SUCCESS
-WP-2.8 matrix reconciliation: 7b810bf1... / 34381700196 — 5/5 SUCCESS
-WP-2.8 status-board reconciliation: 5d0fa2e5... / 34383169499 — 5/5 SUCCESS
-WP-2.8 pre-READY contract/coverage repair: 8908eecd... / 34390723409 — 5/5 SUCCESS
 WP-2.8A READY governance: c49d182c... / 34401165950 — 5/5 SUCCESS
-Current gate: exact-head CI for this READY → IN_PROGRESS governance transition
-Next permitted change after that gate: RED-first WP-2.8A evidence for absent media/media_links + atomic command boundary
-No implementation may be added before the RED-first evidence commit is observed failing only for the intended missing behavior
+WP-2.8A A-IMPLEMENT transition: 2462a70c... / 34401969811 — 5/5 SUCCESS
+WP-2.8A RED-first: 56b931e6... / 34402670623 — EXPECTED FAILURE
+WP-2.8A Pass-A final/hardening: 3c9d53af... / 34414303456 — 5/5 SUCCESS
+Current gate: exact-head CI for REVIEW_PENDING / B-ADVERSARIAL-REVIEW governance
+Next permitted change after that gate: fresh formal Pass-B evidence/review only
+No Pass-C transition or WP-2.8B activation until Pass B has no unresolved BLOCKING/MAJOR finding
 Lots 3–12: NOT_STARTED
 ```
