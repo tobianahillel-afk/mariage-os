@@ -171,7 +171,10 @@ export function normalizeVenueAccessRoute(
     return { ok: false, error: "invalid_mode" };
 
   const originLabel = optionalText(draft.originLabel, 160);
-  if (originLabel === undefined || (referenceOriginId !== null && originLabel !== null))
+  if (
+    originLabel === undefined ||
+    (referenceOriginId !== null && originLabel !== null)
+  )
     return { ok: false, error: "invalid_origin_label" };
   const destinationLabel = optionalText(draft.destinationLabel, 160);
   if (destinationLabel === undefined)
@@ -221,7 +224,8 @@ export function venueAccessRouteCallerPayloadEquals(
     record.venueId === payload.venueId &&
     record.referenceOriginId === payload.referenceOriginId &&
     record.routeType === payload.routeType &&
-    (record.referenceOriginId !== null || record.originLabel === payload.originLabel) &&
+    (record.referenceOriginId !== null ||
+      record.originLabel === payload.originLabel) &&
     record.destinationLabel === payload.destinationLabel &&
     record.mode === payload.mode &&
     record.durationMinutes === payload.durationMinutes &&
