@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.8A`
 - Lot: `2`
 - Name: Venue remote-image metadata and links
-- State: `PLANNED`
-- Current pass: `PLAN`
+- State: `READY`
+- Current pass: `A-READY`
 - Primary bounded context: Documents/Media metadata for Venue remote image references
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 
@@ -85,8 +85,9 @@ Product scope is unchanged:
 - Missing `docs/security/STORAGE-RLS.md` governance prerequisite: **CLOSED / VERIFIED** by `54fb49d11e16f3945eb2cb820e1f832768711e7e` / `34378129764` — **5/5 SUCCESS**.
 - Previous split/lifecycle specification gate: `cb4c95120c976d2238a57a02aa874867ff9bcca3` / `34379734883` — **5/5 SUCCESS**.
 - Status-board exact-head gate before this repair: `5d0fa2e57a340450fa9431cc3057709cdc2b655a` / `34383169499` — **5/5 SUCCESS**, including 40/40 rerun E2E, mutation and clean-checkout verify.
+- Pre-READY contract/coverage repair: **CLOSED / VERIFIED** by `8908eecd3eb25e89cf0b70937722f0ccf9257bb4` / `34390723409` — **5/5 SUCCESS**.
 - WP-2.8B and WP-2.8C remain PLANNED and cannot run concurrently with WP-2.8A.
-- This contract/coverage repair must itself become exact-head **5/5 SUCCESS** before A can transition to READY.
+- This `PLANNED → READY` governance transition must itself become exact-head **5/5 SUCCESS** before A may transition separately to `IN_PROGRESS`.
 
 ## Activation specification freeze
 
@@ -179,7 +180,7 @@ The packet deliberately excludes private Storage bytes/file validation/derivativ
 
 ## Pass A — IMPLEMENT
 
-Not started. Entry requires this pre-READY contract/coverage repair to be exact-head green, then a separate exact-head green `PLANNED → READY` transition, followed by a separate exact-head green `READY → IN_PROGRESS` transition. First product-code change must be red-first evidence for the absent media/media-link command boundary.
+Not started. WP-2.8A is READY, but product implementation remains prohibited until this READY governance commit is exact-head green and a separate `READY → IN_PROGRESS` governance transition is itself exact-head green. The first product-code change must then be red-first evidence for the absent media/media-link command boundary.
 
 ## Pass B — ADVERSARIAL REVIEW
 
