@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.7`
 - Lot: `2`
 - Name: Contextual venue access-route observations
-- State: `REVIEW_PENDING`
-- Current pass: `B-ADVERSARIAL-REVIEW`
+- State: `ACCEPTANCE_PENDING`
+- Current pass: `C-ACCEPTANCE`
 - Primary bounded context: Venue access-route observation history and default-origin summary selection
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 
@@ -214,25 +214,41 @@ The context snapshot adds no second public command and no second bounded workflo
 
 Pass-A decision: **COMPLETE / VERIFIED — transition to REVIEW_PENDING / B-ADVERSARIAL-REVIEW**.
 
+## Pass B — ADVERSARIAL REVIEW
+
+- REVIEW_PENDING transition/traceability head `5f98e877275a9f4149f5e522e426b7f4347a9e9e` / `34366885380`: **5/5 SUCCESS**.
+- Fresh review reconstructed the route slice independently from the normative schema, access contracts, authorization matrix, accepted Lot-1 reference-origin behavior and prior append/replay precedents.
+- `WP2.7-B-001` **MAJOR** — TypeScript canonicalized a whitespace-only `originLabel` to `null` for a referenced origin while the SQL wrapper still rejected the raw non-null input. Red-first `1fa53b8f9864ec4ab2f3999073bb0a99f95773a5` / `34369198622`: expected FAILURE (`22023` instead of success) with prior DB tests remaining green.
+- `WP2.7-B-001` is **RESOLVED / VERIFIED** by forward-only migration `20260909123000_harden_venue_access_route_origin_label_parity.sql` on `cc85c0167e40eb2250d9143b6f4ded28d94118d6` / `34369744964`: **5/5 SUCCESS**, including clean-checkout `npm run verify`.
+- Fresh authorization evidence on `c1cb06bf6fdd4b33bc966f985f668938a7edf158` proves editor append success, immediate same-session downgrade denial, restored editor success, immediate same-session revocation denial, internal helper non-exposure and `SECURITY DEFINER search_path=pg_catalog`; exact CI `34370566573`: **5/5 SUCCESS**, including clean-checkout `npm run verify`.
+- Replay after later origin edits still returns the originally accepted historical route/snapshots; same-project payload mismatch remains typed conflict; foreign-project route-ID collision remains generic/non-disclosing.
+- Immutable history, referenced-origin delete protection, current-location applicability, explicit stale/missing summary, provider microsecond ordering, malformed/duplicate provider fail-closed behavior and `access.read` / `access.write` mapping remain verified.
+- Open BLOCKING/MAJOR findings: **∅**.
+- Pass B decision: **PASS — transition to ACCEPTANCE_PENDING / C-ACCEPTANCE**.
+
 ## Execution gates
 
 1. Physical-origin snapshot freeze `4baa335b5f964ee13e806cd9a5170f28ff179835` / `34336841778` and canonical historical-snapshot portability repair `05f9695d5e437a69dfd0cf5b839ad00bdc7afc38` / `34343241298` are **5/5 SUCCESS**.
 2. READY-transition head `bb93ad517130c2c0d6ce8f4ac7dec812e3e0d135` / `34344326696` is **5/5 SUCCESS**.
 3. Pass A implementation head `004aec0ee30e5f228c55ecd6fe7fae8d5ba98794` / `34364195509` is **5/5 SUCCESS**; Pass A is complete and verified.
-4. WP-2.7 is `REVIEW_PENDING / B-ADVERSARIAL-REVIEW`; this transition head itself must be **5/5 SUCCESS** before fresh Pass B begins.
-5. Pass B independently reconstructs the complete slice; any BLOCKING/MAJOR finding returns to remediation with dedicated evidence.
-6. Only a fresh Pass-B PASS may transition the packet to `ACCEPTANCE_PENDING / C-ACCEPTANCE`.
+4. REVIEW_PENDING transition head `5f98e877275a9f4149f5e522e426b7f4347a9e9e` / `34366885380` is **5/5 SUCCESS**.
+5. Pass-B finding `WP2.7-B-001` is resolved/verified on `cc85c0167e40eb2250d9143b6f4ded28d94118d6` / `34369744964`; final fresh reviewed head `c1cb06bf6fdd4b33bc966f985f668938a7edf158` / `34370566573` is **5/5 SUCCESS**; open BLOCKING/MAJOR findings **∅**.
+6. WP-2.7 is `ACCEPTANCE_PENDING / C-ACCEPTANCE` only after the Pass-B PASS above.
 7. Pass C reconciles every responsibility/control before packet acceptance.
 8. WP-2.8 remains prohibited until WP-2.7 is ACCEPTED and its acceptance-governance head is green.
 
 ## Handoff
 
-- Current state: `REVIEW_PENDING`
-- Current/next pass: `B-ADVERSARIAL-REVIEW`
+- Current state: `ACCEPTANCE_PENDING`
+- Current/next pass: `C-ACCEPTANCE`
 - Previous packet: WP-2.6D — **ACCEPTED / COMPLETE**, final acceptance-governance closure `767017112445a38863abd114e8c62feb27af6421` / `34322712448` — **5/5 SUCCESS**.
 - Specification gates: physical-origin snapshot freeze `4baa335b5f964ee13e806cd9a5170f28ff179835` / `34336841778`; canonical portability repair `05f9695d5e437a69dfd0cf5b839ad00bdc7afc38` / `34343241298`; both **5/5 SUCCESS**.
 - READY transition: `bb93ad517130c2c0d6ce8f4ac7dec812e3e0d135` / `34344326696` — **5/5 SUCCESS**.
 - Red-first Pass-A boundary: `a9b8909d2225e54da9e9dc1fddd57ec9aa3463b5` / `34347040335` — expected FAILURE before persistence/append existed.
 - Final Pass-A implementation: `004aec0ee30e5f228c55ecd6fe7fae8d5ba98794` / `34364195509` — **5/5 SUCCESS**.
-- Open BLOCKING/MAJOR findings at Pass-A handoff: none known; fresh Pass B pending.
-- Next permitted action: verify this REVIEW_PENDING transition HEAD 5/5; then perform a fresh WP-2.7 Pass B adversarial review. Do not start WP-2.8 concurrently.
+- REVIEW_PENDING transition: `5f98e877275a9f4149f5e522e426b7f4347a9e9e` / `34366885380` — **5/5 SUCCESS**.
+- Pass-B red-first finding: `WP2.7-B-001` on `1fa53b8f9864ec4ab2f3999073bb0a99f95773a5` / `34369198622` — expected FAILURE.
+- Pass-B remediation: `cc85c0167e40eb2250d9143b6f4ded28d94118d6` / `34369744964` — **5/5 SUCCESS**.
+- Final fresh Pass-B reviewed head: `c1cb06bf6fdd4b33bc966f985f668938a7edf158` / `34370566573` — **5/5 SUCCESS**.
+- Open BLOCKING/MAJOR findings after Pass B: `∅`.
+- Next permitted action: verify this ACCEPTANCE_PENDING transition HEAD 5/5; then perform WP-2.7 Pass C mechanical reconciliation. WP-2.8 remains prohibited concurrently.
