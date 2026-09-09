@@ -269,7 +269,7 @@ Planned packet after current: WP-2.8
 WP-2.6 base freeze head/run: cf46c731bd45b77feaa514b22036096301280755 / 34170253114 — 5/5 SUCCESS
 WP-2.6 boundary freeze head/run: 6dce81a49ccdbb7bc9da54b2491a0c8746e12e50 / 34171320200 — 5/5 SUCCESS
 WP-2.6A final acceptance-governance head/run: 186933ed0af8c45ddaa1b5c883bfd3f70086c6fe / 34238484533 — 5/5 SUCCESS
-WP-2.6B deterministic availability spec head/run: 9f5c8af30c58c146d89ab19c3fffdd0a8f63dc89d / 34239745903 — 5/5 SUCCESS
+WP-2.6B deterministic availability spec head/run: 9f5c8af30c58c146d89b1464cad96cb8e43dbc7b / 34239745903 — 5/5 SUCCESS
 WP-2.6B READY/governance head/run: 1ff69cd2e599a72a6cf703a658b836b2b3431619 / 34242853512 — 5/5 SUCCESS
 WP-2.6B Pass-A head/run: 1c1dd4db875e5253fc9affdcf498991c4c6a5f64 / 34253821826 — 5/5 SUCCESS
 WP-2.6B final Pass-B reviewed head/run: e92af194f774895b3b397d3be60350d09d42d8ff / 34263468532 — 5/5 SUCCESS
