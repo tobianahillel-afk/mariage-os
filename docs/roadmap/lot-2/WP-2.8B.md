@@ -41,6 +41,8 @@ Subject to the activation stop-condition below:
 ### Explicitly out of scope
 
 - remote-reference metadata foundation already owned by WP-2.8A;
+- recoverable soft-delete/restore of A's remote-reference metadata — WP-2.8C;
+- global trash UI / 30-day purge scheduler;
 - Venue gallery/detail UI, ordering/main-photo UX — WP-2.11;
 - local/offline image queue and own-visit capture semantics — WP-2.12/Lot 10;
 - document uploads/versioning — WP-2.9 and later document work;
@@ -54,7 +56,8 @@ Subject to the activation stop-condition below:
 - WP-2.8A must be **ACCEPTED / COMPLETE** before WP-2.8B activation.
 - Lot-1 WP-1.9 private Storage authorization foundation remains authoritative and must be reused, not replaced.
 - Restored `docs/security/STORAGE-RLS.md` is a required normative input.
-- Only one packet may be IN_PROGRESS; WP-2.9 remains prohibited concurrently.
+- `MEDIA-LIFECYCLE-ADDENDUM.md` and `LOT-2-COVERAGE-MATRIX-ADDENDUM.md` define the A/B/C decomposition; WP-2.8C remains PLANNED while B runs.
+- Only one packet may be IN_PROGRESS; WP-2.8C and WP-2.9 remain prohibited concurrently.
 
 ## Mandatory pre-READY stop-condition
 

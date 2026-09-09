@@ -14,16 +14,17 @@ Do not create parallel `domain/media/`, `application/media/` or alternate storag
 
 ## 2. WP-2.8 decomposition boundary
 
-The original planned WP-2.8 combines two independently reviewable security/persistence slices and is too large to enter implementation as one packet:
+The original planned WP-2.8 combines independently reviewable security/persistence slices and is too large to enter implementation as one packet:
 
-1. **WP-2.8A — Venue remote-image metadata and links**: `media`/`media_links` persistence for privacy-safe remote references linked to Venues, with no private binary upload.
+1. **WP-2.8A — Venue remote-image metadata and links**: `media`/`media_links` persistence for privacy-safe remote references linked to Venues, with no private binary upload and no deletion lifecycle.
 2. **WP-2.8B — Private archive/original/derivative lifecycle**: private Storage bytes, file validation, immutable originals, hashes/derivatives and interrupted/orphan recovery.
+3. **WP-2.8C — Recoverable Venue remote-media metadata lifecycle**: soft-delete/restore for the remote-reference metadata created by A, without deleting/fetching private or remote bytes.
 
-The split changes implementation orchestration only. It does not remove or add product requirements. Venue gallery presentation remains WP-2.11; local/offline binary capture remains WP-2.12/Lot 10.
+The split changes implementation orchestration only. It does not remove or add product requirements. Venue gallery presentation remains WP-2.11; local/offline binary capture remains WP-2.12/Lot 10. The default execution order is A → B → C → WP-2.9, with only one packet active at a time. C depends on A's accepted metadata foundation; B and C remain separate because private binary recovery and metadata trash lifecycle have different failure modes.
 
 ## 3. V1 media type for Lot 2
 
-For the Venue-photo responsibilities owned by WP-2.8A/B, the only accepted `media.media_type` value is:
+For the Venue-photo responsibilities owned by WP-2.8A/B/C, the only accepted `media.media_type` value is:
 
 - `image`.
 
@@ -53,14 +54,20 @@ The exact Lot-2 image-category allowlist is:
 WP-2.8A creates only committed remote-image references. For such a `media` row:
 
 - `media_type = 'image'`;
-- `remote_url` is required;
+- `remote_url` is required, canonical and **1..2048 Unicode scalar values**;
 - `storage_path` is null;
 - `derivative_of_id` is null;
 - `is_original = true` as the logical source asset for that reference;
 - `upload_status = 'ready'`;
 - `original_filename`, `mime_type`, `size_bytes`, `sha256`, `width_px` and `height_px` are null because WP-2.8A does not fetch/verify remote bytes;
-- `source_page_url` and `caption` are optional bounded metadata;
+- `source_page_url` is optional; when present it is canonical and at most **2048 Unicode scalar values**;
+- `caption` is optional; canonicalization trims surrounding whitespace, empty becomes null, and a non-null value is at most **5000 Unicode scalar values**;
+- over-limit strings are rejected; no silent truncation is permitted;
 - project/audit identity is server-controlled according to the ordinary project-scoped authorization model.
+
+The URL ceiling intentionally reuses the accepted `fact-url` 2048-code-point boundary; the caption ceiling reuses the accepted 5000-code-point bounded free-text convention already used by Venue notes/summaries.
+
+WP-2.8A does **not** add `source_id` to `media`, and its command does not accept a caller-owned `source_id`. Remote-reference provenance in A is the bounded `source_page_url` plus optional caption. A future packet that wants an explicit `sources` relationship must own and review that schema/API change rather than inferring it here.
 
 For WP-2.8A, `ready` means that the metadata reference is valid for application use; it does **not** claim that remote bytes were copied, verified, cached or archived.
 
@@ -71,6 +78,7 @@ No other `upload_status` value is frozen by WP-2.8A. Private-upload transition s
 A WP-2.8A `remote_url` must pass the existing external-content rules:
 
 - absolute HTTPS URL only;
+- maximum 2048 Unicode scalar values;
 - no `javascript:`, `data:`, `file:` or other active/local schemes;
 - no URL credentials;
 - reject obvious localhost/localhost-style hosts;
@@ -78,15 +86,20 @@ A WP-2.8A `remote_url` must pass the existing external-content rules:
 - never construct or append project ID, guest data, auth/session/invitation tokens, private notes or other private payload to the remote URL;
 - remote content remains untrusted and nonessential.
 
-A source URL may retain the public source page/provenance. Application code must not derive a remote image request by adding private query parameters to either URL.
+A `source_page_url`, when present, is a public provenance/navigation URL, is bounded to 2048 Unicode scalar values, must be an absolute `http` or `https` URL under the existing navigation/source-URL validation rules, and must not contain credentials or private project payload. It is not fetched by WP-2.8A. Application code must not derive a remote image request by adding private query parameters to either URL.
 
 Direct browser rendering remains a later presentation responsibility. When rendered, `referrerpolicy="no-referrer"` (or equivalent), lazy loading where appropriate and broken/slow fallback rules from `PRIVACY.md` / `EXTERNAL-CONTENT-SECURITY.md` remain mandatory. WP-2.8A must not claim that direct remote loading hides the user's IP address.
 
-No third-party/server-side image proxy is introduced by WP-2.8A/B.
+No third-party/server-side image proxy is introduced by WP-2.8A/B/C.
 
 ## 7. Venue media-link contract for WP-2.8A
 
 `media_links` remains the logical relationship owner; Storage path structure never implies Venue ownership.
+
+For the physical schema, the base-schema phrase `source object id` is frozen for `media_links` as:
+
+- `media_id uuid not null`;
+- composite same-project FK `(project_id, media_id) -> media(project_id, id)`.
 
 WP-2.8A exposes only the Venue relationship needed by `FTR-024`:
 
@@ -109,6 +122,8 @@ The protected command uses caller-generated UUIDs for the media record and link 
 - an ID already owned by another project fails generically/non-disclosingly;
 - client cannot supply/override project/audit identity or storage-path/private-upload fields through the remote-reference command.
 
+Caller-owned semantic payload for replay includes the Venue target, frozen relationship, category, `remote_url`, canonical `source_page_url` and canonical caption. Server-controlled audit values are not replay-equality inputs.
+
 The command requires live `media.write`. Reads require live `media.read`. Direct table boundaries remain RLS-protected and same-project constraints remain authoritative.
 
 ## 9. WP-2.8B private-lifecycle stop-condition
@@ -126,7 +141,25 @@ Before WP-2.8B can transition from PLANNED to READY, repository documentation mu
 
 Until that stop-condition is closed and exact-head CI is green, WP-2.8B product code must not invent those states.
 
-## 10. Explicit downstream boundaries
+## 10. WP-2.8C recoverable remote-metadata lifecycle
+
+`DELETION-RETENTION.md` requires media/document metadata to be recoverable through soft deletion before purge. That responsibility is explicitly assigned to WP-2.8C rather than silently expanding the already 10-point WP-2.8A.
+
+For the remote-reference rows created by A:
+
+- `media.deleted_at timestamptz null` is the soft-delete marker under the standard audit conventions;
+- ordinary active-media list/read models exclude `deleted_at is not null` rows;
+- soft-delete sets `deleted_at` without changing the remote URL, provenance, caption, category, immutable project identity or Venue relationship;
+- the existing `media_links` row remains retained while the media row is soft-deleted so a restore is reversible and does not manufacture a new logical link;
+- restore clears `deleted_at` and returns the same media/link identity when same-project integrity still holds;
+- deleting an already deleted row and restoring an already active row are idempotent successful lifecycle replays rather than duplicate mutations;
+- the protected lifecycle transition requires live `media.write`; foreign-project IDs fail generically/non-disclosingly; ordinary RLS/project isolation remains authoritative;
+- remote-reference soft-delete does not fetch, delete, archive or transform remote content and cannot affect a separate private archived media row;
+- WP-2.8C does not implement the global 30-day purge/Empty-trash scheduler. Physical purge remains a later explicit trash/retention operation and must preserve the remote-reference/private-archive independence rule.
+
+WP-2.8C may expose delete/restore as two application operations over one protected lifecycle transition command. Any optimistic revision/receipt detail must follow the accepted collaborative mutation conventions and be frozen in the packet before its READY transition.
+
+## 11. Explicit downstream boundaries
 
 This addendum does not implement or accept:
 
@@ -135,6 +168,7 @@ This addendum does not implement or accept:
 - Documents business model/versioning — WP-2.9 and later document packets;
 - generic Vendor/Guest/etc. media links — their owning packets;
 - server image proxy/CDN transformation service;
+- global trash UI, 30-day physical purge scheduler or project purge workflow;
 - Lot-4 canonical import commit or `.mariage` binary backup/restore.
 
 Feature-level status must remain honest: accepting a Lot-2 media foundation does not by itself accept whole downstream `FTR-092` or presentation responsibilities.
