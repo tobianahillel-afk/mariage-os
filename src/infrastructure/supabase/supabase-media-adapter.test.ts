@@ -8,6 +8,7 @@ import {
 const projectId = "11111111-1111-4111-8111-111111111111";
 const venueId = "22222222-2222-4222-8222-222222222222";
 const mediaId = "33333333-3333-4333-8333-333333333333";
+const otherMediaId = "66666666-6666-4666-8666-666666666666";
 const linkId = "44444444-4444-4444-8444-444444444444";
 const actorId = "55555555-5555-4555-8555-555555555555";
 
@@ -169,6 +170,29 @@ it("maps provider conflict and rejects substituted success receipts", async () =
   });
 });
 
+it.each(["provider-down", { code: 500 }])(
+  "maps non-conflict provider failure %#",
+  async (error) => {
+    const client = new Client(
+      { data: [], error: null },
+      { data: null, error },
+    );
+    await expect(
+      new SupabaseMediaAdapter(client).createVenueRemoteMedia(input),
+    ).rejects.toMatchObject({ code: "persistence_failed" });
+  },
+);
+
+it("fails closed when a successful RPC returns an invalid shape", async () => {
+  const client = new Client(
+    { data: [], error: null },
+    { data: null, error: null },
+  );
+  await expect(
+    new SupabaseMediaAdapter(client).createVenueRemoteMedia(input),
+  ).rejects.toMatchObject({ code: "provider_response_invalid" });
+});
+
 it("lists only the requested Venue gallery relationship in provider order", async () => {
   const client = new Client(
     { data: [{ ...link(), media: media() }], error: null },
@@ -191,7 +215,7 @@ it("lists only the requested Venue gallery relationship in provider order", asyn
   ]);
 });
 
-it("fails closed on duplicate or malformed list rows", async () => {
+it("fails closed on duplicate media list rows", async () => {
   const duplicated = { ...link(), media: media() };
   const client = new Client(
     { data: [duplicated, duplicated], error: null },
@@ -199,7 +223,51 @@ it("fails closed on duplicate or malformed list rows", async () => {
   );
   await expect(
     new SupabaseMediaAdapter(client).listVenueRemoteMedia(projectId, venueId),
-  ).rejects.toMatchObject({
-    code: "provider_response_invalid",
-  });
+  ).rejects.toMatchObject({ code: "provider_response_invalid" });
+});
+
+it("fails closed on duplicate link identity with distinct media", async () => {
+  const first = { ...link(), media: media() };
+  const second = {
+    ...link({ media_id: otherMediaId }),
+    media: media({ id: otherMediaId }),
+  };
+  const client = new Client(
+    { data: [first, second], error: null },
+    { data: null, error: null },
+  );
+  await expect(
+    new SupabaseMediaAdapter(client).listVenueRemoteMedia(projectId, venueId),
+  ).rejects.toMatchObject({ code: "provider_response_invalid" });
+});
+
+it("maps provider and non-array list failures", async () => {
+  const providerFailure = new Client(
+    { data: [], error: "provider-down" },
+    { data: null, error: null },
+  );
+  await expect(
+    new SupabaseMediaAdapter(providerFailure).listVenueRemoteMedia(
+      projectId,
+      venueId,
+    ),
+  ).rejects.toMatchObject({ code: "persistence_failed" });
+
+  const nonArray = new Client(
+    { data: null, error: null },
+    { data: null, error: null },
+  );
+  await expect(
+    new SupabaseMediaAdapter(nonArray).listVenueRemoteMedia(projectId, venueId),
+  ).rejects.toMatchObject({ code: "persistence_failed" });
+});
+
+it("maps malformed list rows to provider response invalid", async () => {
+  const client = new Client(
+    { data: [null], error: null },
+    { data: null, error: null },
+  );
+  await expect(
+    new SupabaseMediaAdapter(client).listVenueRemoteMedia(projectId, venueId),
+  ).rejects.toMatchObject({ code: "provider_response_invalid" });
 });
