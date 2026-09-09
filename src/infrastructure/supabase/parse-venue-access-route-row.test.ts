@@ -37,7 +37,9 @@ function row(overrides: Record<string, unknown> = {}) {
 }
 
 it("parses referenced and custom canonical route rows", () => {
-  expect(parseVenueAccessRouteRow(row(), projectId, venueId, routeId)).toEqual({
+  expect(
+    parseVenueAccessRouteRow(row(), projectId, venueId, routeId),
+  ).toEqual({
     id: routeId,
     projectId,
     venueId,
@@ -116,9 +118,15 @@ it("rejects non-object, malformed identities and request substitution", () => {
   }
 
   const other = "77777777-7777-4777-8777-777777777777";
-  expect(() => parseVenueAccessRouteRow(row(), other, venueId, routeId)).toThrow();
-  expect(() => parseVenueAccessRouteRow(row(), projectId, other, routeId)).toThrow();
-  expect(() => parseVenueAccessRouteRow(row(), projectId, venueId, other)).toThrow();
+  expect(() =>
+    parseVenueAccessRouteRow(row(), other, venueId, routeId),
+  ).toThrow();
+  expect(() =>
+    parseVenueAccessRouteRow(row(), projectId, other, routeId),
+  ).toThrow();
+  expect(() =>
+    parseVenueAccessRouteRow(row(), projectId, venueId, other),
+  ).toThrow();
 });
 
 it("rejects malformed or noncanonical caller-owned fields", () => {

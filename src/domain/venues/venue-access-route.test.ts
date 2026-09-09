@@ -286,16 +286,16 @@ it("compares replay caller payloads while excluding referenced origin snapshots"
     { notes: "other" },
   ];
   for (const change of changes) {
-    expect(venueAccessRouteCallerPayloadEquals(record(), payload(change))).toBe(
-      false,
-    );
+    expect(
+      venueAccessRouteCallerPayloadEquals(record(), payload(change)),
+    ).toBe(false);
   }
 });
 
 it("matches only current physical origin context for the requested mode", () => {
-  expect(venueAccessRouteMatchesCurrentOrigin(record(), origin(), "car")).toBe(
-    true,
-  );
+  expect(
+    venueAccessRouteMatchesCurrentOrigin(record(), origin(), "car"),
+  ).toBe(true);
   expect(
     venueAccessRouteMatchesCurrentOrigin(
       record({ referenceOriginId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" }),
@@ -310,9 +310,9 @@ it("matches only current physical origin context for the requested mode", () => 
       "car",
     ),
   ).toBe(false);
-  expect(venueAccessRouteMatchesCurrentOrigin(record(), origin(), "train")).toBe(
-    false,
-  );
+  expect(
+    venueAccessRouteMatchesCurrentOrigin(record(), origin(), "train"),
+  ).toBe(false);
   expect(
     venueAccessRouteMatchesCurrentOrigin(
       record({ referenceOriginAddressSnapshot: "Old" }),
@@ -351,7 +351,9 @@ it("derives explicit summary states without reordering provider history", () => 
 
   const first = record({ id: "77777777-7777-4777-8777-777777777777" });
   const second = record({ id: "11111111-1111-4111-8111-111111111111" });
-  expect(selectVenueAccessRouteSummary([first, second], origin(), "car")).toEqual({
+  expect(
+    selectVenueAccessRouteSummary([first, second], origin(), "car"),
+  ).toEqual({
     status: "ready",
     origin: origin(),
     route: first,
