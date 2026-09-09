@@ -3,16 +3,24 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select no_plan();
 
-select has_check(
-  'public',
-  'venue_access_routes',
-  'venue_access_routes_origin_label_160_check',
+select ok(
+  exists (
+    select 1
+    from pg_catalog.pg_constraint c
+    where c.conrelid = 'public.venue_access_routes'::regclass
+      and c.conname = 'venue_access_routes_origin_label_160_check'
+      and c.contype = 'c'
+  ),
   'route origin labels have the frozen 160-character storage bound'
 );
-select has_check(
-  'public',
-  'venue_access_routes',
-  'venue_access_routes_destination_label_160_check',
+select ok(
+  exists (
+    select 1
+    from pg_catalog.pg_constraint c
+    where c.conrelid = 'public.venue_access_routes'::regclass
+      and c.conname = 'venue_access_routes_destination_label_160_check'
+      and c.contype = 'c'
+  ),
   'route destination labels have the frozen 160-character storage bound'
 );
 select ok(
