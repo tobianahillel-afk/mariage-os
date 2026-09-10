@@ -1,5 +1,7 @@
 import { expect, it } from "vitest";
-import { BrowserPrivateMediaImageInspector } from "@infra/browser/browser-private-media-image-inspector";
+import {
+  BrowserPrivateMediaImageInspector,
+} from "@infra/browser/browser-private-media-image-inspector";
 
 it("decodes exact private image bytes and closes the bitmap", async () => {
   let closed = false;
