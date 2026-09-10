@@ -173,6 +173,37 @@ it("validates list identity and exposes persistence failure generically", async 
   });
 });
 
+it("rejects invalid private media identities and missing private media ports", async () => {
+  const service = new MediaService(new StubPort());
+  const validRequest = {
+    operationId,
+    projectId,
+    venueId,
+    mediaId,
+    linkId,
+  } as const;
+
+  for (const key of [
+    "operationId",
+    "projectId",
+    "venueId",
+    "mediaId",
+    "linkId",
+  ] as const) {
+    expect(
+      await service.abandonVenuePrivateOriginal({
+        ...validRequest,
+        [key]: "bad",
+      }),
+    ).toEqual({ ok: false, error: "invalid_identity" });
+  }
+
+  expect(await service.abandonVenuePrivateOriginal(validRequest)).toEqual({
+    ok: false,
+    error: "persistence_failed",
+  });
+});
+
 it("deletes private Storage before abandoning a pending original", async () => {
   const events: string[] = [];
   const storagePath = `${projectId}/media/${mediaId}/original`;
