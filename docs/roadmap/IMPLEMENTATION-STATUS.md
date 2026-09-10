@@ -42,7 +42,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.6D | Venue interaction history | **ACCEPTED** |
 | WP-2.7 | contextual venue access-route observations | **ACCEPTED** |
 | WP-2.8A | Venue remote-image metadata and Venue links | **ACCEPTED** |
-| WP-2.8B | Venue private archived media lifecycle | **PLANNED / NEXT** |
+| WP-2.8B | Venue private archived media lifecycle | **READY / CURRENT** |
 | WP-2.8C | recoverable Venue remote-media metadata lifecycle | PLANNED |
 | WP-2.9 | venue document/tag/link basics | PLANNED |
 | WP-2.10 | repositories, local cache, pending/offline mutations | PLANNED |
@@ -86,16 +86,17 @@ The original WP-2.8 responsibility is decomposed into three independently review
 
 ### WP-2.8B — Venue private archived media lifecycle
 
-- State: **PLANNED / NEXT**.
-- Current pass: **PLAN / ACTIVATION REVALIDATION**.
+- State: **READY**.
+- Current pass: **A-READY**.
 - Packet record: `lot-2/WP-2.8B.md`.
 - Dependency WP-2.8A: **ACCEPTED / COMPLETE**, packet acceptance and coverage reconciliation both exact-head green.
-- Provisional size: **8 points**, to be recalculated after the lifecycle freeze; split before product code if concrete scope exceeds 10.
+- Activation freeze: `dd2b03c736210f5145ece58ef8b4f55918c43b00` / `34421686462` — **CLOSED / VERIFIED, 5/5 SUCCESS**, clean-checkout included.
+- Revalidated size: **8 points**; cohesion **PASS**. Split before product code if concrete scope grows above 10.
 - Owns private archived image bytes, immutable originals, explicit derivatives, project-scoped SHA-256 exact-byte dedup inputs, supported-image validation and interrupted/orphan recovery semantics.
 - Reuses the accepted Lot-1 `project-private` bucket, opaque `<project_uuid>/media/<media_uuid>/<variant>` namespace and live `media.read` / `media.write` Storage RLS. It must not create a parallel bucket, permission model or Documents/Media bounded context.
-- Current A migration deliberately constrains `media` to remote references (`remote_url` required, `storage_path` null, binary metadata null, `upload_status='ready'`), so B necessarily needs a forward-only schema/command hardening migration after its exact lifecycle is frozen.
-- **OPEN stop-condition:** before `READY`, a docs-only exact-head-green freeze must define private `upload_status` values, legal transitions/visibility, upload→verify→metadata/link commit ordering and retry identity, Storage-success/DB-failure recovery, explicit cleanup without assuming a scheduler, immutable-original/derivative rules, project-scoped dedup/non-disclosure, exact supported-image/20 MB/MIME/signature ownership, protected command idempotence/authorization and fail-closed Storage/metadata receipts.
-- No B product code may start before that stop-condition closes, its exact-head CI is green, then separate `PLANNED → READY` and `READY → IN_PROGRESS / A-IMPLEMENT` gates are green.
+- A migration currently constrains `media` to remote references; B's frozen forward-only migration broadens that discriminator to remote/reference vs private/pending/ready while preserving every accepted A invariant.
+- Frozen compatibility obligation: a mixed remote + private Venue must not poison A's `listVenueRemoteMedia`; private/pending rows are filtered before the remote parser.
+- Product implementation remains prohibited until this READY governance head is exact-head **5/5 SUCCESS** and a separate `READY → IN_PROGRESS / A-IMPLEMENT` governance transition is also exact-head **5/5 SUCCESS**.
 
 ### WP-2.8C — Recoverable Venue remote-media metadata lifecycle
 
@@ -127,6 +128,8 @@ The original WP-2.8 responsibility is decomposed into three independently review
 - A Pass-C entry: `756143192d38aa042cfee6c99d26734b9b587c82` / `34418038428` — **5/5 SUCCESS**.
 - A packet acceptance: `925cf86f3e38bf08807ed408f6d100fbbbd5c9c2` / `34418721439` — **5/5 SUCCESS**.
 - A/B/C coverage reconciliation: `432e0cf893e0adc079ba3c25eb325efb9d01e3ec` / `34420275595` — **5/5 SUCCESS**.
+- A final status-governance closure: `7788d2673571eef9f5bea9dc0ac35a0c60ee1ff6` / `34420864673` — **5/5 SUCCESS**.
+- B private lifecycle specification freeze: `dd2b03c736210f5145ece58ef8b4f55918c43b00` / `34421686462` — **5/5 SUCCESS**, clean-checkout included.
 - Historical transparency: transient diagnostic/format commits were corrected forward-only; history was not rewritten.
 
 ## Durable cursor
@@ -136,29 +139,29 @@ Current Lot: 2 — Venues core
 Lot State: IN_PROGRESS
 Branch: lot-2/venues-core
 Current Packet: WP-2.8B — Venue private archived media lifecycle
-Packet State: PLANNED / NEXT
-Current Pass: PLAN / ACTIVATION REVALIDATION
+Packet State: READY
+Current Pass: A-READY
 Last completed packet: WP-2.8A — ACCEPTED / COMPLETE
 Accepted packets: WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5, WP-2.6A, WP-2.6B, WP-2.6C, WP-2.6D, WP-2.7, WP-2.8A
 Planned packet after current: WP-2.8C — PLANNED
 WP-2.8A packet acceptance: 925cf86f3e38bf08807ed408f6d100fbbbd5c9c2 / 34418721439 — 5/5 SUCCESS
 WP-2.8A coverage reconciliation: 432e0cf893e0adc079ba3c25eb325efb9d01e3ec / 34420275595 — 5/5 SUCCESS
-WP-2.8B stop-condition: OPEN — docs-only exact lifecycle freeze required before READY
-Current gate: exact-head CI for this IMPLEMENTATION-STATUS acceptance-governance closure.
-Next permitted work after this gate is 5/5 SUCCESS: WP-2.8B docs-only lifecycle/state/recovery freeze. No B product code yet.
+WP-2.8B specification freeze: dd2b03c736210f5145ece58ef8b4f55918c43b00 / 34421686462 — CLOSED / VERIFIED, 5/5 SUCCESS
+Current gate: exact-head CI for this WP-2.8B PLANNED → READY governance transition.
+Next permitted transition after this gate is 5/5 SUCCESS: WP-2.8B READY → IN_PROGRESS / A-IMPLEMENT in a separate governance commit. No B product code yet.
 ```
 
 ## Next execution sequence
 
-1. Verify this `IMPLEMENTATION-STATUS` acceptance-governance closure on exact HEAD: **5/5 SUCCESS required**.
-2. Revalidate WP-2.8B against accepted A schema, WP-1.9 Storage RLS, `STORAGE.md`, `FILE-SECURITY.md`, `ERROR-HANDLING.md`, acceptance scenarios and security IDs; persist a docs-only exact lifecycle/state/recovery freeze.
-3. Verify that freeze commit on exact HEAD: **5/5 SUCCESS required**.
-4. Recalculate B packet size/cohesion. If >10, split before product code; otherwise transition B `PLANNED → READY` in a separate governance commit.
-5. Verify READY transition on exact HEAD: **5/5 SUCCESS required**.
-6. Transition B `READY → IN_PROGRESS / A-IMPLEMENT` in a separate governance commit.
-7. Verify IN_PROGRESS transition on exact HEAD: **5/5 SUCCESS required**.
-8. First B product change is RED-first and must fail only for the intentionally missing private-media lifecycle/storage behavior.
-9. Implement Pass A, then fresh Pass B adversarial review, then Pass C mechanical reconciliation under the ordinary three-pass protocol.
+1. Verify this `WP-2.8B PLANNED → READY` governance transition on exact HEAD: **5/5 SUCCESS required**.
+2. Transition B `READY → IN_PROGRESS / A-IMPLEMENT` in a separate governance commit.
+3. Verify IN_PROGRESS transition on exact HEAD: **5/5 SUCCESS required**.
+4. First B product change is RED-first and must fail only for the intentionally missing private-media lifecycle/storage behavior while accepted A behavior remains green.
+5. Implement Pass A over the frozen domain/application/DB/Storage slice.
+6. Verify Pass A exact-head 5/5 before `REVIEW_PENDING`.
+7. Perform fresh Pass B adversarial reconstruction/review and remediate every BLOCKING/MAJOR finding.
+8. Only after open BLOCKING/MAJOR is **∅**, enter Pass C and mechanically reconcile EXPECTED → IMPLEMENTED → VERIFIED.
+9. Accept WP-2.8B only when required-minus-evidenced is **∅** and exact-head gates are green.
 10. WP-2.8C remains PLANNED and cannot run concurrently with B.
 
 ## WP-2.8B activation constraints already established
@@ -167,15 +170,16 @@ Next permitted work after this gate is 5/5 SUCCESS: WP-2.8B docs-only lifecycle/
 - Reuse the accepted private bucket `project-private`; do not add a public bucket or permanent public URL.
 - Storage object names use opaque IDs under `<project_uuid>/media/<media_uuid>/<variant>` and must not contain raw filenames or private labels.
 - Storage authorization is live `media.read` / `media.write` RLS; object-path knowledge is never authority.
-- Supported V1 image intent is JPEG/JPG, PNG and WebP; HEIC/HEIF may only be enabled if safely supported for storage/preview conversion. Active HTML/JS/SVG content is not accepted as application media.
-- Initial photo limit is 20 MB/object unless a deliberate ADR/performance change replaces it.
+- Supported B image intent is JPEG/JPG, PNG and WebP; HEIC/HEIF remains disabled in this packet. Active HTML/JS/SVG content is not accepted as application media.
+- Exact B photo limit is **20,000,000 bytes/object**. Width/height are bounded to 16,384 pixels each and total decoded pixels to 50,000,000.
 - Extension, declared MIME, magic/signature and size are independent validation inputs; no single client metadata field is trusted.
 - `ACC-055`: interrupted upload cannot appear committed/Ready and must have retry/orphan-cleanup behavior without manual raw-Storage reconciliation.
 - `ACC-056`: derivative regeneration/change cannot mutate original bytes/hash; original and derivative remain distinct and identifiable.
 - `ACC-058`: private object path must not expose original filename; raw filename remains authorized metadata only.
-- SHA-256 exact-byte dedup is project-scoped; hash equality never authorizes access or creates a cross-project content-presence oracle.
+- SHA-256 exact-byte dedup is project-scoped and detect-only; hash equality never authorizes access, auto-merges records or creates a cross-project content-presence oracle.
 - Validation/authorization failures are permanent for that attempt; retryable network/backend/recovery failures use explicit operation identity/idempotence. Raw provider errors do not escape the application boundary.
 - No background scheduler may be assumed for B recovery. Offline binary queueing remains WP-2.12/Lot 10 rather than being pulled into B.
+- A compatibility is mandatory: mixed remote + private Venue media must leave A's remote create/list semantics intact.
 
 ## Known localized specification repairs / stop-conditions
 
@@ -189,7 +193,7 @@ Next permitted work after this gate is 5/5 SUCCESS: WP-2.8B docs-only lifecycle/
 - WP-2.8 recoverable remote-media metadata responsibility gap: **CLOSED / VERIFIED IN ASSIGNMENT** by WP-2.8C on `8908eecd...` / `34390723409`; folded into the main coverage matrix on `432e0cf...` / `34420275595`.
 - WP-2.8A direct-RPC URL canonicality parity: **CLOSED / VERIFIED** by `3c9d53af...` / `34414303456`.
 - WP-2.8A replay media/link identity parity: **CLOSED / VERIFIED** by `db892fe...` / `34416328055`, final fresh review `556ebab4...` / `34416889470`.
-- WP-2.8B private lifecycle / Storage↔DB atomicity / orphan recovery semantics: **OPEN for WP-2.8B only**; must close before B READY.
+- WP-2.8B private lifecycle / Storage↔DB atomicity / orphan recovery semantics: **CLOSED / VERIFIED** on `dd2b03c...` / `34421686462`.
 - WP-2.8C optimistic revision/receipt activation detail: **OPEN for WP-2.8C only**; revalidate after A/B acceptance before C READY without changing its frozen soft-delete/restore semantics.
 - Venue lifecycle documentation conflict from WP-2.1: **CLOSED** by `docs/domain/STATE-MACHINES-VENUE-LIFECYCLE-ADDENDUM.md`.
 
@@ -198,7 +202,7 @@ Next permitted work after this gate is 5/5 SUCCESS: WP-2.8B docs-only lifecycle/
 - V1 Feature inventory: 120 Feature IDs across both ledgers.
 - Lot-2 primary IDs: `FTR-013..FTR-028`; partial cross-lot responsibilities also include `FTR-012`, `FTR-089`, `FTR-092`, `FTR-093` and cross-cutting access/offline/security obligations.
 - Feature-level whole-capability status is not conflated with packet/current-lot responsibility; `LOT-2-COVERAGE-MATRIX.md` is the current durable responsibility-level reconciliation source and its addendum preserves the WP-2.8C repair history.
-- WP-2.8A is accepted only for its remote-reference foundation responsibility. WP-2.8B/C remain unaccepted; whole `FTR-024` / `FTR-092` remains incomplete downstream.
+- WP-2.8A is accepted only for its remote-reference foundation responsibility. WP-2.8B is READY but unimplemented; WP-2.8C remains unaccepted; whole `FTR-024` / `FTR-092` remains incomplete downstream.
 
 ## Forward maintenance
 
@@ -228,13 +232,13 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted Lot-2 packets: WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5, WP-2.6A, WP-2.6B, WP-2.6C, WP-2.6D, WP-2.7, WP-2.8A
 Last completed packet: WP-2.8A — ACCEPTED / COMPLETE
-Current packet: WP-2.8B — PLANNED / NEXT; PLAN / ACTIVATION REVALIDATION
+Current packet: WP-2.8B — READY / A-READY
 Next packet: WP-2.8C — PLANNED
 WP-2.8A packet acceptance: 925cf86f3e38bf08807ed408f6d100fbbbd5c9c2 / 34418721439 — 5/5 SUCCESS
 WP-2.8A coverage reconciliation: 432e0cf893e0adc079ba3c25eb325efb9d01e3ec / 34420275595 — 5/5 SUCCESS
-WP-2.8B stop-condition: OPEN — exact private lifecycle/storage-recovery freeze required before READY
-Current gate: exact-head CI for this status-board acceptance-governance closure
-Next permitted change after that gate: docs-only WP-2.8B lifecycle/state/recovery freeze
-No WP-2.8B product code, READY transition or WP-2.8C activation before its governing gates are exact-head green
+WP-2.8B specification freeze: dd2b03c736210f5145ece58ef8b4f55918c43b00 / 34421686462 — CLOSED / VERIFIED, 5/5 SUCCESS
+Current gate: exact-head CI for this WP-2.8B PLANNED → READY governance transition
+Next permitted transition after that gate: WP-2.8B READY → IN_PROGRESS / A-IMPLEMENT, separate commit and separate exact-head CI
+No WP-2.8B product code or WP-2.8C activation before the governing transition gates are exact-head green
 Lots 3–12: NOT_STARTED
 ```
