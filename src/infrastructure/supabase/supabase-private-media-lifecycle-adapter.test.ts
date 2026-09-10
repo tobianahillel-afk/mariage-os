@@ -102,6 +102,18 @@ const finalizeInput = {
   mediaId,
 };
 
+function finalizationReceipt(
+  overrides: Readonly<Record<string, unknown>> = {},
+) {
+  return {
+    action: "finalize_original",
+    replayed: false,
+    media: media({ upload_status: "ready", revision: 2 }),
+    link: link(),
+    ...overrides,
+  };
+}
+
 it("reserves an original through the lifecycle RPC", async () => {
   const client = new Client({
     data: {
@@ -142,12 +154,7 @@ it("reserves an original through the lifecycle RPC", async () => {
 
 it("finalizes an original through the minimal lifecycle command", async () => {
   const client = new Client({
-    data: {
-      action: "finalize_original",
-      replayed: false,
-      media: media({ upload_status: "ready", revision: 2 }),
-      link: link(),
-    },
+    data: finalizationReceipt(),
     error: null,
   });
   const adapter = new SupabasePrivateMediaLifecycleAdapter(client);
@@ -176,6 +183,72 @@ it("finalizes an original through the minimal lifecycle command", async () => {
     target_derivative_kind: null,
     target_derivative_version: null,
   });
+});
+
+it("accepts a replayed finalization receipt", async () => {
+  const client = new Client({
+    data: finalizationReceipt({ replayed: true }),
+    error: null,
+  });
+
+  await expect(
+    new SupabasePrivateMediaLifecycleAdapter(client).finalizeOriginal(
+      finalizeInput,
+    ),
+  ).resolves.toEqual({ storagePath, replayed: true });
+});
+
+it("maps finalization provider failures to stable lifecycle errors", async () => {
+  const conflict = new Client({ data: null, error: { code: "23505" } });
+  await expect(
+    new SupabasePrivateMediaLifecycleAdapter(conflict).finalizeOriginal(
+      finalizeInput,
+    ),
+  ).rejects.toMatchObject({ code: "conflict" });
+
+  const unavailable = new Client({ data: null, error: { code: "55000" } });
+  await expect(
+    new SupabasePrivateMediaLifecycleAdapter(unavailable).finalizeOriginal(
+      finalizeInput,
+    ),
+  ).rejects.toMatchObject({ code: "persistence_failed" });
+});
+
+it("rejects substituted or non-ready finalization receipts", async () => {
+  const invalidReceipts = [
+    finalizationReceipt({
+      media: media({
+        upload_status: "ready",
+        storage_path: `${storagePath}-other`,
+      }),
+    }),
+    finalizationReceipt({ media: media({ upload_status: "pending" }) }),
+    finalizationReceipt({ link: link({ media_id: operationId }) }),
+  ];
+
+  for (const data of invalidReceipts) {
+    const client = new Client({ data, error: null });
+    await expect(
+      new SupabasePrivateMediaLifecycleAdapter(client).finalizeOriginal(
+        finalizeInput,
+      ),
+    ).rejects.toMatchObject({ code: "provider_response_invalid" });
+  }
+});
+
+it("contains rejected finalization transport errors", async () => {
+  const providerError = new Error("provider down");
+  const client = new Client({ data: null, error: null }, providerError);
+
+  try {
+    await new SupabasePrivateMediaLifecycleAdapter(client).finalizeOriginal(
+      finalizeInput,
+    );
+    throw new Error("expected finalize failure");
+  } catch (error) {
+    expect(error).toMatchObject({ code: "persistence_failed" });
+    expect(error).not.toBe(providerError);
+  }
 });
 
 it("maps provider failures and rejects a substituted path", async () => {
