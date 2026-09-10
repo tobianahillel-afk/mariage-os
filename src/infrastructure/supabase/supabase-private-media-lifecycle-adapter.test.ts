@@ -21,7 +21,10 @@ class Client {
   rpcName: string | null = null;
   rpcArgs: Readonly<Record<string, unknown>> | null = null;
 
-  constructor(private readonly result: Result | PromiseLike<Result>) {}
+  constructor(
+    private readonly result: Result,
+    private readonly thrown: unknown = null,
+  ) {}
 
   rpc(
     functionName: string,
@@ -29,6 +32,7 @@ class Client {
   ): PromiseLike<Result> {
     this.rpcName = functionName;
     this.rpcArgs = args;
+    if (this.thrown !== null) return Promise.reject(this.thrown);
     return Promise.resolve(this.result);
   }
 }
@@ -93,7 +97,7 @@ const input = {
   heightPx: 1,
 };
 
-it("reserves an original through the protected lifecycle RPC", async () => {
+it("reserves an original through the lifecycle RPC", async () => {
   const client = new Client({
     data: {
       action: "reserve_original",
@@ -131,42 +135,35 @@ it("reserves an original through the protected lifecycle RPC", async () => {
   });
 });
 
-it(
-  "maps provider errors and rejects a substituted reservation path",
-  async () => {
-    const conflict = new Client({ data: null, error: { code: "23505" } });
-    await expect(
-      new SupabasePrivateMediaLifecycleAdapter(conflict).reserveOriginal(input),
-    ).rejects.toMatchObject({ code: "conflict" });
+it("maps provider failures and rejects a substituted path", async () => {
+  const conflict = new Client({ data: null, error: { code: "23505" } });
+  await expect(
+    new SupabasePrivateMediaLifecycleAdapter(conflict).reserveOriginal(input),
+  ).rejects.toMatchObject({ code: "conflict" });
 
-    const genericFailure = new Client({ data: null, error: "provider-down" });
-    const genericAdapter = new SupabasePrivateMediaLifecycleAdapter(genericFailure);
-    await expect(genericAdapter.reserveOriginal(input)).rejects.toMatchObject({
-      code: "persistence_failed",
-    });
+  const genericFailure = new Client({ data: null, error: "provider-down" });
+  const genericAdapter = new SupabasePrivateMediaLifecycleAdapter(genericFailure);
+  await expect(genericAdapter.reserveOriginal(input)).rejects.toMatchObject({
+    code: "persistence_failed",
+  });
 
-    const substituted = new Client({
-      data: {
-        action: "reserve_original",
-        replayed: false,
-        media: media({ storage_path: `${storagePath}-other` }),
-        link: link(),
-      },
-      error: null,
-    });
-    await expect(
-      new SupabasePrivateMediaLifecycleAdapter(substituted).reserveOriginal(input),
-    ).rejects.toMatchObject({ code: "provider_response_invalid" });
-  },
-);
+  const substituted = new Client({
+    data: {
+      action: "reserve_original",
+      replayed: false,
+      media: media({ storage_path: `${storagePath}-other` }),
+      link: link(),
+    },
+    error: null,
+  });
+  await expect(
+    new SupabasePrivateMediaLifecycleAdapter(substituted).reserveOriginal(input),
+  ).rejects.toMatchObject({ code: "provider_response_invalid" });
+});
 
 it("contains a rejected provider call behind a stable error", async () => {
   const providerError = new Error("provider down");
-  const rejected = {
-    then: (_resolve: unknown, reject: (reason: unknown) => unknown) =>
-      Promise.resolve(reject(providerError)),
-  } as PromiseLike<Result>;
-  const client = new Client(rejected);
+  const client = new Client({ data: null, error: null }, providerError);
 
   try {
     await new SupabasePrivateMediaLifecycleAdapter(client).reserveOriginal(input);
