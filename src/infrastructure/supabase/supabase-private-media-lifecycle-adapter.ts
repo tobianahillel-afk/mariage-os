@@ -1,8 +1,10 @@
 import { MediaPersistenceError } from "@application/documents/media-persistence-error";
 import type {
+  AbandonVenuePrivateOriginalInput,
   FinalizeVenuePrivateOriginalInput,
   PrivateMediaLifecyclePort,
   ReserveVenuePrivateOriginalInput,
+  VenuePrivateOriginalAbandonment,
   VenuePrivateOriginalFinalization,
   VenuePrivateOriginalReservation,
 } from "@application/documents/private-media-lifecycle-port";
@@ -62,6 +64,30 @@ function finalizationArgs(
     target_media_id: input.mediaId,
     target_venue_id: null,
     target_link_id: null,
+    target_category: null,
+    target_caption: null,
+    target_original_filename: null,
+    target_mime_type: null,
+    target_size_bytes: null,
+    target_sha256: null,
+    target_width_px: null,
+    target_height_px: null,
+    target_derivative_of_id: null,
+    target_derivative_kind: null,
+    target_derivative_version: null,
+  };
+}
+
+function abandonmentArgs(
+  input: AbandonVenuePrivateOriginalInput,
+): Readonly<Record<string, unknown>> {
+  return {
+    target_action: "abandon_original",
+    target_operation_id: input.operationId,
+    target_project_id: input.projectId,
+    target_media_id: input.mediaId,
+    target_venue_id: input.venueId,
+    target_link_id: input.linkId,
     target_category: null,
     target_caption: null,
     target_original_filename: null,
@@ -164,6 +190,30 @@ function parseFinalizationReceipt(
   }
 }
 
+function parseAbandonmentReceipt(
+  value: unknown,
+  input: AbandonVenuePrivateOriginalInput,
+): VenuePrivateOriginalAbandonment {
+  try {
+    const receipt = value as Record<string, unknown>;
+    const valid = [
+      receipt.action === "abandon_original",
+      typeof receipt.replayed === "boolean",
+      receipt.projectId === input.projectId,
+      receipt.mediaId === input.mediaId,
+      receipt.linkId === input.linkId,
+      receipt.absent === true,
+    ].every(Boolean);
+    if (!valid) throw new Error("invalid receipt");
+    return { replayed: receipt.replayed as boolean, absent: true };
+  } catch {
+    throw new MediaPersistenceError(
+      "provider_response_invalid",
+      "Invalid Venue private media abandonment response.",
+    );
+  }
+}
+
 export class SupabasePrivateMediaLifecycleAdapter implements PrivateMediaLifecyclePort {
   constructor(
     private readonly client: SupabasePrivateMediaLifecycleClientLike,
@@ -219,5 +269,31 @@ export class SupabasePrivateMediaLifecycleAdapter implements PrivateMediaLifecyc
     }
 
     return parseFinalizationReceipt(result.data, input);
+  }
+
+  async abandonOriginal(
+    input: AbandonVenuePrivateOriginalInput,
+  ): Promise<VenuePrivateOriginalAbandonment> {
+    let result: SupabaseResult;
+    try {
+      result = await this.client.rpc(
+        "manage_venue_private_media",
+        abandonmentArgs(input),
+      );
+    } catch {
+      throw new MediaPersistenceError(
+        "persistence_failed",
+        "Venue private media abandonment failed.",
+      );
+    }
+
+    if (result.error !== null) {
+      throw new MediaPersistenceError(
+        isConflictError(result.error) ? "conflict" : "persistence_failed",
+        "Venue private media abandonment failed.",
+      );
+    }
+
+    return parseAbandonmentReceipt(result.data, input);
   }
 }
