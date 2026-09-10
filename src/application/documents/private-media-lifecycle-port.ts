@@ -18,7 +18,18 @@ export interface ReserveVenuePrivateOriginalInput {
   readonly heightPx: number;
 }
 
+export interface FinalizeVenuePrivateOriginalInput {
+  readonly operationId: string;
+  readonly projectId: string;
+  readonly mediaId: string;
+}
+
 export interface VenuePrivateOriginalReservation {
+  readonly storagePath: string;
+  readonly replayed: boolean;
+}
+
+export interface VenuePrivateOriginalFinalization {
   readonly storagePath: string;
   readonly replayed: boolean;
 }
@@ -27,4 +38,7 @@ export interface PrivateMediaLifecyclePort {
   reserveOriginal(
     input: ReserveVenuePrivateOriginalInput,
   ): Promise<VenuePrivateOriginalReservation>;
+  finalizeOriginal(
+    input: FinalizeVenuePrivateOriginalInput,
+  ): Promise<VenuePrivateOriginalFinalization>;
 }
