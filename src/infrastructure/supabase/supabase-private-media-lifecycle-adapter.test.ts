@@ -6,6 +6,7 @@ const venueId = "22222222-2222-4222-8222-222222222222";
 const mediaId = "33333333-3333-4333-8333-333333333333";
 const linkId = "44444444-4444-4444-8444-444444444444";
 const operationId = "55555555-5555-4555-8555-555555555555";
+const finalizeOperationId = "77777777-7777-4777-8777-777777777777";
 const actorId = "66666666-6666-4666-8666-666666666666";
 const sha256 = "a".repeat(64);
 const storagePath = `${projectId}/media/${mediaId}/original`;
@@ -95,6 +96,12 @@ const input = {
   heightPx: 1,
 };
 
+const finalizeInput = {
+  operationId: finalizeOperationId,
+  projectId,
+  mediaId,
+};
+
 it("reserves an original through the lifecycle RPC", async () => {
   const client = new Client({
     data: {
@@ -127,6 +134,44 @@ it("reserves an original through the lifecycle RPC", async () => {
     target_sha256: sha256,
     target_width_px: 1,
     target_height_px: 1,
+    target_derivative_of_id: null,
+    target_derivative_kind: null,
+    target_derivative_version: null,
+  });
+});
+
+it("finalizes an original through the minimal lifecycle command", async () => {
+  const client = new Client({
+    data: {
+      action: "finalize_original",
+      replayed: false,
+      media: media({ upload_status: "ready", revision: 2 }),
+      link: link(),
+    },
+    error: null,
+  });
+  const adapter = new SupabasePrivateMediaLifecycleAdapter(client);
+
+  const receipt = await adapter.finalizeOriginal(finalizeInput);
+
+  expect(receipt.storagePath).toBe(storagePath);
+  expect(receipt.replayed).toBe(false);
+  expect(client.rpcName).toBe("manage_venue_private_media");
+  expect(client.rpcArgs).toEqual({
+    target_action: "finalize_original",
+    target_operation_id: finalizeOperationId,
+    target_project_id: projectId,
+    target_media_id: mediaId,
+    target_venue_id: null,
+    target_link_id: null,
+    target_category: null,
+    target_caption: null,
+    target_original_filename: null,
+    target_mime_type: null,
+    target_size_bytes: null,
+    target_sha256: null,
+    target_width_px: null,
+    target_height_px: null,
     target_derivative_of_id: null,
     target_derivative_kind: null,
     target_derivative_version: null,
