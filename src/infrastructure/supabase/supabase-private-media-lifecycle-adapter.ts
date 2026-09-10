@@ -95,7 +95,9 @@ function parseReservationReceipt(
 }
 
 export class SupabasePrivateMediaLifecycleAdapter implements PrivateMediaLifecyclePort {
-  constructor(private readonly client: SupabasePrivateMediaLifecycleClientLike) {}
+  constructor(
+    private readonly client: SupabasePrivateMediaLifecycleClientLike,
+  ) {}
 
   async reserveOriginal(
     input: ReserveVenuePrivateOriginalInput,
