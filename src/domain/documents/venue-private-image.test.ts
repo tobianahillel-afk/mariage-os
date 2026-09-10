@@ -19,7 +19,7 @@ function candidate(
   return { originalFilename, bytes, widthPx, heightPx };
 }
 
-describe("Venue private image validation", () => {
+describe("Venue private image type and size validation", () => {
   it.each([
     ["photo.JPG", jpeg, "image/jpeg"],
     ["photo.jpeg", jpeg, "image/jpeg"],
@@ -77,7 +77,9 @@ describe("Venue private image validation", () => {
       error: "invalid_size",
     });
   });
+});
 
+describe("Venue private image dimension validation", () => {
   it.each([
     [1.5, 1],
     [1, 1.5],
@@ -102,7 +104,9 @@ describe("Venue private image validation", () => {
       validateVenuePrivateImage(candidate("photo.jpg", jpeg, 10_000, 5_000)),
     ).toMatchObject({ ok: true });
   });
+});
 
+describe("Venue private image filename validation", () => {
   it.each([
     "",
     "bad\u0000.jpg",
