@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.8B`
 - Lot: `2`
 - Name: Private Venue image archive lifecycle
-- State: `READY`
-- Current pass: `A-READY`
+- State: `IN_PROGRESS`
+- Current pass: `A-IMPLEMENT`
 - Primary bounded context: Documents/Media private image archive, immutable originals, derivatives and recovery
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 
@@ -56,6 +56,7 @@
 
 - WP-2.8A is **ACCEPTED / COMPLETE**: packet acceptance `925cf86f3e38bf08807ed408f6d100fbbbd5c9c2` / `34418721439` — **5/5 SUCCESS**; coverage reconciliation `432e0cf893e0adc079ba3c25eb325efb9d01e3ec` / `34420275595` — **5/5 SUCCESS**; final status-governance closure `7788d2673571eef9f5bea9dc0ac35a0c60ee1ff6` / `34420864673` — **5/5 SUCCESS**.
 - WP-2.8B private lifecycle specification freeze is **CLOSED / VERIFIED** on `dd2b03c736210f5145ece58ef8b4f55918c43b00` / `34421686462` — **5/5 SUCCESS**, clean-checkout included.
+- WP-2.8B `PLANNED → READY` governance is **CLOSED / VERIFIED** on `3e6fe6683cccb21ffa0ef96b87911280ab07737f` / `34423597208` — **5/5 SUCCESS**, clean-checkout included.
 - Lot-1 WP-1.9 private Storage authorization foundation remains authoritative and must be reused, not replaced.
 - Restored `docs/security/STORAGE-RLS.md` is a required normative input.
 - `MEDIA-LIFECYCLE-ADDENDUM.md`, `FILE-SECURITY.md`, `STORAGE.md`, `ERROR-HANDLING.md` and the Lot-2 coverage records remain governing inputs.
@@ -69,7 +70,7 @@ No server-side arbitrary URL fetch is introduced; `SEC-SRV-001` remains true.
 
 ## Mandatory pre-READY stop-condition — frozen implementation contract
 
-This section is the durable WP-2.8B activation freeze. It refines the earlier high-level media/storage contracts only where exact implementation values or transitions were previously unspecified. The lifecycle freeze is **CLOSED / VERIFIED** on `dd2b03c736210f5145ece58ef8b4f55918c43b00` / `34421686462` — **5/5 SUCCESS**. WP-2.8B is READY, but product code remains prohibited until this READY governance commit is exact-head 5/5 green and a separate `READY → IN_PROGRESS / A-IMPLEMENT` governance transition is also exact-head 5/5 green.
+This section is the durable WP-2.8B activation freeze. It refines the earlier high-level media/storage contracts only where exact implementation values or transitions were previously unspecified. The lifecycle freeze is **CLOSED / VERIFIED** on `dd2b03c736210f5145ece58ef8b4f55918c43b00` / `34421686462` — **5/5 SUCCESS**. The READY gate is also **CLOSED / VERIFIED** on `3e6fe6683cccb21ffa0ef96b87911280ab07737f` / `34423597208` — **5/5 SUCCESS**. Product code remains prohibited until this `READY → IN_PROGRESS / A-IMPLEMENT` governance commit is exact-head 5/5 green; the first product change after that gate must be RED-first evidence only.
 
 ### 1. Private lifecycle states and visibility
 
@@ -293,7 +294,7 @@ All ten original pre-READY questions are now **SPECIFIED** by the contract above
 9. protected command family/idempotence/authorization — frozen;
 10. Storage/DB receipt fail-closed semantics — frozen.
 
-Current gate: **CLOSED / VERIFIED** on `dd2b03c736210f5145ece58ef8b4f55918c43b00` / `34421686462` — **5/5 SUCCESS**, clean-checkout included. This READY governance transition must itself become exact-head **5/5 SUCCESS** before B may transition separately to `IN_PROGRESS / A-IMPLEMENT`.
+Current gate: lifecycle freeze `dd2b03c736210f5145ece58ef8b4f55918c43b00` / `34421686462` and READY governance `3e6fe6683cccb21ffa0ef96b87911280ab07737f` / `34423597208` are both **CLOSED / VERIFIED — 5/5 SUCCESS**. This `READY → IN_PROGRESS / A-IMPLEMENT` transition must itself become exact-head **5/5 SUCCESS** before the RED-first product/evidence commit.
 
 ## Sizing review after activation freeze
 
@@ -373,9 +374,7 @@ If implementation discovers an additional public capability, entity or independe
 
 ## Pass A — IMPLEMENT
 
-Not started. WP-2.8B is READY because the specification freeze `dd2b03c736210f5145ece58ef8b4f55918c43b00` / `34421686462` is **5/5 SUCCESS** and the size/cohesion revalidation remains 8 points / PASS. Product implementation remains prohibited until this READY governance commit is exact-head green and a separate `READY → IN_PROGRESS / A-IMPLEMENT` governance transition is itself exact-head green.
-
-The first product change after those gates must be RED-first and prove the frozen private lifecycle/storage behavior is missing while accepted A behavior remains green.
+Implementation is activated from READY head `3e6fe6683cccb21ffa0ef96b87911280ab07737f`, whose CI run `34423597208` is **5/5 SUCCESS**. Product implementation remains prohibited until this `READY → IN_PROGRESS / A-IMPLEMENT` governance commit is itself exact-head green. The first product change after that gate must be RED-first and prove the frozen private lifecycle/storage behavior is missing while accepted A behavior remains green.
 
 ## Pass B — ADVERSARIAL REVIEW
 
