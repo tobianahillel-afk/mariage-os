@@ -128,7 +128,7 @@ it("rejects invalid identity and unsafe remote URL before persistence", async ()
   expect(port.created).toBeNull();
 });
 
-it("maps typed replay conflict and generic persistence failure", async () => {
+it("maps typed replay conflict and provider failures", async () => {
   const port = new StubPort();
   const service = new MediaService(port);
   const input = {
@@ -146,6 +146,15 @@ it("maps typed replay conflict and generic persistence failure", async () => {
   expect(await service.createVenueRemoteMedia(input)).toEqual({
     ok: false,
     error: "replay_conflict",
+  });
+
+  port.createError = new MediaPersistenceError(
+    "provider_response_invalid",
+    "invalid provider response",
+  );
+  expect(await service.createVenueRemoteMedia(input)).toEqual({
+    ok: false,
+    error: "provider_response_invalid",
   });
 
   port.createError = new Error("provider down");
