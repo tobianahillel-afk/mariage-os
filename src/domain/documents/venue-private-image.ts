@@ -3,7 +3,7 @@ const MAX_PRIVATE_IMAGE_DIMENSION_PX = 16_384;
 const MAX_PRIVATE_IMAGE_PIXELS = 50_000_000;
 const MAX_PRIVATE_IMAGE_FILENAME_SCALARS = 512;
 
-export type PrivateImageMimeType = "image/jpeg" | "image/png" | "image/webp";
+type PrivateImageMimeType = "image/jpeg" | "image/png" | "image/webp";
 
 export interface VenuePrivateImageCandidate {
   readonly originalFilename: string;
@@ -12,7 +12,7 @@ export interface VenuePrivateImageCandidate {
   readonly heightPx: number;
 }
 
-export interface ValidatedVenuePrivateImage {
+interface ValidatedVenuePrivateImage {
   readonly originalFilename: string;
   readonly mimeType: PrivateImageMimeType;
   readonly sizeBytes: number;
@@ -20,7 +20,7 @@ export interface ValidatedVenuePrivateImage {
   readonly heightPx: number;
 }
 
-export type VenuePrivateImageValidationError =
+type VenuePrivateImageValidationError =
   | "invalid_filename"
   | "invalid_size"
   | "unsupported_type"
