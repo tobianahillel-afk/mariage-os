@@ -155,7 +155,10 @@ export class MediaService {
       return { ok: false, error: "persistence_failed" };
     }
 
-    const storagePath = privateOriginalStoragePath(input.projectId, input.mediaId);
+    const storagePath = privateOriginalStoragePath(
+      input.projectId,
+      input.mediaId,
+    );
 
     try {
       await this.privateMedia.storage.deleteReservedObject(storagePath);
