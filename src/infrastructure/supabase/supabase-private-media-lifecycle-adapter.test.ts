@@ -129,11 +129,18 @@ it("reserves an original through the protected lifecycle RPC", async () => {
   });
 });
 
-it("maps conflict and rejects a substituted reservation path", async () => {
+it("maps provider errors and rejects a substituted reservation path", async () => {
   const conflict = new Client({ data: null, error: { code: "23505" } });
   await expect(
     new SupabasePrivateMediaLifecycleAdapter(conflict).reserveOriginal(input),
   ).rejects.toMatchObject({ code: "conflict" });
+
+  const genericFailure = new Client({ data: null, error: "provider-down" });
+  await expect(
+    new SupabasePrivateMediaLifecycleAdapter(genericFailure).reserveOriginal(
+      input,
+    ),
+  ).rejects.toMatchObject({ code: "persistence_failed" });
 
   const substituted = new Client({
     data: {
