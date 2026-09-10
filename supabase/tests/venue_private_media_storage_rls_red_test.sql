@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(13);
+select plan(14);
 
 insert into auth.users (
   instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -286,7 +286,9 @@ select lives_ok(
       'abandon_original',
       'd9400000-0000-4000-8000-000000000004',
       'd9aaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-      'd9200000-0000-4000-8000-000000000002'
+      'd9200000-0000-4000-8000-000000000002',
+      'd9100000-0000-4000-8000-000000000001',
+      'd9300000-0000-4000-8000-000000000002'
     )
   $$,
   'pending reservation can be abandoned after exact-path Storage cleanup'
