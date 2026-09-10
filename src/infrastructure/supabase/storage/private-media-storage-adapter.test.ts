@@ -70,11 +70,7 @@ it("uploads a reserved private object without upsert", async () => {
 });
 
 it("rejects an invalid Storage receipt path", async () => {
-  const invalidData = [
-    { path: `${storagePath}-substituted` },
-    {},
-    null,
-  ];
+  const invalidData = [{ path: `${storagePath}-substituted` }, {}, null];
 
   for (const data of invalidData) {
     const client = new Client({ data, error: null });
@@ -91,10 +87,7 @@ it("rejects an invalid Storage receipt path", async () => {
 });
 
 it("contains raw Storage failures behind a stable error", async () => {
-  const providerError = {
-    message: "storage unavailable",
-    statusCode: "503",
-  };
+  const providerError = { message: "storage unavailable", statusCode: "503" };
   const client = new Client({ data: null, error: providerError });
   const adapter = new SupabasePrivateMediaStorageAdapter(client);
 
