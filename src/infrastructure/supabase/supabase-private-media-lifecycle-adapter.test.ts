@@ -7,6 +7,7 @@ const mediaId = "33333333-3333-4333-8333-333333333333";
 const linkId = "44444444-4444-4444-8444-444444444444";
 const operationId = "55555555-5555-4555-8555-555555555555";
 const finalizeOperationId = "77777777-7777-4777-8777-777777777777";
+const abandonOperationId = "88888888-8888-4888-8888-888888888888";
 const actorId = "66666666-6666-4666-8666-666666666666";
 const sha256 = "a".repeat(64);
 const storagePath = `${projectId}/media/${mediaId}/original`;
@@ -102,6 +103,14 @@ const finalizeInput = {
   mediaId,
 };
 
+const abandonInput = {
+  operationId: abandonOperationId,
+  projectId,
+  venueId,
+  mediaId,
+  linkId,
+};
+
 function finalizationReceipt(
   overrides: Readonly<Record<string, unknown>> = {},
 ) {
@@ -110,6 +119,20 @@ function finalizationReceipt(
     replayed: false,
     media: media({ upload_status: "ready", revision: 2 }),
     link: link(),
+    ...overrides,
+  };
+}
+
+function abandonmentReceipt(
+  overrides: Readonly<Record<string, unknown>> = {},
+) {
+  return {
+    action: "abandon_original",
+    replayed: false,
+    projectId,
+    mediaId,
+    linkId,
+    absent: true,
     ...overrides,
   };
 }
@@ -245,6 +268,102 @@ it("contains rejected finalization transport errors", async () => {
       finalizeInput,
     );
     throw new Error("expected finalize failure");
+  } catch (error) {
+    expect(error).toMatchObject({ code: "persistence_failed" });
+    expect(error).not.toBe(providerError);
+  }
+});
+
+it("abandons an original only after Storage absence is established", async () => {
+  const client = new Client({ data: abandonmentReceipt(), error: null });
+  const adapter = new SupabasePrivateMediaLifecycleAdapter(client);
+
+  const receipt = await adapter.abandonOriginal(abandonInput);
+
+  expect(receipt).toEqual({ replayed: false, absent: true });
+  expect(client.rpcName).toBe("manage_venue_private_media");
+  expect(client.rpcArgs).toEqual({
+    target_action: "abandon_original",
+    target_operation_id: abandonOperationId,
+    target_project_id: projectId,
+    target_media_id: mediaId,
+    target_venue_id: venueId,
+    target_link_id: linkId,
+    target_category: null,
+    target_caption: null,
+    target_original_filename: null,
+    target_mime_type: null,
+    target_size_bytes: null,
+    target_sha256: null,
+    target_width_px: null,
+    target_height_px: null,
+    target_derivative_of_id: null,
+    target_derivative_kind: null,
+    target_derivative_version: null,
+  });
+});
+
+it("accepts replayed already-absent original abandonment", async () => {
+  const client = new Client({
+    data: abandonmentReceipt({ replayed: true }),
+    error: null,
+  });
+
+  await expect(
+    new SupabasePrivateMediaLifecycleAdapter(client).abandonOriginal(
+      abandonInput,
+    ),
+  ).resolves.toEqual({ replayed: true, absent: true });
+});
+
+it("maps abandonment provider failures without leaking provider objects", async () => {
+  const conflict = new Client({ data: null, error: { code: "23505" } });
+  await expect(
+    new SupabasePrivateMediaLifecycleAdapter(conflict).abandonOriginal(
+      abandonInput,
+    ),
+  ).rejects.toMatchObject({ code: "conflict" });
+
+  const objectStillPresent = new Client({
+    data: null,
+    error: { code: "55000", message: "object still present" },
+  });
+  await expect(
+    new SupabasePrivateMediaLifecycleAdapter(objectStillPresent).abandonOriginal(
+      abandonInput,
+    ),
+  ).rejects.toMatchObject({ code: "persistence_failed" });
+});
+
+it("rejects malformed or substituted abandonment receipts", async () => {
+  const invalidReceipts = [
+    abandonmentReceipt({ projectId: operationId }),
+    abandonmentReceipt({ mediaId: operationId }),
+    abandonmentReceipt({ linkId: operationId }),
+    abandonmentReceipt({ absent: false }),
+    abandonmentReceipt({ action: "finalize_original" }),
+    null,
+  ];
+
+  for (const data of invalidReceipts) {
+    const client = new Client({ data, error: null });
+    await expect(
+      new SupabasePrivateMediaLifecycleAdapter(client).abandonOriginal(
+        abandonInput,
+      ),
+    ).rejects.toMatchObject({ code: "provider_response_invalid" });
+  }
+});
+
+it("contains rejected abandonment transport errors", async () => {
+  const providerError = new Error("provider down");
+  const client = new Client({ data: null, error: null }, providerError);
+
+  try {
+    await new SupabasePrivateMediaLifecycleAdapter(client).abandonOriginal(
+      abandonInput,
+    );
+    throw new Error("expected abandon failure");
   } catch (error) {
     expect(error).toMatchObject({ code: "persistence_failed" });
     expect(error).not.toBe(providerError);
