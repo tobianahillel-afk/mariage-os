@@ -16,7 +16,10 @@ class Bucket {
   uploadBody: Uint8Array | null = null;
   uploadOptions: Readonly<Record<string, unknown>> | null = null;
 
-  constructor(private readonly result: UploadResult) {}
+  constructor(
+    private readonly result: UploadResult,
+    private readonly thrown: unknown = null,
+  ) {}
 
   upload(
     path: string,
@@ -26,6 +29,7 @@ class Bucket {
     this.uploadPath = path;
     this.uploadBody = body;
     this.uploadOptions = options;
+    if (this.thrown !== null) return Promise.reject(this.thrown);
     return Promise.resolve(this.result);
   }
 }
@@ -34,8 +38,8 @@ class Client {
   readonly bucket: Bucket;
   selectedBucket: string | null = null;
 
-  constructor(result: UploadResult) {
-    this.bucket = new Bucket(result);
+  constructor(result: UploadResult, thrown: unknown = null) {
+    this.bucket = new Bucket(result, thrown);
   }
 
   readonly storage = {
@@ -86,9 +90,27 @@ it("rejects an invalid Storage receipt path", async () => {
   }
 });
 
-it("contains raw Storage failures behind a stable error", async () => {
+it("contains returned Storage failures behind a stable error", async () => {
   const providerError = { message: "storage unavailable", statusCode: "503" };
   const client = new Client({ data: null, error: providerError });
+  const adapter = new SupabasePrivateMediaStorageAdapter(client);
+
+  try {
+    await adapter.uploadReservedObject({
+      path: storagePath,
+      bytes,
+      mimeType: "image/jpeg",
+    });
+    throw new Error("expected upload failure");
+  } catch (error) {
+    expect(error).toMatchObject({ code: "storage_retryable" });
+    expect(error).not.toBe(providerError);
+  }
+});
+
+it("contains thrown Storage failures behind a stable error", async () => {
+  const providerError = new Error("network failure");
+  const client = new Client({ data: null, error: null }, providerError);
   const adapter = new SupabasePrivateMediaStorageAdapter(client);
 
   try {
