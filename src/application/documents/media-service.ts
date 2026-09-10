@@ -74,7 +74,10 @@ function persistenceFailure(error: unknown): MediaServiceError {
   return "persistence_failed";
 }
 
-function privateOriginalStoragePath(projectId: string, mediaId: string): string {
+function privateOriginalStoragePath(
+  projectId: string,
+  mediaId: string,
+): string {
   return `${projectId}/media/${mediaId}/original`;
 }
 
