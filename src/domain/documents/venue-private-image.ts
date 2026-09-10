@@ -5,26 +5,42 @@ const MAX_PRIVATE_IMAGE_FILENAME_SCALARS = 512;
 
 type PrivateImageMimeType = "image/jpeg" | "image/png" | "image/webp";
 
-export interface VenuePrivateImageCandidate {
+export interface VenuePrivateImageFileCandidate {
   readonly originalFilename: string;
   readonly bytes: Uint8Array;
+}
+
+export interface VenuePrivateImageCandidate
+  extends VenuePrivateImageFileCandidate {
   readonly widthPx: number;
   readonly heightPx: number;
 }
 
-interface ValidatedVenuePrivateImage {
+export interface ValidatedVenuePrivateImageFile {
   readonly originalFilename: string;
   readonly mimeType: PrivateImageMimeType;
   readonly sizeBytes: number;
+}
+
+interface ValidatedVenuePrivateImage extends ValidatedVenuePrivateImageFile {
   readonly widthPx: number;
   readonly heightPx: number;
 }
 
-type VenuePrivateImageValidationError =
+export type VenuePrivateImageValidationError =
   | "invalid_filename"
   | "invalid_size"
   | "unsupported_type"
   | "invalid_dimensions";
+
+type VenuePrivateImageFileValidationError = Exclude<
+  VenuePrivateImageValidationError,
+  "invalid_dimensions"
+>;
+
+export type VenuePrivateImageFileValidationResult =
+  | { readonly ok: true; readonly value: ValidatedVenuePrivateImageFile }
+  | { readonly ok: false; readonly error: VenuePrivateImageFileValidationError };
 
 export type VenuePrivateImageValidationResult =
   | { readonly ok: true; readonly value: ValidatedVenuePrivateImage }
@@ -107,9 +123,9 @@ function hasSafeDimensions(widthPx: number, heightPx: number): boolean {
   );
 }
 
-export function validateVenuePrivateImage(
-  candidate: VenuePrivateImageCandidate,
-): VenuePrivateImageValidationResult {
+export function validateVenuePrivateImageFile(
+  candidate: VenuePrivateImageFileCandidate,
+): VenuePrivateImageFileValidationResult {
   if (!hasSafeFilename(candidate.originalFilename)) {
     return { ok: false, error: "invalid_filename" };
   }
@@ -121,9 +137,6 @@ export function validateVenuePrivateImage(
   if (mimeType === null || !hasExpectedSignature(candidate.bytes, mimeType)) {
     return { ok: false, error: "unsupported_type" };
   }
-  if (!hasSafeDimensions(candidate.widthPx, candidate.heightPx)) {
-    return { ok: false, error: "invalid_dimensions" };
-  }
 
   return {
     ok: true,
@@ -131,6 +144,23 @@ export function validateVenuePrivateImage(
       originalFilename: candidate.originalFilename,
       mimeType,
       sizeBytes: candidate.bytes.byteLength,
+    },
+  };
+}
+
+export function validateVenuePrivateImage(
+  candidate: VenuePrivateImageCandidate,
+): VenuePrivateImageValidationResult {
+  const file = validateVenuePrivateImageFile(candidate);
+  if (!file.ok) return { ok: false, error: file.error };
+  if (!hasSafeDimensions(candidate.widthPx, candidate.heightPx)) {
+    return { ok: false, error: "invalid_dimensions" };
+  }
+
+  return {
+    ok: true,
+    value: {
+      ...file.value,
       widthPx: candidate.widthPx,
       heightPx: candidate.heightPx,
     },

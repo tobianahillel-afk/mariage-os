@@ -20,18 +20,25 @@ const LOCAL_DNS_SUFFIXES = [".localhost", ".local", ".lan", ".internal"];
 
 export type VenueMediaCategory = (typeof MEDIA_CATEGORIES)[number];
 
-export interface VenueRemoteMediaDraft {
+export interface VenueMediaPresentationDraft {
   readonly category: unknown;
-  readonly remoteUrl: unknown;
-  readonly sourcePageUrl: unknown;
   readonly caption: unknown;
 }
 
-export interface NormalizedVenueRemoteMediaDraft {
+export interface NormalizedVenueMediaPresentationDraft {
   readonly category: VenueMediaCategory | null;
+  readonly caption: string | null;
+}
+
+export interface VenueRemoteMediaDraft extends VenueMediaPresentationDraft {
+  readonly remoteUrl: unknown;
+  readonly sourcePageUrl: unknown;
+}
+
+export interface NormalizedVenueRemoteMediaDraft
+  extends NormalizedVenueMediaPresentationDraft {
   readonly remoteUrl: string;
   readonly sourcePageUrl: string | null;
-  readonly caption: string | null;
 }
 
 export interface VenueRemoteMediaRecord {
@@ -82,11 +89,18 @@ export interface VenueRemoteMediaCallerPayload extends NormalizedVenueRemoteMedi
   readonly linkId: string;
 }
 
-export type VenueRemoteMediaValidationError =
+export type VenueMediaPresentationValidationError =
   | "invalid_category"
-  | "invalid_remote_url"
-  | "invalid_source_page_url"
   | "invalid_caption";
+
+export type VenueRemoteMediaValidationError =
+  | VenueMediaPresentationValidationError
+  | "invalid_remote_url"
+  | "invalid_source_page_url";
+
+export type VenueMediaPresentationValidationResult =
+  | { readonly ok: true; readonly value: NormalizedVenueMediaPresentationDraft }
+  | { readonly ok: false; readonly error: VenueMediaPresentationValidationError };
 
 export type VenueRemoteMediaValidationResult =
   | { readonly ok: true; readonly value: NormalizedVenueRemoteMediaDraft }
@@ -264,6 +278,18 @@ function normalizeCaption(value: unknown): string | null | undefined {
   const normalized = value.trim();
   if (normalized.length === 0) return null;
   return hasScalarLengthBetween(normalized, 1, 5_000) ? normalized : undefined;
+}
+
+export function normalizeVenueMediaPresentationDraft(
+  draft: VenueMediaPresentationDraft,
+): VenueMediaPresentationValidationResult {
+  const category = normalizeCategory(draft.category);
+  if (category === undefined) return { ok: false, error: "invalid_category" };
+
+  const caption = normalizeCaption(draft.caption);
+  if (caption === undefined) return { ok: false, error: "invalid_caption" };
+
+  return { ok: true, value: { category, caption } };
 }
 
 export function normalizeVenueRemoteMediaDraft(
