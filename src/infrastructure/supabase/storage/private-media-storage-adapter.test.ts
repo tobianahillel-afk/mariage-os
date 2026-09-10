@@ -142,8 +142,9 @@ it("deletes only the exact reserved object path", async () => {
     error: null,
   };
   const adapter = new SupabasePrivateMediaStorageAdapter(client);
+  const deletion = adapter.deleteReservedObject(storagePath);
 
-  await expect(adapter.deleteReservedObject(storagePath)).resolves.toEqual({
+  await expect(deletion).resolves.toEqual({
     bucket: "project-private",
     path: storagePath,
     absent: true,
@@ -155,8 +156,9 @@ it("deletes only the exact reserved object path", async () => {
 it("accepts an already-absent object", async () => {
   const client = new Client({ data: null, error: null });
   const adapter = new SupabasePrivateMediaStorageAdapter(client);
+  const deletion = adapter.deleteReservedObject(storagePath);
 
-  await expect(adapter.deleteReservedObject(storagePath)).resolves.toEqual({
+  await expect(deletion).resolves.toEqual({
     bucket: "project-private",
     path: storagePath,
     absent: true,
@@ -175,10 +177,11 @@ it("rejects invalid Storage delete receipts", async () => {
     const client = new Client({ data: null, error: null });
     client.bucket.removeResult = { data, error: null };
     const adapter = new SupabasePrivateMediaStorageAdapter(client);
+    const deletion = adapter.deleteReservedObject(storagePath);
 
-    await expect(
-      adapter.deleteReservedObject(storagePath),
-    ).rejects.toMatchObject({ code: "provider_response_invalid" });
+    await expect(deletion).rejects.toMatchObject({
+      code: "provider_response_invalid",
+    });
   }
 });
 
@@ -187,10 +190,11 @@ it("contains returned Storage delete failures", async () => {
   const client = new Client({ data: null, error: null });
   client.bucket.removeResult = { data: null, error: providerError };
   const adapter = new SupabasePrivateMediaStorageAdapter(client);
+  const deletion = adapter.deleteReservedObject(storagePath);
 
-  await expect(
-    adapter.deleteReservedObject(storagePath),
-  ).rejects.toMatchObject({ code: "storage_retryable" });
+  await expect(deletion).rejects.toMatchObject({
+    code: "storage_retryable",
+  });
 });
 
 it("contains thrown Storage delete failures", async () => {
