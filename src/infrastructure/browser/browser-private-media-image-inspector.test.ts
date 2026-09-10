@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { BrowserPrivateMediaImageInspector } from "@infra/browser/browser-private-media-image-inspector";
+import { BrowserPrivateMediaImageInspector } from "./browser-private-media-image-inspector";
 
 it("decodes exact private image bytes and closes the bitmap", async () => {
   let closed = false;
@@ -35,10 +35,9 @@ it("maps browser decode rejection to a stable typed failure", async () => {
     throw new Error("decoder rejected malformed bytes");
   };
   const inspector = new BrowserPrivateMediaImageInspector(decode);
+  const inspection = inspector.inspect(new Uint8Array([0x00]));
 
-  await expect(
-    inspector.inspect(new Uint8Array([0x00])),
-  ).rejects.toMatchObject({
+  await expect(inspection).rejects.toMatchObject({
     name: "PrivateMediaImageInspectionError",
     code: "decode_failed",
   });
