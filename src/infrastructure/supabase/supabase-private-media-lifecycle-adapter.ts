@@ -1,7 +1,9 @@
 import { MediaPersistenceError } from "@application/documents/media-persistence-error";
 import type {
+  FinalizeVenuePrivateOriginalInput,
   PrivateMediaLifecyclePort,
   ReserveVenuePrivateOriginalInput,
+  VenuePrivateOriginalFinalization,
   VenuePrivateOriginalReservation,
 } from "@application/documents/private-media-lifecycle-port";
 
@@ -20,6 +22,10 @@ export interface SupabasePrivateMediaLifecycleClientLike {
 function isConflictError(value: unknown): boolean {
   if (typeof value !== "object" || value === null) return false;
   return (value as Record<string, unknown>).code === "23505";
+}
+
+function expectedStoragePath(projectId: string, mediaId: string): string {
+  return `${projectId}/media/${mediaId}/original`;
 }
 
 function reservationArgs(
@@ -46,6 +52,30 @@ function reservationArgs(
   };
 }
 
+function finalizationArgs(
+  input: FinalizeVenuePrivateOriginalInput,
+): Readonly<Record<string, unknown>> {
+  return {
+    target_action: "finalize_original",
+    target_operation_id: input.operationId,
+    target_project_id: input.projectId,
+    target_media_id: input.mediaId,
+    target_venue_id: null,
+    target_link_id: null,
+    target_category: null,
+    target_caption: null,
+    target_original_filename: null,
+    target_mime_type: null,
+    target_size_bytes: null,
+    target_sha256: null,
+    target_width_px: null,
+    target_height_px: null,
+    target_derivative_of_id: null,
+    target_derivative_kind: null,
+    target_derivative_version: null,
+  };
+}
+
 function parseReservationReceipt(
   value: unknown,
   input: ReserveVenuePrivateOriginalInput,
@@ -54,7 +84,7 @@ function parseReservationReceipt(
     const receipt = value as Record<string, unknown>;
     const media = receipt.media as Record<string, unknown>;
     const link = receipt.link as Record<string, unknown>;
-    const storagePath = `${input.projectId}/media/${input.mediaId}/original`;
+    const storagePath = expectedStoragePath(input.projectId, input.mediaId);
     const valid = [
       receipt.action === "reserve_original",
       typeof receipt.replayed === "boolean",
@@ -94,6 +124,46 @@ function parseReservationReceipt(
   }
 }
 
+function parseFinalizationReceipt(
+  value: unknown,
+  input: FinalizeVenuePrivateOriginalInput,
+): VenuePrivateOriginalFinalization {
+  try {
+    const receipt = value as Record<string, unknown>;
+    const media = receipt.media as Record<string, unknown>;
+    const link = receipt.link as Record<string, unknown>;
+    const storagePath = expectedStoragePath(input.projectId, input.mediaId);
+    const valid = [
+      receipt.action === "finalize_original",
+      typeof receipt.replayed === "boolean",
+      media.id === input.mediaId,
+      media.project_id === input.projectId,
+      media.media_type === "image",
+      media.storage_path === storagePath,
+      media.remote_url === null,
+      media.source_page_url === null,
+      media.derivative_of_id === null,
+      media.is_original === true,
+      media.upload_status === "ready",
+      media.derivative_kind === null,
+      media.derivative_version === null,
+      typeof link.id === "string" && link.id.length > 0,
+      link.project_id === input.projectId,
+      link.media_id === input.mediaId,
+      link.target_type === "venue",
+      typeof link.target_id === "string" && link.target_id.length > 0,
+      link.relationship_type === "gallery",
+    ].every(Boolean);
+    if (!valid) throw new Error("invalid receipt");
+    return { storagePath, replayed: receipt.replayed as boolean };
+  } catch {
+    throw new MediaPersistenceError(
+      "provider_response_invalid",
+      "Invalid Venue private media finalization response.",
+    );
+  }
+}
+
 export class SupabasePrivateMediaLifecycleAdapter implements PrivateMediaLifecyclePort {
   constructor(
     private readonly client: SupabasePrivateMediaLifecycleClientLike,
@@ -123,5 +193,31 @@ export class SupabasePrivateMediaLifecycleAdapter implements PrivateMediaLifecyc
     }
 
     return parseReservationReceipt(result.data, input);
+  }
+
+  async finalizeOriginal(
+    input: FinalizeVenuePrivateOriginalInput,
+  ): Promise<VenuePrivateOriginalFinalization> {
+    let result: SupabaseResult;
+    try {
+      result = await this.client.rpc(
+        "manage_venue_private_media",
+        finalizationArgs(input),
+      );
+    } catch {
+      throw new MediaPersistenceError(
+        "persistence_failed",
+        "Venue private media finalization failed.",
+      );
+    }
+
+    if (result.error !== null) {
+      throw new MediaPersistenceError(
+        isConflictError(result.error) ? "conflict" : "persistence_failed",
+        "Venue private media finalization failed.",
+      );
+    }
+
+    return parseFinalizationReceipt(result.data, input);
   }
 }
