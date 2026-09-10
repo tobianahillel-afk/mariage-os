@@ -19,9 +19,9 @@ export class BrowserPrivateMediaSha256 implements PrivateMediaSha256Port {
       if (digest.byteLength !== 32) {
         throw new Error("Unexpected SHA-256 digest length.");
       }
-      return Array.from(digest, (byte) => byte.toString(16).padStart(2, "0")).join(
-        "",
-      );
+      return Array.from(digest, (byte) =>
+        byte.toString(16).padStart(2, "0"),
+      ).join("");
     } catch {
       throw new PrivateMediaSha256Error(
         "Private media bytes could not be hashed.",
