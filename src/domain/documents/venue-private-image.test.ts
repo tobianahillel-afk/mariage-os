@@ -2,9 +2,14 @@ import { describe, expect, it } from "vitest";
 import { validateVenuePrivateImage } from "./venue-private-image";
 
 const jpeg = new Uint8Array([0xff, 0xd8, 0xff, 0x00]);
-const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+const png = new Uint8Array([
+  0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+]);
 const webp = new Uint8Array([
   0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50,
+]);
+const webpWrongTag = new Uint8Array([
+  0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x4e, 0x4f, 0x50, 0x45,
 ]);
 
 function candidate(
@@ -25,7 +30,9 @@ describe("Venue private image validation", () => {
   ] as const)(
     "accepts supported extension/signature pairs and preserves %s",
     (originalFilename, bytes, mimeType) => {
-      expect(validateVenuePrivateImage(candidate(originalFilename, bytes))).toEqual({
+      expect(
+        validateVenuePrivateImage(candidate(originalFilename, bytes)),
+      ).toEqual({
         ok: true,
         value: {
           originalFilename,
@@ -43,6 +50,7 @@ describe("Venue private image validation", () => {
     ["photo.jpg", png],
     ["photo.png", webp],
     ["photo.webp", jpeg],
+    ["photo.webp", webpWrongTag],
     ["photo", jpeg],
   ] as const)("rejects unsupported or renamed content: %s", (name, bytes) => {
     expect(validateVenuePrivateImage(candidate(name, bytes))).toEqual({
@@ -64,13 +72,17 @@ describe("Venue private image validation", () => {
 
     const aboveLimit = new Uint8Array(20_000_001);
     aboveLimit.set([0xff, 0xd8, 0xff]);
-    expect(validateVenuePrivateImage(candidate("large.jpg", aboveLimit))).toEqual({
+    expect(
+      validateVenuePrivateImage(candidate("large.jpg", aboveLimit)),
+    ).toEqual({
       ok: false,
       error: "invalid_size",
     });
   });
 
   it.each([
+    [1.5, 1],
+    [1, 1.5],
     [0, 1],
     [1, 0],
     [16_385, 1],
@@ -93,14 +105,19 @@ describe("Venue private image validation", () => {
     ).toMatchObject({ ok: true });
   });
 
-  it.each(["", "bad\u0000.jpg", "bad\u001f.jpg", `${"a".repeat(509)}.jpg`])(
-    "rejects unsafe private display filename",
-    (originalFilename) => {
-      expect(
-        validateVenuePrivateImage(candidate(originalFilename, jpeg)),
-      ).toEqual({ ok: false, error: "invalid_filename" });
-    },
-  );
+  it.each([
+    "",
+    "bad\u0000.jpg",
+    "bad\u001f.jpg",
+    `bad\ud800.jpg`,
+    `bad\udc00.jpg`,
+    `${"a".repeat(509)}.jpg`,
+  ])("rejects unsafe private display filename", (originalFilename) => {
+    expect(validateVenuePrivateImage(candidate(originalFilename, jpeg))).toEqual({
+      ok: false,
+      error: "invalid_filename",
+    });
+  });
 
   it("counts Unicode scalar values rather than UTF-16 code units", () => {
     const filename = `${"😀".repeat(508)}.jpg`;
