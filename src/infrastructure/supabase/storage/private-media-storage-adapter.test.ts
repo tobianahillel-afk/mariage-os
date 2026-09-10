@@ -176,9 +176,9 @@ it("rejects invalid Storage delete receipts", async () => {
     client.bucket.removeResult = { data, error: null };
     const adapter = new SupabasePrivateMediaStorageAdapter(client);
 
-    await expect(adapter.deleteReservedObject(storagePath)).rejects.toMatchObject(
-      { code: "provider_response_invalid" },
-    );
+    await expect(
+      adapter.deleteReservedObject(storagePath),
+    ).rejects.toMatchObject({ code: "provider_response_invalid" });
   }
 });
 
@@ -188,9 +188,9 @@ it("contains returned Storage delete failures", async () => {
   client.bucket.removeResult = { data: null, error: providerError };
   const adapter = new SupabasePrivateMediaStorageAdapter(client);
 
-  await expect(adapter.deleteReservedObject(storagePath)).rejects.toMatchObject({
-    code: "storage_retryable",
-  });
+  await expect(
+    adapter.deleteReservedObject(storagePath),
+  ).rejects.toMatchObject({ code: "storage_retryable" });
 });
 
 it("contains thrown Storage delete failures", async () => {
