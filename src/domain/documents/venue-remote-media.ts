@@ -35,7 +35,8 @@ export interface VenueRemoteMediaDraft extends VenueMediaPresentationDraft {
   readonly sourcePageUrl: unknown;
 }
 
-export interface NormalizedVenueRemoteMediaDraft extends NormalizedVenueMediaPresentationDraft {
+export interface NormalizedVenueRemoteMediaDraft
+  extends NormalizedVenueMediaPresentationDraft {
   readonly remoteUrl: string;
   readonly sourcePageUrl: string | null;
 }
