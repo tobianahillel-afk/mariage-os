@@ -274,74 +274,70 @@ it("contains rejected finalization transport errors", async () => {
   }
 });
 
-it(
-  "abandons an original only after Storage absence is established",
-  async () => {
-    const client = new Client({ data: abandonmentReceipt(), error: null });
-    const adapter = new SupabasePrivateMediaLifecycleAdapter(client);
+it("abandons a pending original", async () => {
+  const client = new Client({ data: abandonmentReceipt(), error: null });
+  const adapter = new SupabasePrivateMediaLifecycleAdapter(client);
 
-    const receipt = await adapter.abandonOriginal(abandonInput);
+  const receipt = await adapter.abandonOriginal(abandonInput);
 
-    expect(receipt).toEqual({ replayed: false, absent: true });
-    expect(client.rpcName).toBe("manage_venue_private_media");
-    expect(client.rpcArgs).toEqual({
-      target_action: "abandon_original",
-      target_operation_id: abandonOperationId,
-      target_project_id: projectId,
-      target_media_id: mediaId,
-      target_venue_id: venueId,
-      target_link_id: linkId,
-      target_category: null,
-      target_caption: null,
-      target_original_filename: null,
-      target_mime_type: null,
-      target_size_bytes: null,
-      target_sha256: null,
-      target_width_px: null,
-      target_height_px: null,
-      target_derivative_of_id: null,
-      target_derivative_kind: null,
-      target_derivative_version: null,
-    });
-  },
-);
+  expect(receipt).toEqual({ replayed: false, absent: true });
+  expect(client.rpcName).toBe("manage_venue_private_media");
+  expect(client.rpcArgs).toEqual({
+    target_action: "abandon_original",
+    target_operation_id: abandonOperationId,
+    target_project_id: projectId,
+    target_media_id: mediaId,
+    target_venue_id: venueId,
+    target_link_id: linkId,
+    target_category: null,
+    target_caption: null,
+    target_original_filename: null,
+    target_mime_type: null,
+    target_size_bytes: null,
+    target_sha256: null,
+    target_width_px: null,
+    target_height_px: null,
+    target_derivative_of_id: null,
+    target_derivative_kind: null,
+    target_derivative_version: null,
+  });
+});
 
-it("accepts replayed already-absent original abandonment", async () => {
+it("accepts replayed abandonment", async () => {
   const client = new Client({
     data: abandonmentReceipt({ replayed: true }),
     error: null,
   });
+  const adapter = new SupabasePrivateMediaLifecycleAdapter(client);
 
-  await expect(
-    new SupabasePrivateMediaLifecycleAdapter(client).abandonOriginal(
-      abandonInput,
-    ),
-  ).resolves.toEqual({ replayed: true, absent: true });
+  await expect(adapter.abandonOriginal(abandonInput)).resolves.toEqual({
+    replayed: true,
+    absent: true,
+  });
 });
 
-it(
-  "maps abandonment provider failures without leaking provider objects",
-  async () => {
-    const conflict = new Client({ data: null, error: { code: "23505" } });
-    await expect(
-      new SupabasePrivateMediaLifecycleAdapter(conflict).abandonOriginal(
-        abandonInput,
-      ),
-    ).rejects.toMatchObject({ code: "conflict" });
+it("maps abandonment conflicts", async () => {
+  const client = new Client({ data: null, error: { code: "23505" } });
+  const adapter = new SupabasePrivateMediaLifecycleAdapter(client);
 
-    const objectStillPresent = new Client({
-      data: null,
-      error: { code: "55000", message: "object still present" },
-    });
-    await expect(
-      new SupabasePrivateMediaLifecycleAdapter(
-        objectStillPresent,
-      ).abandonOriginal(abandonInput),
-    ).rejects.toMatchObject({ code: "persistence_failed" });
-  },
-);
+  await expect(adapter.abandonOriginal(abandonInput)).rejects.toMatchObject({
+    code: "conflict",
+  });
+});
 
-it("rejects malformed or substituted abandonment receipts", async () => {
+it("rejects abandonment while the object exists", async () => {
+  const client = new Client({
+    data: null,
+    error: { code: "55000", message: "object still present" },
+  });
+  const adapter = new SupabasePrivateMediaLifecycleAdapter(client);
+
+  await expect(adapter.abandonOriginal(abandonInput)).rejects.toMatchObject({
+    code: "persistence_failed",
+  });
+});
+
+it("rejects invalid abandonment receipts", async () => {
   const invalidReceipts = [
     abandonmentReceipt({ projectId: operationId }),
     abandonmentReceipt({ mediaId: operationId }),
@@ -353,22 +349,20 @@ it("rejects malformed or substituted abandonment receipts", async () => {
 
   for (const data of invalidReceipts) {
     const client = new Client({ data, error: null });
-    await expect(
-      new SupabasePrivateMediaLifecycleAdapter(client).abandonOriginal(
-        abandonInput,
-      ),
-    ).rejects.toMatchObject({ code: "provider_response_invalid" });
+    const adapter = new SupabasePrivateMediaLifecycleAdapter(client);
+    await expect(adapter.abandonOriginal(abandonInput)).rejects.toMatchObject({
+      code: "provider_response_invalid",
+    });
   }
 });
 
-it("contains rejected abandonment transport errors", async () => {
+it("contains abandonment transport errors", async () => {
   const providerError = new Error("provider down");
   const client = new Client({ data: null, error: null }, providerError);
+  const adapter = new SupabasePrivateMediaLifecycleAdapter(client);
 
   try {
-    await new SupabasePrivateMediaLifecycleAdapter(client).abandonOriginal(
-      abandonInput,
-    );
+    await adapter.abandonOriginal(abandonInput);
     throw new Error("expected abandon failure");
   } catch (error) {
     expect(error).toMatchObject({ code: "persistence_failed" });
