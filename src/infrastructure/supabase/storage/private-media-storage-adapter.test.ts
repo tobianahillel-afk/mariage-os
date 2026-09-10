@@ -45,62 +45,71 @@ class Client {
   };
 }
 
-it("uploads only to project-private at the exact reserved path without upsert", async () => {
-  const client = new Client({ data: { path: storagePath }, error: null });
-  const adapter = new SupabasePrivateMediaStorageAdapter(client);
-
-  const receipt = await adapter.uploadReservedObject({
-    path: storagePath,
-    bytes,
-    mimeType: "image/jpeg",
-  });
-
-  expect(receipt).toEqual({
-    bucket: "project-private",
-    path: storagePath,
-  });
-  expect(client.selectedBucket).toBe("project-private");
-  expect(client.bucket.uploadPath).toBe(storagePath);
-  expect(client.bucket.uploadBody).toBe(bytes);
-  expect(client.bucket.uploadOptions).toMatchObject({
-    contentType: "image/jpeg",
-    upsert: false,
-  });
-});
-
-it("fails closed when Supabase substitutes or omits the reserved path", async () => {
-  for (const data of [
-    { path: `${storagePath}-substituted` },
-    {},
-    null,
-  ]) {
-    const client = new Client({ data, error: null });
+it(
+  "uploads only to project-private at the exact reserved path without upsert",
+  async () => {
+    const client = new Client({ data: { path: storagePath }, error: null });
     const adapter = new SupabasePrivateMediaStorageAdapter(client);
 
-    await expect(
-      adapter.uploadReservedObject({
-        path: storagePath,
-        bytes,
-        mimeType: "image/jpeg",
-      }),
-    ).rejects.toMatchObject({ code: "provider_response_invalid" });
-  }
-});
-
-it("contains raw provider failures behind a stable retryable Storage error", async () => {
-  const providerError = { message: "storage unavailable", statusCode: "503" };
-  const client = new Client({ data: null, error: providerError });
-  const adapter = new SupabasePrivateMediaStorageAdapter(client);
-
-  try {
-    await adapter.uploadReservedObject({
+    const receipt = await adapter.uploadReservedObject({
       path: storagePath,
       bytes,
       mimeType: "image/jpeg",
     });
-    throw new Error("expected upload failure");
-  } catch (error) {
-    expect(error).toMatchObject({ code: "storage_retryable" });
-    expect(error).not.toBe(providerError);
-  }
-});
+
+    expect(receipt).toEqual({
+      bucket: "project-private",
+      path: storagePath,
+    });
+    expect(client.selectedBucket).toBe("project-private");
+    expect(client.bucket.uploadPath).toBe(storagePath);
+    expect(client.bucket.uploadBody).toBe(bytes);
+    expect(client.bucket.uploadOptions).toMatchObject({
+      contentType: "image/jpeg",
+      upsert: false,
+    });
+  },
+);
+
+it(
+  "fails closed when Supabase substitutes or omits the reserved path",
+  async () => {
+    for (const data of [
+      { path: `${storagePath}-substituted` },
+      {},
+      null,
+    ]) {
+      const client = new Client({ data, error: null });
+      const adapter = new SupabasePrivateMediaStorageAdapter(client);
+
+      await expect(
+        adapter.uploadReservedObject({
+          path: storagePath,
+          bytes,
+          mimeType: "image/jpeg",
+        }),
+      ).rejects.toMatchObject({ code: "provider_response_invalid" });
+    }
+  },
+);
+
+it(
+  "contains raw provider failures behind a stable retryable Storage error",
+  async () => {
+    const providerError = { message: "storage unavailable", statusCode: "503" };
+    const client = new Client({ data: null, error: providerError });
+    const adapter = new SupabasePrivateMediaStorageAdapter(client);
+
+    try {
+      await adapter.uploadReservedObject({
+        path: storagePath,
+        bytes,
+        mimeType: "image/jpeg",
+      });
+      throw new Error("expected upload failure");
+    } catch (error) {
+      expect(error).toMatchObject({ code: "storage_retryable" });
+      expect(error).not.toBe(providerError);
+    }
+  },
+);
