@@ -210,9 +210,9 @@ it("contains Storage delete failures and never claims absence", async () => {
     { data: null, error: returnedError },
   );
   await expect(
-    new SupabasePrivateMediaStorageAdapter(returnedClient).deleteReservedObject(
-      storagePath,
-    ),
+    new SupabasePrivateMediaStorageAdapter(
+      returnedClient,
+    ).deleteReservedObject(storagePath),
   ).rejects.toMatchObject({ code: "storage_retryable" });
 
   const thrownError = new Error("network failure");
