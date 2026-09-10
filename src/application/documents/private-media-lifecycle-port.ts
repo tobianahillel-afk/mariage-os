@@ -1,6 +1,6 @@
 import type { VenueMediaCategory } from "@domain/documents/venue-remote-media";
 
-export type PrivateImageMimeType = "image/jpeg" | "image/png" | "image/webp";
+type PrivateImageMimeType = "image/jpeg" | "image/png" | "image/webp";
 
 export interface ReserveVenuePrivateOriginalInput {
   readonly operationId: string;
