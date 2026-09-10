@@ -99,7 +99,10 @@ export type VenueRemoteMediaValidationError =
 
 export type VenueMediaPresentationValidationResult =
   | { readonly ok: true; readonly value: NormalizedVenueMediaPresentationDraft }
-  | { readonly ok: false; readonly error: VenueMediaPresentationValidationError };
+  | {
+      readonly ok: false;
+      readonly error: VenueMediaPresentationValidationError;
+    };
 
 export type VenueRemoteMediaValidationResult =
   | { readonly ok: true; readonly value: NormalizedVenueRemoteMediaDraft }
