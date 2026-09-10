@@ -23,8 +23,8 @@ select is(
         'project_private_media_delete'
       )
   ),
-  4,
-  'all four project-private media Storage policies exist'
+  3,
+  'WP-2.8B exposes select/insert/delete Storage policies and no UPDATE policy'
 );
 select ok(
   (
@@ -91,6 +91,83 @@ values
   ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '66666666-6666-4666-8666-666666666666', 'owner', 'revoked', now(), now()),
   ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', '44444444-4444-4444-8444-444444444444', 'owner', 'active', now(), null),
   ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', '77777777-7777-4777-8777-777777777777', 'owner', 'active', now(), null);
+
+-- WP-2.8B refines the WP-1.9 namespace foundation: Storage authorization now
+-- requires an exact private media metadata row. Ready rows back committed
+-- objects; pending rows are upload/cleanup reservations visible to writers.
+insert into public.media (
+  id, project_id, media_type, category, storage_path, remote_url,
+  original_filename, mime_type, size_bytes, sha256, width_px, height_px,
+  derivative_of_id, derivative_kind, derivative_version, is_original,
+  upload_status, caption, created_by, updated_by
+)
+values
+  (
+    'a1000000-0000-4000-8000-000000000001',
+    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    'image', null,
+    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a1000000-0000-4000-8000-000000000001/original',
+    null, 'a-ready.jpg', 'image/jpeg', 1024,
+    'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    32, 32, null, null, null, true, 'ready', null,
+    '11111111-1111-4111-8111-111111111111',
+    '11111111-1111-4111-8111-111111111111'
+  ),
+  (
+    'a2000000-0000-4000-8000-000000000002',
+    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    'image', null,
+    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a2000000-0000-4000-8000-000000000002/original',
+    null, 'a-owner-pending.jpg', 'image/jpeg', 1024,
+    'abababababababababababababababababababababababababababababababab',
+    32, 32, null, null, null, true, 'pending', null,
+    '11111111-1111-4111-8111-111111111111',
+    '11111111-1111-4111-8111-111111111111'
+  ),
+  (
+    'a3000000-0000-4000-8000-000000000003',
+    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    'image', null,
+    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a3000000-0000-4000-8000-000000000003/original',
+    null, 'a-editor-pending.png', 'image/png', 2048,
+    'acacacacacacacacacacacacacacacacacacacacacacacacacacacacacacacac',
+    48, 48, null, null, null, true, 'pending', null,
+    '22222222-2222-4222-8222-222222222222',
+    '22222222-2222-4222-8222-222222222222'
+  ),
+  (
+    'b1000000-0000-4000-8000-000000000001',
+    'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+    'image', null,
+    'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/media/b1000000-0000-4000-8000-000000000001/original',
+    null, 'b-ready.webp', 'image/webp', 3072,
+    'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+    64, 64, null, null, null, true, 'ready', null,
+    '77777777-7777-4777-8777-777777777777',
+    '77777777-7777-4777-8777-777777777777'
+  ),
+  (
+    'b2000000-0000-4000-8000-000000000002',
+    'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+    'image', null,
+    'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/media/b2000000-0000-4000-8000-000000000002/original',
+    null, 'b-pending.jpg', 'image/jpeg', 1024,
+    'bcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbc',
+    32, 32, null, null, null, true, 'pending', null,
+    '77777777-7777-4777-8777-777777777777',
+    '77777777-7777-4777-8777-777777777777'
+  ),
+  (
+    'c1000000-0000-4000-8000-000000000001',
+    'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+    'image', null,
+    'cccccccc-cccc-4ccc-8ccc-cccccccccccc/media/c1000000-0000-4000-8000-000000000001/original',
+    null, 'c-ready.jpg', 'image/jpeg', 1024,
+    'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
+    32, 32, null, null, null, true, 'ready', null,
+    '11111111-1111-4111-8111-111111111111',
+    '11111111-1111-4111-8111-111111111111'
+  );
 
 insert into storage.objects (bucket_id, name)
 values
@@ -185,33 +262,33 @@ select set_config('request.jwt.claims', '{"sub":"11111111-1111-4111-8111-1111111
 select is(
   (select count(*)::integer from storage.objects where bucket_id = 'project-private'),
   1,
-  'project A owner sees only project A private object'
+  'project A owner sees only the committed project A object before pending upload'
 );
 select ok(
   pg_temp.try_storage_insert('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a2000000-0000-4000-8000-000000000002/original'),
-  'project A owner may insert a valid project A media path'
+  'project A owner may upload at an exact pending project A reservation'
 );
 select ok(
   not pg_temp.try_storage_insert('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/media/b2000000-0000-4000-8000-000000000002/original'),
-  'project A owner cannot insert into a known project B path'
+  'project A owner cannot upload at a known project B reservation'
 );
 select ok(
   not pg_temp.try_storage_insert('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/not-a-uuid/original'),
   'malformed object UUID path fails closed instead of authorizing'
 );
 select ok(
-  pg_temp.try_storage_rename(
+  not pg_temp.try_storage_rename(
     'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a1000000-0000-4000-8000-000000000001/original',
     'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a1000000-0000-4000-8000-000000000001/thumbnail-v1'
   ),
-  'project A owner may rename within an authorized valid project A namespace'
+  'WP-2.8B denies Storage UPDATE even within the authorized project namespace'
 );
 select ok(
   not pg_temp.try_storage_rename(
-    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a1000000-0000-4000-8000-000000000001/thumbnail-v1',
-    'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/media/a1000000-0000-4000-8000-000000000001/thumbnail-v1'
+    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a1000000-0000-4000-8000-000000000001/original',
+    'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/media/a1000000-0000-4000-8000-000000000001/original'
   ),
-  'update WITH CHECK prevents moving an authorized object into project B'
+  'Storage UPDATE cannot move an authorized object into project B'
 );
 select ok(
   not pg_temp.try_storage_delete('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/media/b1000000-0000-4000-8000-000000000001/original'),
@@ -219,72 +296,73 @@ select ok(
 );
 select ok(
   pg_temp.try_storage_delete('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a2000000-0000-4000-8000-000000000002/original'),
-  'project A owner may delete project A media because media.write is granted'
+  'project A owner may clean up its exact pending reserved object'
 );
 
 select set_config('request.jwt.claims', '{"sub":"22222222-2222-4222-8222-222222222222","role":"authenticated"}', true);
 select is(
   (select count(*)::integer from storage.objects where bucket_id = 'project-private'),
   1,
-  'editor sees the remaining project A object and no other project objects'
+  'editor sees the committed project A object and no other project objects'
 );
 select ok(
   pg_temp.try_storage_insert('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a3000000-0000-4000-8000-000000000003/original'),
-  'editor may insert project A media because media.write is granted'
+  'editor may upload at an exact pending project A reservation'
 );
 select ok(
   (
     select cmd = 'DELETE'
       and 'authenticated'::name = any(roles)
-      and qual like '%project-private%'
+      and qual like '%upload_status%'
+      and qual like '%pending%'
       and qual like '%media.write%'
     from pg_policies
     where schemaname = 'storage'
       and tablename = 'objects'
       and policyname = 'project_private_media_delete'
   ),
-  'delete policy is bound to authenticated clients and live media.write authorization'
+  'delete policy is bound to pending reservations and live media.write authorization'
 );
 select ok(
   pg_temp.try_storage_delete('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a3000000-0000-4000-8000-000000000003/original'),
-  'editor may delete project A media because media.write is granted'
+  'editor may clean up its exact pending reserved object'
 );
 
 select set_config('request.jwt.claims', '{"sub":"33333333-3333-4333-8333-333333333333","role":"authenticated"}', true);
 select is(
   (select count(*)::integer from storage.objects where bucket_id = 'project-private'),
   1,
-  'viewer may read project A media'
+  'viewer may read committed project A media'
 );
 select ok(
   not pg_temp.try_storage_insert('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a4000000-0000-4000-8000-000000000004/original'),
-  'viewer cannot insert project A media without media.write'
+  'viewer cannot upload without media.write or a pending reservation'
 );
 select ok(
   not pg_temp.try_storage_rename(
-    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a1000000-0000-4000-8000-000000000001/thumbnail-v1',
+    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a1000000-0000-4000-8000-000000000001/original',
     'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a1000000-0000-4000-8000-000000000001/thumbnail-v2'
   ),
-  'viewer cannot update project A media without media.write'
+  'viewer cannot update committed project A media'
 );
 select ok(
-  not pg_temp.try_storage_delete('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a1000000-0000-4000-8000-000000000001/thumbnail-v1'),
-  'viewer cannot delete project A media without media.write'
+  not pg_temp.try_storage_delete('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a1000000-0000-4000-8000-000000000001/original'),
+  'viewer cannot delete committed project A media'
 );
 
 select set_config('request.jwt.claims', '{"sub":"44444444-4444-4444-8444-444444444444","role":"authenticated"}', true);
 select is(
   (select count(*)::integer from storage.objects where bucket_id = 'project-private'),
   2,
-  'multi-project member sees only projects A and B, not project C'
+  'multi-project member sees only committed objects in projects A and B, not project C'
 );
 select ok(
   pg_temp.try_storage_insert('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/media/b2000000-0000-4000-8000-000000000002/original'),
-  'multi-project owner in B may insert project B media'
+  'multi-project owner in B may upload at the exact project B pending reservation'
 );
 select ok(
   not pg_temp.try_storage_insert('cccccccc-cccc-4ccc-8ccc-cccccccccccc/media/c2000000-0000-4000-8000-000000000002/original'),
-  'multi-project identity cannot use a known project C path without membership'
+  'multi-project identity cannot use a known project C path without membership and reservation'
 );
 select is(
   (
@@ -301,7 +379,7 @@ select set_config('request.jwt.claims', '{"sub":"77777777-7777-4777-8777-7777777
 select is(
   (select count(*)::integer from storage.objects where bucket_id = 'project-private'),
   2,
-  'project B owner sees only project B objects'
+  'project B owner sees its committed object and its pending uploaded object'
 );
 select is(
   (
@@ -322,10 +400,10 @@ select is(
 );
 select ok(
   not pg_temp.try_storage_insert('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a5000000-0000-4000-8000-000000000005/original'),
-  'authenticated outsider cannot insert into a known project A path'
+  'authenticated outsider cannot upload using known project A path data'
 );
 select ok(
-  not pg_temp.try_storage_delete('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a1000000-0000-4000-8000-000000000001/thumbnail-v1'),
+  not pg_temp.try_storage_delete('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a1000000-0000-4000-8000-000000000001/original'),
   'authenticated outsider cannot delete a known project A object'
 );
 
@@ -337,10 +415,10 @@ select is(
 );
 select ok(
   not pg_temp.try_storage_insert('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a6000000-0000-4000-8000-000000000006/original'),
-  'revoked member cannot insert using stale project knowledge'
+  'revoked member cannot upload using stale project knowledge'
 );
 select ok(
-  not pg_temp.try_storage_delete('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a1000000-0000-4000-8000-000000000001/thumbnail-v1'),
+  not pg_temp.try_storage_delete('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a1000000-0000-4000-8000-000000000001/original'),
   'revoked member cannot delete using stale project knowledge'
 );
 
@@ -354,10 +432,10 @@ select is(
 );
 select ok(
   not pg_temp.try_storage_insert('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a7000000-0000-4000-8000-000000000007/original'),
-  'anonymous client cannot insert into private project Storage'
+  'anonymous client cannot upload to private project Storage'
 );
 select ok(
-  not pg_temp.try_storage_delete('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a1000000-0000-4000-8000-000000000001/thumbnail-v1'),
+  not pg_temp.try_storage_delete('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a1000000-0000-4000-8000-000000000001/original'),
   'anonymous client cannot delete private project Storage objects'
 );
 select set_config('request.jwt.claims', '{"role":"anon","project_id":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","rsvp_token":"synthetic-capability"}', true);
@@ -371,7 +449,7 @@ select ok(
   'guest-like capability claims do not grant private Storage writes'
 );
 select ok(
-  not pg_temp.try_storage_delete('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a1000000-0000-4000-8000-000000000001/thumbnail-v1'),
+  not pg_temp.try_storage_delete('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/media/a1000000-0000-4000-8000-000000000001/original'),
   'guest-like capability claims do not grant private Storage deletes'
 );
 
