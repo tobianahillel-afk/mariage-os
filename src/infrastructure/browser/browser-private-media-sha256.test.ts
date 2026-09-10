@@ -25,9 +25,7 @@ it("hashes exact bytes with SHA-256 and canonical lowercase hex", async () => {
 
 it("uses browser Web Crypto by default", async () => {
   const hasher = new BrowserPrivateMediaSha256();
-  const hash = await hasher.hashExactBytes(
-    new Uint8Array([0x61, 0x62, 0x63]),
-  );
+  const hash = await hasher.hashExactBytes(new Uint8Array([0x61, 0x62, 0x63]));
 
   expect(hash).toBe(abcSha256);
 });
