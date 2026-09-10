@@ -13,6 +13,7 @@ interface StorageBucketLike {
     body: Uint8Array,
     options: Readonly<Record<string, unknown>>,
   ): PromiseLike<StorageResult>;
+  remove(paths: readonly string[]): PromiseLike<StorageResult>;
 }
 
 export interface SupabasePrivateMediaStorageClientLike {
@@ -32,6 +33,12 @@ export interface UploadReservedMediaObjectReceipt {
   readonly path: string;
 }
 
+export interface DeleteReservedMediaObjectReceipt {
+  readonly bucket: typeof PRIVATE_MEDIA_BUCKET;
+  readonly path: string;
+  readonly absent: true;
+}
+
 function isExactPathReceipt(
   value: unknown,
   expectedPath: string,
@@ -41,6 +48,20 @@ function isExactPathReceipt(
     value !== null &&
     "path" in value &&
     (value as { path?: unknown }).path === expectedPath
+  );
+}
+
+function isExactDeleteReceipt(value: unknown, expectedPath: string): boolean {
+  if (!Array.isArray(value)) return false;
+  if (value.length === 0) return true;
+  if (value.length !== 1) return false;
+
+  const deleted = value[0];
+  return (
+    typeof deleted === "object" &&
+    deleted !== null &&
+    "name" in deleted &&
+    (deleted as { name?: unknown }).name === expectedPath
   );
 }
 
@@ -83,6 +104,43 @@ export class SupabasePrivateMediaStorageAdapter {
     return {
       bucket: PRIVATE_MEDIA_BUCKET,
       path: input.path,
+    };
+  }
+
+  async deleteReservedObject(
+    path: string,
+  ): Promise<DeleteReservedMediaObjectReceipt> {
+    let result: StorageResult;
+
+    try {
+      result = await this.client.storage
+        .from(PRIVATE_MEDIA_BUCKET)
+        .remove([path]);
+    } catch {
+      throw new MediaPersistenceError(
+        "storage_retryable",
+        "Private media Storage cleanup failed",
+      );
+    }
+
+    if (result.error !== null) {
+      throw new MediaPersistenceError(
+        "storage_retryable",
+        "Private media Storage cleanup failed",
+      );
+    }
+
+    if (!isExactDeleteReceipt(result.data, path)) {
+      throw new MediaPersistenceError(
+        "provider_response_invalid",
+        "Private media Storage returned an invalid cleanup receipt",
+      );
+    }
+
+    return {
+      bucket: PRIVATE_MEDIA_BUCKET,
+      path,
+      absent: true,
     };
   }
 }
