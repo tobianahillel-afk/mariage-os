@@ -24,6 +24,14 @@ export interface FinalizeVenuePrivateOriginalInput {
   readonly mediaId: string;
 }
 
+export interface AbandonVenuePrivateOriginalInput {
+  readonly operationId: string;
+  readonly projectId: string;
+  readonly venueId: string;
+  readonly mediaId: string;
+  readonly linkId: string;
+}
+
 export interface VenuePrivateOriginalReservation {
   readonly storagePath: string;
   readonly replayed: boolean;
@@ -34,6 +42,11 @@ export interface VenuePrivateOriginalFinalization {
   readonly replayed: boolean;
 }
 
+export interface VenuePrivateOriginalAbandonment {
+  readonly replayed: boolean;
+  readonly absent: true;
+}
+
 export interface PrivateMediaLifecyclePort {
   reserveOriginal(
     input: ReserveVenuePrivateOriginalInput,
@@ -41,4 +54,7 @@ export interface PrivateMediaLifecyclePort {
   finalizeOriginal(
     input: FinalizeVenuePrivateOriginalInput,
   ): Promise<VenuePrivateOriginalFinalization>;
+  abandonOriginal(
+    input: AbandonVenuePrivateOriginalInput,
+  ): Promise<VenuePrivateOriginalAbandonment>;
 }
