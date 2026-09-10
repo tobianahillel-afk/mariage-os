@@ -39,7 +39,10 @@ type VenuePrivateImageFileValidationError = Exclude<
 
 export type VenuePrivateImageFileValidationResult =
   | { readonly ok: true; readonly value: ValidatedVenuePrivateImageFile }
-  | { readonly ok: false; readonly error: VenuePrivateImageFileValidationError };
+  | {
+      readonly ok: false;
+      readonly error: VenuePrivateImageFileValidationError;
+    };
 
 export type VenuePrivateImageValidationResult =
   | { readonly ok: true; readonly value: ValidatedVenuePrivateImage }
