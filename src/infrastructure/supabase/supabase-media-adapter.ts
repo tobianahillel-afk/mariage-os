@@ -14,7 +14,7 @@ import {
 
 const MEDIA_COLUMNS =
   "id,project_id,media_type,category,storage_path,remote_url,source_page_url,original_filename,mime_type,size_bytes,sha256,width_px,height_px,derivative_of_id,is_original,upload_status,caption,created_at,created_by,updated_at,updated_by,revision";
-const LINK_COLUMNS = `id,project_id,media_id,target_type,target_id,relationship_type,created_at,created_by,media(${MEDIA_COLUMNS})`;
+const LINK_COLUMNS = `id,project_id,media_id,target_type,target_id,relationship_type,created_at,created_by,media!inner(${MEDIA_COLUMNS})`;
 
 interface SupabaseResult {
   readonly data: unknown;
@@ -23,6 +23,8 @@ interface SupabaseResult {
 
 interface FilterBuilder extends PromiseLike<SupabaseResult> {
   eq(column: string, value: string): FilterBuilder;
+  not(column: string, operator: string, value: unknown): FilterBuilder;
+  is(column: string, value: null | boolean): FilterBuilder;
   order(
     column: string,
     options: Readonly<{ ascending: boolean }>,
@@ -142,6 +144,9 @@ export class SupabaseMediaAdapter implements MediaPort {
       .eq("target_type", "venue")
       .eq("target_id", venueId)
       .eq("relationship_type", "gallery")
+      .eq("media.upload_status", "ready")
+      .not("media.remote_url", "is", null)
+      .is("media.storage_path", null)
       .order("created_at", { ascending: false })
       .order("id", { ascending: true });
     if (error !== null || !Array.isArray(data)) {
