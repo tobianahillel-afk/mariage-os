@@ -1,7 +1,5 @@
 import { expect, it } from "vitest";
-import {
-  SupabasePrivateMediaLifecycleAdapter,
-} from "./supabase-private-media-lifecycle-adapter";
+import { SupabasePrivateMediaLifecycleAdapter } from "./supabase-private-media-lifecycle-adapter";
 
 const projectId = "11111111-1111-4111-8111-111111111111";
 const venueId = "22222222-2222-4222-8222-222222222222";
@@ -142,7 +140,9 @@ it("maps provider failures and rejects a substituted path", async () => {
   ).rejects.toMatchObject({ code: "conflict" });
 
   const genericFailure = new Client({ data: null, error: "provider-down" });
-  const genericAdapter = new SupabasePrivateMediaLifecycleAdapter(genericFailure);
+  const genericAdapter = new SupabasePrivateMediaLifecycleAdapter(
+    genericFailure,
+  );
   await expect(genericAdapter.reserveOriginal(input)).rejects.toMatchObject({
     code: "persistence_failed",
   });
@@ -157,7 +157,9 @@ it("maps provider failures and rejects a substituted path", async () => {
     error: null,
   });
   await expect(
-    new SupabasePrivateMediaLifecycleAdapter(substituted).reserveOriginal(input),
+    new SupabasePrivateMediaLifecycleAdapter(substituted).reserveOriginal(
+      input,
+    ),
   ).rejects.toMatchObject({ code: "provider_response_invalid" });
 });
 
@@ -166,7 +168,9 @@ it("contains a rejected provider call behind a stable error", async () => {
   const client = new Client({ data: null, error: null }, providerError);
 
   try {
-    await new SupabasePrivateMediaLifecycleAdapter(client).reserveOriginal(input);
+    await new SupabasePrivateMediaLifecycleAdapter(client).reserveOriginal(
+      input,
+    );
     throw new Error("expected reserve failure");
   } catch (error) {
     expect(error).toMatchObject({ code: "persistence_failed" });
