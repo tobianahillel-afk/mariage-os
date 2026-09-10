@@ -1,5 +1,7 @@
 import { expect, it } from "vitest";
-import { SupabasePrivateMediaLifecycleAdapter } from "./supabase-private-media-lifecycle-adapter";
+import {
+  SupabasePrivateMediaLifecycleAdapter,
+} from "./supabase-private-media-lifecycle-adapter";
 
 const projectId = "11111111-1111-4111-8111-111111111111";
 const venueId = "22222222-2222-4222-8222-222222222222";
@@ -136,11 +138,10 @@ it("maps provider errors and rejects a substituted reservation path", async () =
   ).rejects.toMatchObject({ code: "conflict" });
 
   const genericFailure = new Client({ data: null, error: "provider-down" });
-  await expect(
-    new SupabasePrivateMediaLifecycleAdapter(genericFailure).reserveOriginal(
-      input,
-    ),
-  ).rejects.toMatchObject({ code: "persistence_failed" });
+  const genericAdapter = new SupabasePrivateMediaLifecycleAdapter(genericFailure);
+  await expect(genericAdapter.reserveOriginal(input)).rejects.toMatchObject({
+    code: "persistence_failed",
+  });
 
   const substituted = new Client({
     data: {
