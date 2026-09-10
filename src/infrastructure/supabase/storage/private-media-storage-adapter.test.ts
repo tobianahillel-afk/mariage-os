@@ -1,8 +1,9 @@
 import { expect, it } from "vitest";
 import { SupabasePrivateMediaStorageAdapter } from "./private-media-storage-adapter";
 
-const storagePath =
-  "11111111-1111-4111-8111-111111111111/media/33333333-3333-4333-8333-333333333333/original";
+const projectId = "11111111-1111-4111-8111-111111111111";
+const mediaId = "33333333-3333-4333-8333-333333333333";
+const storagePath = `${projectId}/media/${mediaId}/original`;
 const bytes = new Uint8Array([0xff, 0xd8, 0xff, 0xdb]);
 
 interface UploadResult {
@@ -45,71 +46,67 @@ class Client {
   };
 }
 
-it(
-  "uploads only to project-private at the exact reserved path without upsert",
-  async () => {
-    const client = new Client({ data: { path: storagePath }, error: null });
+it("uploads a reserved private object without upsert", async () => {
+  const client = new Client({ data: { path: storagePath }, error: null });
+  const adapter = new SupabasePrivateMediaStorageAdapter(client);
+
+  const receipt = await adapter.uploadReservedObject({
+    path: storagePath,
+    bytes,
+    mimeType: "image/jpeg",
+  });
+
+  expect(receipt).toEqual({
+    bucket: "project-private",
+    path: storagePath,
+  });
+  expect(client.selectedBucket).toBe("project-private");
+  expect(client.bucket.uploadPath).toBe(storagePath);
+  expect(client.bucket.uploadBody).toBe(bytes);
+  expect(client.bucket.uploadOptions).toMatchObject({
+    contentType: "image/jpeg",
+    upsert: false,
+  });
+});
+
+it("rejects an invalid Storage receipt path", async () => {
+  const invalidData = [
+    { path: `${storagePath}-substituted` },
+    {},
+    null,
+  ];
+
+  for (const data of invalidData) {
+    const client = new Client({ data, error: null });
     const adapter = new SupabasePrivateMediaStorageAdapter(client);
 
-    const receipt = await adapter.uploadReservedObject({
+    await expect(
+      adapter.uploadReservedObject({
+        path: storagePath,
+        bytes,
+        mimeType: "image/jpeg",
+      }),
+    ).rejects.toMatchObject({ code: "provider_response_invalid" });
+  }
+});
+
+it("contains raw Storage failures behind a stable error", async () => {
+  const providerError = {
+    message: "storage unavailable",
+    statusCode: "503",
+  };
+  const client = new Client({ data: null, error: providerError });
+  const adapter = new SupabasePrivateMediaStorageAdapter(client);
+
+  try {
+    await adapter.uploadReservedObject({
       path: storagePath,
       bytes,
       mimeType: "image/jpeg",
     });
-
-    expect(receipt).toEqual({
-      bucket: "project-private",
-      path: storagePath,
-    });
-    expect(client.selectedBucket).toBe("project-private");
-    expect(client.bucket.uploadPath).toBe(storagePath);
-    expect(client.bucket.uploadBody).toBe(bytes);
-    expect(client.bucket.uploadOptions).toMatchObject({
-      contentType: "image/jpeg",
-      upsert: false,
-    });
-  },
-);
-
-it(
-  "fails closed when Supabase substitutes or omits the reserved path",
-  async () => {
-    for (const data of [
-      { path: `${storagePath}-substituted` },
-      {},
-      null,
-    ]) {
-      const client = new Client({ data, error: null });
-      const adapter = new SupabasePrivateMediaStorageAdapter(client);
-
-      await expect(
-        adapter.uploadReservedObject({
-          path: storagePath,
-          bytes,
-          mimeType: "image/jpeg",
-        }),
-      ).rejects.toMatchObject({ code: "provider_response_invalid" });
-    }
-  },
-);
-
-it(
-  "contains raw provider failures behind a stable retryable Storage error",
-  async () => {
-    const providerError = { message: "storage unavailable", statusCode: "503" };
-    const client = new Client({ data: null, error: providerError });
-    const adapter = new SupabasePrivateMediaStorageAdapter(client);
-
-    try {
-      await adapter.uploadReservedObject({
-        path: storagePath,
-        bytes,
-        mimeType: "image/jpeg",
-      });
-      throw new Error("expected upload failure");
-    } catch (error) {
-      expect(error).toMatchObject({ code: "storage_retryable" });
-      expect(error).not.toBe(providerError);
-    }
-  },
-);
+    throw new Error("expected upload failure");
+  } catch (error) {
+    expect(error).toMatchObject({ code: "storage_retryable" });
+    expect(error).not.toBe(providerError);
+  }
+});
