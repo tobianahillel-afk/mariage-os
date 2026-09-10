@@ -268,9 +268,7 @@ it("lists only the requested Venue gallery relationship in provider order", asyn
     ["relationship_type", "gallery"],
     ["media.upload_status", "ready"],
   ]);
-  expect(client.builder.notFilters).toEqual([
-    ["media.remote_url", "is", null],
-  ]);
+  expect(client.builder.notFilters).toEqual([["media.remote_url", "is", null]]);
   expect(client.builder.isFilters).toEqual([["media.storage_path", null]]);
   expect(client.builder.orders).toEqual([
     ["created_at", false],
