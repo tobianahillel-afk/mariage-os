@@ -1,4 +1,10 @@
 import { MediaPersistenceError } from "@application/documents/media-persistence-error";
+import type {
+  DeleteReservedMediaObjectReceipt,
+  PrivateMediaStoragePort,
+  UploadReservedMediaObjectInput,
+  UploadReservedMediaObjectReceipt,
+} from "@application/documents/private-media-storage-port";
 
 const PRIVATE_MEDIA_BUCKET = "project-private" as const;
 
@@ -20,23 +26,6 @@ export interface SupabasePrivateMediaStorageClientLike {
   readonly storage: {
     from(bucket: string): StorageBucketLike;
   };
-}
-
-export interface UploadReservedMediaObjectInput {
-  readonly path: string;
-  readonly bytes: Uint8Array;
-  readonly mimeType: string;
-}
-
-export interface UploadReservedMediaObjectReceipt {
-  readonly bucket: typeof PRIVATE_MEDIA_BUCKET;
-  readonly path: string;
-}
-
-export interface DeleteReservedMediaObjectReceipt {
-  readonly bucket: typeof PRIVATE_MEDIA_BUCKET;
-  readonly path: string;
-  readonly absent: true;
 }
 
 function isExactPathReceipt(
@@ -65,7 +54,9 @@ function isExactDeleteReceipt(value: unknown, expectedPath: string): boolean {
   );
 }
 
-export class SupabasePrivateMediaStorageAdapter {
+export class SupabasePrivateMediaStorageAdapter
+  implements PrivateMediaStoragePort
+{
   constructor(private readonly client: SupabasePrivateMediaStorageClientLike) {}
 
   async uploadReservedObject(
