@@ -178,6 +178,9 @@ it("deletes private Storage before abandoning a pending original", async () => {
   const storagePath = `${projectId}/media/${mediaId}/original`;
   const privateMedia = {
     storage: {
+      async uploadReservedObject() {
+        throw new Error("unused");
+      },
       async deleteReservedObject(path: string) {
         events.push(`delete:${path}`);
         return {
@@ -221,6 +224,9 @@ it("keeps pending metadata when private Storage cleanup fails", async () => {
   let abandonCalls = 0;
   const privateMedia = {
     storage: {
+      async uploadReservedObject() {
+        throw new Error("unused");
+      },
       async deleteReservedObject() {
         throw new MediaPersistenceError("storage_retryable", "retry");
       },
