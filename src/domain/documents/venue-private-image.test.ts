@@ -2,9 +2,7 @@ import { describe, expect, it } from "vitest";
 import { validateVenuePrivateImage } from "./venue-private-image";
 
 const jpeg = new Uint8Array([0xff, 0xd8, 0xff, 0x00]);
-const png = new Uint8Array([
-  0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
-]);
+const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 const webp = new Uint8Array([
   0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50,
 ]);
@@ -113,7 +111,9 @@ describe("Venue private image validation", () => {
     `bad\udc00.jpg`,
     `${"a".repeat(509)}.jpg`,
   ])("rejects unsafe private display filename", (originalFilename) => {
-    expect(validateVenuePrivateImage(candidate(originalFilename, jpeg))).toEqual({
+    expect(
+      validateVenuePrivateImage(candidate(originalFilename, jpeg)),
+    ).toEqual({
       ok: false,
       error: "invalid_filename",
     });
