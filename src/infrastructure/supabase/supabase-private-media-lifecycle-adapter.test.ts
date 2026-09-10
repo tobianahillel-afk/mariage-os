@@ -123,9 +123,7 @@ function finalizationReceipt(
   };
 }
 
-function abandonmentReceipt(
-  overrides: Readonly<Record<string, unknown>> = {},
-) {
+function abandonmentReceipt(overrides: Readonly<Record<string, unknown>> = {}) {
   return {
     action: "abandon_original",
     replayed: false,
