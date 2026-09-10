@@ -38,7 +38,9 @@ it("maps browser decode rejection to a stable typed failure", async () => {
   };
   const inspector = new BrowserPrivateMediaImageInspector(decode);
 
-  await expect(inspector.inspect(new Uint8Array([0x00]))).rejects.toMatchObject({
+  await expect(
+    inspector.inspect(new Uint8Array([0x00])),
+  ).rejects.toMatchObject({
     name: "PrivateMediaImageInspectionError",
     code: "decode_failed",
   });
