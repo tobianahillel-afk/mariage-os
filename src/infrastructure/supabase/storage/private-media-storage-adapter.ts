@@ -54,9 +54,7 @@ function isExactDeleteReceipt(value: unknown, expectedPath: string): boolean {
   );
 }
 
-export class SupabasePrivateMediaStorageAdapter
-  implements PrivateMediaStoragePort
-{
+export class SupabasePrivateMediaStorageAdapter implements PrivateMediaStoragePort {
   constructor(private readonly client: SupabasePrivateMediaStorageClientLike) {}
 
   async uploadReservedObject(
