@@ -10,8 +10,7 @@ export interface VenuePrivateImageFileCandidate {
   readonly bytes: Uint8Array;
 }
 
-export interface VenuePrivateImageCandidate
-  extends VenuePrivateImageFileCandidate {
+export interface VenuePrivateImageCandidate extends VenuePrivateImageFileCandidate {
   readonly widthPx: number;
   readonly heightPx: number;
 }

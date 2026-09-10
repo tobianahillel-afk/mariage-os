@@ -68,8 +68,7 @@ export interface NormalizedCreateVenueRemoteMediaInput extends NormalizedVenueRe
   readonly linkId: string;
 }
 
-interface NormalizedVenuePrivateOriginalDraft
-  extends ValidatedVenuePrivateImageFile {
+interface NormalizedVenuePrivateOriginalDraft extends ValidatedVenuePrivateImageFile {
   readonly operationId: string;
   readonly projectId: string;
   readonly venueId: string;
@@ -80,8 +79,7 @@ interface NormalizedVenuePrivateOriginalDraft
   readonly bytes: Uint8Array;
 }
 
-interface PreparedVenuePrivateOriginal
-  extends NormalizedVenuePrivateOriginalDraft {
+interface PreparedVenuePrivateOriginal extends NormalizedVenuePrivateOriginalDraft {
   readonly widthPx: number;
   readonly heightPx: number;
   readonly sha256: string;
@@ -237,7 +235,10 @@ async function persistPrivateOriginal(
   media: PreparedVenuePrivateOriginal,
   ports: PrivateMediaCreationPorts,
 ): Promise<MediaResult<VenuePrivateOriginalFinalization>> {
-  const expectedPath = privateOriginalStoragePath(media.projectId, media.mediaId);
+  const expectedPath = privateOriginalStoragePath(
+    media.projectId,
+    media.mediaId,
+  );
   try {
     const reservation = await ports.lifecycle.reserveOriginal({
       operationId: media.operationId,
