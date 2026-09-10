@@ -98,7 +98,10 @@ export type VenueRemoteMediaValidationError =
   | "invalid_source_page_url";
 
 export type VenueMediaPresentationValidationResult =
-  | { readonly ok: true; readonly value: NormalizedVenueMediaPresentationDraft }
+  | {
+      readonly ok: true;
+      readonly value: NormalizedVenueMediaPresentationDraft;
+    }
   | {
       readonly ok: false;
       readonly error: VenueMediaPresentationValidationError;
