@@ -94,9 +94,7 @@ function parseReservationReceipt(
   }
 }
 
-export class SupabasePrivateMediaLifecycleAdapter
-  implements PrivateMediaLifecyclePort
-{
+export class SupabasePrivateMediaLifecycleAdapter implements PrivateMediaLifecyclePort {
   constructor(private readonly client: SupabasePrivateMediaLifecycleClientLike) {}
 
   async reserveOriginal(
