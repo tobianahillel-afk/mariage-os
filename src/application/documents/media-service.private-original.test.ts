@@ -260,9 +260,10 @@ it("maps image decode failures and contains unknown inspector failures", async (
   expect(known.events).toEqual(["inspect"]);
 
   expect(
-    await new MediaService(remotePort, unknown.value).createVenuePrivateOriginal(
-      request(),
-    ),
+    await new MediaService(
+      remotePort,
+      unknown.value,
+    ).createVenuePrivateOriginal(request()),
   ).toEqual({ ok: false, error: "persistence_failed" });
   expect(unknown.events).toEqual(["inspect"]);
 });
@@ -292,15 +293,18 @@ it("maps SHA failures and contains unknown hashing failures", async () => {
   expect(known.events).toEqual(["inspect", "hash"]);
 
   expect(
-    await new MediaService(remotePort, unknown.value).createVenuePrivateOriginal(
-      request(),
-    ),
+    await new MediaService(
+      remotePort,
+      unknown.value,
+    ).createVenuePrivateOriginal(request()),
   ).toEqual({ ok: false, error: "persistence_failed" });
   expect(unknown.events).toEqual(["inspect", "hash"]);
 });
 
 it("rejects a substituted reservation path before Storage upload", async () => {
-  const privateMedia = privatePorts({ reservationPath: `${storagePath}-other` });
+  const privateMedia = privatePorts({
+    reservationPath: `${storagePath}-other`,
+  });
   const service = new MediaService(remotePort, privateMedia.value);
 
   expect(await service.createVenuePrivateOriginal(request())).toEqual({
@@ -337,7 +341,9 @@ it("rejects substituted Storage upload bucket or path before finalize", async ()
 });
 
 it("rejects a substituted finalization path", async () => {
-  const privateMedia = privatePorts({ finalizationPath: `${storagePath}-other` });
+  const privateMedia = privatePorts({
+    finalizationPath: `${storagePath}-other`,
+  });
   const service = new MediaService(remotePort, privateMedia.value);
 
   expect(await service.createVenuePrivateOriginal(request())).toEqual({
