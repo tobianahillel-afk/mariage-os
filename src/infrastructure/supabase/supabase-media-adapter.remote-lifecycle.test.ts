@@ -112,7 +112,9 @@ it.each(["23505", "40001"])(
   async (code) => {
     const client = new LifecycleClient({ data: null, error: { code } });
     await expect(
-      new SupabaseMediaAdapter(client).transitionVenueRemoteMediaLifecycle(input),
+      new SupabaseMediaAdapter(client).transitionVenueRemoteMediaLifecycle(
+        input,
+      ),
     ).rejects.toMatchObject({ code: "conflict" });
   },
 );

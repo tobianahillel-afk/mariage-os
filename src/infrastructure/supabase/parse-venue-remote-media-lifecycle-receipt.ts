@@ -38,11 +38,7 @@ function canonicalInstant(value: unknown): string {
 }
 
 function positiveRevision(value: unknown): number {
-  if (
-    typeof value !== "number" ||
-    !Number.isSafeInteger(value) ||
-    value < 1
-  ) {
+  if (typeof value !== "number" || !Number.isSafeInteger(value) || value < 1) {
     fail();
   }
   return value;
@@ -158,7 +154,8 @@ export function parseVenueRemoteMediaLifecycleReceipt(
   expected: ExpectedVenueRemoteMediaLifecycle,
 ): VenueRemoteMediaLifecycleReceipt {
   const row = objectRow(value);
-  if (row.action !== expected.action || typeof row.replayed !== "boolean") fail();
+  if (row.action !== expected.action || typeof row.replayed !== "boolean")
+    fail();
   const media = parseLifecycleMedia(row.media, expected);
   const link = parseLifecycleLink(row.link, expected);
   if (link.projectId !== media.projectId || link.mediaId !== media.id) fail();

@@ -146,7 +146,8 @@ export class SupabaseMediaAdapter implements MediaPort {
   async transitionVenueRemoteMediaLifecycle(
     input: NormalizedTransitionVenueRemoteMediaLifecycleRequest,
   ): Promise<VenueRemoteMediaLifecycleReceipt> {
-    const lifecycleClient = this.client as unknown as SupabaseRemoteMediaLifecycleClientLike;
+    const lifecycleClient = this
+      .client as unknown as SupabaseRemoteMediaLifecycleClientLike;
     const { data, error } = await lifecycleClient.rpc(
       "transition_venue_remote_media_lifecycle",
       {

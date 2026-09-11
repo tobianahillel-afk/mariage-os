@@ -87,7 +87,9 @@ class StubPort implements MediaPort {
 
 it("validates and delegates a remote-media lifecycle transition", async () => {
   const port = new StubPort();
-  const result = await new MediaService(port).transitionVenueRemoteMediaLifecycle({
+  const result = await new MediaService(
+    port,
+  ).transitionVenueRemoteMediaLifecycle({
     projectId,
     mediaId,
     action: "soft_delete",
@@ -124,7 +126,13 @@ it("rejects invalid lifecycle identity, action and revision before persistence",
     }),
   ).toEqual({ ok: false, error: "invalid_action" });
 
-  for (const expectedRevision of [null, 0, -1, 1.5, Number.MAX_SAFE_INTEGER + 1]) {
+  for (const expectedRevision of [
+    null,
+    0,
+    -1,
+    1.5,
+    Number.MAX_SAFE_INTEGER + 1,
+  ]) {
     expect(
       await service.transitionVenueRemoteMediaLifecycle({
         projectId,

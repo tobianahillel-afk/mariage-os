@@ -37,11 +37,7 @@ function canonicalInstant(value: unknown): string {
 }
 
 function positiveRevision(value: unknown): number {
-  if (
-    typeof value !== "number" ||
-    !Number.isSafeInteger(value) ||
-    value < 1
-  ) {
+  if (typeof value !== "number" || !Number.isSafeInteger(value) || value < 1) {
     fail();
   }
   return value;
