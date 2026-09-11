@@ -118,6 +118,7 @@ function lifecyclePort(
       return {
         storagePath: options.finalizationPath ?? storagePath,
         replayed: false,
+        duplicateOriginalMediaIds: [],
       };
     },
     async abandonOriginal() {
@@ -180,7 +181,11 @@ it("creates a private original in the frozen safe order", async () => {
 
   expect(result).toEqual({
     ok: true,
-    value: { storagePath, replayed: false },
+    value: {
+      storagePath,
+      replayed: false,
+      duplicateOriginalMediaIds: [],
+    },
   });
   expect(privateMedia.events).toEqual([
     "inspect",
