@@ -13,7 +13,6 @@ import {
   type VenueRemoteMediaBundle,
   type VenueRemoteMediaValidationError,
 } from "@domain/documents/venue-remote-media";
-import type { VenueRemoteMediaLifecycleReceipt } from "@domain/documents/venue-remote-media-lifecycle";
 import { mediaPersistenceErrorCode } from "./media-persistence-error";
 import {
   orchestratePrivateDerivativeAbandon,
@@ -363,7 +362,7 @@ export class MediaService {
 
   async transitionVenueRemoteMediaLifecycle(
     input: TransitionVenueRemoteMediaLifecycleRequest,
-  ): Promise<MediaResult<VenueRemoteMediaLifecycleReceipt>> {
+  ) {
     return orchestrateVenueRemoteMediaLifecycle(this.port, input);
   }
 
