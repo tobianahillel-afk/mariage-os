@@ -4,6 +4,7 @@ import { SupabasePrivateMediaLifecycleAdapter } from "./supabase-private-media-l
 const projectId = "11111111-1111-4111-8111-111111111111";
 const venueId = "22222222-2222-4222-8222-222222222222";
 const mediaId = "33333333-3333-4333-8333-333333333333";
+const duplicateId = "99999999-9999-4999-8999-999999999999";
 const linkId = "44444444-4444-4444-8444-444444444444";
 const operationId = "55555555-5555-4555-8555-555555555555";
 const finalizeOperationId = "77777777-7777-4777-8777-777777777777";
@@ -117,6 +118,7 @@ function finalizationReceipt(
   return {
     action: "finalize_original",
     replayed: false,
+    duplicateOriginalMediaIds: [],
     media: media({ upload_status: "ready", revision: 2 }),
     link: link(),
     ...overrides,
@@ -175,15 +177,18 @@ it("reserves an original through the lifecycle RPC", async () => {
 
 it("finalizes an original through the minimal lifecycle command", async () => {
   const client = new Client({
-    data: finalizationReceipt(),
+    data: finalizationReceipt({ duplicateOriginalMediaIds: [duplicateId] }),
     error: null,
   });
   const adapter = new SupabasePrivateMediaLifecycleAdapter(client);
 
   const receipt = await adapter.finalizeOriginal(finalizeInput);
 
-  expect(receipt.storagePath).toBe(storagePath);
-  expect(receipt.replayed).toBe(false);
+  expect(receipt).toEqual({
+    storagePath,
+    replayed: false,
+    duplicateOriginalMediaIds: [duplicateId],
+  });
   expect(client.rpcName).toBe("manage_venue_private_media");
   expect(client.rpcArgs).toEqual({
     target_action: "finalize_original",
@@ -216,7 +221,11 @@ it("accepts a replayed finalization receipt", async () => {
     new SupabasePrivateMediaLifecycleAdapter(client).finalizeOriginal(
       finalizeInput,
     ),
-  ).resolves.toEqual({ storagePath, replayed: true });
+  ).resolves.toEqual({
+    storagePath,
+    replayed: true,
+    duplicateOriginalMediaIds: [],
+  });
 });
 
 it("maps finalization provider failures to stable lifecycle errors", async () => {
@@ -235,7 +244,7 @@ it("maps finalization provider failures to stable lifecycle errors", async () =>
   ).rejects.toMatchObject({ code: "persistence_failed" });
 });
 
-it("rejects substituted or non-ready finalization receipts", async () => {
+it("rejects substituted, non-ready, or malformed dedup finalization receipts", async () => {
   const invalidReceipts = [
     finalizationReceipt({
       media: media({
@@ -245,6 +254,12 @@ it("rejects substituted or non-ready finalization receipts", async () => {
     }),
     finalizationReceipt({ media: media({ upload_status: "pending" }) }),
     finalizationReceipt({ link: link({ media_id: operationId }) }),
+    finalizationReceipt({ duplicateOriginalMediaIds: null }),
+    finalizationReceipt({ duplicateOriginalMediaIds: [mediaId] }),
+    finalizationReceipt({ duplicateOriginalMediaIds: [duplicateId, duplicateId] }),
+    finalizationReceipt({
+      duplicateOriginalMediaIds: [duplicateId, projectId],
+    }),
   ];
 
   for (const data of invalidReceipts) {
