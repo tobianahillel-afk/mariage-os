@@ -3,8 +3,7 @@ const MAX_PRIVATE_IMAGE_DIMENSION_PX = 16_384;
 const MAX_PRIVATE_IMAGE_PIXELS = 50_000_000;
 const MAX_PRIVATE_IMAGE_FILENAME_SCALARS = 512;
 
-export type VenuePrivateImageMimeType =
-  "image/jpeg" | "image/png" | "image/webp";
+type VenuePrivateImageMimeType = "image/jpeg" | "image/png" | "image/webp";
 
 export interface VenuePrivateImageFileCandidate {
   readonly originalFilename: string;
