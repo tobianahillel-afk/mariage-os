@@ -63,13 +63,18 @@ interface PrivatePortOptions {
   readonly finalizationPath?: string;
 }
 
-function privatePorts(options: PrivatePortOptions = {}) {
-  const events: string[] = [];
-  let reserveInput: ReserveVenuePrivateOriginalInput | null = null;
+interface PrivatePortState {
+  readonly events: string[];
+  reserveInput: ReserveVenuePrivateOriginalInput | null;
+}
 
-  const imageInspector: PrivateMediaImageInspectorPort = {
+function imageInspectorPort(
+  state: PrivatePortState,
+  options: PrivatePortOptions,
+): PrivateMediaImageInspectorPort {
+  return {
     async inspect(receivedBytes) {
-      events.push("inspect");
+      state.events.push("inspect");
       expect(receivedBytes).toBe(bytes);
       if (options.inspectionError !== undefined) throw options.inspectionError;
       return {
@@ -78,25 +83,37 @@ function privatePorts(options: PrivatePortOptions = {}) {
       };
     },
   };
-  const sha: PrivateMediaSha256Port = {
+}
+
+function sha256Port(
+  state: PrivatePortState,
+  options: PrivatePortOptions,
+): PrivateMediaSha256Port {
+  return {
     async hashExactBytes(receivedBytes) {
-      events.push("hash");
+      state.events.push("hash");
       expect(receivedBytes).toBe(bytes);
       if (options.hashError !== undefined) throw options.hashError;
       return sha256;
     },
   };
-  const lifecycle: PrivateMediaLifecyclePort = {
+}
+
+function lifecyclePort(
+  state: PrivatePortState,
+  options: PrivatePortOptions,
+): PrivateMediaLifecyclePort {
+  return {
     async reserveOriginal(input) {
-      events.push("reserve");
-      reserveInput = input;
+      state.events.push("reserve");
+      state.reserveInput = input;
       return {
         storagePath: options.reservationPath ?? storagePath,
         replayed: false,
       };
     },
     async finalizeOriginal() {
-      events.push("finalize");
+      state.events.push("finalize");
       if (options.finalizeError !== undefined) throw options.finalizeError;
       return {
         storagePath: options.finalizationPath ?? storagePath,
@@ -107,9 +124,15 @@ function privatePorts(options: PrivatePortOptions = {}) {
       throw new Error("unused");
     },
   };
-  const storage: PrivateMediaStoragePort = {
+}
+
+function storagePort(
+  state: PrivatePortState,
+  options: PrivatePortOptions,
+): PrivateMediaStoragePort {
+  return {
     async uploadReservedObject(input) {
-      events.push("upload");
+      state.events.push("upload");
       expect(input).toEqual({
         path: storagePath,
         bytes,
@@ -128,11 +151,19 @@ function privatePorts(options: PrivatePortOptions = {}) {
       throw new Error("unused");
     },
   };
+}
+
+function privatePorts(options: PrivatePortOptions = {}) {
+  const state: PrivatePortState = { events: [], reserveInput: null };
+  const lifecycle = lifecyclePort(state, options);
+  const storage = storagePort(state, options);
+  const imageInspector = imageInspectorPort(state, options);
+  const sha = sha256Port(state, options);
 
   return {
-    events,
+    events: state.events,
     get reserveInput() {
-      return reserveInput;
+      return state.reserveInput;
     },
     value: { lifecycle, storage, imageInspector, sha256: sha },
   };
