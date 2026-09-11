@@ -346,6 +346,17 @@ function isAbandonRequestValid(
   );
 }
 
+function isConfirmedPrivateObjectAbsence(
+  deletion: Awaited<ReturnType<PrivateMediaStoragePort["deleteReservedObject"]>>,
+  expectedPath: string,
+): boolean {
+  return (
+    deletion.bucket === "project-private" &&
+    deletion.path === expectedPath &&
+    deletion.absent === true
+  );
+}
+
 export class MediaService {
   constructor(
     private readonly port: MediaPort,
@@ -428,7 +439,11 @@ export class MediaService {
     );
 
     try {
-      await this.privateMedia.storage.deleteReservedObject(storagePath);
+      const deletion =
+        await this.privateMedia.storage.deleteReservedObject(storagePath);
+      if (!isConfirmedPrivateObjectAbsence(deletion, storagePath)) {
+        return { ok: false, error: "provider_response_invalid" };
+      }
       const value = await this.privateMedia.lifecycle.abandonOriginal(input);
       return { ok: true, value };
     } catch (error) {
