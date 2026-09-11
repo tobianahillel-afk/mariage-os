@@ -231,6 +231,52 @@ async function preparePrivateOriginal(
   }
 }
 
+function isExactStorageInspection(
+  inspection: Awaited<
+    ReturnType<PrivateMediaStoragePort["inspectReservedObject"]>
+  >,
+  expectedPath: string,
+): boolean {
+  return (
+    inspection.bucket === "project-private" &&
+    inspection.path === expectedPath &&
+    typeof inspection.present === "boolean"
+  );
+}
+
+async function privateOriginalUploadRequired(
+  replayed: boolean,
+  expectedPath: string,
+  storage: PrivateMediaStoragePort,
+): Promise<MediaResult<boolean>> {
+  if (!replayed) return { ok: true, value: true };
+
+  const inspection = await storage.inspectReservedObject(expectedPath);
+  if (!isExactStorageInspection(inspection, expectedPath)) {
+    return { ok: false, error: "provider_response_invalid" };
+  }
+  return { ok: true, value: !inspection.present };
+}
+
+async function uploadPrivateOriginal(
+  media: PreparedVenuePrivateOriginal,
+  expectedPath: string,
+  storage: PrivateMediaStoragePort,
+  required: boolean,
+): Promise<MediaResult<null>> {
+  if (!required) return { ok: true, value: null };
+
+  const upload = await storage.uploadReservedObject({
+    path: expectedPath,
+    bytes: media.bytes,
+    mimeType: media.mimeType,
+  });
+  if (upload.bucket !== "project-private" || upload.path !== expectedPath) {
+    return { ok: false, error: "provider_response_invalid" };
+  }
+  return { ok: true, value: null };
+}
+
 async function persistPrivateOriginal(
   media: PreparedVenuePrivateOriginal,
   ports: PrivateMediaCreationPorts,
@@ -259,30 +305,20 @@ async function persistPrivateOriginal(
       return { ok: false, error: "provider_response_invalid" };
     }
 
-    let uploadRequired = true;
-    if (reservation.replayed) {
-      const inspection =
-        await ports.storage.inspectReservedObject(expectedPath);
-      if (
-        inspection.bucket !== "project-private" ||
-        inspection.path !== expectedPath ||
-        typeof inspection.present !== "boolean"
-      ) {
-        return { ok: false, error: "provider_response_invalid" };
-      }
-      uploadRequired = !inspection.present;
-    }
+    const uploadRequired = await privateOriginalUploadRequired(
+      reservation.replayed,
+      expectedPath,
+      ports.storage,
+    );
+    if (!uploadRequired.ok) return uploadRequired;
 
-    if (uploadRequired) {
-      const upload = await ports.storage.uploadReservedObject({
-        path: expectedPath,
-        bytes: media.bytes,
-        mimeType: media.mimeType,
-      });
-      if (upload.bucket !== "project-private" || upload.path !== expectedPath) {
-        return { ok: false, error: "provider_response_invalid" };
-      }
-    }
+    const upload = await uploadPrivateOriginal(
+      media,
+      expectedPath,
+      ports.storage,
+      uploadRequired.value,
+    );
+    if (!upload.ok) return upload;
 
     const finalization = await ports.lifecycle.finalizeOriginal({
       operationId: media.operationId,
