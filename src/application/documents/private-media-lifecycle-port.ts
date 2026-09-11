@@ -1,6 +1,7 @@
 import type { VenueMediaCategory } from "@domain/documents/venue-remote-media";
 
-type PrivateImageMimeType = "image/jpeg" | "image/png" | "image/webp";
+export type PrivateImageMimeType = "image/jpeg" | "image/png" | "image/webp";
+export type VenuePrivateDerivativeKind = "thumbnail" | "preview";
 
 export interface ReserveVenuePrivateOriginalInput {
   readonly operationId: string;
@@ -32,6 +33,35 @@ export interface AbandonVenuePrivateOriginalInput {
   readonly linkId: string;
 }
 
+export interface ReserveVenuePrivateDerivativeInput {
+  readonly operationId: string;
+  readonly projectId: string;
+  readonly mediaId: string;
+  readonly parentMediaId: string;
+  readonly derivativeKind: VenuePrivateDerivativeKind;
+  readonly derivativeVersion: number;
+  readonly mimeType: PrivateImageMimeType;
+  readonly sizeBytes: number;
+  readonly sha256: string;
+  readonly widthPx: number;
+  readonly heightPx: number;
+}
+
+export interface FinalizeVenuePrivateDerivativeInput {
+  readonly operationId: string;
+  readonly projectId: string;
+  readonly mediaId: string;
+  readonly parentMediaId: string;
+  readonly derivativeKind: VenuePrivateDerivativeKind;
+  readonly derivativeVersion: number;
+}
+
+export interface AbandonVenuePrivateDerivativeInput {
+  readonly operationId: string;
+  readonly projectId: string;
+  readonly mediaId: string;
+}
+
 export interface VenuePrivateOriginalReservation {
   readonly storagePath: string;
   readonly replayed: boolean;
@@ -47,6 +77,21 @@ export interface VenuePrivateOriginalAbandonment {
   readonly absent: true;
 }
 
+export interface VenuePrivateDerivativeReservation {
+  readonly storagePath: string;
+  readonly replayed: boolean;
+}
+
+export interface VenuePrivateDerivativeFinalization {
+  readonly storagePath: string;
+  readonly replayed: boolean;
+}
+
+export interface VenuePrivateDerivativeAbandonment {
+  readonly replayed: boolean;
+  readonly absent: true;
+}
+
 export interface PrivateMediaLifecyclePort {
   reserveOriginal(
     input: ReserveVenuePrivateOriginalInput,
@@ -57,4 +102,13 @@ export interface PrivateMediaLifecyclePort {
   abandonOriginal(
     input: AbandonVenuePrivateOriginalInput,
   ): Promise<VenuePrivateOriginalAbandonment>;
+  reserveDerivative(
+    input: ReserveVenuePrivateDerivativeInput,
+  ): Promise<VenuePrivateDerivativeReservation>;
+  finalizeDerivative(
+    input: FinalizeVenuePrivateDerivativeInput,
+  ): Promise<VenuePrivateDerivativeFinalization>;
+  abandonDerivative(
+    input: AbandonVenuePrivateDerivativeInput,
+  ): Promise<VenuePrivateDerivativeAbandonment>;
 }
