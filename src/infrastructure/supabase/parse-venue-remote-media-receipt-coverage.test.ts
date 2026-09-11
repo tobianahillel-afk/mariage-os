@@ -32,6 +32,7 @@ function media(overrides: Record<string, unknown> = {}) {
     updated_at: "2026-09-09T20:00:00Z",
     updated_by: actorId,
     revision: 1,
+    deleted_at: null,
     ...overrides,
   };
 }

@@ -38,6 +38,7 @@ function media(overrides: Record<string, unknown> = {}) {
     updated_at: "2026-09-09T20:00:00Z",
     updated_by: actorId,
     revision: 1,
+    deleted_at: null,
     ...overrides,
   };
 }
@@ -312,6 +313,21 @@ it("filters private pending media before parsing a mixed Venue gallery", async (
   expect(rows[0]?.media.id).toBe(mediaId);
 });
 
+it("fails closed if the provider returns deleted media despite the active filter", async () => {
+  const deleted = {
+    ...link(),
+    media: media({ deleted_at: "2026-09-11T16:30:00Z" }),
+  };
+  const client = new Client(
+    { data: [deleted], error: null },
+    { data: null, error: null },
+  );
+
+  await expect(
+    new SupabaseMediaAdapter(client).listVenueRemoteMedia(projectId, venueId),
+  ).rejects.toMatchObject({ code: "provider_response_invalid" });
+});
+
 it("fails closed on duplicate media list rows", async () => {
   const duplicated = { ...link(), media: media() };
   const client = new Client(
@@ -357,14 +373,4 @@ it("maps provider and non-array list failures", async () => {
   await expect(
     new SupabaseMediaAdapter(nonArray).listVenueRemoteMedia(projectId, venueId),
   ).rejects.toMatchObject({ code: "persistence_failed" });
-});
-
-it("maps malformed list rows to provider response invalid", async () => {
-  const client = new Client(
-    { data: [null], error: null },
-    { data: null, error: null },
-  );
-  await expect(
-    new SupabaseMediaAdapter(client).listVenueRemoteMedia(projectId, venueId),
-  ).rejects.toMatchObject({ code: "provider_response_invalid" });
 });

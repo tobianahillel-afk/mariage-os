@@ -35,6 +35,7 @@ function media(overrides: Record<string, unknown> = {}) {
     updated_at: "2026-09-09T20:00:00Z",
     updated_by: actorId,
     revision: 1,
+    deleted_at: null,
     ...overrides,
   };
 }
@@ -82,6 +83,7 @@ it.each([
   },
   { media: media({ storage_path: "private/path" }), link: link() },
   { media: media({ upload_status: "pending" }), link: link() },
+  { media: media({ deleted_at: "2026-09-11T16:30:00Z" }), link: link() },
   { media: media(), link: link({ target_type: "vendor" }) },
   { media: media(), link: link({ media_id: venueId }) },
 ])("fails closed on malformed or substituted receipt %#", (receipt) => {
