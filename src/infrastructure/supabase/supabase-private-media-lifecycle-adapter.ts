@@ -47,7 +47,11 @@ function derivativeStoragePath(
 
 function lifecycleArgs(
   action: string,
-  input: { readonly operationId: string; readonly projectId: string; readonly mediaId: string },
+  input: {
+    readonly operationId: string;
+    readonly projectId: string;
+    readonly mediaId: string;
+  },
 ): Record<string, unknown> {
   return {
     target_action: action,
