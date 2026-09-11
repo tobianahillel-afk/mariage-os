@@ -80,6 +80,9 @@ const finalizeInput = {
   operationId: finalizeOperationId,
   projectId,
   mediaId,
+  parentMediaId,
+  derivativeKind: "thumbnail" as const,
+  derivativeVersion: 1,
 };
 
 const abandonInput = {
