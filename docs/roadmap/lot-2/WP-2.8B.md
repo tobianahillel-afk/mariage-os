@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.8B`
 - Lot: `2`
 - Name: Private Venue image archive lifecycle
-- State: `IN_PROGRESS`
-- Current pass: `A-IMPLEMENT`
+- State: `ACCEPTANCE_PENDING`
+- Current pass: `C-ACCEPTANCE`
 - Primary bounded context: Documents/Media private image archive, immutable originals, derivatives and recovery
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 
@@ -57,10 +57,14 @@
 - WP-2.8A is **ACCEPTED / COMPLETE**: packet acceptance `925cf86f3e38bf08807ed408f6d100fbbbd5c9c2` / `34418721439` — **5/5 SUCCESS**; coverage reconciliation `432e0cf893e0adc079ba3c25eb325efb9d01e3ec` / `34420275595` — **5/5 SUCCESS**; final status-governance closure `7788d2673571eef9f5bea9dc0ac35a0c60ee1ff6` / `34420864673` — **5/5 SUCCESS**.
 - WP-2.8B private lifecycle specification freeze is **CLOSED / VERIFIED** on `dd2b03c736210f5145ece58ef8b4f55918c43b00` / `34421686462` — **5/5 SUCCESS**, clean-checkout included.
 - WP-2.8B `PLANNED → READY` governance is **CLOSED / VERIFIED** on `3e6fe6683cccb21ffa0ef96b87911280ab07737f` / `34423597208` — **5/5 SUCCESS**, clean-checkout included.
+- Pass-A implementation checkpoint `150c10c07452748e3092e316a3cb9a26f272ff3e` / `34555183344` and first fresh Pass-B review `a23e6925f4d95e5d49cdea5b4e62b899cdd7a605` / `34555832894` were **5/5 SUCCESS**.
+- Pass C exposed MED-006 receipt incompleteness on RED head `4eddca8aa94a2ed95d37bac47b8f3efeb3b4faf4` / `34556856411`; production was correctly reopened for remediation.
+- MED-006 remediation exact head `f815844d9f4a2c62575ee91530af94febf78dab0` / `34605466532` is **5/5 SUCCESS**, including clean-checkout `npm run verify`.
+- Fresh affected Pass-B reconstruction after remediation is **PASS** with open BLOCKING/MAJOR findings **∅**; this record therefore transitions to `ACCEPTANCE_PENDING / C-ACCEPTANCE`.
 - Lot-1 WP-1.9 private Storage authorization foundation remains authoritative and must be reused, not replaced.
 - Restored `docs/security/STORAGE-RLS.md` is a required normative input.
 - `MEDIA-LIFECYCLE-ADDENDUM.md`, `FILE-SECURITY.md`, `STORAGE.md`, `ERROR-HANDLING.md` and the Lot-2 coverage records remain governing inputs.
-- WP-2.8C remains PLANNED while B runs; only one packet may be IN_PROGRESS.
+- WP-2.8C remains PLANNED while B is not yet ACCEPTED; only one packet may be active.
 
 ## Applicable authorization / security controls
 
@@ -70,7 +74,7 @@ No server-side arbitrary URL fetch is introduced; `SEC-SRV-001` remains true.
 
 ## Mandatory pre-READY stop-condition — frozen implementation contract
 
-This section is the durable WP-2.8B activation freeze. It refines the earlier high-level media/storage contracts only where exact implementation values or transitions were previously unspecified. The lifecycle freeze is **CLOSED / VERIFIED** on `dd2b03c736210f5145ece58ef8b4f55918c43b00` / `34421686462` — **5/5 SUCCESS**. The READY gate is also **CLOSED / VERIFIED** on `3e6fe6683cccb21ffa0ef96b87911280ab07737f` / `34423597208` — **5/5 SUCCESS**. Product code remains prohibited until this `READY → IN_PROGRESS / A-IMPLEMENT` governance commit is exact-head 5/5 green; the first product change after that gate must be RED-first evidence only.
+This section is the durable WP-2.8B activation freeze. It refines the earlier high-level media/storage contracts only where exact implementation values or transitions were previously unspecified. The lifecycle freeze is **CLOSED / VERIFIED** on `dd2b03c736210f5145ece58ef8b4f55918c43b00` / `34421686462` — **5/5 SUCCESS**. The READY gate is also **CLOSED / VERIFIED** on `3e6fe6683cccb21ffa0ef96b87911280ab07737f` / `34423597208` — **5/5 SUCCESS**. The historical implementation gate was satisfied before product work began; current execution is now in Pass C after green remediation and a fresh affected Pass-B review.
 
 ### 1. Private lifecycle states and visibility
 
@@ -294,7 +298,7 @@ All ten original pre-READY questions are now **SPECIFIED** by the contract above
 9. protected command family/idempotence/authorization — frozen;
 10. Storage/DB receipt fail-closed semantics — frozen.
 
-Current gate: lifecycle freeze `dd2b03c736210f5145ece58ef8b4f55918c43b00` / `34421686462` and READY governance `3e6fe6683cccb21ffa0ef96b87911280ab07737f` / `34423597208` are both **CLOSED / VERIFIED — 5/5 SUCCESS**. This `READY → IN_PROGRESS / A-IMPLEMENT` transition must itself become exact-head **5/5 SUCCESS** before the RED-first product/evidence commit.
+The historical activation gates `dd2b03c...` / `34421686462` and `3e6fe668...` / `34423597208` are **CLOSED / VERIFIED — 5/5 SUCCESS**. The current gate is exact-head CI for the `ACCEPTANCE_PENDING / C-ACCEPTANCE` governance transition; Pass C may reconcile evidence only after that governance HEAD is green.
 
 ## Sizing review after activation freeze
 
@@ -374,12 +378,16 @@ If implementation discovers an additional public capability, entity or independe
 
 ## Pass A — IMPLEMENT
 
-Implementation is activated from READY head `3e6fe6683cccb21ffa0ef96b87911280ab07737f`, whose CI run `34423597208` is **5/5 SUCCESS**. Product implementation remains prohibited until this `READY → IN_PROGRESS / A-IMPLEMENT` governance commit is itself exact-head green. The first product change after that gate must be RED-first and prove the frozen private lifecycle/storage behavior is missing while accepted A behavior remains green.
+Pass A is complete. The private-media vertical reached exact-head green on `150c10c07452748e3092e316a3cb9a26f272ff3e` / CI `34555183344` — **5/5 SUCCESS**, clean-checkout included. The first fresh Pass-B review was also green on `a23e6925f4d95e5d49cdea5b4e62b899cdd7a605` / `34555832894`. Pass C then correctly exposed MED-006 receipt incompleteness on RED head `4eddca8aa94a2ed95d37bac47b8f3efeb3b4faf4` / `34556856411`, reopening the packet. The remediation is exact-head green on `f815844d9f4a2c62575ee91530af94febf78dab0` / `34605466532` — **5/5 SUCCESS**.
 
 ## Pass B — ADVERSARIAL REVIEW
 
-Not started.
+Fresh affected review after MED-006 remediation: **PASS**. Open `BLOCKING` / `MAJOR` findings: **∅**.
+
+The review reconstructed the frozen packet contracts and checked the remediation for project isolation, `SECURITY DEFINER`/fixed-search-path safety, internal-helper non-exposure, deterministic detect-only semantics, no auto-merge behavior, durable replay snapshot, fail-closed TypeScript parsing, existing A compatibility, architecture/size gates and independent DB/RLS evidence. The lifecycle writer gate locks the target project row before live `media.write`, serializing same-project finalizations so concurrent equal-SHA finalizations cannot independently miss committed predecessors. Direct pgTAP evidence proves empty/same-project/multiple/replay/cross-project receipt behavior and wrapper privilege hardening. Exact remediation CI `34605466532` is **5/5 SUCCESS**, including clean-checkout full verify.
+
+Disposition: no unresolved minor finding is carried into acceptance. The stale durable-state documents discovered during review are corrected by this governance transition and are not a production defect.
 
 ## Pass C — ACCEPTANCE / RECONCILIATION
 
-Not started.
+Current state: **ACCEPTANCE_PENDING / C-ACCEPTANCE**. Pass C must begin only after the exact HEAD containing this transition is **5/5 SUCCESS**. Then mechanically reconcile every WP-2.8B Feature/Requirement/Acceptance/Security responsibility as `EXPECTED ↔ IMPLEMENTED ↔ VERIFIED`, including `ACC-055`, `ACC-056`, `ACC-058` and the remediated `MED-006` receipt contract. WP-2.8B may be marked `ACCEPTED` only when required-minus-evidenced is **∅**, no BLOCKING/MAJOR finding remains, durable status/coverage is reconciled, and the final acceptance HEAD is exact-head green.
