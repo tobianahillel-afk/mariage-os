@@ -28,6 +28,10 @@ import {
   PrivateMediaSha256Error,
   type PrivateMediaSha256Port,
 } from "./private-media-sha256-port";
+import {
+  isConfirmedPrivateObjectAbsence,
+  isExactStorageInspection,
+} from "./private-media-storage-receipt";
 import type { PrivateMediaStoragePort } from "./private-media-storage-port";
 
 export interface CreateVenueRemoteMediaInput {
@@ -231,19 +235,6 @@ async function preparePrivateOriginal(
   }
 }
 
-function isExactStorageInspection(
-  inspection: Awaited<
-    ReturnType<PrivateMediaStoragePort["inspectReservedObject"]>
-  >,
-  expectedPath: string,
-): boolean {
-  return (
-    inspection.bucket === "project-private" &&
-    inspection.path === expectedPath &&
-    typeof inspection.present === "boolean"
-  );
-}
-
 async function privateOriginalUploadRequired(
   replayed: boolean,
   expectedPath: string,
@@ -343,19 +334,6 @@ function isAbandonRequestValid(
     isMediaUuid(input.venueId) &&
     isMediaUuid(input.mediaId) &&
     isMediaUuid(input.linkId)
-  );
-}
-
-function isConfirmedPrivateObjectAbsence(
-  deletion: Awaited<
-    ReturnType<PrivateMediaStoragePort["deleteReservedObject"]>
-  >,
-  expectedPath: string,
-): boolean {
-  return (
-    deletion.bucket === "project-private" &&
-    deletion.path === expectedPath &&
-    deletion.absent === true
   );
 }
 
