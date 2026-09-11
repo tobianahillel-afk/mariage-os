@@ -25,7 +25,7 @@ export interface VenueMediaPresentationDraft {
   readonly caption: unknown;
 }
 
-export interface NormalizedVenueMediaPresentationDraft {
+interface NormalizedVenueMediaPresentationDraft {
   readonly category: VenueMediaCategory | null;
   readonly caption: string | null;
 }
@@ -88,7 +88,7 @@ export interface VenueRemoteMediaCallerPayload extends NormalizedVenueRemoteMedi
   readonly linkId: string;
 }
 
-export type VenueMediaPresentationValidationError =
+type VenueMediaPresentationValidationError =
   "invalid_category" | "invalid_caption";
 
 export type VenueRemoteMediaValidationError =
