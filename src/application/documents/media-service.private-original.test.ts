@@ -2,12 +2,18 @@ import { expect, it } from "vitest";
 import type { VenueRemoteMediaBundle } from "@domain/documents/venue-remote-media";
 import { MediaPersistenceError } from "./media-persistence-error";
 import { MediaService, type MediaPort } from "./media-service";
-import type { PrivateMediaImageInspectorPort } from "./private-media-image-inspector-port";
+import {
+  PrivateMediaImageInspectionError,
+  type PrivateMediaImageInspectorPort,
+} from "./private-media-image-inspector-port";
 import type {
   PrivateMediaLifecyclePort,
   ReserveVenuePrivateOriginalInput,
 } from "./private-media-lifecycle-port";
-import type { PrivateMediaSha256Port } from "./private-media-sha256-port";
+import {
+  PrivateMediaSha256Error,
+  type PrivateMediaSha256Port,
+} from "./private-media-sha256-port";
 import type { PrivateMediaStoragePort } from "./private-media-storage-port";
 
 const operationId = "11111111-1111-4111-8111-111111111111";
@@ -44,10 +50,20 @@ function request(overrides: Readonly<Record<string, unknown>> = {}) {
   };
 }
 
-function privatePorts(options?: {
+interface PrivatePortOptions {
   readonly storageError?: unknown;
   readonly finalizeError?: unknown;
-}) {
+  readonly inspectionError?: unknown;
+  readonly hashError?: unknown;
+  readonly widthPx?: number;
+  readonly heightPx?: number;
+  readonly reservationPath?: string;
+  readonly uploadPath?: string;
+  readonly invalidUploadBucket?: boolean;
+  readonly finalizationPath?: string;
+}
+
+function privatePorts(options: PrivatePortOptions = {}) {
   const events: string[] = [];
   let reserveInput: ReserveVenuePrivateOriginalInput | null = null;
 
@@ -55,13 +71,18 @@ function privatePorts(options?: {
     async inspect(receivedBytes) {
       events.push("inspect");
       expect(receivedBytes).toBe(bytes);
-      return { widthPx: 4_000, heightPx: 3_000 };
+      if (options.inspectionError !== undefined) throw options.inspectionError;
+      return {
+        widthPx: options.widthPx ?? 4_000,
+        heightPx: options.heightPx ?? 3_000,
+      };
     },
   };
   const sha: PrivateMediaSha256Port = {
     async hashExactBytes(receivedBytes) {
       events.push("hash");
       expect(receivedBytes).toBe(bytes);
+      if (options.hashError !== undefined) throw options.hashError;
       return sha256;
     },
   };
@@ -69,12 +90,18 @@ function privatePorts(options?: {
     async reserveOriginal(input) {
       events.push("reserve");
       reserveInput = input;
-      return { storagePath, replayed: false };
+      return {
+        storagePath: options.reservationPath ?? storagePath,
+        replayed: false,
+      };
     },
     async finalizeOriginal() {
       events.push("finalize");
-      if (options?.finalizeError !== undefined) throw options.finalizeError;
-      return { storagePath, replayed: false };
+      if (options.finalizeError !== undefined) throw options.finalizeError;
+      return {
+        storagePath: options.finalizationPath ?? storagePath,
+        replayed: false,
+      };
     },
     async abandonOriginal() {
       throw new Error("unused");
@@ -88,8 +115,14 @@ function privatePorts(options?: {
         bytes,
         mimeType: "image/jpeg",
       });
-      if (options?.storageError !== undefined) throw options.storageError;
-      return { bucket: "project-private", path: storagePath };
+      if (options.storageError !== undefined) throw options.storageError;
+      if (options.invalidUploadBucket === true) {
+        return { bucket: "other", path: storagePath } as never;
+      }
+      return {
+        bucket: "project-private",
+        path: options.uploadPath ?? storagePath,
+      };
     },
     async deleteReservedObject() {
       throw new Error("unused");
@@ -139,6 +172,43 @@ it("creates a private original in the frozen safe order", async () => {
   });
 });
 
+it("rejects every invalid private original identity before local media work", async () => {
+  for (const key of [
+    "operationId",
+    "projectId",
+    "venueId",
+    "mediaId",
+    "linkId",
+  ] as const) {
+    const privateMedia = privatePorts();
+    const service = new MediaService(remotePort, privateMedia.value);
+
+    expect(
+      await service.createVenuePrivateOriginal(request({ [key]: "bad" })),
+    ).toEqual({ ok: false, error: "invalid_identity" });
+    expect(privateMedia.events).toEqual([]);
+  }
+});
+
+it("rejects invalid presentation, filename, and byte shapes before decode", async () => {
+  const cases = [
+    { override: { category: "bad" }, error: "invalid_category" },
+    { override: { caption: 42 }, error: "invalid_caption" },
+    { override: { originalFilename: 42 }, error: "invalid_filename" },
+    { override: { bytes: "bad" }, error: "invalid_size" },
+  ] as const;
+
+  for (const testCase of cases) {
+    const privateMedia = privatePorts();
+    const service = new MediaService(remotePort, privateMedia.value);
+
+    expect(
+      await service.createVenuePrivateOriginal(request(testCase.override)),
+    ).toEqual({ ok: false, error: testCase.error });
+    expect(privateMedia.events).toEqual([]);
+  }
+});
+
 it("rejects unsupported bytes before decode, hash, or reservation", async () => {
   const privateMedia = privatePorts();
   const service = new MediaService(remotePort, privateMedia.value);
@@ -149,6 +219,138 @@ it("rejects unsupported bytes before decode, hash, or reservation", async () => 
 
   expect(result).toEqual({ ok: false, error: "unsupported_type" });
   expect(privateMedia.events).toEqual([]);
+});
+
+it("fails closed when required private creation ports are unavailable", async () => {
+  const complete = privatePorts().value;
+  const variants = [
+    null,
+    {
+      lifecycle: complete.lifecycle,
+      storage: complete.storage,
+      sha256: complete.sha256,
+    },
+    {
+      lifecycle: complete.lifecycle,
+      storage: complete.storage,
+      imageInspector: complete.imageInspector,
+    },
+  ] as const;
+
+  for (const variant of variants) {
+    const service = new MediaService(remotePort, variant);
+    expect(await service.createVenuePrivateOriginal(request())).toEqual({
+      ok: false,
+      error: "persistence_failed",
+    });
+  }
+});
+
+it("maps image decode failures and contains unknown inspector failures", async () => {
+  const known = privatePorts({
+    inspectionError: new PrivateMediaImageInspectionError("decode"),
+  });
+  const unknown = privatePorts({ inspectionError: new Error("provider") });
+
+  expect(
+    await new MediaService(remotePort, known.value).createVenuePrivateOriginal(
+      request(),
+    ),
+  ).toEqual({ ok: false, error: "decode_failed" });
+  expect(known.events).toEqual(["inspect"]);
+
+  expect(
+    await new MediaService(remotePort, unknown.value).createVenuePrivateOriginal(
+      request(),
+    ),
+  ).toEqual({ ok: false, error: "persistence_failed" });
+  expect(unknown.events).toEqual(["inspect"]);
+});
+
+it("rejects unsafe decoded dimensions before hashing or reservation", async () => {
+  const privateMedia = privatePorts({ widthPx: 0 });
+  const service = new MediaService(remotePort, privateMedia.value);
+
+  expect(await service.createVenuePrivateOriginal(request())).toEqual({
+    ok: false,
+    error: "invalid_dimensions",
+  });
+  expect(privateMedia.events).toEqual(["inspect"]);
+});
+
+it("maps SHA failures and contains unknown hashing failures", async () => {
+  const known = privatePorts({
+    hashError: new PrivateMediaSha256Error("hash"),
+  });
+  const unknown = privatePorts({ hashError: new Error("provider") });
+
+  expect(
+    await new MediaService(remotePort, known.value).createVenuePrivateOriginal(
+      request(),
+    ),
+  ).toEqual({ ok: false, error: "hash_failed" });
+  expect(known.events).toEqual(["inspect", "hash"]);
+
+  expect(
+    await new MediaService(remotePort, unknown.value).createVenuePrivateOriginal(
+      request(),
+    ),
+  ).toEqual({ ok: false, error: "persistence_failed" });
+  expect(unknown.events).toEqual(["inspect", "hash"]);
+});
+
+it("rejects a substituted reservation path before Storage upload", async () => {
+  const privateMedia = privatePorts({ reservationPath: `${storagePath}-other` });
+  const service = new MediaService(remotePort, privateMedia.value);
+
+  expect(await service.createVenuePrivateOriginal(request())).toEqual({
+    ok: false,
+    error: "provider_response_invalid",
+  });
+  expect(privateMedia.events).toEqual(["inspect", "hash", "reserve"]);
+});
+
+it("rejects substituted Storage upload bucket or path before finalize", async () => {
+  const invalidBucket = privatePorts({ invalidUploadBucket: true });
+  const invalidPath = privatePorts({ uploadPath: `${storagePath}-other` });
+
+  expect(
+    await new MediaService(
+      remotePort,
+      invalidBucket.value,
+    ).createVenuePrivateOriginal(request()),
+  ).toEqual({ ok: false, error: "provider_response_invalid" });
+  expect(invalidBucket.events).toEqual([
+    "inspect",
+    "hash",
+    "reserve",
+    "upload",
+  ]);
+
+  expect(
+    await new MediaService(
+      remotePort,
+      invalidPath.value,
+    ).createVenuePrivateOriginal(request()),
+  ).toEqual({ ok: false, error: "provider_response_invalid" });
+  expect(invalidPath.events).toEqual(["inspect", "hash", "reserve", "upload"]);
+});
+
+it("rejects a substituted finalization path", async () => {
+  const privateMedia = privatePorts({ finalizationPath: `${storagePath}-other` });
+  const service = new MediaService(remotePort, privateMedia.value);
+
+  expect(await service.createVenuePrivateOriginal(request())).toEqual({
+    ok: false,
+    error: "provider_response_invalid",
+  });
+  expect(privateMedia.events).toEqual([
+    "inspect",
+    "hash",
+    "reserve",
+    "upload",
+    "finalize",
+  ]);
 });
 
 it("keeps the pending reservation when Storage upload fails", async () => {
