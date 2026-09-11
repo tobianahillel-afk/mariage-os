@@ -5,16 +5,17 @@
 - Work Packet ID: `WP-2.8B`
 - Lot: `2`
 - Name: Private Venue image archive lifecycle
-- State: `ACCEPTANCE_PENDING`
-- Current pass: `C-ACCEPTANCE`
+- State: `ACCEPTED`
+- Current pass: `COMPLETE`
 - Primary bounded context: Documents/Media private image archive, immutable originals, derivatives and recovery
-- Branch/PR: `lot-2/venues-core` / PR not opened yet
+- Branch/PR: `lot-2/venues-core` / Lot-2 integration PR not opened yet
+- Pass-C evidence: `WP-2.8B-ACCEPTANCE.md`
 
-## Scope
+## Accepted responsibility
 
-### Primary features / current-lot responsibility
+WP-2.8B accepts only the Lot-2 private-media foundation assigned to this packet:
 
-- remaining private-archive slice of `FTR-024` after WP-2.8A;
+- remaining private-archive slice of `FTR-024` after accepted WP-2.8A;
 - Lot-2 foundation slice of `FTR-092` — original/derivative/orphan lifecycle;
 - `VEN-013` — archived/private visit media distinguished from remote refs;
 - `MED-004` — archived original photo bytes preserved;
@@ -22,201 +23,96 @@
 - `MED-006` — exact duplicate binary detectable by hash;
 - `MED-009` — interrupted/orphan uploads recoverable/cleanable and not presented committed;
 - `MED-010` — private file access cannot rely on obscurity;
-- `ACC-055`, `ACC-056`, `ACC-058` where owned by the private-media foundation.
+- `ACC-055`, `ACC-056`, `ACC-058` where owned by the private-media foundation;
+- the packet-applicable `AUTHZ-*` / `SEC-*` controls listed below.
 
-### Exact WP-2.8B responsibility
+Required WP-2.8B responsibilities minus accepted/evidenced WP-2.8B responsibilities: **∅**.
 
-- private Venue image archive workflow over the already accepted `project-private/<project>/media/<media_uuid>/<variant>` Storage namespace;
-- supported-image file intent/size/MIME/magic-byte validation boundary from `FILE-SECURITY.md`;
-- immutable archived original semantics;
-- explicit derivative records/parent relationship for thumbnail/preview foundation;
-- SHA-256 exact-byte duplicate detection scoped to the project without cross-project information leakage;
-- interrupted/storage-success-metadata-failure recovery/cleanup semantics;
-- committed/ready visibility rule: incomplete private media cannot masquerade as ready media;
-- metadata↔Storage authorization coordination using existing `media.read` / `media.write` Storage RLS;
-- safe typed provider/storage failures and direct allow/deny tests;
-- preserve the accepted WP-2.8A remote-reference create/list contract when remote and private Venue media coexist.
+Whole `FTR-024` and `FTR-092` remain incomplete because later WP-2.8C/WP-2.11/WP-2.12 and Lots 10/11 own downstream responsibilities.
 
-### Explicitly out of scope
+## Accepted implementation contract
 
-- remote-reference metadata foundation already accepted by WP-2.8A;
-- recoverable soft-delete/restore of A's remote-reference metadata — WP-2.8C;
-- global trash UI / 30-day purge scheduler;
-- Venue gallery/detail UI, ordering/main-photo UX — WP-2.11;
-- local/offline image queue and own-visit capture semantics — WP-2.12/Lot 10;
-- document uploads/versioning — WP-2.9 and later document work;
-- server image proxy or arbitrary server-side image transformation service;
-- generic background scheduler assumed to clean orphans;
-- paid storage/automatic overage behavior;
-- backup/import/export binary packaging;
-- automatic cross-record merge or cross-project deduplication;
-- HEIC/HEIF activation until a later packet proves safe decode/preview-conversion support.
+### Private lifecycle and visibility
 
-## Dependencies / sequencing
+Private media uses exactly two WP-2.8B lifecycle states:
 
-- WP-2.8A is **ACCEPTED / COMPLETE**: packet acceptance `925cf86f3e38bf08807ed408f6d100fbbbd5c9c2` / `34418721439` — **5/5 SUCCESS**; coverage reconciliation `432e0cf893e0adc079ba3c25eb325efb9d01e3ec` / `34420275595` — **5/5 SUCCESS**; final status-governance closure `7788d2673571eef9f5bea9dc0ac35a0c60ee1ff6` / `34420864673` — **5/5 SUCCESS**.
-- WP-2.8B private lifecycle specification freeze is **CLOSED / VERIFIED** on `dd2b03c736210f5145ece58ef8b4f55918c43b00` / `34421686462` — **5/5 SUCCESS**, clean-checkout included.
-- WP-2.8B `PLANNED → READY` governance is **CLOSED / VERIFIED** on `3e6fe6683cccb21ffa0ef96b87911280ab07737f` / `34423597208` — **5/5 SUCCESS**, clean-checkout included.
-- Pass-A implementation checkpoint `150c10c07452748e3092e316a3cb9a26f272ff3e` / `34555183344` and first fresh Pass-B review `a23e6925f4d95e5d49cdea5b4e62b899cdd7a605` / `34555832894` were **5/5 SUCCESS**.
-- Pass C exposed MED-006 receipt incompleteness on RED head `4eddca8aa94a2ed95d37bac47b8f3efeb3b4faf4` / `34556856411`; production was correctly reopened for remediation.
-- MED-006 remediation exact head `f815844d9f4a2c62575ee91530af94febf78dab0` / `34605466532` is **5/5 SUCCESS**, including clean-checkout `npm run verify`.
-- Fresh affected Pass-B reconstruction after remediation is **PASS** with open BLOCKING/MAJOR findings **∅**; this record therefore transitions to `ACCEPTANCE_PENDING / C-ACCEPTANCE`.
-- Lot-1 WP-1.9 private Storage authorization foundation remains authoritative and must be reused, not replaced.
-- Restored `docs/security/STORAGE-RLS.md` is a required normative input.
-- `MEDIA-LIFECYCLE-ADDENDUM.md`, `FILE-SECURITY.md`, `STORAGE.md`, `ERROR-HANDLING.md` and the Lot-2 coverage records remain governing inputs.
-- WP-2.8C remains PLANNED while B is not yet ACCEPTED; only one packet may be active.
+- `pending` — authorized reservation/recovery state; not ordinary committed media;
+- `ready` — exact private Storage object exists and protected finalization succeeded.
 
-## Applicable authorization / security controls
-
-At minimum: `AUTHZ-001`, `AUTHZ-002`, `AUTHZ-005`, `AUTHZ-006`, `AUTHZ-007`, `AUTHZ-008`, `AUTHZ-012`, `AUTHZ-018`, `AUTHZ-019`, `AUTHZ-020`; `SEC-AUTH-012`, `SEC-AUTH-013`, `SEC-AUTHZ-001..009`, `SEC-VAL-001..004`, `SEC-VAL-008`, `SEC-INJ-001`, `SEC-INJ-002`, `SEC-FILE-001`, `SEC-FILE-002`, `SEC-FILE-003`, `SEC-FILE-004`, `SEC-FILE-008`, `SEC-FILE-009`, `SEC-ABUSE-004`, `SEC-VER-001`, `SEC-VER-002`, `SEC-VER-005`, `SEC-VER-006`.
-
-No server-side arbitrary URL fetch is introduced; `SEC-SRV-001` remains true.
-
-## Mandatory pre-READY stop-condition — frozen implementation contract
-
-This section is the durable WP-2.8B activation freeze. It refines the earlier high-level media/storage contracts only where exact implementation values or transitions were previously unspecified. The lifecycle freeze is **CLOSED / VERIFIED** on `dd2b03c736210f5145ece58ef8b4f55918c43b00` / `34421686462` — **5/5 SUCCESS**. The READY gate is also **CLOSED / VERIFIED** on `3e6fe6683cccb21ffa0ef96b87911280ab07737f` / `34423597208` — **5/5 SUCCESS**. The historical implementation gate was satisfied before product work began; current execution is now in Pass C after green remediation and a fresh affected Pass-B review.
-
-### 1. Private lifecycle states and visibility
-
-WP-2.8B adds exactly one private pre-commit status to the existing `media.upload_status` model:
-
-- `pending` — a project-authorized reservation/recovery record exists, but the media is **not committed application media**;
-- `ready` — the required private Storage object exists at the reserved opaque path and the protected finalization command has accepted the reservation.
-
-There is no `failed`, `uploaded`, `orphaned`, `processing` or scheduler-owned status in B. Recovery state is derived from `pending` plus exact Storage-object presence.
-
-Legal B lifecycle:
+Legal lifecycle:
 
 ```text
-absent
-  ↓ reserve
-pending
-  ├─→ ready       (finalize after exact object presence/receipt verification)
-  └─→ absent      (abandon only after the Storage object is confirmed absent)
-
-ready
-  └─→ terminal for WP-2.8B
+absent → pending → ready
+           └────→ absent   (clean abandon only after exact Storage absence)
 ```
 
-`ready → pending`, ready-row abandonment, ready binary replacement and ready original deletion are forbidden in B. Later recoverable metadata deletion is not pulled forward from WP-2.8C.
+`ready → pending`, ready-row abandonment, ready overwrite/replacement and direct ready binary deletion are forbidden in B. `pending` rows/objects are hidden from read-only ordinary committed-media views; writers retain recovery access.
 
-Ordinary committed-media reads must exclude private `pending` rows. Pending recovery metadata is available only through the writer/recovery boundary; a `media.read`-only viewer must not receive an uncommitted private object as gallery/media truth.
+### Storage mode and path
 
-### 2. Storage mode discrimination and A compatibility
+- WP-2.8A remote reference: `remote_url` non-null, `storage_path` null.
+- WP-2.8B private media: `remote_url` null, `storage_path` non-null.
+- Bucket remains `project-private`.
+- Original path: `<project_id>/media/<media_id>/original`.
+- Derivative path: `<project_id>/media/<derivative_media_id>/<kind>-v<version>`.
+- Raw private filenames/labels never become path components.
+- Knowledge of a syntactically valid object path is never authority.
 
-No new top-level Media bounded context is created. Logical storage mode is derived from mutually exclusive persisted fields rather than requiring a new parallel entity:
+### File validation
 
-- WP-2.8A remote reference: `remote_url` non-null, `storage_path` null;
-- WP-2.8B private upload: `remote_url` null, `storage_path` non-null.
+Enabled private image types are JPEG/JPG, PNG and WebP only. Extension, MIME and signature must agree. HEIC/HEIF remains disabled in this packet.
 
-The forward-only B migration must replace A's remote-only CHECK with a discriminated CHECK that preserves every accepted A remote invariant and permits only the frozen B private states.
+Frozen limits:
 
-The existing A `listVenueRemoteMedia` provider query currently starts from Venue `media_links`. B must harden that read boundary so a Venue containing both remote and private media still returns **only ready remote-reference rows** to the A parser. A private/pending row must be filtered out before the remote parser rather than turning a valid mixed gallery into `provider_response_invalid`. A regression test with one remote + one private Venue media row is mandatory.
+- byte size `1..20,000,000`;
+- width `1..16,384`;
+- height `1..16,384`;
+- total decoded pixels at most `50,000,000`;
+- original filename `1..512` Unicode scalar values with unsafe control characters rejected;
+- SHA-256 exactly 64 lowercase hexadecimal characters over exact uploaded bytes.
 
-### 3. File formats and exact resource bounds
+Generated thumbnail/preview bytes pass the same supported-type, byte and decoded-dimension validation boundary.
 
-WP-2.8B enables these private input formats only:
+### Original / derivative invariants
 
-| Extension | Canonical MIME | Required signature check |
-|---|---|---|
-| `.jpg`, `.jpeg` | `image/jpeg` | bytes begin `FF D8 FF` |
-| `.png` | `image/png` | exact PNG 8-byte signature `89 50 4E 47 0D 0A 1A 0A` |
-| `.webp` | `image/webp` | `RIFF` at bytes 0..3 and `WEBP` at bytes 8..11 |
+A private original is an image with `remote_url=null`, canonical `storage_path`, `derivative_of_id=null`, `is_original=true` and `upload_status in ('pending','ready')`.
 
-Extension matching is case-insensitive for validation; stored original filename is private display metadata and is not rewritten merely to normalize extension case.
+Derivatives:
 
-The earlier “20 MB/object” design target is operationalized by B as **20,000,000 bytes maximum** (decimal MB), with accepted byte size `1..20,000,000`. This is a B implementation freeze, not a claim that a previous document already defined the byte conversion.
-
-Before reservation, the application boundary must validate the exact bytes and derive canonical MIME, byte size, dimensions and SHA-256. Ready image dimensions are bounded to:
-
-- width `1..16384` pixels;
-- height `1..16384` pixels;
-- width × height at most **50,000,000 pixels**.
-
-These dimension limits are B resource-hardening values introduced here under `SEC-FILE-004`; they do not change Venue product semantics.
-
-`original_filename` is private metadata only, never a path component. B bounds it to `1..512` Unicode scalar values and rejects NUL/C0 control characters. Extension validation uses a derived filename view; display metadata is not destructively normalized.
-
-Canonical SHA-256 is exactly 64 lowercase hexadecimal characters over the exact bytes that are uploaded for that media row.
-
-HEIC/HEIF remains disabled in B because the frozen file-security contract permits it only when safely supported for storage/preview conversion, which is not yet established by the repository.
-
-### 4. Private original row
-
-A reserved/ready private original has:
-
-- `media_type='image'`;
-- `remote_url=null`;
-- `source_page_url=null`;
-- `storage_path='<project_id>/media/<media_id>/original'` exactly;
-- `original_filename`, canonical `mime_type`, positive `size_bytes`, canonical `sha256`, `width_px`, `height_px` present before upload reservation is committed;
-- `derivative_of_id=null`;
-- `is_original=true`;
-- `upload_status='pending'` or `ready` only;
-- category/caption use the already accepted A category and caption normalization/bounds;
-- server-controlled project/audit identity.
-
-The caller-generated `media_id` and `link_id` are stable retry identities. Reservation atomically creates the pending original metadata and its same-project Venue `gallery` link. The link remains associated with the same media identity through finalization; abandon removes the pending DB reservation/link only after Storage absence is proved.
-
-### 5. Derivative row/version contract
-
-B supports exactly two derivative kinds:
-
-- `thumbnail`;
-- `preview`.
-
-The B migration adds explicit derivative-generation identity sufficient to satisfy the frozen Storage architecture: `derivative_kind` nullable text and `derivative_version` nullable positive integer.
-
-Rules:
-
-- an original has both fields null;
-- a derivative has `derivative_of_id` pointing to a same-project **ready original**, `is_original=false`, a non-null allowed derivative kind and version `1..32767`;
-- a derivative is a separate `media` row with its own caller-generated UUID and private Storage object;
-- derivative Storage path is exactly `<project_id>/media/<derivative_media_id>/<derivative_kind>-v<derivative_version>`;
+- kinds: `thumbnail`, `preview`;
+- have their own UUID, Storage object, SHA-256 and size/dimensions;
+- point only to a same-project **ready original**;
+- use positive version `1..32767`;
 - `(project_id, derivative_of_id, derivative_kind, derivative_version)` is unique;
-- a derivative cannot parent itself and cannot point to another derivative;
-- derivative category, caption, `source_page_url` and original filename are null; display/business metadata is inherited/read from the original relationship rather than duplicated;
-- derivative bytes must independently pass the enabled image-format, size, signature, dimension and SHA-256 checks;
-- a ready derivative is immutable. Regeneration creates a new derivative version/row/object rather than overwriting the prior ready derivative or original.
+- cannot self-parent or parent another derivative;
+- ready derivatives are immutable;
+- regeneration appends a new version/row/object rather than mutating the original or earlier derivative.
 
-This append-version rule provides direct `ACC-056` evidence: changing/regenerating a derivative cannot mutate the original object's path, exact bytes or SHA-256.
+### Reserve / upload / finalize / recovery
 
-### 6. Upload / finalize ordering and retry identity
+Online original workflow:
 
-The exact online B sequence is:
+1. validate exact bytes and metadata locally;
+2. calculate SHA-256;
+3. reserve stable caller-generated media/link identity through the protected lifecycle RPC;
+4. validate pending receipt/canonical path;
+5. upload with overwrite/upsert disabled to the exact `project-private` path;
+6. fail closed on substituted/missing/malformed provider receipt;
+7. finalize through the protected lifecycle RPC;
+8. DB finalizer verifies exact Storage object before `pending → ready`;
+9. only the ready receipt becomes committed media truth.
 
-1. validate the selected/generated bytes locally at the application boundary;
-2. calculate canonical metadata and SHA-256;
-3. call the protected media lifecycle command with action `reserve` and caller-generated stable IDs;
-4. receive/validate the exact pending metadata receipt and canonical opaque `storage_path`;
-5. upload the bytes to `project-private` at **exactly** that path through the Supabase Storage adapter with overwrite/upsert disabled;
-6. inspect the provider result fail-closed: returned/observed object path must equal the reserved path; object size/MIME metadata, where exposed by Storage, must agree with the reservation;
-7. call the protected lifecycle command with action `finalize`;
-8. the database finalizer verifies the exact `storage.objects` bucket/name reservation exists before changing `pending → ready` and updates server audit/revision fields;
-9. only the returned ready receipt becomes committed Media truth.
+Recovery:
 
-A failed validation never creates a reservation. A Storage/network failure leaves `pending`; it is not rendered as committed media. An ambiguous acknowledgement retries with the same IDs/path; no new logical media/link is allocated.
+- pending + exact object present → retry finalize using the same identity;
+- pending + object absent → retry upload while bytes are available, or abandon;
+- cleanup deletes exact pending object first, verifies delete/not-found, then abandons metadata/link;
+- if cleanup cannot be confirmed, pending reservation remains as recovery evidence;
+- no scheduler/manual raw `storage.objects` reconciliation is assumed.
 
-### 7. Storage-success / DB-finalize-failure recovery
+### Protected lifecycle command / authorization
 
-A `pending` DB reservation is the recovery journal for B.
-
-On recovery:
-
-- `pending` + reserved object present at the exact path → retry `finalize` with the same media identity;
-- `pending` + object absent → upload may be retried while the caller still has the bytes, otherwise the reservation may be abandoned cleanly;
-- object path/metadata substitution or malformed provider response → fail closed; do not mark ready;
-- if the object must be discarded, call Storage delete first, verify exact-path deletion/not-found idempotently, then call protected `abandon`;
-- `abandon` may remove a pending metadata/link reservation only when the exact reserved Storage object is absent;
-- if Storage cleanup cannot be confirmed, keep the pending reservation so recovery evidence is not lost.
-
-No cron/background scheduler is assumed. No user is required to edit raw `storage.objects` rows or manually reconcile bucket internals to recover `ACC-055`.
-
-### 8. Protected lifecycle command / idempotence
-
-WP-2.8B exposes **one public protected capability command family** for private-media metadata lifecycle. It may use private/revoked internal helper functions to keep functions small, but authenticated clients receive EXECUTE only on the narrow public wrapper.
-
-The public action allowlist is exactly:
+Public action allowlist:
 
 - `reserve_original`;
 - `finalize_original`;
@@ -225,169 +121,115 @@ The public action allowlist is exactly:
 - `finalize_derivative`;
 - `abandon_derivative`.
 
-The command:
+The public command is `SECURITY DEFINER` with a fixed trusted `search_path`, validates authenticated identity, locks/validates the project before live `media.write`, validates same-project Venue/media/link/parent relations, derives Storage paths server-side and maps replay/conflict/non-disclosure deterministically. Direct client INSERT/UPDATE/DELETE on `media` / `media_links` remains revoked. Internal helper/core execution is not granted to client roles.
 
-- is `SECURITY DEFINER` with fixed safe `search_path` / qualified objects;
-- verifies authenticated identity, locks/validates the target project before live `media.write`, and validates every same-project Venue/media/parent/link relationship;
-- never accepts caller-owned project/audit fields or arbitrary Storage paths;
-- constructs/compares the canonical Storage path server-side from project/media/kind/version identity;
-- uses caller-generated media/link UUIDs as replay identities;
-- same project + same action identity + same canonical caller semantic payload is idempotent;
-- same-project reused identity with different semantic payload is typed conflict (`23505`-style mapping is acceptable);
-- foreign-project known UUID collision or relationship remains generic/non-disclosing (`42501`-style mapping is acceptable);
-- finalizing an already-ready identical reservation is a successful replay;
-- abandoning an already-absent same-project reservation is a successful replay after project authorization, but a known foreign-project identity must not become an existence oracle;
-- cannot abandon or replace a ready original/derivative.
+Storage policies bind binary access to both live permissions and the exact DB reservation/state:
 
-Direct client INSERT/UPDATE/DELETE on `media` / `media_links` remains revoked.
+- INSERT requires live `media.write`, canonical namespace and exact pending reservation/path;
+- UPDATE/rename/upsert replacement is denied;
+- DELETE is available only for exact pending cleanup under live `media.write`;
+- SELECT on ready media requires live `media.read`;
+- pending-object recovery inspection requires live `media.write`;
+- anon/outsider/project-B/revoked identities remain denied/non-disclosing.
 
-### 9. Storage RLS hardening for reservations and immutability
+### MED-006 exact-byte duplicate receipt
 
-The accepted `project-private` bucket and `media.read` / `media.write` permission keys are reused. B does not create a second bucket or role model.
+Duplicate detection is project-scoped and detect-only.
 
-The B Storage policy hardening must make path knowledge insufficient **and** bind binary mutation to DB reservation state:
+For `finalize_original`, `duplicateOriginalMediaIds` contains only **other** `ready` private originals in the same project with the same SHA-256, sorted deterministically. It excludes the current media, remote references, derivatives and pending media. Equal hashes in another project are not disclosed.
 
-- INSERT: `media.write` + canonical namespace + exact same-project `media` row whose `storage_path` equals the object name and whose status is `pending`; arbitrary valid-looking UUID paths without a reservation are denied;
-- UPDATE/rename/upsert replacement: denied for B media objects; objects use stable immutable paths and client upload uses overwrite disabled;
-- DELETE: allowed only with live `media.write` for an exact same-project **pending** reservation/path used by cleanup; direct deletion of ready originals/derivatives is denied in B;
-- SELECT/delivery: ready object requires live `media.read`; pending-object inspection/recovery requires live `media.write`; viewer/read-only identities cannot retrieve uncommitted pending binaries;
-- malformed path, other project, outsider, revoked, anonymous and guest-like identities remain denied.
+Detection never merges logical media, reuses another media/link UUID, deletes an object or grants authority. The first finalization stores the duplicate-ID snapshot in the durable operation receipt; exact replay returns that stored snapshot even if later duplicates appear. Same-project lifecycle operations serialize through the project-row writer lock before duplicate derivation.
 
-Database metadata RLS/read models must likewise avoid exposing `pending` rows as ordinary committed gallery content while preserving writer recovery access.
+## Explicitly out of scope / downstream
 
-### 10. Exact-byte duplicate detection and non-disclosure
+- remote-reference metadata foundation — already accepted WP-2.8A;
+- recoverable soft-delete/restore of A remote references — WP-2.8C;
+- global trash UI / 30-day purge scheduler;
+- Venue gallery/detail/order/main-photo UX — WP-2.11;
+- local/offline image queue and visit capture — WP-2.12/Lot 10;
+- document upload/versioning — WP-2.9 and later document lots;
+- arbitrary server image proxy/transformation service;
+- automatic cross-record merge or cross-project deduplication;
+- backup/import/export binary packaging;
+- real private venue data migration — Lot 12.
 
-`MED-006` requires detectability, not automatic merge. B therefore freezes **detect-only** project-scoped deduplication:
+## Applicable authorization / security controls
 
-- SHA-256 is stored on ready originals and derivatives as exact-byte identity metadata;
-- after/while finalizing a private **original**, the authorized same-project workflow may report an existing ready original in the same project with the same SHA-256;
-- hash lookup never searches/returns foreign-project media to the caller and does not reveal whether another project contains the same bytes;
-- hash equality grants no read/write authority;
-- B does **not** automatically merge logical media, reuse another media UUID/link or delete the newly uploaded object merely because a duplicate is detected;
-- multiple same-project logical media records with the same hash therefore remain permitted unless a later product decision explicitly owns dedup reuse semantics.
+Reconciled in `WP-2.8B-ACCEPTANCE.md`:
 
-This keeps `MED-006` satisfied without inventing destructive or cross-record merge behavior.
+- `AUTHZ-001`, `AUTHZ-002`, `AUTHZ-005`, `AUTHZ-006`, `AUTHZ-007`, `AUTHZ-008`, `AUTHZ-012`, `AUTHZ-018`, `AUTHZ-019`, `AUTHZ-020`;
+- `SEC-AUTH-012`, `SEC-AUTH-013`, `SEC-AUTHZ-001..009`;
+- `SEC-VAL-001..004`, `SEC-VAL-008`;
+- `SEC-INJ-001`, `SEC-INJ-002`;
+- `SEC-FILE-001`, `SEC-FILE-002`, `SEC-FILE-003`, `SEC-FILE-004`, `SEC-FILE-008`, `SEC-FILE-009`;
+- `SEC-ABUSE-004`;
+- `SEC-VER-001`, `SEC-VER-002`, `SEC-VER-005`, `SEC-VER-006`;
+- `SEC-SRV-001` remains satisfied because no arbitrary server-side URL fetch was introduced.
 
-### 11. Storage/provider receipts and application error boundary
+## Sizing / architecture
 
-The binary adapter lives under `src/infrastructure/supabase/storage/` and implements typed application ports; Supabase client/provider objects never leak into domain/application code.
+Final packet size remains **8 points** and cohesion **PASS**. No extra public capability/entity/recovery subsystem expanded the packet beyond the orchestration split threshold.
 
-Required receipt behavior:
+Architecture remains:
 
-- reserve/finalize DB receipts are parsed fail-closed against expected project/media/link/parent/path/state/payload;
-- upload receipt must correspond to the exact reserved bucket/path; substituted/missing/malformed path is a provider-response failure;
-- inspect/list recovery response must identify at most the exact expected object; ambiguous/duplicate/substituted results fail closed;
-- delete treats exact-path not-found as idempotent absence but cannot report success for a different path;
-- raw Supabase errors are mapped into the existing Media error boundary, extended only with stable categories actually required by B (validation, conflict, authorization/non-disclosing persistence, retryable storage/backend, provider-response/data-integrity);
-- permanent validation/authorization failures are not retried indefinitely; retryable network/backend/recovery failures preserve the same media identity/path.
+- domain: `src/domain/documents/`;
+- application: existing `MediaService` and typed ports under `src/application/documents/`;
+- metadata/RPC adapter: `src/infrastructure/supabase/`;
+- binary Storage adapter: `src/infrastructure/supabase/storage/`;
+- cloud persistence: forward-only Supabase migrations and project-private Storage/RLS.
 
-One `MediaService` remains the logical application boundary. Do not create parallel `domain/media`, `application/media` or a second private-media service architecture.
+No parallel Media bounded context or second service architecture was introduced.
 
-## Stop-condition status
+## Verification evidence
 
-All ten original pre-READY questions are now **SPECIFIED** by the contract above:
+### Domain / application / provider
 
-1. exact private upload statuses — `pending`, `ready`;
-2. legal transitions/visibility — frozen;
-3. upload/verify/metadata-link ordering and retry identity — frozen;
-4. Storage-success/DB-failure recovery — frozen;
-5. cleanup/retry without scheduler — frozen;
-6. immutable original + derivative parent/kind/version rules — frozen;
-7. project-scoped SHA-256 detect-only behavior/non-disclosure — frozen;
-8. exact formats, 20,000,000-byte ceiling and validation ownership — frozen;
-9. protected command family/idempotence/authorization — frozen;
-10. Storage/DB receipt fail-closed semantics — frozen.
+- `src/domain/documents/venue-private-image.test.ts` — JPEG/PNG/WebP signatures, renamed/unsupported rejection, exact size and decoded-dimension/pixel bounds, safe filename rules.
+- `src/domain/documents/venue-private-generated-image.test.ts` — generated derivative MIME/signature/size/dimension validation.
+- `src/application/documents/media-service.private-original.test.ts` and recovery tests — reserve/upload/finalize/recovery behavior.
+- `src/infrastructure/supabase/supabase-private-media-lifecycle-adapter.test.ts` — receipt parsing/replay/provider failures and MED-006 finalization contract.
+- `src/infrastructure/supabase/parse-private-media-original-finalization.ts` — fail-closed duplicate receipt parsing.
 
-The historical activation gates `dd2b03c...` / `34421686462` and `3e6fe668...` / `34423597208` are **CLOSED / VERIFIED — 5/5 SUCCESS**. The current gate is exact-head CI for the `ACCEPTANCE_PENDING / C-ACCEPTANCE` governance transition; Pass C may reconcile evidence only after that governance HEAD is green.
+### Database / RLS / Storage / acceptance
 
-## Sizing review after activation freeze
+- `supabase/tests/venue_private_media_lifecycle_test.sql` — lifecycle/replay/metadata invariants.
+- `supabase/tests/venue_private_media_storage_rls_red_test.sql` — exact reservation binding, pending/ready visibility, overwrite/rename/delete restrictions and cleanup.
+- `supabase/tests/venue_private_media_adversarial_review_test.sql` — cross-project identities, derivative parent rules, live role downgrade/revocation and non-disclosure.
+- `supabase/tests/venue_private_media_acceptance_test.sql` — `ACC-055`, `ACC-056`, `ACC-058` persisted acceptance evidence.
+- `supabase/tests/venue_private_media_dedup_receipt_red_test.sql` — MED-006 zero/single/multiple/sorted/self-exclusion/replay-snapshot/cross-project receipt behavior.
+- `supabase/tests/venue_private_media_dedup_wrapper_security_test.sql` — public wrapper/core privilege and search-path hardening.
 
-| Complexity source | Count | Points each | Total |
-|---|---:|---:|---:|
-| meaningfully changed Documents/Media private lifecycle | 1 | 3 | 3 |
-| new persistent entity/table | 0 | 1 | 0 |
-| forward-only media/Storage lifecycle hardening migration family | 1 | 1 | 1 |
-| new public protected lifecycle capability command family | 1 | 2 | 2 |
-| changed DB + Storage RLS/authorization boundary | 1 | 2 | 2 |
-| major UI route/workflow | 0 | 1 | 0 |
-| public/unauthenticated capability surface | 0 | 2 | 0 |
-| new external provider integration | 0 | 3 | 0 |
-| offline/sync semantics | 0 | 2 | 0 |
-| security-sensitive token/crypto boundary | 0 | 2 | 0 |
-| financial/calculation critical engine | 0 | 3 | 0 |
-| backup/import/version migration semantics | 0 | 2 | 0 |
-| **Total** |  |  | **8** |
+## Pass history
 
-Cohesion review: **PASS**. The single public capability is one state machine over one DB reservation + one project-private object identity; reserve/finalize/abandon are not independently useful product features. Internal SQL/helper and Storage-adapter functions must still be split by responsibility/complexity thresholds rather than implemented as one oversized function. The A mixed-gallery read hardening is a required compatibility change caused by this same schema expansion, not a separate feature.
+### Pass A — IMPLEMENT
 
-If implementation discovers an additional public capability, entity or independent recovery subsystem that pushes this packet above 10 points, split before production code rather than weakening the contract.
+**PASS.** Exact implementation checkpoint `150c10c07452748e3092e316a3cb9a26f272ff3e` / CI `34555183344` — **5/5 SUCCESS**, clean-checkout included.
 
-## Expected vertical slice
+### Pass B — ADVERSARIAL REVIEW
 
-- UI/route: none.
-- domain: private media kind/state/file metadata/path/replay invariants under `domain/documents/`.
-- application: extend existing `MediaService`; typed reserve/finalize/abandon + pending-recovery operations through explicit ports.
-- infrastructure: private Supabase Storage adapter under `infrastructure/supabase/storage/`; metadata/RPC adapter stays under `infrastructure/supabase/`; both fail closed.
-- cloud persistence: forward-only broadening of A's `media` constraints, derivative kind/version constraints/indexes, pending/ready visibility, protected lifecycle command, hardened DB/Storage RLS.
-- accepted-A compatibility: remote create/list remains valid and a mixed remote/private Venue does not poison `listVenueRemoteMedia`.
-- local/offline: none; B does not persist selected File/Blob across app restart.
+First fresh review `a23e6925f4d95e5d49cdea5b4e62b899cdd7a605` / CI `34555832894` — **5/5 SUCCESS**.
 
-## Verification plan
+Pass C then exposed a genuine MED-006 receipt gap on RED head `4eddca8aa94a2ed95d37bac47b8f3efeb3b4faf4` / CI `34556856411`; the packet correctly returned to remediation.
 
-### Domain/application/provider
+Remediation `f815844d9f4a2c62575ee91530af94febf78dab0` / CI `34605466532` — **5/5 SUCCESS**, including clean checkout.
 
-- exact JPEG/PNG/WebP extension + MIME + magic-byte agreement; active/unsupported/renamed content rejected;
-- byte boundaries `1`, `20,000,000`, `20,000,001`;
-- width/height and 50,000,000-pixel resource boundaries;
-- filename bound/control-character rejection while preserving display metadata;
-- lowercase 64-hex SHA-256 and exact-byte hashing;
-- original versus derivative row/path/kind/version invariants;
-- invalid derivative parent, derivative-of-derivative, self-parent, duplicate kind/version rejected;
-- stable reserve/finalize/abandon replay and typed conflict;
-- provider upload/inspect/delete receipts reject missing/substituted/wrong-project/wrong-path/malformed results;
-- retryable Storage failure preserves pending identity; permanent validation failure creates no reservation;
-- A remote list remains deterministic/fail-closed and excludes private/pending media before remote parsing.
+Fresh affected Pass B after remediation: **PASS**. Open BLOCKING/MAJOR findings **∅**; no MINOR finding carried into acceptance.
 
-### Database / RLS / Storage / adversarial
+### Pass C — ACCEPTANCE / RECONCILIATION
 
-- forward migration preserves every accepted A remote row/command invariant;
-- private original pending reservation + Venue link is atomic;
-- pending is not ordinary committed media; viewer cannot retrieve pending binary;
-- Storage INSERT without exact pending DB reservation denied even with a syntactically valid same-project path;
-- owner/editor pending upload allowed; viewer/anon/outsider/project-B/revoked denied;
-- Storage UPDATE/overwrite/rename denied for B objects;
-- pending cleanup DELETE allowed to writer; ready original/derivative direct DELETE denied;
-- finalize fails unless exact bucket/path object exists; exact replay succeeds;
-- Storage-success/finalize-failure recovery can finalize later without manual raw-Storage mutation;
-- abandon refuses while object remains; succeeds after exact delete/not-found; replay safe;
-- original immutable fields/path/hash cannot change after ready;
-- derivative v2 can be created while v1 and original remain unchanged (`ACC-056`);
-- same-project equal SHA is detectable; foreign-project equal SHA is not disclosed;
-- exact cross-project media/link/parent/path injection and known UUID collision remain denied/non-disclosing;
-- live role downgrade/revocation affects subsequent DB command and Storage authorization in the same authenticated session;
-- public wrapper grant/search_path/internal-helper non-exposure asserted directly;
-- mixed remote + private gallery persists and A remote-list query still returns only the remote row;
-- clean-checkout integration exercises real local Supabase Storage/RLS, not fake ports only.
+**PASS.** Entry governance `70c251fee7a54bf1f5de9e3fca4dee6ce067d778` / CI `34614442341` — **5/5 SUCCESS**, including full `npm run verify` from clean checkout.
 
-### Acceptance responsibility
+Mechanical reconciliation is persisted in `WP-2.8B-ACCEPTANCE.md`:
 
-- `ACC-055`: interrupt after pending reservation and after successful Storage upload; neither state is Ready until finalization; both have a tested retry/clean-abandon route without manual raw Storage reconciliation.
-- `ACC-056`: persist one ready original and derivative v1, then create derivative v2; verify original Storage path, exact hash/metadata identity and bytes remain unchanged.
-- `ACC-058`: inspect resulting private Storage object names and prove raw original filename/private labels do not appear in paths; filename remains authorized private metadata.
-- `MED-006`: same-project exact duplicate original hash is detectable without automatic merge and without any foreign-project content-presence disclosure.
+```text
+required WP-2.8B responsibilities
+- implemented responsibilities
+- verified responsibilities
+= ∅
 
-## Pass A — IMPLEMENT
+open BLOCKING = ∅
+open MAJOR = ∅
+open MINOR carried into acceptance = ∅
+```
 
-Pass A is complete. The private-media vertical reached exact-head green on `150c10c07452748e3092e316a3cb9a26f272ff3e` / CI `34555183344` — **5/5 SUCCESS**, clean-checkout included. The first fresh Pass-B review was also green on `a23e6925f4d95e5d49cdea5b4e62b899cdd7a605` / `34555832894`. Pass C then correctly exposed MED-006 receipt incompleteness on RED head `4eddca8aa94a2ed95d37bac47b8f3efeb3b4faf4` / `34556856411`, reopening the packet. The remediation is exact-head green on `f815844d9f4a2c62575ee91530af94febf78dab0` / `34605466532` — **5/5 SUCCESS**.
-
-## Pass B — ADVERSARIAL REVIEW
-
-Fresh affected review after MED-006 remediation: **PASS**. Open `BLOCKING` / `MAJOR` findings: **∅**.
-
-The review reconstructed the frozen packet contracts and checked the remediation for project isolation, `SECURITY DEFINER`/fixed-search-path safety, internal-helper non-exposure, deterministic detect-only semantics, no auto-merge behavior, durable replay snapshot, fail-closed TypeScript parsing, existing A compatibility, architecture/size gates and independent DB/RLS evidence. The lifecycle writer gate locks the target project row before live `media.write`, serializing same-project finalizations so concurrent equal-SHA finalizations cannot independently miss committed predecessors. Direct pgTAP evidence proves empty/same-project/multiple/replay/cross-project receipt behavior and wrapper privilege hardening. Exact remediation CI `34605466532` is **5/5 SUCCESS**, including clean-checkout full verify.
-
-Disposition: no unresolved minor finding is carried into acceptance. The stale durable-state documents discovered during review are corrected by this governance transition and are not a production defect.
-
-## Pass C — ACCEPTANCE / RECONCILIATION
-
-Current state: **ACCEPTANCE_PENDING / C-ACCEPTANCE**. Pass C must begin only after the exact HEAD containing this transition is **5/5 SUCCESS**. Then mechanically reconcile every WP-2.8B Feature/Requirement/Acceptance/Security responsibility as `EXPECTED ↔ IMPLEMENTED ↔ VERIFIED`, including `ACC-055`, `ACC-056`, `ACC-058` and the remediated `MED-006` receipt contract. WP-2.8B may be marked `ACCEPTED` only when required-minus-evidenced is **∅**, no BLOCKING/MAJOR finding remains, durable status/coverage is reconciled, and the final acceptance HEAD is exact-head green.
+Packet state is therefore **ACCEPTED / COMPLETE**, subject only to this final acceptance-governance commit itself completing exact-head CI successfully. Until that final CI is green, downstream WP-2.8C remains **PLANNED** and must not be activated.
