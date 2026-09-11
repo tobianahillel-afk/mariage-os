@@ -69,7 +69,9 @@ interface CandidateOptions {
   readonly hashError?: unknown;
 }
 
-function lifecycle(options: CandidateOptions): PrivateMediaDerivativeLifecyclePort {
+function lifecycle(
+  options: CandidateOptions,
+): PrivateMediaDerivativeLifecyclePort {
   return {
     ...originalOnlyLifecycle,
     async reserveDerivative() {
@@ -164,7 +166,9 @@ it("rejects invalid derivative identities, kinds, versions, bytes, and MIME", as
   ] as const;
 
   for (const [input, error] of cases) {
-    expect(await orchestratePrivateDerivativeCreate(input, candidate())).toEqual({
+    expect(
+      await orchestratePrivateDerivativeCreate(input, candidate()),
+    ).toEqual({
       ok: false,
       error,
     });
@@ -215,7 +219,10 @@ it("fails closed for partially exposed derivative lifecycle methods", async () =
 
 it("maps image inspection, dimension, and SHA failures", async () => {
   const cases: readonly [CandidateOptions, string][] = [
-    [{ imageError: new PrivateMediaImageInspectionError("decode") }, "decode_failed"],
+    [
+      { imageError: new PrivateMediaImageInspectionError("decode") },
+      "decode_failed",
+    ],
     [{ imageError: new Error("unknown") }, "persistence_failed"],
     [{ dimensions: { widthPx: 0, heightPx: 10 } }, "invalid_dimensions"],
     [{ hashError: new PrivateMediaSha256Error("hash") }, "hash_failed"],
@@ -295,7 +302,9 @@ it("rejects invalid derivative abandon requests and unavailable lifecycle", asyn
     { ...abandon, derivativeVersion: 1.5 },
   ];
   for (const input of invalid) {
-    expect(await orchestratePrivateDerivativeAbandon(input, candidate())).toEqual({
+    expect(
+      await orchestratePrivateDerivativeAbandon(input, candidate()),
+    ).toEqual({
       ok: false,
       error: "invalid_identity",
     });
