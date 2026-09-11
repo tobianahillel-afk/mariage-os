@@ -244,7 +244,7 @@ it("maps finalization provider failures to stable lifecycle errors", async () =>
   ).rejects.toMatchObject({ code: "persistence_failed" });
 });
 
-it("rejects substituted, non-ready, or malformed dedup finalization receipts", async () => {
+it("rejects malformed dedup finalization receipts", async () => {
   const invalidReceipts = [
     finalizationReceipt({
       media: media({
@@ -256,7 +256,9 @@ it("rejects substituted, non-ready, or malformed dedup finalization receipts", a
     finalizationReceipt({ link: link({ media_id: operationId }) }),
     finalizationReceipt({ duplicateOriginalMediaIds: null }),
     finalizationReceipt({ duplicateOriginalMediaIds: [mediaId] }),
-    finalizationReceipt({ duplicateOriginalMediaIds: [duplicateId, duplicateId] }),
+    finalizationReceipt({
+      duplicateOriginalMediaIds: [duplicateId, duplicateId],
+    }),
     finalizationReceipt({
       duplicateOriginalMediaIds: [duplicateId, projectId],
     }),
