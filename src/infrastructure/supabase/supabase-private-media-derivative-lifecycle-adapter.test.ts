@@ -125,6 +125,20 @@ it("reserves a private derivative through the lifecycle RPC", async () => {
     target_derivative_kind: "thumbnail",
     target_derivative_version: 1,
   });
+
+  const substitutedClient = new Client({
+    data: {
+      action: "reserve_derivative",
+      replayed: false,
+      media: derivativeMedia({ storage_path: `${storagePath}-substituted` }),
+    },
+    error: null,
+  });
+  await expect(
+    new SupabasePrivateMediaLifecycleAdapter(
+      substitutedClient,
+    ).reserveDerivative(reserveInput),
+  ).rejects.toMatchObject({ code: "provider_response_invalid" });
 });
 
 it("finalizes a private derivative and rejects substituted ready receipts", async () => {
