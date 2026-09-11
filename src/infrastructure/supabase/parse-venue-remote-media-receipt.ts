@@ -79,6 +79,7 @@ function assertRemoteOnlyMediaState(row: Record<string, unknown>): void {
     row.derivative_of_id === null,
     row.is_original === true,
     row.upload_status === "ready",
+    row.deleted_at === null,
   ].every(Boolean);
   if (!stateIsExpected) fail();
 }
