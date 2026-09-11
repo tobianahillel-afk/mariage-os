@@ -347,7 +347,9 @@ function isAbandonRequestValid(
 }
 
 function isConfirmedPrivateObjectAbsence(
-  deletion: Awaited<ReturnType<PrivateMediaStoragePort["deleteReservedObject"]>>,
+  deletion: Awaited<
+    ReturnType<PrivateMediaStoragePort["deleteReservedObject"]>
+  >,
   expectedPath: string,
 ): boolean {
   return (
