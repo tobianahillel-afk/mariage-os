@@ -95,6 +95,13 @@ interface PreparedVenuePrivateDerivative extends NormalizedVenuePrivateDerivativ
   readonly sha256: string;
 }
 
+type ValidDerivativeIdentity = CreateVenuePrivateDerivativeRequest & {
+  readonly operationId: string;
+  readonly projectId: string;
+  readonly mediaId: string;
+  readonly parentMediaId: string;
+};
+
 function persistenceFailure(error: unknown): DerivativeServiceError {
   const code = mediaPersistenceErrorCode(error);
   if (code === "conflict") return "replay_conflict";
@@ -116,6 +123,18 @@ function isDerivativeKind(value: unknown): value is VenuePrivateDerivativeKind {
 function isDerivativeVersion(value: unknown): value is number {
   return (
     Number.isInteger(value) && Number(value) >= 1 && Number(value) <= 32_767
+  );
+}
+
+function hasDerivativeIdentity(
+  input: CreateVenuePrivateDerivativeRequest,
+): input is ValidDerivativeIdentity {
+  return (
+    isMediaUuid(input.operationId) &&
+    isMediaUuid(input.projectId) &&
+    isMediaUuid(input.mediaId) &&
+    isMediaUuid(input.parentMediaId) &&
+    input.mediaId !== input.parentMediaId
   );
 }
 
@@ -167,13 +186,7 @@ function derivativeCreationPorts(
 function normalizeDerivativeRequest(
   input: CreateVenuePrivateDerivativeRequest,
 ): DerivativeResult<NormalizedVenuePrivateDerivative> {
-  if (
-    !isMediaUuid(input.operationId) ||
-    !isMediaUuid(input.projectId) ||
-    !isMediaUuid(input.mediaId) ||
-    !isMediaUuid(input.parentMediaId) ||
-    input.mediaId === input.parentMediaId
-  ) {
+  if (!hasDerivativeIdentity(input)) {
     return { ok: false, error: "invalid_identity" };
   }
   if (

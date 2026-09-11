@@ -24,8 +24,9 @@ import {
   PrivateMediaImageInspectionError,
   type PrivateMediaImageInspectorPort,
 } from "./private-media-image-inspector-port";
+import { hasPrivateOriginalIdentity } from "./private-media-original-identity";
+import { privateOriginalStoragePath } from "./private-media-path";
 import type {
-  AbandonVenuePrivateOriginalInput,
   PrivateMediaLifecyclePort,
   VenuePrivateDerivativeAbandonment,
   VenuePrivateDerivativeFinalization,
@@ -149,13 +150,6 @@ function privateMediaFailure(error: unknown): MediaServiceError {
   return persistenceFailure(error);
 }
 
-function privateOriginalStoragePath(
-  projectId: string,
-  mediaId: string,
-): string {
-  return `${projectId}/media/${mediaId}/original`;
-}
-
 function privateCreationPorts(
   value: PrivateMediaServicePorts | null,
 ): PrivateMediaCreationPorts | null {
@@ -174,20 +168,10 @@ function privateCreationPorts(
   };
 }
 
-function hasPrivateIdentity(input: CreateVenuePrivateOriginalRequest): boolean {
-  return (
-    isMediaUuid(input.operationId) &&
-    isMediaUuid(input.projectId) &&
-    isMediaUuid(input.venueId) &&
-    isMediaUuid(input.mediaId) &&
-    isMediaUuid(input.linkId)
-  );
-}
-
 function normalizePrivateOriginalRequest(
   input: CreateVenuePrivateOriginalRequest,
 ): MediaResult<NormalizedVenuePrivateOriginalDraft> {
-  if (!hasPrivateIdentity(input)) {
+  if (!hasPrivateOriginalIdentity(input)) {
     return { ok: false, error: "invalid_identity" };
   }
   const presentation = normalizeVenueMediaPresentationDraft(input);
@@ -206,11 +190,11 @@ function normalizePrivateOriginalRequest(
   return {
     ok: true,
     value: {
-      operationId: input.operationId as string,
-      projectId: input.projectId as string,
-      venueId: input.venueId as string,
-      mediaId: input.mediaId as string,
-      linkId: input.linkId as string,
+      operationId: input.operationId,
+      projectId: input.projectId,
+      venueId: input.venueId,
+      mediaId: input.mediaId,
+      linkId: input.linkId,
       category: presentation.value.category,
       caption: presentation.value.caption,
       bytes: input.bytes,
@@ -334,18 +318,6 @@ async function persistPrivateOriginal(
   }
 }
 
-function isAbandonRequestValid(
-  input: AbandonVenuePrivateOriginalRequest,
-): input is AbandonVenuePrivateOriginalInput {
-  return (
-    isMediaUuid(input.operationId) &&
-    isMediaUuid(input.projectId) &&
-    isMediaUuid(input.venueId) &&
-    isMediaUuid(input.mediaId) &&
-    isMediaUuid(input.linkId)
-  );
-}
-
 export class MediaService {
   constructor(
     private readonly port: MediaPort,
@@ -421,7 +393,7 @@ export class MediaService {
   async abandonVenuePrivateOriginal(
     input: AbandonVenuePrivateOriginalRequest,
   ): Promise<MediaResult<VenuePrivateOriginalAbandonment>> {
-    if (!isAbandonRequestValid(input)) {
+    if (!hasPrivateOriginalIdentity(input)) {
       return { ok: false, error: "invalid_identity" };
     }
     if (this.privateMedia === null) {

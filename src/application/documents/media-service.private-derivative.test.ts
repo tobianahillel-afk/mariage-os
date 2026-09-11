@@ -39,10 +39,16 @@ function request() {
   };
 }
 
-function harness(replayed: boolean, objectPresent: boolean) {
-  const events: string[] = [];
-  let reserveInput: ReserveVenuePrivateDerivativeInput | null = null;
-  const lifecycle: PrivateMediaDerivativeLifecyclePort = {
+interface HarnessState {
+  readonly events: string[];
+  reserveInput: ReserveVenuePrivateDerivativeInput | null;
+}
+
+function lifecyclePort(
+  state: HarnessState,
+  replayed: boolean,
+): PrivateMediaDerivativeLifecyclePort {
+  return {
     async reserveOriginal() {
       throw new Error("unused");
     },
@@ -53,26 +59,32 @@ function harness(replayed: boolean, objectPresent: boolean) {
       throw new Error("unused");
     },
     async reserveDerivative(input) {
-      events.push("reserve");
-      reserveInput = input;
+      state.events.push("reserve");
+      state.reserveInput = input;
       return { storagePath, replayed };
     },
     async finalizeDerivative() {
-      events.push("finalize");
+      state.events.push("finalize");
       return { storagePath, replayed: false };
     },
     async abandonDerivative() {
-      events.push("abandon");
+      state.events.push("abandon");
       return { replayed: false, absent: true };
     },
   };
-  const storage: PrivateMediaStoragePort = {
+}
+
+function storagePort(
+  state: HarnessState,
+  objectPresent: boolean,
+): PrivateMediaStoragePort {
+  return {
     async inspectReservedObject(path) {
-      events.push("inspect-storage");
+      state.events.push("inspect-storage");
       return { bucket: "project-private", path, present: objectPresent };
     },
     async uploadReservedObject(input) {
-      events.push("upload");
+      state.events.push("upload");
       expect(input).toEqual({
         path: storagePath,
         bytes,
@@ -81,35 +93,45 @@ function harness(replayed: boolean, objectPresent: boolean) {
       return { bucket: "project-private", path: storagePath };
     },
     async deleteReservedObject(path) {
-      events.push("delete");
+      state.events.push("delete");
       return { bucket: "project-private", path, absent: true };
     },
   };
-  const imageInspector: PrivateMediaImageInspectorPort = {
+}
+
+function inspectorPort(state: HarnessState): PrivateMediaImageInspectorPort {
+  return {
     async inspect(receivedBytes) {
-      events.push("inspect-image");
+      state.events.push("inspect-image");
       expect(receivedBytes).toBe(bytes);
       return { widthPx: 320, heightPx: 180 };
     },
   };
-  const hash: PrivateMediaSha256Port = {
+}
+
+function sha256Port(state: HarnessState): PrivateMediaSha256Port {
+  return {
     async hashExactBytes(receivedBytes) {
-      events.push("hash");
+      state.events.push("hash");
       expect(receivedBytes).toBe(bytes);
       return sha256;
     },
   };
+}
+
+function harness(replayed: boolean, objectPresent: boolean) {
+  const state: HarnessState = { events: [], reserveInput: null };
   const service = new MediaService(remotePort, {
-    lifecycle,
-    storage,
-    imageInspector,
-    sha256: hash,
+    lifecycle: lifecyclePort(state, replayed),
+    storage: storagePort(state, objectPresent),
+    imageInspector: inspectorPort(state),
+    sha256: sha256Port(state),
   });
   return {
     service,
-    events,
+    events: state.events,
     get reserveInput() {
-      return reserveInput;
+      return state.reserveInput;
     },
   };
 }
