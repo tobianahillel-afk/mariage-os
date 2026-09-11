@@ -73,7 +73,11 @@ function harness(replayed: boolean, objectPresent: boolean) {
     },
     async uploadReservedObject(input) {
       events.push("upload");
-      expect(input).toEqual({ path: storagePath, bytes, mimeType: "image/jpeg" });
+      expect(input).toEqual({
+        path: storagePath,
+        bytes,
+        mimeType: "image/jpeg",
+      });
       return { bucket: "project-private", path: storagePath };
     },
     async deleteReservedObject(path) {

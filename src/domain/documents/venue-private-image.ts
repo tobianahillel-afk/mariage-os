@@ -4,9 +4,7 @@ const MAX_PRIVATE_IMAGE_PIXELS = 50_000_000;
 const MAX_PRIVATE_IMAGE_FILENAME_SCALARS = 512;
 
 export type VenuePrivateImageMimeType =
-  | "image/jpeg"
-  | "image/png"
-  | "image/webp";
+  "image/jpeg" | "image/png" | "image/webp";
 
 export interface VenuePrivateImageFileCandidate {
   readonly originalFilename: string;
@@ -23,8 +21,7 @@ export interface VenuePrivateGeneratedImageFileCandidate {
   readonly bytes: Uint8Array;
 }
 
-export interface VenuePrivateGeneratedImageCandidate
-  extends VenuePrivateGeneratedImageFileCandidate {
+export interface VenuePrivateGeneratedImageCandidate extends VenuePrivateGeneratedImageFileCandidate {
   readonly widthPx: number;
   readonly heightPx: number;
 }
@@ -45,8 +42,7 @@ interface ValidatedVenuePrivateImage extends ValidatedVenuePrivateImageFile {
   readonly heightPx: number;
 }
 
-interface ValidatedVenuePrivateGeneratedImage
-  extends ValidatedVenuePrivateGeneratedImageFile {
+interface ValidatedVenuePrivateGeneratedImage extends ValidatedVenuePrivateGeneratedImageFile {
   readonly widthPx: number;
   readonly heightPx: number;
 }
@@ -90,7 +86,10 @@ export type VenuePrivateGeneratedImageValidationResult =
   | { readonly ok: true; readonly value: ValidatedVenuePrivateGeneratedImage }
   | {
       readonly ok: false;
-      readonly error: Exclude<VenuePrivateImageValidationError, "invalid_filename">;
+      readonly error: Exclude<
+        VenuePrivateImageValidationError,
+        "invalid_filename"
+      >;
     };
 
 function unicodeScalarWidth(value: string, index: number): 0 | 1 | 2 {
@@ -123,13 +122,19 @@ function hasValidSize(bytes: Uint8Array): boolean {
 }
 
 function supportedMimeType(value: unknown): VenuePrivateImageMimeType | null {
-  if (value === "image/jpeg" || value === "image/png" || value === "image/webp") {
+  if (
+    value === "image/jpeg" ||
+    value === "image/png" ||
+    value === "image/webp"
+  ) {
     return value;
   }
   return null;
 }
 
-function mimeTypeForFilename(filename: string): VenuePrivateImageMimeType | null {
+function mimeTypeForFilename(
+  filename: string,
+): VenuePrivateImageMimeType | null {
   const lower = filename.toLowerCase();
   if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
   if (lower.endsWith(".png")) return "image/png";

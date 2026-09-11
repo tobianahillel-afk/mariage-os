@@ -15,31 +15,40 @@ describe("generated private derivative image validation", () => {
     ["image/jpeg", jpeg],
     ["image/png", png],
     ["image/webp", webp],
-  ] as const)("accepts supported %s bytes without a filename", (mimeType, bytes) => {
-    expect(
-      validateVenuePrivateGeneratedImage({
-        mimeType,
-        bytes,
-        widthPx: 320,
-        heightPx: 180,
-      }),
-    ).toEqual({
-      ok: true,
-      value: {
-        mimeType,
-        sizeBytes: bytes.byteLength,
-        widthPx: 320,
-        heightPx: 180,
-      },
-    });
-  });
+  ] as const)(
+    "accepts supported %s bytes without a filename",
+    (mimeType, bytes) => {
+      expect(
+        validateVenuePrivateGeneratedImage({
+          mimeType,
+          bytes,
+          widthPx: 320,
+          heightPx: 180,
+        }),
+      ).toEqual({
+        ok: true,
+        value: {
+          mimeType,
+          sizeBytes: bytes.byteLength,
+          widthPx: 320,
+          heightPx: 180,
+        },
+      });
+    },
+  );
 
   it("rejects an unsupported MIME or mismatched magic bytes", () => {
     expect(
-      validateVenuePrivateGeneratedImageFile({ mimeType: "image/gif", bytes: jpeg }),
+      validateVenuePrivateGeneratedImageFile({
+        mimeType: "image/gif",
+        bytes: jpeg,
+      }),
     ).toEqual({ ok: false, error: "unsupported_type" });
     expect(
-      validateVenuePrivateGeneratedImageFile({ mimeType: "image/png", bytes: jpeg }),
+      validateVenuePrivateGeneratedImageFile({
+        mimeType: "image/png",
+        bytes: jpeg,
+      }),
     ).toEqual({ ok: false, error: "unsupported_type" });
   });
 

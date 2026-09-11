@@ -79,8 +79,7 @@ interface PrivateDerivativeCreationPorts extends PrivateDerivativeLifecyclePorts
   readonly sha256: PrivateMediaSha256Port;
 }
 
-interface NormalizedVenuePrivateDerivative
-  extends ValidatedVenuePrivateGeneratedImageFile {
+interface NormalizedVenuePrivateDerivative extends ValidatedVenuePrivateGeneratedImageFile {
   readonly operationId: string;
   readonly projectId: string;
   readonly mediaId: string;
@@ -115,7 +114,9 @@ function isDerivativeKind(value: unknown): value is VenuePrivateDerivativeKind {
 }
 
 function isDerivativeVersion(value: unknown): value is number {
-  return Number.isInteger(value) && Number(value) >= 1 && Number(value) <= 32_767;
+  return (
+    Number.isInteger(value) && Number(value) >= 1 && Number(value) <= 32_767
+  );
 }
 
 function derivativeStoragePath(
