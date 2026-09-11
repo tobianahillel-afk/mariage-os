@@ -62,7 +62,7 @@ export interface VenueRemoteMediaRecord {
   readonly createdBy: string;
   readonly updatedAt: string;
   readonly updatedBy: string;
-  readonly revision: 1;
+  readonly revision: number;
 }
 
 export interface VenueRemoteMediaLinkRecord {

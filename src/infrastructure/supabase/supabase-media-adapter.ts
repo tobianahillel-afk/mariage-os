@@ -1,19 +1,22 @@
 import type {
   MediaPort,
   NormalizedCreateVenueRemoteMediaInput,
+  NormalizedTransitionVenueRemoteMediaLifecycleRequest,
 } from "@application/documents/media-service";
 import { MediaPersistenceError } from "@application/documents/media-persistence-error";
 import {
   venueRemoteMediaCallerPayloadEquals,
   type VenueRemoteMediaBundle,
 } from "@domain/documents/venue-remote-media";
+import type { VenueRemoteMediaLifecycleReceipt } from "@domain/documents/venue-remote-media-lifecycle";
 import {
   parseVenueRemoteMediaListRow,
   parseVenueRemoteMediaReceipt,
 } from "./parse-venue-remote-media-receipt";
+import { parseVenueRemoteMediaLifecycleReceipt } from "./parse-venue-remote-media-lifecycle-receipt";
 
 const MEDIA_COLUMNS =
-  "id,project_id,media_type,category,storage_path,remote_url,source_page_url,original_filename,mime_type,size_bytes,sha256,width_px,height_px,derivative_of_id,is_original,upload_status,caption,created_at,created_by,updated_at,updated_by,revision";
+  "id,project_id,media_type,category,storage_path,remote_url,source_page_url,original_filename,mime_type,size_bytes,sha256,width_px,height_px,derivative_of_id,is_original,upload_status,caption,created_at,created_by,updated_at,updated_by,revision,deleted_at";
 const LINK_COLUMNS = `id,project_id,media_id,target_type,target_id,relationship_type,created_at,created_by,media!inner(${MEDIA_COLUMNS})`;
 
 interface SupabaseResult {
@@ -39,6 +42,13 @@ export interface SupabaseMediaClientLike {
   from(table: "media_links"): MediaTable;
   rpc(
     functionName: "create_venue_remote_media",
+    args: Readonly<Record<string, unknown>>,
+  ): PromiseLike<SupabaseResult>;
+}
+
+interface SupabaseRemoteMediaLifecycleClientLike {
+  rpc(
+    functionName: "transition_venue_remote_media_lifecycle",
     args: Readonly<Record<string, unknown>>,
   ): PromiseLike<SupabaseResult>;
 }
@@ -133,6 +143,42 @@ export class SupabaseMediaAdapter implements MediaPort {
     return expectedCreatePayload(bundle, input);
   }
 
+  async transitionVenueRemoteMediaLifecycle(
+    input: NormalizedTransitionVenueRemoteMediaLifecycleRequest,
+  ): Promise<VenueRemoteMediaLifecycleReceipt> {
+    const lifecycleClient = this.client as unknown as SupabaseRemoteMediaLifecycleClientLike;
+    const { data, error } = await lifecycleClient.rpc(
+      "transition_venue_remote_media_lifecycle",
+      {
+        target_project_id: input.projectId,
+        target_media_id: input.mediaId,
+        target_action: input.action,
+        target_expected_revision: input.expectedRevision,
+      },
+    );
+    if (error !== null) {
+      const code = providerErrorCode(error);
+      throw new MediaPersistenceError(
+        code === "23505" || code === "40001"
+          ? "conflict"
+          : "persistence_failed",
+        "Venue remote media lifecycle transition failed.",
+      );
+    }
+    try {
+      return parseVenueRemoteMediaLifecycleReceipt(data, {
+        projectId: input.projectId,
+        mediaId: input.mediaId,
+        action: input.action,
+      });
+    } catch {
+      throw new MediaPersistenceError(
+        "provider_response_invalid",
+        "Invalid venue remote media lifecycle response.",
+      );
+    }
+  }
+
   async listVenueRemoteMedia(
     projectId: string,
     venueId: string,
@@ -147,6 +193,7 @@ export class SupabaseMediaAdapter implements MediaPort {
       .eq("media.upload_status", "ready")
       .not("media.remote_url", "is", null)
       .is("media.storage_path", null)
+      .is("media.deleted_at", null)
       .order("created_at", { ascending: false })
       .order("id", { ascending: true });
     if (error !== null || !Array.isArray(data)) {

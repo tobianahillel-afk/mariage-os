@@ -1,20 +1,21 @@
 import {
   isMediaUuid,
   normalizeVenueRemoteMediaDraft,
-  type NormalizedVenueRemoteMediaDraft,
-  type VenueRemoteMediaBundle,
   type VenueRemoteMediaLinkRecord,
-  type VenueRemoteMediaRecord,
 } from "@domain/documents/venue-remote-media";
+import type {
+  VenueRemoteMediaLifecycleAction,
+  VenueRemoteMediaLifecycleReceipt,
+  VenueRemoteMediaLifecycleRecord,
+} from "@domain/documents/venue-remote-media-lifecycle";
 import { normalizeFactInstant } from "@domain/facts/fact-observation";
 
-const INVALID_RESPONSE = "Invalid venue remote media response.";
+const INVALID_RESPONSE = "Invalid venue remote media lifecycle response.";
 
-export interface ExpectedVenueRemoteMediaIds {
-  readonly projectId?: string;
-  readonly venueId?: string;
-  readonly mediaId?: string;
-  readonly linkId?: string;
+export interface ExpectedVenueRemoteMediaLifecycle {
+  readonly projectId: string;
+  readonly mediaId: string;
+  readonly action: VenueRemoteMediaLifecycleAction;
 }
 
 function fail(): never {
@@ -47,13 +48,7 @@ function positiveRevision(value: unknown): number {
   return value;
 }
 
-function assertExpected(actual: string, expected?: string): void {
-  if (expected !== undefined && actual !== expected) fail();
-}
-
-function normalizedMediaFields(
-  row: Record<string, unknown>,
-): NormalizedVenueRemoteMediaDraft {
+function normalizedRemoteFields(row: Record<string, unknown>) {
   const normalized = normalizeVenueRemoteMediaDraft({
     category: row.category,
     remoteUrl: row.remote_url,
@@ -61,19 +56,30 @@ function normalizedMediaFields(
     caption: row.caption,
   });
   if (!normalized.ok) fail();
-  const valuesAreCanonical = [
-    normalized.value.category === row.category,
-    normalized.value.remoteUrl === row.remote_url,
-    normalized.value.sourcePageUrl === row.source_page_url,
-    normalized.value.caption === row.caption,
-  ].every(Boolean);
-  return valuesAreCanonical ? normalized.value : fail();
+  if (
+    normalized.value.category !== row.category ||
+    normalized.value.remoteUrl !== row.remote_url ||
+    normalized.value.sourcePageUrl !== row.source_page_url ||
+    normalized.value.caption !== row.caption
+  ) {
+    fail();
+  }
+  return normalized.value;
 }
 
-function assertRemoteOnlyMediaState(row: Record<string, unknown>): void {
-  const stateIsExpected = [
+function parseLifecycleMedia(
+  value: unknown,
+  expected: ExpectedVenueRemoteMediaLifecycle,
+): VenueRemoteMediaLifecycleRecord {
+  const row = objectRow(value);
+  const id = requiredUuid(row.id);
+  const projectId = requiredUuid(row.project_id);
+  if (id !== expected.mediaId || projectId !== expected.projectId) fail();
+
+  const stateIsRemote = [
     row.media_type === "image",
     row.storage_path === null,
+    typeof row.remote_url === "string",
     row.original_filename === null,
     row.mime_type === null,
     row.size_bytes === null,
@@ -81,23 +87,19 @@ function assertRemoteOnlyMediaState(row: Record<string, unknown>): void {
     row.width_px === null,
     row.height_px === null,
     row.derivative_of_id === null,
+    row.derivative_kind === null,
+    row.derivative_version === null,
     row.is_original === true,
     row.upload_status === "ready",
   ].every(Boolean);
-  if (!stateIsExpected) fail();
-}
+  if (!stateIsRemote) fail();
 
-function parseMediaRow(
-  value: unknown,
-  expected: ExpectedVenueRemoteMediaIds = {},
-): VenueRemoteMediaRecord {
-  const row = objectRow(value);
-  const id = requiredUuid(row.id);
-  const projectId = requiredUuid(row.project_id);
-  assertExpected(id, expected.mediaId);
-  assertExpected(projectId, expected.projectId);
-  const normalized = normalizedMediaFields(row);
-  assertRemoteOnlyMediaState(row);
+  const normalized = normalizedRemoteFields(row);
+  const deletedAt =
+    row.deleted_at === null ? null : canonicalInstant(row.deleted_at);
+  if (expected.action === "soft_delete" && deletedAt === null) fail();
+  if (expected.action === "restore" && deletedAt !== null) fail();
+
   return {
     id,
     projectId,
@@ -113,9 +115,12 @@ function parseMediaRow(
     widthPx: null,
     heightPx: null,
     derivativeOfId: null,
+    derivativeKind: null,
+    derivativeVersion: null,
     isOriginal: true,
     uploadStatus: "ready",
     caption: normalized.caption,
+    deletedAt,
     createdAt: canonicalInstant(row.created_at),
     createdBy: requiredUuid(row.created_by),
     updatedAt: canonicalInstant(row.updated_at),
@@ -124,19 +129,16 @@ function parseMediaRow(
   };
 }
 
-function parseLinkRow(
+function parseLifecycleLink(
   value: unknown,
-  expected: ExpectedVenueRemoteMediaIds = {},
+  expected: ExpectedVenueRemoteMediaLifecycle,
 ): VenueRemoteMediaLinkRecord {
   const row = objectRow(value);
   const id = requiredUuid(row.id);
   const projectId = requiredUuid(row.project_id);
   const mediaId = requiredUuid(row.media_id);
   const targetId = requiredUuid(row.target_id);
-  assertExpected(id, expected.linkId);
-  assertExpected(projectId, expected.projectId);
-  assertExpected(mediaId, expected.mediaId);
-  assertExpected(targetId, expected.venueId);
+  if (projectId !== expected.projectId || mediaId !== expected.mediaId) fail();
   if (row.target_type !== "venue" || row.relationship_type !== "gallery")
     fail();
   return {
@@ -151,23 +153,19 @@ function parseLinkRow(
   };
 }
 
-export function parseVenueRemoteMediaReceipt(
+export function parseVenueRemoteMediaLifecycleReceipt(
   value: unknown,
-  expected: ExpectedVenueRemoteMediaIds = {},
-): VenueRemoteMediaBundle {
+  expected: ExpectedVenueRemoteMediaLifecycle,
+): VenueRemoteMediaLifecycleReceipt {
   const row = objectRow(value);
-  const media = parseMediaRow(row.media, expected);
-  const link = parseLinkRow(row.link, expected);
-  if (link.mediaId !== media.id || link.projectId !== media.projectId) fail();
-  return { media, link };
-}
-
-export function parseVenueRemoteMediaListRow(
-  value: unknown,
-  expected: ExpectedVenueRemoteMediaIds = {},
-): VenueRemoteMediaBundle {
-  const row = objectRow(value);
-  const media = parseMediaRow(row.media, expected);
-  const link = parseLinkRow(row, { ...expected, mediaId: media.id });
-  return { media, link };
+  if (row.action !== expected.action || typeof row.replayed !== "boolean") fail();
+  const media = parseLifecycleMedia(row.media, expected);
+  const link = parseLifecycleLink(row.link, expected);
+  if (link.projectId !== media.projectId || link.mediaId !== media.id) fail();
+  return {
+    action: expected.action,
+    replayed: row.replayed,
+    media,
+    link,
+  };
 }
