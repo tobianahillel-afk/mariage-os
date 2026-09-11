@@ -1,7 +1,7 @@
 import type { VenueMediaCategory } from "@domain/documents/venue-remote-media";
 
-export type PrivateImageMimeType = "image/jpeg" | "image/png" | "image/webp";
-export type VenuePrivateDerivativeKind = "thumbnail" | "preview";
+type PrivateImageMimeType = "image/jpeg" | "image/png" | "image/webp";
+type VenuePrivateDerivativeKind = "thumbnail" | "preview";
 
 export interface ReserveVenuePrivateOriginalInput {
   readonly operationId: string;
