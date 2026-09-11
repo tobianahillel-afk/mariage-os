@@ -261,7 +261,8 @@ async function persistPrivateOriginal(
 
     let uploadRequired = true;
     if (reservation.replayed) {
-      const inspection = await ports.storage.inspectReservedObject(expectedPath);
+      const inspection =
+        await ports.storage.inspectReservedObject(expectedPath);
       if (
         inspection.bucket !== "project-private" ||
         inspection.path !== expectedPath ||

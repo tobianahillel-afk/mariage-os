@@ -76,7 +76,8 @@ function recoveryStorage(
       return {
         bucket: (options.inspectionBucket ?? "project-private") as never,
         path: (options.inspectionPath ?? path) as never,
-        present: (options.inspectionPresent ?? options.present ?? false) as never,
+        present:
+          (options.inspectionPresent ?? options.present ?? false) as never,
       };
     },
     async uploadReservedObject(input) {

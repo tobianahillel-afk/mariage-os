@@ -22,7 +22,9 @@ export interface DeleteReservedMediaObjectReceipt {
 }
 
 export interface PrivateMediaStoragePort {
-  inspectReservedObject(path: string): Promise<InspectReservedMediaObjectReceipt>;
+  inspectReservedObject(
+    path: string,
+  ): Promise<InspectReservedMediaObjectReceipt>;
   uploadReservedObject(
     input: UploadReservedMediaObjectInput,
   ): Promise<UploadReservedMediaObjectReceipt>;

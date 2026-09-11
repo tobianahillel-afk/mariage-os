@@ -117,9 +117,9 @@ it("rejects invalid Storage inspection receipts and paths", async () => {
 
   for (const data of [null, {}, [null], [{}], [{ name: 42 }]]) {
     client.bucket.listResult = { data, error: null };
-    await expect(adapter.inspectReservedObject(storagePath)).rejects.toMatchObject(
-      { code: "provider_response_invalid" },
-    );
+    await expect(
+      adapter.inspectReservedObject(storagePath),
+    ).rejects.toMatchObject({ code: "provider_response_invalid" });
   }
 
   for (const path of ["original", "folder/"]) {
@@ -137,13 +137,17 @@ it("contains returned and thrown Storage inspection failures", async () => {
     data: null,
     error: { message: "storage unavailable" },
   };
-  await expect(adapter.inspectReservedObject(storagePath)).rejects.toMatchObject({
+  await expect(
+    adapter.inspectReservedObject(storagePath),
+  ).rejects.toMatchObject({
     code: "storage_retryable",
   });
 
   client.bucket.listResult = { data: [], error: null };
   client.bucket.listThrown = new Error("network failure");
-  await expect(adapter.inspectReservedObject(storagePath)).rejects.toMatchObject({
+  await expect(
+    adapter.inspectReservedObject(storagePath),
+  ).rejects.toMatchObject({
     code: "storage_retryable",
   });
 });
