@@ -167,7 +167,6 @@ export function parseVenueRemoteMediaLifecycleReceipt(
     fail();
   const media = parseLifecycleMedia(row.media, expected);
   const link = parseLifecycleLink(row.link, expected);
-  if (link.projectId !== media.projectId || link.mediaId !== media.id) fail();
   return {
     action: expected.action,
     replayed: row.replayed,
