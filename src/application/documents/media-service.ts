@@ -15,12 +15,20 @@ import {
 } from "@domain/documents/venue-remote-media";
 import { mediaPersistenceErrorCode } from "./media-persistence-error";
 import {
+  orchestratePrivateDerivativeAbandon,
+  orchestratePrivateDerivativeCreate,
+  type AbandonVenuePrivateDerivativeRequest,
+  type CreateVenuePrivateDerivativeRequest,
+} from "./private-media-derivative-orchestration";
+import {
   PrivateMediaImageInspectionError,
   type PrivateMediaImageInspectorPort,
 } from "./private-media-image-inspector-port";
 import type {
   AbandonVenuePrivateOriginalInput,
   PrivateMediaLifecyclePort,
+  VenuePrivateDerivativeAbandonment,
+  VenuePrivateDerivativeFinalization,
   VenuePrivateOriginalAbandonment,
   VenuePrivateOriginalFinalization,
 } from "./private-media-lifecycle-port";
@@ -113,6 +121,7 @@ interface PrivateMediaCreationPorts extends PrivateMediaServicePorts {
 
 type MediaServiceError =
   | "invalid_identity"
+  | "invalid_derivative"
   | VenueRemoteMediaValidationError
   | VenuePrivateImageValidationError
   | "decode_failed"
@@ -386,6 +395,12 @@ export class MediaService {
     return persistPrivateOriginal(prepared.value, ports);
   }
 
+  async createVenuePrivateDerivative(
+    input: CreateVenuePrivateDerivativeRequest,
+  ): Promise<MediaResult<VenuePrivateDerivativeFinalization>> {
+    return orchestratePrivateDerivativeCreate(input, this.privateMedia);
+  }
+
   async listVenueRemoteMedia(
     projectId: unknown,
     venueId: unknown,
@@ -429,5 +444,11 @@ export class MediaService {
     } catch (error) {
       return { ok: false, error: persistenceFailure(error) };
     }
+  }
+
+  async abandonVenuePrivateDerivative(
+    input: AbandonVenuePrivateDerivativeRequest,
+  ): Promise<MediaResult<VenuePrivateDerivativeAbandonment>> {
+    return orchestratePrivateDerivativeAbandon(input, this.privateMedia);
   }
 }
