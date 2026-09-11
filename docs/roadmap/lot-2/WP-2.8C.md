@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.8C`
 - Lot: `2`
 - Name: Recoverable Venue remote-media metadata lifecycle
-- State: `READY`
-- Current pass: `A-READY`
+- State: `IN_PROGRESS`
+- Current pass: `A-IMPLEMENT`
 - Primary bounded context: Documents/Media remote-reference metadata trash lifecycle
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 
@@ -59,13 +59,14 @@ No standalone frozen `ACC-*` scenario exclusively owns remote-reference soft-del
 - WP-2.8A: **ACCEPTED / COMPLETE**.
 - WP-2.8B: **ACCEPTED / COMPLETE**; acceptance-governance `3b28c7b734a2258db455bbdabb567fcee2ee2bd1` / `34615830961` **5/5 SUCCESS**; durable closure `8317125183bc5521d6d4aac8e132f64a57aa4ca8` / `34616938470` **5/5 SUCCESS**.
 - WP-2.8C activation specification freeze: `36ef31089dcbab50221b90a559480cc091d99fba` / `34618247634` — **CLOSED / VERIFIED, 5/5 SUCCESS**, clean-checkout included.
+- WP-2.8C READY governance: `5e6f3c02b97eaafa630d809debc9c09d94bfc40e` / `34620073715` — **5/5 SUCCESS**, clean-checkout included.
 - Default orchestration order remains WP-2.8A → WP-2.8B → WP-2.8C → WP-2.9.
 - `MEDIA-LIFECYCLE-ADDENDUM.md`, `DELETION-RETENTION.md`, `PHYSICAL-SCHEMA-V1.md`, `RLS-MATRIX-V1.md`, `LOT-2-COVERAGE-MATRIX.md` and the historical WP-2.8 coverage addendum are governing inputs.
 - Only one packet may be active.
 
 ## Activation specification freeze
 
-The remaining pre-READY concurrency/receipt ambiguity is **CLOSED / VERIFIED** on `36ef31089dcbab50221b90a559480cc091d99fba` / CI `34618247634` — **5/5 SUCCESS**, including clean-checkout `npm run verify`. The packet is now `READY / A-READY`. Product implementation remains prohibited until this READY governance HEAD is exact-head **5/5 SUCCESS** and a separate `READY → IN_PROGRESS / A-IMPLEMENT` governance transition is also exact-head green.
+The remaining pre-READY concurrency/receipt ambiguity is **CLOSED / VERIFIED** on `36ef31089dcbab50221b90a559480cc091d99fba` / CI `34618247634` — **5/5 SUCCESS**, including clean-checkout `npm run verify`. The separate READY governance transition `5e6f3c02b97eaafa630d809debc9c09d94bfc40e` / CI `34620073715` is also **5/5 SUCCESS**, including clean-checkout. The packet is now `IN_PROGRESS / A-IMPLEMENT`; product changes remain prohibited until this IN_PROGRESS governance HEAD itself is exact-head **5/5 SUCCESS**.
 
 ### 1. Persisted lifecycle state
 
@@ -204,9 +205,9 @@ Cohesion review: **PASS**. C reuses `media`, `media_links`, `MediaService`, `Med
 
 ```text
 Current gate/lot:
-  Lot 2 IN_PROGRESS. WP-2.8A/B ACCEPTED. WP-2.8C READY governance pending exact-head verification.
+  Lot 2 IN_PROGRESS. WP-2.8A/B ACCEPTED. WP-2.8C IN_PROGRESS governance pending exact-head verification.
 Current Work Packet/pass:
-  WP-2.8C / A-READY.
+  WP-2.8C / A-IMPLEMENT.
 Feature IDs:
   FTR-024; FTR-092 Lot-2 remote-metadata retention slice.
 Requirement IDs:
@@ -237,7 +238,7 @@ Known deferred choices:
   trash UI; 30-day purge; physical binary deletion; private-media deletion; offline queue; WP-2.11 presentation; WP-2.12 visit flow; import/export/backup mechanics.
 ```
 
-No material semantic question remains open. The specification freeze is verified; this READY governance transition must now earn its own exact-head CI before the separate IN_PROGRESS gate.
+No material semantic question remains open. The specification freeze and READY transition are verified; this separate IN_PROGRESS governance transition must now earn its own exact-head CI before the first RED-first product change.
 
 ## Expected vertical slice
 
@@ -291,11 +292,13 @@ No material semantic question remains open. The specification freeze is verified
 
 Specification freeze: `36ef31089dcbab50221b90a559480cc091d99fba` / CI `34618247634` — **CLOSED / VERIFIED, 5/5 SUCCESS**, including clean-checkout.
 
-Current state: **READY / A-READY**. Current gate is exact-head CI for this separate `PLANNED → READY` governance transition. After that gate is **5/5 SUCCESS**, the only permitted write is a separate `READY → IN_PROGRESS / A-IMPLEMENT` governance transition. Product implementation remains prohibited until the IN_PROGRESS transition itself is exact-head green.
+READY transition: `5e6f3c02b97eaafa630d809debc9c09d94bfc40e` / CI `34620073715` — **5/5 SUCCESS**, including clean-checkout.
+
+Current state: **IN_PROGRESS / A-IMPLEMENT**. Current gate is exact-head CI for this separate `READY → IN_PROGRESS / A-IMPLEMENT` governance transition. Product implementation remains prohibited until this IN_PROGRESS governance HEAD is exact-head **5/5 SUCCESS**; after that, the first product change must be RED-first and fail only for intentionally missing WP-2.8C lifecycle behavior while accepted A/B behavior remains green.
 
 ## Pass A — IMPLEMENT
 
-Not started. Product code is prohibited until the separate `READY → IN_PROGRESS / A-IMPLEMENT` exact-head gate passes.
+Activated. No product code has been committed by this governance transition. The first product change after this IN_PROGRESS governance HEAD is exact-head green must be RED-first and scoped only to the frozen WP-2.8C lifecycle behavior.
 
 ## Pass B — ADVERSARIAL REVIEW
 
