@@ -104,8 +104,7 @@ export interface PrivateMediaLifecyclePort {
   ): Promise<VenuePrivateOriginalAbandonment>;
 }
 
-export interface PrivateMediaDerivativeLifecyclePort
-  extends PrivateMediaLifecyclePort {
+export interface PrivateMediaDerivativeLifecyclePort extends PrivateMediaLifecyclePort {
   reserveDerivative(
     input: ReserveVenuePrivateDerivativeInput,
   ): Promise<VenuePrivateDerivativeReservation>;
