@@ -159,6 +159,27 @@ it("maps stale/conflicting lifecycle transitions through replay_conflict", async
   ).toEqual({ ok: false, error: "replay_conflict" });
 });
 
+it.each([
+  ["provider_response_invalid", "provider_response_invalid"],
+  ["storage_retryable", "storage_retryable"],
+  ["persistence_failed", "persistence_failed"],
+] as const)(
+  "preserves lifecycle persistence boundary %s",
+  async (code, expectedError) => {
+    const port = new StubPort();
+    port.transitionError = new MediaPersistenceError(code, "failure");
+
+    expect(
+      await new MediaService(port).transitionVenueRemoteMediaLifecycle({
+        projectId,
+        mediaId,
+        action: "restore",
+        expectedRevision: 1,
+      }),
+    ).toEqual({ ok: false, error: expectedError });
+  },
+);
+
 it("fails closed when a MediaPort does not expose the lifecycle capability", async () => {
   const port: MediaPort = {
     async createVenueRemoteMedia() {

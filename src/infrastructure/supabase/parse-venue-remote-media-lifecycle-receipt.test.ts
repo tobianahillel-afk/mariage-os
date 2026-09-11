@@ -89,18 +89,45 @@ it("parses a restored active receipt with positive revision", () => {
   expect(parsed.media.revision).toBe(3);
 });
 
+it.each([null, [], "invalid"])(
+  "fails closed on non-object lifecycle receipt %#",
+  (value) => {
+    expect(() =>
+      parseVenueRemoteMediaLifecycleReceipt(value, {
+        projectId,
+        mediaId,
+        action: "soft_delete",
+      }),
+    ).toThrow("Invalid venue remote media lifecycle response.");
+  },
+);
+
 it.each([
   receipt({ action: "restore" }),
   receipt({ replayed: "false" }),
+  receipt({ media: media({ id: "not-a-uuid" }) }),
+  receipt({ media: media({ id: venueId }) }),
   receipt({ media: media({ project_id: venueId }) }),
   receipt({ media: media({ storage_path: "private/object" }) }),
   receipt({ media: media({ derivative_kind: "thumbnail" }) }),
+  receipt({ media: media({ remote_url: "http://example.com/photo.jpg" }) }),
+  receipt({ media: media({ category: undefined }) }),
+  receipt({
+    media: media({ remote_url: " https://example.com/photo.jpg " }),
+  }),
+  receipt({
+    media: media({ source_page_url: " https://example.com/venue " }),
+  }),
+  receipt({ media: media({ caption: " Exterior " }) }),
   receipt({ media: media({ deleted_at: null }) }),
+  receipt({ media: media({ created_at: "not-an-instant" }) }),
+  receipt({ media: media({ revision: "2" }) }),
   receipt({ media: media({ revision: 0 }) }),
   receipt({ media: media({ revision: 1.5 }) }),
   receipt({ link: link({ project_id: venueId }) }),
   receipt({ link: link({ media_id: venueId }) }),
   receipt({ link: link({ target_type: "vendor" }) }),
+  receipt({ link: link({ relationship_type: "thumbnail" }) }),
 ])("fails closed on malformed or substituted lifecycle receipt %#", (value) => {
   expect(() =>
     parseVenueRemoteMediaLifecycleReceipt(value, {
