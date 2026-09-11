@@ -54,7 +54,11 @@ function recoveryLifecycle(events: string[]): PrivateMediaLifecyclePort {
     },
     async finalizeOriginal() {
       events.push("finalize");
-      return { storagePath, replayed: false };
+      return {
+        storagePath,
+        replayed: false,
+        duplicateOriginalMediaIds: [],
+      };
     },
     async abandonOriginal() {
       throw new Error("unused");
@@ -134,7 +138,11 @@ it("finalizes a replayed pending reservation without re-upload when the exact ob
     harness.service.createVenuePrivateOriginal(request()),
   ).resolves.toEqual({
     ok: true,
-    value: { storagePath, replayed: false },
+    value: {
+      storagePath,
+      replayed: false,
+      duplicateOriginalMediaIds: [],
+    },
   });
   expect(harness.events).toEqual([
     "inspect",
@@ -152,7 +160,11 @@ it("re-uploads exact bytes for a replayed pending reservation when the object is
     harness.service.createVenuePrivateOriginal(request()),
   ).resolves.toEqual({
     ok: true,
-    value: { storagePath, replayed: false },
+    value: {
+      storagePath,
+      replayed: false,
+      duplicateOriginalMediaIds: [],
+    },
   });
   expect(harness.events).toEqual([
     "inspect",
