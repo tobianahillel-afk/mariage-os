@@ -58,6 +58,9 @@ interface PrivatePortOptions {
   readonly widthPx?: number;
   readonly heightPx?: number;
   readonly reservationPath?: string;
+  readonly reservationReplayed?: boolean;
+  readonly storagePresent?: boolean;
+  readonly storageInspectionError?: unknown;
   readonly uploadPath?: string;
   readonly invalidUploadBucket?: boolean;
   readonly finalizationPath?: string;
@@ -66,6 +69,14 @@ interface PrivatePortOptions {
 interface PrivatePortState {
   readonly events: string[];
   reserveInput: ReserveVenuePrivateOriginalInput | null;
+}
+
+interface RecoveryStorageProbe {
+  inspectReservedObject(path: string): Promise<{
+    readonly bucket: "project-private";
+    readonly path: string;
+    readonly present: boolean;
+  }>;
 }
 
 function imageInspectorPort(
@@ -109,7 +120,7 @@ function lifecyclePort(
       state.reserveInput = input;
       return {
         storagePath: options.reservationPath ?? storagePath,
-        replayed: false,
+        replayed: options.reservationReplayed ?? false,
       };
     },
     async finalizeOriginal() {
@@ -129,8 +140,20 @@ function lifecyclePort(
 function storagePort(
   state: PrivatePortState,
   options: PrivatePortOptions,
-): PrivateMediaStoragePort {
+): PrivateMediaStoragePort & RecoveryStorageProbe {
   return {
+    async inspectReservedObject(path) {
+      state.events.push("inspect_storage");
+      expect(path).toBe(storagePath);
+      if (options.storageInspectionError !== undefined) {
+        throw options.storageInspectionError;
+      }
+      return {
+        bucket: "project-private",
+        path,
+        present: options.storagePresent ?? false,
+      };
+    },
     async uploadReservedObject(input) {
       state.events.push("upload");
       expect(input).toEqual({
@@ -201,6 +224,72 @@ it("creates a private original in the frozen safe order", async () => {
     widthPx: 4_000,
     heightPx: 3_000,
   });
+});
+
+it("finalizes a replayed pending reservation without re-upload when the exact object is present", async () => {
+  const privateMedia = privatePorts({
+    reservationReplayed: true,
+    storagePresent: true,
+  });
+  const service = new MediaService(remotePort, privateMedia.value);
+
+  const result = await service.createVenuePrivateOriginal(request());
+
+  expect(result).toEqual({
+    ok: true,
+    value: { storagePath, replayed: false },
+  });
+  expect(privateMedia.events).toEqual([
+    "inspect",
+    "hash",
+    "reserve",
+    "inspect_storage",
+    "finalize",
+  ]);
+});
+
+it("re-uploads exact bytes for a replayed pending reservation when the object is absent", async () => {
+  const privateMedia = privatePorts({
+    reservationReplayed: true,
+    storagePresent: false,
+  });
+  const service = new MediaService(remotePort, privateMedia.value);
+
+  const result = await service.createVenuePrivateOriginal(request());
+
+  expect(result).toEqual({
+    ok: true,
+    value: { storagePath, replayed: false },
+  });
+  expect(privateMedia.events).toEqual([
+    "inspect",
+    "hash",
+    "reserve",
+    "inspect_storage",
+    "upload",
+    "finalize",
+  ]);
+});
+
+it("keeps a replayed reservation pending when Storage presence cannot be confirmed", async () => {
+  const privateMedia = privatePorts({
+    reservationReplayed: true,
+    storageInspectionError: new MediaPersistenceError(
+      "storage_retryable",
+      "retry",
+    ),
+  });
+  const service = new MediaService(remotePort, privateMedia.value);
+
+  const result = await service.createVenuePrivateOriginal(request());
+
+  expect(result).toEqual({ ok: false, error: "storage_retryable" });
+  expect(privateMedia.events).toEqual([
+    "inspect",
+    "hash",
+    "reserve",
+    "inspect_storage",
+  ]);
 });
 
 it("rejects every invalid private original identity before local media work", async () => {
