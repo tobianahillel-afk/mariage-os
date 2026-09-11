@@ -70,6 +70,7 @@ export interface VenuePrivateOriginalReservation {
 export interface VenuePrivateOriginalFinalization {
   readonly storagePath: string;
   readonly replayed: boolean;
+  readonly duplicateOriginalMediaIds: readonly string[];
 }
 
 export interface VenuePrivateOriginalAbandonment {
