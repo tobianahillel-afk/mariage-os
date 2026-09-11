@@ -1,11 +1,7 @@
 import { expect, it } from "vitest";
 import type { VenueRemoteMediaBundle } from "@domain/documents/venue-remote-media";
 import { MediaPersistenceError } from "./media-persistence-error";
-import {
-  MediaService,
-  type MediaPort,
-  type NormalizedCreateVenueRemoteMediaInput,
-} from "./media-service";
+import { MediaService, type MediaPort } from "./media-service";
 import type { PrivateMediaImageInspectorPort } from "./private-media-image-inspector-port";
 import type {
   PrivateMediaLifecyclePort,
@@ -25,9 +21,7 @@ const sha256 = "a".repeat(64);
 const bytes = new Uint8Array([0xff, 0xd8, 0xff, 0x00]);
 
 const remotePort: MediaPort = {
-  async createVenueRemoteMedia(
-    _input: NormalizedCreateVenueRemoteMediaInput,
-  ): Promise<VenueRemoteMediaBundle> {
+  async createVenueRemoteMedia(): Promise<VenueRemoteMediaBundle> {
     throw new Error("unused");
   },
   async listVenueRemoteMedia(): Promise<readonly VenueRemoteMediaBundle[]> {
