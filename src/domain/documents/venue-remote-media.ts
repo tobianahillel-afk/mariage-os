@@ -35,8 +35,7 @@ export interface VenueRemoteMediaDraft extends VenueMediaPresentationDraft {
   readonly sourcePageUrl: unknown;
 }
 
-export interface NormalizedVenueRemoteMediaDraft
-  extends NormalizedVenueMediaPresentationDraft {
+export interface NormalizedVenueRemoteMediaDraft extends NormalizedVenueMediaPresentationDraft {
   readonly remoteUrl: string;
   readonly sourcePageUrl: string | null;
 }
@@ -90,8 +89,7 @@ export interface VenueRemoteMediaCallerPayload extends NormalizedVenueRemoteMedi
 }
 
 export type VenueMediaPresentationValidationError =
-  | "invalid_category"
-  | "invalid_caption";
+  "invalid_category" | "invalid_caption";
 
 export type VenueRemoteMediaValidationError =
   | VenueMediaPresentationValidationError
