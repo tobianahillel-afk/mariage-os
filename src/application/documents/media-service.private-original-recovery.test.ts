@@ -51,10 +51,8 @@ function request() {
   };
 }
 
-function recoveryHarness(options: RecoveryOptions = {}) {
-  const events: string[] = [];
-
-  const lifecycle: PrivateMediaLifecyclePort = {
+function recoveryLifecycle(events: string[]): PrivateMediaLifecyclePort {
+  return {
     async reserveOriginal() {
       events.push("reserve");
       return { storagePath, replayed: true };
@@ -67,8 +65,13 @@ function recoveryHarness(options: RecoveryOptions = {}) {
       throw new Error("unused");
     },
   };
+}
 
-  const storage: PrivateMediaStoragePort & RecoveryStorageProbe = {
+function recoveryStorage(
+  events: string[],
+  options: RecoveryOptions,
+): PrivateMediaStoragePort & RecoveryStorageProbe {
+  return {
     async inspectReservedObject(path) {
       events.push("inspect_storage");
       expect(path).toBe(storagePath);
@@ -94,32 +97,37 @@ function recoveryHarness(options: RecoveryOptions = {}) {
       throw new Error("unused");
     },
   };
+}
 
-  const imageInspector: PrivateMediaImageInspectorPort = {
+function recoveryInspector(events: string[]): PrivateMediaImageInspectorPort {
+  return {
     async inspect(input) {
       events.push("inspect");
       expect(input).toBe(bytes);
       return { widthPx: 4_000, heightPx: 3_000 };
     },
   };
+}
 
-  const sha256: PrivateMediaSha256Port = {
+function recoverySha256(events: string[]): PrivateMediaSha256Port {
+  return {
     async hashExactBytes(input) {
       events.push("hash");
       expect(input).toBe(bytes);
       return "a".repeat(64);
     },
   };
+}
 
-  return {
-    events,
-    service: new MediaService(remotePort, {
-      lifecycle,
-      storage,
-      imageInspector,
-      sha256,
-    }),
-  };
+function recoveryHarness(options: RecoveryOptions = {}) {
+  const events: string[] = [];
+  const service = new MediaService(remotePort, {
+    lifecycle: recoveryLifecycle(events),
+    storage: recoveryStorage(events, options),
+    imageInspector: recoveryInspector(events),
+    sha256: recoverySha256(events),
+  });
+  return { events, service };
 }
 
 it("finalizes a replayed pending reservation without re-upload when the exact object is present", async () => {
