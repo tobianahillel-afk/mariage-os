@@ -4,7 +4,7 @@ import type {
   AbandonVenuePrivateOriginalInput,
   FinalizeVenuePrivateDerivativeInput,
   FinalizeVenuePrivateOriginalInput,
-  PrivateMediaLifecyclePort,
+  PrivateMediaDerivativeLifecyclePort,
   ReserveVenuePrivateDerivativeInput,
   ReserveVenuePrivateOriginalInput,
   VenuePrivateDerivativeAbandonment,
@@ -47,7 +47,11 @@ function derivativeStoragePath(
 
 function lifecycleArgs(
   action: string,
-  input: { readonly operationId: string; readonly projectId: string; readonly mediaId: string },
+  input: {
+    readonly operationId: string;
+    readonly projectId: string;
+    readonly mediaId: string;
+  },
 ): Record<string, unknown> {
   return {
     target_action: action,
@@ -337,7 +341,9 @@ function parseDerivativeAbandonment(
   }
 }
 
-export class SupabasePrivateMediaLifecycleAdapter implements PrivateMediaLifecyclePort {
+export class SupabasePrivateMediaLifecycleAdapter
+  implements PrivateMediaDerivativeLifecyclePort
+{
   constructor(
     private readonly client: SupabasePrivateMediaLifecycleClientLike,
   ) {}
