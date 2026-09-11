@@ -1,6 +1,7 @@
 import { MediaPersistenceError } from "@application/documents/media-persistence-error";
 import type {
   DeleteReservedMediaObjectReceipt,
+  InspectReservedMediaObjectReceipt,
   PrivateMediaStoragePort,
   UploadReservedMediaObjectInput,
   UploadReservedMediaObjectReceipt,
@@ -14,6 +15,10 @@ interface StorageResult {
 }
 
 interface StorageBucketLike {
+  list(
+    path: string,
+    options: Readonly<Record<string, unknown>>,
+  ): PromiseLike<StorageResult>;
   upload(
     path: string,
     body: Uint8Array,
@@ -54,8 +59,74 @@ function isExactDeleteReceipt(value: unknown, expectedPath: string): boolean {
   );
 }
 
+function reservedObjectLocation(
+  path: string,
+): Readonly<{ folder: string; name: string }> | null {
+  const separator = path.lastIndexOf("/");
+  if (separator <= 0 || separator === path.length - 1) return null;
+  return { folder: path.slice(0, separator), name: path.slice(separator + 1) };
+}
+
+function isStorageListData(
+  value: unknown,
+): value is readonly Readonly<{ name: string }>[] {
+  return (
+    Array.isArray(value) &&
+    value.every(
+      (entry) =>
+        typeof entry === "object" &&
+        entry !== null &&
+        "name" in entry &&
+        typeof (entry as { name?: unknown }).name === "string",
+    )
+  );
+}
+
 export class SupabasePrivateMediaStorageAdapter implements PrivateMediaStoragePort {
   constructor(private readonly client: SupabasePrivateMediaStorageClientLike) {}
+
+  async inspectReservedObject(
+    path: string,
+  ): Promise<InspectReservedMediaObjectReceipt> {
+    const location = reservedObjectLocation(path);
+    if (location === null) {
+      throw new MediaPersistenceError(
+        "provider_response_invalid",
+        "Private media Storage inspection path is invalid",
+      );
+    }
+
+    let result: StorageResult;
+    try {
+      result = await this.client.storage
+        .from(PRIVATE_MEDIA_BUCKET)
+        .list(location.folder, { search: location.name, limit: 2 });
+    } catch {
+      throw new MediaPersistenceError(
+        "storage_retryable",
+        "Private media Storage inspection failed",
+      );
+    }
+
+    if (result.error !== null) {
+      throw new MediaPersistenceError(
+        "storage_retryable",
+        "Private media Storage inspection failed",
+      );
+    }
+    if (!isStorageListData(result.data)) {
+      throw new MediaPersistenceError(
+        "provider_response_invalid",
+        "Private media Storage returned an invalid inspection receipt",
+      );
+    }
+
+    return {
+      bucket: PRIVATE_MEDIA_BUCKET,
+      path,
+      present: result.data.some((entry) => entry.name === location.name),
+    };
+  }
 
   async uploadReservedObject(
     input: UploadReservedMediaObjectInput,

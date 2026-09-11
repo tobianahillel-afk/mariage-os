@@ -259,13 +259,28 @@ async function persistPrivateOriginal(
       return { ok: false, error: "provider_response_invalid" };
     }
 
-    const upload = await ports.storage.uploadReservedObject({
-      path: expectedPath,
-      bytes: media.bytes,
-      mimeType: media.mimeType,
-    });
-    if (upload.bucket !== "project-private" || upload.path !== expectedPath) {
-      return { ok: false, error: "provider_response_invalid" };
+    let uploadRequired = true;
+    if (reservation.replayed) {
+      const inspection = await ports.storage.inspectReservedObject(expectedPath);
+      if (
+        inspection.bucket !== "project-private" ||
+        inspection.path !== expectedPath ||
+        typeof inspection.present !== "boolean"
+      ) {
+        return { ok: false, error: "provider_response_invalid" };
+      }
+      uploadRequired = !inspection.present;
+    }
+
+    if (uploadRequired) {
+      const upload = await ports.storage.uploadReservedObject({
+        path: expectedPath,
+        bytes: media.bytes,
+        mimeType: media.mimeType,
+      });
+      if (upload.bucket !== "project-private" || upload.path !== expectedPath) {
+        return { ok: false, error: "provider_response_invalid" };
+      }
     }
 
     const finalization = await ports.lifecycle.finalizeOriginal({

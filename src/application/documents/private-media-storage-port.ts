@@ -9,6 +9,12 @@ export interface UploadReservedMediaObjectReceipt {
   readonly path: string;
 }
 
+export interface InspectReservedMediaObjectReceipt {
+  readonly bucket: "project-private";
+  readonly path: string;
+  readonly present: boolean;
+}
+
 export interface DeleteReservedMediaObjectReceipt {
   readonly bucket: "project-private";
   readonly path: string;
@@ -16,6 +22,7 @@ export interface DeleteReservedMediaObjectReceipt {
 }
 
 export interface PrivateMediaStoragePort {
+  inspectReservedObject(path: string): Promise<InspectReservedMediaObjectReceipt>;
   uploadReservedObject(
     input: UploadReservedMediaObjectInput,
   ): Promise<UploadReservedMediaObjectReceipt>;

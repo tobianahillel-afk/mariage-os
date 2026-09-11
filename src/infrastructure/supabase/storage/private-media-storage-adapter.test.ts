@@ -4,31 +4,46 @@ import { SupabasePrivateMediaStorageAdapter } from "./private-media-storage-adap
 const projectId = "11111111-1111-4111-8111-111111111111";
 const mediaId = "33333333-3333-4333-8333-333333333333";
 const storagePath = `${projectId}/media/${mediaId}/original`;
+const storageFolder = `${projectId}/media/${mediaId}`;
 const bytes = new Uint8Array([0xff, 0xd8, 0xff, 0xdb]);
 
-interface UploadResult {
+interface StorageResult {
   readonly data: unknown;
   readonly error: unknown;
 }
 
 class Bucket {
+  listPath: string | null = null;
+  listOptions: Readonly<Record<string, unknown>> | null = null;
+  listResult: StorageResult = { data: [], error: null };
+  listThrown: unknown = null;
   uploadPath: string | null = null;
   uploadBody: Uint8Array | null = null;
   uploadOptions: Readonly<Record<string, unknown>> | null = null;
   removePaths: readonly string[] | null = null;
-  removeResult: UploadResult = { data: [], error: null };
+  removeResult: StorageResult = { data: [], error: null };
   removeThrown: unknown = null;
 
   constructor(
-    private readonly result: UploadResult,
+    private readonly result: StorageResult,
     private readonly thrown: unknown = null,
   ) {}
+
+  list(
+    path: string,
+    options: Readonly<Record<string, unknown>>,
+  ): PromiseLike<StorageResult> {
+    this.listPath = path;
+    this.listOptions = options;
+    if (this.listThrown !== null) return Promise.reject(this.listThrown);
+    return Promise.resolve(this.listResult);
+  }
 
   upload(
     path: string,
     body: Uint8Array,
     options: Readonly<Record<string, unknown>>,
-  ): PromiseLike<UploadResult> {
+  ): PromiseLike<StorageResult> {
     this.uploadPath = path;
     this.uploadBody = body;
     this.uploadOptions = options;
@@ -36,7 +51,7 @@ class Bucket {
     return Promise.resolve(this.result);
   }
 
-  remove(paths: readonly string[]): PromiseLike<UploadResult> {
+  remove(paths: readonly string[]): PromiseLike<StorageResult> {
     this.removePaths = paths;
     if (this.removeThrown !== null) return Promise.reject(this.removeThrown);
     return Promise.resolve(this.removeResult);
@@ -47,7 +62,7 @@ class Client {
   readonly bucket: Bucket;
   selectedBucket: string | null = null;
 
-  constructor(result: UploadResult, thrown: unknown = null) {
+  constructor(result: StorageResult, thrown: unknown = null) {
     this.bucket = new Bucket(result, thrown);
   }
 
@@ -58,6 +73,80 @@ class Client {
     },
   };
 }
+
+it("inspects the exact reserved object in its canonical folder", async () => {
+  const client = new Client({ data: null, error: null });
+  client.bucket.listResult = { data: [{ name: "original" }], error: null };
+  const adapter = new SupabasePrivateMediaStorageAdapter(client);
+
+  await expect(adapter.inspectReservedObject(storagePath)).resolves.toEqual({
+    bucket: "project-private",
+    path: storagePath,
+    present: true,
+  });
+  expect(client.selectedBucket).toBe("project-private");
+  expect(client.bucket.listPath).toBe(storageFolder);
+  expect(client.bucket.listOptions).toEqual({ search: "original", limit: 2 });
+});
+
+it("reports absent unless the listed object name matches exactly", async () => {
+  const client = new Client({ data: null, error: null });
+  client.bucket.listResult = {
+    data: [{ name: "original-copy" }],
+    error: null,
+  };
+  const adapter = new SupabasePrivateMediaStorageAdapter(client);
+
+  await expect(adapter.inspectReservedObject(storagePath)).resolves.toEqual({
+    bucket: "project-private",
+    path: storagePath,
+    present: false,
+  });
+
+  client.bucket.listResult = { data: [], error: null };
+  await expect(adapter.inspectReservedObject(storagePath)).resolves.toEqual({
+    bucket: "project-private",
+    path: storagePath,
+    present: false,
+  });
+});
+
+it("rejects invalid Storage inspection receipts and paths", async () => {
+  const client = new Client({ data: null, error: null });
+  const adapter = new SupabasePrivateMediaStorageAdapter(client);
+
+  for (const data of [null, {}, [null], [{}], [{ name: 42 }]]) {
+    client.bucket.listResult = { data, error: null };
+    await expect(adapter.inspectReservedObject(storagePath)).rejects.toMatchObject(
+      { code: "provider_response_invalid" },
+    );
+  }
+
+  for (const path of ["original", "folder/"]) {
+    await expect(adapter.inspectReservedObject(path)).rejects.toMatchObject({
+      code: "provider_response_invalid",
+    });
+  }
+});
+
+it("contains returned and thrown Storage inspection failures", async () => {
+  const client = new Client({ data: null, error: null });
+  const adapter = new SupabasePrivateMediaStorageAdapter(client);
+
+  client.bucket.listResult = {
+    data: null,
+    error: { message: "storage unavailable" },
+  };
+  await expect(adapter.inspectReservedObject(storagePath)).rejects.toMatchObject({
+    code: "storage_retryable",
+  });
+
+  client.bucket.listResult = { data: [], error: null };
+  client.bucket.listThrown = new Error("network failure");
+  await expect(adapter.inspectReservedObject(storagePath)).rejects.toMatchObject({
+    code: "storage_retryable",
+  });
+});
 
 it("uploads a reserved private object without upsert", async () => {
   const client = new Client({ data: { path: storagePath }, error: null });

@@ -24,17 +24,12 @@ const remotePort: MediaPort = {
   },
 };
 
-interface RecoveryStorageProbe {
-  inspectReservedObject(path: string): Promise<{
-    readonly bucket: "project-private";
-    readonly path: string;
-    readonly present: boolean;
-  }>;
-}
-
 interface RecoveryOptions {
   readonly present?: boolean;
   readonly inspectionError?: unknown;
+  readonly inspectionBucket?: unknown;
+  readonly inspectionPath?: unknown;
+  readonly inspectionPresent?: unknown;
 }
 
 function request() {
@@ -70,7 +65,7 @@ function recoveryLifecycle(events: string[]): PrivateMediaLifecyclePort {
 function recoveryStorage(
   events: string[],
   options: RecoveryOptions,
-): PrivateMediaStoragePort & RecoveryStorageProbe {
+): PrivateMediaStoragePort {
   return {
     async inspectReservedObject(path) {
       events.push("inspect_storage");
@@ -79,9 +74,9 @@ function recoveryStorage(
         throw options.inspectionError;
       }
       return {
-        bucket: "project-private",
-        path,
-        present: options.present ?? false,
+        bucket: (options.inspectionBucket ?? "project-private") as never,
+        path: (options.inspectionPath ?? path) as never,
+        present: (options.inspectionPresent ?? options.present ?? false) as never,
       };
     },
     async uploadReservedObject(input) {
@@ -181,4 +176,25 @@ it("keeps a replayed reservation pending when Storage presence cannot be confirm
     "reserve",
     "inspect_storage",
   ]);
+});
+
+it("rejects substituted or malformed Storage inspection receipts", async () => {
+  const cases: readonly RecoveryOptions[] = [
+    { inspectionBucket: "other" },
+    { inspectionPath: `${storagePath}-other` },
+    { inspectionPresent: "yes" },
+  ];
+
+  for (const options of cases) {
+    const harness = recoveryHarness(options);
+    await expect(
+      harness.service.createVenuePrivateOriginal(request()),
+    ).resolves.toEqual({ ok: false, error: "provider_response_invalid" });
+    expect(harness.events).toEqual([
+      "inspect",
+      "hash",
+      "reserve",
+      "inspect_storage",
+    ]);
+  }
 });

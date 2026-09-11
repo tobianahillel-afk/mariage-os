@@ -218,6 +218,9 @@ it("deletes private Storage before abandoning a pending original", async () => {
   const storagePath = `${projectId}/media/${mediaId}/original`;
   const privateMedia = {
     storage: {
+      async inspectReservedObject() {
+        throw new Error("unused");
+      },
       async uploadReservedObject() {
         throw new Error("unused");
       },
@@ -264,6 +267,9 @@ it("keeps pending metadata when private Storage cleanup fails", async () => {
   let abandonCalls = 0;
   const privateMedia = {
     storage: {
+      async inspectReservedObject() {
+        throw new Error("unused");
+      },
       async uploadReservedObject() {
         throw new Error("unused");
       },

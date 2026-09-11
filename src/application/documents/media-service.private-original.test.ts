@@ -131,6 +131,9 @@ function storagePort(
   options: PrivatePortOptions,
 ): PrivateMediaStoragePort {
   return {
+    async inspectReservedObject() {
+      throw new Error("unused");
+    },
     async uploadReservedObject(input) {
       state.events.push("upload");
       expect(input).toEqual({
