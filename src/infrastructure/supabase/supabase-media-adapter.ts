@@ -1,9 +1,9 @@
 import type {
   MediaPort,
   NormalizedCreateVenueRemoteMediaInput,
-  NormalizedTransitionVenueRemoteMediaLifecycleRequest,
 } from "@application/documents/media-service";
 import { MediaPersistenceError } from "@application/documents/media-persistence-error";
+import type { NormalizedTransitionVenueRemoteMediaLifecycleRequest } from "@application/documents/remote-media-lifecycle";
 import {
   venueRemoteMediaCallerPayloadEquals,
   type VenueRemoteMediaBundle,

@@ -13,10 +13,7 @@ import {
   type VenueRemoteMediaBundle,
   type VenueRemoteMediaValidationError,
 } from "@domain/documents/venue-remote-media";
-import type {
-  VenueRemoteMediaLifecycleAction,
-  VenueRemoteMediaLifecycleReceipt,
-} from "@domain/documents/venue-remote-media-lifecycle";
+import type { VenueRemoteMediaLifecycleReceipt } from "@domain/documents/venue-remote-media-lifecycle";
 import { mediaPersistenceErrorCode } from "./media-persistence-error";
 import {
   orchestratePrivateDerivativeAbandon,
@@ -46,6 +43,11 @@ import {
   isExactStorageInspection,
 } from "./private-media-storage-receipt";
 import type { PrivateMediaStoragePort } from "./private-media-storage-port";
+import {
+  orchestrateVenueRemoteMediaLifecycle,
+  type RemoteMediaLifecyclePort,
+  type TransitionVenueRemoteMediaLifecycleRequest,
+} from "./remote-media-lifecycle";
 
 export interface CreateVenueRemoteMediaInput {
   readonly projectId: unknown;
@@ -56,13 +58,6 @@ export interface CreateVenueRemoteMediaInput {
   readonly remoteUrl: unknown;
   readonly sourcePageUrl: unknown;
   readonly caption: unknown;
-}
-
-export interface TransitionVenueRemoteMediaLifecycleRequest {
-  readonly projectId: unknown;
-  readonly mediaId: unknown;
-  readonly action: unknown;
-  readonly expectedRevision: unknown;
 }
 
 export interface CreateVenuePrivateOriginalRequest {
@@ -92,13 +87,6 @@ export interface NormalizedCreateVenueRemoteMediaInput extends NormalizedVenueRe
   readonly linkId: string;
 }
 
-export interface NormalizedTransitionVenueRemoteMediaLifecycleRequest {
-  readonly projectId: string;
-  readonly mediaId: string;
-  readonly action: VenueRemoteMediaLifecycleAction;
-  readonly expectedRevision: number;
-}
-
 interface NormalizedVenuePrivateOriginalDraft extends ValidatedVenuePrivateImageFile {
   readonly operationId: string;
   readonly projectId: string;
@@ -116,7 +104,7 @@ interface PreparedVenuePrivateOriginal extends NormalizedVenuePrivateOriginalDra
   readonly sha256: string;
 }
 
-export interface MediaPort {
+export interface MediaPort extends RemoteMediaLifecyclePort {
   createVenueRemoteMedia(
     input: NormalizedCreateVenueRemoteMediaInput,
   ): Promise<VenueRemoteMediaBundle>;
@@ -124,9 +112,6 @@ export interface MediaPort {
     projectId: string,
     venueId: string,
   ): Promise<readonly VenueRemoteMediaBundle[]>;
-  transitionVenueRemoteMediaLifecycle?(
-    input: NormalizedTransitionVenueRemoteMediaLifecycleRequest,
-  ): Promise<VenueRemoteMediaLifecycleReceipt>;
 }
 
 export interface PrivateMediaServicePorts {
@@ -171,16 +156,6 @@ function privateMediaFailure(error: unknown): MediaServiceError {
   if (error instanceof PrivateMediaImageInspectionError) return error.code;
   if (error instanceof PrivateMediaSha256Error) return error.code;
   return persistenceFailure(error);
-}
-
-function isVenueRemoteMediaLifecycleAction(
-  value: unknown,
-): value is VenueRemoteMediaLifecycleAction {
-  return value === "soft_delete" || value === "restore";
-}
-
-function isPositiveSafeRevision(value: unknown): value is number {
-  return typeof value === "number" && Number.isSafeInteger(value) && value >= 1;
 }
 
 function privateCreationPorts(
@@ -389,30 +364,7 @@ export class MediaService {
   async transitionVenueRemoteMediaLifecycle(
     input: TransitionVenueRemoteMediaLifecycleRequest,
   ): Promise<MediaResult<VenueRemoteMediaLifecycleReceipt>> {
-    if (!isMediaUuid(input.projectId) || !isMediaUuid(input.mediaId)) {
-      return { ok: false, error: "invalid_identity" };
-    }
-    if (!isVenueRemoteMediaLifecycleAction(input.action)) {
-      return { ok: false, error: "invalid_action" };
-    }
-    if (!isPositiveSafeRevision(input.expectedRevision)) {
-      return { ok: false, error: "invalid_revision" };
-    }
-    const transition = this.port.transitionVenueRemoteMediaLifecycle;
-    if (transition === undefined) {
-      return { ok: false, error: "persistence_failed" };
-    }
-    try {
-      const value = await transition.call(this.port, {
-        projectId: input.projectId,
-        mediaId: input.mediaId,
-        action: input.action,
-        expectedRevision: input.expectedRevision,
-      });
-      return { ok: true, value };
-    } catch (error) {
-      return { ok: false, error: persistenceFailure(error) };
-    }
+    return orchestrateVenueRemoteMediaLifecycle(this.port, input);
   }
 
   async createVenuePrivateOriginal(

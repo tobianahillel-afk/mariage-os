@@ -63,6 +63,18 @@ function normalizedRemoteFields(row: Record<string, unknown>) {
   return normalized.value;
 }
 
+function lifecycleDeletedAt(
+  row: Record<string, unknown>,
+  action: VenueRemoteMediaLifecycleAction,
+): string | null {
+  const deletedAt =
+    row.deleted_at === null ? null : canonicalInstant(row.deleted_at);
+  const stateMatchesAction =
+    action === "soft_delete" ? deletedAt !== null : deletedAt === null;
+  if (!stateMatchesAction) fail();
+  return deletedAt;
+}
+
 function parseLifecycleMedia(
   value: unknown,
   expected: ExpectedVenueRemoteMediaLifecycle,
@@ -91,10 +103,7 @@ function parseLifecycleMedia(
   if (!stateIsRemote) fail();
 
   const normalized = normalizedRemoteFields(row);
-  const deletedAt =
-    row.deleted_at === null ? null : canonicalInstant(row.deleted_at);
-  if (expected.action === "soft_delete" && deletedAt === null) fail();
-  if (expected.action === "restore" && deletedAt !== null) fail();
+  const deletedAt = lifecycleDeletedAt(row, expected.action);
 
   return {
     id,

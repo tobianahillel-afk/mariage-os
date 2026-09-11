@@ -4,8 +4,8 @@ import {
   MediaService,
   type MediaPort,
   type NormalizedCreateVenueRemoteMediaInput,
-  type NormalizedTransitionVenueRemoteMediaLifecycleRequest,
 } from "./media-service";
+import type { NormalizedTransitionVenueRemoteMediaLifecycleRequest } from "./remote-media-lifecycle";
 import type { VenueRemoteMediaBundle } from "@domain/documents/venue-remote-media";
 import type { VenueRemoteMediaLifecycleReceipt } from "@domain/documents/venue-remote-media-lifecycle";
 

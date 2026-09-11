@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import type { NormalizedTransitionVenueRemoteMediaLifecycleRequest } from "@application/documents/media-service";
+import type { NormalizedTransitionVenueRemoteMediaLifecycleRequest } from "@application/documents/remote-media-lifecycle";
 import {
   SupabaseMediaAdapter,
   type SupabaseMediaClientLike,
