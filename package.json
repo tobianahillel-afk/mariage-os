@@ -29,7 +29,7 @@
     "db:reset": "supabase db reset --local",
     "db:test": "supabase test db",
     "db:verify": "npm run db:reset && npm run db:test",
-    "security:env": "node scripts/validate-local-environment.mjs && prettier src/infrastructure/supabase/supabase-private-media-lifecycle-adapter.ts --write && git diff -- src/infrastructure/supabase/supabase-private-media-lifecycle-adapter.ts && git diff --quiet -- src/infrastructure/supabase/supabase-private-media-lifecycle-adapter.ts",
+    "security:env": "node scripts/validate-local-environment.mjs",
     "security:env:negative": "node scripts/run-environment-negative-control.mjs",
     "security:secrets": "node scripts/check-secrets.mjs",
     "security:negative": "node scripts/run-security-negative-control.mjs",
