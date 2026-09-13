@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.8C`
 - Lot: `2`
 - Name: Recoverable Venue remote-media metadata lifecycle
-- State: `IN_PROGRESS`
-- Current pass: `A-IMPLEMENT`
+- State: `ACCEPTANCE_PENDING`
+- Current pass: `C-ACCEPTANCE`
 - Primary bounded context: Documents/Media remote-reference metadata trash lifecycle
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 
@@ -60,13 +60,15 @@ No standalone frozen `ACC-*` scenario exclusively owns remote-reference soft-del
 - WP-2.8B: **ACCEPTED / COMPLETE**; acceptance-governance `3b28c7b734a2258db455bbdabb567fcee2ee2bd1` / `34615830961` **5/5 SUCCESS**; durable closure `8317125183bc5521d6d4aac8e132f64a57aa4ca8` / `34616938470` **5/5 SUCCESS**.
 - WP-2.8C activation specification freeze: `36ef31089dcbab50221b90a559480cc091d99fba` / `34618247634` — **CLOSED / VERIFIED, 5/5 SUCCESS**, clean-checkout included.
 - WP-2.8C READY governance: `5e6f3c02b97eaafa630d809debc9c09d94bfc40e` / `34620073715` — **5/5 SUCCESS**, clean-checkout included.
+- Pass-A final implementation: `e7510b64471a85b3894ba26345df7fe71533b1c3` / `34628542194` — **5/5 SUCCESS**, clean-checkout included.
+- Fresh Pass-B remediation checkpoint: `5e4246e6f63db899fb8a683d9381614a6ee75b11` / `34785068206` — **5/5 SUCCESS**, clean-checkout included; fresh post-remediation review **PASS**.
 - Default orchestration order remains WP-2.8A → WP-2.8B → WP-2.8C → WP-2.9.
 - `MEDIA-LIFECYCLE-ADDENDUM.md`, `DELETION-RETENTION.md`, `PHYSICAL-SCHEMA-V1.md`, `RLS-MATRIX-V1.md`, `LOT-2-COVERAGE-MATRIX.md` and the historical WP-2.8 coverage addendum are governing inputs.
 - Only one packet may be active.
 
 ## Activation specification freeze
 
-The remaining pre-READY concurrency/receipt ambiguity is **CLOSED / VERIFIED** on `36ef31089dcbab50221b90a559480cc091d99fba` / CI `34618247634` — **5/5 SUCCESS**, including clean-checkout `npm run verify`. The separate READY governance transition `5e6f3c02b97eaafa630d809debc9c09d94bfc40e` / CI `34620073715` is also **5/5 SUCCESS**, including clean-checkout. The packet is now `IN_PROGRESS / A-IMPLEMENT`; product changes remain prohibited until this IN_PROGRESS governance HEAD itself is exact-head **5/5 SUCCESS**.
+The remaining pre-READY concurrency/receipt ambiguity is **CLOSED / VERIFIED** on `36ef31089dcbab50221b90a559480cc091d99fba` / CI `34618247634` — **5/5 SUCCESS**, including clean-checkout `npm run verify`. The separate READY governance transition `5e6f3c02b97eaafa630d809debc9c09d94bfc40e` / CI `34620073715` is also **5/5 SUCCESS**, including clean-checkout. Pass A and the required fresh adversarial review have since completed; the current gate is Pass C mechanical acceptance/reconciliation.
 
 ### 1. Persisted lifecycle state
 
@@ -92,7 +94,7 @@ Soft-delete changes only lifecycle/audit fields. It must not change:
 
 Restore clears `deleted_at` on that same row; it does not allocate a new media/link UUID.
 
-`listVenueRemoteMedia(projectId, venueId)` is an **active** read and therefore adds `deleted_at is null` to its accepted A filters. The base authorized metadata/RLS layer may still permit an authorized future trash/recovery read; C does not add a trash UI/query surface. Deletion visibility is therefore enforced mechanically at the active provider query and acceptance test, not by pretending the deleted record ceased to exist.
+`listVenueRemoteMedia(projectId, venueId)` is an **active** read and therefore adds `deleted_at is null` to its accepted A filters. The active provider parser independently requires `deleted_at === null`, so an inconsistent provider success cannot re-surface deleted metadata. The base authorized metadata/RLS layer may still permit an authorized future trash/recovery read; C does not add a trash UI/query surface.
 
 ### 3. Protected lifecycle command
 
@@ -159,7 +161,7 @@ The Supabase boundary fails closed unless the receipt proves:
 - retained link uses the same project/media and remains `target_type='venue'`, `relationship_type='gallery'`;
 - no substituted/wrong-project/malformed row is accepted.
 
-Existing A create/list parsing is broadened only enough to accept positive remote-media revisions and the new deleted-at field. Active A list still accepts only non-deleted rows.
+Existing A create/list parsing accepts positive remote-media revisions while preserving the A remote-shape rules. Active A list accepts only non-deleted rows at both query and parser boundaries.
 
 ### 6. Authorization / security controls
 
@@ -179,7 +181,7 @@ C does not add a new URL-edit surface, so A's URL-validation rules remain regres
 
 ### 7. Forward-only migration rule
 
-Implementation must add a new migration after the accepted A/B migration chain. Historical migrations `20260909205000_*`, `20260909230000_*`, `20260909232500_*`, `2026091007*`, `20260910090000_*`, `20260910111500_*`, `20260910125000_*` and `20260911133000_*` are immutable history and must not be edited.
+Implementation adds only the new `20260911162500_add_venue_remote_media_lifecycle.sql` migration after the accepted A/B migration chain. Historical migrations `20260909205000_*`, `20260909230000_*`, `20260909232500_*`, `2026091007*`, `20260910090000_*`, `20260910111500_*`, `20260910125000_*` and `20260911133000_*` remain immutable history.
 
 ## Sizing review after activation freeze
 
@@ -199,13 +201,13 @@ Implementation must add a new migration after the accepted A/B migration chain. 
 | backup/import/version migration semantics | 0 | 2 | 0 |
 | **Total** |  |  | **8** |
 
-Cohesion review: **PASS**. C reuses `media`, `media_links`, `MediaService`, `MediaPort`, the A Supabase adapter and existing permission/error boundaries. No operation-receipt entity/table, new service architecture, Storage capability, UI workflow or offline subsystem is introduced. If implementation discovers one, stop and re-size/split before product code.
+Cohesion review: **PASS**. C reuses `media`, `media_links`, `MediaService`, `MediaPort`, the A Supabase adapter and existing permission/error boundaries. No operation-receipt entity/table, new service architecture, Storage capability, UI workflow or offline subsystem was introduced.
 
-## Pre-implementation brief
+## Pre-implementation brief — historical Pass-A input
 
 ```text
 Current gate/lot:
-  Lot 2 IN_PROGRESS. WP-2.8A/B ACCEPTED. WP-2.8C IN_PROGRESS governance pending exact-head verification.
+  Lot 2 IN_PROGRESS. WP-2.8A/B ACCEPTED. WP-2.8C entering implementation.
 Current Work Packet/pass:
   WP-2.8C / A-IMPLEMENT.
 Feature IDs:
@@ -237,8 +239,6 @@ Files/modules expected to own the change:
 Known deferred choices:
   trash UI; 30-day purge; physical binary deletion; private-media deletion; offline queue; WP-2.11 presentation; WP-2.12 visit flow; import/export/backup mechanics.
 ```
-
-No material semantic question remains open. The specification freeze and READY transition are verified; this separate IN_PROGRESS governance transition must now earn its own exact-head CI before the first RED-first product change.
 
 ## Expected vertical slice
 
@@ -288,22 +288,35 @@ No material semantic question remains open. The specification freeze and READY t
 - Preserve `MED-008` source provenance through both transitions.
 - Do not claim global trash UI, physical purge, offline lifecycle or DOM external-image rendering acceptance.
 
-## Activation gate status
+## Verification evidence
 
-Specification freeze: `36ef31089dcbab50221b90a559480cc091d99fba` / CI `34618247634` — **CLOSED / VERIFIED, 5/5 SUCCESS**, including clean-checkout.
+- Pass-A implementation head `e7510b64471a85b3894ba26345df7fe71533b1c3` / CI `34628542194` — **5/5 SUCCESS**, including clean-checkout.
+- `src/application/documents/media-service.remote-lifecycle.test.ts` proves validation/delegation, stale/conflict mapping and fail-closed port capability behavior.
+- `src/infrastructure/supabase/parse-venue-remote-media-lifecycle-receipt.test.ts` proves lifecycle receipt identity/state/shape/revision/canonicality fail-closed behavior.
+- `src/infrastructure/supabase/supabase-media-adapter.remote-lifecycle.test.ts` proves RPC argument mapping, conflict mapping and substituted-response rejection.
+- `supabase/tests/venue_remote_media_lifecycle_test.sql` proves mutation/replay/revision/payload/link/private-row/revocation behavior.
+- `supabase/tests/venue_remote_media_lifecycle_adversarial_review_test.sql` proves outsider and missing-UUID non-disclosure, direct `deleted_at` UPDATE denial, active hide/restore with retained identity, same-session downgrade denial and no Storage access.
+- Active A list query and parser independently require `deleted_at` null after AR-001 remediation.
 
-READY transition: `5e6f3c02b97eaafa630d809debc9c09d94bfc40e` / CI `34620073715` — **5/5 SUCCESS**, including clean-checkout.
+## Pass history
 
-Current state: **IN_PROGRESS / A-IMPLEMENT**. Current gate is exact-head CI for this separate `READY → IN_PROGRESS / A-IMPLEMENT` governance transition. Product implementation remains prohibited until this IN_PROGRESS governance HEAD is exact-head **5/5 SUCCESS**; after that, the first product change must be RED-first and fail only for intentionally missing WP-2.8C lifecycle behavior while accepted A/B behavior remains green.
+### Pass A — IMPLEMENT
 
-## Pass A — IMPLEMENT
+**PASS.** Final implementation checkpoint `e7510b64471a85b3894ba26345df7fe71533b1c3` / CI `34628542194` — **5/5 SUCCESS**, clean-checkout included.
 
-Activated. No product code has been committed by this governance transition. The first product change after this IN_PROGRESS governance HEAD is exact-head green must be RED-first and scoped only to the frozen WP-2.8C lifecycle behavior.
+### Pass B — ADVERSARIAL REVIEW
 
-## Pass B — ADVERSARIAL REVIEW
+Initial fresh review of `e7510b64471a85b3894ba26345df7fe71533b1c3` found two MAJOR findings:
 
-Not started.
+- `WP28C-AR-001`: active remote provider parsing trusted the query-level `deleted_at IS NULL` filter but did not independently reject a deleted row.
+- `WP28C-AR-002`: C-specific adversarial evidence did not directly cover outsider, missing UUID, direct lifecycle-field mutation denial, same-session downgrade and active hide/restore.
 
-## Pass C — ACCEPTANCE / RECONCILIATION
+AR-001 was exposed RED on `ee1af0d2bf04503366db29b85dff9f810cb7fb6a` / CI `34630210996` with the intentional two unit failures and all unrelated behavior green, then remediated on `4db24a300282816e05e839e4b3ad132a89c5a167` / CI `34630386585` — **SUCCESS**.
 
-Not started.
+AR-002 evidence remediation was added on `5e4246e6f63db899fb8a683d9381614a6ee75b11` / CI `34785068206` — **5/5 SUCCESS**, including DB/RLS, Browser/Mutation and full clean-checkout verification.
+
+Fresh post-remediation Pass B: **PASS**. Open BLOCKING = **∅**; open MAJOR = **∅**; MINOR carried into acceptance = **∅**.
+
+### Pass C — ACCEPTANCE / RECONCILIATION
+
+**PENDING / CURRENT.** Mechanically reconcile every WP-2.8C responsibility as EXPECTED vs IMPLEMENTED vs VERIFIED, reconcile FIR/status/coverage evidence, and only then decide packet acceptance. No WP-2.9 work is permitted before C is accepted and its acceptance-governance head is exact-head green.
