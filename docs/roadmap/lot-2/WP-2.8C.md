@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.8C`
 - Lot: `2`
 - Name: Recoverable Venue remote-media metadata lifecycle
-- State: `ACCEPTANCE_PENDING`
-- Current pass: `C-ACCEPTANCE`
+- State: `ACCEPTED`
+- Current pass: `C-ACCEPTANCE / PASS`
 - Primary bounded context: Documents/Media remote-reference metadata trash lifecycle
 - Branch/PR: `lot-2/venues-core` / PR not opened yet
 
@@ -62,13 +62,15 @@ No standalone frozen `ACC-*` scenario exclusively owns remote-reference soft-del
 - WP-2.8C READY governance: `5e6f3c02b97eaafa630d809debc9c09d94bfc40e` / `34620073715` — **5/5 SUCCESS**, clean-checkout included.
 - Pass-A final implementation: `e7510b64471a85b3894ba26345df7fe71533b1c3` / `34628542194` — **5/5 SUCCESS**, clean-checkout included.
 - Fresh Pass-B remediation checkpoint: `5e4246e6f63db899fb8a683d9381614a6ee75b11` / `34785068206` — **5/5 SUCCESS**, clean-checkout included; fresh post-remediation review **PASS**.
+- Pass-C entry governance: `fc2358a85cb367a7f3aa17cc9757a00c5888ed39` / `34785516861` — **5/5 SUCCESS**, clean-checkout included.
+- Pass-C mechanical reconciliation: `docs/roadmap/lot-2/WP-2.8C-ACCEPTANCE.md` — **PASS**, responsibility gap **∅**.
 - Default orchestration order remains WP-2.8A → WP-2.8B → WP-2.8C → WP-2.9.
 - `MEDIA-LIFECYCLE-ADDENDUM.md`, `DELETION-RETENTION.md`, `PHYSICAL-SCHEMA-V1.md`, `RLS-MATRIX-V1.md`, `LOT-2-COVERAGE-MATRIX.md` and the historical WP-2.8 coverage addendum are governing inputs.
 - Only one packet may be active.
 
 ## Activation specification freeze
 
-The remaining pre-READY concurrency/receipt ambiguity is **CLOSED / VERIFIED** on `36ef31089dcbab50221b90a559480cc091d99fba` / CI `34618247634` — **5/5 SUCCESS**, including clean-checkout `npm run verify`. The separate READY governance transition `5e6f3c02b97eaafa630d809debc9c09d94bfc40e` / CI `34620073715` is also **5/5 SUCCESS**, including clean-checkout. Pass A and the required fresh adversarial review have since completed; the current gate is Pass C mechanical acceptance/reconciliation.
+The remaining pre-READY concurrency/receipt ambiguity is **CLOSED / VERIFIED** on `36ef31089dcbab50221b90a559480cc091d99fba` / CI `34618247634` — **5/5 SUCCESS**, including clean-checkout `npm run verify`. The separate READY governance transition `5e6f3c02b97eaafa630d809debc9c09d94bfc40e` / CI `34620073715` is also **5/5 SUCCESS**, including clean-checkout. Pass A and the required fresh adversarial review completed, and Pass C mechanically reconciled the packet with responsibility gap **∅**. Durability of this `ACCEPTED` state remains subject to the final acceptance-governance HEAD passing exact-head CI.
 
 ### 1. Persisted lifecycle state
 
@@ -167,7 +169,7 @@ Existing A create/list parsing accepts positive remote-media revisions while pre
 
 C reuses the accepted media permission model and relevant A controls rather than creating a new permission key.
 
-Authorization/security evidence must cover at minimum:
+Authorization/security evidence covers at minimum:
 
 - `AUTHZ-001`, `AUTHZ-002`, `AUTHZ-005`, `AUTHZ-006`, `AUTHZ-007`, `AUTHZ-008`, `AUTHZ-012`, `AUTHZ-018`, `AUTHZ-019`, `AUTHZ-020` as applicable;
 - `SEC-AUTH-012`, `SEC-AUTH-013`;
@@ -297,6 +299,7 @@ Known deferred choices:
 - `supabase/tests/venue_remote_media_lifecycle_test.sql` proves mutation/replay/revision/payload/link/private-row/revocation behavior.
 - `supabase/tests/venue_remote_media_lifecycle_adversarial_review_test.sql` proves outsider and missing-UUID non-disclosure, direct `deleted_at` UPDATE denial, active hide/restore with retained identity, same-session downgrade denial and no Storage access.
 - Active A list query and parser independently require `deleted_at` null after AR-001 remediation.
+- `docs/roadmap/lot-2/WP-2.8C-ACCEPTANCE.md` is the mechanical Pass-C reconciliation record.
 
 ## Pass history
 
@@ -319,4 +322,6 @@ Fresh post-remediation Pass B: **PASS**. Open BLOCKING = **∅**; open MAJOR = *
 
 ### Pass C — ACCEPTANCE / RECONCILIATION
 
-**PENDING / CURRENT.** Mechanically reconcile every WP-2.8C responsibility as EXPECTED vs IMPLEMENTED vs VERIFIED, reconcile FIR/status/coverage evidence, and only then decide packet acceptance. No WP-2.9 work is permitted before C is accepted and its acceptance-governance head is exact-head green.
+**PASS.** `docs/roadmap/lot-2/WP-2.8C-ACCEPTANCE.md` mechanically reconciles every assigned responsibility as EXPECTED ↔ IMPLEMENTED ↔ VERIFIED. Required-minus-implemented-minus-verified = **∅**; open BLOCKING = **∅**; open MAJOR = **∅**; MINOR carried into acceptance = **∅**.
+
+`WP-2.8C` is therefore accepted by Pass C. This accepted state becomes durable only when the final acceptance-governance HEAD containing packet/status/coverage/FIR reconciliation itself passes exact-head **5/5 SUCCESS**. Until then WP-2.9 remains untouched.
