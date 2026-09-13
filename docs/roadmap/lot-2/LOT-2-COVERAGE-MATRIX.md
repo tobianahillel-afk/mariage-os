@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1..WP-2.8C reconciled; WP-2.8C acceptance-governance CI pending**
+Status: **IN_PROGRESS — WP-2.1..WP-2.8C ACCEPTED; WP-2.9 PLANNED / NEXT**
 
 Purpose: durable current responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`. Detailed historical packet evidence remains in each packet record, acceptance record and Git history.
 
@@ -35,9 +35,9 @@ Lot 2 reuses the accepted Lot-1 project/auth/RLS/local-data/Storage foundations 
 | contextual access-route observations, immutable origin snapshots | VEN-016, ACC-030, access responsibility | WP-2.7, WP-2.11 | WP-2.7 **ACCEPTED**; presentation downstream |
 | remote image references | FTR-024, VEN-013, MED-007/008/013 | WP-2.8A, WP-2.11 | WP-2.8A **ACCEPTED**; rendering/UI downstream |
 | private archived Venue image lifecycle, immutable originals/derivatives, hash detection, orphan recovery, private Storage | FTR-024 private slice, FTR-092 Lot-2, VEN-013, MED-004/005/006/009/010, ACC-055/056/058 | WP-2.8B | **WP-2.8B ACCEPTED / COMPLETE**; `WP-2.8B-ACCEPTANCE.md`, responsibility gap **∅** |
-| recoverable remote-media metadata soft-delete/restore | FTR-024/FTR-092 Lot-2 continuation; MED-007/010/013 applicable; MED-008 regression; deletion-retention rule | WP-2.8C | Pass-C `WP-2.8C-ACCEPTANCE.md` **PASS**; required-minus-implemented-minus-verified **∅**; final exact-head acceptance-governance CI pending |
-| venue-linked ordinary documents and generic tag/link basics | FTR-089 Lot-2, FTR-093 Lot-2, MED-001..003/010 | WP-2.9, WP-2.11 | PLANNED |
-| repository/read-model ports and Supabase adapters follow accepted architecture | architecture, AUTHZ-006/020 | WP-2.1..WP-2.10 | accepted/reconciled packets green; future packets responsible when introduced |
+| recoverable remote-media metadata soft-delete/restore | FTR-024/FTR-092 Lot-2 continuation; MED-007/010/013 applicable; MED-008 regression; deletion-retention rule | WP-2.8C | **WP-2.8C ACCEPTED / COMPLETE**; `WP-2.8C-ACCEPTANCE.md` PASS; gap **∅**; acceptance-governance `ecaa3900bbccd070e613e51bc99f3f133b436d0f` / `34786115925` **5/5 SUCCESS** |
+| venue-linked ordinary documents and generic tag/link basics | FTR-089 Lot-2, FTR-093 Lot-2, MED-001..003/010 | WP-2.9, WP-2.11 | **PLANNED / NEXT** |
+| repository/read-model ports and Supabase adapters follow accepted architecture | architecture, AUTHZ-006/020 | WP-2.1..WP-2.10 | accepted packets green; future packets responsible when introduced |
 | local cache/pending Venue edits reuse account+project+device LocalProjectStore | FTR-028 Lot-2, SYN-001..003/007..011, PWA-003/004/006 | WP-2.10, WP-2.12 | PLANNED |
 | gallery browse surface and robust states | FTR-015 | WP-2.11 | PLANNED |
 | analytical table with controlled columns/personal preferences | FTR-016, FTR-012 Lot-2, VEN-015 | WP-2.11 | PLANNED |
@@ -45,16 +45,16 @@ Lot 2 reuses the accepted Lot-1 project/auth/RLS/local-data/Storage foundations 
 | compare 2–5 candidates, blockers before score, ratings separate from facts | FTR-027, VEN-010/011 | WP-2.11 | PLANNED |
 | protected Venue deep links and generic outsider denial | routing responsibility, VEN-014 | WP-2.11 | PLANNED |
 | mobile visit mode with cached detail/checklist/notes/measurement/photo/rating/finish summary | FTR-028, PWA-004 | WP-2.12 | PLANNED |
-| file/content validation and no private production data in public fixtures/artifacts | MED-002/003/009/010/013 + security/quality controls | WP-2.8A/B/C, WP-2.9, WP-2.12 as applicable | A+B accepted; C Pass-C reconciled; future owners remain |
-| explicit permissions/grants/RLS and direct allow+deny evidence for every new resource | AUTHZ-001..009/012/017/018/020 | owning packets WP-2.1..WP-2.9 | accepted packet pgTAP green; C direct/adversarial evidence green; future owners remain |
+| file/content validation and no private production data in public fixtures/artifacts | MED-002/003/009/010/013 + security/quality controls | WP-2.8A/B/C, WP-2.9, WP-2.12 as applicable | A+B+C accepted; future owners remain |
+| explicit permissions/grants/RLS and direct allow+deny evidence for every new resource | AUTHZ-001..009/012/017/018/020 | owning packets WP-2.1..WP-2.9 | accepted packet pgTAP/adversarial evidence green; future owners remain |
 | synthetic complex Venue exit fixture and integrated workflows | Lot-2 acceptance | WP-2.12 + Lot Integration Pass | downstream |
 | Lot reconciliation + separate Integration Pass | AI-LOT-ORCHESTRATION | after WP-2.1..WP-2.12 | downstream |
 
 Required current-lot responsibilities minus assigned packet responsibilities: **∅**.
 
-Accepted/reconciled packet responsibilities so far: **WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5, WP-2.6A, WP-2.6B, WP-2.6C, WP-2.6D, WP-2.7, WP-2.8A, WP-2.8B, WP-2.8C**. WP-2.8C becomes durably accepted only after its final acceptance-governance HEAD passes exact-head CI.
+Accepted/evidenced packet responsibilities so far: **WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5, WP-2.6A, WP-2.6B, WP-2.6C, WP-2.6D, WP-2.7, WP-2.8A, WP-2.8B, WP-2.8C**.
 
-Required WP-2.8C responsibilities minus implemented and verified WP-2.8C responsibilities: **∅**. This reconciles only its assigned recoverable remote-metadata slice. Whole `FTR-024` / `FTR-092` remains incomplete because WP-2.11, WP-2.12 and later Lots 10/11 retain downstream responsibilities.
+Required WP-2.8C responsibilities minus implemented and verified WP-2.8C responsibilities: **∅**. This accepts only its assigned recoverable remote-metadata slice. Whole `FTR-024` / `FTR-092` remains incomplete because WP-2.11, WP-2.12 and later Lots 10/11 retain downstream responsibilities.
 
 ## Work Packet plan
 
@@ -72,8 +72,8 @@ Required WP-2.8C responsibilities minus implemented and verified WP-2.8C respons
 | WP-2.7 | **ACCEPTED / COMPLETE** | access-route observations; `db1dae6...` / `34377221997` 5/5, gap ∅ |
 | WP-2.8A | **ACCEPTED / COMPLETE** | remote-image metadata/Venue links; packet acceptance `925cf86...` / `34418721439`, coverage `432e0cf...` / `34420275595`, both 5/5 |
 | WP-2.8B | **ACCEPTED / COMPLETE** | private archive lifecycle; Pass-C evidence `WP-2.8B-ACCEPTANCE.md`; gap ∅ |
-| WP-2.8C | **PASS C / ACCEPTANCE-GOVERNANCE PENDING** | recoverable remote metadata lifecycle; `WP-2.8C-ACCEPTANCE.md`; gap ∅; final exact-head CI pending |
-| WP-2.9 | PLANNED | venue document/tag/link basics |
+| WP-2.8C | **ACCEPTED / COMPLETE** | recoverable remote metadata lifecycle; `WP-2.8C-ACCEPTANCE.md`; gap ∅; acceptance-governance `ecaa3900...` / `34786115925` 5/5 |
+| WP-2.9 | **PLANNED / NEXT** | venue document/tag/link basics; activation contract must be revalidated before READY |
 | WP-2.10 | PLANNED | repositories/local cache/pending offline mutations |
 | WP-2.11 | PLANNED | gallery/table/detail/compare/deep-link workspace |
 | WP-2.12 | PLANNED | mobile/offline Venue visit + packet E2E completion |
@@ -104,7 +104,7 @@ Accepted B guarantees include private JPEG/PNG/WebP validation, 20,000,000-byte/
 
 ### WP-2.8C — recoverable remote metadata
 
-State: **PASS C / ACCEPTANCE-GOVERNANCE PENDING**.
+State: **ACCEPTED / COMPLETE**.
 
 - activation specification freeze `36ef31089dcbab50221b90a559480cc091d99fba` / `34618247634` — 5/5;
 - READY governance `5e6f3c02b97eaafa630d809debc9c09d94bfc40e` / `34620073715` — 5/5;
@@ -113,11 +113,10 @@ State: **PASS C / ACCEPTANCE-GOVERNANCE PENDING**.
 - AR-001 remediation `4db24a300282816e05e839e4b3ad132a89c5a167` / `34630386585` — SUCCESS;
 - AR-002 adversarial evidence + fresh Pass-B head `5e4246e6f63db899fb8a683d9381614a6ee75b11` / `34785068206` — 5/5; fresh review PASS;
 - Pass-C entry governance `fc2358a85cb367a7f3aa17cc9757a00c5888ed39` / `34785516861` — 5/5;
-- mechanical reconciliation `WP-2.8C-ACCEPTANCE.md` — **PASS**, required-minus-implemented-minus-verified = ∅, findings carried = ∅.
+- mechanical reconciliation `WP-2.8C-ACCEPTANCE.md` — **PASS**, required-minus-implemented-minus-verified = ∅, findings carried = ∅;
+- acceptance-governance `ecaa3900bbccd070e613e51bc99f3f133b436d0f` / `34786115925` — **5/5 SUCCESS**, including clean-checkout `npm run verify`.
 
-Reconciled C guarantees include recoverable `deleted_at` lifecycle, active query + parser fail-closed filtering, retained media/link/provenance identity, exact optimistic revision semantics, same-state no-op replay, live `media.write` authorization/non-disclosure, direct lifecycle-field mutation denial, private-media exclusion and no Storage/remote-byte mutation path.
-
-The final acceptance-governance HEAD containing this matrix/packet/status/FIR reconciliation must itself pass exact-head 5/5 before C acceptance is durable.
+Accepted C guarantees include recoverable `deleted_at` lifecycle, active query + parser fail-closed filtering, retained media/link/provenance identity, exact optimistic revision semantics, same-state no-op replay, live `media.write` authorization/non-disclosure, direct lifecycle-field mutation denial, private-media exclusion and no Storage/remote-byte mutation path.
 
 ## Sequencing
 
@@ -131,8 +130,8 @@ WP-2.1 [ACCEPTED]
             → WP-2.7 [ACCEPTED]
               → WP-2.8A [ACCEPTED]
                 → WP-2.8B [ACCEPTED]
-                  → WP-2.8C [PASS C / FINAL CI PENDING]
-                    → WP-2.9 [PLANNED]
+                  → WP-2.8C [ACCEPTED]
+                    → WP-2.9 [PLANNED / NEXT]
                       → WP-2.10
                         → WP-2.11
                           → WP-2.12
@@ -140,7 +139,7 @@ WP-2.1 [ACCEPTED]
                               → Integration Pass
 ```
 
-Only one packet may be active at a time. WP-2.9 activation/implementation remains prohibited until WP-2.8C's final acceptance-governance HEAD is exact-head green and C is durably closed.
+Only one packet may be active at a time. WP-2.9 remains **PLANNED / NEXT** and is not implementation-authorized until its own activation revalidation, `PLANNED → READY` transition and exact-head gate are completed.
 
 ## Explicitly outside Lot 2
 
@@ -159,7 +158,7 @@ required current-Lot-2 responsibilities
 - assigned packet responsibilities
 = ∅
 
-accepted/reconciled packets
+accepted/evidenced packets
 = WP-2.1..WP-2.8C
 
 WP-2.8C required responsibilities
