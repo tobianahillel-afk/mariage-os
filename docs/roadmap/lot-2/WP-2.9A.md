@@ -5,35 +5,31 @@
 - Work Packet ID: `WP-2.9A`
 - Lot: `2`
 - Name: Venue-linked private document foundation
-- State: `READY`
-- Current pass: `A-READY`
+- State: `IN_PROGRESS`
+- Current pass: `A-IMPLEMENT`
 - Primary bounded context: Documents — private PDF metadata, Venue links, Storage lifecycle and recoverable metadata
 - Branch/PR: `lot-2/venues-core` / Lot-2 integration PR not opened yet
 - FIR: `#17 / FTR-089`
+- Size: **10 points**; explicit cohesion review **PASS**
 
-## Why the original WP-2.9 is split
+## Activation / governance evidence
 
-Activation revalidation of the former monolithic `WP-2.9 — venue document/tag/link basics` found that it combines two independently reviewable persistence/security boundaries: private Documents and generic Tags. A conservative orchestration score for the unsplit packet is already **12 points** before counting any extra implementation detail:
-
-| Complexity source | Points |
-|---|---:|
-| meaningfully changed Documents/Tags bounded responsibility | 3 |
-| four new persistent tables (`documents`, `document_links`, `tags`, `entity_tags`) | 4 |
-| forward-only migration family | 1 |
-| protected private-file lifecycle capability | 2 |
-| new RLS/privileged authorization boundary | 2 |
-| **Conservative total** | **12** |
-
-`AI-LOT-ORCHESTRATION.md` requires packets above 10 points to split unless splitting would make safety materially worse. There is no such atomicity reason here: tags do not participate in document binary commit/recovery. The original WP-2.9 is therefore decomposed before implementation into:
+The former monolithic WP-2.9 combined two independently reviewable persistence/security boundaries and was conservatively scored at **12 points**. It was split before code under `AI-LOT-ORCHESTRATION.md` into:
 
 1. **WP-2.9A** — private Documents + `document_links` + Storage lifecycle;
 2. **WP-2.9B** — project Tags + Venue `entity_tags` basics.
 
-No product responsibility is dropped. Default sequencing is `WP-2.9A → WP-2.9B → WP-2.10`.
+No product responsibility was dropped. Default sequencing remains `WP-2.9A → WP-2.9B → WP-2.10`.
+
+Evidence:
+
+- split/specification freeze: `40f17aba802e7faed9eade6096e2f3629fc80654` / CI `34788217062` — **5/5 SUCCESS**, clean-checkout included;
+- READY governance: `0b30b045ef05c318d25c92abb379364f95705c4e` / CI `34788670807` — **5/5 SUCCESS**, clean-checkout included;
+- current A-IMPLEMENT governance HEAD: exact-head CI required before product implementation begins.
+
+WP-2.9B remains `PLANNED / AFTER A` and cannot activate while A is active.
 
 ## Assigned current-Lot responsibility
-
-### Feature / requirements
 
 WP-2.9A owns the Lot-2 Venue-document foundation of:
 
@@ -41,48 +37,42 @@ WP-2.9A owns the Lot-2 Venue-document foundation of:
 - `MED-001` — Documents remain semantically distinct from Media;
 - `MED-002` — uploaded/imported file content is never executed as application code;
 - `MED-003` — type/size/MIME/signature validation follows file-security policy;
-- `MED-008` — source/provenance can be retained; this requirement is formally mapped to FTR-089 and was missing from the old Lot-2 WP-2.9 row;
+- `MED-008` — source/provenance can be retained;
 - `MED-010` — private file access does not rely on obscurity;
 - `PRD-008` only for the current-Lot ability to link a document to a Venue;
 - packet-applicable authorization/file/security controls.
 
-`MED-009` remains formally owned by FTR-092, already accepted for the Lot-2 private-media slice. WP-2.9A nevertheless inherits the same mandatory upload-safety invariant from `DOCUMENTS.md`/`FILE-SECURITY.md`: an interrupted/incomplete document upload must never appear as committed/valid. This is a packet-specific verification obligation, not a reassignment of MED-009 ownership.
+`MED-009` remains formally owned by FTR-092. WP-2.9A nevertheless inherits the mandatory upload-safety invariant that an interrupted/incomplete document upload must never appear committed/valid. This is a verification obligation, not a reassignment of MED-009 ownership.
 
 ### Exact user job
 
-An authorized couple member can retain a private PDF relevant to a Venue, preserve its provenance and private filename as metadata, link it to one or more same-project Venues without duplicating the binary, download it only through live authorization, temporarily remove the ready document from ordinary results and restore the same logical record later.
+An authorized couple member can retain a private PDF relevant to a Venue, preserve provenance and private filename metadata, link the one logical document to one or more same-project Venues without duplicating bytes, download it only through live authorization, soft-delete it from ordinary results, and restore the same logical record later.
 
 ## Persisted model
 
 ### `documents`
 
-A new forward-only migration materializes the frozen V1 `documents` table with at minimum:
+A forward-only migration materializes the frozen V1 `documents` table with at minimum:
 
-- `id uuid` primary key and unique `(project_id,id)` candidate key;
-- `project_id uuid` same-project root;
-- `document_type text`;
-- `title text`;
-- `storage_path text null`;
-- `remote_url text null`;
-- `original_filename text null`;
-- `mime_type text null`;
-- `size_bytes bigint null`;
-- `sha256 text null`;
-- `classification text`;
-- `upload_status text`;
+- `id uuid` primary key plus unique `(project_id,id)` candidate key;
+- `project_id uuid`;
+- `document_type text`, `title text`;
+- `storage_path text null`, `remote_url text null`;
+- `original_filename text null`, `mime_type text null`, `size_bytes bigint null`, `sha256 text null`;
+- `classification text`, `upload_status text`;
 - `source_id uuid null`, same-project when present;
 - standard creator/updater/revision audit fields;
 - `deleted_at timestamptz null` for recoverable metadata deletion.
 
-WP-2.9A creates only the A-style private-document shape:
+A creates only ordinary private-document rows:
 
 - `remote_url is null`;
-- `storage_path` is the server-derived canonical private path;
+- `storage_path` is server-derived;
 - `classification = 'private'`;
 - `upload_status in ('pending','ready')`;
-- `source_id`, when supplied, references a same-project retained Source.
+- optional `source_id` references a same-project retained Source.
 
-Sensitive-document classification/contract-review semantics are not silently folded into ordinary `documents.read`; they remain downstream under the frozen sensitive-document/contract-review permissions and later document lots.
+Sensitive-document classification/contract-review semantics remain downstream and are not folded into ordinary `documents.read`.
 
 ### `document_links`
 
@@ -91,78 +81,67 @@ WP-2.9A materializes generic link persistence but exposes only the Lot-2 Venue t
 - stable UUID identity;
 - `project_id`;
 - `document_id` same-project composite FK;
-- `target_type = 'venue'` in the Lot-2 public boundary;
-- `target_id` validated as an existing same-project Venue;
-- `relationship_type` remains null in this packet; no undocumented relationship vocabulary is invented;
+- public boundary `target_type = 'venue'`;
+- `target_id` must identify an existing same-project Venue;
+- `relationship_type` remains null in this packet;
 - creator metadata.
 
-A ready document may have several same-project Venue links. A single binary is never duplicated merely because a second Venue link is added.
+A ready document may have several same-project Venue links. Adding a link never duplicates the binary.
 
 ## File and Storage contract
 
-### Enabled document binary
+### Enabled binary
 
-WP-2.9A enables **PDF only** for the ordinary Documents boundary. This is deliberate semantic separation:
+PDF only:
 
-- PDF → `documents` in this packet;
-- JPEG/JPG/PNG/WebP private imagery remains the accepted Media boundary;
-- HEIC/HEIF and other document/office formats remain disabled until a separately reviewed packet explicitly enables them;
-- HTML, JavaScript, SVG-as-active-content, executables and macro execution remain forbidden.
-
-Frozen PDF validation:
-
-- extension `.pdf` case-insensitive;
+- extension `.pdf`, case-insensitive;
 - declared MIME exactly `application/pdf`;
-- binary signature/magic begins with `%PDF-`;
-- byte size `1..25,000,000`;
-- original filename `1..512` Unicode scalar values with unsafe control characters/path separators rejected or normalized according to the shared filename validator;
-- SHA-256 exactly 64 lowercase hexadecimal characters over the exact uploaded bytes.
+- magic begins with `%PDF-`;
+- size `1..25,000,000` bytes;
+- original filename `1..512` Unicode scalar values with unsafe controls/path separators rejected or normalized by the shared filename policy;
+- SHA-256 exactly 64 lowercase hex characters over exact uploaded bytes.
 
-PDF bytes are treated as untrusted binary. WP-2.9A does not parse/execute embedded active content and does not add an inline active preview surface. Download uses safe attachment/content-disposition semantics.
+JPEG/JPG/PNG/WebP private imagery remains Media. HEIC/HEIF and office formats remain disabled. HTML/JavaScript/SVG active content, executables and macro execution are forbidden. PDF bytes are treated as untrusted binary; no active inline preview is introduced by A. Download uses safe attachment/content-disposition semantics.
 
 ### Bucket/path
 
-- bucket remains the accepted private bucket `project-private`;
-- canonical object path is exactly `<project_id>/documents/<document_id>/original`;
-- raw filename/title/Venue name never appears in the Storage path;
-- path knowledge never grants authority;
-- ready original bytes are immutable; overwrite/upsert/rename is denied.
+- accepted private bucket: `project-private`;
+- canonical object path: exactly `<project_id>/documents/<document_id>/original`;
+- filename/title/Venue name never appears in Storage identity;
+- path knowledge grants no authority;
+- ready bytes are immutable; overwrite/upsert/rename is denied.
 
 ## Lifecycle and recovery
-
-### Upload state
 
 ```text
 absent → pending → ready
            └────→ absent   (clean abandon only after exact Storage absence)
 ```
 
-- `pending` is reservation/recovery state, not committed document truth;
-- ordinary document reads/downloads never present pending rows as ready;
+- `pending` is reservation/recovery state, never committed truth;
+- ordinary document reads/downloads never expose pending as ready;
 - writers may inspect exact pending state/object for recovery;
 - finalize verifies the exact reserved Storage object before `pending → ready`;
 - pending cleanup deletes the exact pending object first, verifies delete/not-found, then removes/abandons metadata/link state;
-- if Storage absence cannot be confirmed, pending recovery evidence remains;
-- no scheduler or raw bucket reconciliation is assumed.
+- if Storage absence cannot be confirmed, recovery evidence remains;
+- no scheduler or raw-bucket reconciliation is assumed.
 
 ### Ready soft-delete / restore
 
-Ready document metadata follows `DELETION-RETENTION.md`:
-
-- `deleted_at is null` → active ready document;
-- `deleted_at is not null` → recoverably deleted metadata;
-- soft-delete does **not** delete/overwrite the ready binary or its retained Venue links;
+- active ready: `deleted_at is null`;
+- recoverably deleted: `deleted_at is not null`;
+- soft-delete does not delete/overwrite ready binary or retained Venue links;
 - restore clears `deleted_at` on the same document UUID;
-- ordinary active Venue-document list excludes deleted rows at both query and provider-parser boundaries;
-- hard delete / 30-day purge / Empty-trash UX are downstream and not implemented by A.
+- active lists exclude deleted rows both at query and provider-parser boundaries;
+- hard delete / purge / trash UX are downstream.
 
-A same-state delete/restore retry is a no-op success; an actual state change is optimistic-revision protected and increments server revision/audit once.
+Same-state delete/restore retry is no-op success. An actual transition is optimistic-revision protected and increments server revision/audit once.
 
 ## Protected command family
 
-One narrow Documents command family owns mutations; direct client INSERT/UPDATE/DELETE on `documents` and `document_links` is not the security model.
+Direct client INSERT/UPDATE/DELETE on `documents` and `document_links` is not the mutation security model.
 
-Public action allowlist for WP-2.9A:
+Public action allowlist:
 
 - `reserve_upload`;
 - `finalize_upload`;
@@ -172,121 +151,101 @@ Public action allowlist for WP-2.9A:
 - `soft_delete`;
 - `restore`.
 
-The implementation may choose one public RPC with an action union or a small cohesive function family, but Pass A must preserve one reviewable authorization/replay boundary with these exact capabilities and no hidden generic table mutation escape hatch.
+The implementation may use one public RPC action union or a small cohesive family, but must preserve one reviewable authorization/replay boundary and no generic mutation escape hatch.
 
-The command boundary must:
+The boundary must:
 
 1. require authenticated identity;
-2. validate/lock the target project and live `documents.write` for mutations;
+2. validate/lock target project and live `documents.write` for mutations;
 3. derive canonical Storage path server-side;
 4. validate same-project document/source/Venue/link relationships;
 5. protect project/audit/revision/path/hash identity from caller substitution;
 6. serialize conflicting same-document operations;
-7. return typed receipts parsed fail-closed by the provider adapter;
-8. map absent/foreign identity generically without turning UUID/path knowledge into an oracle;
-9. make retries idempotent where the same stable identities/action are replayed.
+7. return typed receipts parsed fail-closed by provider adapters;
+8. map absent/foreign identity generically without UUID/path oracle behavior;
+9. make stable-identity/action retries idempotent.
 
 ### Download/read authorization
 
-- ordinary metadata/list read requires live `documents.read`;
-- ready active binary SELECT/signed access requires live `documents.read` and exact DB path binding;
-- pending recovery access requires live `documents.write`;
-- soft-deleted ready binary recovery access requires live `documents.write` until a downstream trash surface is explicitly implemented;
-- anon/outsider/project-B/revoked users are denied;
-- sensitive-document permission is not bypassed because A creates only ordinary `classification='private'` rows.
+- ordinary metadata/list read: live `documents.read`;
+- ready active binary SELECT/signed access: live `documents.read` plus exact DB path binding;
+- pending recovery: live `documents.write`;
+- soft-deleted ready binary recovery: live `documents.write` until later trash UX;
+- anon/outsider/project-B/revoked users denied;
+- A creates only ordinary `classification='private'` rows.
 
-Signed URLs, if used, are short-lived provider artifacts and are never persisted as document identity.
+Signed URLs, if used, are short-lived provider artifacts and never persisted as identity.
 
 ## Provenance and duplicate safety
 
-- `source_id`, when present, is a same-project provenance link and survives soft-delete/restore;
-- no private filename is copied into paths/logs/public artifacts;
-- exact SHA-256 may be used for same-project duplicate warning/detection;
-- equal hash never authorizes access and never auto-merges/replaces logical document/link identity;
+- optional `source_id` is same-project provenance and survives delete/restore;
+- private filename never enters Storage path/log/public artifact;
+- exact SHA-256 may support same-project duplicate warning/detection;
+- equal hash never grants access and never auto-merges/replaces document/link identity;
 - cross-project hash equality is never disclosed.
 
-A duplicate-warning receipt/query is acceptable only if project-scoped and detect-only; automatic deduplication is not required by this packet.
+Automatic deduplication is not required.
 
-## Authorization/security controls
+## Authorization / security evidence required
 
-At minimum A must directly evidence the packet-applicable forms of:
+At minimum A must directly evidence packet-applicable forms of:
 
-- `AUTHZ-001`, `AUTHZ-002`, `AUTHZ-005`, `AUTHZ-006`, `AUTHZ-007`, `AUTHZ-008`, `AUTHZ-012`, `AUTHZ-018`, `AUTHZ-019`, `AUTHZ-020`;
+- `AUTHZ-001`, `002`, `005`, `006`, `007`, `008`, `012`, `018`, `019`, `020`;
 - `SEC-AUTH-012`, `SEC-AUTH-013`;
 - applicable `SEC-AUTHZ-001..009`;
 - `SEC-VAL-001..004`, `SEC-VAL-008`;
 - `SEC-INJ-001`, `SEC-INJ-002`;
-- `SEC-FILE-001`, `SEC-FILE-002`, `SEC-FILE-003`, `SEC-FILE-004`, `SEC-FILE-008`, `SEC-FILE-009`;
-- `SEC-VER-001`, `SEC-VER-002`, `SEC-VER-005`, `SEC-VER-006`.
+- `SEC-FILE-001`, `002`, `003`, `004`, `008`, `009`;
+- `SEC-VER-001`, `002`, `005`, `006`.
 
-Direct allow/deny DB and Storage evidence covers owner/editor/viewer as applicable, anon, outsider, project-B and revoked/downgraded identities. Cross-project document links/path access and direct protected-column mutation must fail.
+Direct allow/deny DB and Storage evidence covers owner/editor/viewer as applicable, anon, outsider, project-B and revoked/downgraded identities. Cross-project links/path access and direct protected-column mutation must fail.
 
 ## Explicitly out of scope
 
-- document supersession/version lineage (`FTR-090`, `MED-011`) — later document lots;
-- quote/contract readiness/review checklist (`FTR-091`, `MED-012`) — later lots;
-- sensitive-document classification workflows;
+- FTR-090 / MED-011 document version lineage;
+- FTR-091 / MED-012 contract-readiness/review checklist;
+- sensitive-document workflows;
 - OCR/full-text indexing;
-- inline active PDF preview;
-- vendor/budget/decision/task/interaction target types — later owning lots extend generic `document_links`;
-- unclassified Inbox/file-capture UX;
+- active inline PDF preview;
+- non-Venue `document_links` target types;
+- Inbox/file-capture UX;
 - generic Tags/entity tagging — WP-2.9B;
-- trash UI, permanent purge and background scheduler;
-- offline pending-file queue — WP-2.10/WP-2.12/Lot 10;
+- trash UI/permanent purge/background scheduler;
+- offline pending-file queue — later packets/Lot 10;
 - import/export/backup binary packaging;
-- real wedding/private candidate data import — Lot 12.
-
-## Sizing / cohesion review
-
-| Complexity source | Count | Points each | Total |
-|---|---:|---:|---:|
-| Documents private-binary bounded responsibility | 1 | 3 | 3 |
-| new persistent tables (`documents`, `document_links`) | 2 | 1 | 2 |
-| forward-only document migration family | 1 | 1 | 1 |
-| protected document lifecycle capability family | 1 | 2 | 2 |
-| new DB/Storage authorization boundary | 1 | 2 | 2 |
-| **Total** |  |  | **10** |
-
-A 10-point packet requires explicit cohesion review. **Cohesion: PASS.** Splitting binary reservation/finalization from `documents`/`document_links` would create a partially implemented private-file truth boundary and duplicate the recovery/RLS review. The two tables and Storage lifecycle are one atomic review surface. Tags are independent and are therefore split into WP-2.9B.
+- real/private wedding data import — Lot 12.
 
 ## Expected vertical slice
 
-- UI/routes: none; presentation remains WP-2.11.
-- domain: private PDF validation, document/link/lifecycle invariants under existing Documents context.
-- application: typed Document service/port methods for reserve/finalize/recovery/link/list/download authorization/soft-delete/restore.
-- infrastructure: Supabase document metadata/RPC adapter, fail-closed receipts, private Storage adapter/reuse.
-- cloud: forward-only `documents`/`document_links` migration, RLS/grants/Storage policies and protected command family.
+- UI/routes: none; presentation is WP-2.11;
+- domain: PDF validation and document/link/lifecycle invariants;
+- application: typed Document service/port reserve/finalize/recovery/link/list/download-auth/delete/restore methods;
+- infrastructure: Supabase document metadata/RPC adapter, fail-closed receipts and private Storage adapter/reuse;
+- cloud: forward-only `documents`/`document_links` migration, RLS/grants/Storage policies and protected command family;
 - local/offline: none.
 
 ## Verification plan
 
-- valid PDF boundary and extension/MIME/signature/size/name/hash rejection cases;
+- PDF extension/MIME/signature/size/name/hash boundaries;
 - reserve → exact upload → finalize → active list/read/download;
-- interrupted before upload and after Storage-before-finalize recovery;
+- interruption before upload and after Storage-before-finalize recovery;
 - exact pending cleanup and no committed visibility before finalize;
 - ready overwrite/upsert/rename/direct binary deletion denied;
-- one ready binary linked to multiple same-project Venues without duplicate object;
+- one binary linked to multiple same-project Venues without duplication;
 - cross-project Venue/source/link injection denied;
-- provenance/source retained;
-- soft-delete hides active list/download for ordinary reader, keeps row/link/object; restore returns identical document/link/path;
+- provenance retained;
+- soft-delete hides ordinary list/download while preserving row/link/object; restore returns identical identity/path;
 - stale real transition rejected; same-state retry idempotent;
-- provider receipt substitution/malformed rows fail closed;
-- owner/editor/viewer direct allow/deny according to `documents.read/write`; anon/outsider/project-B/revoked/downgraded denied;
-- direct table protected-column/project/audit mutation denied;
-- private filename absent from Storage path and privacy-safe artifact/log checks;
-- accepted WP-2.8 media behavior remains green.
+- malformed/substituted provider receipts fail closed;
+- owner/editor/viewer allow/deny plus anon/outsider/project-B/revoked/downgraded denial;
+- direct protected table/project/audit mutation denied;
+- private filename absent from Storage path/privacy-safe artifacts;
+- accepted WP-2.8 behavior remains green.
 
-## Activation evidence / current gate
+## Current gate
 
-Split/specification freeze `40f17aba802e7faed9eade6096e2f3629fc80654` / CI `34788217062` is **5/5 SUCCESS**, including clean-checkout `npm run verify`.
+WP-2.9A is now **IN_PROGRESS / A-IMPLEMENT** as a governance state only.
 
-FIR: GitHub issue `#17 — FTR-089`.
+Product implementation remains prohibited until this exact A-IMPLEMENT governance HEAD passes complete **5/5 SUCCESS**, including clean-checkout `npm run verify`. Only then does Pass A begin, and it begins **RED-first**. The first product commit must establish failing tests/evidence for the frozen document persistence/lifecycle/security boundary before implementation makes them green.
 
-This packet is now **READY / A-READY**, but product implementation is still prohibited until:
-
-1. this READY governance HEAD itself passes exact-head **5/5 SUCCESS** including clean checkout;
-2. a separate `READY → IN_PROGRESS / A-IMPLEMENT` governance transition is committed;
-3. that IN_PROGRESS HEAD itself passes exact-head 5/5;
-4. Pass A then begins RED-first.
-
-WP-2.9B remains `PLANNED / AFTER A` and cannot activate while A is active.
+Any implementation need that expands public capability, changes the frozen requirements, introduces a new permission key, or pushes the approved cohesive surface beyond 10 points requires a stop/rescore before code proceeds.
