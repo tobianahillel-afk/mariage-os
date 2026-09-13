@@ -36,7 +36,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.7 | contextual venue access-route observations | **ACCEPTED** |
 | WP-2.8A | Venue remote-image metadata and Venue links | **ACCEPTED** |
 | WP-2.8B | Venue private archived media lifecycle | **ACCEPTED / COMPLETE** |
-| WP-2.8C | recoverable Venue remote-media metadata lifecycle | **ACCEPTANCE_PENDING / CURRENT** |
+| WP-2.8C | recoverable Venue remote-media metadata lifecycle | **ACCEPTED / FINAL CI PENDING** |
 | WP-2.9 | venue document/tag/link basics | PLANNED |
 | WP-2.10 | repositories, local cache, pending/offline mutations | PLANNED |
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace | PLANNED |
@@ -55,9 +55,8 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 - WP-2.6D **ACCEPTED**; `767017112445a38863abd114e8c62feb27af6421` / `34322712448` **5/5 SUCCESS**.
 - WP-2.7 **ACCEPTED / COMPLETE**; `db1dae663129c3281618c932fa7f5a8184a5a2ad` / `34377221997` **5/5 SUCCESS**; responsibility gap **∅**.
 - WP-2.8A **ACCEPTED / COMPLETE**; packet acceptance `925cf86f3e38bf08807ed408f6d100fbbbd5c9c2` / `34418721439` and coverage reconciliation `432e0cf893e0adc079ba3c25eb325efb9d01e3ec` / `34420275595` — **5/5 SUCCESS**; responsibility gap **∅**.
-- WP-2.8B **ACCEPTED / COMPLETE** by Pass-C reconciliation `lot-2/WP-2.8B-ACCEPTANCE.md`; Pass-A checkpoint `150c10c07452748e3092e316a3cb9a26f272ff3e` / `34555183344` **5/5 SUCCESS**; first fresh Pass B `a23e6925f4d95e5d49cdea5b4e62b899cdd7a605` / `34555832894` **5/5 SUCCESS**; MED-006 RED diagnostic `4eddca8aa94a2ed95d37bac47b8f3efeb3b4faf4` / `34556856411`; remediation `f815844d9f4a2c62575ee91530af94febf78dab0` / `34605466532` **5/5 SUCCESS**; fresh affected Pass B **PASS**; Pass-C entry `70c251fee7a54bf1f5de9e3fca4dee6ce067d778` / `34614442341` **5/5 SUCCESS**; acceptance-governance `3b28c7b734a2258db455bbdabb567fcee2ee2bd1` / `34615830961` **5/5 SUCCESS**, including clean-checkout `npm run verify`; responsibility gap **∅**, open BLOCKING/MAJOR/MINOR-carried findings **∅**.
-
-WP-2.8B acceptance is durable and closed. It must not be reopened absent a new finding.
+- WP-2.8B **ACCEPTED / COMPLETE** by Pass-C reconciliation `lot-2/WP-2.8B-ACCEPTANCE.md`; acceptance-governance `3b28c7b734a2258db455bbdabb567fcee2ee2bd1` / `34615830961` and durable closure `8317125183bc5521d6d4aac8e132f64a57aa4ca8` / `34616938470` — both **5/5 SUCCESS**, clean-checkout included; responsibility gap **∅**.
+- WP-2.8C Pass-C reconciliation `lot-2/WP-2.8C-ACCEPTANCE.md` is **PASS**; Pass-A `e7510b64471a85b3894ba26345df7fe71533b1c3` / `34628542194` **5/5 SUCCESS**; AR-001 RED `ee1af0d2bf04503366db29b85dff9f810cb7fb6a` / `34630210996`; AR-001 remediation `4db24a300282816e05e839e4b3ad132a89c5a167` / `34630386585` **SUCCESS**; fresh Pass-B checkpoint `5e4246e6f63db899fb8a683d9381614a6ee75b11` / `34785068206` **5/5 SUCCESS**; Pass-C entry `fc2358a85cb367a7f3aa17cc9757a00c5888ed39` / `34785516861` **5/5 SUCCESS**; responsibility gap **∅**, open BLOCKING/MAJOR/MINOR-carried findings **∅**. Final acceptance-governance exact-head CI is still required for durable closure.
 
 ## WP-2.8 media foundation
 
@@ -72,40 +71,32 @@ WP-2.8B acceptance is durable and closed. It must not be reopened absent a new f
 - **ACCEPTED / COMPLETE** through Pass A/B/C.
 - Final acceptance-governance: `3b28c7b734a2258db455bbdabb567fcee2ee2bd1` / CI `34615830961` — **5/5 SUCCESS**, clean-checkout included.
 - Durable closure/status: `8317125183bc5521d6d4aac8e132f64a57aa4ca8` / CI `34616938470` — **5/5 SUCCESS**, clean-checkout included.
-- Packet record: `lot-2/WP-2.8B.md`.
-- Pass-C reconciliation: `lot-2/WP-2.8B-ACCEPTANCE.md`.
-- Owns private JPEG/PNG/WebP archive validation, pending/ready lifecycle, immutable originals, versioned thumbnail/preview derivatives, exact reservation-bound Storage RLS, interrupted-upload recovery/cleanup and project-scoped SHA-256 detect-only duplicate reporting.
-- MED-006 finalization receipt returns deterministic same-project ready-original duplicate IDs; current media, pending media, derivatives, remote refs and foreign-project equal hashes are excluded. Replay preserves the stored receipt snapshot. No automatic merge/reuse/delete occurs.
-- Reuses the accepted `project-private` bucket and `media.read` / `media.write` model; no parallel bucket/Media architecture exists.
-- `ACC-055`, `ACC-056`, `ACC-058` are persisted acceptance evidence.
+- Packet record: `lot-2/WP-2.8B.md`; Pass-C reconciliation: `lot-2/WP-2.8B-ACCEPTANCE.md`.
 - Required WP-2.8B responsibility gap: **∅**.
 
 ### WP-2.8C — recoverable remote-media metadata lifecycle
 
-- **ACCEPTANCE_PENDING / C-ACCEPTANCE**.
-- Packet record: `lot-2/WP-2.8C.md`.
-- Activation specification freeze `36ef31089dcbab50221b90a559480cc091d99fba` / CI `34618247634` — **CLOSED / VERIFIED, 5/5 SUCCESS**, clean-checkout included.
-- READY governance `5e6f3c02b97eaafa630d809debc9c09d94bfc40e` / CI `34620073715` — **5/5 SUCCESS**, clean-checkout included.
-- Pass-A final implementation `e7510b64471a85b3894ba26345df7fe71533b1c3` / CI `34628542194` — **5/5 SUCCESS**, clean-checkout included.
-- Pass B initially found `WP28C-AR-001` and `WP28C-AR-002` MAJOR; both are now **CLOSED / VERIFIED**.
-- AR-001 RED `ee1af0d2bf04503366db29b85dff9f810cb7fb6a` / `34630210996`; parser remediation `4db24a300282816e05e839e4b3ad132a89c5a167` / `34630386585` — SUCCESS.
-- AR-002/fresh-review evidence `5e4246e6f63db899fb8a683d9381614a6ee75b11` / `34785068206` — **5/5 SUCCESS**, clean-checkout included; fresh post-remediation Pass B **PASS**; open BLOCKING/MAJOR/MINOR-carried findings **∅**.
-- Revalidated size: **8 points**; cohesion **PASS**.
-- Owns remote-media metadata `deleted_at` soft-delete/restore, active-read filtering, retained Venue links, state-idempotent replay, optimistic revision protection for real state changes, live `media.write` authorization and non-disclosure.
-- Same-target replay is a no-op and may reconcile an older positive expected revision; an actual state change requires exact current revision and increments revision/audit exactly once.
-- Lifecycle receipt is fail-closed `{ action, replayed, media, link }`; remote provenance/payload/link identity remains immutable through the transition.
-- C never targets B private media or Storage objects and does not own global 30-day physical purge/trash UI.
-- Current gate is Pass C mechanical acceptance/reconciliation. WP-2.9 remains untouched until C is accepted on an exact-head green acceptance-governance commit.
+- **ACCEPTED BY PASS C / FINAL ACCEPTANCE-GOVERNANCE CI PENDING**.
+- Packet record: `lot-2/WP-2.8C.md`; Pass-C reconciliation: `lot-2/WP-2.8C-ACCEPTANCE.md`.
+- Activation specification freeze `36ef31089dcbab50221b90a559480cc091d99fba` / `34618247634` — **5/5 SUCCESS**.
+- READY governance `5e6f3c02b97eaafa630d809debc9c09d94bfc40e` / `34620073715` — **5/5 SUCCESS**.
+- Pass-A final `e7510b64471a85b3894ba26345df7fe71533b1c3` / `34628542194` — **5/5 SUCCESS**.
+- Pass B found `WP28C-AR-001` and `WP28C-AR-002`; both are **CLOSED / VERIFIED**. Fresh reviewed checkpoint `5e4246e6f63db899fb8a683d9381614a6ee75b11` / `34785068206` — **5/5 SUCCESS**.
+- Pass-C entry `fc2358a85cb367a7f3aa17cc9757a00c5888ed39` / `34785516861` — **5/5 SUCCESS**.
+- Pass-C mechanical result: required-minus-implemented-minus-verified **∅**; open BLOCKING/MAJOR/MINOR-carried findings **∅**.
+- Owns `deleted_at` soft-delete/restore, active-read query+parser filtering, retained Venue media/link identity and provenance, no-op same-state replay, optimistic revision protection, live `media.write` authorization/non-disclosure and direct mutation denial.
+- C never targets B private media or Storage objects and does not own global physical purge/trash UI, presentation or offline behavior.
+- WP-2.9 remains untouched until the final acceptance-governance HEAD is exact-head **5/5 SUCCESS**.
 
-Whole `FTR-024` / `FTR-092` remains incomplete because WP-2.11, WP-2.12 and later Lot 10/11 responsibilities remain downstream even after the C slice is accepted.
+Whole `FTR-024` / `FTR-092` remains incomplete because WP-2.11, WP-2.12 and later Lot 10/11 responsibilities remain downstream even after the C slice is durably accepted.
 
 ## Current next-action gate
 
-1. WP-2.8B is durably **ACCEPTED / COMPLETE** on `8317125183bc5521d6d4aac8e132f64a57aa4ca8` / `34616938470` — **5/5 SUCCESS**.
-2. WP-2.8C Pass A is **PASS** on `e7510b64471a85b3894ba26345df7fe71533b1c3` / `34628542194` — **5/5 SUCCESS**.
-3. WP-2.8C fresh post-remediation Pass B is **PASS** on `5e4246e6f63db899fb8a683d9381614a6ee75b11` / `34785068206` — **5/5 SUCCESS**, clean-checkout included; AR-001/AR-002 closed.
-4. Current gate: exact-head CI for the governance transition to `ACCEPTANCE_PENDING / C-ACCEPTANCE`.
-5. If that governance head is 5/5 SUCCESS, perform Pass C EXPECTED-vs-IMPLEMENTED-vs-VERIFIED reconciliation, update packet/status/coverage evidence, and only then decide acceptance. WP-2.9 remains untouched.
+1. WP-2.8C Pass A is **PASS** on `e7510b64471a85b3894ba26345df7fe71533b1c3` / `34628542194` — 5/5.
+2. WP-2.8C fresh post-remediation Pass B is **PASS** on `5e4246e6f63db899fb8a683d9381614a6ee75b11` / `34785068206` — 5/5; findings ∅.
+3. WP-2.8C Pass-C entry `fc2358a85cb367a7f3aa17cc9757a00c5888ed39` / `34785516861` — 5/5.
+4. `WP-2.8C-ACCEPTANCE.md` mechanically reconciles required-minus-implemented-minus-verified = **∅**.
+5. Current gate: complete packet/status/coverage/FIR acceptance-governance reconciliation, then require exact-head **5/5 SUCCESS**. Only after that may C be marked durably `ACCEPTED / COMPLETE` and WP-2.9 become `PLANNED / NEXT`.
 
 ## Known localized specification repairs / stop-conditions
 
@@ -117,9 +108,9 @@ Whole `FTR-024` / `FTR-092` remains incomplete because WP-2.11, WP-2.12 and late
 - WP-2.8 media split/type/category/remote lifecycle ambiguity: **CLOSED / VERIFIED**.
 - WP-2.8A URL/replay identity parity: **CLOSED / VERIFIED**.
 - WP-2.8B private lifecycle/Storage↔DB recovery contract: **CLOSED / VERIFIED**.
-- WP-2.8B MED-006 finalization receipt gap: **CLOSED / VERIFIED** by `f815844...` / `34605466532`, fresh affected Pass B PASS and Pass-C reconciliation.
-- WP-2.8C optimistic revision/receipt activation detail: **CLOSED / VERIFIED** by specification freeze `36ef31089dcbab50221b90a559480cc091d99fba` / `34618247634` — **5/5 SUCCESS**.
-- WP-2.8C active-provider deleted-row fail-closed gap (`WP28C-AR-001`): **CLOSED / VERIFIED** by `4db24a300282816e05e839e4b3ad132a89c5a167` / `34630386585`.
+- WP-2.8B MED-006 finalization receipt gap: **CLOSED / VERIFIED**.
+- WP-2.8C optimistic revision/receipt activation detail: **CLOSED / VERIFIED** by `36ef310...` / `34618247634`.
+- WP-2.8C active-provider deleted-row gap (`WP28C-AR-001`): **CLOSED / VERIFIED** by `4db24a300282816e05e839e4b3ad132a89c5a167` / `34630386585`.
 - WP-2.8C lifecycle adversarial evidence gap (`WP28C-AR-002`): **CLOSED / VERIFIED** by `5e4246e6f63db899fb8a683d9381614a6ee75b11` / `34785068206`; fresh Pass B PASS.
 
 ## Lot status
@@ -139,16 +130,15 @@ Lot 0: ACCEPTED
 Lot 1: ACCEPTED
 Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
-Accepted Lot-2 packets: WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5, WP-2.6A, WP-2.6B, WP-2.6C, WP-2.6D, WP-2.7, WP-2.8A, WP-2.8B
-Last completed packet: WP-2.8B — ACCEPTED / COMPLETE
-Current packet: WP-2.8C — ACCEPTANCE_PENDING / C-ACCEPTANCE
-Next packet: WP-2.9 — PLANNED
+Accepted durable Lot-2 packets: WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5, WP-2.6A, WP-2.6B, WP-2.6C, WP-2.6D, WP-2.7, WP-2.8A, WP-2.8B
+Current packet: WP-2.8C — ACCEPTED BY PASS C / FINAL CI PENDING
+Next packet: WP-2.9 — PLANNED (not active)
 WP-2.8C Pass-A final: e7510b64471a85b3894ba26345df7fe71533b1c3 / 34628542194 — 5/5 SUCCESS
-WP-2.8C AR-001 remediation: 4db24a300282816e05e839e4b3ad132a89c5a167 / 34630386585 — SUCCESS
 WP-2.8C fresh Pass-B checkpoint: 5e4246e6f63db899fb8a683d9381614a6ee75b11 / 34785068206 — 5/5 SUCCESS
+WP-2.8C Pass-C entry: fc2358a85cb367a7f3aa17cc9757a00c5888ed39 / 34785516861 — 5/5 SUCCESS
+WP-2.8C Pass-C reconciliation: WP-2.8C-ACCEPTANCE.md — PASS, gap ∅
 WP-2.8C open BLOCKING/MAJOR/MINOR-carried findings: ∅
-Current gate: exact-head CI for ACCEPTANCE_PENDING / C-ACCEPTANCE governance transition
-Next permitted action after that gate is 5/5 SUCCESS: Pass C mechanical acceptance/reconciliation
-No WP-2.9 work while WP-2.8C is active
+Current gate: exact-head CI for final acceptance-governance reconciliation
+No WP-2.9 work until WP-2.8C durable closure
 Lots 3–12: NOT_STARTED
 ```
