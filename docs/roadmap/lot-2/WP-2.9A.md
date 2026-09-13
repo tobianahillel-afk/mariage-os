@@ -5,10 +5,11 @@
 - Work Packet ID: `WP-2.9A`
 - Lot: `2`
 - Name: Venue-linked private document foundation
-- State: `PLANNED`
-- Current pass: `PLAN / ACTIVATION SPECIFICATION FREEZE`
+- State: `READY`
+- Current pass: `A-READY`
 - Primary bounded context: Documents — private PDF metadata, Venue links, Storage lifecycle and recoverable metadata
 - Branch/PR: `lot-2/venues-core` / Lot-2 integration PR not opened yet
+- FIR: `#17 / FTR-089`
 
 ## Why the original WP-2.9 is split
 
@@ -23,7 +24,7 @@ Activation revalidation of the former monolithic `WP-2.9 — venue document/tag/
 | new RLS/privileged authorization boundary | 2 |
 | **Conservative total** | **12** |
 
-`AI-LOT-ORCHESTRATION.md` requires packets above 10 points to split unless splitting would make safety materially worse. There is no such atomicity reason here: tags do not participate in document binary commit/recovery. The original WP-2.9 is therefore decomposed before READY into:
+`AI-LOT-ORCHESTRATION.md` requires packets above 10 points to split unless splitting would make safety materially worse. There is no such atomicity reason here: tags do not participate in document binary commit/recovery. The original WP-2.9 is therefore decomposed before implementation into:
 
 1. **WP-2.9A** — private Documents + `document_links` + Storage lifecycle;
 2. **WP-2.9B** — project Tags + Venue `entity_tags` basics.
@@ -171,7 +172,7 @@ Public action allowlist for WP-2.9A:
 - `soft_delete`;
 - `restore`.
 
-The implementation may choose one public RPC with an action union or a small cohesive function family, but before Pass A begins the READY contract must preserve one reviewable authorization/replay boundary with these exact capabilities and no hidden generic table mutation escape hatch.
+The implementation may choose one public RPC with an action union or a small cohesive function family, but Pass A must preserve one reviewable authorization/replay boundary with these exact capabilities and no hidden generic table mutation escape hatch.
 
 The command boundary must:
 
@@ -275,16 +276,17 @@ A 10-point packet requires explicit cohesion review. **Cohesion: PASS.** Splitti
 - private filename absent from Storage path and privacy-safe artifact/log checks;
 - accepted WP-2.8 media behavior remains green.
 
-## Activation gate
+## Activation evidence / current gate
 
-This file is the **specification freeze**, not READY authorization.
+Split/specification freeze `40f17aba802e7faed9eade6096e2f3629fc80654` / CI `34788217062` is **5/5 SUCCESS**, including clean-checkout `npm run verify`.
 
-After the split/freeze commit itself passes exact-head **5/5 SUCCESS** including clean-checkout:
+FIR: GitHub issue `#17 — FTR-089`.
 
-1. create/update the FTR-089 FIR with this frozen slice;
-2. perform a separate `PLANNED → READY / A-READY` governance commit for WP-2.9A;
-3. require that READY head to pass exact-head 5/5;
-4. only then may a separate `READY → IN_PROGRESS / A-IMPLEMENT` transition occur;
-5. implementation begins RED-first after the IN_PROGRESS gate is green.
+This packet is now **READY / A-READY**, but product implementation is still prohibited until:
 
-No WP-2.9A product code is authorized while this packet remains `PLANNED`.
+1. this READY governance HEAD itself passes exact-head **5/5 SUCCESS** including clean checkout;
+2. a separate `READY → IN_PROGRESS / A-IMPLEMENT` governance transition is committed;
+3. that IN_PROGRESS HEAD itself passes exact-head 5/5;
+4. Pass A then begins RED-first.
+
+WP-2.9B remains `PLANNED / AFTER A` and cannot activate while A is active.

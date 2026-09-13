@@ -39,7 +39,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.8A | Venue remote-image metadata and Venue links | **ACCEPTED / COMPLETE** |
 | WP-2.8B | Venue private archived media lifecycle | **ACCEPTED / COMPLETE** |
 | WP-2.8C | recoverable Venue remote-media metadata lifecycle | **ACCEPTED / COMPLETE** |
-| WP-2.9A | Venue-linked private PDF/document foundation | **PLANNED / NEXT** |
+| WP-2.9A | Venue-linked private PDF/document foundation | **READY / CURRENT** |
 | WP-2.9B | generic project tags and Venue entity-tag links | **PLANNED / AFTER A** |
 | WP-2.10 | repositories, local cache, pending/offline mutations | PLANNED |
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace | PLANNED |
@@ -63,26 +63,20 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 
 ## WP-2.9 activation revalidation / split freeze
 
-The former monolithic `WP-2.9 — venue document/tag/link basics` was revalidated before activation and **must not be implemented as one packet**.
+The former monolithic `WP-2.9 — venue document/tag/link basics` was revalidated before activation and split before code because its conservative orchestration score was **12 points** (>10).
 
-Conservative unsplit complexity is **12 points**:
-
-- Documents/Tags bounded responsibility: 3;
-- four new tables (`documents`, `document_links`, `tags`, `entity_tags`): 4;
-- migration family: 1;
-- protected private-file lifecycle capability: 2;
-- new authorization/RLS boundary: 2.
-
-Because `>10` must split under `AI-LOT-ORCHESTRATION.md`, the durable decomposition is:
+Durable decomposition:
 
 ### WP-2.9A — Venue-linked private document foundation
 
-- **PLANNED / NEXT**; not READY and not active.
+- **READY / A-READY / CURRENT**.
+- FIR: GitHub issue `#17 / FTR-089`.
 - Owns FTR-089 Lot-2, `MED-001/002/003/008/010`, ordinary private PDF metadata, `document_links` to Venue, private Storage lifecycle, provenance, read/download authorization and recoverable metadata soft-delete/restore.
 - Reuses `project-private` with canonical `<project_id>/documents/<document_id>/original` path.
 - Uses existing `documents.read` / `documents.write`; no new permission key.
-- Size: **10 points**, explicit cohesion review **PASS** because metadata/link/Storage reservation-finalization are one private-file truth boundary.
-- Packet freeze: `docs/roadmap/lot-2/WP-2.9A.md`.
+- Size: **10 points**, explicit cohesion review **PASS**.
+- Split/specification freeze `40f17aba802e7faed9eade6096e2f3629fc80654` / CI `34788217062` — **5/5 SUCCESS**, clean-checkout included.
+- Packet: `docs/roadmap/lot-2/WP-2.9A.md`.
 
 ### WP-2.9B — Generic project tags and Venue entity-tag links
 
@@ -90,20 +84,20 @@ Because `>10` must split under `AI-LOT-ORCHESTRATION.md`, the durable decomposit
 - Owns FTR-093 Lot-2, `tags`, `entity_tags`, active-key uniqueness, recoverable tag deletion and same-project Venue assignment.
 - No new `tags.*` permission key: tag dictionary read uses `project.read`, dictionary mutation uses `project.settings.update`, Venue assignment read/write uses `venues.read` / `venues.write`.
 - Size: **8 points**, cohesion **PASS**.
-- Packet freeze: `docs/roadmap/lot-2/WP-2.9B.md`.
+- Packet: `docs/roadmap/lot-2/WP-2.9B.md`.
 
-The split also repairs Lot-2 traceability by assigning `MED-008` explicitly to WP-2.9A, matching the frozen requirement-feature matrix for FTR-089.
-
-No product implementation, migration, FIR activation or READY transition is part of this split freeze.
+The split repairs Lot-2 traceability by assigning `MED-008` explicitly to WP-2.9A, matching the frozen requirement-feature matrix for FTR-089.
 
 ## Current next-action gate
 
 1. WP-2.8C is durably **ACCEPTED / COMPLETE** on `7f97ab8bab9c60ba538b5c900845ca77e9b9f34c` / CI `34786974129` — **5/5 SUCCESS**.
-2. The former WP-2.9 has been revalidated and decomposed into WP-2.9A/B before activation.
-3. Current gate: exact-head CI for the **2.9 split/specification-freeze commit**.
-4. If that freeze head is **5/5 SUCCESS**, create the FTR-089 FIR and make a separate `WP-2.9A PLANNED → READY / A-READY` governance transition.
-5. Product implementation remains prohibited until the READY head itself is 5/5 and the separate `READY → IN_PROGRESS / A-IMPLEMENT` gate is also green.
-6. WP-2.9B, WP-2.10 and later packets remain untouched while WP-2.9A is active.
+2. WP-2.9 split/specification freeze `40f17aba802e7faed9eade6096e2f3629fc80654` / `34788217062` — **5/5 SUCCESS**.
+3. FTR-089 FIR is issue `#17`.
+4. Current packet: **WP-2.9A / READY / A-READY**.
+5. Current gate: exact-head CI for this READY governance transition.
+6. Only if the READY head is **5/5 SUCCESS**, make the separate docs-only `READY → IN_PROGRESS / A-IMPLEMENT` transition.
+7. Product implementation remains prohibited until the IN_PROGRESS head is itself 5/5; Pass A then begins RED-first.
+8. WP-2.9B, WP-2.10 and later packets remain untouched while WP-2.9A is active.
 
 ## Known localized specification repairs / stop-conditions
 
@@ -115,7 +109,7 @@ No product implementation, migration, FIR activation or READY transition is part
 - WP-2.8A URL/replay identity parity: **CLOSED / VERIFIED**.
 - WP-2.8B private lifecycle/Storage↔DB recovery and MED-006 receipt: **CLOSED / VERIFIED**.
 - WP-2.8C optimistic revision/provider/adversarial gaps: **CLOSED / VERIFIED**.
-- WP-2.9 pre-activation sizing and missing MED-008 traceability: **CLOSED AT SPEC LEVEL** by the 2.9A/B split; freeze CI still required before READY.
+- WP-2.9 pre-activation sizing and missing MED-008 traceability: **CLOSED / VERIFIED** by split freeze `40f17aba...` / `34788217062` 5/5.
 
 ## Lot status
 
@@ -136,13 +130,14 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5, WP-2.6A, WP-2.6B, WP-2.6C, WP-2.6D, WP-2.7, WP-2.8A, WP-2.8B, WP-2.8C
 Last completed packet: WP-2.8C — ACCEPTED / COMPLETE
-Current packet: none active
-Next packet: WP-2.9A — PLANNED / NEXT
+Current packet: WP-2.9A — READY / A-READY
+FTR-089 FIR: #17
 Following packet: WP-2.9B — PLANNED / AFTER A
 WP-2.9A size: 10 points — cohesion PASS
 WP-2.9B size: 8 points — cohesion PASS
-Current gate: exact-head CI for WP-2.9 split/specification freeze
-Next permitted action after freeze 5/5: create FTR-089 FIR, then separate WP-2.9A PLANNED → READY gate
-No WP-2.9 product implementation before READY and IN_PROGRESS gates
+Split/spec freeze: 40f17aba802e7faed9eade6096e2f3629fc80654 / 34788217062 — 5/5 SUCCESS
+Current gate: exact-head CI for WP-2.9A READY governance
+Next permitted action after READY 5/5: separate WP-2.9A READY → IN_PROGRESS / A-IMPLEMENT gate
+No WP-2.9 product implementation before IN_PROGRESS gate is green
 Lots 3–12: NOT_STARTED
 ```

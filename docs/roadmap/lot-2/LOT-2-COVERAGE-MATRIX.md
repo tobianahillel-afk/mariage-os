@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1..WP-2.8C ACCEPTED; WP-2.9A PLANNED / NEXT; WP-2.9B PLANNED**
+Status: **IN_PROGRESS — WP-2.1..WP-2.8C ACCEPTED; WP-2.9A READY / CURRENT; WP-2.9B PLANNED**
 
 Purpose: durable current responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`. Detailed historical packet evidence remains in each packet record, acceptance record, FIR and Git history.
 
@@ -36,7 +36,7 @@ Lot 2 reuses the accepted Lot-1 project/auth/RLS/local-data/Storage foundations 
 | remote image references | FTR-024, VEN-013, MED-007/008/013 | WP-2.8A, WP-2.11 | WP-2.8A **ACCEPTED**; rendering/UI downstream |
 | private archived Venue image lifecycle, immutable originals/derivatives, hash detection, orphan recovery, private Storage | FTR-024 private slice, FTR-092 Lot-2, VEN-013, MED-004/005/006/009/010, ACC-055/056/058 | WP-2.8B | **ACCEPTED / COMPLETE**, gap ∅ |
 | recoverable remote-media metadata soft-delete/restore | FTR-024/FTR-092 Lot-2 continuation; MED-007/010/013 applicable; MED-008 regression; deletion-retention rule | WP-2.8C | **ACCEPTED / COMPLETE**, gap ∅; durable closure `7f97ab8...` / `34786974129` 5/5 |
-| Venue-linked ordinary private documents, PDF Storage lifecycle, provenance and document links | FTR-089 Lot-2; MED-001/002/003/008/010; PRD-008 current-Lot link slice; file-security/deletion-retention controls | WP-2.9A, WP-2.11 | **WP-2.9A PLANNED / NEXT**; activation freeze created, CI required before READY; presentation downstream WP-2.11 |
+| Venue-linked ordinary private documents, PDF Storage lifecycle, provenance and document links | FTR-089 Lot-2; MED-001/002/003/008/010; PRD-008 current-Lot link slice; file-security/deletion-retention controls | WP-2.9A, WP-2.11 | **WP-2.9A READY / A-READY / CURRENT**; split freeze `40f17aba...` / `34788217062` 5/5; FIR #17; presentation downstream WP-2.11 |
 | generic project Tags and Venue entity-tag assignments | FTR-093 Lot-2; PHYSICAL-SCHEMA tags/entity_tags; deletion-retention; same-project target integrity | WP-2.9B, WP-2.11 | **WP-2.9B PLANNED / AFTER A**; UI downstream |
 | repository/read-model ports and Supabase adapters follow accepted architecture | architecture, AUTHZ-006/020 | WP-2.1..WP-2.10 | accepted packets green; future packets responsible when introduced |
 | local cache/pending Venue edits reuse account+project+device LocalProjectStore | FTR-028 Lot-2, SYN-001..003/007..011, PWA-003/004/006 | WP-2.10, WP-2.12 | PLANNED |
@@ -46,7 +46,7 @@ Lot 2 reuses the accepted Lot-1 project/auth/RLS/local-data/Storage foundations 
 | compare 2–5 candidates, blockers before score, ratings separate from facts | FTR-027, VEN-010/011 | WP-2.11 | PLANNED |
 | protected Venue deep links and generic outsider denial | routing responsibility, VEN-014 | WP-2.11 | PLANNED |
 | mobile visit mode with cached detail/checklist/notes/measurement/photo/rating/finish summary | FTR-028, PWA-004 | WP-2.12 | PLANNED |
-| file/content validation and no private production data in public fixtures/artifacts | MED-002/003/009/010/013 + security/quality controls | WP-2.8A/B/C, WP-2.9A, WP-2.12 as applicable | media foundation accepted; 2.9A planned; future owners remain |
+| file/content validation and no private production data in public fixtures/artifacts | MED-002/003/009/010/013 + security/quality controls | WP-2.8A/B/C, WP-2.9A, WP-2.12 as applicable | media foundation accepted; 2.9A READY; future owners remain |
 | explicit permissions/grants/RLS and direct allow+deny evidence for every new resource | AUTHZ-001..009/012/017/018/020 | owning packets WP-2.1..WP-2.9B | accepted packet evidence green; 2.9A/B direct matrices required |
 | synthetic complex Venue exit fixture and integrated workflows | Lot-2 acceptance | WP-2.12 + Lot Integration Pass | downstream |
 | Lot reconciliation + separate Integration Pass | AI-LOT-ORCHESTRATION | after WP-2.1..WP-2.12 | downstream |
@@ -55,22 +55,11 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 
 Accepted/evidenced packet responsibilities so far: **WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5, WP-2.6A, WP-2.6B, WP-2.6C, WP-2.6D, WP-2.7, WP-2.8A, WP-2.8B, WP-2.8C**.
 
-The pre-activation 2.9 decomposition changes packet boundaries only. It does not claim implementation or acceptance evidence.
+The pre-activation 2.9 decomposition changed packet boundaries only; the split freeze is now mechanically green but does not claim implementation evidence for A/B.
 
 ## WP-2.9 pre-activation split reconciliation
 
-The former single WP-2.9 was conservatively **12 points**:
-
-| Complexity source | Points |
-|---|---:|
-| changed Documents/Tags responsibility | 3 |
-| four new tables | 4 |
-| migration family | 1 |
-| protected private-file capability | 2 |
-| RLS/privileged boundary | 2 |
-| **Total** | **12** |
-
-Because `>10`, `AI-LOT-ORCHESTRATION.md` requires a split. No safety/atomicity reason couples Tags to document binary commit/recovery.
+The former single WP-2.9 was conservatively **12 points** and therefore split before code under `AI-LOT-ORCHESTRATION.md`.
 
 ### WP-2.9A
 
@@ -81,7 +70,10 @@ Because `>10`, `AI-LOT-ORCHESTRATION.md` requires a split. No safety/atomicity r
 - same-project Venue links and Source provenance;
 - recoverable metadata soft-delete/restore;
 - existing `documents.read` / `documents.write` authorization;
-- size **10**, cohesion review **PASS**.
+- size **10**, cohesion review **PASS**;
+- split/specification freeze `40f17aba802e7faed9eade6096e2f3629fc80654` / CI `34788217062` — **5/5 SUCCESS**, clean-checkout included;
+- FIR `#17 / FTR-089`;
+- current state **READY / A-READY**.
 
 The inclusion of `MED-008` repairs a traceability omission in the old WP-2.9 row; the frozen requirement-feature matrix already maps MED-008 to FTR-089.
 
@@ -92,7 +84,8 @@ The inclusion of `MED-008` repairs a traceability omission in the old WP-2.9 row
 - project tag dictionary + same-project Venue assignments;
 - tag recovery semantics;
 - existing permissions reused: `project.read`, `project.settings.update`, `venues.read`, `venues.write`;
-- size **8**, cohesion **PASS**.
+- size **8**, cohesion **PASS**;
+- remains **PLANNED / AFTER A**.
 
 Required former-WP-2.9 current-Lot responsibilities minus assigned WP-2.9A/B responsibilities: **∅**.
 
@@ -113,8 +106,8 @@ Required former-WP-2.9 current-Lot responsibilities minus assigned WP-2.9A/B res
 | WP-2.8A | **ACCEPTED / COMPLETE** | remote-image metadata/Venue links; packet acceptance + coverage reconciliation both 5/5 |
 | WP-2.8B | **ACCEPTED / COMPLETE** | private archive lifecycle; `WP-2.8B-ACCEPTANCE.md`, gap ∅ |
 | WP-2.8C | **ACCEPTED / COMPLETE** | recoverable remote metadata lifecycle; `WP-2.8C-ACCEPTANCE.md`, gap ∅; durable closure `7f97ab8...` / `34786974129` 5/5 |
-| WP-2.9A | **PLANNED / NEXT** | Venue-linked private PDF/document foundation; `WP-2.9A.md`; split/spec-freeze CI required before READY |
-| WP-2.9B | **PLANNED / AFTER A** | generic project Tags + Venue entity-tags; `WP-2.9B.md`; cannot activate until A accepted |
+| WP-2.9A | **READY / A-READY / CURRENT** | Venue-linked private PDF/document foundation; split freeze `40f17aba...` / `34788217062` 5/5; FIR #17; READY exact-head CI now required |
+| WP-2.9B | **PLANNED / AFTER A** | generic project Tags + Venue entity-tags; cannot activate until A accepted |
 | WP-2.10 | PLANNED | repositories/local cache/pending offline mutations |
 | WP-2.11 | PLANNED | gallery/table/detail/compare/deep-link workspace |
 | WP-2.12 | PLANNED | mobile/offline Venue visit + packet E2E completion |
@@ -146,7 +139,7 @@ WP-2.1 [ACCEPTED]
               → WP-2.8A [ACCEPTED]
                 → WP-2.8B [ACCEPTED]
                   → WP-2.8C [ACCEPTED]
-                    → WP-2.9A [PLANNED / NEXT]
+                    → WP-2.9A [READY / CURRENT]
                       → WP-2.9B [PLANNED]
                         → WP-2.10
                           → WP-2.11
@@ -155,7 +148,7 @@ WP-2.1 [ACCEPTED]
                                 → Integration Pass
 ```
 
-Only one packet may be active. WP-2.9A is not implementation-authorized until this split/specification freeze is exact-head green, followed by separate `PLANNED → READY` and `READY → IN_PROGRESS` exact-head gates. WP-2.9B remains inactive until WP-2.9A is accepted.
+Only one packet may be active. WP-2.9A product implementation remains prohibited until this READY governance head passes exact-head 5/5 and a separate `READY → IN_PROGRESS / A-IMPLEMENT` head also passes exact-head 5/5. WP-2.9B remains inactive until WP-2.9A is accepted.
 
 ## Explicitly outside Lot 2
 
@@ -182,9 +175,9 @@ former WP-2.9 required current-Lot responsibilities
 - assigned WP-2.9B responsibilities
 = ∅
 
-WP-2.9A state = PLANNED / NEXT
+WP-2.9A state = READY / A-READY
 WP-2.9B state = PLANNED / AFTER A
-product implementation authorized = no
+WP-2.9A product implementation authorized = no, pending READY exact-head 5/5 then separate IN_PROGRESS gate
 ```
 
 Lot-level accepted/evidenced reconciliation remains intentionally incomplete until WP-2.9A/B, WP-2.10..WP-2.12 and the separate Lot Integration Pass are accepted.
