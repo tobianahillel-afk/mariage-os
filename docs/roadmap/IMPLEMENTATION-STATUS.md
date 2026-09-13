@@ -2,7 +2,7 @@
 
 Status: **Living repository source of truth for development progress**
 
-This board is intentionally current and context-free. Exhaustive historical packet evidence remains in packet records, coverage matrices and Git history.
+This board is intentionally current and context-free. Exhaustive historical packet evidence remains in packet records, coverage matrices, FIRs and Git history.
 
 ## Current phase
 
@@ -18,85 +18,92 @@ This board is intentionally current and context-free. Exhaustive historical pack
 
 `main` integration truth after accepted Lot 0 + Lot 1 promotion is `f6da05626f024431230ae46ca1ec8a4becc72a1f` (PR #7). Promotion CI `34030211097`: **5/5 SUCCESS**, including clean-checkout `npm run verify`.
 
+Lot-2 branch: `lot-2/venues-core`.
+
 ## Lot 2 — packet status
 
 Required current-lot responsibilities minus assigned packet responsibilities: **∅**.
 
 | Packet | Responsibility | State |
 |---|---|---|
-| WP-2.1 | venue identity, authorized persistence, lifecycle history | **ACCEPTED** |
-| WP-2.2 | spaces, capacity, member ratings/preferences | **ACCEPTED** |
-| WP-2.3 | fact definitions, typed retained facts, value validation | **ACCEPTED** |
-| WP-2.4 | observations, sources, evidence/confidence/freshness, conflicts | **ACCEPTED** |
-| WP-2.5 | deterministic criteria, blockers, score/readiness, missing information | **ACCEPTED** |
-| WP-2.6A | Venue offers and offer components | **ACCEPTED** |
-| WP-2.6B | Venue availability observations | **ACCEPTED** |
-| WP-2.6C | Venue contacts | **ACCEPTED** |
-| WP-2.6D | Venue interaction history | **ACCEPTED** |
-| WP-2.7 | contextual venue access-route observations | **ACCEPTED** |
-| WP-2.8A | Venue remote-image metadata and Venue links | **ACCEPTED** |
+| WP-2.1 | venue identity, authorized persistence, lifecycle history | **ACCEPTED / COMPLETE** |
+| WP-2.2 | spaces, capacity, member ratings/preferences | **ACCEPTED / COMPLETE** |
+| WP-2.3 | fact definitions, typed retained facts, value validation | **ACCEPTED / COMPLETE** |
+| WP-2.4 | observations, sources, evidence/confidence/freshness, conflicts | **ACCEPTED / COMPLETE** |
+| WP-2.5 | deterministic criteria, blockers, score/readiness, missing information | **ACCEPTED / COMPLETE** |
+| WP-2.6A | Venue offers and offer components | **ACCEPTED / COMPLETE** |
+| WP-2.6B | Venue availability observations | **ACCEPTED / COMPLETE** |
+| WP-2.6C | Venue contacts | **ACCEPTED / COMPLETE** |
+| WP-2.6D | Venue interaction history | **ACCEPTED / COMPLETE** |
+| WP-2.7 | contextual venue access-route observations | **ACCEPTED / COMPLETE** |
+| WP-2.8A | Venue remote-image metadata and Venue links | **ACCEPTED / COMPLETE** |
 | WP-2.8B | Venue private archived media lifecycle | **ACCEPTED / COMPLETE** |
 | WP-2.8C | recoverable Venue remote-media metadata lifecycle | **ACCEPTED / COMPLETE** |
-| WP-2.9 | venue document/tag/link basics | **PLANNED / NEXT** |
+| WP-2.9A | Venue-linked private PDF/document foundation | **PLANNED / NEXT** |
+| WP-2.9B | generic project tags and Venue entity-tag links | **PLANNED / AFTER A** |
 | WP-2.10 | repositories, local cache, pending/offline mutations | PLANNED |
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace | PLANNED |
 | WP-2.12 | mobile/offline venue-visit workflow and packet E2E completion | PLANNED |
 
 ## Accepted packet evidence summary
 
-- WP-2.1 **ACCEPTED**; governance CI `34040803267` **5/5 SUCCESS**.
-- WP-2.2 **ACCEPTED**; governance CI `34048565452` **5/5 SUCCESS**.
-- WP-2.3 **ACCEPTED**; final reviewed head `2e3194f7109eb30eee4e73ace7ecbdd329fd321c`, CI `34068703691` **5/5 SUCCESS**.
-- WP-2.4 **ACCEPTED**; final fresh reviewed head `93262f9459e720d97a6dfa3a83f84f02f3a02c7c`, CI `34137822804` **5/5 SUCCESS**.
-- WP-2.5 **ACCEPTED**; final acceptance governance `902ac6f56b84fed56da0113efc610617943e9449` / `34167062632` **5/5 SUCCESS**.
-- WP-2.6A **ACCEPTED**; `186933ed0af8c45ddaa1b5c883bfd3f70086c6fe` / `34238484533` **5/5 SUCCESS**.
-- WP-2.6B **ACCEPTED**; `8911f1523d96b95cf1329c4b144bfec2356a4a47` / `34275967235` **5/5 SUCCESS**.
-- WP-2.6C **ACCEPTED**; `f6c93b7991d832363da92a9081540b9bad95441b` / `34287865010` attempt 2 **5/5 SUCCESS**.
-- WP-2.6D **ACCEPTED**; `767017112445a38863abd114e8c62feb27af6421` / `34322712448` **5/5 SUCCESS**.
-- WP-2.7 **ACCEPTED / COMPLETE**; `db1dae663129c3281618c932fa7f5a8184a5a2ad` / `34377221997` **5/5 SUCCESS**; responsibility gap **∅**.
-- WP-2.8A **ACCEPTED / COMPLETE**; packet acceptance `925cf86f3e38bf08807ed408f6d100fbbbd5c9c2` / `34418721439` and coverage reconciliation `432e0cf893e0adc079ba3c25eb325efb9d01e3ec` / `34420275595` — **5/5 SUCCESS**; responsibility gap **∅**.
-- WP-2.8B **ACCEPTED / COMPLETE** by Pass-C reconciliation `lot-2/WP-2.8B-ACCEPTANCE.md`; acceptance-governance `3b28c7b734a2258db455bbdabb567fcee2ee2bd1` / `34615830961` and durable closure `8317125183bc5521d6d4aac8e132f64a57aa4ca8` / `34616938470` — both **5/5 SUCCESS**, clean-checkout included; responsibility gap **∅**.
-- WP-2.8C **ACCEPTED / COMPLETE** by `lot-2/WP-2.8C-ACCEPTANCE.md`; Pass-A `e7510b64471a85b3894ba26345df7fe71533b1c3` / `34628542194` **5/5 SUCCESS**; fresh Pass-B checkpoint `5e4246e6f63db899fb8a683d9381614a6ee75b11` / `34785068206` **5/5 SUCCESS**; Pass-C entry `fc2358a85cb367a7f3aa17cc9757a00c5888ed39` / `34785516861` **5/5 SUCCESS**; acceptance-governance `ecaa3900bbccd070e613e51bc99f3f133b436d0f` / `34786115925` **5/5 SUCCESS**, clean-checkout included; responsibility gap **∅**, open BLOCKING/MAJOR/MINOR-carried findings **∅**.
+- WP-2.1: governance CI `34040803267` — **5/5 SUCCESS**.
+- WP-2.2: governance CI `34048565452` — **5/5 SUCCESS**.
+- WP-2.3: `2e3194f7109eb30eee4e73ace7ecbdd329fd321c` / `34068703691` — **5/5 SUCCESS**.
+- WP-2.4: `93262f9459e720d97a6dfa3a83f84f02f3a02c7c` / `34137822804` — **5/5 SUCCESS**.
+- WP-2.5: `902ac6f56b84fed56da0113efc610617943e9449` / `34167062632` — **5/5 SUCCESS**.
+- WP-2.6A: `186933ed0af8c45ddaa1b5c883bfd3f70086c6fe` / `34238484533` — **5/5 SUCCESS**.
+- WP-2.6B: `8911f1523d96b95cf1329c4b144bfec2356a4a47` / `34275967235` — **5/5 SUCCESS**.
+- WP-2.6C: `f6c93b7991d832363da92a9081540b9bad95441b` / `34287865010` attempt 2 — **5/5 SUCCESS**.
+- WP-2.6D: `767017112445a38863abd114e8c62feb27af6421` / `34322712448` — **5/5 SUCCESS**.
+- WP-2.7: `db1dae663129c3281618c932fa7f5a8184a5a2ad` / `34377221997` — **5/5 SUCCESS**, gap **∅**.
+- WP-2.8A: packet acceptance `925cf86f3e38bf08807ed408f6d100fbbbd5c9c2` / `34418721439`; coverage reconciliation `432e0cf893e0adc079ba3c25eb325efb9d01e3ec` / `34420275595` — both **5/5 SUCCESS**, gap **∅**.
+- WP-2.8B: acceptance-governance `3b28c7b734a2258db455bbdabb567fcee2ee2bd1` / `34615830961`; durable closure `8317125183bc5521d6d4aac8e132f64a57aa4ca8` / `34616938470` — both **5/5 SUCCESS**, clean-checkout included, gap **∅**.
+- WP-2.8C: Pass-A `e7510b64471a85b3894ba26345df7fe71533b1c3` / `34628542194`; fresh Pass-B `5e4246e6f63db899fb8a683d9381614a6ee75b11` / `34785068206`; Pass-C entry `fc2358a85cb367a7f3aa17cc9757a00c5888ed39` / `34785516861`; acceptance-governance `ecaa3900bbccd070e613e51bc99f3f133b436d0f` / `34786115925`; durable closure `7f97ab8bab9c60ba538b5c900845ca77e9b9f34c` / `34786974129` — final closure **5/5 SUCCESS**, clean-checkout included, gap **∅**.
 
-## WP-2.8 media foundation
+## WP-2.9 activation revalidation / split freeze
 
-### WP-2.8A — remote-image metadata and links
+The former monolithic `WP-2.9 — venue document/tag/link basics` was revalidated before activation and **must not be implemented as one packet**.
 
-- **ACCEPTED / COMPLETE**.
-- Owns remote image metadata, same-project Venue gallery links, privacy-safe/canonical remote URL persistence and accepted provider boundaries.
-- Does not own private binary lifecycle, recoverable remote metadata deletion, rendering/UI or offline capture.
+Conservative unsplit complexity is **12 points**:
 
-### WP-2.8B — private archived media lifecycle
+- Documents/Tags bounded responsibility: 3;
+- four new tables (`documents`, `document_links`, `tags`, `entity_tags`): 4;
+- migration family: 1;
+- protected private-file lifecycle capability: 2;
+- new authorization/RLS boundary: 2.
 
-- **ACCEPTED / COMPLETE** through Pass A/B/C.
-- Final acceptance-governance: `3b28c7b734a2258db455bbdabb567fcee2ee2bd1` / CI `34615830961` — **5/5 SUCCESS**, clean-checkout included.
-- Durable closure/status: `8317125183bc5521d6d4aac8e132f64a57aa4ca8` / CI `34616938470` — **5/5 SUCCESS**, clean-checkout included.
-- Packet record: `lot-2/WP-2.8B.md`; Pass-C reconciliation: `lot-2/WP-2.8B-ACCEPTANCE.md`.
-- Required WP-2.8B responsibility gap: **∅**.
+Because `>10` must split under `AI-LOT-ORCHESTRATION.md`, the durable decomposition is:
 
-### WP-2.8C — recoverable remote-media metadata lifecycle
+### WP-2.9A — Venue-linked private document foundation
 
-- **ACCEPTED / COMPLETE** through Pass A/B/C.
-- Packet record: `lot-2/WP-2.8C.md`; Pass-C reconciliation: `lot-2/WP-2.8C-ACCEPTANCE.md`.
-- Activation specification freeze `36ef31089dcbab50221b90a559480cc091d99fba` / `34618247634` — **5/5 SUCCESS**.
-- READY governance `5e6f3c02b97eaafa630d809debc9c09d94bfc40e` / `34620073715` — **5/5 SUCCESS**.
-- Pass-A final `e7510b64471a85b3894ba26345df7fe71533b1c3` / `34628542194` — **5/5 SUCCESS**.
-- Pass B found `WP28C-AR-001` and `WP28C-AR-002`; both are **CLOSED / VERIFIED**. Fresh reviewed checkpoint `5e4246e6f63db899fb8a683d9381614a6ee75b11` / `34785068206` — **5/5 SUCCESS**.
-- Pass-C entry `fc2358a85cb367a7f3aa17cc9757a00c5888ed39` / `34785516861` — **5/5 SUCCESS**.
-- Pass-C mechanical result: required-minus-implemented-minus-verified **∅**; open BLOCKING/MAJOR/MINOR-carried findings **∅**.
-- Acceptance-governance `ecaa3900bbccd070e613e51bc99f3f133b436d0f` / `34786115925` — **5/5 SUCCESS**, including clean-checkout `npm run verify`.
-- Owns `deleted_at` soft-delete/restore, active-read query+parser filtering, retained Venue media/link identity and provenance, no-op same-state replay, optimistic revision protection, live `media.write` authorization/non-disclosure and direct mutation denial.
-- C never targets B private media or Storage objects and does not own global physical purge/trash UI, presentation or offline behavior.
+- **PLANNED / NEXT**; not READY and not active.
+- Owns FTR-089 Lot-2, `MED-001/002/003/008/010`, ordinary private PDF metadata, `document_links` to Venue, private Storage lifecycle, provenance, read/download authorization and recoverable metadata soft-delete/restore.
+- Reuses `project-private` with canonical `<project_id>/documents/<document_id>/original` path.
+- Uses existing `documents.read` / `documents.write`; no new permission key.
+- Size: **10 points**, explicit cohesion review **PASS** because metadata/link/Storage reservation-finalization are one private-file truth boundary.
+- Packet freeze: `docs/roadmap/lot-2/WP-2.9A.md`.
 
-Whole `FTR-024` / `FTR-092` remains incomplete because WP-2.11, WP-2.12 and later Lot 10/11 responsibilities remain downstream even though the C slice is durably accepted.
+### WP-2.9B — Generic project tags and Venue entity-tag links
+
+- **PLANNED / AFTER A**; cannot activate while A is active.
+- Owns FTR-093 Lot-2, `tags`, `entity_tags`, active-key uniqueness, recoverable tag deletion and same-project Venue assignment.
+- No new `tags.*` permission key: tag dictionary read uses `project.read`, dictionary mutation uses `project.settings.update`, Venue assignment read/write uses `venues.read` / `venues.write`.
+- Size: **8 points**, cohesion **PASS**.
+- Packet freeze: `docs/roadmap/lot-2/WP-2.9B.md`.
+
+The split also repairs Lot-2 traceability by assigning `MED-008` explicitly to WP-2.9A, matching the frozen requirement-feature matrix for FTR-089.
+
+No product implementation, migration, FIR activation or READY transition is part of this split freeze.
 
 ## Current next-action gate
 
-1. WP-2.8C is **ACCEPTED / COMPLETE**: Pass A, fresh Pass B and Pass C are all green/reconciled.
-2. Acceptance-governance head `ecaa3900bbccd070e613e51bc99f3f133b436d0f` / CI `34786115925` is **5/5 SUCCESS**, clean-checkout included.
-3. Required-minus-implemented-minus-verified for WP-2.8C is **∅**; open BLOCKING/MAJOR/MINOR-carried findings are **∅**.
-4. WP-2.9 is now **PLANNED / NEXT**, not active.
-5. Next permitted action is WP-2.9 activation revalidation/specification freeze followed by its own `PLANNED → READY` exact-head gate. Product implementation remains prohibited before that gate.
+1. WP-2.8C is durably **ACCEPTED / COMPLETE** on `7f97ab8bab9c60ba538b5c900845ca77e9b9f34c` / CI `34786974129` — **5/5 SUCCESS**.
+2. The former WP-2.9 has been revalidated and decomposed into WP-2.9A/B before activation.
+3. Current gate: exact-head CI for the **2.9 split/specification-freeze commit**.
+4. If that freeze head is **5/5 SUCCESS**, create the FTR-089 FIR and make a separate `WP-2.9A PLANNED → READY / A-READY` governance transition.
+5. Product implementation remains prohibited until the READY head itself is 5/5 and the separate `READY → IN_PROGRESS / A-IMPLEMENT` gate is also green.
+6. WP-2.9B, WP-2.10 and later packets remain untouched while WP-2.9A is active.
 
 ## Known localized specification repairs / stop-conditions
 
@@ -105,13 +112,10 @@ Whole `FTR-024` / `FTR-092` remains incomplete because WP-2.11, WP-2.12 and late
 - WP-2.6 commercial/availability/contact/interaction boundaries: **CLOSED / VERIFIED**.
 - WP-2.7 origin-location snapshots/canonical portability/ACC-030: **CLOSED / VERIFIED**.
 - `docs/security/STORAGE-RLS.md` repair: **CLOSED / VERIFIED**.
-- WP-2.8 media split/type/category/remote lifecycle ambiguity: **CLOSED / VERIFIED**.
 - WP-2.8A URL/replay identity parity: **CLOSED / VERIFIED**.
-- WP-2.8B private lifecycle/Storage↔DB recovery contract: **CLOSED / VERIFIED**.
-- WP-2.8B MED-006 finalization receipt gap: **CLOSED / VERIFIED**.
-- WP-2.8C optimistic revision/receipt activation detail: **CLOSED / VERIFIED** by `36ef310...` / `34618247634`.
-- WP-2.8C active-provider deleted-row gap (`WP28C-AR-001`): **CLOSED / VERIFIED** by `4db24a300282816e05e839e4b3ad132a89c5a167` / `34630386585`.
-- WP-2.8C lifecycle adversarial evidence gap (`WP28C-AR-002`): **CLOSED / VERIFIED** by `5e4246e6f63db899fb8a683d9381614a6ee75b11` / `34785068206`; fresh Pass B PASS.
+- WP-2.8B private lifecycle/Storage↔DB recovery and MED-006 receipt: **CLOSED / VERIFIED**.
+- WP-2.8C optimistic revision/provider/adversarial gaps: **CLOSED / VERIFIED**.
+- WP-2.9 pre-activation sizing and missing MED-008 traceability: **CLOSED AT SPEC LEVEL** by the 2.9A/B split; freeze CI still required before READY.
 
 ## Lot status
 
@@ -133,14 +137,12 @@ Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1, WP-2.2, WP-2.3, WP-2.4, WP-2.5, WP-2.6A, WP-2.6B, WP-2.6C, WP-2.6D, WP-2.7, WP-2.8A, WP-2.8B, WP-2.8C
 Last completed packet: WP-2.8C — ACCEPTED / COMPLETE
 Current packet: none active
-Next packet: WP-2.9 — PLANNED / NEXT
-WP-2.8C Pass-A final: e7510b64471a85b3894ba26345df7fe71533b1c3 / 34628542194 — 5/5 SUCCESS
-WP-2.8C fresh Pass-B checkpoint: 5e4246e6f63db899fb8a683d9381614a6ee75b11 / 34785068206 — 5/5 SUCCESS
-WP-2.8C Pass-C entry: fc2358a85cb367a7f3aa17cc9757a00c5888ed39 / 34785516861 — 5/5 SUCCESS
-WP-2.8C acceptance-governance: ecaa3900bbccd070e613e51bc99f3f133b436d0f / 34786115925 — 5/5 SUCCESS
-WP-2.8C Pass-C reconciliation: WP-2.8C-ACCEPTANCE.md — PASS, gap ∅
-WP-2.8C open BLOCKING/MAJOR/MINOR-carried findings: ∅
-Next permitted action: revalidate/freeze WP-2.9 activation contract, then PLANNED → READY exact-head gate
-No WP-2.9 product implementation before its READY gate
+Next packet: WP-2.9A — PLANNED / NEXT
+Following packet: WP-2.9B — PLANNED / AFTER A
+WP-2.9A size: 10 points — cohesion PASS
+WP-2.9B size: 8 points — cohesion PASS
+Current gate: exact-head CI for WP-2.9 split/specification freeze
+Next permitted action after freeze 5/5: create FTR-089 FIR, then separate WP-2.9A PLANNED → READY gate
+No WP-2.9 product implementation before READY and IN_PROGRESS gates
 Lots 3–12: NOT_STARTED
 ```
