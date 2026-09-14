@@ -1,5 +1,10 @@
 import assert from "node:assert/strict";
 import {
+  assertChunkedOversizeDenied,
+  assertMalformedJwtDenied,
+  runFinalizeAuthorizationScenario,
+} from "./private-document-edge-adversarial-scenarios.mjs";
+import {
   BUCKET,
   MAX_BYTES,
   addMembership,
@@ -129,6 +134,7 @@ async function runAuthorizationScenarios(context, document) {
     directUpload,
     "Authenticated writer must not bypass trusted ingest with Storage INSERT.",
   );
+  await assertMalformedJwtDenied(context, document);
 }
 
 async function runByteValidationScenarios(context, document) {
@@ -308,22 +314,7 @@ async function runFeasibilityScenario(context) {
     title: "Synthetic 25 MB feasibility PDF",
   });
   context.objectPaths.push(storagePath(context.projectId, documentId));
-  const oversize = new Uint8Array(MAX_BYTES + 1);
-  oversize.set(bytes);
-  assertRejected(
-    await invoke({
-      client: context.writer.client,
-      projectId: context.projectId,
-      documentId,
-      bytes: oversize,
-    }),
-    "25,000,001-byte payload must be rejected.",
-  );
-  await assertNoTrustedObject({
-    admin: context.admin,
-    projectId: context.projectId,
-    documentId,
-  });
+  await assertChunkedOversizeDenied(context, { documentId, bytes });
   const accepted = await invoke({
     client: context.writer.client,
     projectId: context.projectId,
@@ -356,6 +347,7 @@ export async function runTrustedIngestScenarios() {
     await runByteValidationScenarios(context, smallDocument);
     await runMembershipScenarios(context, smallDocument);
     await runSuccessfulIngestScenario(context, smallDocument);
+    await runFinalizeAuthorizationScenario(context);
     await runInvalidSignatureScenario(context);
     await runPoisonedExistingObjectScenario(context);
     await runFeasibilityScenario(context);

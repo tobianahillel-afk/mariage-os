@@ -269,7 +269,7 @@ export async function createSyntheticIdentity({
     auth: { persistSession: false, autoRefreshToken: false },
     global: { headers: { Authorization: `Bearer ${token}` } },
   });
-  return { userId, client };
+  return { userId, client, token };
 }
 
 export async function reserve({ client, projectId, documentId, bytes, title }) {
@@ -362,8 +362,8 @@ export function assertNoAttestation({ projectId, documentId }) {
   assert.equal(attestationCount(projectId, documentId), 0);
 }
 
-export function assertReady({ projectId, documentId }) {
-  const status = runLocalSql(
+export function documentUploadStatus({ projectId, documentId }) {
+  return runLocalSql(
     `
       select upload_status
       from public.documents
@@ -372,7 +372,10 @@ export function assertReady({ projectId, documentId }) {
     `,
     { project_id: projectId, document_id: documentId },
   );
-  assert.equal(status, "ready");
+}
+
+export function assertReady({ projectId, documentId }) {
+  assert.equal(documentUploadStatus({ projectId, documentId }), "ready");
 }
 
 export async function cleanupHarness({
