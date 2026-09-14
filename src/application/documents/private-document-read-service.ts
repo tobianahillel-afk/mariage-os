@@ -84,7 +84,11 @@ export class PrivateDocumentReadService {
         project as string,
         venue as string,
       );
-      if (!documents.every((document) => activeDocumentMatches(document, project as string))) {
+      if (
+        !documents.every((document) =>
+          activeDocumentMatches(document, project as string),
+        )
+      ) {
         invalidProviderResponse();
       }
       return documents;
@@ -135,7 +139,10 @@ export class PrivateDocumentReadService {
     projectId: string,
     documentId: string,
   ): Promise<PrivateDocumentState | null> {
-    const document = await this.ports.query.getActiveDocument(projectId, documentId);
+    const document = await this.ports.query.getActiveDocument(
+      projectId,
+      documentId,
+    );
     if (document === null) return null;
     if (!activeDocumentMatches(document, projectId, documentId)) {
       invalidProviderResponse();
