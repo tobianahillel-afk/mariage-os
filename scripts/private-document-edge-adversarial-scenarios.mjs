@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { request as httpRequest } from "node:http";
 import {
   assertNoTrustedObject,
   assertReady,
@@ -15,9 +16,9 @@ import {
   storagePath,
 } from "./private-document-edge-helpers.mjs";
 
-function rawInvoke({ token, projectId, documentId, body, streamed = false }) {
+function rawInvoke({ token, projectId, documentId, body }) {
   const { apiUrl, anonKey } = localSupabaseEnvironment();
-  const options = {
+  return globalThis.fetch(`${apiUrl}/functions/v1/private-document-ingest`, {
     method: "POST",
     headers: {
       apikey: anonKey,
@@ -28,32 +29,38 @@ function rawInvoke({ token, projectId, documentId, body, streamed = false }) {
       "x-document-mime-type": "application/pdf",
     },
     body,
-  };
-  if (streamed) options.duplex = "half";
-  return globalThis.fetch(
-    `${apiUrl}/functions/v1/private-document-ingest`,
-    options,
-  );
+  });
 }
 
-function oversizeStream(bytes) {
-  let offset = 0;
-  let sentTrailingByte = false;
-  return new globalThis.ReadableStream({
-    pull(controller) {
-      if (offset < bytes.byteLength) {
-        const end = Math.min(offset + 1_000_000, bytes.byteLength);
-        controller.enqueue(bytes.subarray(offset, end));
-        offset = end;
-        return;
-      }
-      if (!sentTrailingByte) {
-        controller.enqueue(new Uint8Array([0]));
-        sentTrailingByte = true;
-        return;
-      }
-      controller.close();
-    },
+function chunkedOversizeInvoke({ token, projectId, documentId, bytes }) {
+  const { apiUrl, anonKey } = localSupabaseEnvironment();
+  const url = new URL("/functions/v1/private-document-ingest", apiUrl);
+  return new Promise((resolve, reject) => {
+    const request = httpRequest(
+      url,
+      {
+        method: "POST",
+        headers: {
+          apikey: anonKey,
+          authorization: `Bearer ${token}`,
+          "content-type": "application/octet-stream",
+          "transfer-encoding": "chunked",
+          "x-project-id": projectId,
+          "x-document-id": documentId,
+          "x-document-mime-type": "application/pdf",
+        },
+      },
+      (response) => {
+        response.on("error", reject);
+        response.on("end", () => resolve(response.statusCode ?? 0));
+        response.resume();
+      },
+    );
+    request.on("error", reject);
+    for (let offset = 0; offset < bytes.byteLength; offset += 1_000_000) {
+      request.write(bytes.subarray(offset, offset + 1_000_000));
+    }
+    request.end(new Uint8Array([0]));
   });
 }
 
@@ -97,15 +104,14 @@ export async function assertMalformedJwtDenied(context, document) {
 }
 
 export async function assertChunkedOversizeDenied(context, document) {
-  const response = await rawInvoke({
+  const status = await chunkedOversizeInvoke({
     token: context.writer.token,
     projectId: context.projectId,
     documentId: document.documentId,
-    body: oversizeStream(document.bytes),
-    streamed: true,
+    bytes: document.bytes,
   });
   assert.equal(
-    response.status,
+    status,
     413,
     "Chunked payload exceeding 25,000,000 bytes must stop at the live boundary.",
   );
