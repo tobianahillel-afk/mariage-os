@@ -27,9 +27,9 @@ function row(overrides: Record<string, unknown> = {}) {
 }
 
 function expectInvalid(overrides: Record<string, unknown>): void {
-  expect(() => parseActivePrivateDocumentRow(row(overrides), projectId)).toThrowError(
-    DocumentPersistenceError,
-  );
+  expect(() =>
+    parseActivePrivateDocumentRow(row(overrides), projectId),
+  ).toThrowError(DocumentPersistenceError);
 }
 
 describe("parseActivePrivateDocumentRow coverage guards", () => {
