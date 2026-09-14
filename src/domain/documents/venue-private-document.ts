@@ -16,9 +16,7 @@ export interface ValidatedVenuePrivatePdf {
 }
 
 export type VenuePrivatePdfValidationError =
-  | "invalid_filename"
-  | "invalid_size"
-  | "unsupported_type";
+  "invalid_filename" | "invalid_size" | "unsupported_type";
 
 export type VenuePrivatePdfValidationResult =
   | { readonly ok: true; readonly value: ValidatedVenuePrivatePdf }
