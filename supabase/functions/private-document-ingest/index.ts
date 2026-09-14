@@ -104,11 +104,7 @@ async function readBoundedRequestBody(
       if (done) break;
       totalBytes += value.byteLength;
       if (totalBytes > MAX_BYTES) {
-        try {
-          await reader.cancel();
-        } catch {
-          // The request is already rejected; cancellation is best effort only.
-        }
+        void reader.cancel().catch(() => undefined);
         return null;
       }
       chunks.push(value);
