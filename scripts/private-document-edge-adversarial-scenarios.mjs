@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { request as httpRequest } from "node:http";
 import {
   assertNoTrustedObject,
@@ -32,13 +33,28 @@ function rawInvoke({ token, projectId, documentId, body }) {
   });
 }
 
+function edgeRuntimeIp() {
+  return execFileSync(
+    "docker",
+    [
+      "inspect",
+      "--format",
+      "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}",
+      "supabase_edge_runtime_mariage-os",
+    ],
+    { encoding: "utf8" },
+  ).trim();
+}
+
 function chunkedOversizeInvoke({ token, projectId, documentId, bytes }) {
-  const { apiUrl, anonKey } = localSupabaseEnvironment();
-  const url = new globalThis.URL("/functions/v1/private-document-ingest", apiUrl);
+  const { anonKey } = localSupabaseEnvironment();
+  const hostname = edgeRuntimeIp();
   return new Promise((resolve, reject) => {
     const request = httpRequest(
-      url,
       {
+        hostname,
+        port: 8081,
+        path: "/private-document-ingest",
         method: "POST",
         headers: {
           apikey: anonKey,
@@ -113,16 +129,14 @@ export async function assertChunkedOversizeDenied(context, document) {
   assert.equal(
     status,
     413,
-    "Chunked payload exceeding 25,000,000 bytes must stop at the live boundary.",
+    "Direct Edge Runtime payload above 25,000,000 bytes must be rejected.",
   );
   await assertNoTrustedObject({
     admin: context.admin,
     projectId: context.projectId,
     documentId: document.documentId,
   });
-  console.log(
-    "PASS chunked oversize request rejected without Content-Length trust",
-  );
+  console.log("PASS direct Edge Runtime rejects chunked oversize request");
 }
 
 export async function runFinalizeAuthorizationScenario(context) {
