@@ -94,16 +94,20 @@ describe("SupabasePrivateDocumentIngestAdapter retryable failures", () => {
   });
 
   it("treats malformed provider errors as retryable", async () => {
-    const invoke = vi.fn().mockResolvedValue({
-      data: null,
-      error: new Error("unknown function failure"),
-    });
+    const errors = [
+      new Error("unknown function failure"),
+      { context: null },
+      { context: { status: "503" } },
+    ];
 
-    await expect(
-      new SupabasePrivateDocumentIngestAdapter({ invoke }).ingest(input()),
-    ).rejects.toSatisfy(
-      (error: unknown) => persistenceCode(error) === "storage_retryable",
-    );
+    for (const error of errors) {
+      const invoke = vi.fn().mockResolvedValue({ data: null, error });
+      await expect(
+        new SupabasePrivateDocumentIngestAdapter({ invoke }).ingest(input()),
+      ).rejects.toSatisfy(
+        (failure: unknown) => persistenceCode(failure) === "storage_retryable",
+      );
+    }
   });
 });
 
