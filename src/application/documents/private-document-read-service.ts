@@ -19,7 +19,8 @@ export interface PrivateDocumentReadPorts {
   readonly download: PrivateDocumentDownloadPort;
 }
 
-type PrivateDocumentReadError = "invalid_identity" | DocumentPersistenceErrorCode;
+type PrivateDocumentReadError =
+  "invalid_identity" | DocumentPersistenceErrorCode;
 
 export type PrivateDocumentReadResult<T> =
   | { readonly ok: true; readonly value: T }
