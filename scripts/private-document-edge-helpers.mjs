@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { createHash, randomUUID } from "node:crypto";
+import { Buffer } from "node:buffer";
+import { createHash, createHmac, randomUUID } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { createClient } from "@supabase/supabase-js";
 
@@ -36,6 +37,35 @@ function parseEnvValue(raw) {
   return value;
 }
 
+function encodeJwtPart(value) {
+  return Buffer.from(JSON.stringify(value)).toString("base64url");
+}
+
+function localUserToken({ apiUrl, jwtSecret, userId, email }) {
+  const now = Math.floor(Date.now() / 1000);
+  const header = encodeJwtPart({ alg: "HS256", typ: "JWT" });
+  const payload = encodeJwtPart({
+    iss: `${apiUrl}/auth/v1`,
+    sub: userId,
+    aud: "authenticated",
+    exp: now + 86_400,
+    iat: now - 60,
+    email,
+    phone: "",
+    app_metadata: { provider: "email", providers: ["email"] },
+    user_metadata: {},
+    role: "authenticated",
+    aal: "aal1",
+    amr: [{ method: "password", timestamp: now }],
+    session_id: randomUUID(),
+    is_anonymous: false,
+  });
+  const signature = createHmac("sha256", jwtSecret)
+    .update(`${header}.${payload}`)
+    .digest("base64url");
+  return `${header}.${payload}.${signature}`;
+}
+
 export function localSupabaseEnvironment() {
   if (!npmExecPath) fail("npm_execpath is required for Edge integration.");
   const result = spawnSync(
@@ -60,10 +90,11 @@ export function localSupabaseEnvironment() {
     values.get("SECRET_KEY") ??
     values.get("SERVICE_ROLE_KEY") ??
     values.get("SUPABASE_SERVICE_ROLE_KEY");
-  if (!apiUrl || !anonKey || !serviceRoleKey) {
+  const jwtSecret = values.get("JWT_SECRET");
+  if (!apiUrl || !anonKey || !serviceRoleKey || !jwtSecret) {
     fail("Local Supabase status omitted required API credentials.");
   }
-  return { apiUrl, anonKey, serviceRoleKey };
+  return { apiUrl, anonKey, serviceRoleKey, jwtSecret };
 }
 
 export function digest(bytes) {
@@ -92,21 +123,20 @@ export async function createSyntheticIdentity({
 }) {
   const suffix = randomUUID();
   const email = `wp29c-${label}-${suffix}@example.invalid`;
-  const password = `Synthetic-${suffix}-A1!`;
   const created = await admin.auth.admin.createUser({
     email,
-    password,
     email_confirm: true,
   });
   rpcFailure(created.error, "Synthetic auth user creation");
   const userId = created.data.user?.id;
   if (!userId) fail("Synthetic auth user creation returned no identity.");
 
+  const { jwtSecret } = localSupabaseEnvironment();
+  const token = localUserToken({ apiUrl, jwtSecret, userId, email });
   const client = createClient(apiUrl, anonKey, {
     auth: { persistSession: false, autoRefreshToken: false },
+    global: { headers: { Authorization: `Bearer ${token}` } },
   });
-  const signIn = await client.auth.signInWithPassword({ email, password });
-  rpcFailure(signIn.error, "Synthetic user sign-in");
   return { userId, client };
 }
 
