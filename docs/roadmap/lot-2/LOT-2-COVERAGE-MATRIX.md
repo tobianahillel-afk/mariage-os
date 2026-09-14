@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1..WP-2.8C ACCEPTED; WP-2.9A IN_PROGRESS / REMEDIATION WP29A-AR-001 / CURRENT; WP-2.9B PLANNED**
+Status: **IN_PROGRESS — WP-2.1..WP-2.8C ACCEPTED; WP-2.9A REVIEW_PENDING / B-ADVERSARIAL-REVIEW / CURRENT; WP-2.9B PLANNED**
 
 Purpose: durable current responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`. Detailed historical packet evidence remains in packet records, acceptance records, FIRs and Git history.
 
@@ -29,9 +29,9 @@ Integration prerequisite is accepted Lot 0 + Lot 1 on `main` through PR #7; `mai
 | remote image references | FTR-024, VEN-013, MED-007/008/013 | WP-2.8A, WP-2.11 | WP-2.8A **ACCEPTED** |
 | private archived Venue image lifecycle | FTR-024 private slice, FTR-092 Lot-2, VEN-013, MED-004/005/006/009/010, ACC-055/056/058 | WP-2.8B | **ACCEPTED / COMPLETE**, gap ∅ |
 | recoverable remote-media metadata lifecycle | FTR-024/FTR-092 Lot-2 continuation, MED-007/010/013, MED-008 regression | WP-2.8C | **ACCEPTED / COMPLETE**, gap ∅ |
-| Venue-linked ordinary private documents, PDF lifecycle, provenance, document links | FTR-089 Lot-2; MED-001/002/003/008/010; PRD-008 link slice; file-security/deletion-retention controls | WP-2.9A, WP-2.11 | **WP-2.9A IN_PROGRESS / REMEDIATION WP29A-AR-001 / CURRENT**; missing typed Document read/list/download-auth foundation; Pass-A historical evidence `e533b5c5...` / `34826553890` 5/5; FIR #17 |
+| Venue-linked ordinary private documents, PDF lifecycle, provenance, document links | FTR-089 Lot-2; MED-001/002/003/008/010; PRD-008 link slice; file-security/deletion-retention controls | WP-2.9A, WP-2.11 | **WP-2.9A REVIEW_PENDING / B-ADVERSARIAL-REVIEW / CURRENT**; remediation `0072792d...` / `34836621394` 5/5; finding `WP29A-AR-001` remains OPEN pending fresh review; FIR #17 |
 | generic project Tags and Venue entity-tag assignments | FTR-093 Lot-2; PHYSICAL-SCHEMA tags/entity_tags; deletion-retention; same-project integrity | WP-2.9B, WP-2.11 | **PLANNED / AFTER A** |
-| repository/read-model ports and Supabase adapters | architecture, AUTHZ-006/020 | WP-2.1..WP-2.10 | accepted packets green; 2.9A read/download remediation active; future owners as introduced |
+| repository/read-model ports and Supabase adapters | architecture, AUTHZ-006/020 | WP-2.1..WP-2.10 | accepted packets green; 2.9A read/download remediation re-verified and under fresh Pass B; future owners as introduced |
 | local cache/pending Venue edits | FTR-028 Lot-2, SYN-001..003/007..011, PWA-003/004/006 | WP-2.10, WP-2.12 | PLANNED |
 | gallery browse surface | FTR-015 | WP-2.11 | PLANNED |
 | analytical table | FTR-016, FTR-012 Lot-2, VEN-015 | WP-2.11 | PLANNED |
@@ -39,8 +39,8 @@ Integration prerequisite is accepted Lot 0 + Lot 1 on `main` through PR #7; `mai
 | compare 2–5 candidates | FTR-027, VEN-010/011 | WP-2.11 | PLANNED |
 | protected Venue deep links | routing responsibility, VEN-014 | WP-2.11 | PLANNED |
 | mobile visit mode | FTR-028, PWA-004 | WP-2.12 | PLANNED |
-| file/content validation and no private production data in public artifacts | MED-002/003/009/010/013 + security/quality controls | WP-2.8A/B/C, WP-2.9A, WP-2.12 | media accepted; 2.9A remediation active; downstream remains |
-| explicit permissions/grants/RLS and direct allow+deny evidence | AUTHZ-001..009/012/017/018/020 | owning packets WP-2.1..WP-2.9B | accepted evidence green; 2.9A download/read remediation must preserve live policy authority |
+| file/content validation and no private production data in public artifacts | MED-002/003/009/010/013 + security/quality controls | WP-2.8A/B/C, WP-2.9A, WP-2.12 | media accepted; 2.9A remediation re-verified and under fresh Pass B; downstream remains |
+| explicit permissions/grants/RLS and direct allow+deny evidence | AUTHZ-001..009/012/017/018/020 | owning packets WP-2.1..WP-2.9B | accepted evidence green; 2.9A fresh Pass B must re-challenge live read/download policy authority |
 | synthetic complex Venue exit fixture/integrated workflows | Lot-2 acceptance | WP-2.12 + Lot Integration Pass | downstream |
 | Lot reconciliation + separate Integration Pass | AI-LOT-ORCHESTRATION | after WP-2.1..WP-2.12 | downstream |
 
@@ -70,7 +70,8 @@ The former single WP-2.9 scored **12 points**, so it was split before code.
 - FIR `#17 / FTR-089`;
 - Pass B finding `WP29A-AR-001` — **MAJOR / OPEN**: missing typed Document read/list/download-auth application/provider boundary;
 - review failure was durably recorded, then remediation began;
-- current state **IN_PROGRESS / REMEDIATION — WP29A-AR-001**.
+- remediation final `0072792d2eb67cce1bf98c4c312d9576feacc156` / `34836621394` — **5/5 SUCCESS**, clean-checkout included; Core 1539 tests / 100% statements, branches, functions and lines;
+- current state **REVIEW_PENDING / B-ADVERSARIAL-REVIEW**; finding remains OPEN until the fresh review verifies remediation.
 
 The inclusion of `MED-008` repairs the old WP-2.9 row omission; the frozen requirement-feature matrix already maps MED-008 to FTR-089.
 
@@ -103,7 +104,7 @@ Required former-WP-2.9 responsibilities minus assigned A/B responsibilities: **�
 | WP-2.8A | **ACCEPTED / COMPLETE** | remote-image metadata/Venue links |
 | WP-2.8B | **ACCEPTED / COMPLETE** | private archive lifecycle; gap ∅ |
 | WP-2.8C | **ACCEPTED / COMPLETE** | recoverable remote metadata lifecycle; durable closure `7f97ab8...` / `34786974129` 5/5 |
-| WP-2.9A | **IN_PROGRESS / REMEDIATION WP29A-AR-001 / CURRENT** | add typed ready-document read/list/download-auth foundation, then fresh Pass B |
+| WP-2.9A | **REVIEW_PENDING / B-ADVERSARIAL-REVIEW / CURRENT** | remediation `0072792d...` / `34836621394` 5/5; fresh Pass B required; `WP29A-AR-001` OPEN pending review |
 | WP-2.9B | **PLANNED / AFTER A** | generic project Tags + Venue entity-tags |
 | WP-2.10 | PLANNED | repositories/local cache/pending offline mutations |
 | WP-2.11 | PLANNED | gallery/table/detail/compare/deep-link workspace |
@@ -113,7 +114,7 @@ Required former-WP-2.9 responsibilities minus assigned A/B responsibilities: **�
 
 ```text
 WP-2.1..WP-2.8C [ACCEPTED]
-  → WP-2.9A [IN_PROGRESS / REMEDIATION WP29A-AR-001 / CURRENT]
+  → WP-2.9A [REVIEW_PENDING / B-ADVERSARIAL-REVIEW / CURRENT]
     → fresh Pass B → Pass C
       → WP-2.9B [PLANNED]
         → WP-2.10
@@ -123,7 +124,7 @@ WP-2.1..WP-2.8C [ACCEPTED]
                 → Integration Pass
 ```
 
-Only one packet may be active. WP-2.9A Pass A remains historical green evidence but Pass B found an unresolved MAJOR. The review-failed state was durably recorded before remediation began. The only permitted work is WP29A-AR-001 remediation; after affected verification, a fresh Pass B is mandatory. Pass C and WP-2.9B remain forbidden until the finding is closed.
+Only one packet may be active. WP-2.9A Pass A remains historical green evidence. Pass B found an unresolved MAJOR, the review-failed state was durably recorded, and the narrow remediation has now been fully re-verified. The only permitted work is the mandatory fresh Pass B. Pass C and WP-2.9B remain forbidden until the finding is explicitly closed by that review.
 
 ## Explicitly outside Lot 2
 
@@ -141,13 +142,13 @@ Only one packet may be active. WP-2.9A Pass A remains historical green evidence 
 required current-Lot-2 responsibilities - assigned packet responsibilities = ∅
 accepted/evidenced packets = WP-2.1..WP-2.8C
 former WP-2.9 responsibilities - WP-2.9A - WP-2.9B = ∅
-WP-2.9A = IN_PROGRESS / REMEDIATION — WP29A-AR-001
-open finding = WP29A-AR-001 — MAJOR — missing typed Document read/list/download-auth foundation
+WP-2.9A = REVIEW_PENDING / B-ADVERSARIAL-REVIEW
+open finding = WP29A-AR-001 — MAJOR — pending fresh review of remediation
 WP-2.9B = PLANNED / AFTER A
 WP-2.9A Pass-A historical evidence = e533b5c53d1be074216ccaa92f74281b425de770 / 34826553890 — 5/5 SUCCESS
-next permitted action = RED evidence then narrow WP29A-AR-001 remediation
-fresh Pass B required after remediation
-Pass C / WP-2.9B forbidden while finding open
+WP-2.9A remediation evidence = 0072792d2eb67cce1bf98c4c312d9576feacc156 / 34836621394 — 5/5 SUCCESS
+next permitted action = fresh adversarial Pass B
+Pass C / WP-2.9B forbidden while finding remains open
 ```
 
 Lot-level reconciliation remains intentionally incomplete until WP-2.9A/B, WP-2.10..WP-2.12 and the separate Lot Integration Pass are accepted.
