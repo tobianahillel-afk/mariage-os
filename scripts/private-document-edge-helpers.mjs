@@ -67,6 +67,47 @@ function localUserToken({ apiUrl, jwtSecret, userId, email }) {
   return `${header}.${payload}.${signature}`;
 }
 
+function parseEnvironmentOutput(output) {
+  const values = new Map();
+  for (const line of output.split(/\r?\n/u)) {
+    const match = line.match(/^([A-Z][A-Z0-9_]*)=(.*)$/u);
+    if (match) values.set(match[1], parseEnvValue(match[2]));
+  }
+  return values;
+}
+
+function firstEnvironmentValue(values, keys) {
+  for (const key of keys) {
+    const value = values.get(key);
+    if (value) return value;
+  }
+  return null;
+}
+
+function environmentFromValues(values) {
+  return {
+    apiUrl: firstEnvironmentValue(values, ["API_URL", "SUPABASE_URL"]),
+    anonKey: firstEnvironmentValue(values, [
+      "PUBLISHABLE_KEY",
+      "ANON_KEY",
+      "SUPABASE_ANON_KEY",
+    ]),
+    serviceRoleKey: firstEnvironmentValue(values, [
+      "SECRET_KEY",
+      "SERVICE_ROLE_KEY",
+      "SUPABASE_SERVICE_ROLE_KEY",
+    ]),
+    jwtSecret: firstEnvironmentValue(values, ["JWT_SECRET"]),
+  };
+}
+
+function requireCompleteEnvironment(environment) {
+  if (Object.values(environment).some((value) => !value)) {
+    fail("Local Supabase status omitted required API credentials.");
+  }
+  return environment;
+}
+
 export function localSupabaseEnvironment() {
   if (cachedEnvironment) return cachedEnvironment;
   if (!npmExecPath) fail("npm_execpath is required for Edge integration.");
@@ -77,27 +118,8 @@ export function localSupabaseEnvironment() {
   );
   if (result.status !== 0)
     fail("Unable to read the local Supabase environment.");
-
-  const values = new Map();
-  for (const line of result.stdout.split(/\r?\n/u)) {
-    const match = line.match(/^([A-Z][A-Z0-9_]*)=(.*)$/u);
-    if (match) values.set(match[1], parseEnvValue(match[2]));
-  }
-
-  const apiUrl = values.get("API_URL") ?? values.get("SUPABASE_URL");
-  const anonKey =
-    values.get("PUBLISHABLE_KEY") ??
-    values.get("ANON_KEY") ??
-    values.get("SUPABASE_ANON_KEY");
-  const serviceRoleKey =
-    values.get("SECRET_KEY") ??
-    values.get("SERVICE_ROLE_KEY") ??
-    values.get("SUPABASE_SERVICE_ROLE_KEY");
-  const jwtSecret = values.get("JWT_SECRET");
-  if (!apiUrl || !anonKey || !serviceRoleKey || !jwtSecret) {
-    fail("Local Supabase status omitted required API credentials.");
-  }
-  cachedEnvironment = { apiUrl, anonKey, serviceRoleKey, jwtSecret };
+  const values = parseEnvironmentOutput(result.stdout);
+  cachedEnvironment = requireCompleteEnvironment(environmentFromValues(values));
   return cachedEnvironment;
 }
 

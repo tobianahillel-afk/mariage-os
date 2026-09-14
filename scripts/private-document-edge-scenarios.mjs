@@ -297,18 +297,6 @@ async function runPoisonedExistingObjectScenario(context) {
   console.log("PASS mismatched existing object fails closed");
 }
 
-async function logFeasibilityFailure(error) {
-  if (error === null) return;
-  const response = error.context;
-  const body =
-    response && typeof response.clone === "function"
-      ? await response.clone().text()
-      : "";
-  console.error(
-    `25 MB Edge failure: status=${response?.status ?? "unknown"} body=${body.slice(0, 400)}`,
-  );
-}
-
 async function runFeasibilityScenario(context) {
   const documentId = randomUUID();
   const bytes = pdfBytes(MAX_BYTES);
@@ -342,7 +330,6 @@ async function runFeasibilityScenario(context) {
     documentId,
     bytes,
   });
-  await logFeasibilityFailure(accepted.error);
   assert.equal(
     accepted.error,
     null,

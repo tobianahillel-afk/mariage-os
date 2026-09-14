@@ -61,7 +61,7 @@ max_frequency = "1m"
 
 [edge_runtime]
 enabled = true
-policy = "oneshot"
+policy = "per_worker"
 
 [functions.private-document-ingest]
 enabled = true
