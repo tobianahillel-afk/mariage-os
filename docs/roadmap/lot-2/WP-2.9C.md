@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.9C`
 - Lot: `2`
 - Name: Trusted private-document ingestion hardening
-- State: `IN_PROGRESS`
-- Current pass: `A-IMPLEMENT — RED FIRST`
+- State: `REVIEW_PENDING`
+- Current pass: `B-ADVERSARIAL-REVIEW`
 - Primary bounded context: Documents — authoritative binary ingress for the existing WP-2.9A private PDF lifecycle
 - Branch/PR: `lot-2/venues-core` / Lot-2 integration PR not opened yet
 - FIR: `#17 / FTR-089`
@@ -18,7 +18,8 @@
 
 - WP-2.9A durable AR-004/005 failure record: `a58417f79e59e2bd2d2fcb4d202f568c15cfa947` / CI `34854785427` — **5/5 SUCCESS**, clean-checkout included.
 - ADR 0008 + WP-2.9C split/READY governance: `d1e561c787798eb99f49024cc0c1db49880bcd82` / CI `34862521697` — **5/5 SUCCESS**, clean-checkout included.
-- Current transition: `READY → IN_PROGRESS / A-IMPLEMENT — RED FIRST`; exact-head CI for this transition must be green before any RED test is committed.
+- Pass-A implementation evidence: `d90a643d929c35ef84444c19b7ec02ad9cd9e5a8` / CI `34896641824` — **5/5 SUCCESS**, clean-checkout included; DB `79` files / `1376` tests PASS; real Edge-runtime adversarial harness PASS including exact `25,000,000`-byte feasibility.
+- Current transition: `A-IMPLEMENT → REVIEW_PENDING / B-ADVERSARIAL-REVIEW`. No acceptance is implied by this transition.
 
 ## Why this packet exists
 
@@ -215,16 +216,15 @@ The RED must not weaken/delete the existing WP-2.9A RED contract or unrelated ac
 
 ## State / sequencing
 
-Current state: **IN_PROGRESS / A-IMPLEMENT — RED FIRST**.
+Current state: **REVIEW_PENDING / B-ADVERSARIAL-REVIEW**.
 
 Current gate:
 
 1. split/READY governance `d1e561c787798eb99f49024cc0c1db49880bcd82` / CI `34862521697` is **5/5 SUCCESS**, clean-checkout included;
-2. this separate A-IMPLEMENT transition must pass exact-head CI;
-3. only after that gate is green, add focused **test-only RED** evidence for AR-004/AR-005;
-4. verify the RED is isolated to the intended defects before any production remediation code;
-5. implement the narrow remediation;
-6. obtain full exact-head green evidence;
-7. move C to `REVIEW_PENDING`, perform fresh Pass B, then Pass C;
-8. only after **WP-2.9C ACCEPTED**, resolve WP-2.9A blocker and return A to `IN_PROGRESS` for integration/reverification;
-9. WP-2.9B remains `PLANNED / AFTER A` until A is accepted.
+2. Pass-A implementation HEAD `d90a643d929c35ef84444c19b7ec02ad9cd9e5a8` / CI `34896641824` is **5/5 SUCCESS**, clean-checkout included;
+3. DB verification is `79` files / `1376` tests PASS and the real Edge-runtime harness proves authorization, exact-byte integrity, safe retry/fail-closed recovery and exact `25,000,000`-byte feasibility;
+4. perform a fresh independent Pass B from the frozen contracts and ADR, not from implementation intent;
+5. if Pass B finds a defect, record it durably and return to remediation with RED-first evidence before any acceptance;
+6. only a clean fresh Pass B may advance C to Pass C;
+7. only after **WP-2.9C ACCEPTED**, resolve WP-2.9A blocker and return A to `IN_PROGRESS` for integration/reverification;
+8. WP-2.9B remains `PLANNED / AFTER A` until A is accepted.
