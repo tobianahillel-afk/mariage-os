@@ -39,7 +39,10 @@ if (startStatus !== 0) process.exit(startStatus);
 
 let verificationStatus = 1;
 try {
-  verificationStatus = runScript("db:verify");
+  for (const script of ["db:verify", "test:edge"]) {
+    verificationStatus = runScript(script);
+    if (verificationStatus !== 0) break;
+  }
 } finally {
   const stopStatus = runScript("db:stop");
   if (verificationStatus === 0 && stopStatus !== 0) {

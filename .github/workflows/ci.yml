@@ -45,9 +45,9 @@ jobs:
       - run: npm run build
 
   db:
-    name: Local Supabase DB and RLS
+    name: Local Supabase DB, RLS and Edge
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
         with:
@@ -60,6 +60,7 @@ jobs:
       - run: npm run security:env
       - run: npm run db:start
       - run: npm run db:verify
+      - run: npm run test:edge
       - if: always()
         run: npm run db:stop
 
@@ -112,7 +113,7 @@ jobs:
       - db
       - browser-and-mutation
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
         with:
