@@ -118,6 +118,8 @@ describe("parseVenuePrivateDocumentLinkIds", () => {
   });
 
   it("rejects a non-array link response", () => {
-    expectInvalid(() => parseVenuePrivateDocumentLinkIds(null, projectId, venueId));
+    expectInvalid(() =>
+      parseVenuePrivateDocumentLinkIds(null, projectId, venueId),
+    );
   });
 });
