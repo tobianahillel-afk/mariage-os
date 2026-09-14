@@ -37,7 +37,7 @@ function hasSafeUnicodeScalars(value: string, maxScalars: number): boolean {
     const width = unicodeScalarWidth(value, index);
     if (width === 0) return false;
     const codeUnit = value.charCodeAt(index);
-    if (codeUnit <= 0x1f || codeUnit === 0x7f) return false;
+    if (codeUnit <= 0x1f || (codeUnit >= 0x7f && codeUnit <= 0x9f)) return false;
     index += width;
     scalars += 1;
     if (scalars > maxScalars) return false;
