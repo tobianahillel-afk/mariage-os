@@ -13,7 +13,9 @@ const venueId = "55555555-5555-4555-8555-555555555555";
 const path = `${projectId}/documents/${documentId}/original`;
 const bytes = new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d, 0x31]);
 
-function document(overrides: Partial<PrivateDocumentState> = {}): PrivateDocumentState {
+function document(
+  overrides: Partial<PrivateDocumentState> = {},
+): PrivateDocumentState {
   return {
     id: documentId,
     projectId,
@@ -60,7 +62,9 @@ describe("PrivateDocumentReadService", () => {
     const fake = ports();
     const service = new PrivateDocumentReadService(fake);
 
-    await expect(service.listVenueDocuments(projectId, venueId)).resolves.toEqual({
+    await expect(
+      service.listVenueDocuments(projectId, venueId),
+    ).resolves.toEqual({
       ok: true,
       value: [document()],
     });
@@ -68,7 +72,9 @@ describe("PrivateDocumentReadService", () => {
     vi.mocked(fake.query.listVenueDocuments).mockResolvedValue([
       document({ projectId: "77777777-7777-4777-8777-777777777777" }),
     ]);
-    await expect(service.listVenueDocuments(projectId, venueId)).resolves.toEqual({
+    await expect(
+      service.listVenueDocuments(projectId, venueId),
+    ).resolves.toEqual({
       ok: false,
       error: "provider_response_invalid",
     });
@@ -79,7 +85,9 @@ describe("PrivateDocumentReadService", () => {
     vi.mocked(fake.query.getActiveDocument).mockResolvedValue(null);
     const service = new PrivateDocumentReadService(fake);
 
-    await expect(service.getActiveDocument(projectId, documentId)).resolves.toEqual({
+    await expect(
+      service.getActiveDocument(projectId, documentId),
+    ).resolves.toEqual({
       ok: true,
       value: null,
     });
@@ -89,7 +97,9 @@ describe("PrivateDocumentReadService", () => {
     const fake = ports();
     const service = new PrivateDocumentReadService(fake);
 
-    await expect(service.downloadActiveDocument(projectId, documentId)).resolves.toEqual({
+    await expect(
+      service.downloadActiveDocument(projectId, documentId),
+    ).resolves.toEqual({
       ok: true,
       value: {
         document: document(),
@@ -107,24 +117,33 @@ describe("PrivateDocumentReadService", () => {
     document({ deletedAt: "2026-09-14T00:00:00.000Z" }),
     document({ id: "77777777-7777-4777-8777-777777777777" }),
     document({ storagePath: `${projectId}/documents/${documentId}/wrong` }),
-  ])("fails closed before download for substituted or non-active metadata %#", async (row) => {
-    const fake = ports();
-    vi.mocked(fake.query.getActiveDocument).mockResolvedValue(row);
-    const service = new PrivateDocumentReadService(fake);
+  ])(
+    "fails closed before download for substituted or non-active metadata %#",
+    async (row) => {
+      const fake = ports();
+      vi.mocked(fake.query.getActiveDocument).mockResolvedValue(row);
+      const service = new PrivateDocumentReadService(fake);
 
-    await expect(service.downloadActiveDocument(projectId, documentId)).resolves.toEqual({
-      ok: false,
-      error: "provider_response_invalid",
-    });
-    expect(fake.download.download).not.toHaveBeenCalled();
-  });
+      await expect(
+        service.downloadActiveDocument(projectId, documentId),
+      ).resolves.toEqual({
+        ok: false,
+        error: "provider_response_invalid",
+      });
+      expect(fake.download.download).not.toHaveBeenCalled();
+    },
+  );
 
   it("fails closed when downloaded bytes no longer match the PDF metadata", async () => {
     const fake = ports();
-    vi.mocked(fake.download.download).mockResolvedValue(new Uint8Array([1, 2, 3]));
+    vi.mocked(fake.download.download).mockResolvedValue(
+      new Uint8Array([1, 2, 3]),
+    );
     const service = new PrivateDocumentReadService(fake);
 
-    await expect(service.downloadActiveDocument(projectId, documentId)).resolves.toEqual({
+    await expect(
+      service.downloadActiveDocument(projectId, documentId),
+    ).resolves.toEqual({
       ok: false,
       error: "provider_response_invalid",
     });
@@ -137,7 +156,9 @@ describe("PrivateDocumentReadService", () => {
     );
     const service = new PrivateDocumentReadService(fake);
 
-    await expect(service.downloadActiveDocument(projectId, documentId)).resolves.toEqual({
+    await expect(
+      service.downloadActiveDocument(projectId, documentId),
+    ).resolves.toEqual({
       ok: false,
       error: "storage_retryable",
     });
