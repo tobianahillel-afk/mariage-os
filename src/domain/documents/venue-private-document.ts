@@ -16,7 +16,9 @@ export interface ValidatedVenuePrivatePdf {
 }
 
 export type VenuePrivatePdfValidationError =
-  "invalid_filename" | "invalid_size" | "unsupported_type";
+  | "invalid_filename"
+  | "invalid_size"
+  | "unsupported_type";
 
 export type VenuePrivatePdfValidationResult =
   | { readonly ok: true; readonly value: ValidatedVenuePrivatePdf }
@@ -30,7 +32,7 @@ function unicodeScalarWidth(value: string, index: number): 0 | 1 | 2 {
   return nextCodeUnit >= 0xdc00 && nextCodeUnit <= 0xdfff ? 2 : 0;
 }
 
-function hasSafeFilenameScalars(value: string): boolean {
+function hasSafeUnicodeScalars(value: string, maxScalars: number): boolean {
   let scalars = 0;
   let index = 0;
   while (index < value.length) {
@@ -40,14 +42,25 @@ function hasSafeFilenameScalars(value: string): boolean {
     if (codeUnit <= 0x1f || codeUnit === 0x7f) return false;
     index += width;
     scalars += 1;
-    if (scalars > MAX_PRIVATE_PDF_FILENAME_SCALARS) return false;
+    if (scalars > maxScalars) return false;
   }
   return scalars > 0;
 }
 
+export function isSafePrivateDocumentBoundedText(
+  value: unknown,
+  maxScalars: number,
+): value is string {
+  if (typeof value !== "string") return false;
+  if (value.trim() !== value) return false;
+  return hasSafeUnicodeScalars(value, maxScalars);
+}
+
 export function isSafePrivateDocumentFilename(value: unknown): value is string {
   if (typeof value !== "string") return false;
-  if (!hasSafeFilenameScalars(value)) return false;
+  if (!hasSafeUnicodeScalars(value, MAX_PRIVATE_PDF_FILENAME_SCALARS)) {
+    return false;
+  }
   return !value.includes("/") && !value.includes("\\");
 }
 

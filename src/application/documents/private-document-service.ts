@@ -1,5 +1,6 @@
 import {
   isPrivateDocumentSha256,
+  isSafePrivateDocumentBoundedText,
   validateVenuePrivatePdf,
   type ValidatedVenuePrivatePdf,
   type VenuePrivatePdfValidationError,
@@ -81,19 +82,8 @@ function optionalIdentity(value: unknown): value is string | null {
   return value === null || identity(value);
 }
 
-function hasControlCharacter(value: string): boolean {
-  for (let index = 0; index < value.length; index += 1) {
-    const code = value.charCodeAt(index);
-    if (code <= 0x1f || code === 0x7f) return true;
-  }
-  return false;
-}
-
 function boundedText(value: unknown, max: number): value is string {
-  if (typeof value !== "string") return false;
-  if (value.trim() !== value) return false;
-  if (value.length < 1 || value.length > max) return false;
-  return !hasControlCharacter(value);
+  return isSafePrivateDocumentBoundedText(value, max);
 }
 
 function storagePath(projectId: string, documentId: string): string {

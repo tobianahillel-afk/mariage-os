@@ -1,6 +1,9 @@
 import { DocumentPersistenceError } from "@application/documents/document-persistence-error";
 import type { PrivateDocumentState } from "@application/documents/private-document-lifecycle-port";
-import { isSafePrivateDocumentFilename } from "@domain/documents/venue-private-document";
+import {
+  isSafePrivateDocumentBoundedText,
+  isSafePrivateDocumentFilename,
+} from "@domain/documents/venue-private-document";
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -31,18 +34,8 @@ function integer(value: unknown): number {
   return value;
 }
 
-function hasControlCharacter(value: string): boolean {
-  for (let index = 0; index < value.length; index += 1) {
-    const code = value.charCodeAt(index);
-    if (code <= 0x1f || code === 0x7f) return true;
-  }
-  return false;
-}
-
 function boundedText(value: unknown, max: number): string {
-  if (typeof value !== "string") invalidResponse();
-  if (value.length < 1 || value.length > max) invalidResponse();
-  if (value.trim() !== value || hasControlCharacter(value)) invalidResponse();
+  if (!isSafePrivateDocumentBoundedText(value, max)) invalidResponse();
   return value;
 }
 

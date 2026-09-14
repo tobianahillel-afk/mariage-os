@@ -10,6 +10,10 @@ import type {
   ReservePrivateDocumentInput,
   TransitionPrivateDocumentInput,
 } from "@application/documents/private-document-lifecycle-port";
+import {
+  isSafePrivateDocumentBoundedText,
+  isSafePrivateDocumentFilename,
+} from "@domain/documents/venue-private-document";
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -35,19 +39,10 @@ function integer(value: unknown): number {
   return value;
 }
 
-function hasControlCharacter(value: string): boolean {
-  for (let index = 0; index < value.length; index += 1) {
-    const code = value.charCodeAt(index);
-    if (code <= 0x1f || code === 0x7f) return true;
-  }
-  return false;
-}
-
 function boundedText(value: unknown, max: number): string {
-  if (typeof value !== "string") throw new Error("invalid text");
-  if (value.length < 1 || value.length > max) throw new Error("invalid text");
-  if (value.trim() !== value) throw new Error("invalid text");
-  if (hasControlCharacter(value)) throw new Error("invalid text");
+  if (!isSafePrivateDocumentBoundedText(value, max)) {
+    throw new Error("invalid text");
+  }
   return value;
 }
 
@@ -82,12 +77,7 @@ function privateDocumentStatus(value: unknown): "pending" | "ready" {
 }
 
 function privateDocumentFilename(value: unknown): string {
-  if (typeof value !== "string") throw new Error("invalid filename");
-  if (value.length < 1 || value.length > 512) {
-    throw new Error("invalid filename");
-  }
-  if (hasControlCharacter(value)) throw new Error("invalid filename");
-  if (value.includes("/") || value.includes("\\")) {
+  if (!isSafePrivateDocumentFilename(value)) {
     throw new Error("invalid filename");
   }
   if (!value.toLowerCase().endsWith(".pdf")) {
