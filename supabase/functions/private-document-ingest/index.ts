@@ -98,20 +98,28 @@ async function readBoundedRequestBody(
   const reader = request.body.getReader();
   const chunks: Uint8Array[] = [];
   let totalBytes = 0;
+  let exceededLimit = false;
   try {
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
+      if (exceededLimit) continue;
+
       totalBytes += value.byteLength;
       if (totalBytes > MAX_BYTES) {
-        void reader.cancel().catch(() => undefined);
-        return null;
+        exceededLimit = true;
+        chunks.length = 0;
+        continue;
       }
       chunks.push(value);
     }
   } finally {
     reader.releaseLock();
   }
+
+  // The Supabase main runtime tees request bodies before dispatch. Drain the
+  // overflow branch without retaining bytes so the rejection can be returned.
+  if (exceededLimit) return null;
 
   const bytes = new Uint8Array(totalBytes);
   let offset = 0;
