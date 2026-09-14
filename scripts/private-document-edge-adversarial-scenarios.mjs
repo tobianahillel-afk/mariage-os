@@ -34,7 +34,7 @@ function rawInvoke({ token, projectId, documentId, body }) {
 
 function chunkedOversizeInvoke({ token, projectId, documentId, bytes }) {
   const { apiUrl, anonKey } = localSupabaseEnvironment();
-  const url = new URL("/functions/v1/private-document-ingest", apiUrl);
+  const url = new globalThis.URL("/functions/v1/private-document-ingest", apiUrl);
   return new Promise((resolve, reject) => {
     const request = httpRequest(
       url,
