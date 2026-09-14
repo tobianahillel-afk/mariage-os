@@ -39,7 +39,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.8A | Venue remote-image metadata and Venue links | **ACCEPTED / COMPLETE** |
 | WP-2.8B | Venue private archived media lifecycle | **ACCEPTED / COMPLETE** |
 | WP-2.8C | recoverable Venue remote-media metadata lifecycle | **ACCEPTED / COMPLETE** |
-| WP-2.9A | Venue-linked private PDF/document foundation | **IN_PROGRESS / REMEDIATION — WP29A-AR-001 / CURRENT** |
+| WP-2.9A | Venue-linked private PDF/document foundation | **REVIEW_PENDING / B-ADVERSARIAL-REVIEW / CURRENT** |
 | WP-2.9B | generic project tags and Venue entity-tag links | **PLANNED / AFTER A** |
 | WP-2.10 | repositories, local cache, pending/offline mutations | PLANNED |
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace | PLANNED |
@@ -67,7 +67,7 @@ The former monolithic WP-2.9 was revalidated at **12 points** and split before c
 
 ### WP-2.9A — Venue-linked private document foundation
 
-- **IN_PROGRESS / REMEDIATION — WP29A-AR-001 / CURRENT**.
+- **REVIEW_PENDING / B-ADVERSARIAL-REVIEW / CURRENT**.
 - FIR: `#17 / FTR-089`.
 - Owns FTR-089 Lot-2, `MED-001/002/003/008/010`, ordinary private PDF metadata, Venue `document_links`, private Storage lifecycle, provenance, read/download authorization and recoverable metadata soft-delete/restore.
 - Reuses `project-private` at `<project_id>/documents/<document_id>/original`.
@@ -78,8 +78,10 @@ The former monolithic WP-2.9 was revalidated at **12 points** and split before c
 - A-IMPLEMENT governance `f5a77c72cf5f28bccd823c7cdc78b01531b3b265` / `34789115986` — **5/5 SUCCESS**, clean-checkout included.
 - RED-first `9322915252925d3f75f5a224a82f9d391ccfec9d` / `34789545716` — expected RED only on the three frozen document-boundary assertions.
 - Pass-A implementation/evidence `e533b5c53d1be074216ccaa92f74281b425de770` / `34826553890` — **5/5 SUCCESS**, clean-checkout included; Core 152 files / 1465 tests / 100% statements, branches, functions and lines.
-- Pass B finding `WP29A-AR-001` — **MAJOR / OPEN**: frozen `list/download-auth` application foundation is absent; current code has mutation/upload lifecycle and DB/Storage read policies but no typed Document read/list/download application/provider boundary.
-- Review failure was durably recorded before this remediation transition. Fresh Pass B is mandatory after remediation.
+- Pass B finding `WP29A-AR-001` — **MAJOR / OPEN**: frozen `list/download-auth` application foundation was absent from the Pass-A implementation.
+- Review failure was durably recorded before remediation began.
+- Remediation/evidence `0072792d2eb67cce1bf98c4c312d9576feacc156` / `34836621394` — **5/5 SUCCESS**, clean-checkout included; Core 1539 tests / 100% statements, branches, functions and lines.
+- Fresh Pass B is now mandatory; `WP29A-AR-001` remains OPEN until that review explicitly verifies and closes the remediation.
 
 ### WP-2.9B — Generic project tags and Venue entity-tag links
 
@@ -94,9 +96,9 @@ The split repairs the old WP-2.9 traceability omission by assigning `MED-008` ex
 
 1. Pass-A historical evidence remains `e533b5c53d1be074216ccaa92f74281b425de770` / `34826553890` — **5/5 SUCCESS**.
 2. Fresh Pass B found `WP29A-AR-001` — **MAJOR / OPEN**.
-3. The review-failed state was recorded durably; remediation has now actively begun, so WP-2.9A is **IN_PROGRESS / REMEDIATION — WP29A-AR-001**.
-4. Next permitted action: reconstruct accepted query/download patterns, add focused RED evidence for the missing ready-document list/read/download behavior, implement the narrow typed application/provider boundary, then rerun affected/full verification.
-5. A fresh adversarial Pass B is mandatory after remediation. Pass C remains forbidden while the finding is open.
+3. The review-failed state was recorded durably; the narrow remediation is implemented and fully re-verified on `0072792d2eb67cce1bf98c4c312d9576feacc156` / `34836621394` — **5/5 SUCCESS**.
+4. WP-2.9A is now **REVIEW_PENDING / B-ADVERSARIAL-REVIEW**.
+5. Next permitted action: perform the mandatory fresh adversarial Pass B against the remediation and the full frozen packet. Pass C remains forbidden while the finding is open.
 6. WP-2.9B and later packets remain untouched.
 
 ## Known localized repairs / stop conditions
@@ -111,7 +113,7 @@ The split repairs the old WP-2.9 traceability omission by assigning `MED-008` ex
 - WP-2.8C optimistic revision/provider/adversarial gaps: **CLOSED / VERIFIED**.
 - WP-2.9 pre-activation sizing and MED-008 traceability: **CLOSED / VERIFIED** by `40f17aba...` / `34788217062` 5/5.
 - WP-2.9A Pass-A coverage/format/maintainability closure: **CLOSED / VERIFIED** by `e533b5c5...` / `34826553890` 5/5.
-- WP29A-AR-001 Document read/list/download foundation: **MAJOR / OPEN / REMEDIATION ACTIVE**.
+- WP29A-AR-001 remediation implementation/verification: **CLOSED / VERIFIED** by `0072792d...` / `34836621394` 5/5; finding itself remains **MAJOR / OPEN** pending mandatory fresh Pass B.
 
 ## Durable handoff
 
@@ -123,13 +125,14 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.8C
 Last completed packet: WP-2.8C — ACCEPTED / COMPLETE
-Current packet: WP-2.9A — IN_PROGRESS / REMEDIATION — WP29A-AR-001
-Open finding: WP29A-AR-001 — MAJOR — missing typed Document read/list/download-auth foundation
+Current packet: WP-2.9A — REVIEW_PENDING / B-ADVERSARIAL-REVIEW
+Open finding: WP29A-AR-001 — MAJOR — remediation re-verified, pending fresh Pass B
 FTR-089 FIR: #17
 Following packet: WP-2.9B — PLANNED / AFTER A
 Pass-A final: e533b5c53d1be074216ccaa92f74281b425de770 / 34826553890 — 5/5 SUCCESS
-Current gate: RED evidence then narrow WP29A-AR-001 remediation
-Fresh Pass B required after remediation; Pass C forbidden until finding closes
+Remediation final: 0072792d2eb67cce1bf98c4c312d9576feacc156 / 34836621394 — 5/5 SUCCESS
+Current gate: fresh adversarial Pass B
+Pass C forbidden until no BLOCKING/MAJOR finding remains unresolved
 WP-2.9B and later packets untouched
 Lots 3–12: NOT_STARTED
 ```
