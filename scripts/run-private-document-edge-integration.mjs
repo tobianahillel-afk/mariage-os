@@ -81,10 +81,8 @@ function localSupabaseEnvironment() {
 
   return {
     apiUrl,
-    anonKey: values.get("ANON_KEY") ?? localLegacyKey(jwtSecret, "anon"),
-    serviceRoleKey:
-      values.get("SERVICE_ROLE_KEY") ??
-      localLegacyKey(jwtSecret, "service_role"),
+    anonKey: localLegacyKey(jwtSecret, "anon"),
+    serviceRoleKey: localLegacyKey(jwtSecret, "service_role"),
   };
 }
 
@@ -543,14 +541,12 @@ async function run() {
     objectPaths.push(poisonedPath);
     const poisonedBytes = expectedPoisonedBytes.slice();
     poisonedBytes[poisonedBytes.length - 1] ^= 0xff;
-    const injected = await admin.storage.from(BUCKET).upload(
-      poisonedPath,
-      poisonedBytes,
-      {
+    const injected = await admin.storage
+      .from(BUCKET)
+      .upload(poisonedPath, poisonedBytes, {
         contentType: "application/pdf",
         upsert: false,
-      },
-    );
+      });
     rpcFailure(injected.error, "Synthetic privileged stale object injection");
 
     const poisonedAttempt = await invoke(
@@ -621,7 +617,9 @@ async function run() {
 
 run().catch((error) => {
   console.error(
-    error instanceof Error ? error.message : "Trusted ingest integration failed.",
+    error instanceof Error
+      ? error.message
+      : "Trusted ingest integration failed.",
   );
   process.exit(1);
 });

@@ -115,10 +115,7 @@ async function bytesMatchReservation(
   bytes: Uint8Array,
   reservation: ReservedDocument,
 ): Promise<boolean> {
-  if (
-    bytes.byteLength !== reservation.size_bytes ||
-    !isPdfSignature(bytes)
-  ) {
+  if (bytes.byteLength !== reservation.size_bytes || !isPdfSignature(bytes)) {
     return false;
   }
   return (await sha256(bytes)) === reservation.sha256;

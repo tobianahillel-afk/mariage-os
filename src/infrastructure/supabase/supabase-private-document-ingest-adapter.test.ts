@@ -26,35 +26,32 @@ function functionError(message: string, status: number) {
 }
 
 describe("SupabasePrivateDocumentIngestAdapter", () => {
-  it(
-    "sends raw exact bytes and identifiers without caller-controlled storage authority",
-    async () => {
-      const invoke = vi.fn().mockResolvedValue({
-        data: { ok: true },
-        error: null,
-      });
-      const adapter = new SupabasePrivateDocumentIngestAdapter({ invoke });
+  it("sends raw exact bytes and identifiers without caller-controlled storage authority", async () => {
+    const invoke = vi.fn().mockResolvedValue({
+      data: { ok: true },
+      error: null,
+    });
+    const adapter = new SupabasePrivateDocumentIngestAdapter({ invoke });
 
-      await expect(adapter.ingest(input())).resolves.toBeUndefined();
+    await expect(adapter.ingest(input())).resolves.toBeUndefined();
 
-      expect(invoke).toHaveBeenCalledOnce();
-      const [functionName, options] = invoke.mock.calls[0] as [
-        string,
-        { body: ArrayBuffer; headers: Record<string, string> },
-      ];
-      expect(functionName).toBe("private-document-ingest");
-      expect(new Uint8Array(options.body)).toEqual(bytes);
-      expect(options.headers).toEqual({
-        "x-project-id": projectId,
-        "x-document-id": documentId,
-        "x-document-mime-type": "application/pdf",
-      });
-      expect(options.headers).not.toHaveProperty("x-storage-path");
-      expect(options.headers).not.toHaveProperty("x-user-id");
-      expect(options.headers).not.toHaveProperty("x-sha256");
-      expect(options.headers).not.toHaveProperty("content-type");
-    },
-  );
+    expect(invoke).toHaveBeenCalledOnce();
+    const [functionName, options] = invoke.mock.calls[0] as [
+      string,
+      { body: ArrayBuffer; headers: Record<string, string> },
+    ];
+    expect(functionName).toBe("private-document-ingest");
+    expect(new Uint8Array(options.body)).toEqual(bytes);
+    expect(options.headers).toEqual({
+      "x-project-id": projectId,
+      "x-document-id": documentId,
+      "x-document-mime-type": "application/pdf",
+    });
+    expect(options.headers).not.toHaveProperty("x-storage-path");
+    expect(options.headers).not.toHaveProperty("x-user-id");
+    expect(options.headers).not.toHaveProperty("x-sha256");
+    expect(options.headers).not.toHaveProperty("content-type");
+  });
 
   it("fails closed on malformed successful provider data", async () => {
     const invoke = vi.fn().mockResolvedValue({
@@ -64,7 +61,8 @@ describe("SupabasePrivateDocumentIngestAdapter", () => {
     const adapter = new SupabasePrivateDocumentIngestAdapter({ invoke });
 
     await expect(adapter.ingest(input())).rejects.toSatisfy(
-      (error: unknown) => persistenceCode(error) === "provider_response_invalid",
+      (error: unknown) =>
+        persistenceCode(error) === "provider_response_invalid",
     );
   });
 
@@ -73,7 +71,9 @@ describe("SupabasePrivateDocumentIngestAdapter", () => {
       data: null,
       error: functionError("server unavailable", 503),
     });
-    const transportInvoke = vi.fn().mockRejectedValue(new Error("network down"));
+    const transportInvoke = vi
+      .fn()
+      .mockRejectedValue(new Error("network down"));
 
     await expect(
       new SupabasePrivateDocumentIngestAdapter({ invoke: serverInvoke }).ingest(
