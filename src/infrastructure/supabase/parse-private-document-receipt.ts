@@ -159,10 +159,13 @@ function assertReserveMetadata(
   document: PrivateDocumentState,
   input: ReservePrivateDocumentInput,
 ): void {
-  if (document.uploadStatus !== "pending") throw new Error("wrong reserve state");
-  if (document.documentType !== input.documentType) throw new Error("wrong reserve state");
+  if (document.uploadStatus !== "pending")
+    throw new Error("wrong reserve state");
+  if (document.documentType !== input.documentType)
+    throw new Error("wrong reserve state");
   if (document.title !== input.title) throw new Error("wrong reserve state");
-  if (document.sourceId !== input.sourceId) throw new Error("wrong reserve state");
+  if (document.sourceId !== input.sourceId)
+    throw new Error("wrong reserve state");
   if (document.deletedAt !== null) throw new Error("wrong reserve state");
 }
 
@@ -173,8 +176,10 @@ function assertReserveBinary(
   if (document.originalFilename !== input.originalFilename) {
     throw new Error("wrong reserve state");
   }
-  if (document.mimeType !== input.mimeType) throw new Error("wrong reserve state");
-  if (document.sizeBytes !== input.sizeBytes) throw new Error("wrong reserve state");
+  if (document.mimeType !== input.mimeType)
+    throw new Error("wrong reserve state");
+  if (document.sizeBytes !== input.sizeBytes)
+    throw new Error("wrong reserve state");
   if (document.sha256 !== input.sha256) throw new Error("wrong reserve state");
 }
 
@@ -192,7 +197,8 @@ function assertReceiptState(
       assertReserveBinary(document, input as ReservePrivateDocumentInput);
       return;
     case "finalize_upload":
-      if (document.uploadStatus !== "ready") throw new Error("wrong finalize state");
+      if (document.uploadStatus !== "ready")
+        throw new Error("wrong finalize state");
       return;
     case "soft_delete":
       if (document.deletedAt === null) throw new Error("wrong delete state");
@@ -208,10 +214,13 @@ function parseLink(
 ): PrivateDocumentLinkReceipt["link"] {
   const link = record(value);
   if (uuid(link.id) !== input.linkId) throw new Error("substituted link");
-  if (uuid(link.project_id) !== input.projectId) throw new Error("substituted link");
-  if (uuid(link.document_id) !== input.documentId) throw new Error("substituted link");
+  if (uuid(link.project_id) !== input.projectId)
+    throw new Error("substituted link");
+  if (uuid(link.document_id) !== input.documentId)
+    throw new Error("substituted link");
   if (link.target_type !== "venue") throw new Error("substituted link");
-  if (uuid(link.target_id) !== input.venueId) throw new Error("substituted link");
+  if (uuid(link.target_id) !== input.venueId)
+    throw new Error("substituted link");
   if (link.relationship_type !== null) throw new Error("substituted link");
   return {
     id: input.linkId,
@@ -300,8 +309,10 @@ export function parsePrivateDocumentAbandonReceipt(
   try {
     const receipt = record(value);
     if (receipt.action !== "abandon_upload") throw new Error("invalid abandon");
-    if (receipt.projectId !== input.projectId) throw new Error("invalid abandon");
-    if (receipt.documentId !== input.documentId) throw new Error("invalid abandon");
+    if (receipt.projectId !== input.projectId)
+      throw new Error("invalid abandon");
+    if (receipt.documentId !== input.documentId)
+      throw new Error("invalid abandon");
     if (receipt.absent !== true) throw new Error("invalid abandon");
     return {
       replayed: replayed(receipt),

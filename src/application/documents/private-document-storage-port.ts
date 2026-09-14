@@ -1,21 +1,21 @@
-export interface UploadReservedDocumentObjectInput {
+interface UploadReservedDocumentObjectInput {
   readonly path: string;
   readonly bytes: Uint8Array;
   readonly mimeType: "application/pdf";
 }
 
-export interface InspectReservedDocumentObjectReceipt {
+interface InspectReservedDocumentObjectReceipt {
   readonly bucket: "project-private";
   readonly path: string;
   readonly present: boolean;
 }
 
-export interface UploadReservedDocumentObjectReceipt {
+interface UploadReservedDocumentObjectReceipt {
   readonly bucket: "project-private";
   readonly path: string;
 }
 
-export interface DeleteReservedDocumentObjectReceipt {
+interface DeleteReservedDocumentObjectReceipt {
   readonly bucket: "project-private";
   readonly path: string;
   readonly absent: true;

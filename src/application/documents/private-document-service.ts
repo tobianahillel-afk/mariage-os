@@ -103,9 +103,12 @@ function storagePath(projectId: string, documentId: string): string {
 function normalizeIdentities(
   input: UploadPrivateVenueDocumentRequest,
 ): PrivateDocumentResult<UploadIdentities> {
-  if (!identity(input.operationId)) return { ok: false, error: "invalid_identity" };
-  if (!identity(input.projectId)) return { ok: false, error: "invalid_identity" };
-  if (!identity(input.documentId)) return { ok: false, error: "invalid_identity" };
+  if (!identity(input.operationId))
+    return { ok: false, error: "invalid_identity" };
+  if (!identity(input.projectId))
+    return { ok: false, error: "invalid_identity" };
+  if (!identity(input.documentId))
+    return { ok: false, error: "invalid_identity" };
   if (!optionalIdentity(input.sourceId)) {
     return { ok: false, error: "invalid_identity" };
   }
@@ -236,7 +239,11 @@ export class PrivateDocumentService {
     projectId: string,
     documentId: string,
   ): Promise<PrivateDocumentResult<{ readonly absent: true }>> {
-    if (!identity(operationId) || !identity(projectId) || !identity(documentId)) {
+    if (
+      !identity(operationId) ||
+      !identity(projectId) ||
+      !identity(documentId)
+    ) {
       return { ok: false, error: "invalid_identity" };
     }
     const exactPath = storagePath(projectId, documentId);

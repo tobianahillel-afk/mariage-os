@@ -15,7 +15,7 @@ export interface PrivateDocumentState {
   readonly revision: number;
 }
 
-export interface PrivateDocumentLinkState {
+interface PrivateDocumentLinkState {
   readonly id: string;
   readonly projectId: string;
   readonly documentId: string;
