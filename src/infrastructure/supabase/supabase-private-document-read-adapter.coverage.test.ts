@@ -54,18 +54,26 @@ function queryBuilder(result: { data: unknown; error: unknown }) {
     maybeSingle() {
       return Promise.resolve(result);
     },
-    then(onfulfilled: (value: typeof result) => unknown, onrejected?: (reason: unknown) => unknown) {
+    then(
+      onfulfilled: (value: typeof result) => unknown,
+      onrejected?: (reason: unknown) => unknown,
+    ) {
       return Promise.resolve(result).then(onfulfilled, onrejected);
     },
   };
   return builder;
 }
 
-function sequentialClient(results: readonly { data: unknown; error: unknown }[]) {
+function sequentialClient(
+  results: readonly { data: unknown; error: unknown }[],
+) {
   const pending = [...results];
   return {
     from: () => ({
-      select: () => queryBuilder(pending.shift() ?? { data: null, error: new Error("missing plan") }),
+      select: () =>
+        queryBuilder(
+          pending.shift() ?? { data: null, error: new Error("missing plan") },
+        ),
     }),
     storage: {
       from: () => ({ download: async () => ({ data: null, error: null }) }),
@@ -73,14 +81,19 @@ function sequentialClient(results: readonly { data: unknown; error: unknown }[])
   } as unknown as SupabasePrivateDocumentReadClientLike;
 }
 
-function storageClient(download: () => Promise<{ data: unknown; error: unknown }>) {
+function storageClient(
+  download: () => Promise<{ data: unknown; error: unknown }>,
+) {
   return {
     from: () => ({ select: () => queryBuilder({ data: null, error: null }) }),
     storage: { from: () => ({ download }) },
   } as unknown as SupabasePrivateDocumentReadClientLike;
 }
 
-async function expectCode(run: Promise<unknown>, code: DocumentPersistenceError["code"]) {
+async function expectCode(
+  run: Promise<unknown>,
+  code: DocumentPersistenceError["code"],
+) {
   await expect(run).rejects.toMatchObject({
     name: "DocumentPersistenceError",
     code,
@@ -108,11 +121,16 @@ describe("SupabasePrivateDocumentReadAdapter query coverage", () => {
     };
     const client = {
       from: () => ({ select: () => rejecting }),
-      storage: { from: () => ({ download: async () => ({ data: null, error: null }) }) },
+      storage: {
+        from: () => ({ download: async () => ({ data: null, error: null }) }),
+      },
     } as unknown as SupabasePrivateDocumentReadClientLike;
 
     await expectCode(
-      new SupabasePrivateDocumentReadAdapter(client).getActiveDocument(projectId, documentId),
+      new SupabasePrivateDocumentReadAdapter(client).getActiveDocument(
+        projectId,
+        documentId,
+      ),
       "persistence_failed",
     );
   });
@@ -123,7 +141,10 @@ describe("SupabasePrivateDocumentReadAdapter query coverage", () => {
       { data: null, error: null },
     ]);
     await expectCode(
-      new SupabasePrivateDocumentReadAdapter(client).listVenueDocuments(projectId, venueId),
+      new SupabasePrivateDocumentReadAdapter(client).listVenueDocuments(
+        projectId,
+        venueId,
+      ),
       "provider_response_invalid",
     );
   });
@@ -134,7 +155,10 @@ describe("SupabasePrivateDocumentReadAdapter query coverage", () => {
       { data: [row(otherDocumentId)], error: null },
     ]);
     await expectCode(
-      new SupabasePrivateDocumentReadAdapter(client).listVenueDocuments(projectId, venueId),
+      new SupabasePrivateDocumentReadAdapter(client).listVenueDocuments(
+        projectId,
+        venueId,
+      ),
       "provider_response_invalid",
     );
   });
