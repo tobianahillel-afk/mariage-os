@@ -52,7 +52,9 @@ function expectInvalid(run: () => unknown): void {
 
 describe("parseActivePrivateDocumentRow", () => {
   it("parses an active ready row with exact project and document identity", () => {
-    expect(parseActivePrivateDocumentRow(row(), projectId, documentId)).toMatchObject({
+    expect(
+      parseActivePrivateDocumentRow(row(), projectId, documentId),
+    ).toMatchObject({
       id: documentId,
       projectId,
       storagePath: `${projectId}/documents/${documentId}/original`,
@@ -79,7 +81,11 @@ describe("parseActivePrivateDocumentRow", () => {
   ])("rejects malformed or substituted %s", (field, value) => {
     const expectedDocumentId = field === "id" ? documentId : undefined;
     expectInvalid(() =>
-      parseActivePrivateDocumentRow(row({ [field]: value }), projectId, expectedDocumentId),
+      parseActivePrivateDocumentRow(
+        row({ [field]: value }),
+        projectId,
+        expectedDocumentId,
+      ),
     );
   });
 
@@ -90,9 +96,9 @@ describe("parseActivePrivateDocumentRow", () => {
 
 describe("parseVenuePrivateDocumentLinkIds", () => {
   it("returns stable unique linked document ids", () => {
-    expect(parseVenuePrivateDocumentLinkIds([link(), link()], projectId, venueId)).toEqual([
-      documentId,
-    ]);
+    expect(
+      parseVenuePrivateDocumentLinkIds([link(), link()], projectId, venueId),
+    ).toEqual([documentId]);
   });
 
   it.each([
@@ -103,7 +109,11 @@ describe("parseVenuePrivateDocumentLinkIds", () => {
     ["relationship_type", "attachment"],
   ])("rejects malformed or substituted link %s", (field, value) => {
     expectInvalid(() =>
-      parseVenuePrivateDocumentLinkIds([link({ [field]: value })], projectId, venueId),
+      parseVenuePrivateDocumentLinkIds(
+        [link({ [field]: value })],
+        projectId,
+        venueId,
+      ),
     );
   });
 
