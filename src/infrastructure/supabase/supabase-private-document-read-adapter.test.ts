@@ -104,7 +104,10 @@ function fakeClient(
   };
 }
 
-function expectPersistenceCode(run: Promise<unknown>, code: string): Promise<void> {
+function expectPersistenceCode(
+  run: Promise<unknown>,
+  code: DocumentPersistenceError["code"],
+): Promise<void> {
   return expect(run).rejects.toMatchObject({
     name: "DocumentPersistenceError",
     code,
