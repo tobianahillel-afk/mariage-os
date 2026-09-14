@@ -1,9 +1,9 @@
 import { DocumentPersistenceError } from "@application/documents/document-persistence-error";
+import type { PrivateDocumentState } from "@application/documents/private-document-lifecycle-port";
 import type {
   PrivateDocumentDownloadPort,
   PrivateDocumentQueryPort,
 } from "@application/documents/private-document-read-port";
-import type { PrivateDocumentState } from "@application/documents/private-document-lifecycle-port";
 import {
   parseActivePrivateDocumentRow,
   parseVenuePrivateDocumentLinkIds,
@@ -83,14 +83,21 @@ async function providerResult(
   }
 }
 
-function activeDocumentQuery(
+function documentQuery(
   client: SupabasePrivateDocumentReadClientLike,
   projectId: string,
 ): PrivateDocumentQueryBuilder {
   return client
     .from("documents")
     .select(DOCUMENT_COLUMNS)
-    .eq("project_id", projectId)
+    .eq("project_id", projectId);
+}
+
+function activeDocumentListQuery(
+  client: SupabasePrivateDocumentReadClientLike,
+  projectId: string,
+): PrivateDocumentQueryBuilder {
+  return documentQuery(client, projectId)
     .eq("upload_status", "ready")
     .is("deleted_at", null);
 }
@@ -144,7 +151,7 @@ export class SupabasePrivateDocumentReadAdapter
     if (documentIds.length === 0) return [];
 
     const documents = await providerResult(
-      activeDocumentQuery(this.client, projectId).in("id", documentIds),
+      activeDocumentListQuery(this.client, projectId).in("id", documentIds),
     );
     return parsedDocumentRows(
       documents.data,
@@ -158,8 +165,10 @@ export class SupabasePrivateDocumentReadAdapter
     documentId: string,
   ): Promise<PrivateDocumentState | null> {
     const result = await providerResult(
-      activeDocumentQuery(this.client, projectId)
+      documentQuery(this.client, projectId)
         .eq("id", documentId)
+        .eq("upload_status", "ready")
+        .is("deleted_at", null)
         .maybeSingle(),
     );
     if (result.data === null) return null;
@@ -171,7 +180,9 @@ export class SupabasePrivateDocumentReadAdapter
 
     let result: SupabaseResult;
     try {
-      result = await this.client.storage.from(PRIVATE_DOCUMENT_BUCKET).download(path);
+      result = await this.client.storage
+        .from(PRIVATE_DOCUMENT_BUCKET)
+        .download(path);
     } catch {
       storageRetryable();
     }
