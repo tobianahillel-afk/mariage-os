@@ -105,13 +105,7 @@ function localDatabaseContainer() {
   if (cachedDatabaseContainer) return cachedDatabaseContainer;
   const result = spawnSync(
     "docker",
-    [
-      "ps",
-      "--filter",
-      "name=supabase_db_mariage-os",
-      "--format",
-      "{{.ID}}",
-    ],
+    ["ps", "--filter", "name=supabase_db_mariage-os", "--format", "{{.ID}}"],
     { encoding: "utf8", env: process.env },
   );
   const containerId = result.stdout.trim().split(/\s+/u)[0];
@@ -145,7 +139,8 @@ function runLocalSql(sql, variables = {}) {
     encoding: "utf8",
     env: process.env,
   });
-  if (result.status !== 0) fail("Local synthetic SQL fixture operation failed.");
+  if (result.status !== 0)
+    fail("Local synthetic SQL fixture operation failed.");
   return result.stdout.trim();
 }
 
@@ -330,7 +325,9 @@ function attestationCount(projectId, documentId) {
 }
 
 export async function assertNoTrustedObject({ admin, projectId, documentId }) {
-  const object = await admin.storage.from(BUCKET).download(storagePath(projectId, documentId));
+  const object = await admin.storage
+    .from(BUCKET)
+    .download(storagePath(projectId, documentId));
   assertRejected(object, "Rejected ingest must not create Storage bytes.");
   assert.equal(
     attestationCount(projectId, documentId),
@@ -364,10 +361,9 @@ export async function cleanupHarness({
 }) {
   if (objectPaths.length > 0)
     await admin.storage.from(BUCKET).remove(objectPaths);
-  runLocalSql(
-    `delete from public.projects where id = :'project_id'::uuid;`,
-    { project_id: projectId },
-  );
+  runLocalSql(`delete from public.projects where id = :'project_id'::uuid;`, {
+    project_id: projectId,
+  });
   for (const userId of userIds) await admin.auth.admin.deleteUser(userId);
 }
 
