@@ -88,7 +88,10 @@ function fakeClient(
   const download = vi.fn().mockResolvedValue(storageResult);
   const from = vi.fn((_table: string) => ({
     select: vi.fn((_columns: string) => {
-      const next = pending.shift() ?? { data: null, error: new Error("missing plan") };
+      const next = pending.shift() ?? {
+        data: null,
+        error: new Error("missing plan"),
+      };
       const builder = query(next);
       queries.push(builder);
       return builder;
@@ -122,7 +125,9 @@ describe("SupabasePrivateDocumentReadAdapter queries", () => {
     ]);
     const adapter = new SupabasePrivateDocumentReadAdapter(fake.client);
 
-    await expect(adapter.listVenueDocuments(projectId, venueId)).resolves.toMatchObject([
+    await expect(
+      adapter.listVenueDocuments(projectId, venueId),
+    ).resolves.toMatchObject([
       { id: documentId, projectId, uploadStatus: "ready", deletedAt: null },
     ]);
     expect(fake.queries[0]?.operations).toEqual([
@@ -142,7 +147,9 @@ describe("SupabasePrivateDocumentReadAdapter queries", () => {
     const fake = fakeClient([{ data: [], error: null }]);
     const adapter = new SupabasePrivateDocumentReadAdapter(fake.client);
 
-    await expect(adapter.listVenueDocuments(projectId, venueId)).resolves.toEqual([]);
+    await expect(
+      adapter.listVenueDocuments(projectId, venueId),
+    ).resolves.toEqual([]);
     expect(fake.from).toHaveBeenCalledTimes(1);
   });
 
@@ -150,7 +157,9 @@ describe("SupabasePrivateDocumentReadAdapter queries", () => {
     const fake = fakeClient([{ data: documentRow(), error: null }]);
     const adapter = new SupabasePrivateDocumentReadAdapter(fake.client);
 
-    await expect(adapter.getActiveDocument(projectId, documentId)).resolves.toMatchObject({
+    await expect(
+      adapter.getActiveDocument(projectId, documentId),
+    ).resolves.toMatchObject({
       id: documentId,
       projectId,
     });
@@ -165,11 +174,15 @@ describe("SupabasePrivateDocumentReadAdapter queries", () => {
   it("keeps an RLS-filtered miss non-disclosing", async () => {
     const fake = fakeClient([{ data: null, error: null }]);
     const adapter = new SupabasePrivateDocumentReadAdapter(fake.client);
-    await expect(adapter.getActiveDocument(projectId, documentId)).resolves.toBeNull();
+    await expect(
+      adapter.getActiveDocument(projectId, documentId),
+    ).resolves.toBeNull();
   });
 
   it("maps provider query failures without leaking details", async () => {
-    const fake = fakeClient([{ data: null, error: { message: "provider detail" } }]);
+    const fake = fakeClient([
+      { data: null, error: { message: "provider detail" } },
+    ]);
     const adapter = new SupabasePrivateDocumentReadAdapter(fake.client);
     await expectPersistenceCode(
       adapter.getActiveDocument(projectId, documentId),
@@ -191,12 +204,18 @@ describe("SupabasePrivateDocumentReadAdapter downloads", () => {
   it("rejects a non-canonical document path before Storage access", async () => {
     const fake = fakeClient([]);
     const adapter = new SupabasePrivateDocumentReadAdapter(fake.client);
-    await expectPersistenceCode(adapter.download(`${path}/extra`), "provider_response_invalid");
+    await expectPersistenceCode(
+      adapter.download(`${path}/extra`),
+      "provider_response_invalid",
+    );
     expect(fake.download).not.toHaveBeenCalled();
   });
 
   it("maps Storage errors to retryable failure", async () => {
-    const fake = fakeClient([], { data: null, error: { message: "provider detail" } });
+    const fake = fakeClient([], {
+      data: null,
+      error: { message: "provider detail" },
+    });
     const adapter = new SupabasePrivateDocumentReadAdapter(fake.client);
     await expectPersistenceCode(adapter.download(path), "storage_retryable");
   });
@@ -204,7 +223,10 @@ describe("SupabasePrivateDocumentReadAdapter downloads", () => {
   it("rejects malformed Storage download data", async () => {
     const fake = fakeClient([], { data: { nope: true }, error: null });
     const adapter = new SupabasePrivateDocumentReadAdapter(fake.client);
-    await expectPersistenceCode(adapter.download(path), "provider_response_invalid");
+    await expectPersistenceCode(
+      adapter.download(path),
+      "provider_response_invalid",
+    );
   });
 
   it("maps binary materialization failures to retryable failure", async () => {
