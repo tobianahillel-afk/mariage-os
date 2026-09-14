@@ -126,7 +126,7 @@ Before implementation gate opens, every V1 row remains `SPECIFIED`.
 | FTR-072 | Dashboard blockers/waiting/joint decisions | 8 | DASHBOARD | SPECIFIED |
 | FTR-073 | Dashboard budget/deadline/progress summaries | 8 | BUDGET, DASHBOARD | SPECIFIED |
 | FTR-074 | Meaningful partner changes since last visit | 8 | DASHBOARD, ACTIVITY | SPECIFIED |
-| FTR-075 | Wedding event timeline structured items | 8 | EVENT-TIMELINE | SPECIFIED |
+| FTR-075 | Wedding event timeline structured items | 8 | EVENT-TIMELINE, DATES-TIME | SPECIFIED |
 | FTR-076 | Timeline dependencies/vendor/location/time validation | 8 | EVENT-TIMELINE, DATES-TIME | SPECIFIED |
 | FTR-077 | Timeline final snapshot/print/vendor-filtered export | 8 | EVENT-TIMELINE | SPECIFIED |
 | FTR-078 | Global Search project-scoped results/deep links | 8 | GLOBAL-SEARCH | SPECIFIED |
@@ -155,7 +155,7 @@ Before implementation gate opens, every V1 row remains `SPECIFIED`.
 
 | ID | Capability | Lot | Primary contracts | Status |
 |---|---|---:|---|---|
-| FTR-089 | Private document upload/download/link/provenance | 2/7/11 | DOCUMENTS, STORAGE | SPECIFIED |
+| FTR-089 | Private document upload/download/link/provenance | 2/7/11 | DOCUMENTS, STORAGE | IN_PROGRESS |
 | FTR-090 | Document version/supersession history | 7/11 | CONTRACT-READINESS, SCHEMA ADDENDUM | SPECIFIED |
 | FTR-091 | Quote/contract readiness checklist and follow-up | 7/8 | CONTRACT-READINESS | SPECIFIED |
 | FTR-092 | Original media/derivative/orphan lifecycle | 2/10/11 | STORAGE | SPECIFIED |
