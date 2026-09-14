@@ -151,15 +151,13 @@ describe("WP-2.9A AR-003 service Unicode scalar parity RED", () => {
         path,
         present: false,
       }),
-      uploadReservedObject: vi.fn().mockResolvedValue({
-        bucket: "project-private" as const,
-        path,
-      }),
       deleteReservedObject: vi.fn(),
     };
+    const ingest = { ingest: vi.fn().mockResolvedValue(undefined) };
     const service = new PrivateDocumentService({
       lifecycle,
       storage,
+      ingest,
       sha256: { hash: vi.fn().mockResolvedValue(sha256) },
     });
 
@@ -179,5 +177,6 @@ describe("WP-2.9A AR-003 service Unicode scalar parity RED", () => {
     expect(lifecycle.reserveUpload).toHaveBeenCalledWith(
       expect.objectContaining({ documentType, title }),
     );
+    expect(ingest.ingest).toHaveBeenCalledOnce();
   });
 });

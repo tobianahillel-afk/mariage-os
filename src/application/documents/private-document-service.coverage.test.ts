@@ -74,10 +74,6 @@ function ports() {
       path,
       present: false,
     }),
-    uploadReservedObject: vi.fn().mockResolvedValue({
-      bucket: "project-private" as const,
-      path,
-    }),
     deleteReservedObject: vi.fn().mockResolvedValue({
       bucket: "project-private" as const,
       path,
@@ -87,6 +83,7 @@ function ports() {
   return {
     lifecycle,
     storage,
+    ingest: { ingest: vi.fn().mockResolvedValue(undefined) },
     sha256: { hash: vi.fn().mockResolvedValue(sha256) },
   };
 }
@@ -173,7 +170,7 @@ describe("PrivateDocumentService hash and provider coverage", () => {
     });
   });
 
-  it("rejects a substituted reservation path before Storage access", async () => {
+  it("rejects a substituted reservation path before trusted ingest", async () => {
     const fake = ports();
     fake.lifecycle.reserveUpload.mockResolvedValue({
       replayed: false,
@@ -184,7 +181,7 @@ describe("PrivateDocumentService hash and provider coverage", () => {
       ok: false,
       error: "provider_response_invalid",
     });
-    expect(fake.storage.inspectReservedObject).not.toHaveBeenCalled();
+    expect(fake.ingest.ingest).not.toHaveBeenCalled();
   });
 
   it.each([
@@ -206,7 +203,7 @@ describe("PrivateDocumentService hash and provider coverage", () => {
 
   it("maps unknown failures to persistence_failed", async () => {
     const fake = ports();
-    fake.storage.inspectReservedObject.mockRejectedValue(new Error("network"));
+    fake.ingest.ingest.mockRejectedValue(new Error("network"));
     const service = new PrivateDocumentService(fake);
     await expect(service.upload(request())).resolves.toEqual({
       ok: false,

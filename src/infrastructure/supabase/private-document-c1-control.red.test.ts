@@ -76,15 +76,12 @@ function servicePorts() {
       path,
       present: false,
     }),
-    uploadReservedObject: vi.fn().mockResolvedValue({
-      bucket: "project-private" as const,
-      path,
-    }),
     deleteReservedObject: vi.fn(),
   };
   return {
     lifecycle,
     storage,
+    ingest: { ingest: vi.fn().mockResolvedValue(undefined) },
     sha256: { hash: vi.fn().mockResolvedValue(sha256) },
   };
 }
