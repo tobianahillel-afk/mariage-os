@@ -63,35 +63,6 @@ describe("parseActivePrivateDocumentRow", () => {
     });
   });
 
-  it("accepts a contract-valid filename containing exactly 512 Unicode scalar values", () => {
-    const originalFilename = `${"😀".repeat(508)}.pdf`;
-
-    expect(
-      parseActivePrivateDocumentRow(
-        row({ original_filename: originalFilename }),
-        projectId,
-        documentId,
-      ).originalFilename,
-    ).toBe(originalFilename);
-  });
-
-  it.each([
-    `${"😀".repeat(509)}.pdf`,
-    `bad\ud800.pdf`,
-    `bad\udc00.pdf`,
-    "bad\u0000.pdf",
-    "folder/contract.pdf",
-    "folder\\contract.pdf",
-  ])("rejects unsafe or over-limit private filename metadata: %s", (value) => {
-    expectInvalid(() =>
-      parseActivePrivateDocumentRow(
-        row({ original_filename: value }),
-        projectId,
-        documentId,
-      ),
-    );
-  });
-
   it.each([
     ["project_id", otherId],
     ["id", otherId],
@@ -120,6 +91,37 @@ describe("parseActivePrivateDocumentRow", () => {
 
   it("rejects non-record rows", () => {
     expectInvalid(() => parseActivePrivateDocumentRow(null, projectId));
+  });
+});
+
+describe("private document filename parsing", () => {
+  it("accepts a contract-valid filename containing exactly 512 Unicode scalar values", () => {
+    const originalFilename = `${"😀".repeat(508)}.pdf`;
+
+    expect(
+      parseActivePrivateDocumentRow(
+        row({ original_filename: originalFilename }),
+        projectId,
+        documentId,
+      ).originalFilename,
+    ).toBe(originalFilename);
+  });
+
+  it.each([
+    `${"😀".repeat(509)}.pdf`,
+    `bad\ud800.pdf`,
+    `bad\udc00.pdf`,
+    "bad\u0000.pdf",
+    "folder/contract.pdf",
+    "folder\\contract.pdf",
+  ])("rejects unsafe or over-limit private filename metadata: %s", (value) => {
+    expectInvalid(() =>
+      parseActivePrivateDocumentRow(
+        row({ original_filename: value }),
+        projectId,
+        documentId,
+      ),
+    );
   });
 });
 

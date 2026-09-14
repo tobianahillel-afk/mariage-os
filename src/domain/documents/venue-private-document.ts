@@ -30,9 +30,7 @@ function unicodeScalarWidth(value: string, index: number): 0 | 1 | 2 {
   return nextCodeUnit >= 0xdc00 && nextCodeUnit <= 0xdfff ? 2 : 0;
 }
 
-export function isSafePrivateDocumentFilename(value: unknown): value is string {
-  if (typeof value !== "string") return false;
-
+function hasSafeFilenameScalars(value: string): boolean {
   let scalars = 0;
   let index = 0;
   while (index < value.length) {
@@ -44,7 +42,13 @@ export function isSafePrivateDocumentFilename(value: unknown): value is string {
     scalars += 1;
     if (scalars > MAX_PRIVATE_PDF_FILENAME_SCALARS) return false;
   }
-  return scalars > 0 && !value.includes("/") && !value.includes("\\");
+  return scalars > 0;
+}
+
+export function isSafePrivateDocumentFilename(value: unknown): value is string {
+  if (typeof value !== "string") return false;
+  if (!hasSafeFilenameScalars(value)) return false;
+  return !value.includes("/") && !value.includes("\\");
 }
 
 function hasPdfSignature(bytes: Uint8Array): boolean {
