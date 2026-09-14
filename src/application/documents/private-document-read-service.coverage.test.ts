@@ -47,13 +47,19 @@ function serviceWith(
     download: vi.fn().mockResolvedValue(bytes),
     ...downloadOverrides,
   };
-  return { service: new PrivateDocumentReadService({ query, download }), query, download };
+  return {
+    service: new PrivateDocumentReadService({ query, download }),
+    query,
+    download,
+  };
 }
 
 describe("PrivateDocumentReadService coverage guards", () => {
   it("maps an untyped query exception to persistence_failed", async () => {
     const fake = serviceWith({
-      getActiveDocument: vi.fn().mockRejectedValue(new Error("provider detail")),
+      getActiveDocument: vi
+        .fn()
+        .mockRejectedValue(new Error("provider detail")),
     });
 
     await expect(
@@ -74,7 +80,9 @@ describe("PrivateDocumentReadService coverage guards", () => {
 
   it("rejects valid PDF bytes whose exact size no longer matches retained metadata", async () => {
     const fake = serviceWith({
-      getActiveDocument: vi.fn().mockResolvedValue(document({ sizeBytes: bytes.byteLength + 1 })),
+      getActiveDocument: vi
+        .fn()
+        .mockResolvedValue(document({ sizeBytes: bytes.byteLength + 1 })),
     });
 
     await expect(
@@ -84,10 +92,19 @@ describe("PrivateDocumentReadService coverage guards", () => {
 
   it.each([
     ["get", () => serviceWith().service.getActiveDocument("bad", documentId)],
-    ["download", () => serviceWith().service.downloadActiveDocument(projectId, "bad")],
-    ["list venue", () => serviceWith().service.listVenueDocuments(projectId, "bad")],
+    [
+      "download",
+      () => serviceWith().service.downloadActiveDocument(projectId, "bad"),
+    ],
+    [
+      "list venue",
+      () => serviceWith().service.listVenueDocuments(projectId, "bad"),
+    ],
   ])("rejects invalid identity for %s", async (_name, run) => {
-    await expect(run()).resolves.toEqual({ ok: false, error: "invalid_identity" });
+    await expect(run()).resolves.toEqual({
+      ok: false,
+      error: "invalid_identity",
+    });
   });
 
   it("accepts an empty active Venue document list", async () => {
