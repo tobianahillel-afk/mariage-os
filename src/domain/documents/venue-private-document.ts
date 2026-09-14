@@ -16,9 +16,7 @@ export interface ValidatedVenuePrivatePdf {
 }
 
 export type VenuePrivatePdfValidationError =
-  | "invalid_filename"
-  | "invalid_size"
-  | "unsupported_type";
+  "invalid_filename" | "invalid_size" | "unsupported_type";
 
 export type VenuePrivatePdfValidationResult =
   | { readonly ok: true; readonly value: ValidatedVenuePrivatePdf }
@@ -44,11 +42,7 @@ function hasSafeFilename(value: string): boolean {
     scalars += 1;
     if (scalars > MAX_PRIVATE_PDF_FILENAME_SCALARS) return false;
   }
-  return (
-    scalars > 0 &&
-    !value.includes("/") &&
-    !value.includes("\\")
-  );
+  return scalars > 0 && !value.includes("/") && !value.includes("\\");
 }
 
 function hasPdfSignature(bytes: Uint8Array): boolean {

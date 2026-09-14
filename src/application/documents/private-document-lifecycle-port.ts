@@ -73,13 +73,27 @@ export interface PrivateDocumentAbandonReceipt {
 }
 
 export interface PrivateDocumentLifecyclePort {
-  reserveUpload(input: ReservePrivateDocumentInput): Promise<PrivateDocumentReceipt>;
-  finalizeUpload(input: PrivateDocumentIdentityInput): Promise<PrivateDocumentReceipt>;
-  abandonUpload(input: PrivateDocumentIdentityInput): Promise<PrivateDocumentAbandonReceipt>;
-  linkVenue(input: LinkPrivateDocumentVenueInput): Promise<PrivateDocumentLinkReceipt>;
-  unlinkVenue(input: LinkPrivateDocumentVenueInput): Promise<PrivateDocumentUnlinkReceipt>;
-  softDelete(input: TransitionPrivateDocumentInput): Promise<PrivateDocumentReceipt>;
-  restore(input: TransitionPrivateDocumentInput): Promise<PrivateDocumentReceipt>;
+  reserveUpload(
+    input: ReservePrivateDocumentInput,
+  ): Promise<PrivateDocumentReceipt>;
+  finalizeUpload(
+    input: PrivateDocumentIdentityInput,
+  ): Promise<PrivateDocumentReceipt>;
+  abandonUpload(
+    input: PrivateDocumentIdentityInput,
+  ): Promise<PrivateDocumentAbandonReceipt>;
+  linkVenue(
+    input: LinkPrivateDocumentVenueInput,
+  ): Promise<PrivateDocumentLinkReceipt>;
+  unlinkVenue(
+    input: LinkPrivateDocumentVenueInput,
+  ): Promise<PrivateDocumentUnlinkReceipt>;
+  softDelete(
+    input: TransitionPrivateDocumentInput,
+  ): Promise<PrivateDocumentReceipt>;
+  restore(
+    input: TransitionPrivateDocumentInput,
+  ): Promise<PrivateDocumentReceipt>;
 }
 
 export interface PrivateDocumentSha256Port {

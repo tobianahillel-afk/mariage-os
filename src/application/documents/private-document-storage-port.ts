@@ -28,5 +28,7 @@ export interface PrivateDocumentStoragePort {
   uploadReservedObject(
     input: UploadReservedDocumentObjectInput,
   ): Promise<UploadReservedDocumentObjectReceipt>;
-  deleteReservedObject(path: string): Promise<DeleteReservedDocumentObjectReceipt>;
+  deleteReservedObject(
+    path: string,
+  ): Promise<DeleteReservedDocumentObjectReceipt>;
 }

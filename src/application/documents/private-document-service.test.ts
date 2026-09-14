@@ -82,7 +82,7 @@ function ports(present: boolean) {
   return { lifecycle, storage, sha256: sha256Port };
 }
 
-describe("PrivateDocumentService upload lifecycle", () => {
+describe("PrivateDocumentService upload persistence", () => {
   it("hashes and uploads the exact validated byte array before finalization", async () => {
     const fake = ports(false);
     const service = new PrivateDocumentService(fake);
@@ -111,15 +111,22 @@ describe("PrivateDocumentService upload lifecycle", () => {
     const fake = ports(true);
     const service = new PrivateDocumentService(fake);
 
-    await expect(service.upload(request())).resolves.toMatchObject({ ok: true });
+    await expect(service.upload(request())).resolves.toMatchObject({
+      ok: true,
+    });
     expect(fake.storage.uploadReservedObject).not.toHaveBeenCalled();
     expect(fake.lifecycle.finalizeUpload).toHaveBeenCalledOnce();
   });
+});
 
+describe("PrivateDocumentService validation and cleanup", () => {
   it("fails before persistence when MIME/signature validation fails", async () => {
     const fake = ports(false);
     const service = new PrivateDocumentService(fake);
-    const invalid = { ...request(), declaredMimeType: "application/octet-stream" };
+    const invalid = {
+      ...request(),
+      declaredMimeType: "application/octet-stream",
+    };
 
     await expect(service.upload(invalid)).resolves.toEqual({
       ok: false,
@@ -145,10 +152,16 @@ describe("PrivateDocumentService upload lifecycle", () => {
     const fake = ports(true);
     fake.storage.inspectReservedObject
       .mockResolvedValueOnce({ bucket: "project-private", path, present: true })
-      .mockResolvedValueOnce({ bucket: "project-private", path, present: false });
+      .mockResolvedValueOnce({
+        bucket: "project-private",
+        path,
+        present: false,
+      });
     const service = new PrivateDocumentService(fake);
 
-    await expect(service.abandon(operationId, projectId, documentId)).resolves.toEqual({
+    await expect(
+      service.abandon(operationId, projectId, documentId),
+    ).resolves.toEqual({
       ok: true,
       value: { absent: true },
     });

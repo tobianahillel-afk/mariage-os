@@ -97,9 +97,7 @@ function transitionArgs(
   };
 }
 
-export class SupabasePrivateDocumentLifecycleAdapter
-  implements PrivateDocumentLifecyclePort
-{
+export class SupabasePrivateDocumentLifecycleAdapter implements PrivateDocumentLifecyclePort {
   constructor(private readonly client: SupabasePrivateDocumentClientLike) {}
 
   async reserveUpload(input: ReservePrivateDocumentInput) {
@@ -137,7 +135,10 @@ export class SupabasePrivateDocumentLifecycleAdapter
   }
 
   async softDelete(input: TransitionPrivateDocumentInput) {
-    const data = await callRpc(this.client, transitionArgs("soft_delete", input));
+    const data = await callRpc(
+      this.client,
+      transitionArgs("soft_delete", input),
+    );
     return parsePrivateDocumentReceipt(data, "soft_delete", input);
   }
 

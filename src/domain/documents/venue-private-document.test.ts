@@ -14,7 +14,7 @@ function candidate(
   return { originalFilename, bytes, declaredMimeType };
 }
 
-describe("Venue private PDF validation", () => {
+describe("Venue private PDF type and size validation", () => {
   it("accepts a case-insensitive .pdf filename with exact PDF MIME/signature", () => {
     expect(validateVenuePrivatePdf(candidate("Venue_Contract.PDF"))).toEqual({
       ok: true,
@@ -38,23 +38,31 @@ describe("Venue private PDF validation", () => {
   });
 
   it("enforces exact byte-size boundaries", () => {
-    expect(validateVenuePrivatePdf(candidate("empty.pdf", new Uint8Array()))).toEqual({
+    expect(
+      validateVenuePrivatePdf(candidate("empty.pdf", new Uint8Array())),
+    ).toEqual({
       ok: false,
       error: "invalid_size",
     });
 
     const atLimit = new Uint8Array(25_000_000);
     atLimit.set(pdf.slice(0, 5));
-    expect(validateVenuePrivatePdf(candidate("limit.pdf", atLimit)).ok).toBe(true);
+    expect(validateVenuePrivatePdf(candidate("limit.pdf", atLimit)).ok).toBe(
+      true,
+    );
 
     const aboveLimit = new Uint8Array(25_000_001);
     aboveLimit.set(pdf.slice(0, 5));
-    expect(validateVenuePrivatePdf(candidate("large.pdf", aboveLimit))).toEqual({
-      ok: false,
-      error: "invalid_size",
-    });
+    expect(validateVenuePrivatePdf(candidate("large.pdf", aboveLimit))).toEqual(
+      {
+        ok: false,
+        error: "invalid_size",
+      },
+    );
   });
+});
 
+describe("Venue private PDF filename validation", () => {
   it.each([
     "",
     "../contract.pdf",

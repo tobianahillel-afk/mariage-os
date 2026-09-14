@@ -35,66 +35,106 @@ function integer(value: unknown): number {
   return value;
 }
 
-function boundedText(value: unknown, max: number): string {
-  if (
-    typeof value !== "string" ||
-    value.length < 1 ||
-    value.length > max ||
-    value.trim() !== value ||
-    /[\u0000-\u001f\u007f]/u.test(value)
-  ) {
-    throw new Error("invalid text");
+function hasControlCharacter(value: string): boolean {
+  for (let index = 0; index < value.length; index += 1) {
+    const code = value.charCodeAt(index);
+    if (code <= 0x1f || code === 0x7f) return true;
   }
+  return false;
+}
+
+function boundedText(value: unknown, max: number): string {
+  if (typeof value !== "string") throw new Error("invalid text");
+  if (value.length < 1 || value.length > max) throw new Error("invalid text");
+  if (value.trim() !== value) throw new Error("invalid text");
+  if (hasControlCharacter(value)) throw new Error("invalid text");
+  return value;
+}
+
+function nullableUuid(value: unknown): string | null {
+  if (value === null) return null;
+  return uuid(value);
+}
+
+function nullableTimestamp(value: unknown): string | null {
+  if (value === null) return null;
+  if (typeof value !== "string") throw new Error("invalid timestamp");
+  return value;
+}
+
+function privateDocumentSize(value: unknown): number {
+  if (typeof value !== "number") throw new Error("invalid size");
+  if (!Number.isSafeInteger(value)) throw new Error("invalid size");
+  if (value < 1 || value > 25_000_000) throw new Error("invalid size");
+  return value;
+}
+
+function privateDocumentSha(value: unknown): string {
+  if (typeof value !== "string") throw new Error("invalid sha");
+  if (!/^[0-9a-f]{64}$/.test(value)) throw new Error("invalid sha");
+  return value;
+}
+
+function privateDocumentStatus(value: unknown): "pending" | "ready" {
+  if (value === "pending") return value;
+  if (value === "ready") return value;
+  throw new Error("invalid upload status");
+}
+
+function privateDocumentFilename(value: unknown): string {
+  if (typeof value !== "string") throw new Error("invalid filename");
+  if (value.length < 1 || value.length > 512) {
+    throw new Error("invalid filename");
+  }
+  if (hasControlCharacter(value)) throw new Error("invalid filename");
+  if (value.includes("/") || value.includes("\\")) {
+    throw new Error("invalid filename");
+  }
+  if (!value.toLowerCase().endsWith(".pdf")) {
+    throw new Error("invalid filename");
+  }
+  return value;
+}
+
+function privateStoragePath(
+  value: unknown,
+  projectId: string,
+  documentId: string,
+): string {
+  if (typeof value !== "string") throw new Error("invalid storage path");
+  const expected = `${projectId}/documents/${documentId}/original`;
+  if (value !== expected) throw new Error("invalid storage path");
+  return value;
+}
+
+function exactPdfMime(value: unknown): "application/pdf" {
+  if (value !== "application/pdf") throw new Error("invalid mime");
+  return value;
+}
+
+function exactPrivateClassification(value: unknown): "private" {
+  if (value !== "private") throw new Error("invalid classification");
   return value;
 }
 
 function parseDocument(value: unknown): PrivateDocumentState {
   const row = record(value);
-  const sourceId = row.source_id === null ? null : uuid(row.source_id);
-  const deletedAt = row.deleted_at === null ? null : row.deleted_at;
-  if (
-    typeof row.storage_path !== "string" ||
-    typeof row.original_filename !== "string" ||
-    row.mime_type !== "application/pdf" ||
-    typeof row.size_bytes !== "number" ||
-    !Number.isSafeInteger(row.size_bytes) ||
-    row.size_bytes < 1 ||
-    row.size_bytes > 25_000_000 ||
-    typeof row.sha256 !== "string" ||
-    !/^[0-9a-f]{64}$/.test(row.sha256) ||
-    row.classification !== "private" ||
-    (row.upload_status !== "pending" && row.upload_status !== "ready") ||
-    (deletedAt !== null && typeof deletedAt !== "string")
-  ) {
-    throw new Error("invalid document row");
-  }
-
   const projectId = uuid(row.project_id);
   const id = uuid(row.id);
-  if (
-    row.storage_path !== `${projectId}/documents/${id}/original` ||
-    row.original_filename.length < 1 ||
-    row.original_filename.length > 512 ||
-    /[\u0000-\u001f\u007f/\\]/u.test(row.original_filename) ||
-    !row.original_filename.toLowerCase().endsWith(".pdf")
-  ) {
-    throw new Error("invalid private document shape");
-  }
-
   return {
     id,
     projectId,
     documentType: boundedText(row.document_type, 120),
     title: boundedText(row.title, 500),
-    storagePath: row.storage_path,
-    originalFilename: row.original_filename,
-    mimeType: "application/pdf",
-    sizeBytes: row.size_bytes,
-    sha256: row.sha256,
-    classification: "private",
-    uploadStatus: row.upload_status,
-    sourceId,
-    deletedAt,
+    storagePath: privateStoragePath(row.storage_path, projectId, id),
+    originalFilename: privateDocumentFilename(row.original_filename),
+    mimeType: exactPdfMime(row.mime_type),
+    sizeBytes: privateDocumentSize(row.size_bytes),
+    sha256: privateDocumentSha(row.sha256),
+    classification: exactPrivateClassification(row.classification),
+    uploadStatus: privateDocumentStatus(row.upload_status),
+    sourceId: nullableUuid(row.source_id),
+    deletedAt: nullableTimestamp(row.deleted_at),
     revision: integer(row.revision),
   };
 }
@@ -110,10 +150,75 @@ function expectedDocument(
   documentId: string,
 ): PrivateDocumentState {
   const document = parseDocument(receipt.document);
-  if (document.projectId !== projectId || document.id !== documentId) {
-    throw new Error("substituted document");
-  }
+  if (document.projectId !== projectId) throw new Error("substituted project");
+  if (document.id !== documentId) throw new Error("substituted document");
   return document;
+}
+
+function assertReserveMetadata(
+  document: PrivateDocumentState,
+  input: ReservePrivateDocumentInput,
+): void {
+  if (document.uploadStatus !== "pending") throw new Error("wrong reserve state");
+  if (document.documentType !== input.documentType) throw new Error("wrong reserve state");
+  if (document.title !== input.title) throw new Error("wrong reserve state");
+  if (document.sourceId !== input.sourceId) throw new Error("wrong reserve state");
+  if (document.deletedAt !== null) throw new Error("wrong reserve state");
+}
+
+function assertReserveBinary(
+  document: PrivateDocumentState,
+  input: ReservePrivateDocumentInput,
+): void {
+  if (document.originalFilename !== input.originalFilename) {
+    throw new Error("wrong reserve state");
+  }
+  if (document.mimeType !== input.mimeType) throw new Error("wrong reserve state");
+  if (document.sizeBytes !== input.sizeBytes) throw new Error("wrong reserve state");
+  if (document.sha256 !== input.sha256) throw new Error("wrong reserve state");
+}
+
+function assertReceiptState(
+  action: "reserve_upload" | "finalize_upload" | "soft_delete" | "restore",
+  document: PrivateDocumentState,
+  input:
+    | ReservePrivateDocumentInput
+    | PrivateDocumentIdentityInput
+    | TransitionPrivateDocumentInput,
+): void {
+  switch (action) {
+    case "reserve_upload":
+      assertReserveMetadata(document, input as ReservePrivateDocumentInput);
+      assertReserveBinary(document, input as ReservePrivateDocumentInput);
+      return;
+    case "finalize_upload":
+      if (document.uploadStatus !== "ready") throw new Error("wrong finalize state");
+      return;
+    case "soft_delete":
+      if (document.deletedAt === null) throw new Error("wrong delete state");
+      return;
+    case "restore":
+      if (document.deletedAt !== null) throw new Error("wrong restore state");
+  }
+}
+
+function parseLink(
+  value: unknown,
+  input: LinkPrivateDocumentVenueInput,
+): PrivateDocumentLinkReceipt["link"] {
+  const link = record(value);
+  if (uuid(link.id) !== input.linkId) throw new Error("substituted link");
+  if (uuid(link.project_id) !== input.projectId) throw new Error("substituted link");
+  if (uuid(link.document_id) !== input.documentId) throw new Error("substituted link");
+  if (link.target_type !== "venue") throw new Error("substituted link");
+  if (uuid(link.target_id) !== input.venueId) throw new Error("substituted link");
+  if (link.relationship_type !== null) throw new Error("substituted link");
+  return {
+    id: input.linkId,
+    projectId: input.projectId,
+    documentId: input.documentId,
+    venueId: input.venueId,
+  };
 }
 
 function invalidResponse(): never {
@@ -134,35 +239,14 @@ export function parsePrivateDocumentReceipt(
   try {
     const receipt = record(value);
     if (receipt.action !== action) throw new Error("wrong action");
-    const document = expectedDocument(receipt, input.projectId, input.documentId);
-    if (action === "reserve_upload") {
-      const reserve = input as ReservePrivateDocumentInput;
-      if (
-        document.uploadStatus !== "pending" ||
-        document.documentType !== reserve.documentType ||
-        document.title !== reserve.title ||
-        document.originalFilename !== reserve.originalFilename ||
-        document.mimeType !== reserve.mimeType ||
-        document.sizeBytes !== reserve.sizeBytes ||
-        document.sha256 !== reserve.sha256 ||
-        document.sourceId !== reserve.sourceId ||
-        document.deletedAt !== null
-      ) {
-        throw new Error("wrong reserve state");
-      }
-    }
-    if (action === "finalize_upload" && document.uploadStatus !== "ready") {
-      throw new Error("wrong finalize state");
-    }
-    if (action === "soft_delete" && document.deletedAt === null) {
-      throw new Error("wrong delete state");
-    }
-    if (action === "restore" && document.deletedAt !== null) {
-      throw new Error("wrong restore state");
-    }
+    const document = expectedDocument(
+      receipt,
+      input.projectId,
+      input.documentId,
+    );
+    assertReceiptState(action, document, input);
     return { replayed: replayed(receipt), document };
-  } catch (error) {
-    if (error instanceof DocumentPersistenceError) throw error;
+  } catch {
     return invalidResponse();
   }
 }
@@ -174,27 +258,15 @@ export function parsePrivateDocumentLinkReceipt(
   try {
     const receipt = record(value);
     if (receipt.action !== "link_venue") throw new Error("wrong action");
-    const document = expectedDocument(receipt, input.projectId, input.documentId);
-    const link = record(receipt.link);
-    if (
-      uuid(link.id) !== input.linkId ||
-      uuid(link.project_id) !== input.projectId ||
-      uuid(link.document_id) !== input.documentId ||
-      link.target_type !== "venue" ||
-      uuid(link.target_id) !== input.venueId ||
-      link.relationship_type !== null
-    ) {
-      throw new Error("substituted link");
-    }
+    const document = expectedDocument(
+      receipt,
+      input.projectId,
+      input.documentId,
+    );
     return {
       replayed: replayed(receipt),
       document,
-      link: {
-        id: input.linkId,
-        projectId: input.projectId,
-        documentId: input.documentId,
-        venueId: input.venueId,
-      },
+      link: parseLink(receipt.link, input),
     };
   } catch {
     return invalidResponse();
@@ -207,13 +279,9 @@ export function parsePrivateDocumentUnlinkReceipt(
 ): PrivateDocumentUnlinkReceipt {
   try {
     const receipt = record(value);
-    if (
-      receipt.action !== "unlink_venue" ||
-      receipt.linkId !== input.linkId ||
-      receipt.absent !== true
-    ) {
-      throw new Error("invalid unlink");
-    }
+    if (receipt.action !== "unlink_venue") throw new Error("invalid unlink");
+    if (receipt.linkId !== input.linkId) throw new Error("invalid unlink");
+    if (receipt.absent !== true) throw new Error("invalid unlink");
     return {
       replayed: replayed(receipt),
       document: expectedDocument(receipt, input.projectId, input.documentId),
@@ -231,14 +299,10 @@ export function parsePrivateDocumentAbandonReceipt(
 ): PrivateDocumentAbandonReceipt {
   try {
     const receipt = record(value);
-    if (
-      receipt.action !== "abandon_upload" ||
-      receipt.projectId !== input.projectId ||
-      receipt.documentId !== input.documentId ||
-      receipt.absent !== true
-    ) {
-      throw new Error("invalid abandon");
-    }
+    if (receipt.action !== "abandon_upload") throw new Error("invalid abandon");
+    if (receipt.projectId !== input.projectId) throw new Error("invalid abandon");
+    if (receipt.documentId !== input.documentId) throw new Error("invalid abandon");
+    if (receipt.absent !== true) throw new Error("invalid abandon");
     return {
       replayed: replayed(receipt),
       projectId: input.projectId,

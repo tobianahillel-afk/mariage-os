@@ -43,7 +43,7 @@ const reserveInput = {
   sourceId: null,
 };
 
-describe("Supabase private document lifecycle adapter", () => {
+describe("Supabase private document reservation adapter", () => {
   it("parses an exact reservation receipt and sends the protected RPC shape", async () => {
     const fake = client({
       action: "reserve_upload",
@@ -76,18 +76,25 @@ describe("Supabase private document lifecycle adapter", () => {
 
   it.each([
     documentRow({ project_id: "99999999-9999-4999-8999-999999999999" }),
-    documentRow({ storage_path: `${projectId}/documents/${documentId}/contract.pdf` }),
+    documentRow({
+      storage_path: `${projectId}/documents/${documentId}/contract.pdf`,
+    }),
     documentRow({ sha256: "A".repeat(64) }),
     documentRow({ original_filename: "other.pdf" }),
-  ])("fails closed on substituted or malformed reservation rows", async (row) => {
-    const adapter = new SupabasePrivateDocumentLifecycleAdapter(
-      client({ action: "reserve_upload", replayed: false, document: row }),
-    );
-    await expect(adapter.reserveUpload(reserveInput)).rejects.toMatchObject({
-      code: "provider_response_invalid",
-    });
-  });
+  ])(
+    "fails closed on substituted or malformed reservation rows",
+    async (row) => {
+      const adapter = new SupabasePrivateDocumentLifecycleAdapter(
+        client({ action: "reserve_upload", replayed: false, document: row }),
+      );
+      await expect(adapter.reserveUpload(reserveInput)).rejects.toMatchObject({
+        code: "provider_response_invalid",
+      });
+    },
+  );
+});
 
+describe("Supabase private document transition adapter", () => {
   it("maps stale/conflict SQLSTATE to a conflict without exposing provider details", async () => {
     const adapter = new SupabasePrivateDocumentLifecycleAdapter(
       client(null, { code: "40001", message: "stale private document" }),

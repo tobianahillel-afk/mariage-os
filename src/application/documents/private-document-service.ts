@@ -1,6 +1,7 @@
 import {
   isPrivateDocumentSha256,
   validateVenuePrivatePdf,
+  type ValidatedVenuePrivatePdf,
   type VenuePrivatePdfValidationError,
 } from "@domain/documents/venue-private-document";
 import { documentPersistenceErrorCode } from "./document-persistence-error";
@@ -48,6 +49,22 @@ export type PrivateDocumentResult<T> =
   | { readonly ok: true; readonly value: T }
   | { readonly ok: false; readonly error: PrivateDocumentServiceError };
 
+interface UploadIdentities {
+  readonly operationId: string;
+  readonly projectId: string;
+  readonly documentId: string;
+  readonly sourceId: string | null;
+}
+
+interface UploadContent {
+  readonly documentType: string;
+  readonly title: string;
+  readonly bytes: Uint8Array;
+  readonly pdf: ValidatedVenuePrivatePdf;
+}
+
+type NormalizedUploadRequest = UploadIdentities & UploadContent;
+
 function persistenceFailure(error: unknown): PrivateDocumentServiceError {
   const code = documentPersistenceErrorCode(error);
   if (code === "conflict") return "replay_conflict";
@@ -64,18 +81,141 @@ function optionalIdentity(value: unknown): value is string | null {
   return value === null || identity(value);
 }
 
+function hasControlCharacter(value: string): boolean {
+  for (let index = 0; index < value.length; index += 1) {
+    const code = value.charCodeAt(index);
+    if (code <= 0x1f || code === 0x7f) return true;
+  }
+  return false;
+}
+
 function boundedText(value: unknown, max: number): value is string {
-  return (
-    typeof value === "string" &&
-    value.trim() === value &&
-    value.length >= 1 &&
-    value.length <= max &&
-    !/[\u0000-\u001f\u007f]/u.test(value)
-  );
+  if (typeof value !== "string") return false;
+  if (value.trim() !== value) return false;
+  if (value.length < 1 || value.length > max) return false;
+  return !hasControlCharacter(value);
 }
 
 function storagePath(projectId: string, documentId: string): string {
   return `${projectId}/documents/${documentId}/original`;
+}
+
+function normalizeIdentities(
+  input: UploadPrivateVenueDocumentRequest,
+): PrivateDocumentResult<UploadIdentities> {
+  if (!identity(input.operationId)) return { ok: false, error: "invalid_identity" };
+  if (!identity(input.projectId)) return { ok: false, error: "invalid_identity" };
+  if (!identity(input.documentId)) return { ok: false, error: "invalid_identity" };
+  if (!optionalIdentity(input.sourceId)) {
+    return { ok: false, error: "invalid_identity" };
+  }
+  return {
+    ok: true,
+    value: {
+      operationId: input.operationId,
+      projectId: input.projectId,
+      documentId: input.documentId,
+      sourceId: input.sourceId,
+    },
+  };
+}
+
+function normalizeContent(
+  input: UploadPrivateVenueDocumentRequest,
+): PrivateDocumentResult<UploadContent> {
+  if (!boundedText(input.documentType, 120)) {
+    return { ok: false, error: "invalid_metadata" };
+  }
+  if (!boundedText(input.title, 500)) {
+    return { ok: false, error: "invalid_metadata" };
+  }
+  if (!(input.bytes instanceof Uint8Array)) {
+    return { ok: false, error: "unsupported_type" };
+  }
+  if (typeof input.originalFilename !== "string") {
+    return { ok: false, error: "unsupported_type" };
+  }
+  const pdf = validateVenuePrivatePdf({
+    originalFilename: input.originalFilename,
+    declaredMimeType: input.declaredMimeType,
+    bytes: input.bytes,
+  });
+  if (!pdf.ok) return pdf;
+  return {
+    ok: true,
+    value: {
+      documentType: input.documentType,
+      title: input.title,
+      bytes: input.bytes,
+      pdf: pdf.value,
+    },
+  };
+}
+
+function normalizeUploadRequest(
+  input: UploadPrivateVenueDocumentRequest,
+): PrivateDocumentResult<NormalizedUploadRequest> {
+  const identities = normalizeIdentities(input);
+  if (!identities.ok) return identities;
+  const content = normalizeContent(input);
+  if (!content.ok) return content;
+  return { ok: true, value: { ...identities.value, ...content.value } };
+}
+
+async function hashUpload(
+  port: PrivateDocumentSha256Port,
+  bytes: Uint8Array,
+): Promise<PrivateDocumentResult<string>> {
+  try {
+    const sha256 = await port.hash(bytes);
+    if (!isPrivateDocumentSha256(sha256)) {
+      return { ok: false, error: "hash_failed" };
+    }
+    return { ok: true, value: sha256 };
+  } catch {
+    return { ok: false, error: "hash_failed" };
+  }
+}
+
+async function persistUpload(
+  ports: PrivateDocumentServicePorts,
+  input: NormalizedUploadRequest,
+  sha256: string,
+): Promise<PrivateDocumentResult<PrivateDocumentReceipt>> {
+  try {
+    const reservation = await ports.lifecycle.reserveUpload({
+      operationId: input.operationId,
+      projectId: input.projectId,
+      documentId: input.documentId,
+      documentType: input.documentType,
+      title: input.title,
+      originalFilename: input.pdf.originalFilename,
+      mimeType: input.pdf.mimeType,
+      sizeBytes: input.pdf.sizeBytes,
+      sha256,
+      sourceId: input.sourceId,
+    });
+    const exactPath = storagePath(input.projectId, input.documentId);
+    if (reservation.document.storagePath !== exactPath) {
+      return { ok: false, error: "provider_response_invalid" };
+    }
+    const inspection = await ports.storage.inspectReservedObject(exactPath);
+    if (!inspection.present) {
+      await ports.storage.uploadReservedObject({
+        path: exactPath,
+        bytes: input.bytes,
+        mimeType: input.pdf.mimeType,
+      });
+    }
+    const finalized = await ports.lifecycle.finalizeUpload({
+      operationId: input.operationId,
+      projectId: input.projectId,
+      documentId: input.documentId,
+    });
+    return { ok: true, value: finalized };
+  } catch (error) {
+    return { ok: false, error: persistenceFailure(error) };
+  }
 }
 
 export class PrivateDocumentService {
@@ -84,73 +224,11 @@ export class PrivateDocumentService {
   async upload(
     input: UploadPrivateVenueDocumentRequest,
   ): Promise<PrivateDocumentResult<PrivateDocumentReceipt>> {
-    const { operationId, projectId, documentId, sourceId } = input;
-    if (
-      !identity(operationId) ||
-      !identity(projectId) ||
-      !identity(documentId) ||
-      !optionalIdentity(sourceId)
-    ) {
-      return { ok: false, error: "invalid_identity" };
-    }
-    if (!boundedText(input.documentType, 120) || !boundedText(input.title, 500)) {
-      return { ok: false, error: "invalid_metadata" };
-    }
-    if (!(input.bytes instanceof Uint8Array) || typeof input.originalFilename !== "string") {
-      return { ok: false, error: "unsupported_type" };
-    }
-
-    const validated = validateVenuePrivatePdf({
-      originalFilename: input.originalFilename,
-      declaredMimeType: input.declaredMimeType,
-      bytes: input.bytes,
-    });
-    if (!validated.ok) return validated;
-
-    let sha256: string;
-    try {
-      sha256 = await this.ports.sha256.hash(input.bytes);
-    } catch {
-      return { ok: false, error: "hash_failed" };
-    }
-    if (!isPrivateDocumentSha256(sha256)) {
-      return { ok: false, error: "hash_failed" };
-    }
-
-    try {
-      const reservation = await this.ports.lifecycle.reserveUpload({
-        operationId,
-        projectId,
-        documentId,
-        documentType: input.documentType,
-        title: input.title,
-        originalFilename: validated.value.originalFilename,
-        mimeType: validated.value.mimeType,
-        sizeBytes: validated.value.sizeBytes,
-        sha256,
-        sourceId,
-      });
-      const exactPath = storagePath(projectId, documentId);
-      if (reservation.document.storagePath !== exactPath) {
-        return { ok: false, error: "provider_response_invalid" };
-      }
-      const inspection = await this.ports.storage.inspectReservedObject(exactPath);
-      if (!inspection.present) {
-        await this.ports.storage.uploadReservedObject({
-          path: exactPath,
-          bytes: input.bytes,
-          mimeType: validated.value.mimeType,
-        });
-      }
-      const finalized = await this.ports.lifecycle.finalizeUpload({
-        operationId,
-        projectId,
-        documentId,
-      });
-      return { ok: true, value: finalized };
-    } catch (error) {
-      return { ok: false, error: persistenceFailure(error) };
-    }
+    const normalized = normalizeUploadRequest(input);
+    if (!normalized.ok) return normalized;
+    const sha256 = await hashUpload(this.ports.sha256, normalized.value.bytes);
+    if (!sha256.ok) return sha256;
+    return persistUpload(this.ports, normalized.value, sha256.value);
   }
 
   async abandon(
@@ -164,10 +242,15 @@ export class PrivateDocumentService {
     const exactPath = storagePath(projectId, documentId);
     try {
       const before = await this.ports.storage.inspectReservedObject(exactPath);
-      if (before.present) await this.ports.storage.deleteReservedObject(exactPath);
+      if (before.present)
+        await this.ports.storage.deleteReservedObject(exactPath);
       const after = await this.ports.storage.inspectReservedObject(exactPath);
       if (after.present) return { ok: false, error: "storage_retryable" };
-      await this.ports.lifecycle.abandonUpload({ operationId, projectId, documentId });
+      await this.ports.lifecycle.abandonUpload({
+        operationId,
+        projectId,
+        documentId,
+      });
       return { ok: true, value: { absent: true } };
     } catch (error) {
       return { ok: false, error: persistenceFailure(error) };
