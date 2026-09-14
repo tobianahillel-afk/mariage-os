@@ -15,13 +15,7 @@ import {
   storagePath,
 } from "./private-document-edge-helpers.mjs";
 
-function rawInvoke({
-  token,
-  projectId,
-  documentId,
-  body,
-  streamed = false,
-}) {
+function rawInvoke({ token, projectId, documentId, body, streamed = false }) {
   const { apiUrl, anonKey } = localSupabaseEnvironment();
   const options = {
     method: "POST",

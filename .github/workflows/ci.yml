@@ -37,8 +37,7 @@ jobs:
       - run: npm run security:env:negative
       - run: npm run security:secrets
       - run: npm run typecheck
-      - run: npx prettier --write scripts/private-document-edge-adversarial-scenarios.mjs
-      - run: git diff --exit-code -- scripts/private-document-edge-adversarial-scenarios.mjs
+      - run: npm run static
       - run: npm run quality:negative
       - run: npm run security:negative
       - run: npm run test:unit
