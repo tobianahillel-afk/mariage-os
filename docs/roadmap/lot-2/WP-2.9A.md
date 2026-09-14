@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.9A`
 - Lot: `2`
 - Name: Venue-linked private document foundation
-- State: `IN_PROGRESS`
-- Current pass: `REMEDIATION — WP29A-AR-003`
+- State: `REVIEW_PENDING`
+- Current pass: `B-ADVERSARIAL-REVIEW`
 - Primary bounded context: Documents — private PDF metadata, Venue links, Storage lifecycle and recoverable metadata
 - Branch/PR: `lot-2/venues-core` / Lot-2 integration PR not opened yet
 - FIR: `#17 / FTR-089`
@@ -36,10 +36,13 @@ Evidence:
 - AR-002 remediation-transition governance HEAD: `b2e94c47f6d523adbf731fdd15cf796cca4c5ca9` / CI `34840180167` — **5/5 SUCCESS**, clean-checkout included;
 - AR-002 focused RED HEAD: `2f06b7963e7d09e3c00264d3351745213a75f964` / CI `34840851767` — expected RED isolated to the contract-valid 512-Unicode-scalar read-parser regression; Core 1539 passing / 1 failing test and DB/RLS + Browser/mutation remained green;
 - AR-002 remediation/evidence HEAD: `c78c22ff10c02cd6ab798a21e16b5c7acbc3effb` / CI `34841804605` — **5/5 SUCCESS**, clean-checkout included; Core reports **158 test files / 1546 tests / 100% statements, branches, functions and lines**;
-- current fresh Pass-B entry/governance HEAD: `c6c3afa56a66be97a590d4ce2b63932e6af5a46e` / CI `34842684753` — **5/5 SUCCESS**, clean-checkout included;
-- current fresh Pass B verifies the AR-002 read-parser remediation as **CLOSED / VERIFIED**, but finds `WP29A-AR-003` — **MAJOR / OPEN**;
+- prior fresh Pass-B entry/governance HEAD: `c6c3afa56a66be97a590d4ce2b63932e6af5a46e` / CI `34842684753` — **5/5 SUCCESS**, clean-checkout included;
+- prior fresh Pass B verifies the AR-002 read-parser remediation as **CLOSED / VERIFIED**, but finds `WP29A-AR-003` — **MAJOR / OPEN**;
 - durable AR-003 review-failure record HEAD: `39ea780ac9ac724a9450a5ac8a5d0179986591ed` / CI `34844606086` — **5/5 SUCCESS**, clean-checkout included;
-- packet is now reopened as **IN_PROGRESS / REMEDIATION — WP29A-AR-003**. The remediation-transition exact-head gate must be green before focused RED tests are added.
+- AR-003 remediation-transition governance HEAD: `9b266ca9ba3c6e737525db03a5856c39d4f44ed7` / CI `34845524190` — **5/5 SUCCESS**, clean-checkout included;
+- AR-003 focused RED HEAD: `79afff6c87f7033af008de3fb3b86c3ff833b15c` / CI `34846914610` — expected RED isolated to four Unicode-parity regressions; Core 1546 passing / 4 failing tests while static, DB/RLS and Browser/mutation remained green;
+- AR-003 remediation/evidence HEAD: `fec1195dcbcfa15d97fe55b17a0fb5aad25b3813` / CI `34848872192` — **5/5 SUCCESS**, clean-checkout included; Core reports **159 test files / 1550 tests / 100% statements, branches, functions and lines**;
+- packet is now **REVIEW_PENDING / B-ADVERSARIAL-REVIEW**. `WP29A-AR-003` remains **MAJOR / OPEN** until a fresh review independently verifies the remediation.
 
 WP-2.9B remains `PLANNED / AFTER A` and cannot activate while A is active.
 
@@ -280,25 +283,27 @@ The frozen RED-first contract remains byte-for-byte authoritative and was satisf
 
 **Fresh-review verdict.** `CLOSED / VERIFIED` for the original read-parser defect. Fresh Pass B independently re-read the read parser and confirms it now delegates to the canonical scalar-aware filename predicate.
 
-### WP29A-AR-003 — MAJOR / OPEN / REMEDIATION — Unicode-length parity remains broken in lifecycle receipts and bounded document metadata
+### WP29A-AR-003 — MAJOR / OPEN — Unicode-length parity in lifecycle receipts and bounded document metadata
 
-**Finding A — normal reserve flow still breaks on the frozen-valid filename boundary.** `parsePrivateDocumentReceipt()` still validates `original_filename` using JavaScript `value.length <= 512`. `SupabasePrivateDocumentLifecycleAdapter.reserveUpload()` calls the public `manage_private_document(...)` RPC and then immediately parses its returned `document` through this receipt parser. The domain upload validator and PostgreSQL reservation accept `508 × 😀 + ".pdf"` as exactly 512 Unicode scalar values, but the receipt parser sees more than 512 UTF-16 code units and throws `provider_response_invalid`.
+**Original finding A — normal reserve flow broke on the frozen-valid filename boundary.** `parsePrivateDocumentReceipt()` validated `original_filename` using JavaScript `value.length <= 512`. `SupabasePrivateDocumentLifecycleAdapter.reserveUpload()` calls the public `manage_private_document(...)` RPC and then immediately parses its returned `document` through this receipt parser. The domain upload validator and PostgreSQL reservation accept `508 × 😀 + ".pdf"` as exactly 512 Unicode scalar values, while the old receipt parser treated it as more than 512 UTF-16 code units and threw `provider_response_invalid`.
 
-**Impact A.** A normal application upload can validate the PDF and successfully create the authorized pending DB reservation, then fail before Storage upload solely while parsing the valid reserve receipt. The user receives a failure while a pending recovery row has been created. This violates the exact reserve/upload/finalize user job and the frozen scalar filename contract.
+**Original impact A.** A normal application upload could validate the PDF and successfully create the authorized pending DB reservation, then fail before Storage upload solely while parsing the valid reserve receipt. The user received a failure while a pending recovery row had been created.
 
-**Finding B — server/parser length-unit drift for bounded metadata.** The public authenticated `manage_private_document(...)` command boundary validates `document_type` and `title` with PostgreSQL `char_length` (1..120 and 1..500). Both `parsePrivateDocumentReceipt()` and `parseActivePrivateDocumentRow()` use JavaScript UTF-16 `value.length` for those same bounds, and `PrivateDocumentService` uses the same code-unit rule on upload input. Therefore server-valid Unicode text containing astral characters can be accepted/persisted by the authoritative protected RPC yet rejected by typed provider parsing/readback.
+**Original finding B — server/parser length-unit drift for bounded metadata.** The public authenticated `manage_private_document(...)` command boundary validates `document_type` and `title` with PostgreSQL `char_length` (1..120 and 1..500). The old `PrivateDocumentService`, `parsePrivateDocumentReceipt()` and `parseActivePrivateDocumentRow()` used JavaScript UTF-16 `value.length` for those same bounds, so server-valid Unicode text containing astral characters could be accepted/persisted by the authoritative protected RPC yet rejected by the typed provider foundation.
 
-**Impact B.** An authorized writer invoking the public protected command family can create DB-valid private-document metadata that the typed foundation later rejects as `provider_response_invalid`. This is a deterministic provider-contract availability/integrity defect, not a permission leak.
+**Classification.** `MAJOR / OPEN` pending fresh verification. Pass C remains blocked until the fresh review closes this finding or records a new failure.
 
-**Classification.** `MAJOR`. Pass C is blocked.
+**Focused RED.** `79afff6c87f7033af008de3fb3b86c3ff833b15c` / CI `34846914610` cleanly demonstrated exactly four failures: 512-scalar reserve filename, scalar-limit reserve `document_type`/`title`, scalar-limit active read metadata, and service persistence of PostgreSQL-valid bounded metadata. Core had 1546 passing / 4 failing tests; static, DB/RLS and Browser/mutation remained green.
 
-**Required remediation.** Establish one canonical Unicode-scalar-aware bounded-text rule for document metadata and reuse it across service input plus lifecycle/read provider parsers; reuse the already-canonical safe filename predicate in the lifecycle receipt parser rather than re-implementing filename validation. Add focused RED regressions for the 512-scalar reserve receipt and server-valid astral `title`/`document_type` read/receipt cases, while preserving fail-closed surrogate/control/trim/over-limit behavior. Do not change SQL/RLS/Storage policy, permissions, file types, UI, or WP-2.9B scope.
+**Remediation.** The domain now exposes one scalar-aware bounded-text predicate that rejects malformed surrogate/control/trim/over-limit input. The service, lifecycle receipt parser and read parser reuse that predicate for `document_type`/`title`; the lifecycle receipt parser also reuses the canonical scalar-aware filename predicate and retains a separate `.pdf` extension check. No SQL/RLS/Storage policy, permission, file type or UI scope changed.
 
-**Remediation governance.** Durable REVIEW_FAILED evidence `39ea780ac9ac724a9450a5ac8a5d0179986591ed` / CI `34844606086` is **5/5 SUCCESS**, clean-checkout included. The packet is now reopened to remediation, but RED tests remain forbidden until the exact-head CI for this remediation-transition commit is green.
+**Remediation evidence.** `fec1195dcbcfa15d97fe55b17a0fb5aad25b3813` / CI `34848872192` is **5/5 SUCCESS**, clean-checkout included. Core reports **159 test files / 1550 tests / 100% statements, branches, functions and lines**, including all four focused AR-003 regressions green.
+
+**Fresh-review requirement.** The remediation evidence does not close AR-003 by itself. A new adversarial Pass B must independently re-challenge Unicode parity and the full packet surface before the finding can become `CLOSED / VERIFIED`.
 
 ### Reviewed non-findings
 
-Fresh Pass B also re-challenged:
+The prior fresh Pass B also re-challenged:
 
 - exact project/document/path binding before Storage access;
 - pending/deleted exclusion for ordinary reads;
@@ -312,14 +317,16 @@ No additional BLOCKING/MAJOR issue was found in those areas. A per-download SHA 
 
 ## Fresh Pass B outcome
 
-Fresh Pass-B entry/governance HEAD `c6c3afa56a66be97a590d4ce2b63932e6af5a46e` / CI `34842684753` is **5/5 SUCCESS**, clean-checkout included. The review **closes `WP29A-AR-002`** for the original read-parser defect but **fails overall** because `WP29A-AR-003` is MAJOR / OPEN.
+The prior fresh Pass-B entry/governance HEAD `c6c3afa56a66be97a590d4ce2b63932e6af5a46e` / CI `34842684753` was **5/5 SUCCESS**, clean-checkout included. That review closed `WP29A-AR-002` for the original read-parser defect but failed overall on `WP29A-AR-003`.
 
-The failure state was durably recorded on `39ea780ac9ac724a9450a5ac8a5d0179986591ed` / CI `34844606086` — **5/5 SUCCESS**, clean-checkout included. Governance has now separately reopened the packet as `IN_PROGRESS / REMEDIATION — WP29A-AR-003`.
+The AR-003 failure state was durably recorded on `39ea780ac9ac724a9450a5ac8a5d0179986591ed` / CI `34844606086` — **5/5 SUCCESS**, clean-checkout included. Remediation transition `9b266ca9ba3c6e737525db03a5856c39d4f44ed7` / CI `34845524190` and remediation evidence `fec1195dcbcfa15d97fe55b17a0fb5aad25b3813` / CI `34848872192` are both **5/5 SUCCESS**.
+
+WP-2.9A is therefore **REVIEW_PENDING / B-ADVERSARIAL-REVIEW**. `WP29A-AR-003` remains MAJOR / OPEN until the fresh review verdict.
 
 ## Current gate
 
-WP-2.9A is **IN_PROGRESS / REMEDIATION — WP29A-AR-003**.
+WP-2.9A is **REVIEW_PENDING / B-ADVERSARIAL-REVIEW**.
 
-The only permitted next action is exact-head CI for this remediation-transition commit. Once green, add focused RED tests for the AR-003 filename receipt and bounded-text Unicode parity defects. Do not implement the fix until the RED failure is isolated and recorded. Pass C remains forbidden while `WP29A-AR-003` is unresolved. WP-2.9B remains inactive until WP-2.9A is accepted.
+The only permitted next action is exact-head CI for this governance transition. Once green, perform a fresh adversarial Pass B over the full WP-2.9A surface, explicitly including AR-001/002 regression, AR-003 Unicode-scalar parity, exact project/document/path binding, RLS/Storage authorization, lifecycle visibility, fail-closed provider parsing and list/read/download behavior. Pass C remains forbidden while any BLOCKING/MAJOR finding is unresolved. WP-2.9B remains inactive until WP-2.9A is accepted.
 
 Any implementation need that expands public capability, changes the frozen requirements, introduces a new permission key, or pushes the approved cohesive surface beyond 10 points requires a stop/rescore before code proceeds.
