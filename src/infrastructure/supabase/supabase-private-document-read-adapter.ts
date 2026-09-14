@@ -153,11 +153,7 @@ export class SupabasePrivateDocumentReadAdapter
     const documents = await providerResult(
       activeDocumentListQuery(this.client, projectId).in("id", documentIds),
     );
-    return parsedDocumentRows(
-      documents.data,
-      projectId,
-      new Set(documentIds),
-    );
+    return parsedDocumentRows(documents.data, projectId, new Set(documentIds));
   }
 
   async getActiveDocument(
