@@ -77,7 +77,7 @@ function state(
   };
 }
 
-describe("WP-2.9A AR-003 Unicode scalar parity RED", () => {
+describe("WP-2.9A AR-003 lifecycle receipt Unicode scalar parity RED", () => {
   it("accepts a reserve receipt filename containing exactly 512 Unicode scalar values", () => {
     const originalFilename = `${"😀".repeat(508)}.pdf`;
     const input = reserveInput({ originalFilename });
@@ -104,7 +104,9 @@ describe("WP-2.9A AR-003 Unicode scalar parity RED", () => {
       ).document,
     ).toMatchObject({ documentType, title });
   });
+});
 
+describe("WP-2.9A AR-003 read and service Unicode scalar parity RED", () => {
   it("accepts active read metadata at PostgreSQL scalar limits", () => {
     const documentType = "😀".repeat(120);
     const title = "😀".repeat(500);
