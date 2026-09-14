@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.9A`
 - Lot: `2`
 - Name: Venue-linked private document foundation
-- State: `IN_PROGRESS`
-- Current pass: `A-IMPLEMENT`
+- State: `REVIEW_PENDING`
+- Current pass: `B-ADVERSARIAL-REVIEW`
 - Primary bounded context: Documents — private PDF metadata, Venue links, Storage lifecycle and recoverable metadata
 - Branch/PR: `lot-2/venues-core` / Lot-2 integration PR not opened yet
 - FIR: `#17 / FTR-089`
@@ -25,7 +25,9 @@ Evidence:
 
 - split/specification freeze: `40f17aba802e7faed9eade6096e2f3629fc80654` / CI `34788217062` — **5/5 SUCCESS**, clean-checkout included;
 - READY governance: `0b30b045ef05c318d25c92abb379364f95705c4e` / CI `34788670807` — **5/5 SUCCESS**, clean-checkout included;
-- current A-IMPLEMENT governance HEAD: exact-head CI required before product implementation begins.
+- A-IMPLEMENT governance: `f5a77c72cf5f28bccd823c7cdc78b01531b3b265` / CI `34789115986` — **5/5 SUCCESS**, clean-checkout included;
+- RED-first: `9322915252925d3f75f5a224a82f9d391ccfec9d` / CI `34789545716` — expected RED limited to the three frozen document-boundary assertions;
+- Pass-A implementation/evidence HEAD: `e533b5c53d1be074216ccaa92f74281b425de770` / CI `34826553890` — **5/5 SUCCESS**, clean-checkout included; Core reports **152 test files / 1465 tests / 100% statements, branches, functions and lines**.
 
 WP-2.9B remains `PLANNED / AFTER A` and cannot activate while A is active.
 
@@ -242,10 +244,18 @@ Direct allow/deny DB and Storage evidence covers owner/editor/viewer as applicab
 - private filename absent from Storage path/privacy-safe artifacts;
 - accepted WP-2.8 behavior remains green.
 
+## Pass A closure
+
+Pass A is **complete** on implementation/evidence HEAD `e533b5c53d1be074216ccaa92f74281b425de770` with exact-head CI `34826553890` **5/5 SUCCESS**, including clean-checkout `npm run verify`.
+
+The frozen RED-first contract remains byte-for-byte authoritative and was satisfied rather than weakened. Core quality/security reports 152 test files / 1465 tests passed and 100% statements/branches/functions/lines coverage. DB/RLS, Browser E2E + mutation, privacy-safe preview and clean-checkout verification are all green.
+
 ## Current gate
 
-WP-2.9A is now **IN_PROGRESS / A-IMPLEMENT** as a governance state only.
+WP-2.9A is now **REVIEW_PENDING / B-ADVERSARIAL-REVIEW**.
 
-Product implementation remains prohibited until this exact A-IMPLEMENT governance HEAD passes complete **5/5 SUCCESS**, including clean-checkout `npm run verify`. Only then does Pass A begin, and it begins **RED-first**. The first product commit must establish failing tests/evidence for the frozen document persistence/lifecycle/security boundary before implementation makes them green.
+The next permitted action is a fresh adversarial review reconstructed from the packet contracts rather than from Pass-A conclusions. Review must explicitly challenge authorization/RLS and cross-project non-disclosure, Storage reservation/finalization/deletion semantics, provider bypass/fail-closed receipts, idempotency/retry/race behavior, pending/ready/deleted visibility, same-project Venue/Source integrity, immutable ready bytes, filename/path privacy, module cohesion/size and test strength.
+
+If Pass B finds a BLOCKING/MAJOR defect, record `REVIEW_FAILED` and remediate before re-review. If no unresolved BLOCKING/MAJOR finding remains, transition to `ACCEPTANCE_PENDING / C-ACCEPTANCE`. WP-2.9B remains inactive until WP-2.9A is accepted.
 
 Any implementation need that expands public capability, changes the frozen requirements, introduces a new permission key, or pushes the approved cohesive surface beyond 10 points requires a stop/rescore before code proceeds.
