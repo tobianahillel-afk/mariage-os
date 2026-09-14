@@ -89,7 +89,11 @@ export async function assertMalformedJwtDenied(context, document) {
     documentId: document.documentId,
     body: document.bytes,
   });
-  assert.equal(response.status, 401, "Malformed JWT must be denied by runtime.");
+  assert.equal(
+    response.status,
+    401,
+    "Malformed JWT must be denied by runtime.",
+  );
   await assertNoTrustedObject({
     admin: context.admin,
     projectId: context.projectId,
@@ -116,7 +120,9 @@ export async function assertChunkedOversizeDenied(context, document) {
     projectId: context.projectId,
     documentId: document.documentId,
   });
-  console.log("PASS chunked oversize request rejected without Content-Length trust");
+  console.log(
+    "PASS chunked oversize request rejected without Content-Length trust",
+  );
 }
 
 export async function runFinalizeAuthorizationScenario(context) {
