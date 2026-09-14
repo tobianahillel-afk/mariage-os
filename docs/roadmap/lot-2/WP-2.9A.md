@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.9A`
 - Lot: `2`
 - Name: Venue-linked private document foundation
-- State: `REVIEW_PENDING`
-- Current pass: `B-ADVERSARIAL-REVIEW`
+- State: `REVIEW_FAILED`
+- Current pass: `B-ADVERSARIAL-REVIEW / FAIL`
 - Primary bounded context: Documents — private PDF metadata, Venue links, Storage lifecycle and recoverable metadata
 - Branch/PR: `lot-2/venues-core` / Lot-2 integration PR not opened yet
 - FIR: `#17 / FTR-089`
@@ -28,8 +28,10 @@ Evidence:
 - A-IMPLEMENT governance: `f5a77c72cf5f28bccd823c7cdc78b01531b3b265` / CI `34789115986` — **5/5 SUCCESS**, clean-checkout included;
 - RED-first: `9322915252925d3f75f5a224a82f9d391ccfec9d` / CI `34789545716` — expected RED limited to the three frozen document-boundary assertions;
 - Pass-A implementation/evidence HEAD: `e533b5c53d1be074216ccaa92f74281b425de770` / CI `34826553890` — **5/5 SUCCESS**, clean-checkout included; Core reports **152 test files / 1465 tests / 100% statements, branches, functions and lines**;
-- fresh Pass B found `WP29A-AR-001` — **MAJOR / OPEN**; packet was durably recorded `REVIEW_FAILED` before remediation began;
-- `WP29A-AR-001` remediation/evidence HEAD: `0072792d2eb67cce1bf98c4c312d9576feacc156` / CI `34836621394` — **5/5 SUCCESS**, clean-checkout included; Core reports **1539 tests / 100% statements, branches, functions and lines**; remediation is now ready for a fresh Pass B.
+- first Pass B found `WP29A-AR-001` — **MAJOR**; packet was durably recorded `REVIEW_FAILED` before remediation began;
+- `WP29A-AR-001` remediation/evidence HEAD: `0072792d2eb67cce1bf98c4c312d9576feacc156` / CI `34836621394` — **5/5 SUCCESS**, clean-checkout included; Core reports **1539 tests / 100% statements, branches, functions and lines**;
+- fresh Pass-B entry/governance HEAD: `78904546f3d8f4c15276a1bbe0825455f1262ee4` / CI `34837421096` — **5/5 SUCCESS**, clean-checkout included;
+- fresh Pass B verifies `WP29A-AR-001` as **CLOSED / VERIFIED**, but finds `WP29A-AR-002` — **MAJOR / OPEN**.
 
 WP-2.9B remains `PLANNED / AFTER A` and cannot activate while A is active.
 
@@ -254,30 +256,47 @@ The frozen RED-first contract remains byte-for-byte authoritative and was satisf
 
 ## Pass B — adversarial review findings
 
-### WP29A-AR-001 — MAJOR — missing Document read/list/download application boundary
+### WP29A-AR-001 — MAJOR / CLOSED / VERIFIED — missing Document read/list/download application boundary
 
-**Finding.** The frozen packet requires the exact user job to download a ready private PDF only through live authorization, and its expected application slice explicitly includes typed `list/download-auth` behavior. The Pass-A implementation contains mutation lifecycle/upload/recovery/link/delete/restore code and DB/Storage read policies, but no Document read/list query port/service and no authorized Document download adapter/service. A recursive inspection of the branch tree and the RED→Pass-A implementation diff confirms there is no hidden Document query/download module.
+**Original finding.** The frozen packet required the exact user job to download a ready private PDF only through live authorization, and its expected application slice explicitly included typed `list/download-auth` behavior. The Pass-A implementation contained mutation lifecycle/upload/recovery/link/delete/restore code and DB/Storage read policies, but no Document read/list query port/service and no authorized Document download adapter/service.
 
-**Impact.** The database and Storage policies can authorize direct provider access, but the application foundation promised by WP-2.9A cannot itself list/read a ready Document or obtain its bytes through a typed application boundary. WP-2.11 owns presentation/workspace surfaces; it does not own this missing backend/application foundation. Therefore FTR-089's current-Lot download/read job and the verification-plan path `finalize → active list/read/download` are not yet implemented end-to-end.
+**Remediation.** The narrow typed ready-document list/read/download application/provider boundary was added and fully re-verified on `0072792d2eb67cce1bf98c4c312d9576feacc156` / CI `34836621394` — **5/5 SUCCESS**, clean-checkout included. It provides active-ready filtering, fail-closed provider parsing, exact DB-path-bound Storage access and safe attachment metadata without UI or a new permission.
+
+**Fresh-review verdict.** `CLOSED / VERIFIED`. Fresh Pass B re-challenged the new service, parser, adapter, DB/RLS/Storage authority and focused tests. The original missing-boundary defect is no longer present.
+
+### WP29A-AR-002 — MAJOR / OPEN — Unicode-scalar filename contract is broken by read parser
+
+**Finding.** The frozen file contract defines `original_filename` as `1..512` **Unicode scalar values**. The upload validator intentionally implements scalar-aware counting and has an explicit passing test for `508 × 😀 + ".pdf"` (512 scalars). The DB `char_length` constraint likewise accepts that persisted value. The new `parseActivePrivateDocumentRow()` read parser, however, validates `original_filename` with JavaScript `value.length`, which counts UTF-16 code units. The same valid 512-scalar filename therefore exceeds 512 code units and is rejected as `provider_response_invalid` after persistence.
+
+**Impact.** A fully conforming PDF can pass the frozen upload contract, reserve/upload/finalize successfully, and then become impossible to list/read/download through the newly added typed application boundary. This violates the exact user job and the packet's `reserve → upload → finalize → active list/read/download` verification path. The failure is deterministic and data-dependent, not merely cosmetic.
 
 **Classification.** `MAJOR`. Pass C is blocked.
 
-**Required remediation.** Add the narrowest cohesive typed Document read/list/download-auth foundation consistent with existing architecture and live server/RLS authority; prove active-ready visibility, pending/deleted exclusion for ordinary reads, exact DB-path binding before binary access, project/non-member/revoked denial, provider-response fail-closed behavior and safe download metadata. No UI, inline preview, new permission key, non-Venue link type or WP-2.9B scope may be introduced.
+**Required remediation.** Reuse one canonical scalar-aware filename validation rule at both upload and provider-read boundaries; add a focused RED regression proving that a valid 512-scalar astral filename survives parse/list/read/download, while malformed surrogate/control/path-separator/513-scalar cases still fail closed. Do not widen file types, UI scope, permissions or WP-2.9B.
 
-### Reviewed non-finding — binary validation boundary parity
+### Reviewed non-findings
 
-Pass B also challenged whether an authorized writer could bypass the TypeScript PDF validator by calling Storage/RPC directly. The current DB finalizer verifies the exact reserved object exists rather than re-hashing/re-sniffing bytes server-side. This is not classified as a new WP-2.9A defect because the already-accepted WP-2.8B private-media foundation deliberately uses the same V1 trust split: application byte validation plus exact pending reservation/Storage RLS/finalization. Reopening that shared architecture would require a broader architecture/security decision rather than inventing a packet-local rule during review.
+Fresh Pass B also re-challenged:
 
-## Remediation closure / fresh review cursor
+- exact project/document/path binding before Storage access;
+- pending/deleted exclusion for ordinary reads;
+- live `documents.read` RLS/Storage authority and writer-only recovery visibility;
+- fail-closed malformed/substituted provider responses;
+- safe attachment rather than inline rendering;
+- whether download must re-hash bytes on every read.
 
-`WP29A-AR-001` remediation is implemented and fully re-verified on `0072792d2eb67cce1bf98c4c312d9576feacc156` / CI `34836621394` — **5/5 SUCCESS**, clean-checkout included. The remediation adds the narrow typed ready-document list/read/download foundation, fail-closed provider parsing, exact DB-path-bound Storage access and focused coverage without UI or new product scope. Core reports 1539 tests and 100% statements/branches/functions/lines.
+No additional BLOCKING/MAJOR issue was found in those areas. A per-download SHA recomputation is not required by the frozen V1 contract: SHA is retained for exact-byte identity/dedup/integrity where applicable, while download authorization and immutable exact-path Storage binding remain the governing read controls.
 
-The packet has therefore transitioned `IN_PROGRESS → REVIEW_PENDING` for the mandatory **fresh Pass B**. `WP29A-AR-001` remains OPEN until that review explicitly verifies the remediation and closes the finding.
+## Fresh Pass B outcome
+
+Fresh Pass-B entry/governance HEAD `78904546f3d8f4c15276a1bbe0825455f1262ee4` / CI `34837421096` is **5/5 SUCCESS**, clean-checkout included. The review **closes `WP29A-AR-001`** but **fails overall** because `WP29A-AR-002` is MAJOR / OPEN.
+
+The packet is therefore `REVIEW_FAILED / B-ADVERSARIAL-REVIEW`. No remediation code may begin until this failure state is itself durably recorded and exact-head green; after that, governance must separately transition the packet back to `IN_PROGRESS / REMEDIATION — WP29A-AR-002` before adding the focused RED test and implementation fix.
 
 ## Current gate
 
-WP-2.9A is **REVIEW_PENDING / B-ADVERSARIAL-REVIEW**.
+WP-2.9A is **REVIEW_FAILED / B-ADVERSARIAL-REVIEW**.
 
-Fresh Pass B must re-challenge the remediation and the full frozen packet. Pass C remains forbidden until no BLOCKING/MAJOR finding is unresolved. WP-2.9B remains inactive until WP-2.9A is accepted.
+Pass C remains forbidden while `WP29A-AR-002` is unresolved. WP-2.9B remains inactive until WP-2.9A is accepted.
 
 Any implementation need that expands public capability, changes the frozen requirements, introduces a new permission key, or pushes the approved cohesive surface beyond 10 points requires a stop/rescore before code proceeds.
