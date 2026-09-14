@@ -106,7 +106,7 @@ describe("WP-2.9A AR-003 lifecycle receipt Unicode scalar parity RED", () => {
   });
 });
 
-describe("WP-2.9A AR-003 read and service Unicode scalar parity RED", () => {
+describe("WP-2.9A AR-003 read Unicode scalar parity RED", () => {
   it("accepts active read metadata at PostgreSQL scalar limits", () => {
     const documentType = "😀".repeat(120);
     const title = "😀".repeat(500);
@@ -124,7 +124,9 @@ describe("WP-2.9A AR-003 read and service Unicode scalar parity RED", () => {
       ),
     ).toMatchObject({ documentType, title });
   });
+});
 
+describe("WP-2.9A AR-003 service Unicode scalar parity RED", () => {
   it("allows the service to persist metadata valid under PostgreSQL char_length", async () => {
     const documentType = "😀".repeat(120);
     const title = "😀".repeat(500);
