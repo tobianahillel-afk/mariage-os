@@ -40,7 +40,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.8B | Venue private archived media lifecycle | **ACCEPTED / COMPLETE** |
 | WP-2.8C | recoverable Venue remote-media metadata lifecycle | **ACCEPTED / COMPLETE** |
 | WP-2.9A | Venue-linked private PDF/document foundation | **BLOCKED — waits for WP-2.9C ACCEPTED** |
-| WP-2.9C | trusted private-document ingestion hardening | **READY / CURRENT** |
+| WP-2.9C | trusted private-document ingestion hardening | **IN_PROGRESS / A-IMPLEMENT / CURRENT** |
 | WP-2.9B | generic project tags and Venue entity-tag links | **PLANNED / AFTER A** |
 | WP-2.10 | repositories, local cache, pending/offline mutations | PLANNED |
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace | PLANNED |
@@ -91,7 +91,7 @@ The former monolithic WP-2.9 was revalidated at **12 points** and split before c
 
 ### WP-2.9C — Trusted private-document ingestion hardening
 
-- **READY / CURRENT**.
+- **IN_PROGRESS / A-IMPLEMENT / CURRENT**.
 - Remediation packet for `WP29A-AR-004` and `WP29A-AR-005`; no new Feature ID or product scope.
 - Architecture: ADR 0008.
 - Introduces one narrow authenticated Supabase Edge Function for private Document bytes only.
@@ -102,7 +102,8 @@ The former monolithic WP-2.9 was revalidated at **12 points** and split before c
 - Local Edge Runtime + real CI integration/adversarial evidence is required; mocks alone are insufficient.
 - Accepted 25 MB PDF boundary must receive runtime/resource feasibility evidence before C can be accepted.
 - Conservative size **10**, explicit cohesion **PASS** because endpoint, policy lock-down and exact-byte verification must ship atomically.
-- First permitted next action: exact-head CI for this split/governance commit. If green, make a **separate** C transition to `IN_PROGRESS / A-IMPLEMENT`; only then add focused RED-first tests.
+- Split/READY governance `d1e561c787798eb99f49024cc0c1db49880bcd82` / `34862521697` — **5/5 SUCCESS**, clean-checkout included.
+- Current A-IMPLEMENT transition must pass exact-head CI before focused RED-first tests are committed. Production remediation remains forbidden until the RED is isolated.
 
 ### WP-2.9B — Generic project tags and Venue entity-tag links
 
@@ -119,10 +120,11 @@ The original split repairs the old WP-2.9 traceability omission by assigning `ME
 2. Stop/rescore concluded that AR-005 requires a new privileged/provider boundary and cannot be absorbed into already-10-point A.
 3. ADR 0008 freezes the trusted server-side Document binary-ingress architecture.
 4. WP-2.9A is **BLOCKED** until WP-2.9C is accepted.
-5. WP-2.9C is **READY / CURRENT**, size 10, cohesion PASS.
-6. This split/governance commit must pass exact-head CI before C may transition to `IN_PROGRESS / A-IMPLEMENT`.
-7. After that transition is itself green, focused RED-first evidence must prove AR-004 and AR-005 before production remediation code.
-8. A, B and later packets do not implement concurrently with C. Pass C for A remains forbidden while AR-004/005 are unresolved.
+5. WP-2.9C split/READY governance `d1e561c787798eb99f49024cc0c1db49880bcd82` / `34862521697` is **5/5 SUCCESS**, clean-checkout included.
+6. WP-2.9C is now **IN_PROGRESS / A-IMPLEMENT / CURRENT**. This separate transition commit must itself pass exact-head CI.
+7. Once that transition gate is green, the only permitted next implementation action is focused **test-only RED-first evidence** for AR-004 and AR-005.
+8. Production remediation code is forbidden until the RED failure is isolated to the intended defects.
+9. A, B and later packets do not implement concurrently with C. Pass C for A remains forbidden while AR-004/005 are unresolved.
 
 ## Known localized repairs / stop conditions
 
@@ -153,17 +155,18 @@ Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.8C
 Last completed packet: WP-2.8C — ACCEPTED / COMPLETE
 WP-2.9A: BLOCKED — waits for WP-2.9C ACCEPTED
-Current packet: WP-2.9C — READY
+Current packet: WP-2.9C — IN_PROGRESS / A-IMPLEMENT — RED FIRST
 WP-2.9C architecture: ADR 0008 — trusted server-side private-document binary ingestion
 Closed findings: WP29A-AR-001 / AR-002 / AR-003 — MAJOR — VERIFIED
 Open finding: WP29A-AR-004 — MAJOR — C1 control-character parity — remediation in C
 Open finding: WP29A-AR-005 — MAJOR / architecture blocker — exact stored-byte integrity — remediation in C
 FTR-089 FIR: #17
 AR-004/005 durable failure: a58417f79e59e2bd2d2fcb4d202f568c15cfa947 / 34854785427 — 5/5 SUCCESS
+WP-2.9C split/READY: d1e561c787798eb99f49024cc0c1db49880bcd82 / 34862521697 — 5/5 SUCCESS
 WP-2.9C size: 10 points — cohesion PASS
-Current gate: exact-head CI for ADR 0008 + WP-2.9C split/governance record
-After green: separate transition WP-2.9C READY → IN_PROGRESS / A-IMPLEMENT
-Then: focused RED-first for AR-004/005 before production remediation code
+Current gate: exact-head CI for WP-2.9C A-IMPLEMENT transition
+After green: focused test-only RED-first for AR-004/005
+Production remediation code only after isolated RED evidence
 WP-2.9A resumes only after WP-2.9C ACCEPTED
 WP-2.9B remains PLANNED / AFTER A
 Lots 3–12: NOT_STARTED

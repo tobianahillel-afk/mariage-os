@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1..WP-2.8C ACCEPTED; WP-2.9A BLOCKED; WP-2.9C READY / CURRENT; WP-2.9B PLANNED / AFTER A**
+Status: **IN_PROGRESS — WP-2.1..WP-2.8C ACCEPTED; WP-2.9A BLOCKED; WP-2.9C IN_PROGRESS / A-IMPLEMENT / CURRENT; WP-2.9B PLANNED / AFTER A**
 
 Purpose: durable current responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`. Detailed historical packet evidence remains in packet records, acceptance records, FIRs and Git history.
 
@@ -29,9 +29,9 @@ Integration prerequisite is accepted Lot 0 + Lot 1 on `main` through PR #7; `mai
 | remote image references | FTR-024, VEN-013, MED-007/008/013 | WP-2.8A, WP-2.11 | WP-2.8A **ACCEPTED** |
 | private archived Venue image lifecycle | FTR-024 private slice, FTR-092 Lot-2, VEN-013, MED-004/005/006/009/010, ACC-055/056/058 | WP-2.8B | **ACCEPTED / COMPLETE**, gap ∅ |
 | recoverable remote-media metadata lifecycle | FTR-024/FTR-092 Lot-2 continuation, MED-007/010/013, MED-008 regression | WP-2.8C | **ACCEPTED / COMPLETE**, gap ∅ |
-| Venue-linked ordinary private documents, PDF lifecycle, provenance, document links | FTR-089 Lot-2; MED-001/002/003/008/010; PRD-008 link slice; file-security/deletion-retention controls | WP-2.9A, WP-2.9C remediation, WP-2.11 | **WP-2.9A BLOCKED** on AR-005 architecture dependency; **WP-2.9C READY / CURRENT**; `AR-001/002/003` CLOSED/VERIFIED; `AR-004/005` MAJOR/OPEN; FIR #17 |
+| Venue-linked ordinary private documents, PDF lifecycle, provenance, document links | FTR-089 Lot-2; MED-001/002/003/008/010; PRD-008 link slice; file-security/deletion-retention controls | WP-2.9A, WP-2.9C remediation, WP-2.11 | **WP-2.9A BLOCKED** on AR-005 architecture dependency; **WP-2.9C IN_PROGRESS / A-IMPLEMENT / CURRENT**; `AR-001/002/003` CLOSED/VERIFIED; `AR-004/005` MAJOR/OPEN; FIR #17 |
 | generic project Tags and Venue entity-tag assignments | FTR-093 Lot-2; PHYSICAL-SCHEMA tags/entity_tags; deletion-retention; same-project integrity | WP-2.9B, WP-2.11 | **PLANNED / AFTER A** |
-| repository/read-model/provider ports and Supabase adapters | architecture, AUTHZ-006/020 | WP-2.1..WP-2.10 + WP-2.9C remediation | accepted packets green; C adds the reviewed trusted document-ingest boundary required to close AR-005 |
+| repository/read-model/provider ports and Supabase adapters | architecture, AUTHZ-006/020 | WP-2.1..WP-2.10 + WP-2.9C remediation | accepted packets green; C implements the reviewed trusted document-ingest boundary required to close AR-005 |
 | local cache/pending Venue edits | FTR-028 Lot-2, SYN-001..003/007..011, PWA-003/004/006 | WP-2.10, WP-2.12 | PLANNED |
 | gallery browse surface | FTR-015 | WP-2.11 | PLANNED |
 | analytical table | FTR-016, FTR-012 Lot-2, VEN-015 | WP-2.11 | PLANNED |
@@ -96,8 +96,9 @@ The inclusion of `MED-008` repairs the old WP-2.9 row omission; the frozen requi
 - C1 control parity is fixed through the existing canonical TypeScript Unicode predicate;
 - local Edge Runtime + CI integration/adversarial evidence is required, including the 25 MB accepted boundary feasibility check;
 - conservative size **10**, explicit cohesion **PASS** because endpoint + policy lock-down + exact-byte verification must ship atomically;
-- state **READY / CURRENT**;
-- first permitted implementation step after this governance commit is green: separate transition to `IN_PROGRESS / A-IMPLEMENT`, then focused RED-first evidence before production remediation code.
+- split/READY governance `d1e561c787798eb99f49024cc0c1db49880bcd82` / CI `34862521697` — **5/5 SUCCESS**, clean-checkout included;
+- state **IN_PROGRESS / A-IMPLEMENT / CURRENT**;
+- current gate: exact-head CI for this separate A-IMPLEMENT transition; after green, focused RED-first evidence for AR-004/005 is the only permitted implementation action before production code.
 
 ### WP-2.9B
 
@@ -129,7 +130,7 @@ Required former-WP-2.9 product responsibilities minus assigned A/B product respo
 | WP-2.8B | **ACCEPTED / COMPLETE** | private archive lifecycle; gap ∅ |
 | WP-2.8C | **ACCEPTED / COMPLETE** | recoverable remote metadata lifecycle; durable closure `7f97ab8...` / `34786974129` 5/5 |
 | WP-2.9A | **BLOCKED** | FTR-089 foundation; AR-004/005 open; blocker resolves only after WP-2.9C ACCEPTED |
-| WP-2.9C | **READY / CURRENT** | trusted private-Document binary ingress + C1 parity remediation under ADR 0008; governance CI next |
+| WP-2.9C | **IN_PROGRESS / A-IMPLEMENT / CURRENT** | trusted private-Document binary ingress + C1 parity remediation under ADR 0008; transition CI next, then focused RED-first |
 | WP-2.9B | **PLANNED / AFTER A** | generic project Tags + Venue entity-tags |
 | WP-2.10 | PLANNED | repositories/local cache/pending offline mutations |
 | WP-2.11 | PLANNED | gallery/table/detail/compare/deep-link workspace |
@@ -140,17 +141,18 @@ Required former-WP-2.9 product responsibilities minus assigned A/B product respo
 ```text
 WP-2.1..WP-2.8C [ACCEPTED]
   → WP-2.9A [BLOCKED on AR-005 architecture dependency]
-    → WP-2.9C [READY / CURRENT]
-      → exact-head governance CI
-        → WP-2.9C IN_PROGRESS / RED-first / implementation / review / acceptance
-          → WP-2.9A BLOCKED → IN_PROGRESS
-            → A integration/reverification → fresh Pass B → Pass C
-              → WP-2.9B [PLANNED / AFTER A]
-                → WP-2.10 → WP-2.11 → WP-2.12
-                  → Lot reconciliation → Integration Pass
+    → WP-2.9C [IN_PROGRESS / A-IMPLEMENT / CURRENT]
+      → A-IMPLEMENT transition exact-head CI
+        → focused RED-first AR-004/005
+          → implementation → review → acceptance
+            → WP-2.9A BLOCKED → IN_PROGRESS
+              → A integration/reverification → fresh Pass B → Pass C
+                → WP-2.9B [PLANNED / AFTER A]
+                  → WP-2.10 → WP-2.11 → WP-2.12
+                    → Lot reconciliation → Integration Pass
 ```
 
-Only one packet may be implementing at a time. A is blocked, not concurrently implementing. C is READY and cannot enter implementation until this split/governance commit itself is exact-head green. Pass C for A and WP-2.9B remain forbidden while AR-004/005 are unresolved.
+Only one packet may be implementing at a time. A is blocked, not concurrently implementing. C is the sole active implementation packet. No RED test may be committed until the A-IMPLEMENT transition itself is exact-head green. Pass C for A and WP-2.9B remain forbidden while AR-004/005 are unresolved.
 
 ## Explicitly outside Lot 2
 
@@ -169,13 +171,15 @@ required current-Lot-2 responsibilities - assigned product packet responsibiliti
 accepted/evidenced packets = WP-2.1..WP-2.8C
 WP-2.9A = BLOCKED
 closed findings = WP29A-AR-001 / AR-002 / AR-003 — MAJOR — VERIFIED
-open finding = WP29A-AR-004 — MAJOR — C1 control-character parity — assigned remediation WP-2.9C
-open finding = WP29A-AR-005 — MAJOR / architecture blocker — actual stored bytes not bound to reserved integrity — assigned remediation WP-2.9C
+open finding = WP29A-AR-004 — MAJOR — C1 control-character parity — remediation WP-2.9C
+open finding = WP29A-AR-005 — MAJOR / architecture blocker — actual stored bytes not bound to reserved integrity — remediation WP-2.9C
 AR-004/005 durable failure record = a58417f79e59e2bd2d2fcb4d202f568c15cfa947 / 34854785427 — 5/5 SUCCESS
-WP-2.9C = READY / CURRENT — 10 points — cohesion PASS — ADR 0008
+WP-2.9C split/READY evidence = d1e561c787798eb99f49024cc0c1db49880bcd82 / 34862521697 — 5/5 SUCCESS
+WP-2.9C = IN_PROGRESS / A-IMPLEMENT / CURRENT — 10 points — cohesion PASS — ADR 0008
 WP-2.9A blocker resolution = WP-2.9C ACCEPTED, then A returns to IN_PROGRESS for integration/reverification/fresh Pass B
 WP-2.9B = PLANNED / AFTER A
-next permitted action = exact-head CI for the WP-2.9C split/governance record; no remediation code before green
+next permitted action = exact-head CI for the WP-2.9C A-IMPLEMENT transition; after green, focused test-only RED for AR-004/005
+production remediation code forbidden until focused RED is isolated and recorded
 Pass C / WP-2.9B forbidden while AR-004 or AR-005 remains unresolved
 ```
 

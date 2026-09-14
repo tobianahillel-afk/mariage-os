@@ -5,14 +5,20 @@
 - Work Packet ID: `WP-2.9C`
 - Lot: `2`
 - Name: Trusted private-document ingestion hardening
-- State: `READY`
-- Current pass: `A-IMPLEMENT GATE NEXT`
+- State: `IN_PROGRESS`
+- Current pass: `A-IMPLEMENT — RED FIRST`
 - Primary bounded context: Documents — authoritative binary ingress for the existing WP-2.9A private PDF lifecycle
 - Branch/PR: `lot-2/venues-core` / Lot-2 integration PR not opened yet
 - FIR: `#17 / FTR-089`
 - Parent review failure: `WP-2.9A / WP29A-AR-004 + WP29A-AR-005`
 - Architecture decision: `ADR 0008 — Trusted server-side private-document binary ingestion`
 - Size: **10 points**; explicit cohesion review **PASS**
+
+## Activation evidence
+
+- WP-2.9A durable AR-004/005 failure record: `a58417f79e59e2bd2d2fcb4d202f568c15cfa947` / CI `34854785427` — **5/5 SUCCESS**, clean-checkout included.
+- ADR 0008 + WP-2.9C split/READY governance: `d1e561c787798eb99f49024cc0c1db49880bcd82` / CI `34862521697` — **5/5 SUCCESS**, clean-checkout included.
+- Current transition: `READY → IN_PROGRESS / A-IMPLEMENT — RED FIRST`; exact-head CI for this transition must be green before any RED test is committed.
 
 ## Why this packet exists
 
@@ -209,14 +215,14 @@ The RED must not weaken/delete the existing WP-2.9A RED contract or unrelated ac
 
 ## State / sequencing
 
-Current state: **READY**.
+Current state: **IN_PROGRESS / A-IMPLEMENT — RED FIRST**.
 
-Next gate:
+Current gate:
 
-1. commit ADR 0008 + WP-2.9C split/coverage/status governance;
-2. exact-head CI must be **5/5 SUCCESS**;
-3. transition WP-2.9C to `IN_PROGRESS / A-IMPLEMENT`;
-4. add focused RED-first evidence for AR-004/AR-005;
+1. split/READY governance `d1e561c787798eb99f49024cc0c1db49880bcd82` / CI `34862521697` is **5/5 SUCCESS**, clean-checkout included;
+2. this separate A-IMPLEMENT transition must pass exact-head CI;
+3. only after that gate is green, add focused **test-only RED** evidence for AR-004/AR-005;
+4. verify the RED is isolated to the intended defects before any production remediation code;
 5. implement the narrow remediation;
 6. obtain full exact-head green evidence;
 7. move C to `REVIEW_PENDING`, perform fresh Pass B, then Pass C;
