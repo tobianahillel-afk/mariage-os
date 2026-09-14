@@ -118,10 +118,10 @@ select ok(
 );
 -- 6
 select ok(
-  pg_temp.try_storage_insert(
+  not pg_temp.try_storage_insert(
     'e9aaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/documents/e9300000-0000-4000-8000-000000000001/original'
   ),
-  'writer may upload only at exact pending reservation path'
+  'writer cannot bypass trusted server ingestion with direct Document Storage INSERT'
 );
 -- 7
 select ok(
@@ -129,6 +129,27 @@ select ok(
     'e9aaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/documents/e9300000-0000-4000-8000-000000000099/original'
   ),
   'namespace knowledge without pending reservation does not authorize upload'
+);
+
+reset role;
+set local role service_role;
+insert into storage.objects (bucket_id, name)
+values (
+  'project-private',
+  'e9aaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/documents/e9300000-0000-4000-8000-000000000001/original'
+);
+select public.attest_private_document_ingest(
+  'e9aaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+  'e9300000-0000-4000-8000-000000000001',
+  'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+  128
+);
+reset role;
+set local role authenticated;
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"e9111111-1111-4111-8111-111111111111","role":"authenticated","aal":"aal1"}',
+  true
 );
 
 select set_config(
@@ -193,7 +214,7 @@ select lives_ok(
     'e9aaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
     'e9300000-0000-4000-8000-000000000001'
   )$$,
-  'writer finalizes only after exact reserved object exists'
+  'writer finalizes only after exact trusted-ingest attestation exists'
 );
 -- 13
 select is(

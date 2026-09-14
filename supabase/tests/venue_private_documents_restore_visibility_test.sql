@@ -37,14 +37,28 @@ select lives_ok(
   )$$,
   'restore probe reservation succeeds'
 );
+
+reset role;
+set local role service_role;
+insert into storage.objects (bucket_id, name)
+values (
+  'project-private',
+  'ebaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/documents/eb300000-0000-4000-8000-000000000001/original'
+);
 -- 2
 select lives_ok(
-  $$insert into storage.objects (bucket_id, name) values (
-    'project-private',
-    'ebaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/documents/eb300000-0000-4000-8000-000000000001/original'
+  $$select public.attest_private_document_ingest(
+    'ebaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    'eb300000-0000-4000-8000-000000000001',
+    'dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd',
+    64
   )$$,
-  'exact pending restore probe object uploads'
+  'trusted server attests restore probe bytes before finalization'
 );
+reset role;
+
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"eb111111-1111-4111-8111-111111111111","role":"authenticated","aal":"aal1"}', true);
 -- 3
 select lives_ok(
   $$select public.manage_private_document(
