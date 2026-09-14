@@ -86,8 +86,8 @@ function fakeClient(
   const pending = [...queryResults];
   const queries: QueryFake[] = [];
   const download = vi.fn().mockResolvedValue(storageResult);
-  const from = vi.fn((_table: string) => ({
-    select: vi.fn((_columns: string) => {
+  const from = vi.fn(() => ({
+    select: vi.fn(() => {
       const next = pending.shift() ?? {
         data: null,
         error: new Error("missing plan"),
@@ -97,7 +97,7 @@ function fakeClient(
       return builder;
     }),
   }));
-  const storageFrom = vi.fn((_bucket: string) => ({ download }));
+  const storageFrom = vi.fn(() => ({ download }));
   return {
     client: { from, storage: { from: storageFrom } },
     queries,
@@ -117,7 +117,7 @@ function expectPersistenceCode(
   } satisfies Partial<DocumentPersistenceError>);
 }
 
-describe("SupabasePrivateDocumentReadAdapter queries", () => {
+describe("SupabasePrivateDocumentReadAdapter Venue queries", () => {
   it("lists active documents linked to the requested Venue", async () => {
     const fake = fakeClient([
       { data: [linkRow()], error: null },
@@ -152,17 +152,16 @@ describe("SupabasePrivateDocumentReadAdapter queries", () => {
     ).resolves.toEqual([]);
     expect(fake.from).toHaveBeenCalledTimes(1);
   });
+});
 
+describe("SupabasePrivateDocumentReadAdapter active lookup", () => {
   it("gets one active document with project and lifecycle filters", async () => {
     const fake = fakeClient([{ data: documentRow(), error: null }]);
     const adapter = new SupabasePrivateDocumentReadAdapter(fake.client);
 
     await expect(
       adapter.getActiveDocument(projectId, documentId),
-    ).resolves.toMatchObject({
-      id: documentId,
-      projectId,
-    });
+    ).resolves.toMatchObject({ id: documentId, projectId });
     expect(fake.queries[0]?.operations).toEqual([
       `eq:project_id:${projectId}`,
       `eq:id:${documentId}`,
