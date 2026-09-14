@@ -1,5 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import { DocumentPersistenceError, documentPersistenceErrorCode } from "./document-persistence-error";
+import {
+  DocumentPersistenceError,
+  documentPersistenceErrorCode,
+} from "./document-persistence-error";
 import { PrivateDocumentService } from "./private-document-service";
 
 const projectId = "11111111-1111-4111-8111-111111111111";
@@ -48,8 +51,12 @@ function request(overrides: Record<string, unknown> = {}) {
 
 function ports() {
   const lifecycle = {
-    reserveUpload: vi.fn().mockResolvedValue({ replayed: false, document: row() }),
-    finalizeUpload: vi.fn().mockResolvedValue({ replayed: false, document: row() }),
+    reserveUpload: vi
+      .fn()
+      .mockResolvedValue({ replayed: false, document: row() }),
+    finalizeUpload: vi
+      .fn()
+      .mockResolvedValue({ replayed: false, document: row() }),
     abandonUpload: vi.fn().mockResolvedValue({
       replayed: false,
       projectId,
@@ -143,16 +150,16 @@ describe("PrivateDocumentService metadata validation coverage", () => {
     });
   });
 
-  it.each([
-    { bytes: "not-bytes" },
-    { originalFilename: 42 },
-  ])("rejects non-binary/type inputs %#", async (overrides) => {
-    const service = new PrivateDocumentService(ports());
-    await expect(service.upload(request(overrides))).resolves.toEqual({
-      ok: false,
-      error: "unsupported_type",
-    });
-  });
+  it.each([{ bytes: "not-bytes" }, { originalFilename: 42 }])(
+    "rejects non-binary/type inputs %#",
+    async (overrides) => {
+      const service = new PrivateDocumentService(ports());
+      await expect(service.upload(request(overrides))).resolves.toEqual({
+        ok: false,
+        error: "unsupported_type",
+      });
+    },
+  );
 });
 
 describe("PrivateDocumentService hash and provider coverage", () => {
@@ -224,7 +231,9 @@ describe("PrivateDocumentService abandon coverage", () => {
   it("skips delete when the reserved object is already absent", async () => {
     const fake = ports();
     const service = new PrivateDocumentService(fake);
-    await expect(service.abandon(operationId, projectId, documentId)).resolves.toEqual({
+    await expect(
+      service.abandon(operationId, projectId, documentId),
+    ).resolves.toEqual({
       ok: true,
       value: { absent: true },
     });
@@ -239,7 +248,9 @@ describe("PrivateDocumentService abandon coverage", () => {
       present: true,
     });
     const service = new PrivateDocumentService(fake);
-    await expect(service.abandon(operationId, projectId, documentId)).resolves.toEqual({
+    await expect(
+      service.abandon(operationId, projectId, documentId),
+    ).resolves.toEqual({
       ok: false,
       error: "storage_retryable",
     });
@@ -252,7 +263,9 @@ describe("PrivateDocumentService abandon coverage", () => {
       new DocumentPersistenceError("conflict", "conflict"),
     );
     const service = new PrivateDocumentService(fake);
-    await expect(service.abandon(operationId, projectId, documentId)).resolves.toEqual({
+    await expect(
+      service.abandon(operationId, projectId, documentId),
+    ).resolves.toEqual({
       ok: false,
       error: "replay_conflict",
     });
@@ -271,11 +284,24 @@ describe("PrivateDocumentService lifecycle delegation coverage", () => {
       linkId,
       expectedRevision: 2,
     };
-    const transition = { operationId, projectId, documentId, expectedRevision: 3 };
-    await expect(service.linkVenue(linkInput)).resolves.toEqual({ linked: true });
-    await expect(service.unlinkVenue(linkInput)).resolves.toEqual({ unlinked: true });
-    await expect(service.softDelete(transition)).resolves.toEqual({ deleted: true });
-    await expect(service.restore(transition)).resolves.toEqual({ restored: true });
+    const transition = {
+      operationId,
+      projectId,
+      documentId,
+      expectedRevision: 3,
+    };
+    await expect(service.linkVenue(linkInput)).resolves.toEqual({
+      linked: true,
+    });
+    await expect(service.unlinkVenue(linkInput)).resolves.toEqual({
+      unlinked: true,
+    });
+    await expect(service.softDelete(transition)).resolves.toEqual({
+      deleted: true,
+    });
+    await expect(service.restore(transition)).resolves.toEqual({
+      restored: true,
+    });
     expect(fake.lifecycle.linkVenue).toHaveBeenCalledWith(linkInput);
     expect(fake.lifecycle.unlinkVenue).toHaveBeenCalledWith(linkInput);
     expect(fake.lifecycle.softDelete).toHaveBeenCalledWith(transition);

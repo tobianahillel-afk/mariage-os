@@ -44,7 +44,10 @@ const reserveInput = {
 const identityInput = { operationId, projectId, documentId };
 const transitionInput = { ...identityInput, expectedRevision: 2 };
 
-function reserveReceipt(document: unknown = documentRow(), replayed: unknown = false) {
+function reserveReceipt(
+  document: unknown = documentRow(),
+  replayed: unknown = false,
+) {
   return { action: "reserve_upload", replayed, document };
 }
 
@@ -59,12 +62,18 @@ function expectInvalid(run: () => unknown): void {
 
 describe("private document parser structural coverage", () => {
   it.each([42, null, []])("rejects non-record receipt %j", (value) => {
-    expectInvalid(() => parsePrivateDocumentReceipt(value, "reserve_upload", reserveInput));
+    expectInvalid(() =>
+      parsePrivateDocumentReceipt(value, "reserve_upload", reserveInput),
+    );
   });
 
   it.each([42, null, []])("rejects non-record document %j", (document) => {
     expectInvalid(() =>
-      parsePrivateDocumentReceipt(reserveReceipt(document), "reserve_upload", reserveInput),
+      parsePrivateDocumentReceipt(
+        reserveReceipt(document),
+        "reserve_upload",
+        reserveInput,
+      ),
     );
   });
 
@@ -81,7 +90,9 @@ describe("private document parser structural coverage", () => {
         "soft_delete",
         transitionInput,
       ),
-    ).toMatchObject({ document: { sourceId, deletedAt: expect.any(String), revision: 3 } });
+    ).toMatchObject({
+      document: { sourceId, deletedAt: expect.any(String), revision: 3 },
+    });
   });
 });
 
@@ -180,7 +191,9 @@ describe("private document parser size hash and status coverage", () => {
       replayed: false,
       document: documentRow({ upload_status: "ready", revision: 2 }),
     };
-    expect(parsePrivateDocumentReceipt(receipt, "finalize_upload", identityInput)).toMatchObject({
+    expect(
+      parsePrivateDocumentReceipt(receipt, "finalize_upload", identityInput),
+    ).toMatchObject({
       document: { uploadStatus: "ready" },
     });
   });
@@ -209,7 +222,11 @@ describe("private document reserve semantic parity coverage", () => {
   it("rejects a runtime MIME mismatch against the reserve input", () => {
     const malformedInput = { ...reserveInput, mimeType: "text/plain" } as never;
     expectInvalid(() =>
-      parsePrivateDocumentReceipt(reserveReceipt(), "reserve_upload", malformedInput),
+      parsePrivateDocumentReceipt(
+        reserveReceipt(),
+        "reserve_upload",
+        malformedInput,
+      ),
     );
   });
 });
@@ -228,7 +245,11 @@ describe("private document lifecycle state coverage", () => {
     ],
   ] as const)("rejects wrong state for %s", (action, document, input) => {
     expectInvalid(() =>
-      parsePrivateDocumentReceipt({ action, replayed: false, document }, action, input),
+      parsePrivateDocumentReceipt(
+        { action, replayed: false, document },
+        action,
+        input,
+      ),
     );
   });
 
@@ -242,10 +263,18 @@ describe("private document lifecycle state coverage", () => {
       ),
     ).toMatchObject({ replayed: true, document: { deletedAt: null } });
     expectInvalid(() =>
-      parsePrivateDocumentReceipt({ action: "wrong", replayed: false, document: ready }, "restore", transitionInput),
+      parsePrivateDocumentReceipt(
+        { action: "wrong", replayed: false, document: ready },
+        "restore",
+        transitionInput,
+      ),
     );
     expectInvalid(() =>
-      parsePrivateDocumentReceipt({ action: "restore", replayed: "no", document: ready }, "restore", transitionInput),
+      parsePrivateDocumentReceipt(
+        { action: "restore", replayed: "no", document: ready },
+        "restore",
+        transitionInput,
+      ),
     );
   });
 });
@@ -266,13 +295,16 @@ describe("private document expected identity coverage", () => {
         storage_path: `${projectId}/documents/${otherId}/original`,
       },
     ],
-  ] as const)("rejects substituted expected %s identity", (_kind, overrides) => {
-    expectInvalid(() =>
-      parsePrivateDocumentReceipt(
-        reserveReceipt(documentRow(overrides)),
-        "reserve_upload",
-        reserveInput,
-      ),
-    );
-  });
+  ] as const)(
+    "rejects substituted expected %s identity",
+    (_kind, overrides) => {
+      expectInvalid(() =>
+        parsePrivateDocumentReceipt(
+          reserveReceipt(documentRow(overrides)),
+          "reserve_upload",
+          reserveInput,
+        ),
+      );
+    },
+  );
 });

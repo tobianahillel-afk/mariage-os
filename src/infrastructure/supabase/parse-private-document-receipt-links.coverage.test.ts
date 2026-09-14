@@ -106,7 +106,12 @@ describe("private document link parser coverage", () => {
   it("rejects wrong link action", () => {
     expectInvalid(() =>
       parsePrivateDocumentLinkReceipt(
-        { action: "wrong", replayed: false, document: documentRow(), link: linkRow() },
+        {
+          action: "wrong",
+          replayed: false,
+          document: documentRow(),
+          link: linkRow(),
+        },
         linkInput,
       ),
     );
@@ -119,7 +124,13 @@ describe("private document unlink parser coverage", () => {
   it("accepts canonical absent unlink receipt", () => {
     expect(
       parsePrivateDocumentUnlinkReceipt(
-        { action: "unlink_venue", replayed: false, document, linkId, absent: true },
+        {
+          action: "unlink_venue",
+          replayed: false,
+          document,
+          linkId,
+          absent: true,
+        },
         linkInput,
       ),
     ).toMatchObject({ linkId, absent: true });
@@ -127,8 +138,20 @@ describe("private document unlink parser coverage", () => {
 
   it.each([
     { action: "wrong", replayed: false, document, linkId, absent: true },
-    { action: "unlink_venue", replayed: false, document, linkId: otherId, absent: true },
-    { action: "unlink_venue", replayed: false, document, linkId, absent: false },
+    {
+      action: "unlink_venue",
+      replayed: false,
+      document,
+      linkId: otherId,
+      absent: true,
+    },
+    {
+      action: "unlink_venue",
+      replayed: false,
+      document,
+      linkId,
+      absent: false,
+    },
     { action: "unlink_venue", replayed: "no", document, linkId, absent: true },
   ])("rejects malformed unlink receipt %#", (receipt) => {
     expectInvalid(() => parsePrivateDocumentUnlinkReceipt(receipt, linkInput));
@@ -139,7 +162,13 @@ describe("private document abandon parser coverage", () => {
   it("accepts canonical abandon receipt", () => {
     expect(
       parsePrivateDocumentAbandonReceipt(
-        { action: "abandon_upload", replayed: false, projectId, documentId, absent: true },
+        {
+          action: "abandon_upload",
+          replayed: false,
+          projectId,
+          documentId,
+          absent: true,
+        },
         identityInput,
       ),
     ).toEqual({ replayed: false, projectId, documentId, absent: true });
@@ -147,11 +176,37 @@ describe("private document abandon parser coverage", () => {
 
   it.each([
     { action: "wrong", replayed: false, projectId, documentId, absent: true },
-    { action: "abandon_upload", replayed: false, projectId: otherId, documentId, absent: true },
-    { action: "abandon_upload", replayed: false, projectId, documentId: otherId, absent: true },
-    { action: "abandon_upload", replayed: false, projectId, documentId, absent: false },
-    { action: "abandon_upload", replayed: "no", projectId, documentId, absent: true },
+    {
+      action: "abandon_upload",
+      replayed: false,
+      projectId: otherId,
+      documentId,
+      absent: true,
+    },
+    {
+      action: "abandon_upload",
+      replayed: false,
+      projectId,
+      documentId: otherId,
+      absent: true,
+    },
+    {
+      action: "abandon_upload",
+      replayed: false,
+      projectId,
+      documentId,
+      absent: false,
+    },
+    {
+      action: "abandon_upload",
+      replayed: "no",
+      projectId,
+      documentId,
+      absent: true,
+    },
   ])("rejects malformed abandon receipt %#", (receipt) => {
-    expectInvalid(() => parsePrivateDocumentAbandonReceipt(receipt, identityInput));
+    expectInvalid(() =>
+      parsePrivateDocumentAbandonReceipt(receipt, identityInput),
+    );
   });
 });
