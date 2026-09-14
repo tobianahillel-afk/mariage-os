@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { DocumentPersistenceError } from "./document-persistence-error";
 import { PrivateDocumentService } from "./private-document-service";
 
 const projectId = "11111111-1111-4111-8111-111111111111";
@@ -68,22 +69,19 @@ function ports(present: boolean) {
       path,
       present,
     }),
-    uploadReservedObject: vi.fn().mockResolvedValue({
-      bucket: "project-private" as const,
-      path,
-    }),
     deleteReservedObject: vi.fn().mockResolvedValue({
       bucket: "project-private" as const,
       path,
       absent: true as const,
     }),
   };
+  const ingest = { ingest: vi.fn().mockResolvedValue(undefined) };
   const sha256Port = { hash: vi.fn().mockResolvedValue(sha256) };
-  return { lifecycle, storage, sha256: sha256Port };
+  return { lifecycle, storage, ingest, sha256: sha256Port };
 }
 
 describe("PrivateDocumentService upload persistence", () => {
-  it("hashes and uploads the exact validated byte array before finalization", async () => {
+  it("hashes and sends the exact validated bytes through trusted ingest before finalization", async () => {
     const fake = ports(false);
     const service = new PrivateDocumentService(fake);
 
@@ -95,8 +93,9 @@ describe("PrivateDocumentService upload persistence", () => {
     expect(fake.lifecycle.reserveUpload).toHaveBeenCalledWith(
       expect.objectContaining({ sha256, sizeBytes: bytes.byteLength }),
     );
-    expect(fake.storage.uploadReservedObject).toHaveBeenCalledWith({
-      path,
+    expect(fake.ingest.ingest).toHaveBeenCalledWith({
+      projectId,
+      documentId,
       bytes,
       mimeType: "application/pdf",
     });
@@ -107,15 +106,33 @@ describe("PrivateDocumentService upload persistence", () => {
     });
   });
 
-  it("recovers after Storage-before-finalize interruption without overwriting bytes", async () => {
+  it("delegates interrupted-object recovery to trusted ingest instead of trusting client inspection", async () => {
     const fake = ports(true);
     const service = new PrivateDocumentService(fake);
 
     await expect(service.upload(request())).resolves.toMatchObject({
       ok: true,
     });
-    expect(fake.storage.uploadReservedObject).not.toHaveBeenCalled();
+    expect(fake.storage.inspectReservedObject).not.toHaveBeenCalled();
+    expect(fake.ingest.ingest).toHaveBeenCalledOnce();
     expect(fake.lifecycle.finalizeUpload).toHaveBeenCalledOnce();
+  });
+
+  it("does not finalize when trusted ingest fails", async () => {
+    const fake = ports(false);
+    fake.ingest.ingest.mockRejectedValue(
+      new DocumentPersistenceError(
+        "storage_retryable",
+        "Trusted private document ingestion failed.",
+      ),
+    );
+    const service = new PrivateDocumentService(fake);
+
+    await expect(service.upload(request())).resolves.toEqual({
+      ok: false,
+      error: "storage_retryable",
+    });
+    expect(fake.lifecycle.finalizeUpload).not.toHaveBeenCalled();
   });
 });
 

@@ -6,6 +6,7 @@ import {
   type VenuePrivatePdfValidationError,
 } from "@domain/documents/venue-private-document";
 import { documentPersistenceErrorCode } from "./document-persistence-error";
+import type { TrustedPrivateDocumentIngestPort } from "./private-document-ingest-port";
 import type {
   LinkPrivateDocumentVenueInput,
   PrivateDocumentLifecyclePort,
@@ -33,6 +34,7 @@ export interface UploadPrivateVenueDocumentRequest {
 export interface PrivateDocumentServicePorts {
   readonly lifecycle: PrivateDocumentLifecyclePort;
   readonly storage: PrivateDocumentStoragePort;
+  readonly ingest: TrustedPrivateDocumentIngestPort;
   readonly sha256: PrivateDocumentSha256Port;
 }
 
@@ -192,14 +194,14 @@ async function persistUpload(
     if (reservation.document.storagePath !== exactPath) {
       return { ok: false, error: "provider_response_invalid" };
     }
-    const inspection = await ports.storage.inspectReservedObject(exactPath);
-    if (!inspection.present) {
-      await ports.storage.uploadReservedObject({
-        path: exactPath,
-        bytes: input.bytes,
-        mimeType: input.pdf.mimeType,
-      });
-    }
+
+    await ports.ingest.ingest({
+      projectId: input.projectId,
+      documentId: input.documentId,
+      bytes: input.bytes,
+      mimeType: input.pdf.mimeType,
+    });
+
     const finalized = await ports.lifecycle.finalizeUpload({
       operationId: input.operationId,
       projectId: input.projectId,
