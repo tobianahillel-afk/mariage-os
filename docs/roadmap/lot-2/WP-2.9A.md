@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.9A`
 - Lot: `2`
 - Name: Venue-linked private document foundation
-- State: `IN_PROGRESS`
-- Current pass: `REMEDIATION — WP29A-AR-002`
+- State: `REVIEW_PENDING`
+- Current pass: `B-ADVERSARIAL-REVIEW`
 - Primary bounded context: Documents — private PDF metadata, Venue links, Storage lifecycle and recoverable metadata
 - Branch/PR: `lot-2/venues-core` / Lot-2 integration PR not opened yet
 - FIR: `#17 / FTR-089`
@@ -33,7 +33,9 @@ Evidence:
 - fresh Pass-B entry/governance HEAD: `78904546f3d8f4c15276a1bbe0825455f1262ee4` / CI `34837421096` — **5/5 SUCCESS**, clean-checkout included;
 - fresh Pass B verifies `WP29A-AR-001` as **CLOSED / VERIFIED**, but finds `WP29A-AR-002` — **MAJOR / OPEN**;
 - durable fresh-review failure record HEAD: `9654c90ed7da27033d1f08d6effc6f47cac3dff9` / CI `34839274681` — **5/5 SUCCESS**, clean-checkout included;
-- packet has now separately transitioned to `IN_PROGRESS / REMEDIATION — WP29A-AR-002`; no RED/product change is permitted until this transition HEAD itself is exact-head green.
+- AR-002 remediation-transition governance HEAD: `b2e94c47f6d523adbf731fdd15cf796cca4c5ca9` / CI `34840180167` — **5/5 SUCCESS**, clean-checkout included;
+- AR-002 focused RED HEAD: `2f06b7963e7d09e3c00264d3351745213a75f964` / CI `34840851767` — expected RED isolated to the contract-valid 512-Unicode-scalar read-parser regression; Core 1539 passing / 1 failing test and DB/RLS + Browser/mutation remained green;
+- AR-002 remediation/evidence HEAD: `c78c22ff10c02cd6ab798a21e16b5c7acbc3effb` / CI `34841804605` — **5/5 SUCCESS**, clean-checkout included; Core reports **158 test files / 1546 tests / 100% statements, branches, functions and lines**.
 
 WP-2.9B remains `PLANNED / AFTER A` and cannot activate while A is active.
 
@@ -266,19 +268,23 @@ The frozen RED-first contract remains byte-for-byte authoritative and was satisf
 
 **Fresh-review verdict.** `CLOSED / VERIFIED`. Fresh Pass B re-challenged the new service, parser, adapter, DB/RLS/Storage authority and focused tests. The original missing-boundary defect is no longer present.
 
-### WP29A-AR-002 — MAJOR / OPEN — Unicode-scalar filename contract is broken by read parser
+### WP29A-AR-002 — MAJOR / OPEN — Unicode-scalar filename contract was broken by read parser
 
-**Finding.** The frozen file contract defines `original_filename` as `1..512` **Unicode scalar values**. The upload validator intentionally implements scalar-aware counting and has an explicit passing test for `508 × 😀 + ".pdf"` (512 scalars). The DB `char_length` constraint likewise accepts that persisted value. The new `parseActivePrivateDocumentRow()` read parser, however, validates `original_filename` with JavaScript `value.length`, which counts UTF-16 code units. The same valid 512-scalar filename therefore exceeds 512 code units and is rejected as `provider_response_invalid` after persistence.
+**Original finding.** The frozen file contract defines `original_filename` as `1..512` **Unicode scalar values**. The upload validator intentionally implements scalar-aware counting and has an explicit passing test for `508 × 😀 + ".pdf"` (512 scalars). The DB `char_length` constraint likewise accepts that persisted value. The read parser validated `original_filename` with JavaScript `value.length`, which counts UTF-16 code units. The same valid 512-scalar filename could therefore be rejected as `provider_response_invalid` after persistence.
 
-**Impact.** A fully conforming PDF can pass the frozen upload contract, reserve/upload/finalize successfully, and then become impossible to list/read/download through the newly added typed application boundary. This violates the exact user job and the packet's `reserve → upload → finalize → active list/read/download` verification path. The failure is deterministic and data-dependent, not merely cosmetic.
+**Impact.** A fully conforming PDF could pass the frozen upload contract, reserve/upload/finalize successfully, and then become impossible to list/read/download through the typed application boundary. This violated the exact user job and the packet's `reserve → upload → finalize → active list/read/download` verification path.
 
-**Classification.** `MAJOR`. Pass C is blocked.
+**RED evidence.** `2f06b7963e7d09e3c00264d3351745213a75f964` / CI `34840851767` reproduced the defect with exactly one failing regression for `508 × 😀 + ".pdf"`; Core retained 1539 passing tests and DB/RLS plus Browser/mutation stayed green.
 
-**Required remediation.** Reuse one canonical scalar-aware filename validation rule at both upload and provider-read boundaries; add a focused RED regression proving that a valid 512-scalar astral filename survives parse/list/read/download, while malformed surrogate/control/path-separator/513-scalar cases still fail closed. Do not widen file types, UI scope, permissions or WP-2.9B.
+**Remediation implementation.** Upload and provider-read boundaries now share the same scalar-aware safe private-document filename predicate. The `.pdf` extension check remains a separate unchanged file-type rule. Focused tests cover exactly 512 scalars accepted, 513 rejected, isolated high/low surrogates rejected, controls rejected and `/`/`\` separators rejected. The RED→remediation delta is restricted to the domain filename validator, the provider read parser and its focused test file; there is no SQL/RLS/Storage-policy/UI/permission/file-type or WP-2.9B expansion.
+
+**Remediation evidence.** `c78c22ff10c02cd6ab798a21e16b5c7acbc3effb` / CI `34841804605` — **5/5 SUCCESS**, clean-checkout included; Core reports 158 files / 1546 tests / 100% statements, branches, functions and lines.
+
+**Current classification.** `MAJOR / OPEN`, pending mandatory fresh adversarial Pass B. Implementation verification is green, but this finding is not closed by remediation evidence alone.
 
 ### Reviewed non-findings
 
-Fresh Pass B also re-challenged:
+The prior fresh Pass B also re-challenged:
 
 - exact project/document/path binding before Storage access;
 - pending/deleted exclusion for ordinary reads;
@@ -291,19 +297,19 @@ No additional BLOCKING/MAJOR issue was found in those areas. A per-download SHA 
 
 ## Fresh Pass B outcome
 
-Fresh Pass-B entry/governance HEAD `78904546f3d8f4c15276a1bbe0825455f1262ee4` / CI `34837421096` is **5/5 SUCCESS**, clean-checkout included. The review **closes `WP29A-AR-001`** but **fails overall** because `WP29A-AR-002` is MAJOR / OPEN.
+The previous fresh Pass-B entry/governance HEAD `78904546f3d8f4c15276a1bbe0825455f1262ee4` / CI `34837421096` is **5/5 SUCCESS**, clean-checkout included. That review closed `WP29A-AR-001` but failed overall because it found `WP29A-AR-002` MAJOR.
 
-The REVIEW_FAILED state is durably recorded on `9654c90ed7da27033d1f08d6effc6f47cac3dff9` / CI `34839274681` — **5/5 SUCCESS**, clean-checkout included. Governance has now separately reopened the packet as `IN_PROGRESS / REMEDIATION — WP29A-AR-002` before code changes.
+`WP29A-AR-002` has now completed focused RED and narrow remediation with full 5/5 verification. WP-2.9A therefore moves to `REVIEW_PENDING / B-ADVERSARIAL-REVIEW`. The finding remains OPEN until a new fresh Pass B independently re-challenges the remediation and the full frozen packet.
 
 ## Remediation cursor
 
-`WP29A-AR-002` remediation is active. The scope is deliberately narrow: canonical scalar-aware PDF filename validation parity between upload and provider-read boundaries, plus focused regression evidence. No SQL/RLS/Storage-policy/UI/permission/file-type or WP-2.9B change is authorized.
+AR-002 remediation implementation/evidence is complete on `c78c22ff10c02cd6ab798a21e16b5c7acbc3effb` / CI `34841804605` — **5/5 SUCCESS**, clean-checkout included.
 
-The next action, only after the remediation-transition exact-head CI is green, is focused RED evidence for the contract-valid 512-scalar astral filename; then the minimum shared-validator implementation, full verification and a mandatory fresh Pass B. The finding remains OPEN until that fresh review closes it.
+The next permitted action is the exact-head CI for this review-pending governance transition. Once that transition is durably green, perform mandatory fresh adversarial Pass B. Pass C is not permitted until that review reports no unresolved BLOCKING/MAJOR finding and explicitly closes `WP29A-AR-002`.
 
 ## Current gate
 
-WP-2.9A is **IN_PROGRESS / REMEDIATION — WP29A-AR-002**.
+WP-2.9A is **REVIEW_PENDING / B-ADVERSARIAL-REVIEW**.
 
 Pass C remains forbidden while `WP29A-AR-002` is unresolved. WP-2.9B remains inactive until WP-2.9A is accepted.
 

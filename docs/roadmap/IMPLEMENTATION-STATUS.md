@@ -39,7 +39,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.8A | Venue remote-image metadata and Venue links | **ACCEPTED / COMPLETE** |
 | WP-2.8B | Venue private archived media lifecycle | **ACCEPTED / COMPLETE** |
 | WP-2.8C | recoverable Venue remote-media metadata lifecycle | **ACCEPTED / COMPLETE** |
-| WP-2.9A | Venue-linked private PDF/document foundation | **IN_PROGRESS / REMEDIATION — WP29A-AR-002 / CURRENT** |
+| WP-2.9A | Venue-linked private PDF/document foundation | **REVIEW_PENDING / B-ADVERSARIAL-REVIEW / CURRENT** |
 | WP-2.9B | generic project tags and Venue entity-tag links | **PLANNED / AFTER A** |
 | WP-2.10 | repositories, local cache, pending/offline mutations | PLANNED |
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace | PLANNED |
@@ -67,7 +67,7 @@ The former monolithic WP-2.9 was revalidated at **12 points** and split before c
 
 ### WP-2.9A — Venue-linked private document foundation
 
-- **IN_PROGRESS / REMEDIATION — WP29A-AR-002 / CURRENT**.
+- **REVIEW_PENDING / B-ADVERSARIAL-REVIEW / CURRENT**.
 - FIR: `#17 / FTR-089`.
 - Owns FTR-089 Lot-2, `MED-001/002/003/008/010`, ordinary private PDF metadata, Venue `document_links`, private Storage lifecycle, provenance, read/download authorization and recoverable metadata soft-delete/restore.
 - Reuses `project-private` at `<project_id>/documents/<document_id>/original`.
@@ -79,11 +79,14 @@ The former monolithic WP-2.9 was revalidated at **12 points** and split before c
 - RED-first `9322915252925d3f75f5a224a82f9d391ccfec9d` / `34789545716` — expected RED only on the three frozen document-boundary assertions.
 - Pass-A implementation/evidence `e533b5c53d1be074216ccaa92f74281b425de770` / `34826553890` — **5/5 SUCCESS**, clean-checkout included; Core 152 files / 1465 tests / 100% statements, branches, functions and lines.
 - First Pass B finding `WP29A-AR-001` — **MAJOR / CLOSED / VERIFIED**: the missing typed `list/download-auth` application/provider boundary was implemented and re-verified.
-- Remediation/evidence `0072792d2eb67cce1bf98c4c312d9576feacc156` / `34836621394` — **5/5 SUCCESS**, clean-checkout included; Core 1539 tests / 100% statements, branches, functions and lines.
+- AR-001 remediation/evidence `0072792d2eb67cce1bf98c4c312d9576feacc156` / `34836621394` — **5/5 SUCCESS**, clean-checkout included; Core 1539 tests / 100% statements, branches, functions and lines.
 - Fresh Pass-B entry/governance `78904546f3d8f4c15276a1bbe0825455f1262ee4` / `34837421096` — **5/5 SUCCESS**, clean-checkout included.
-- Fresh Pass B verifies `WP29A-AR-001` remediation but finds `WP29A-AR-002` — **MAJOR / OPEN**: the read parser counts UTF-16 code units for `original_filename` while the frozen/upload contract allows 1..512 Unicode scalar values, so a conforming persisted PDF can become unreadable after upload.
+- Fresh Pass B verifies `WP29A-AR-001` remediation but finds `WP29A-AR-002` — **MAJOR / OPEN**: the read parser counted UTF-16 code units for `original_filename` while the frozen/upload contract allows 1..512 Unicode scalar values.
 - Durable fresh-review failure record `9654c90ed7da27033d1f08d6effc6f47cac3dff9` / `34839274681` — **5/5 SUCCESS**, clean-checkout included.
-- Remediation `WP29A-AR-002` is now active; code remains unchanged until this remediation-transition HEAD itself passes exact-head CI.
+- AR-002 remediation-transition governance `b2e94c47f6d523adbf731fdd15cf796cca4c5ca9` / `34840180167` — **5/5 SUCCESS**, clean-checkout included.
+- AR-002 focused RED evidence `2f06b7963e7d09e3c00264d3351745213a75f964` / `34840851767` — expected RED isolated to the 512-Unicode-scalar read-parser regression; 1539 tests remained green.
+- AR-002 remediation/evidence `c78c22ff10c02cd6ab798a21e16b5c7acbc3effb` / `34841804605` — **5/5 SUCCESS**, clean-checkout included; Core 158 files / 1546 tests / 100% statements, branches, functions and lines.
+- Fresh Pass B is now mandatory; `WP29A-AR-002` remains **MAJOR / OPEN** until that review explicitly verifies and closes the remediation.
 
 ### WP-2.9B — Generic project tags and Venue entity-tag links
 
@@ -97,12 +100,12 @@ The split repairs the old WP-2.9 traceability omission by assigning `MED-008` ex
 ## Current next-action gate
 
 1. Pass-A historical evidence remains `e533b5c53d1be074216ccaa92f74281b425de770` / `34826553890` — **5/5 SUCCESS**.
-2. `WP29A-AR-001` remediation is **CLOSED / VERIFIED** by fresh Pass B.
-3. Fresh Pass-B entry/governance `78904546f3d8f4c15276a1bbe0825455f1262ee4` / `34837421096` is **5/5 SUCCESS**.
-4. Fresh Pass B outcome is **FAIL** because `WP29A-AR-002` is **MAJOR / OPEN**.
-5. Durable REVIEW_FAILED evidence `9654c90ed7da27033d1f08d6effc6f47cac3dff9` / `34839274681` is **5/5 SUCCESS**, clean-checkout included.
-6. WP-2.9A has separately transitioned to **IN_PROGRESS / REMEDIATION — WP29A-AR-002**. This transition must pass exact-head CI before product/test changes.
-7. After that gate, add focused RED evidence for the 512-scalar astral filename, then implement only the canonical scalar-aware filename validation parity, rerun affected/full verification and return to a fresh Pass B.
+2. `WP29A-AR-001` is **CLOSED / VERIFIED** by fresh Pass B.
+3. Fresh Pass B found `WP29A-AR-002` — **MAJOR / OPEN**; its REVIEW_FAILED state was durably green before remediation.
+4. AR-002 RED evidence `2f06b7963e7d09e3c00264d3351745213a75f964` / `34840851767` reproduced exactly the contract-valid 512-scalar failure with one failing regression and no DB/RLS/Browser/mutation regression.
+5. AR-002 remediation is fully re-verified on `c78c22ff10c02cd6ab798a21e16b5c7acbc3effb` / `34841804605` — **5/5 SUCCESS**, clean-checkout included; Core 158 files / 1546 tests / 100% coverage on all four metrics.
+6. WP-2.9A is now **REVIEW_PENDING / B-ADVERSARIAL-REVIEW**. `WP29A-AR-002` remains OPEN until mandatory fresh Pass B explicitly closes it.
+7. Next permitted action: exact-head governance CI for this review-pending transition, then perform fresh adversarial Pass B against the remediation and the full frozen packet.
 8. Pass C, WP-2.9B and later packets remain forbidden while `WP29A-AR-002` is unresolved.
 
 ## Known localized repairs / stop conditions
@@ -118,7 +121,7 @@ The split repairs the old WP-2.9 traceability omission by assigning `MED-008` ex
 - WP-2.9 pre-activation sizing and MED-008 traceability: **CLOSED / VERIFIED** by `40f17aba...` / `34788217062` 5/5.
 - WP-2.9A Pass-A coverage/format/maintainability closure: **CLOSED / VERIFIED** by `e533b5c5...` / `34826553890` 5/5.
 - WP29A-AR-001 Document read/list/download foundation: **CLOSED / VERIFIED** by remediation `0072792d...` / `34836621394` and fresh review gate `78904546...` / `34837421096`, both 5/5.
-- WP29A-AR-002 Unicode-scalar filename parity: **MAJOR / OPEN / REMEDIATION ACTIVE**; next code gate is focused RED evidence after the remediation-transition exact-head CI succeeds.
+- WP29A-AR-002 remediation implementation/verification: **CLOSED / VERIFIED** by `c78c22ff...` / `34841804605` 5/5; finding itself remains **MAJOR / OPEN** pending mandatory fresh Pass B.
 
 ## Durable handoff
 
@@ -130,16 +133,18 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.8C
 Last completed packet: WP-2.8C — ACCEPTED / COMPLETE
-Current packet: WP-2.9A — IN_PROGRESS / REMEDIATION — WP29A-AR-002
+Current packet: WP-2.9A — REVIEW_PENDING / B-ADVERSARIAL-REVIEW
 Closed finding: WP29A-AR-001 — MAJOR — remediation verified by fresh Pass B
-Open finding: WP29A-AR-002 — MAJOR — Unicode-scalar filename read-parser mismatch
+Open finding: WP29A-AR-002 — MAJOR — remediation re-verified, pending fresh Pass B
 FTR-089 FIR: #17
 Following packet: WP-2.9B — PLANNED / AFTER A
 Pass-A final: e533b5c53d1be074216ccaa92f74281b425de770 / 34826553890 — 5/5 SUCCESS
 AR-001 remediation: 0072792d2eb67cce1bf98c4c312d9576feacc156 / 34836621394 — 5/5 SUCCESS
 Fresh Pass-B entry: 78904546f3d8f4c15276a1bbe0825455f1262ee4 / 34837421096 — 5/5 SUCCESS
 Fresh Pass-B failure record: 9654c90ed7da27033d1f08d6effc6f47cac3dff9 / 34839274681 — 5/5 SUCCESS
-Current gate: remediation-transition exact-head CI, then focused RED evidence for WP29A-AR-002
+AR-002 RED: 2f06b7963e7d09e3c00264d3351745213a75f964 / 34840851767 — expected RED isolated to one regression
+AR-002 remediation final: c78c22ff10c02cd6ab798a21e16b5c7acbc3effb / 34841804605 — 5/5 SUCCESS
+Current gate: review-pending governance exact-head CI, then fresh adversarial Pass B
 Pass C forbidden until no BLOCKING/MAJOR finding remains unresolved
 WP-2.9B and later packets untouched
 Lots 3–12: NOT_STARTED
