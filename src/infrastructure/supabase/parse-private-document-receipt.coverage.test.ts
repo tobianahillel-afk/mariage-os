@@ -248,7 +248,9 @@ describe("private document lifecycle state coverage", () => {
       parsePrivateDocumentReceipt({ action: "restore", replayed: "no", document: ready }, "restore", transitionInput),
     );
   });
+});
 
+describe("private document expected identity coverage", () => {
   it.each([
     [
       "project",
