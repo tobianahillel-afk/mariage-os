@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.9A`
 - Lot: `2`
 - Name: Venue-linked private document foundation
-- State: `REVIEW_PENDING`
-- Current pass: `B-ADVERSARIAL-REVIEW`
+- State: `REVIEW_FAILED`
+- Current pass: `B-ADVERSARIAL-REVIEW — FAILED / remediation next`
 - Primary bounded context: Documents — private PDF metadata, Venue links, Storage lifecycle and recoverable metadata
 - Branch/PR: `lot-2/venues-core` / Lot-2 integration PR not opened yet
 - FIR: `#17 / FTR-089`
@@ -250,12 +250,28 @@ Pass A is **complete** on implementation/evidence HEAD `e533b5c53d1be074216ccaa9
 
 The frozen RED-first contract remains byte-for-byte authoritative and was satisfied rather than weakened. Core quality/security reports 152 test files / 1465 tests passed and 100% statements/branches/functions/lines coverage. DB/RLS, Browser E2E + mutation, privacy-safe preview and clean-checkout verification are all green.
 
+## Pass B — adversarial review findings
+
+### WP29A-AR-001 — MAJOR — missing Document read/list/download application boundary
+
+**Finding.** The frozen packet requires the exact user job to download a ready private PDF only through live authorization, and its expected application slice explicitly includes typed `list/download-auth` behavior. The Pass-A implementation contains mutation lifecycle/upload/recovery/link/delete/restore code and DB/Storage read policies, but no Document read/list query port/service and no authorized Document download adapter/service. A recursive inspection of the branch tree and the RED→Pass-A implementation diff confirms there is no hidden Document query/download module.
+
+**Impact.** The database and Storage policies can authorize direct provider access, but the application foundation promised by WP-2.9A cannot itself list/read a ready Document or obtain its bytes through a typed application boundary. WP-2.11 owns presentation/workspace surfaces; it does not own this missing backend/application foundation. Therefore FTR-089's current-Lot download/read job and the verification-plan path `finalize → active list/read/download` are not yet implemented end-to-end.
+
+**Classification.** `MAJOR`. Pass C is blocked.
+
+**Required remediation.** Add the narrowest cohesive typed Document read/list/download-auth foundation consistent with existing architecture and live server/RLS authority; prove active-ready visibility, pending/deleted exclusion for ordinary reads, exact DB-path binding before binary access, project/non-member/revoked denial, provider-response fail-closed behavior and safe download metadata. No UI, inline preview, new permission key, non-Venue link type or WP-2.9B scope may be introduced.
+
+### Reviewed non-finding — binary validation boundary parity
+
+Pass B also challenged whether an authorized writer could bypass the TypeScript PDF validator by calling Storage/RPC directly. The current DB finalizer verifies the exact reserved object exists rather than re-hashing/re-sniffing bytes server-side. This is not classified as a new WP-2.9A defect because the already-accepted WP-2.8B private-media foundation deliberately uses the same V1 trust split: application byte validation plus exact pending reservation/Storage RLS/finalization. Reopening that shared architecture would require a broader architecture/security decision rather than inventing a packet-local rule during review.
+
 ## Current gate
 
-WP-2.9A is now **REVIEW_PENDING / B-ADVERSARIAL-REVIEW**.
+WP-2.9A is **REVIEW_FAILED** because `WP29A-AR-001` is an unresolved MAJOR finding.
 
-The next permitted action is a fresh adversarial review reconstructed from the packet contracts rather than from Pass-A conclusions. Review must explicitly challenge authorization/RLS and cross-project non-disclosure, Storage reservation/finalization/deletion semantics, provider bypass/fail-closed receipts, idempotency/retry/race behavior, pending/ready/deleted visibility, same-project Venue/Source integrity, immutable ready bytes, filename/path privacy, module cohesion/size and test strength.
+Next permitted action is remediation. When remediation actively begins, transition the packet back to `IN_PROGRESS` with an explicit remediation pass, add failing evidence for the missing read/list/download boundary before implementation where practical, then rerun all affected verification. After remediation is green, WP-2.9A must return to a fresh adversarial Pass B; the current Pass-A/review evidence cannot be used to skip that review.
 
-If Pass B finds a BLOCKING/MAJOR defect, record `REVIEW_FAILED` and remediate before re-review. If no unresolved BLOCKING/MAJOR finding remains, transition to `ACCEPTANCE_PENDING / C-ACCEPTANCE`. WP-2.9B remains inactive until WP-2.9A is accepted.
+WP-2.9B remains inactive until WP-2.9A is accepted.
 
 Any implementation need that expands public capability, changes the frozen requirements, introduces a new permission key, or pushes the approved cohesive surface beyond 10 points requires a stop/rescore before code proceeds.
