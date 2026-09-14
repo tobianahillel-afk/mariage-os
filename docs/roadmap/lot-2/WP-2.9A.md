@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.9A`
 - Lot: `2`
 - Name: Venue-linked private document foundation
-- State: `REVIEW_FAILED`
-- Current pass: `B-ADVERSARIAL-REVIEW — FAILED / remediation next`
+- State: `IN_PROGRESS`
+- Current pass: `REMEDIATION — WP29A-AR-001`
 - Primary bounded context: Documents — private PDF metadata, Venue links, Storage lifecycle and recoverable metadata
 - Branch/PR: `lot-2/venues-core` / Lot-2 integration PR not opened yet
 - FIR: `#17 / FTR-089`
@@ -27,7 +27,8 @@ Evidence:
 - READY governance: `0b30b045ef05c318d25c92abb379364f95705c4e` / CI `34788670807` — **5/5 SUCCESS**, clean-checkout included;
 - A-IMPLEMENT governance: `f5a77c72cf5f28bccd823c7cdc78b01531b3b265` / CI `34789115986` — **5/5 SUCCESS**, clean-checkout included;
 - RED-first: `9322915252925d3f75f5a224a82f9d391ccfec9d` / CI `34789545716` — expected RED limited to the three frozen document-boundary assertions;
-- Pass-A implementation/evidence HEAD: `e533b5c53d1be074216ccaa92f74281b425de770` / CI `34826553890` — **5/5 SUCCESS**, clean-checkout included; Core reports **152 test files / 1465 tests / 100% statements, branches, functions and lines**.
+- Pass-A implementation/evidence HEAD: `e533b5c53d1be074216ccaa92f74281b425de770` / CI `34826553890` — **5/5 SUCCESS**, clean-checkout included; Core reports **152 test files / 1465 tests / 100% statements, branches, functions and lines**;
+- fresh Pass B found `WP29A-AR-001` — **MAJOR / OPEN**; packet was durably recorded `REVIEW_FAILED` before remediation began.
 
 WP-2.9B remains `PLANNED / AFTER A` and cannot activate while A is active.
 
@@ -266,12 +267,16 @@ The frozen RED-first contract remains byte-for-byte authoritative and was satisf
 
 Pass B also challenged whether an authorized writer could bypass the TypeScript PDF validator by calling Storage/RPC directly. The current DB finalizer verifies the exact reserved object exists rather than re-hashing/re-sniffing bytes server-side. This is not classified as a new WP-2.9A defect because the already-accepted WP-2.8B private-media foundation deliberately uses the same V1 trust split: application byte validation plus exact pending reservation/Storage RLS/finalization. Reopening that shared architecture would require a broader architecture/security decision rather than inventing a packet-local rule during review.
 
+## Remediation cursor
+
+`WP29A-AR-001` remediation is now active. The packet has transitioned `REVIEW_FAILED → IN_PROGRESS` before code changes. The remediation is deliberately narrow: typed ready-document list/read/download authorization foundation only, no UI or new product scope.
+
+Next steps are to reconstruct accepted repository/query/download patterns, add focused RED evidence for the missing behavior, implement the minimum cohesive application/provider boundary, rerun affected/full verification, then return to a **fresh** Pass B. The finding remains OPEN until that fresh review closes it.
+
 ## Current gate
 
-WP-2.9A is **REVIEW_FAILED** because `WP29A-AR-001` is an unresolved MAJOR finding.
+WP-2.9A is **IN_PROGRESS / REMEDIATION — WP29A-AR-001**.
 
-Next permitted action is remediation. When remediation actively begins, transition the packet back to `IN_PROGRESS` with an explicit remediation pass, add failing evidence for the missing read/list/download boundary before implementation where practical, then rerun all affected verification. After remediation is green, WP-2.9A must return to a fresh adversarial Pass B; the current Pass-A/review evidence cannot be used to skip that review.
-
-WP-2.9B remains inactive until WP-2.9A is accepted.
+Pass C remains forbidden. WP-2.9B remains inactive until WP-2.9A is accepted.
 
 Any implementation need that expands public capability, changes the frozen requirements, introduces a new permission key, or pushes the approved cohesive surface beyond 10 points requires a stop/rescore before code proceeds.
