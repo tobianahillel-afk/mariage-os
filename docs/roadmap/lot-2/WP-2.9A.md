@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.9A`
 - Lot: `2`
 - Name: Venue-linked private document foundation
-- State: `REVIEW_PENDING`
-- Current pass: `B-ADVERSARIAL-REVIEW`
+- State: `REVIEW_FAILED`
+- Current pass: `B-ADVERSARIAL-REVIEW FAILED — WP29A-AR-004 + WP29A-AR-005; REMEDIATION NEXT`
 - Primary bounded context: Documents — private PDF metadata, Venue links, Storage lifecycle and recoverable metadata
 - Branch/PR: `lot-2/venues-core` / Lot-2 integration PR not opened yet
 - FIR: `#17 / FTR-089`
@@ -14,7 +14,7 @@
 
 ## Activation / governance evidence
 
-The former monolithic WP-2.9 combined two independently reviewable persistence/security boundaries and was conservatively scored at **12 points**. It was split before code under `AI-LOT-ORCHESTRATION.md` into:
+The former monolithic WP-2.9 scored **12 points** and was split before code under `AI-LOT-ORCHESTRATION.md` into:
 
 1. **WP-2.9A** — private Documents + `document_links` + Storage lifecycle;
 2. **WP-2.9B** — project Tags + Venue `entity_tags` basics.
@@ -27,22 +27,20 @@ Evidence:
 - READY governance: `0b30b045ef05c318d25c92abb379364f95705c4e` / CI `34788670807` — **5/5 SUCCESS**, clean-checkout included;
 - A-IMPLEMENT governance: `f5a77c72cf5f28bccd823c7cdc78b01531b3b265` / CI `34789115986` — **5/5 SUCCESS**, clean-checkout included;
 - RED-first: `9322915252925d3f75f5a224a82f9d391ccfec9d` / CI `34789545716` — expected RED limited to the three frozen document-boundary assertions;
-- Pass-A implementation/evidence HEAD: `e533b5c53d1be074216ccaa92f74281b425de770` / CI `34826553890` — **5/5 SUCCESS**, clean-checkout included; Core reports **152 test files / 1465 tests / 100% statements, branches, functions and lines**;
-- first Pass B found `WP29A-AR-001` — **MAJOR**; packet was durably recorded `REVIEW_FAILED` before remediation began;
-- `WP29A-AR-001` remediation/evidence HEAD: `0072792d2eb67cce1bf98c4c312d9576feacc156` / CI `34836621394` — **5/5 SUCCESS**, clean-checkout included; Core reports **1539 tests / 100% statements, branches, functions and lines**;
-- prior fresh Pass-B entry/governance HEAD: `78904546f3d8f4c15276a1bbe0825455f1262ee4` / CI `34837421096` — **5/5 SUCCESS**, clean-checkout included;
-- prior fresh Pass B verified `WP29A-AR-001` as **CLOSED / VERIFIED**, but found `WP29A-AR-002` — **MAJOR**;
-- durable AR-002 review-failure record HEAD: `9654c90ed7da27033d1f08d6effc6f47cac3dff9` / CI `34839274681` — **5/5 SUCCESS**, clean-checkout included;
-- AR-002 remediation-transition governance HEAD: `b2e94c47f6d523adbf731fdd15cf796cca4c5ca9` / CI `34840180167` — **5/5 SUCCESS**, clean-checkout included;
-- AR-002 focused RED HEAD: `2f06b7963e7d09e3c00264d3351745213a75f964` / CI `34840851767` — expected RED isolated to the contract-valid 512-Unicode-scalar read-parser regression; Core 1539 passing / 1 failing test and DB/RLS + Browser/mutation remained green;
-- AR-002 remediation/evidence HEAD: `c78c22ff10c02cd6ab798a21e16b5c7acbc3effb` / CI `34841804605` — **5/5 SUCCESS**, clean-checkout included; Core reports **158 test files / 1546 tests / 100% statements, branches, functions and lines**;
-- prior fresh Pass-B entry/governance HEAD: `c6c3afa56a66be97a590d4ce2b63932e6af5a46e` / CI `34842684753` — **5/5 SUCCESS**, clean-checkout included;
-- prior fresh Pass B verifies the AR-002 read-parser remediation as **CLOSED / VERIFIED**, but finds `WP29A-AR-003` — **MAJOR / OPEN**;
-- durable AR-003 review-failure record HEAD: `39ea780ac9ac724a9450a5ac8a5d0179986591ed` / CI `34844606086` — **5/5 SUCCESS**, clean-checkout included;
-- AR-003 remediation-transition governance HEAD: `9b266ca9ba3c6e737525db03a5856c39d4f44ed7` / CI `34845524190` — **5/5 SUCCESS**, clean-checkout included;
-- AR-003 focused RED HEAD: `79afff6c87f7033af008de3fb3b86c3ff833b15c` / CI `34846914610` — expected RED isolated to four Unicode-parity regressions; Core 1546 passing / 4 failing tests while static, DB/RLS and Browser/mutation remained green;
-- AR-003 remediation/evidence HEAD: `fec1195dcbcfa15d97fe55b17a0fb5aad25b3813` / CI `34848872192` — **5/5 SUCCESS**, clean-checkout included; Core reports **159 test files / 1550 tests / 100% statements, branches, functions and lines**;
-- packet is now **REVIEW_PENDING / B-ADVERSARIAL-REVIEW**. `WP29A-AR-003` remains **MAJOR / OPEN** until a fresh review independently verifies the remediation.
+- Pass-A implementation/evidence: `e533b5c53d1be074216ccaa92f74281b425de770` / CI `34826553890` — **5/5 SUCCESS**, Core **152 files / 1465 tests / 100% statements, branches, functions and lines**;
+- AR-001 remediation/evidence: `0072792d2eb67cce1bf98c4c312d9576feacc156` / CI `34836621394` — **5/5 SUCCESS**;
+- prior fresh Pass-B entry: `78904546f3d8f4c15276a1bbe0825455f1262ee4` / CI `34837421096` — **5/5 SUCCESS**;
+- durable AR-002 review failure: `9654c90ed7da27033d1f08d6effc6f47cac3dff9` / CI `34839274681` — **5/5 SUCCESS**;
+- AR-002 remediation transition: `b2e94c47f6d523adbf731fdd15cf796cca4c5ca9` / CI `34840180167` — **5/5 SUCCESS**;
+- AR-002 focused RED: `2f06b7963e7d09e3c00264d3351745213a75f964` / CI `34840851767` — expected RED, one focused failure;
+- AR-002 remediation/evidence: `c78c22ff10c02cd6ab798a21e16b5c7acbc3effb` / CI `34841804605` — **5/5 SUCCESS**, Core **158 files / 1546 tests / 100% coverage**;
+- prior fresh Pass-B entry: `c6c3afa56a66be97a590d4ce2b63932e6af5a46e` / CI `34842684753` — **5/5 SUCCESS**;
+- durable AR-003 review failure: `39ea780ac9ac724a9450a5ac8a5d0179986591ed` / CI `34844606086` — **5/5 SUCCESS**;
+- AR-003 remediation transition: `9b266ca9ba3c6e737525db03a5856c39d4f44ed7` / CI `34845524190` — **5/5 SUCCESS**;
+- AR-003 focused RED: `79afff6c87f7033af008de3fb3b86c3ff833b15c` / CI `34846914610` — expected RED, Core 1546 passing / 4 failing Unicode-parity tests;
+- AR-003 remediation/evidence: `fec1195dcbcfa15d97fe55b17a0fb5aad25b3813` / CI `34848872192` — **5/5 SUCCESS**, Core **159 files / 1550 tests / 100% coverage**;
+- fresh Pass-B governance entry: `6a4e8087e3b6f3b1d3501c0ef2f0378defc119e4` / CI `34850247706` — **5/5 SUCCESS**, clean-checkout included;
+- current fresh Pass B independently verifies AR-003 as closed, but fails overall on `WP29A-AR-004` and `WP29A-AR-005`, both **MAJOR / OPEN**.
 
 WP-2.9B remains `PLANNED / AFTER A` and cannot activate while A is active.
 
@@ -59,7 +57,7 @@ WP-2.9A owns the Lot-2 Venue-document foundation of:
 - `PRD-008` only for the current-Lot ability to link a document to a Venue;
 - packet-applicable authorization/file/security controls.
 
-`MED-009` remains formally owned by FTR-092. WP-2.9A nevertheless inherits the mandatory upload-safety invariant that an interrupted/incomplete document upload must never appear committed/valid. This is a verification obligation, not a reassignment of MED-009 ownership.
+`MED-009` remains formally owned by FTR-092. WP-2.9A nevertheless inherits the mandatory upload-safety invariant that an interrupted/incomplete document upload must never appear committed/valid.
 
 ### Exact user job
 
@@ -69,45 +67,15 @@ An authorized couple member can retain a private PDF relevant to a Venue, preser
 
 ### `documents`
 
-A forward-only migration materializes the frozen V1 `documents` table with at minimum:
+A forward-only migration materializes the frozen V1 `documents` table with stable project/document identity, `document_type`, `title`, private Storage metadata, original filename, MIME, byte size, SHA-256, private classification, pending/ready status, optional same-project Source provenance, audit/revision fields and recoverable `deleted_at`.
 
-- `id uuid` primary key plus unique `(project_id,id)` candidate key;
-- `project_id uuid`;
-- `document_type text`, `title text`;
-- `storage_path text null`, `remote_url text null`;
-- `original_filename text null`, `mime_type text null`, `size_bytes bigint null`, `sha256 text null`;
-- `classification text`, `upload_status text`;
-- `source_id uuid null`, same-project when present;
-- standard creator/updater/revision audit fields;
-- `deleted_at timestamptz null` for recoverable metadata deletion.
-
-A creates only ordinary private-document rows:
-
-- `remote_url is null`;
-- `storage_path` is server-derived;
-- `classification = 'private'`;
-- `upload_status in ('pending','ready')`;
-- optional `source_id` references a same-project retained Source.
-
-Sensitive-document classification/contract-review semantics remain downstream and are not folded into ordinary `documents.read`.
+A creates only ordinary private-document rows: `remote_url is null`, canonical server-derived `storage_path`, `classification = 'private'`, `upload_status in ('pending','ready')`, and optional same-project `source_id`.
 
 ### `document_links`
 
-WP-2.9A materializes generic link persistence but exposes only the Lot-2 Venue target:
-
-- stable UUID identity;
-- `project_id`;
-- `document_id` same-project composite FK;
-- public boundary `target_type = 'venue'`;
-- `target_id` must identify an existing same-project Venue;
-- `relationship_type` remains null in this packet;
-- creator metadata.
-
-A ready document may have several same-project Venue links. Adding a link never duplicates the binary.
+WP-2.9A materializes generic link persistence but exposes only same-project Venue targets in Lot 2. A ready document may have several Venue links without duplicating the binary. `relationship_type` remains null in this packet.
 
 ## File and Storage contract
-
-### Enabled binary
 
 PDF only:
 
@@ -115,16 +83,16 @@ PDF only:
 - declared MIME exactly `application/pdf`;
 - magic begins with `%PDF-`;
 - size `1..25,000,000` bytes;
-- original filename `1..512` Unicode scalar values with unsafe controls/path separators rejected or normalized by the shared filename policy;
-- SHA-256 exactly 64 lowercase hex characters over exact uploaded bytes.
+- original filename `1..512` Unicode scalar values with unsafe controls/path separators rejected;
+- SHA-256 exactly 64 lowercase hex characters over the exact uploaded bytes.
 
-JPEG/JPG/PNG/WebP private imagery remains Media. HEIC/HEIF and office formats remain disabled. HTML/JavaScript/SVG active content, executables and macro execution are forbidden. PDF bytes are treated as untrusted binary; no active inline preview is introduced by A. Download uses safe attachment/content-disposition semantics.
+PDF bytes are untrusted binary. No active inline preview is introduced by A. Download uses safe attachment/content-disposition semantics.
 
-### Bucket/path
+Bucket/path:
 
-- accepted private bucket: `project-private`;
-- canonical object path: exactly `<project_id>/documents/<document_id>/original`;
-- filename/title/Venue name never appears in Storage identity;
+- private bucket `project-private`;
+- path exactly `<project_id>/documents/<document_id>/original`;
+- raw private filename/title/Venue name never appears in Storage identity;
 - path knowledge grants no authority;
 - ready bytes are immutable; overwrite/upsert/rename is denied.
 
@@ -135,30 +103,18 @@ absent → pending → ready
            └────→ absent   (clean abandon only after exact Storage absence)
 ```
 
-- `pending` is reservation/recovery state, never committed truth;
-- ordinary document reads/downloads never expose pending as ready;
+- `pending` is recovery state, never committed truth;
+- ordinary reads/downloads never expose pending as ready;
 - writers may inspect exact pending state/object for recovery;
-- finalize verifies the exact reserved Storage object before `pending → ready`;
-- pending cleanup deletes the exact pending object first, verifies delete/not-found, then removes/abandons metadata/link state;
-- if Storage absence cannot be confirmed, recovery evidence remains;
+- `pending → ready` must verify the exact reserved Storage object and required binary/metadata integrity before committed truth;
+- cleanup deletes the exact pending object first, verifies delete/not-found, then abandons metadata/link state;
 - no scheduler or raw-bucket reconciliation is assumed.
 
-### Ready soft-delete / restore
-
-- active ready: `deleted_at is null`;
-- recoverably deleted: `deleted_at is not null`;
-- soft-delete does not delete/overwrite ready binary or retained Venue links;
-- restore clears `deleted_at` on the same document UUID;
-- active lists exclude deleted rows both at query and provider-parser boundaries;
-- hard delete / purge / trash UX are downstream.
-
-Same-state delete/restore retry is no-op success. An actual transition is optimistic-revision protected and increments server revision/audit once.
+Ready soft-delete/restore keeps the same document/link/object identity. Active lists exclude deleted rows. Same-state delete/restore retry is no-op success; real transitions are optimistic-revision protected and increment audit/revision once.
 
 ## Protected command family
 
-Direct client INSERT/UPDATE/DELETE on `documents` and `document_links` is not the mutation security model.
-
-Public action allowlist:
+Public authenticated mutation allowlist:
 
 - `reserve_upload`;
 - `finalize_upload`;
@@ -168,62 +124,30 @@ Public action allowlist:
 - `soft_delete`;
 - `restore`.
 
-The implementation may use one public RPC action union or a small cohesive family, but must preserve one reviewable authorization/replay boundary and no generic mutation escape hatch.
-
-The boundary must:
-
-1. require authenticated identity;
-2. validate/lock target project and live `documents.write` for mutations;
-3. derive canonical Storage path server-side;
-4. validate same-project document/source/Venue/link relationships;
-5. protect project/audit/revision/path/hash identity from caller substitution;
-6. serialize conflicting same-document operations;
-7. return typed receipts parsed fail-closed by provider adapters;
-8. map absent/foreign identity generically without UUID/path oracle behavior;
-9. make stable-identity/action retries idempotent.
+The protected boundary must require authenticated identity, live `documents.write`, same-project relationships, canonical server-derived path, protected identity/audit/hash semantics, serialized conflicting operations, fail-closed typed receipts, non-disclosing foreign identity behavior and idempotent stable-operation retries.
 
 ### Download/read authorization
 
-- ordinary metadata/list read: live `documents.read`;
-- ready active binary SELECT/signed access: live `documents.read` plus exact DB path binding;
-- pending recovery: live `documents.write`;
-- soft-deleted ready binary recovery: live `documents.write` until later trash UX;
-- anon/outsider/project-B/revoked users denied;
-- A creates only ordinary `classification='private'` rows.
-
-Signed URLs, if used, are short-lived provider artifacts and never persisted as identity.
+- active ready metadata/binary: live `documents.read` plus exact DB-path binding;
+- pending or soft-deleted recovery: live `documents.write`;
+- anon/outsider/project-B/revoked identities denied.
 
 ## Provenance and duplicate safety
 
-- optional `source_id` is same-project provenance and survives delete/restore;
-- private filename never enters Storage path/log/public artifact;
-- exact SHA-256 may support same-project duplicate warning/detection;
-- equal hash never grants access and never auto-merges/replaces document/link identity;
-- cross-project hash equality is never disclosed.
-
-Automatic deduplication is not required.
+Optional `source_id` is same-project provenance and survives delete/restore. SHA-256 may support same-project duplicate detection; hash equality never grants access and never auto-merges/replaces logical identity. Cross-project hash equality is never disclosed.
 
 ## Authorization / security evidence required
 
-At minimum A must directly evidence packet-applicable forms of:
+At minimum A directly owns packet-applicable forms of `AUTHZ-001/002/005/006/007/008/012/018/019/020`, `SEC-AUTH-012/013`, applicable `SEC-AUTHZ-001..009`, `SEC-VAL-001..004/008`, `SEC-INJ-001/002`, `SEC-FILE-001/002/003/004/008/009`, and `SEC-VER-001/002/005/006`.
 
-- `AUTHZ-001`, `002`, `005`, `006`, `007`, `008`, `012`, `018`, `019`, `020`;
-- `SEC-AUTH-012`, `SEC-AUTH-013`;
-- applicable `SEC-AUTHZ-001..009`;
-- `SEC-VAL-001..004`, `SEC-VAL-008`;
-- `SEC-INJ-001`, `SEC-INJ-002`;
-- `SEC-FILE-001`, `002`, `003`, `004`, `008`, `009`;
-- `SEC-VER-001`, `002`, `005`, `006`.
-
-Direct allow/deny DB and Storage evidence covers owner/editor/viewer as applicable, anon, outsider, project-B and revoked/downgraded identities. Cross-project links/path access and direct protected-column mutation must fail.
+Direct DB and Storage evidence covers owner/editor/viewer as applicable, anon, outsider, project-B and revoked/downgraded identities. Cross-project links/path access and protected-column mutation must fail.
 
 ## Explicitly out of scope
 
 - FTR-090 / MED-011 document version lineage;
 - FTR-091 / MED-012 contract-readiness/review checklist;
 - sensitive-document workflows;
-- OCR/full-text indexing;
-- active inline PDF preview;
+- OCR/full-text indexing and active inline PDF preview;
 - non-Venue `document_links` target types;
 - Inbox/file-capture UX;
 - generic Tags/entity tagging — WP-2.9B;
@@ -236,97 +160,77 @@ Direct allow/deny DB and Storage evidence covers owner/editor/viewer as applicab
 
 - UI/routes: none; presentation is WP-2.11;
 - domain: PDF validation and document/link/lifecycle invariants;
-- application: typed Document service/port reserve/finalize/recovery/link/list/download-auth/delete/restore methods;
-- infrastructure: Supabase document metadata/RPC adapter, fail-closed receipts and private Storage adapter/reuse;
-- cloud: forward-only `documents`/`document_links` migration, RLS/grants/Storage policies and protected command family;
+- application: typed reserve/finalize/recovery/link/list/download-auth/delete/restore services/ports;
+- infrastructure: Supabase metadata/RPC adapter, fail-closed receipts and private Storage adapter/reuse;
+- cloud: forward-only migration, RLS/grants/Storage policies and protected command family;
 - local/offline: none.
 
 ## Verification plan
 
-- PDF extension/MIME/signature/size/name/hash boundaries;
-- reserve → exact upload → finalize → active list/read/download;
-- interruption before upload and after Storage-before-finalize recovery;
-- exact pending cleanup and no committed visibility before finalize;
-- ready overwrite/upsert/rename/direct binary deletion denied;
-- one binary linked to multiple same-project Venues without duplication;
-- cross-project Venue/source/link injection denied;
-- provenance retained;
-- soft-delete hides ordinary list/download while preserving row/link/object; restore returns identical identity/path;
-- stale real transition rejected; same-state retry idempotent;
-- malformed/substituted provider receipts fail closed;
-- owner/editor/viewer allow/deny plus anon/outsider/project-B/revoked/downgraded denial;
-- direct protected table/project/audit mutation denied;
-- private filename absent from Storage path/privacy-safe artifacts;
-- accepted WP-2.8 behavior remains green.
+Evidence must cover PDF extension/MIME/signature/size/name/hash boundaries; reserve/upload/finalize; interruption/recovery; pending invisibility; immutable ready bytes; multi-Venue links; same-project Source/Venue integrity; provenance; soft-delete/restore; stale/idempotent transitions; malformed/substituted provider data; owner/editor/viewer/anon/outsider/project-B/revoked authorization; protected table mutations; private filename privacy; and accepted WP-2.8 regressions.
 
 ## Pass A closure
 
-Pass A is **complete** on implementation/evidence HEAD `e533b5c53d1be074216ccaa92f74281b425de770` with exact-head CI `34826553890` **5/5 SUCCESS**, including clean-checkout `npm run verify`.
-
-The frozen RED-first contract remains byte-for-byte authoritative and was satisfied rather than weakened. Core quality/security reports 152 test files / 1465 tests passed and 100% statements/branches/functions/lines coverage. DB/RLS, Browser E2E + mutation, privacy-safe preview and clean-checkout verification are all green.
+Historical Pass A is complete on `e533b5c53d1be074216ccaa92f74281b425de770` / CI `34826553890` — **5/5 SUCCESS**. Subsequent remediation evidence supersedes affected review surfaces while retaining this history.
 
 ## Pass B — adversarial review findings
 
 ### WP29A-AR-001 — MAJOR / CLOSED / VERIFIED — missing Document read/list/download application boundary
 
-**Original finding.** The frozen packet required the exact user job to download a ready private PDF only through live authorization, and its expected application slice explicitly included typed `list/download-auth` behavior. The Pass-A implementation contained mutation lifecycle/upload/recovery/link/delete/restore code and DB/Storage read policies, but no Document read/list query port/service and no authorized Document download adapter/service.
+The original implementation lacked the typed application/provider foundation for ready-document list/read/download. Remediation `0072792d2eb67cce1bf98c4c312d9576feacc156` / CI `34836621394` added active-ready filtering, exact DB-path-bound Storage access, safe attachment metadata and fail-closed provider parsing. Fresh reviews have re-challenged this surface. **Verdict: CLOSED / VERIFIED.**
 
-**Remediation.** The narrow typed ready-document list/read/download application/provider boundary was added and fully re-verified on `0072792d2eb67cce1bf98c4c312d9576feacc156` / CI `34836621394` — **5/5 SUCCESS**, clean-checkout included. It provides active-ready filtering, fail-closed provider parsing, exact DB-path-bound Storage access and safe attachment metadata without UI or a new permission.
+### WP29A-AR-002 — MAJOR / CLOSED / VERIFIED — filename Unicode-scalar parity
 
-**Fresh-review verdict.** `CLOSED / VERIFIED`. Fresh Pass B re-challenged the new service, parser, adapter, DB/RLS/Storage authority and focused tests. The original missing-boundary defect is no longer present.
+The original read parser counted UTF-16 code units although the frozen filename bound is Unicode scalars. Remediation `c78c22ff10c02cd6ab798a21e16b5c7acbc3effb` / CI `34841804605` made read/upload filename validation scalar-aware with focused boundaries. **Verdict: CLOSED / VERIFIED.**
 
-### WP29A-AR-002 — MAJOR / CLOSED / VERIFIED — Unicode-scalar filename contract was broken by read parser
+### WP29A-AR-003 — MAJOR / CLOSED / VERIFIED — Unicode-length parity in lifecycle receipts and bounded metadata
 
-**Original finding.** The frozen file contract defines `original_filename` as `1..512` **Unicode scalar values**. The upload validator intentionally implements scalar-aware counting and the DB `char_length` constraint accepts the same persisted values. The read parser validated `original_filename` with JavaScript `value.length`, which counts UTF-16 code units, so a conforming astral-heavy filename could become unreadable after persistence.
+The prior lifecycle receipt parser and bounded `document_type`/`title` service/provider validation used UTF-16 code-unit lengths while PostgreSQL uses character/scalar semantics.
 
-**Remediation.** Upload and provider-read boundaries now share the scalar-aware safe private-document filename predicate; focused tests cover 512 accepted, 513 rejected, surrogate/control/path-separator rejection. Remediation `c78c22ff10c02cd6ab798a21e16b5c7acbc3effb` / CI `34841804605` is **5/5 SUCCESS**, clean-checkout included.
+Focused RED `79afff6c87f7033af008de3fb3b86c3ff833b15c` / CI `34846914610` demonstrated exactly four regressions. Remediation `fec1195dcbcfa15d97fe55b17a0fb5aad25b3813` / CI `34848872192` introduced one scalar-aware bounded-text predicate shared by service/lifecycle/read parsers and reused the scalar-aware filename predicate.
 
-**Fresh-review verdict.** `CLOSED / VERIFIED` for the original read-parser defect. Fresh Pass B independently re-read the read parser and confirms it now delegates to the canonical scalar-aware filename predicate.
+Fresh Pass B on `6a4e8087e3b6f3b1d3501c0ef2f0378defc119e4` / CI `34850247706` independently re-read the implementation and server trim/length semantics and confirms the original AR-003 defects are no longer present. **Verdict: CLOSED / VERIFIED.**
 
-### WP29A-AR-003 — MAJOR / OPEN — Unicode-length parity in lifecycle receipts and bounded document metadata
+### WP29A-AR-004 — MAJOR / OPEN — C1 control-character parity is incomplete
 
-**Original finding A — normal reserve flow broke on the frozen-valid filename boundary.** `parsePrivateDocumentReceipt()` validated `original_filename` using JavaScript `value.length <= 512`. `SupabasePrivateDocumentLifecycleAdapter.reserveUpload()` calls the public `manage_private_document(...)` RPC and then immediately parses its returned `document` through this receipt parser. The domain upload validator and PostgreSQL reservation accept `508 × 😀 + ".pdf"` as exactly 512 Unicode scalar values, while the old receipt parser treated it as more than 512 UTF-16 code units and threw `provider_response_invalid`.
+**Finding.** The shared TypeScript scalar validator rejects U+0000..U+001F and U+007F, but accepts the remaining C1 controls U+0080..U+009F. The authoritative PostgreSQL boundary rejects `~ '[[:cntrl:]]'`. PostgreSQL 17 defines `CC_CNTRL` with hard-wired ranges U+0000..U+001F and U+007F..U+009F, independent of locale. Existing document tests cover U+0000/U+001F/U+007F and malformed surrogates, but not C1 controls.
 
-**Original impact A.** A normal application upload could validate the PDF and successfully create the authorized pending DB reservation, then fail before Storage upload solely while parsing the valid reserve receipt. The user received a failure while a pending recovery row had been created.
+**Impact.** `document_type`, `title` and `original_filename` values containing C1 controls can pass the TypeScript service/domain/provider predicates while being rejected by the protected RPC/table. This reintroduces deterministic client/server validation drift and means provider parsers accept text that cannot satisfy the authoritative schema. The filename contract also explicitly requires unsafe controls to be rejected.
 
-**Original finding B — server/parser length-unit drift for bounded metadata.** The public authenticated `manage_private_document(...)` command boundary validates `document_type` and `title` with PostgreSQL `char_length` (1..120 and 1..500). The old `PrivateDocumentService`, `parsePrivateDocumentReceipt()` and `parseActivePrivateDocumentRow()` used JavaScript UTF-16 `value.length` for those same bounds, so server-valid Unicode text containing astral characters could be accepted/persisted by the authoritative protected RPC yet rejected by the typed provider foundation.
+**Classification.** `MAJOR / OPEN`. No project-authority bypass or active-content execution was found, so this is not BLOCKING; Pass C is nevertheless forbidden.
 
-**Classification.** `MAJOR / OPEN` pending fresh verification. Pass C remains blocked until the fresh review closes this finding or records a new failure.
+**Required remediation.** Extend the one canonical Unicode-scalar control rule to reject U+0000..U+001F and U+007F..U+009F, reuse it for bounded text and filenames, and add focused RED regressions (including a representative C1 value such as U+0085) across service/domain/receipt/read boundaries. Preserve scalar counting, surrogate rejection, trim rules and all SQL/RLS/permission/UI scope.
 
-**Focused RED.** `79afff6c87f7033af008de3fb3b86c3ff833b15c` / CI `34846914610` cleanly demonstrated exactly four failures: 512-scalar reserve filename, scalar-limit reserve `document_type`/`title`, scalar-limit active read metadata, and service persistence of PostgreSQL-valid bounded metadata. Core had 1546 passing / 4 failing tests; static, DB/RLS and Browser/mutation remained green.
+### WP29A-AR-005 — MAJOR / OPEN — ready commit is not bound to the actual uploaded object integrity
 
-**Remediation.** The domain now exposes one scalar-aware bounded-text predicate that rejects malformed surrogate/control/trim/over-limit input. The service, lifecycle receipt parser and read parser reuse that predicate for `document_type`/`title`; the lifecycle receipt parser also reuses the canonical scalar-aware filename predicate and retains a separate `.pdf` extension check. No SQL/RLS/Storage policy, permission, file type or UI scope changed.
+**Finding.** The protected `finalize_upload` path currently proves only that a `storage.objects` row exists at the reserved path. The Document Storage INSERT policy proves project/document/path/pending/write authority but does not compare actual object size/MIME/hash with the reservation. The `project-private` bucket has no document-specific file-size or MIME allowlist. Consequently a writer using direct authenticated RPC + Storage can reserve metadata for one PDF, upload different bytes at the exact path and finalize the row as `ready`.
 
-**Remediation evidence.** `fec1195dcbcfa15d97fe55b17a0fb5aad25b3813` / CI `34848872192` is **5/5 SUCCESS**, clean-checkout included. Core reports **159 test files / 1550 tests / 100% statements, branches, functions and lines**, including all four focused AR-003 regressions green.
+**Concrete integrity case.** A writer can reserve PDF A with size `N` and SHA-256 `H`, then upload PDF B at the same path with the same size and valid `%PDF-` signature but different bytes/hash. `finalize_upload` marks the metadata ready because the object exists. The normal download path revalidates PDF magic and byte size but does not recompute SHA-256, so PDF B remains downloadable while PostgreSQL durably claims hash `H` for PDF A.
 
-**Fresh-review requirement.** The remediation evidence does not close AR-003 by itself. A new adversarial Pass B must independently re-challenge Unicode parity and the full packet surface before the finding can become `CLOSED / VERIFIED`.
+**Impact.** A committed `ready` document can contain binary bytes that do not match the reserved exact-byte identity/hash and potentially provider MIME/size metadata. This violates the frozen exact-SHA-256 contract, `SEC-VAL-001/002`, the file-security boundary, and the Storage lifecycle requirement to verify object/size/hash where applicable before committed truth. Frontend validation cannot be authoritative because direct RPC/Storage access is part of the untrusted client boundary.
+
+**Classification.** `MAJOR / OPEN`. Authorization/project isolation remains intact and no active inline execution path was found, so this is not BLOCKING. Pass C is blocked.
+
+**Required remediation.** Establish trusted `pending → ready` evidence binding the actual stored object to the reserved binary metadata before a document becomes ready. At minimum, actual stored-object size/MIME and exact SHA-256/byte identity must not be replaceable by caller assertion. Do not treat client-supplied custom Storage metadata as proof of its own values. Add focused RED evidence that a mismatched object cannot finalize while a legitimate exact object can.
+
+If satisfying AR-005 requires a new privileged server/provider capability, a new public endpoint, or other architecture that meaningfully increases the already-10-point packet, **stop and rescore/split before production implementation** rather than silently expanding WP-2.9A.
 
 ### Reviewed non-findings
 
-The prior fresh Pass B also re-challenged:
+Fresh Pass B also re-challenged exact project/document/path binding, same-project Source/Venue relations, pending/deleted visibility, live `documents.read`/`documents.write` RLS and Storage authority, replay/stale-revision behavior, fail-closed malformed/substituted provider responses, list/read/download, safe attachment behavior, soft-delete/restore, immutable ready Storage policy and AR-001/002/003 regressions. No other BLOCKING/MAJOR defect was found in those areas.
 
-- exact project/document/path binding before Storage access;
-- pending/deleted exclusion for ordinary reads;
-- live `documents.read` RLS/Storage authority and writer-only recovery visibility;
-- fail-closed malformed/substituted provider responses;
-- safe attachment rather than inline rendering;
-- per-download SHA behavior;
-- the AR-002 read-parser remediation itself.
-
-No additional BLOCKING/MAJOR issue was found in those areas. A per-download SHA recomputation is not required by the frozen V1 contract: SHA is retained for exact-byte identity/dedup/integrity where applicable, while download authorization and immutable exact-path Storage binding remain the governing read controls.
+A per-download SHA recomputation by itself is not required as the governing authorization mechanism; AR-005 instead concerns whether the binary is proven to match reserved committed metadata **before becoming ready**.
 
 ## Fresh Pass B outcome
 
-The prior fresh Pass-B entry/governance HEAD `c6c3afa56a66be97a590d4ce2b63932e6af5a46e` / CI `34842684753` was **5/5 SUCCESS**, clean-checkout included. That review closed `WP29A-AR-002` for the original read-parser defect but failed overall on `WP29A-AR-003`.
+Fresh-review governance HEAD `6a4e8087e3b6f3b1d3501c0ef2f0378defc119e4` / CI `34850247706` is **5/5 SUCCESS**, clean-checkout included. Fresh Pass B closes `WP29A-AR-003` but **fails overall** on `WP29A-AR-004` and `WP29A-AR-005`, both MAJOR / OPEN.
 
-The AR-003 failure state was durably recorded on `39ea780ac9ac724a9450a5ac8a5d0179986591ed` / CI `34844606086` — **5/5 SUCCESS**, clean-checkout included. Remediation transition `9b266ca9ba3c6e737525db03a5856c39d4f44ed7` / CI `34845524190` and remediation evidence `fec1195dcbcfa15d97fe55b17a0fb5aad25b3813` / CI `34848872192` are both **5/5 SUCCESS**.
-
-WP-2.9A is therefore **REVIEW_PENDING / B-ADVERSARIAL-REVIEW**. `WP29A-AR-003` remains MAJOR / OPEN until the fresh review verdict.
+WP-2.9A therefore transitions to **REVIEW_FAILED**. Pass C and WP-2.9B remain forbidden.
 
 ## Current gate
 
-WP-2.9A is **REVIEW_PENDING / B-ADVERSARIAL-REVIEW**.
+WP-2.9A is **REVIEW_FAILED**.
 
-The only permitted next action is exact-head CI for this governance transition. Once green, perform a fresh adversarial Pass B over the full WP-2.9A surface, explicitly including AR-001/002 regression, AR-003 Unicode-scalar parity, exact project/document/path binding, RLS/Storage authorization, lifecycle visibility, fail-closed provider parsing and list/read/download behavior. Pass C remains forbidden while any BLOCKING/MAJOR finding is unresolved. WP-2.9B remains inactive until WP-2.9A is accepted.
+The only permitted next action is exact-head CI for this durable fresh-review failure record. No RED or remediation code is permitted until that record is green. Once green, perform a separate remediation-planning/`IN_PROGRESS` transition. AR-004 is localized. AR-005 must first be checked against packet complexity: if trusted object-integrity proof requires a new privileged/provider architecture or meaningfully pushes the cohesive packet beyond its approved 10 points, stop/rescore/split before production code.
 
-Any implementation need that expands public capability, changes the frozen requirements, introduces a new permission key, or pushes the approved cohesive surface beyond 10 points requires a stop/rescore before code proceeds.
+Pass C remains forbidden while either AR-004 or AR-005 is unresolved. WP-2.9B and later packets remain untouched.

@@ -39,7 +39,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.8A | Venue remote-image metadata and Venue links | **ACCEPTED / COMPLETE** |
 | WP-2.8B | Venue private archived media lifecycle | **ACCEPTED / COMPLETE** |
 | WP-2.8C | recoverable Venue remote-media metadata lifecycle | **ACCEPTED / COMPLETE** |
-| WP-2.9A | Venue-linked private PDF/document foundation | **REVIEW_PENDING / B-ADVERSARIAL-REVIEW / CURRENT** |
+| WP-2.9A | Venue-linked private PDF/document foundation | **REVIEW_FAILED / CURRENT** |
 | WP-2.9B | generic project tags and Venue entity-tag links | **PLANNED / AFTER A** |
 | WP-2.10 | repositories, local cache, pending/offline mutations | PLANNED |
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace | PLANNED |
@@ -67,7 +67,7 @@ The former monolithic WP-2.9 was revalidated at **12 points** and split before c
 
 ### WP-2.9A — Venue-linked private document foundation
 
-- **REVIEW_PENDING / B-ADVERSARIAL-REVIEW / CURRENT**.
+- **REVIEW_FAILED / CURRENT**.
 - FIR: `#17 / FTR-089`.
 - Owns FTR-089 Lot-2, `MED-001/002/003/008/010`, ordinary private PDF metadata, Venue `document_links`, private Storage lifecycle, provenance, read/download authorization and recoverable metadata soft-delete/restore.
 - Reuses `project-private` at `<project_id>/documents/<document_id>/original`.
@@ -82,12 +82,16 @@ The former monolithic WP-2.9 was revalidated at **12 points** and split before c
 - Fresh Pass-B entry/governance `78904546f3d8f4c15276a1bbe0825455f1262ee4` / `34837421096` — **5/5 SUCCESS**.
 - `WP29A-AR-002` — **MAJOR / CLOSED / VERIFIED**: read parser UTF-16 filename counting; durable failure `9654c90ed7da27033d1f08d6effc6f47cac3dff9` / `34839274681`, remediation transition `b2e94c47f6d523adbf731fdd15cf796cca4c5ca9` / `34840180167`, focused RED `2f06b7963e7d09e3c00264d3351745213a75f964` / `34840851767`, remediation `c78c22ff10c02cd6ab798a21e16b5c7acbc3effb` / `34841804605` — remediation **5/5 SUCCESS**, Core 158 files / 1546 tests / 100% coverage.
 - Review-pending transition `c6c3afa56a66be97a590d4ce2b63932e6af5a46e` / `34842684753` — **5/5 SUCCESS**, clean-checkout included.
-- Fresh Pass B verifies the AR-002 read-parser remediation but finds `WP29A-AR-003` — **MAJOR / OPEN**: Unicode-length parity remains broken in the lifecycle receipt parser and bounded `document_type`/`title` provider parsing.
+- Prior fresh Pass B found `WP29A-AR-003` — **MAJOR**: Unicode-length parity remained broken in lifecycle receipt parsing and bounded `document_type`/`title` provider validation.
 - Durable AR-003 review-failure record `39ea780ac9ac724a9450a5ac8a5d0179986591ed` / `34844606086` — **5/5 SUCCESS**, clean-checkout included.
 - AR-003 remediation-transition governance `9b266ca9ba3c6e737525db03a5856c39d4f44ed7` / `34845524190` — **5/5 SUCCESS**, clean-checkout included.
 - AR-003 focused RED `79afff6c87f7033af008de3fb3b86c3ff833b15c` / `34846914610` — expected RED isolated to **4 Unicode-parity tests**; Core 1546 passing / 4 failing tests while static, DB/RLS and Browser/mutation remained green.
 - AR-003 remediation/evidence `fec1195dcbcfa15d97fe55b17a0fb5aad25b3813` / `34848872192` — **5/5 SUCCESS**, clean-checkout included; Core **159 files / 1550 tests / 100% statements, branches, functions and lines**.
-- AR-003 remains **MAJOR / OPEN** until a fresh adversarial review independently verifies the remediation.
+- Fresh Pass-B governance entry `6a4e8087e3b6f3b1d3501c0ef2f0378defc119e4` / `34850247706` — **5/5 SUCCESS**, clean-checkout included.
+- Fresh Pass B independently verifies `WP29A-AR-003` as **CLOSED / VERIFIED**.
+- `WP29A-AR-004` — **MAJOR / OPEN**: the shared TypeScript validator rejects U+0000..U+001F and U+007F but misses C1 controls U+0080..U+009F, while PostgreSQL 17 hard-wires `[[:cntrl:]]` to U+0000..U+001F plus U+007F..U+009F. This breaks client/server parity for `document_type`, `title` and `original_filename`.
+- `WP29A-AR-005` — **MAJOR / OPEN**: `finalize_upload` proves Storage-object presence at the reserved path but not that actual object size/MIME/SHA-256/byte identity matches the reservation. A direct authenticated RPC+Storage writer can therefore commit different bytes as `ready` under reserved metadata.
+- No additional BLOCKING/MAJOR finding was found in project isolation, same-project relations, replay/stale revision, visibility, list/read/download, safe attachment, soft-delete/restore or ready-object immutability.
 
 ### WP-2.9B — Generic project tags and Venue entity-tag links
 
@@ -101,12 +105,13 @@ The split repairs the old WP-2.9 traceability omission by assigning `MED-008` ex
 ## Current next-action gate
 
 1. Pass-A historical evidence remains `e533b5c53d1be074216ccaa92f74281b425de770` / `34826553890` — **5/5 SUCCESS**.
-2. `WP29A-AR-001` and `WP29A-AR-002` are **CLOSED / VERIFIED**.
-3. `WP29A-AR-003` remains **MAJOR / OPEN** pending fresh review; its focused RED is `79afff6c87f7033af008de3fb3b86c3ff833b15c` / `34846914610`.
-4. AR-003 remediation/evidence `fec1195dcbcfa15d97fe55b17a0fb5aad25b3813` / `34848872192` is **5/5 SUCCESS**, clean-checkout included, with Core **159 files / 1550 tests / 100% coverage**.
-5. WP-2.9A is now **REVIEW_PENDING / B-ADVERSARIAL-REVIEW**. This governance-transition commit must pass exact-head CI before fresh Pass B begins.
-6. Once that gate is green, the only permitted next phase is a fresh adversarial review of the full WP-2.9A surface, including AR-001/002 regression, AR-003 Unicode parity, RLS/Storage/path/identity and list/read/download boundaries.
-7. Pass C, WP-2.9B and later packets remain forbidden until fresh Pass B leaves no BLOCKING/MAJOR finding unresolved.
+2. `WP29A-AR-001`, `WP29A-AR-002` and `WP29A-AR-003` are **CLOSED / VERIFIED**.
+3. Fresh Pass-B governance `6a4e8087e3b6f3b1d3501c0ef2f0378defc119e4` / `34850247706` is **5/5 SUCCESS**, clean-checkout included.
+4. Fresh Pass B failed overall on `WP29A-AR-004` and `WP29A-AR-005`, both **MAJOR / OPEN**.
+5. WP-2.9A is **REVIEW_FAILED**. The only permitted next action is exact-head CI for this durable review-failure record.
+6. No RED/remediation code begins before that record is green. Once green, transition separately to remediation `IN_PROGRESS`.
+7. AR-004 is localized to the canonical Unicode control predicate/tests. AR-005 must be complexity-checked first: if trusted object-integrity proof requires a new privileged/provider capability, new public endpoint or other material architecture expansion, stop/rescore/split before production code because WP-2.9A is already 10 points.
+8. Pass C, WP-2.9B and later packets remain forbidden until no BLOCKING/MAJOR finding remains unresolved.
 
 ## Known localized repairs / stop conditions
 
@@ -122,7 +127,9 @@ The split repairs the old WP-2.9 traceability omission by assigning `MED-008` ex
 - WP-2.9A Pass-A coverage/format/maintainability closure: **CLOSED / VERIFIED** by `e533b5c5...` / `34826553890` 5/5.
 - WP29A-AR-001 Document read/list/download foundation: **CLOSED / VERIFIED** by remediation `0072792d...` / `34836621394` and fresh review gate `78904546...` / `34837421096`, both 5/5.
 - WP29A-AR-002 read-parser Unicode-scalar filename parity: **CLOSED / VERIFIED** by remediation `c78c22ff...` / `34841804605` and fresh review on `c6c3afa5...` / `34842684753`.
-- WP29A-AR-003 lifecycle receipt/bounded-text Unicode parity: **MAJOR / OPEN / REVIEW_PENDING**; RED `79afff6c...` / `34846914610`, remediation `fec1195d...` / `34848872192` **5/5 SUCCESS**. Fresh adversarial review is required before closure.
+- WP29A-AR-003 lifecycle receipt/bounded-text Unicode parity: **CLOSED / VERIFIED** by remediation `fec1195d...` / `34848872192` and fresh review on `6a4e8087...` / `34850247706`.
+- WP29A-AR-004 C1 control-character parity: **MAJOR / OPEN / REVIEW_FAILED**; remediation must add canonical U+0080..U+009F rejection and focused RED coverage without changing SQL/RLS/permission/UI scope.
+- WP29A-AR-005 committed-object integrity: **MAJOR / OPEN / REVIEW_FAILED**; remediation must bind actual stored-object integrity to the reservation before `ready`. Stop/rescore/split first if a new privileged/provider architecture is needed.
 
 ## Durable handoff
 
@@ -134,22 +141,25 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.8C
 Last completed packet: WP-2.8C — ACCEPTED / COMPLETE
-Current packet: WP-2.9A — REVIEW_PENDING / B-ADVERSARIAL-REVIEW
+Current packet: WP-2.9A — REVIEW_FAILED
 Closed finding: WP29A-AR-001 — MAJOR — remediation verified by fresh Pass B
 Closed finding: WP29A-AR-002 — MAJOR — read-parser remediation verified by fresh Pass B
-Open finding: WP29A-AR-003 — MAJOR — remediation green, fresh verification pending
+Closed finding: WP29A-AR-003 — MAJOR — lifecycle/bounded-text remediation verified by fresh Pass B
+Open finding: WP29A-AR-004 — MAJOR — C1 control-character parity
+Open finding: WP29A-AR-005 — MAJOR — ready commit not bound to actual stored-object integrity
 FTR-089 FIR: #17
 Following packet: WP-2.9B — PLANNED / AFTER A
 Pass-A final: e533b5c53d1be074216ccaa92f74281b425de770 / 34826553890 — 5/5 SUCCESS
 AR-001 remediation: 0072792d2eb67cce1bf98c4c312d9576feacc156 / 34836621394 — 5/5 SUCCESS
 AR-002 remediation final: c78c22ff10c02cd6ab798a21e16b5c7acbc3effb / 34841804605 — 5/5 SUCCESS
-Prior fresh-review entry: c6c3afa56a66be97a590d4ce2b63932e6af5a46e / 34842684753 — 5/5 SUCCESS
 AR-003 durable review failure: 39ea780ac9ac724a9450a5ac8a5d0179986591ed / 34844606086 — 5/5 SUCCESS
 AR-003 remediation transition: 9b266ca9ba3c6e737525db03a5856c39d4f44ed7 / 34845524190 — 5/5 SUCCESS
 AR-003 focused RED: 79afff6c87f7033af008de3fb3b86c3ff833b15c / 34846914610 — expected RED, 1546 passing / 4 failing
 AR-003 remediation evidence: fec1195dcbcfa15d97fe55b17a0fb5aad25b3813 / 34848872192 — 5/5 SUCCESS, 159 files / 1550 tests / 100% coverage
-Current gate: exact-head CI for REVIEW_PENDING governance transition; then fresh Pass B
-Pass C forbidden until no BLOCKING/MAJOR finding remains unresolved
+Fresh Pass-B governance: 6a4e8087e3b6f3b1d3501c0ef2f0378defc119e4 / 34850247706 — 5/5 SUCCESS
+Current gate: exact-head CI for durable REVIEW_FAILED record; then separate remediation-planning / IN_PROGRESS transition
+AR-005 stop condition: rescore/split before code if trusted integrity proof needs material new privileged/provider architecture
+Pass C forbidden until AR-004 and AR-005 are closed/verified
 WP-2.9B and later packets untouched
 Lots 3–12: NOT_STARTED
 ```
