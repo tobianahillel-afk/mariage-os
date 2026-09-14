@@ -125,9 +125,9 @@ describe("WP-2.9C AR-004 service boundary RED", () => {
     const ports = servicePorts();
     const service = new PrivateDocumentService(ports);
 
-    await expect(service.upload(uploadRequest("Venue\u0085 contract"))).resolves.toEqual(
-      { ok: false, error: "invalid_metadata" },
-    );
+    await expect(
+      service.upload(uploadRequest("Venue\u0085 contract")),
+    ).resolves.toEqual({ ok: false, error: "invalid_metadata" });
     expect(ports.lifecycle.reserveUpload).not.toHaveBeenCalled();
   });
 });
