@@ -250,12 +250,24 @@ describe("private document lifecycle state coverage", () => {
   });
 
   it.each([
-    ["project_id", otherId],
-    ["id", otherId],
-  ])("rejects substituted expected document %s", (field, value) => {
+    [
+      "project",
+      {
+        project_id: otherId,
+        storage_path: `${otherId}/documents/${documentId}/original`,
+      },
+    ],
+    [
+      "document",
+      {
+        id: otherId,
+        storage_path: `${projectId}/documents/${otherId}/original`,
+      },
+    ],
+  ] as const)("rejects substituted expected %s identity", (_kind, overrides) => {
     expectInvalid(() =>
       parsePrivateDocumentReceipt(
-        reserveReceipt(documentRow({ [field]: value })),
+        reserveReceipt(documentRow(overrides)),
         "reserve_upload",
         reserveInput,
       ),
