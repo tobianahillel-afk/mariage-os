@@ -63,6 +63,18 @@ describe("parseActivePrivateDocumentRow", () => {
     });
   });
 
+  it("accepts a contract-valid filename containing exactly 512 Unicode scalar values", () => {
+    const originalFilename = `${"😀".repeat(508)}.pdf`;
+
+    expect(
+      parseActivePrivateDocumentRow(
+        row({ original_filename: originalFilename }),
+        projectId,
+        documentId,
+      ).originalFilename,
+    ).toBe(originalFilename);
+  });
+
   it.each([
     ["project_id", otherId],
     ["id", otherId],
