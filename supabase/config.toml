@@ -60,7 +60,13 @@ template = "Your code is {{ .Code }}"
 max_frequency = "1m"
 
 [edge_runtime]
-enabled = false
+enabled = true
+policy = "oneshot"
+
+[functions.private-document-ingest]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/private-document-ingest/index.ts"
 
 [analytics]
 enabled = false
