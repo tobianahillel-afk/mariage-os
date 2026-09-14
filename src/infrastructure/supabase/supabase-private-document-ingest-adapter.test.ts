@@ -95,6 +95,7 @@ describe("SupabasePrivateDocumentIngestAdapter retryable failures", () => {
 
   it("treats malformed provider errors as retryable", async () => {
     const errors = [
+      "raw provider failure",
       new Error("unknown function failure"),
       { context: null },
       { context: { status: "503" } },
