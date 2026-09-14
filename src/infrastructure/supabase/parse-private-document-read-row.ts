@@ -1,5 +1,6 @@
 import { DocumentPersistenceError } from "@application/documents/document-persistence-error";
 import type { PrivateDocumentState } from "@application/documents/private-document-lifecycle-port";
+import { isSafePrivateDocumentFilename } from "@domain/documents/venue-private-document";
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -46,10 +47,7 @@ function boundedText(value: unknown, max: number): string {
 }
 
 function filename(value: unknown): string {
-  if (typeof value !== "string") invalidResponse();
-  if (value.length < 1 || value.length > 512) invalidResponse();
-  if (hasControlCharacter(value)) invalidResponse();
-  if (value.includes("/") || value.includes("\\")) invalidResponse();
+  if (!isSafePrivateDocumentFilename(value)) invalidResponse();
   if (!value.toLowerCase().endsWith(".pdf")) invalidResponse();
   return value;
 }

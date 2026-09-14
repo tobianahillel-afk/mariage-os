@@ -76,6 +76,23 @@ describe("parseActivePrivateDocumentRow", () => {
   });
 
   it.each([
+    `${"😀".repeat(509)}.pdf`,
+    `bad\ud800.pdf`,
+    `bad\udc00.pdf`,
+    "bad\u0000.pdf",
+    "folder/contract.pdf",
+    "folder\\contract.pdf",
+  ])("rejects unsafe or over-limit private filename metadata: %s", (value) => {
+    expectInvalid(() =>
+      parseActivePrivateDocumentRow(
+        row({ original_filename: value }),
+        projectId,
+        documentId,
+      ),
+    );
+  });
+
+  it.each([
     ["project_id", otherId],
     ["id", otherId],
     ["document_type", ""],

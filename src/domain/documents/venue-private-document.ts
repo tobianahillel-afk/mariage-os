@@ -30,7 +30,11 @@ function unicodeScalarWidth(value: string, index: number): 0 | 1 | 2 {
   return nextCodeUnit >= 0xdc00 && nextCodeUnit <= 0xdfff ? 2 : 0;
 }
 
-function hasSafeFilename(value: string): boolean {
+export function isSafePrivateDocumentFilename(
+  value: unknown,
+): value is string {
+  if (typeof value !== "string") return false;
+
   let scalars = 0;
   let index = 0;
   while (index < value.length) {
@@ -63,7 +67,7 @@ export function isPrivateDocumentSha256(value: unknown): value is string {
 export function validateVenuePrivatePdf(
   candidate: VenuePrivatePdfCandidate,
 ): VenuePrivatePdfValidationResult {
-  if (!hasSafeFilename(candidate.originalFilename)) {
+  if (!isSafePrivateDocumentFilename(candidate.originalFilename)) {
     return { ok: false, error: "invalid_filename" };
   }
   if (
