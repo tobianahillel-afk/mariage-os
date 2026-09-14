@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.9A`
 - Lot: `2`
 - Name: Venue-linked private document foundation
-- State: `REVIEW_FAILED`
-- Current pass: `B-ADVERSARIAL-REVIEW / FAIL`
+- State: `IN_PROGRESS`
+- Current pass: `REMEDIATION — WP29A-AR-002`
 - Primary bounded context: Documents — private PDF metadata, Venue links, Storage lifecycle and recoverable metadata
 - Branch/PR: `lot-2/venues-core` / Lot-2 integration PR not opened yet
 - FIR: `#17 / FTR-089`
@@ -31,7 +31,9 @@ Evidence:
 - first Pass B found `WP29A-AR-001` — **MAJOR**; packet was durably recorded `REVIEW_FAILED` before remediation began;
 - `WP29A-AR-001` remediation/evidence HEAD: `0072792d2eb67cce1bf98c4c312d9576feacc156` / CI `34836621394` — **5/5 SUCCESS**, clean-checkout included; Core reports **1539 tests / 100% statements, branches, functions and lines**;
 - fresh Pass-B entry/governance HEAD: `78904546f3d8f4c15276a1bbe0825455f1262ee4` / CI `34837421096` — **5/5 SUCCESS**, clean-checkout included;
-- fresh Pass B verifies `WP29A-AR-001` as **CLOSED / VERIFIED**, but finds `WP29A-AR-002` — **MAJOR / OPEN**.
+- fresh Pass B verifies `WP29A-AR-001` as **CLOSED / VERIFIED**, but finds `WP29A-AR-002` — **MAJOR / OPEN**;
+- durable fresh-review failure record HEAD: `9654c90ed7da27033d1f08d6effc6f47cac3dff9` / CI `34839274681` — **5/5 SUCCESS**, clean-checkout included;
+- packet has now separately transitioned to `IN_PROGRESS / REMEDIATION — WP29A-AR-002`; no RED/product change is permitted until this transition HEAD itself is exact-head green.
 
 WP-2.9B remains `PLANNED / AFTER A` and cannot activate while A is active.
 
@@ -291,11 +293,17 @@ No additional BLOCKING/MAJOR issue was found in those areas. A per-download SHA 
 
 Fresh Pass-B entry/governance HEAD `78904546f3d8f4c15276a1bbe0825455f1262ee4` / CI `34837421096` is **5/5 SUCCESS**, clean-checkout included. The review **closes `WP29A-AR-001`** but **fails overall** because `WP29A-AR-002` is MAJOR / OPEN.
 
-The packet is therefore `REVIEW_FAILED / B-ADVERSARIAL-REVIEW`. No remediation code may begin until this failure state is itself durably recorded and exact-head green; after that, governance must separately transition the packet back to `IN_PROGRESS / REMEDIATION — WP29A-AR-002` before adding the focused RED test and implementation fix.
+The REVIEW_FAILED state is durably recorded on `9654c90ed7da27033d1f08d6effc6f47cac3dff9` / CI `34839274681` — **5/5 SUCCESS**, clean-checkout included. Governance has now separately reopened the packet as `IN_PROGRESS / REMEDIATION — WP29A-AR-002` before code changes.
+
+## Remediation cursor
+
+`WP29A-AR-002` remediation is active. The scope is deliberately narrow: canonical scalar-aware PDF filename validation parity between upload and provider-read boundaries, plus focused regression evidence. No SQL/RLS/Storage-policy/UI/permission/file-type or WP-2.9B change is authorized.
+
+The next action, only after the remediation-transition exact-head CI is green, is focused RED evidence for the contract-valid 512-scalar astral filename; then the minimum shared-validator implementation, full verification and a mandatory fresh Pass B. The finding remains OPEN until that fresh review closes it.
 
 ## Current gate
 
-WP-2.9A is **REVIEW_FAILED / B-ADVERSARIAL-REVIEW**.
+WP-2.9A is **IN_PROGRESS / REMEDIATION — WP29A-AR-002**.
 
 Pass C remains forbidden while `WP29A-AR-002` is unresolved. WP-2.9B remains inactive until WP-2.9A is accepted.
 
