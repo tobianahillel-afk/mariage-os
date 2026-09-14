@@ -7,6 +7,8 @@ import { createClient } from "@supabase/supabase-js";
 export const BUCKET = "project-private";
 export const MAX_BYTES = 25_000_000;
 const npmExecPath = process.env.npm_execpath;
+let cachedEnvironment = null;
+let cachedDatabaseContainer = null;
 
 function fail(message) {
   throw new Error(message);
@@ -57,7 +59,6 @@ function localUserToken({ apiUrl, jwtSecret, userId, email }) {
     role: "authenticated",
     aal: "aal1",
     amr: [{ method: "password", timestamp: now }],
-    session_id: randomUUID(),
     is_anonymous: false,
   });
   const signature = createHmac("sha256", jwtSecret)
@@ -67,13 +68,15 @@ function localUserToken({ apiUrl, jwtSecret, userId, email }) {
 }
 
 export function localSupabaseEnvironment() {
+  if (cachedEnvironment) return cachedEnvironment;
   if (!npmExecPath) fail("npm_execpath is required for Edge integration.");
   const result = spawnSync(
     process.execPath,
     [npmExecPath, "exec", "--", "supabase", "status", "-o", "env"],
     { encoding: "utf8", env: process.env },
   );
-  if (result.status !== 0) fail("Unable to read the local Supabase environment.");
+  if (result.status !== 0)
+    fail("Unable to read the local Supabase environment.");
 
   const values = new Map();
   for (const line of result.stdout.split(/\r?\n/u)) {
@@ -94,7 +97,121 @@ export function localSupabaseEnvironment() {
   if (!apiUrl || !anonKey || !serviceRoleKey || !jwtSecret) {
     fail("Local Supabase status omitted required API credentials.");
   }
-  return { apiUrl, anonKey, serviceRoleKey, jwtSecret };
+  cachedEnvironment = { apiUrl, anonKey, serviceRoleKey, jwtSecret };
+  return cachedEnvironment;
+}
+
+function localDatabaseContainer() {
+  if (cachedDatabaseContainer) return cachedDatabaseContainer;
+  const result = spawnSync(
+    "docker",
+    [
+      "ps",
+      "--filter",
+      "name=supabase_db_mariage-os",
+      "--format",
+      "{{.ID}}",
+    ],
+    { encoding: "utf8", env: process.env },
+  );
+  const containerId = result.stdout.trim().split(/\s+/u)[0];
+  if (result.status !== 0 || !containerId) {
+    fail("Unable to locate the local Supabase database container.");
+  }
+  cachedDatabaseContainer = containerId;
+  return cachedDatabaseContainer;
+}
+
+function runLocalSql(sql, variables = {}) {
+  const args = [
+    "exec",
+    "-i",
+    localDatabaseContainer(),
+    "psql",
+    "-X",
+    "-qAt",
+    "-U",
+    "postgres",
+    "-d",
+    "postgres",
+    "-v",
+    "ON_ERROR_STOP=1",
+  ];
+  for (const [key, value] of Object.entries(variables)) {
+    args.push("-v", `${key}=${String(value)}`);
+  }
+  const result = spawnSync("docker", args, {
+    input: sql,
+    encoding: "utf8",
+    env: process.env,
+  });
+  if (result.status !== 0) fail("Local synthetic SQL fixture operation failed.");
+  return result.stdout.trim();
+}
+
+export function createProjectFixture({ projectId, userId }) {
+  runLocalSql(
+    `
+      insert into public.projects (id, name, created_by, updated_by)
+      values (
+        :'project_id'::uuid,
+        'WP-2.9C Edge integration',
+        :'user_id'::uuid,
+        :'user_id'::uuid
+      );
+    `,
+    { project_id: projectId, user_id: userId },
+  );
+}
+
+export function addMembership({ projectId, userId, roleKey }) {
+  runLocalSql(
+    `
+      insert into public.project_members (
+        project_id,
+        user_id,
+        role_key,
+        membership_status,
+        accepted_at
+      )
+      values (
+        :'project_id'::uuid,
+        :'user_id'::uuid,
+        :'role_key',
+        'active',
+        now()
+      );
+    `,
+    { project_id: projectId, user_id: userId, role_key: roleKey },
+  );
+}
+
+export function setMembershipRole({ projectId, userId, roleKey }) {
+  runLocalSql(
+    `
+      update public.project_members
+      set role_key = :'role_key'
+      where project_id = :'project_id'::uuid
+        and user_id = :'user_id'::uuid;
+    `,
+    { project_id: projectId, user_id: userId, role_key: roleKey },
+  );
+}
+
+export function setMembershipStatus({ projectId, userId, status }) {
+  if (status !== "active" && status !== "revoked") {
+    fail("Unsupported synthetic membership status.");
+  }
+  runLocalSql(
+    `
+      update public.project_members
+      set membership_status = :'status',
+          revoked_at = case when :'status' = 'revoked' then now() else null end
+      where project_id = :'project_id'::uuid
+        and user_id = :'user_id'::uuid;
+    `,
+    { project_id: projectId, user_id: userId, status },
+  );
 }
 
 export function digest(bytes) {
@@ -105,9 +222,7 @@ export function pdfBytes(size = 128) {
   assert.ok(size >= 5);
   const bytes = new Uint8Array(size);
   bytes.set([0x25, 0x50, 0x44, 0x46, 0x2d]);
-  for (let index = 5; index < size; index += 1) {
-    bytes[index] = index % 251;
-  }
+  for (let index = 5; index < size; index += 1) bytes[index] = index % 251;
   return bytes;
 }
 
@@ -138,26 +253,6 @@ export async function createSyntheticIdentity({
     global: { headers: { Authorization: `Bearer ${token}` } },
   });
   return { userId, client };
-}
-
-export async function addMembership({ admin, projectId, userId, roleKey }) {
-  const result = await admin.from("project_members").insert({
-    project_id: projectId,
-    user_id: userId,
-    role_key: roleKey,
-    membership_status: "active",
-    accepted_at: new Date().toISOString(),
-  });
-  rpcFailure(result.error, "Synthetic membership creation");
-}
-
-export async function updateMembership({ admin, projectId, userId, values }) {
-  const result = await admin
-    .from("project_members")
-    .update(values)
-    .eq("project_id", projectId)
-    .eq("user_id", userId);
-  rpcFailure(result.error, "Synthetic membership update");
 }
 
 export async function reserve({ client, projectId, documentId, bytes, title }) {
@@ -221,42 +316,44 @@ export function assertRejected(result, message) {
   assert.notEqual(result.error, null, message);
 }
 
+function attestationCount(projectId, documentId) {
+  const output = runLocalSql(
+    `
+      select count(*)
+      from public.private_document_ingest_attestations
+      where project_id = :'project_id'::uuid
+        and document_id = :'document_id'::uuid;
+    `,
+    { project_id: projectId, document_id: documentId },
+  );
+  return Number(output);
+}
+
 export async function assertNoTrustedObject({ admin, projectId, documentId }) {
-  const path = storagePath(projectId, documentId);
-  const object = await admin.storage.from(BUCKET).download(path);
+  const object = await admin.storage.from(BUCKET).download(storagePath(projectId, documentId));
   assertRejected(object, "Rejected ingest must not create Storage bytes.");
-  const attestation = await admin
-    .from("private_document_ingest_attestations")
-    .select("document_id")
-    .eq("project_id", projectId)
-    .eq("document_id", documentId);
-  rpcFailure(attestation.error, "Trusted attestation inspection");
   assert.equal(
-    attestation.data.length,
+    attestationCount(projectId, documentId),
     0,
     "Rejected ingest must not create an attestation.",
   );
 }
 
-export async function assertNoAttestation({ admin, projectId, documentId }) {
-  const result = await admin
-    .from("private_document_ingest_attestations")
-    .select("document_id")
-    .eq("project_id", projectId)
-    .eq("document_id", documentId);
-  rpcFailure(result.error, "Trusted attestation inspection");
-  assert.equal(result.data.length, 0);
+export function assertNoAttestation({ projectId, documentId }) {
+  assert.equal(attestationCount(projectId, documentId), 0);
 }
 
-export async function assertReady({ admin, projectId, documentId }) {
-  const result = await admin
-    .from("documents")
-    .select("upload_status")
-    .eq("project_id", projectId)
-    .eq("id", documentId)
-    .single();
-  rpcFailure(result.error, "Ready document inspection");
-  assert.equal(result.data.upload_status, "ready");
+export function assertReady({ projectId, documentId }) {
+  const status = runLocalSql(
+    `
+      select upload_status
+      from public.documents
+      where project_id = :'project_id'::uuid
+        and id = :'document_id'::uuid;
+    `,
+    { project_id: projectId, document_id: documentId },
+  );
+  assert.equal(status, "ready");
 }
 
 export async function cleanupHarness({
@@ -265,8 +362,12 @@ export async function cleanupHarness({
   objectPaths,
   userIds,
 }) {
-  if (objectPaths.length > 0) await admin.storage.from(BUCKET).remove(objectPaths);
-  await admin.from("projects").delete().eq("id", projectId);
+  if (objectPaths.length > 0)
+    await admin.storage.from(BUCKET).remove(objectPaths);
+  runLocalSql(
+    `delete from public.projects where id = :'project_id'::uuid;`,
+    { project_id: projectId },
+  );
   for (const userId of userIds) await admin.auth.admin.deleteUser(userId);
 }
 

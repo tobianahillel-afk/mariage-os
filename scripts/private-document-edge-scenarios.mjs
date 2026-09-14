@@ -9,6 +9,7 @@ import {
   assertRejected,
   cleanupHarness,
   createClient,
+  createProjectFixture,
   createSyntheticIdentity,
   finalize,
   invoke,
@@ -17,8 +18,9 @@ import {
   randomUUID,
   reserve,
   rpcFailure,
+  setMembershipRole,
+  setMembershipStatus,
   storagePath,
-  updateMembership,
 } from "./private-document-edge-helpers.mjs";
 
 async function setupHarness() {
@@ -39,21 +41,38 @@ async function setupHarness() {
     label: "writer",
   });
   userIds.push(writer.userId);
-  const project = await admin.from("projects").insert({
-    id: projectId,
-    name: "WP-2.9C Edge integration",
-    created_by: writer.userId,
-    updated_by: writer.userId,
+  createProjectFixture({ projectId, userId: writer.userId });
+  addMembership({
+    projectId,
+    userId: writer.userId,
+    roleKey: "owner",
   });
-  rpcFailure(project.error, "Synthetic project creation");
-  await addMembership({ admin, projectId, userId: writer.userId, roleKey: "owner" });
 
-  const viewer = await createSyntheticIdentity({ ...identityInput, label: "viewer" });
+  const viewer = await createSyntheticIdentity({
+    ...identityInput,
+    label: "viewer",
+  });
   userIds.push(viewer.userId);
-  await addMembership({ admin, projectId, userId: viewer.userId, roleKey: "viewer" });
-  const outsider = await createSyntheticIdentity({ ...identityInput, label: "outsider" });
+  addMembership({
+    projectId,
+    userId: viewer.userId,
+    roleKey: "viewer",
+  });
+  const outsider = await createSyntheticIdentity({
+    ...identityInput,
+    label: "outsider",
+  });
   userIds.push(outsider.userId);
-  return { admin, anonymous, projectId, userIds, objectPaths, writer, viewer, outsider };
+  return {
+    admin,
+    anonymous,
+    projectId,
+    userIds,
+    objectPaths,
+    writer,
+    viewer,
+    outsider,
+  };
 }
 
 async function prepareSmallDocument(context) {
@@ -89,15 +108,23 @@ async function runAuthorizationScenarios(context, document) {
     "Project outsider must not ingest.",
   );
   assertRejected(
-    await invoke({ ...common, projectId: randomUUID(), client: context.writer.client }),
+    await invoke({
+      ...common,
+      projectId: randomUUID(),
+      client: context.writer.client,
+    }),
     "Caller-substituted project identity must be denied.",
   );
   const directUpload = await context.writer.client.storage
     .from(BUCKET)
-    .upload(storagePath(context.projectId, document.documentId), document.bytes, {
-      contentType: "application/pdf",
-      upsert: false,
-    });
+    .upload(
+      storagePath(context.projectId, document.documentId),
+      document.bytes,
+      {
+        contentType: "application/pdf",
+        upsert: false,
+      },
+    );
   assertRejected(
     directUpload,
     "Authenticated writer must not bypass trusted ingest with Storage INSERT.",
@@ -125,7 +152,11 @@ async function runByteValidationScenarios(context, document) {
     "Digest mismatch must be rejected by the live Edge boundary.",
   );
   assertRejected(
-    await invoke({ ...common, bytes: document.bytes, mimeType: "application/octet-stream" }),
+    await invoke({
+      ...common,
+      bytes: document.bytes,
+      mimeType: "application/octet-stream",
+    }),
     "Non-PDF MIME intent must be rejected by the live Edge boundary.",
   );
   await assertNoTrustedObject({
@@ -137,7 +168,6 @@ async function runByteValidationScenarios(context, document) {
 
 async function runMembershipScenarios(context, document) {
   const membership = {
-    admin: context.admin,
     projectId: context.projectId,
     userId: context.writer.userId,
   };
@@ -147,23 +177,23 @@ async function runMembershipScenarios(context, document) {
     documentId: document.documentId,
     bytes: document.bytes,
   };
-  await updateMembership({ ...membership, values: { role_key: "viewer" } });
-  assertRejected(await invoke(request), "Live role downgrade must revoke trusted ingest authority.");
-  await updateMembership({ ...membership, values: { role_key: "owner" } });
-  await updateMembership({
-    ...membership,
-    values: { membership_status: "revoked", revoked_at: new Date().toISOString() },
-  });
-  assertRejected(await invoke(request), "Revoked membership must deny trusted ingest.");
+  setMembershipRole({ ...membership, roleKey: "viewer" });
+  assertRejected(
+    await invoke(request),
+    "Live role downgrade must revoke trusted ingest authority.",
+  );
+  setMembershipRole({ ...membership, roleKey: "owner" });
+  setMembershipStatus({ ...membership, status: "revoked" });
+  assertRejected(
+    await invoke(request),
+    "Revoked membership must deny trusted ingest.",
+  );
   await assertNoTrustedObject({
     admin: context.admin,
     projectId: context.projectId,
     documentId: document.documentId,
   });
-  await updateMembership({
-    ...membership,
-    values: { membership_status: "active", revoked_at: null },
-  });
+  setMembershipStatus({ ...membership, status: "active" });
 }
 
 async function runSuccessfulIngestScenario(context, document) {
@@ -177,20 +207,28 @@ async function runSuccessfulIngestScenario(context, document) {
   assert.equal(accepted.error, null, "Exact reserved bytes must ingest.");
   assert.deepEqual(accepted.data, { ok: true, replayed: false });
   const replay = await invoke(request);
-  assert.equal(replay.error, null, "Exact interrupted-upload retry must recover.");
+  assert.equal(
+    replay.error,
+    null,
+    "Exact interrupted-upload retry must recover.",
+  );
   assert.deepEqual(replay.data, { ok: true, replayed: true });
   await finalize({
     client: context.writer.client,
     projectId: context.projectId,
     documentId: document.documentId,
   });
-  await assertReady({
-    admin: context.admin,
+  assertReady({
     projectId: context.projectId,
     documentId: document.documentId,
   });
-  assertRejected(await invoke(request), "Ready documents must not re-enter trusted ingest.");
-  console.log("PASS trusted-ingest authorization, byte integrity and idempotent retry");
+  assertRejected(
+    await invoke(request),
+    "Ready documents must not re-enter trusted ingest.",
+  );
+  console.log(
+    "PASS trusted-ingest authorization, byte integrity and idempotent retry",
+  );
 }
 
 async function runInvalidSignatureScenario(context) {
@@ -206,10 +244,19 @@ async function runInvalidSignatureScenario(context) {
   });
   context.objectPaths.push(storagePath(context.projectId, documentId));
   assertRejected(
-    await invoke({ client: context.writer.client, projectId: context.projectId, documentId, bytes }),
+    await invoke({
+      client: context.writer.client,
+      projectId: context.projectId,
+      documentId,
+      bytes,
+    }),
     "Reserved non-PDF bytes must still be rejected by trusted ingest.",
   );
-  await assertNoTrustedObject({ admin: context.admin, projectId: context.projectId, documentId });
+  await assertNoTrustedObject({
+    admin: context.admin,
+    projectId: context.projectId,
+    documentId,
+  });
   console.log("PASS trusted-ingest independent PDF signature validation");
 }
 
@@ -227,10 +274,12 @@ async function runPoisonedExistingObjectScenario(context) {
   context.objectPaths.push(path);
   const poisoned = expected.slice();
   poisoned[poisoned.length - 1] ^= 0xff;
-  const injected = await context.admin.storage.from(BUCKET).upload(path, poisoned, {
-    contentType: "application/pdf",
-    upsert: false,
-  });
+  const injected = await context.admin.storage
+    .from(BUCKET)
+    .upload(path, poisoned, {
+      contentType: "application/pdf",
+      upsert: false,
+    });
   rpcFailure(injected.error, "Synthetic privileged stale object injection");
   assertRejected(
     await invoke({
@@ -241,7 +290,10 @@ async function runPoisonedExistingObjectScenario(context) {
     }),
     "Mismatched pre-existing bytes must never become trusted.",
   );
-  await assertNoAttestation({ admin: context.admin, projectId: context.projectId, documentId });
+  assertNoAttestation({
+    projectId: context.projectId,
+    documentId,
+  });
   console.log("PASS mismatched existing object fails closed");
 }
 
@@ -259,20 +311,40 @@ async function runFeasibilityScenario(context) {
   const oversize = new Uint8Array(MAX_BYTES + 1);
   oversize.set(bytes);
   assertRejected(
-    await invoke({ client: context.writer.client, projectId: context.projectId, documentId, bytes: oversize }),
+    await invoke({
+      client: context.writer.client,
+      projectId: context.projectId,
+      documentId,
+      bytes: oversize,
+    }),
     "25,000,001-byte payload must be rejected.",
   );
-  await assertNoTrustedObject({ admin: context.admin, projectId: context.projectId, documentId });
+  await assertNoTrustedObject({
+    admin: context.admin,
+    projectId: context.projectId,
+    documentId,
+  });
   const accepted = await invoke({
     client: context.writer.client,
     projectId: context.projectId,
     documentId,
     bytes,
   });
-  assert.equal(accepted.error, null, "Exact 25,000,000-byte PDF must pass the live Edge runtime.");
+  assert.equal(
+    accepted.error,
+    null,
+    "Exact 25,000,000-byte PDF must pass the live Edge runtime.",
+  );
   assert.deepEqual(accepted.data, { ok: true, replayed: false });
-  await finalize({ client: context.writer.client, projectId: context.projectId, documentId });
-  await assertReady({ admin: context.admin, projectId: context.projectId, documentId });
+  await finalize({
+    client: context.writer.client,
+    projectId: context.projectId,
+    documentId,
+  });
+  assertReady({
+    projectId: context.projectId,
+    documentId,
+  });
   console.log("PASS 25,000,000-byte trusted-ingest runtime feasibility");
 }
 
