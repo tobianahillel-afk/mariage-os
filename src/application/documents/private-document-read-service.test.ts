@@ -46,7 +46,7 @@ function ports() {
   return { query, download };
 }
 
-describe("PrivateDocumentReadService", () => {
+describe("PrivateDocumentReadService queries", () => {
   it("rejects invalid list identities before provider access", async () => {
     const fake = ports();
     const service = new PrivateDocumentReadService(fake);
@@ -64,20 +64,14 @@ describe("PrivateDocumentReadService", () => {
 
     await expect(
       service.listVenueDocuments(projectId, venueId),
-    ).resolves.toEqual({
-      ok: true,
-      value: [document()],
-    });
+    ).resolves.toEqual({ ok: true, value: [document()] });
 
     vi.mocked(fake.query.listVenueDocuments).mockResolvedValue([
       document({ projectId: "77777777-7777-4777-8777-777777777777" }),
     ]);
     await expect(
       service.listVenueDocuments(projectId, venueId),
-    ).resolves.toEqual({
-      ok: false,
-      error: "provider_response_invalid",
-    });
+    ).resolves.toEqual({ ok: false, error: "provider_response_invalid" });
   });
 
   it("returns null for a non-disclosing active-document miss", async () => {
@@ -87,12 +81,11 @@ describe("PrivateDocumentReadService", () => {
 
     await expect(
       service.getActiveDocument(projectId, documentId),
-    ).resolves.toEqual({
-      ok: true,
-      value: null,
-    });
+    ).resolves.toEqual({ ok: true, value: null });
   });
+});
 
+describe("PrivateDocumentReadService download guards", () => {
   it("downloads only the path bound to the validated active document", async () => {
     const fake = ports();
     const service = new PrivateDocumentReadService(fake);
@@ -126,14 +119,13 @@ describe("PrivateDocumentReadService", () => {
 
       await expect(
         service.downloadActiveDocument(projectId, documentId),
-      ).resolves.toEqual({
-        ok: false,
-        error: "provider_response_invalid",
-      });
+      ).resolves.toEqual({ ok: false, error: "provider_response_invalid" });
       expect(fake.download.download).not.toHaveBeenCalled();
     },
   );
+});
 
+describe("PrivateDocumentReadService download failures", () => {
   it("fails closed when downloaded bytes no longer match the PDF metadata", async () => {
     const fake = ports();
     vi.mocked(fake.download.download).mockResolvedValue(
@@ -143,10 +135,7 @@ describe("PrivateDocumentReadService", () => {
 
     await expect(
       service.downloadActiveDocument(projectId, documentId),
-    ).resolves.toEqual({
-      ok: false,
-      error: "provider_response_invalid",
-    });
+    ).resolves.toEqual({ ok: false, error: "provider_response_invalid" });
   });
 
   it("maps provider failures without exposing provider details", async () => {
@@ -158,9 +147,6 @@ describe("PrivateDocumentReadService", () => {
 
     await expect(
       service.downloadActiveDocument(projectId, documentId),
-    ).resolves.toEqual({
-      ok: false,
-      error: "storage_retryable",
-    });
+    ).resolves.toEqual({ ok: false, error: "storage_retryable" });
   });
 });
