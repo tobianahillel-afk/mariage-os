@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.9C`
 - Lot: `2`
 - Name: Trusted private-document ingestion hardening
-- State: `IN_PROGRESS`
-- Current pass: `A-IMPLEMENT — WP29C-AR-001 REMEDIATION / RED FIRST`
+- State: `REVIEW_PENDING`
+- Current pass: `B-ADVERSARIAL-REVIEW — FRESH RE-REVIEW`
 - Primary bounded context: Documents — authoritative binary ingress for the existing WP-2.9A private PDF lifecycle
 - Branch/PR: `lot-2/venues-core` / Lot-2 integration PR not opened yet
 - FIR: `#17 / FTR-089`
@@ -20,7 +20,9 @@
 - ADR 0008 + WP-2.9C split/READY governance: `d1e561c787798eb99f49024cc0c1db49880bcd82` / CI `34862521697` — **5/5 SUCCESS**, clean-checkout included.
 - Pass-A implementation evidence: `d90a643d929c35ef84444c19b7ec02ad9cd9e5a8` / CI `34896641824` — **5/5 SUCCESS**, clean-checkout included; DB `79` files / `1376` tests PASS; real Edge-runtime adversarial harness PASS including exact `25,000,000`-byte feasibility.
 - REVIEW_PENDING transition: `95e5a1c2c1bccc292787b745c3ca112a3f22a39b` / CI `34898586925` — **5/5 SUCCESS**, clean-checkout included.
-- Fresh Pass B on that reviewed head found `WP29C-AR-001` below. C therefore returns to implementation/remediation and cannot advance to Pass C.
+- Fresh Pass B on that reviewed head found `WP29C-AR-001` below. C therefore returned to implementation/remediation and could not advance to Pass C.
+- `WP29C-AR-001` remediation exact-head evidence: `264a504e4bc8208d9ff762ef71e90bea6d18216e` / CI `34905438530` — **5/5 SUCCESS**, clean-checkout included; Core `162` files / `1564` tests / `100%` statements, branches, functions and lines; DB `79` files / `1376` tests PASS; real Edge Runtime PASS includes malformed-JWT denial, direct-runtime chunked oversize rejection without trusting `Content-Length`, and exact `25,000,000`-byte feasibility.
+- Current transition: remediation `A-IMPLEMENT → REVIEW_PENDING / B-ADVERSARIAL-REVIEW`. AR-001 is remediated but remains **pending independent verification** until fresh Pass B completes.
 
 ## Why this packet exists
 
@@ -165,15 +167,15 @@ The RED must not weaken/delete the existing WP-2.9A RED contract or unrelated ac
 
 ## Fresh Pass-B finding
 
-### `WP29C-AR-001` — MAJOR / OPEN — request body can exceed the accepted byte bound before rejection
+### `WP29C-AR-001` — MAJOR / REMEDIATED / RE-REVIEW PENDING — request body can exceed the accepted byte bound before rejection
 
-The reviewed Edge implementation performs an early optimization using `Content-Length`, but authoritative actual-byte enforcement currently happens only after:
+The reviewed Edge implementation performed an early optimization using `Content-Length`, but authoritative actual-byte enforcement happened only after:
 
 ```text
 await request.arrayBuffer()
 ```
 
-A request with absent/unusable `Content-Length` can therefore cause the worker to buffer the complete body before discovering that it exceeds `25,000,000` bytes. The endpoint correctly rejects the payload eventually, but the resource bound is applied too late to satisfy the packet's untrusted-file boundary, `SEC-FILE-004` and `SEC-ABUSE-001`.
+A request with absent/unusable `Content-Length` could therefore cause the worker to buffer the complete body before discovering that it exceeded `25,000,000` bytes. The endpoint correctly rejected the payload eventually, but the resource bound was applied too late to satisfy the packet's untrusted-file boundary, `SEC-FILE-004` and `SEC-ABUSE-001`.
 
 Required remediation:
 
@@ -185,7 +187,9 @@ Required remediation:
 - add focused RED evidence proving the body is bounded during reading, not merely rejected after full buffering;
 - add direct malformed-JWT runtime evidence while this Edge harness is being revisited, because the frozen verification plan requires missing **and invalid** JWT denial.
 
-This finding does not reopen the already-demonstrated path/hash/authorization/replay integrity properties. It blocks Pass C until remediated and independently re-reviewed.
+Remediation evidence on `264a504e4bc8208d9ff762ef71e90bea6d18216e` / CI `34905438530` proves the bounded reader no longer uses `request.arrayBuffer()` for the untrusted body, the live Edge Runtime rejects an absent-`Content-Length` chunked payload above the bound, malformed JWT is denied, exact `25,000,000` bytes remain feasible, and the full clean-checkout gate is green. Because the local Supabase main runtime tees request bodies, the implementation discards post-overflow bytes without retaining them until EOF so the runtime can surface the rejection while keeping application memory bounded. Fresh Pass B must independently verify that this runtime-specific drain preserves the security invariant and does not reopen any exact-byte or authorization property.
+
+This finding does not reopen the already-demonstrated path/hash/authorization/replay integrity properties. It remains pending independent verification and blocks Pass C until fresh Pass B explicitly verifies closure.
 
 ## Verification plan
 
@@ -243,18 +247,17 @@ This finding does not reopen the already-demonstrated path/hash/authorization/re
 
 ## State / sequencing
 
-Current state: **IN_PROGRESS / A-IMPLEMENT — WP29C-AR-001 REMEDIATION / RED FIRST**.
+Current state: **REVIEW_PENDING / B-ADVERSARIAL-REVIEW — FRESH RE-REVIEW**.
 
 Current gate:
 
 1. Pass-A implementation HEAD `d90a643d929c35ef84444c19b7ec02ad9cd9e5a8` / CI `34896641824` is **5/5 SUCCESS**, clean-checkout included;
 2. REVIEW_PENDING transition `95e5a1c2c1bccc292787b745c3ca112a3f22a39b` / CI `34898586925` is **5/5 SUCCESS**, clean-checkout included;
-3. fresh Pass B found `WP29C-AR-001` MAJOR: untrusted request bodies are fully buffered before authoritative actual-byte size rejection when the header shortcut cannot reject early;
-4. commit focused **test-only RED** proving the missing bounded-read invariant and verify the RED is isolated;
-5. implement the narrow bounded streaming remediation without shrinking the accepted 25 MB contract;
-6. add malformed-JWT runtime denial evidence and preserve the full existing adversarial Edge matrix;
-7. obtain full exact-head green evidence, including exact `25,000,000`-byte runtime feasibility and clean checkout;
-8. perform a new fresh independent Pass B from the frozen contracts after remediation;
-9. only a clean fresh Pass B may advance C to Pass C;
-10. only after **WP-2.9C ACCEPTED**, resolve WP-2.9A blocker and return A to `IN_PROGRESS` for integration/reverification;
-11. WP-2.9B remains `PLANNED / AFTER A` until A is accepted.
+3. fresh Pass B found `WP29C-AR-001` MAJOR: untrusted request bodies could be fully buffered before authoritative actual-byte size rejection when the header shortcut could not reject early;
+4. remediation exact-head `264a504e4bc8208d9ff762ef71e90bea6d18216e` / CI `34905438530` is **5/5 SUCCESS**, clean-checkout included; Core `162` files / `1564` tests / `100%` coverage, DB `79` files / `1376` tests PASS, and live Edge Runtime proves malformed-JWT denial, chunked oversize rejection and exact `25,000,000`-byte feasibility;
+5. `WP29C-AR-001` is **REMEDIATED / RE-REVIEW PENDING**, not closed by implementation evidence alone;
+6. perform a new fresh independent Pass B from the frozen contracts and ADR, explicitly re-challenging bounded streaming with absent/unusable `Content-Length`, the runtime-specific post-overflow drain, exact-byte integrity, authorization, retry/recovery and log/secret safety;
+7. if Pass B finds any remaining defect, record it durably and return to remediation with focused RED-first evidence before acceptance;
+8. only a clean fresh Pass B may mark AR-001 **CLOSED / VERIFIED** and advance C to Pass C;
+9. only after **WP-2.9C ACCEPTED**, resolve WP-2.9A blocker and return A to `IN_PROGRESS` for integration/reverification;
+10. WP-2.9B remains `PLANNED / AFTER A` until A is accepted.
