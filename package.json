@@ -25,7 +25,7 @@
     "test:mutation": "stryker run",
     "test:fast": "npm run typecheck && npm run static && npm run test:unit",
     "test:edge": "node scripts/run-private-document-edge-integration.mjs",
-    "db:start": "supabase start",
+    "db:start": "node scripts/run-supabase-start.mjs",
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset --local",
     "db:test": "supabase test db",

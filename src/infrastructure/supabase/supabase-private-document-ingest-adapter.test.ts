@@ -19,40 +19,47 @@ function persistenceCode(value: unknown) {
   return value instanceof DocumentPersistenceError ? value.code : null;
 }
 
-describe("SupabasePrivateDocumentIngestAdapter", () => {
-  it("sends raw exact bytes and identifiers without caller-controlled storage authority", async () => {
-    const invoke = vi.fn().mockResolvedValue({
-      data: { ok: true },
-      error: null,
-      response: { status: 200 },
-    });
-    const adapter = new SupabasePrivateDocumentIngestAdapter({ invoke });
-
-    await expect(adapter.ingest(input())).resolves.toBeUndefined();
-
-    expect(invoke).toHaveBeenCalledOnce();
-    const [functionName, options] = invoke.mock.calls[0] as [
-      string,
-      { body: ArrayBuffer; headers: Record<string, string> },
-    ];
-    expect(functionName).toBe("private-document-ingest");
-    expect(new Uint8Array(options.body)).toEqual(bytes);
-    expect(options.headers).toEqual({
-      "x-project-id": projectId,
-      "x-document-id": documentId,
-      "x-document-mime-type": "application/pdf",
-    });
-    expect(options.headers).not.toHaveProperty("x-storage-path");
-    expect(options.headers).not.toHaveProperty("x-user-id");
-    expect(options.headers).not.toHaveProperty("x-sha256");
-    expect(options.headers).not.toHaveProperty("content-type");
+function functionError(message: string, status: number) {
+  return Object.assign(new Error(message), {
+    context: { status },
   });
+}
+
+describe("SupabasePrivateDocumentIngestAdapter", () => {
+  it(
+    "sends raw exact bytes and identifiers without caller-controlled storage authority",
+    async () => {
+      const invoke = vi.fn().mockResolvedValue({
+        data: { ok: true },
+        error: null,
+      });
+      const adapter = new SupabasePrivateDocumentIngestAdapter({ invoke });
+
+      await expect(adapter.ingest(input())).resolves.toBeUndefined();
+
+      expect(invoke).toHaveBeenCalledOnce();
+      const [functionName, options] = invoke.mock.calls[0] as [
+        string,
+        { body: ArrayBuffer; headers: Record<string, string> },
+      ];
+      expect(functionName).toBe("private-document-ingest");
+      expect(new Uint8Array(options.body)).toEqual(bytes);
+      expect(options.headers).toEqual({
+        "x-project-id": projectId,
+        "x-document-id": documentId,
+        "x-document-mime-type": "application/pdf",
+      });
+      expect(options.headers).not.toHaveProperty("x-storage-path");
+      expect(options.headers).not.toHaveProperty("x-user-id");
+      expect(options.headers).not.toHaveProperty("x-sha256");
+      expect(options.headers).not.toHaveProperty("content-type");
+    },
+  );
 
   it("fails closed on malformed successful provider data", async () => {
     const invoke = vi.fn().mockResolvedValue({
       data: { ok: false },
       error: null,
-      response: { status: 200 },
     });
     const adapter = new SupabasePrivateDocumentIngestAdapter({ invoke });
 
@@ -64,8 +71,7 @@ describe("SupabasePrivateDocumentIngestAdapter", () => {
   it("maps server and transport failures to retryable storage failure", async () => {
     const serverInvoke = vi.fn().mockResolvedValue({
       data: null,
-      error: new Error("server unavailable"),
-      response: { status: 503 },
+      error: functionError("server unavailable", 503),
     });
     const transportInvoke = vi.fn().mockRejectedValue(new Error("network down"));
 
@@ -88,13 +94,24 @@ describe("SupabasePrivateDocumentIngestAdapter", () => {
   it("maps authenticated 4xx denial to a non-disclosing persistence failure", async () => {
     const invoke = vi.fn().mockResolvedValue({
       data: null,
-      error: new Error("denied"),
-      response: { status: 403 },
+      error: functionError("denied", 403),
     });
     const adapter = new SupabasePrivateDocumentIngestAdapter({ invoke });
 
     await expect(adapter.ingest(input())).rejects.toSatisfy(
       (error: unknown) => persistenceCode(error) === "persistence_failed",
+    );
+  });
+
+  it("treats malformed provider errors as retryable transport failures", async () => {
+    const invoke = vi.fn().mockResolvedValue({
+      data: null,
+      error: new Error("unknown function failure"),
+    });
+    const adapter = new SupabasePrivateDocumentIngestAdapter({ invoke });
+
+    await expect(adapter.ingest(input())).rejects.toSatisfy(
+      (error: unknown) => persistenceCode(error) === "storage_retryable",
     );
   });
 });

@@ -7,7 +7,6 @@ import type {
 interface SupabaseFunctionResponse {
   readonly data: unknown;
   readonly error: unknown;
-  readonly response?: { readonly status: number };
 }
 
 interface SupabaseInvokeOptions {
@@ -30,9 +29,17 @@ function isTrustedIngestReceipt(value: unknown): boolean {
   );
 }
 
-function persistenceCode(result: SupabaseFunctionResponse) {
-  const status = result.response?.status;
-  return status === undefined || status >= 500
+function providerStatus(error: unknown): number | null {
+  if (typeof error !== "object" || error === null) return null;
+  const context = (error as { readonly context?: unknown }).context;
+  if (typeof context !== "object" || context === null) return null;
+  const status = (context as { readonly status?: unknown }).status;
+  return typeof status === "number" && Number.isInteger(status) ? status : null;
+}
+
+function persistenceCode(error: unknown) {
+  const status = providerStatus(error);
+  return status === null || status >= 500
     ? ("storage_retryable" as const)
     : ("persistence_failed" as const);
 }
@@ -62,7 +69,7 @@ export class SupabasePrivateDocumentIngestAdapter implements TrustedPrivateDocum
 
     if (result.error !== null) {
       throw new DocumentPersistenceError(
-        persistenceCode(result),
+        persistenceCode(result.error),
         "Trusted private document ingestion failed.",
       );
     }

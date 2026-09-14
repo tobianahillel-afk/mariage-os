@@ -27,7 +27,10 @@ interface ReservedDocument {
   readonly remote_url: string | null;
 }
 
-function json(status: number, body: Readonly<Record<string, unknown>>): Response {
+function json(
+  status: number,
+  body: Readonly<Record<string, unknown>>,
+): Response {
   return Response.json(body, {
     status,
     headers: corsHeaders,
@@ -38,6 +41,16 @@ function unavailable(status = 404): Response {
   return json(status, { error: "private_document_unavailable" });
 }
 
+function dictionaryDefaultKey(dictionary: string): string | null {
+  try {
+    const parsed = JSON.parse(dictionary) as Record<string, unknown>;
+    const value = parsed.default;
+    return typeof value === "string" && value.length > 0 ? value : null;
+  } catch {
+    return null;
+  }
+}
+
 function environmentKey(
   dictionaryName: string,
   singularName: string,
@@ -45,13 +58,8 @@ function environmentKey(
 ): string | null {
   const dictionary = Deno.env.get(dictionaryName);
   if (dictionary) {
-    try {
-      const parsed = JSON.parse(dictionary) as Record<string, unknown>;
-      const value = parsed.default;
-      if (typeof value === "string" && value.length > 0) return value;
-    } catch {
-      return null;
-    }
+    const dictionaryKey = dictionaryDefaultKey(dictionary);
+    if (dictionaryKey !== null) return dictionaryKey;
   }
 
   const singular = Deno.env.get(singularName);
@@ -166,10 +174,7 @@ Deno.serve(async (request: Request) => {
   }
 
   const declaredLength = Number(request.headers.get("content-length"));
-  if (
-    Number.isFinite(declaredLength) &&
-    declaredLength > MAX_BYTES
-  ) {
+  if (Number.isFinite(declaredLength) && declaredLength > MAX_BYTES) {
     return unavailable(413);
   }
 
@@ -195,7 +200,8 @@ Deno.serve(async (request: Request) => {
     auth: { persistSession: false, autoRefreshToken: false },
     global: { headers: { Authorization: `Bearer ${token}` } },
   });
-  const { data: userData, error: userError } = await userClient.auth.getUser(token);
+  const { data: userData, error: userError } =
+    await userClient.auth.getUser(token);
   if (userError || userData.user === null) return unavailable(401);
 
   if (!(await hasWritePermission(userClient, projectId))) return unavailable();

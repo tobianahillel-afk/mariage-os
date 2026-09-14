@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { createHash, randomUUID } from "node:crypto";
+import { createHash, createHmac, randomUUID } from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { createClient } from "@supabase/supabase-js";
 
@@ -9,6 +9,16 @@ const npmExecPath = process.env.npm_execpath;
 
 function fail(message) {
   throw new Error(message);
+}
+
+function safeErrorCode(error) {
+  if (typeof error !== "object" || error === null) return "unknown";
+  if (!("code" in error)) return "unknown";
+  return String(error.code);
+}
+
+function rpcFailure(error, context) {
+  if (error) fail(`${context} failed (${safeErrorCode(error)}).`);
 }
 
 function parseEnvValue(raw) {
@@ -24,6 +34,25 @@ function parseEnvValue(raw) {
     return value.slice(1, -1);
   }
   return value;
+}
+
+function base64UrlJson(value) {
+  return Buffer.from(JSON.stringify(value)).toString("base64url");
+}
+
+function localLegacyKey(jwtSecret, role) {
+  const now = Math.floor(Date.now() / 1000);
+  const header = base64UrlJson({ alg: "HS256", typ: "JWT" });
+  const payload = base64UrlJson({
+    iss: "supabase-demo",
+    role,
+    iat: now - 60,
+    exp: now + 86_400,
+  });
+  const signature = createHmac("sha256", jwtSecret)
+    .update(`${header}.${payload}`)
+    .digest("base64url");
+  return `${header}.${payload}.${signature}`;
 }
 
 function localSupabaseEnvironment() {
@@ -45,20 +74,18 @@ function localSupabaseEnvironment() {
   }
 
   const apiUrl = values.get("API_URL") ?? values.get("SUPABASE_URL");
-  const anonKey =
-    values.get("ANON_KEY") ??
-    values.get("PUBLISHABLE_KEY") ??
-    values.get("SUPABASE_ANON_KEY");
-  const serviceRoleKey =
-    values.get("SERVICE_ROLE_KEY") ??
-    values.get("SECRET_KEY") ??
-    values.get("SUPABASE_SERVICE_ROLE_KEY");
-
-  if (!apiUrl || !anonKey || !serviceRoleKey) {
-    fail("Local Supabase status omitted required API credentials.");
+  const jwtSecret = values.get("JWT_SECRET");
+  if (!apiUrl || !jwtSecret) {
+    fail("Local Supabase status omitted API_URL or JWT_SECRET.");
   }
 
-  return { apiUrl, anonKey, serviceRoleKey };
+  return {
+    apiUrl,
+    anonKey: values.get("ANON_KEY") ?? localLegacyKey(jwtSecret, "anon"),
+    serviceRoleKey:
+      values.get("SERVICE_ROLE_KEY") ??
+      localLegacyKey(jwtSecret, "service_role"),
+  };
 }
 
 function digest(bytes) {
@@ -79,37 +106,24 @@ function storagePath(projectId, documentId) {
   return `${projectId}/documents/${documentId}/original`;
 }
 
-function rpcFailure(error, context) {
-  if (error) fail(`${context} failed.`);
-}
-
-async function createSyntheticUser(admin, apiUrl, anonKey, roleKey, projectId) {
+async function createSyntheticIdentity(admin, apiUrl, anonKey, label) {
   const suffix = randomUUID();
-  const email = `wp29c-${roleKey}-${suffix}@example.invalid`;
+  const email = `wp29c-${label}-${suffix}@example.invalid`;
   const password = `Synthetic-${suffix}-A1!`;
-  const { data, error } = await admin.auth.admin.createUser({
+  const created = await admin.auth.admin.createUser({
     email,
     password,
     email_confirm: true,
   });
-  rpcFailure(error, "Synthetic auth user creation");
-  const userId = data.user?.id;
+  rpcFailure(created.error, "Synthetic auth user creation");
+  const userId = created.data.user?.id;
   if (!userId) fail("Synthetic auth user creation returned no identity.");
 
   const profile = await admin.from("profiles").insert({
     id: userId,
-    display_name: `WP29C ${roleKey}`,
+    display_name: `WP29C ${label}`,
   });
   rpcFailure(profile.error, "Synthetic profile creation");
-
-  const membership = await admin.from("project_members").insert({
-    project_id: projectId,
-    user_id: userId,
-    role_key: roleKey,
-    membership_status: "active",
-    accepted_at: new Date().toISOString(),
-  });
-  rpcFailure(membership.error, "Synthetic membership creation");
 
   const client = createClient(apiUrl, anonKey, {
     auth: { persistSession: false, autoRefreshToken: false },
@@ -117,6 +131,26 @@ async function createSyntheticUser(admin, apiUrl, anonKey, roleKey, projectId) {
   const signIn = await client.auth.signInWithPassword({ email, password });
   rpcFailure(signIn.error, "Synthetic user sign-in");
   return { userId, client };
+}
+
+async function addMembership(admin, projectId, userId, roleKey) {
+  const result = await admin.from("project_members").insert({
+    project_id: projectId,
+    user_id: userId,
+    role_key: roleKey,
+    membership_status: "active",
+    accepted_at: new Date().toISOString(),
+  });
+  rpcFailure(result.error, "Synthetic membership creation");
+}
+
+async function updateMembership(admin, projectId, userId, values) {
+  const result = await admin
+    .from("project_members")
+    .update(values)
+    .eq("project_id", projectId)
+    .eq("user_id", userId);
+  rpcFailure(result.error, "Synthetic membership update");
 }
 
 async function reserve(client, projectId, documentId, bytes, title) {
@@ -161,7 +195,13 @@ async function finalize(client, projectId, documentId) {
   rpcFailure(result.error, "Private document finalization");
 }
 
-async function invoke(client, projectId, documentId, bytes, mimeType = "application/pdf") {
+async function invoke(
+  client,
+  projectId,
+  documentId,
+  bytes,
+  mimeType = "application/pdf",
+) {
   return client.functions.invoke("private-document-ingest", {
     body: bytes.slice().buffer,
     headers: {
@@ -175,7 +215,11 @@ async function invoke(client, projectId, documentId, bytes, mimeType = "applicat
 async function assertNoTrustedObject(admin, projectId, documentId) {
   const path = storagePath(projectId, documentId);
   const object = await admin.storage.from(BUCKET).download(path);
-  assert.notEqual(object.error, null, "Rejected ingest must not create Storage bytes.");
+  assert.notEqual(
+    object.error,
+    null,
+    "Rejected ingest must not create Storage bytes.",
+  );
 
   const attestation = await admin
     .from("private_document_ingest_attestations")
@@ -188,6 +232,16 @@ async function assertNoTrustedObject(admin, projectId, documentId) {
     0,
     "Rejected ingest must not create an attestation.",
   );
+}
+
+async function assertNoAttestation(admin, projectId, documentId) {
+  const result = await admin
+    .from("private_document_ingest_attestations")
+    .select("document_id")
+    .eq("project_id", projectId)
+    .eq("document_id", documentId);
+  rpcFailure(result.error, "Trusted attestation inspection");
+  assert.equal(result.data.length, 0);
 }
 
 async function assertReady(admin, projectId, documentId) {
@@ -215,28 +269,39 @@ async function run() {
   const objectPaths = [];
 
   try {
-    const project = await admin.from("projects").insert({
-      id: projectId,
-      name: "WP-2.9C Edge integration",
-    });
-    rpcFailure(project.error, "Synthetic project creation");
-
-    const writer = await createSyntheticUser(
+    const writer = await createSyntheticIdentity(
       admin,
       apiUrl,
       anonKey,
-      "owner",
-      projectId,
+      "writer",
     );
     userIds.push(writer.userId);
-    const viewer = await createSyntheticUser(
+
+    const project = await admin.from("projects").insert({
+      id: projectId,
+      name: "WP-2.9C Edge integration",
+      created_by: writer.userId,
+      updated_by: writer.userId,
+    });
+    rpcFailure(project.error, "Synthetic project creation");
+    await addMembership(admin, projectId, writer.userId, "owner");
+
+    const viewer = await createSyntheticIdentity(
       admin,
       apiUrl,
       anonKey,
       "viewer",
-      projectId,
     );
     userIds.push(viewer.userId);
+    await addMembership(admin, projectId, viewer.userId, "viewer");
+
+    const outsider = await createSyntheticIdentity(
+      admin,
+      apiUrl,
+      anonKey,
+      "outsider",
+    );
+    userIds.push(outsider.userId);
 
     const smallDocumentId = randomUUID();
     const small = pdfBytes(512);
@@ -273,6 +338,30 @@ async function run() {
       "documents.read without documents.write must not ingest.",
     );
 
+    const outsiderAttempt = await invoke(
+      outsider.client,
+      projectId,
+      smallDocumentId,
+      small,
+    );
+    assert.notEqual(
+      outsiderAttempt.error,
+      null,
+      "Project outsider must not ingest.",
+    );
+
+    const substitutedIdentityAttempt = await invoke(
+      writer.client,
+      randomUUID(),
+      smallDocumentId,
+      small,
+    );
+    assert.notEqual(
+      substitutedIdentityAttempt.error,
+      null,
+      "Caller-substituted project identity must be denied.",
+    );
+
     const directUpload = await writer.client.storage
       .from(BUCKET)
       .upload(storagePath(projectId, smallDocumentId), small, {
@@ -284,6 +373,28 @@ async function run() {
       null,
       "Authenticated writer must not bypass trusted ingest with Storage INSERT.",
     );
+
+    const emptyAttempt = await invoke(
+      writer.client,
+      projectId,
+      smallDocumentId,
+      new Uint8Array(0),
+    );
+    assert.notEqual(emptyAttempt.error, null, "Empty bytes must be rejected.");
+    await assertNoTrustedObject(admin, projectId, smallDocumentId);
+
+    const shortAttempt = await invoke(
+      writer.client,
+      projectId,
+      smallDocumentId,
+      small.slice(0, small.byteLength - 1),
+    );
+    assert.notEqual(
+      shortAttempt.error,
+      null,
+      "Actual size mismatch must be rejected.",
+    );
+    await assertNoTrustedObject(admin, projectId, smallDocumentId);
 
     const substitutedBytes = small.slice();
     substitutedBytes[substitutedBytes.length - 1] ^= 0xff;
@@ -314,6 +425,46 @@ async function run() {
     );
     await assertNoTrustedObject(admin, projectId, smallDocumentId);
 
+    await updateMembership(admin, projectId, writer.userId, {
+      role_key: "viewer",
+    });
+    const downgradedAttempt = await invoke(
+      writer.client,
+      projectId,
+      smallDocumentId,
+      small,
+    );
+    assert.notEqual(
+      downgradedAttempt.error,
+      null,
+      "Live role downgrade must revoke trusted ingest authority.",
+    );
+    await assertNoTrustedObject(admin, projectId, smallDocumentId);
+    await updateMembership(admin, projectId, writer.userId, {
+      role_key: "owner",
+    });
+
+    await updateMembership(admin, projectId, writer.userId, {
+      membership_status: "revoked",
+      revoked_at: new Date().toISOString(),
+    });
+    const revokedAttempt = await invoke(
+      writer.client,
+      projectId,
+      smallDocumentId,
+      small,
+    );
+    assert.notEqual(
+      revokedAttempt.error,
+      null,
+      "Revoked membership must deny trusted ingest.",
+    );
+    await assertNoTrustedObject(admin, projectId, smallDocumentId);
+    await updateMembership(admin, projectId, writer.userId, {
+      membership_status: "active",
+      revoked_at: null,
+    });
+
     const accepted = await invoke(
       writer.client,
       projectId,
@@ -329,12 +480,30 @@ async function run() {
       smallDocumentId,
       small,
     );
-    assert.equal(replay.error, null, "Exact interrupted-upload retry must recover.");
+    assert.equal(
+      replay.error,
+      null,
+      "Exact interrupted-upload retry must recover.",
+    );
     assert.deepEqual(replay.data, { ok: true, replayed: true });
 
     await finalize(writer.client, projectId, smallDocumentId);
     await assertReady(admin, projectId, smallDocumentId);
-    console.log("PASS trusted-ingest authorization, byte integrity and idempotent retry");
+
+    const readyAttempt = await invoke(
+      writer.client,
+      projectId,
+      smallDocumentId,
+      small,
+    );
+    assert.notEqual(
+      readyAttempt.error,
+      null,
+      "Ready documents must not re-enter trusted ingest.",
+    );
+    console.log(
+      "PASS trusted-ingest authorization, byte integrity and idempotent retry",
+    );
 
     const invalidSignatureDocumentId = randomUUID();
     const invalidSignature = new Uint8Array(64);
@@ -361,6 +530,43 @@ async function run() {
     await assertNoTrustedObject(admin, projectId, invalidSignatureDocumentId);
     console.log("PASS trusted-ingest independent PDF signature validation");
 
+    const poisonedDocumentId = randomUUID();
+    const expectedPoisonedBytes = pdfBytes(384);
+    await reserve(
+      writer.client,
+      projectId,
+      poisonedDocumentId,
+      expectedPoisonedBytes,
+      "Synthetic poisoned existing object",
+    );
+    const poisonedPath = storagePath(projectId, poisonedDocumentId);
+    objectPaths.push(poisonedPath);
+    const poisonedBytes = expectedPoisonedBytes.slice();
+    poisonedBytes[poisonedBytes.length - 1] ^= 0xff;
+    const injected = await admin.storage.from(BUCKET).upload(
+      poisonedPath,
+      poisonedBytes,
+      {
+        contentType: "application/pdf",
+        upsert: false,
+      },
+    );
+    rpcFailure(injected.error, "Synthetic privileged stale object injection");
+
+    const poisonedAttempt = await invoke(
+      writer.client,
+      projectId,
+      poisonedDocumentId,
+      expectedPoisonedBytes,
+    );
+    assert.notEqual(
+      poisonedAttempt.error,
+      null,
+      "Mismatched pre-existing bytes must never become trusted.",
+    );
+    await assertNoAttestation(admin, projectId, poisonedDocumentId);
+    console.log("PASS mismatched existing object fails closed");
+
     const feasibilityDocumentId = randomUUID();
     const feasibilityBytes = pdfBytes(MAX_BYTES);
     await reserve(
@@ -371,6 +577,22 @@ async function run() {
       "Synthetic 25 MB feasibility PDF",
     );
     objectPaths.push(storagePath(projectId, feasibilityDocumentId));
+
+    const oversizeBytes = new Uint8Array(MAX_BYTES + 1);
+    oversizeBytes.set(feasibilityBytes);
+    const oversizeAttempt = await invoke(
+      writer.client,
+      projectId,
+      feasibilityDocumentId,
+      oversizeBytes,
+    );
+    assert.notEqual(
+      oversizeAttempt.error,
+      null,
+      "25,000,001-byte payload must be rejected.",
+    );
+    await assertNoTrustedObject(admin, projectId, feasibilityDocumentId);
+
     const feasibility = await invoke(
       writer.client,
       projectId,
