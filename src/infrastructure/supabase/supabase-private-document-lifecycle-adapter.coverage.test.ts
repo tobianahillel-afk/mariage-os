@@ -47,7 +47,7 @@ const identity = { operationId, projectId, documentId };
 const transition = { ...identity, expectedRevision: 2 };
 const linkInput = { ...transition, venueId, linkId };
 
-describe("SupabasePrivateDocumentLifecycleAdapter action coverage", () => {
+describe("SupabasePrivateDocumentLifecycleAdapter upload action coverage", () => {
   it("finalizes a ready document", async () => {
     const client = rpcClient({
       action: "finalize_upload",
@@ -80,7 +80,9 @@ describe("SupabasePrivateDocumentLifecycleAdapter action coverage", () => {
       absent: true,
     });
   });
+});
 
+describe("SupabasePrivateDocumentLifecycleAdapter Venue action coverage", () => {
   it("links a ready document to a Venue", async () => {
     const client = rpcClient({
       action: "link_venue",
