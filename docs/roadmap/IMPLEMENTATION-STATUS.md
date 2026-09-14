@@ -39,7 +39,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.8A | Venue remote-image metadata and Venue links | **ACCEPTED / COMPLETE** |
 | WP-2.8B | Venue private archived media lifecycle | **ACCEPTED / COMPLETE** |
 | WP-2.8C | recoverable Venue remote-media metadata lifecycle | **ACCEPTED / COMPLETE** |
-| WP-2.9A | Venue-linked private PDF/document foundation | **REVIEW_FAILED / B-ADVERSARIAL-REVIEW / CURRENT** |
+| WP-2.9A | Venue-linked private PDF/document foundation | **IN_PROGRESS / REMEDIATION — WP29A-AR-003 / CURRENT** |
 | WP-2.9B | generic project tags and Venue entity-tag links | **PLANNED / AFTER A** |
 | WP-2.10 | repositories, local cache, pending/offline mutations | PLANNED |
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace | PLANNED |
@@ -67,7 +67,7 @@ The former monolithic WP-2.9 was revalidated at **12 points** and split before c
 
 ### WP-2.9A — Venue-linked private document foundation
 
-- **REVIEW_FAILED / B-ADVERSARIAL-REVIEW / CURRENT**.
+- **IN_PROGRESS / REMEDIATION — WP29A-AR-003 / CURRENT**.
 - FIR: `#17 / FTR-089`.
 - Owns FTR-089 Lot-2, `MED-001/002/003/008/010`, ordinary private PDF metadata, Venue `document_links`, private Storage lifecycle, provenance, read/download authorization and recoverable metadata soft-delete/restore.
 - Reuses `project-private` at `<project_id>/documents/<document_id>/original`.
@@ -82,7 +82,9 @@ The former monolithic WP-2.9 was revalidated at **12 points** and split before c
 - Fresh Pass-B entry/governance `78904546f3d8f4c15276a1bbe0825455f1262ee4` / `34837421096` — **5/5 SUCCESS**.
 - `WP29A-AR-002` — **MAJOR / CLOSED / VERIFIED**: read parser UTF-16 filename counting; durable failure `9654c90ed7da27033d1f08d6effc6f47cac3dff9` / `34839274681`, remediation transition `b2e94c47f6d523adbf731fdd15cf796cca4c5ca9` / `34840180167`, focused RED `2f06b7963e7d09e3c00264d3351745213a75f964` / `34840851767`, remediation `c78c22ff10c02cd6ab798a21e16b5c7acbc3effb` / `34841804605` — remediation **5/5 SUCCESS**, Core 158 files / 1546 tests / 100% coverage.
 - Review-pending transition `c6c3afa56a66be97a590d4ce2b63932e6af5a46e` / `34842684753` — **5/5 SUCCESS**, clean-checkout included.
-- Current fresh Pass B verifies the AR-002 read-parser remediation but finds `WP29A-AR-003` — **MAJOR / OPEN**: Unicode-length parity remains broken in the lifecycle receipt parser and bounded `document_type`/`title` provider parsing.
+- Fresh Pass B verifies the AR-002 read-parser remediation but finds `WP29A-AR-003` — **MAJOR / OPEN**: Unicode-length parity remains broken in the lifecycle receipt parser and bounded `document_type`/`title` provider parsing.
+- Durable AR-003 review-failure record `39ea780ac9ac724a9450a5ac8a5d0179986591ed` / `34844606086` — **5/5 SUCCESS**, clean-checkout included.
+- Remediation is now reopened under the frozen AR-003 scope; no implementation expansion is authorized.
 
 ### WP-2.9B — Generic project tags and Venue entity-tag links
 
@@ -96,11 +98,12 @@ The split repairs the old WP-2.9 traceability omission by assigning `MED-008` ex
 ## Current next-action gate
 
 1. Pass-A historical evidence remains `e533b5c53d1be074216ccaa92f74281b425de770` / `34826553890` — **5/5 SUCCESS**.
-2. `WP29A-AR-001` is **CLOSED / VERIFIED**.
-3. `WP29A-AR-002` read-parser remediation is **CLOSED / VERIFIED** by the current fresh Pass B after `c78c22ff10c02cd6ab798a21e16b5c7acbc3effb` / `34841804605` and review-pending gate `c6c3afa56a66be97a590d4ce2b63932e6af5a46e` / `34842684753`, both **5/5 SUCCESS**.
-4. Fresh Pass B outcome is **FAIL** because `WP29A-AR-003` is **MAJOR / OPEN**. `parsePrivateDocumentReceipt()` still counts `original_filename` with UTF-16 `value.length`, so the frozen-valid `508 × 😀 + ".pdf"` can be accepted by upload validation and PostgreSQL reservation but rejected by the reserve receipt parser, leaving a pending row and returning `provider_response_invalid` before Storage upload. The same server/parser length-unit drift exists for DB-valid Unicode `document_type`/`title` because PostgreSQL uses `char_length` while TypeScript bounded parsers use UTF-16 code units.
-5. WP-2.9A is now **REVIEW_FAILED / B-ADVERSARIAL-REVIEW**. Before any code change, this failure record must pass exact-head CI; only then may a separate transition reopen `IN_PROGRESS / REMEDIATION — WP29A-AR-003`.
-6. Pass C, WP-2.9B and later packets remain forbidden while `WP29A-AR-003` is unresolved.
+2. `WP29A-AR-001` and `WP29A-AR-002` are **CLOSED / VERIFIED**.
+3. Fresh Pass B failed on `WP29A-AR-003` — **MAJOR / OPEN**: lifecycle receipt filename parsing still uses UTF-16 code-unit length, and `document_type`/`title` provider/service bounds disagree with PostgreSQL `char_length` for astral Unicode.
+4. Durable REVIEW_FAILED record `39ea780ac9ac724a9450a5ac8a5d0179986591ed` / `34844606086` is **5/5 SUCCESS**, clean-checkout included.
+5. WP-2.9A is now **IN_PROGRESS / REMEDIATION — WP29A-AR-003**. This remediation-transition commit must pass exact-head CI before any RED test or product-code change.
+6. Once that transition gate is green, the only permitted product change is focused RED evidence for: a frozen-valid 512-scalar reserve receipt filename, DB-valid astral `document_type`, and DB-valid astral `title`. Implementation follows only after the RED is isolated and recorded.
+7. Pass C, WP-2.9B and later packets remain forbidden while `WP29A-AR-003` is unresolved.
 
 ## Known localized repairs / stop conditions
 
@@ -116,7 +119,7 @@ The split repairs the old WP-2.9 traceability omission by assigning `MED-008` ex
 - WP-2.9A Pass-A coverage/format/maintainability closure: **CLOSED / VERIFIED** by `e533b5c5...` / `34826553890` 5/5.
 - WP29A-AR-001 Document read/list/download foundation: **CLOSED / VERIFIED** by remediation `0072792d...` / `34836621394` and fresh review gate `78904546...` / `34837421096`, both 5/5.
 - WP29A-AR-002 read-parser Unicode-scalar filename parity: **CLOSED / VERIFIED** by remediation `c78c22ff...` / `34841804605` and fresh review on `c6c3afa5...` / `34842684753`.
-- WP29A-AR-003 lifecycle receipt/bounded-text Unicode parity: **MAJOR / OPEN**; no remediation code may begin until this durable REVIEW_FAILED exact-head gate succeeds and the packet separately transitions back to remediation.
+- WP29A-AR-003 lifecycle receipt/bounded-text Unicode parity: **MAJOR / OPEN / REMEDIATION**; durable review-failure gate `39ea780a...` / `34844606086` is 5/5. Focused RED may begin only after this remediation-transition exact-head gate succeeds.
 
 ## Durable handoff
 
@@ -128,20 +131,18 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.8C
 Last completed packet: WP-2.8C — ACCEPTED / COMPLETE
-Current packet: WP-2.9A — REVIEW_FAILED / B-ADVERSARIAL-REVIEW
+Current packet: WP-2.9A — IN_PROGRESS / REMEDIATION — WP29A-AR-003
 Closed finding: WP29A-AR-001 — MAJOR — remediation verified by fresh Pass B
-Closed finding: WP29A-AR-002 — MAJOR — read-parser remediation verified by current fresh Pass B
+Closed finding: WP29A-AR-002 — MAJOR — read-parser remediation verified by fresh Pass B
 Open finding: WP29A-AR-003 — MAJOR — lifecycle receipt and bounded-text Unicode length parity
 FTR-089 FIR: #17
 Following packet: WP-2.9B — PLANNED / AFTER A
 Pass-A final: e533b5c53d1be074216ccaa92f74281b425de770 / 34826553890 — 5/5 SUCCESS
 AR-001 remediation: 0072792d2eb67cce1bf98c4c312d9576feacc156 / 34836621394 — 5/5 SUCCESS
-Prior fresh Pass-B entry: 78904546f3d8f4c15276a1bbe0825455f1262ee4 / 34837421096 — 5/5 SUCCESS
-AR-002 prior failure record: 9654c90ed7da27033d1f08d6effc6f47cac3dff9 / 34839274681 — 5/5 SUCCESS
-AR-002 RED: 2f06b7963e7d09e3c00264d3351745213a75f964 / 34840851767 — expected RED isolated to one regression
 AR-002 remediation final: c78c22ff10c02cd6ab798a21e16b5c7acbc3effb / 34841804605 — 5/5 SUCCESS
-Current fresh-review entry: c6c3afa56a66be97a590d4ce2b63932e6af5a46e / 34842684753 — 5/5 SUCCESS
-Current gate: durable REVIEW_FAILED evidence for WP29A-AR-003, then separate remediation transition
+Fresh-review entry: c6c3afa56a66be97a590d4ce2b63932e6af5a46e / 34842684753 — 5/5 SUCCESS
+AR-003 durable review failure: 39ea780ac9ac724a9450a5ac8a5d0179986591ed / 34844606086 — 5/5 SUCCESS
+Current gate: exact-head CI for AR-003 remediation transition; then focused RED evidence
 Pass C forbidden until no BLOCKING/MAJOR finding remains unresolved
 WP-2.9B and later packets untouched
 Lots 3–12: NOT_STARTED

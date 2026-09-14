@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.9A`
 - Lot: `2`
 - Name: Venue-linked private document foundation
-- State: `REVIEW_FAILED`
-- Current pass: `B-ADVERSARIAL-REVIEW`
+- State: `IN_PROGRESS`
+- Current pass: `REMEDIATION — WP29A-AR-003`
 - Primary bounded context: Documents — private PDF metadata, Venue links, Storage lifecycle and recoverable metadata
 - Branch/PR: `lot-2/venues-core` / Lot-2 integration PR not opened yet
 - FIR: `#17 / FTR-089`
@@ -30,14 +30,16 @@ Evidence:
 - Pass-A implementation/evidence HEAD: `e533b5c53d1be074216ccaa92f74281b425de770` / CI `34826553890` — **5/5 SUCCESS**, clean-checkout included; Core reports **152 test files / 1465 tests / 100% statements, branches, functions and lines**;
 - first Pass B found `WP29A-AR-001` — **MAJOR**; packet was durably recorded `REVIEW_FAILED` before remediation began;
 - `WP29A-AR-001` remediation/evidence HEAD: `0072792d2eb67cce1bf98c4c312d9576feacc156` / CI `34836621394` — **5/5 SUCCESS**, clean-checkout included; Core reports **1539 tests / 100% statements, branches, functions and lines**;
-- fresh Pass-B entry/governance HEAD: `78904546f3d8f4c15276a1bbe0825455f1262ee4` / CI `34837421096` — **5/5 SUCCESS**, clean-checkout included;
-- fresh Pass B verified `WP29A-AR-001` as **CLOSED / VERIFIED**, but found `WP29A-AR-002` — **MAJOR**;
+- prior fresh Pass-B entry/governance HEAD: `78904546f3d8f4c15276a1bbe0825455f1262ee4` / CI `34837421096` — **5/5 SUCCESS**, clean-checkout included;
+- prior fresh Pass B verified `WP29A-AR-001` as **CLOSED / VERIFIED**, but found `WP29A-AR-002` — **MAJOR**;
 - durable AR-002 review-failure record HEAD: `9654c90ed7da27033d1f08d6effc6f47cac3dff9` / CI `34839274681` — **5/5 SUCCESS**, clean-checkout included;
 - AR-002 remediation-transition governance HEAD: `b2e94c47f6d523adbf731fdd15cf796cca4c5ca9` / CI `34840180167` — **5/5 SUCCESS**, clean-checkout included;
 - AR-002 focused RED HEAD: `2f06b7963e7d09e3c00264d3351745213a75f964` / CI `34840851767` — expected RED isolated to the contract-valid 512-Unicode-scalar read-parser regression; Core 1539 passing / 1 failing test and DB/RLS + Browser/mutation remained green;
 - AR-002 remediation/evidence HEAD: `c78c22ff10c02cd6ab798a21e16b5c7acbc3effb` / CI `34841804605` — **5/5 SUCCESS**, clean-checkout included; Core reports **158 test files / 1546 tests / 100% statements, branches, functions and lines**;
 - current fresh Pass-B entry/governance HEAD: `c6c3afa56a66be97a590d4ce2b63932e6af5a46e` / CI `34842684753` — **5/5 SUCCESS**, clean-checkout included;
-- current fresh Pass B verifies the AR-002 read-parser remediation as **CLOSED / VERIFIED**, but finds `WP29A-AR-003` — **MAJOR / OPEN**.
+- current fresh Pass B verifies the AR-002 read-parser remediation as **CLOSED / VERIFIED**, but finds `WP29A-AR-003` — **MAJOR / OPEN**;
+- durable AR-003 review-failure record HEAD: `39ea780ac9ac724a9450a5ac8a5d0179986591ed` / CI `34844606086` — **5/5 SUCCESS**, clean-checkout included;
+- packet is now reopened as **IN_PROGRESS / REMEDIATION — WP29A-AR-003**. The remediation-transition exact-head gate must be green before focused RED tests are added.
 
 WP-2.9B remains `PLANNED / AFTER A` and cannot activate while A is active.
 
@@ -276,9 +278,9 @@ The frozen RED-first contract remains byte-for-byte authoritative and was satisf
 
 **Remediation.** Upload and provider-read boundaries now share the scalar-aware safe private-document filename predicate; focused tests cover 512 accepted, 513 rejected, surrogate/control/path-separator rejection. Remediation `c78c22ff10c02cd6ab798a21e16b5c7acbc3effb` / CI `34841804605` is **5/5 SUCCESS**, clean-checkout included.
 
-**Fresh-review verdict.** `CLOSED / VERIFIED` for the original read-parser defect. Current fresh Pass B independently re-read the read parser and confirms it now delegates to the canonical scalar-aware filename predicate.
+**Fresh-review verdict.** `CLOSED / VERIFIED` for the original read-parser defect. Fresh Pass B independently re-read the read parser and confirms it now delegates to the canonical scalar-aware filename predicate.
 
-### WP29A-AR-003 — MAJOR / OPEN — Unicode-length parity remains broken in lifecycle receipts and bounded document metadata
+### WP29A-AR-003 — MAJOR / OPEN / REMEDIATION — Unicode-length parity remains broken in lifecycle receipts and bounded document metadata
 
 **Finding A — normal reserve flow still breaks on the frozen-valid filename boundary.** `parsePrivateDocumentReceipt()` still validates `original_filename` using JavaScript `value.length <= 512`. `SupabasePrivateDocumentLifecycleAdapter.reserveUpload()` calls the public `manage_private_document(...)` RPC and then immediately parses its returned `document` through this receipt parser. The domain upload validator and PostgreSQL reservation accept `508 × 😀 + ".pdf"` as exactly 512 Unicode scalar values, but the receipt parser sees more than 512 UTF-16 code units and throws `provider_response_invalid`.
 
@@ -292,9 +294,11 @@ The frozen RED-first contract remains byte-for-byte authoritative and was satisf
 
 **Required remediation.** Establish one canonical Unicode-scalar-aware bounded-text rule for document metadata and reuse it across service input plus lifecycle/read provider parsers; reuse the already-canonical safe filename predicate in the lifecycle receipt parser rather than re-implementing filename validation. Add focused RED regressions for the 512-scalar reserve receipt and server-valid astral `title`/`document_type` read/receipt cases, while preserving fail-closed surrogate/control/trim/over-limit behavior. Do not change SQL/RLS/Storage policy, permissions, file types, UI, or WP-2.9B scope.
 
+**Remediation governance.** Durable REVIEW_FAILED evidence `39ea780ac9ac724a9450a5ac8a5d0179986591ed` / CI `34844606086` is **5/5 SUCCESS**, clean-checkout included. The packet is now reopened to remediation, but RED tests remain forbidden until the exact-head CI for this remediation-transition commit is green.
+
 ### Reviewed non-findings
 
-Current fresh Pass B also re-challenged:
+Fresh Pass B also re-challenged:
 
 - exact project/document/path binding before Storage access;
 - pending/deleted exclusion for ordinary reads;
@@ -308,14 +312,14 @@ No additional BLOCKING/MAJOR issue was found in those areas. A per-download SHA 
 
 ## Fresh Pass B outcome
 
-Current fresh Pass-B entry/governance HEAD `c6c3afa56a66be97a590d4ce2b63932e6af5a46e` / CI `34842684753` is **5/5 SUCCESS**, clean-checkout included. This review **closes `WP29A-AR-002`** for the original read-parser defect but **fails overall** because `WP29A-AR-003` is MAJOR / OPEN.
+Fresh Pass-B entry/governance HEAD `c6c3afa56a66be97a590d4ce2b63932e6af5a46e` / CI `34842684753` is **5/5 SUCCESS**, clean-checkout included. The review **closes `WP29A-AR-002`** for the original read-parser defect but **fails overall** because `WP29A-AR-003` is MAJOR / OPEN.
 
-The packet is therefore `REVIEW_FAILED / B-ADVERSARIAL-REVIEW`. No remediation code may begin until this failure state is itself durably recorded and exact-head green; after that, governance must separately transition the packet back to `IN_PROGRESS / REMEDIATION — WP29A-AR-003` before adding focused RED tests and implementation fixes.
+The failure state was durably recorded on `39ea780ac9ac724a9450a5ac8a5d0179986591ed` / CI `34844606086` — **5/5 SUCCESS**, clean-checkout included. Governance has now separately reopened the packet as `IN_PROGRESS / REMEDIATION — WP29A-AR-003`.
 
 ## Current gate
 
-WP-2.9A is **REVIEW_FAILED / B-ADVERSARIAL-REVIEW**.
+WP-2.9A is **IN_PROGRESS / REMEDIATION — WP29A-AR-003**.
 
-The only permitted next action is exact-head CI for this durable review-failure record. Once green, separately transition to `IN_PROGRESS / REMEDIATION — WP29A-AR-003`. Pass C remains forbidden while `WP29A-AR-003` is unresolved. WP-2.9B remains inactive until WP-2.9A is accepted.
+The only permitted next action is exact-head CI for this remediation-transition commit. Once green, add focused RED tests for the AR-003 filename receipt and bounded-text Unicode parity defects. Do not implement the fix until the RED failure is isolated and recorded. Pass C remains forbidden while `WP29A-AR-003` is unresolved. WP-2.9B remains inactive until WP-2.9A is accepted.
 
 Any implementation need that expands public capability, changes the frozen requirements, introduces a new permission key, or pushes the approved cohesive surface beyond 10 points requires a stop/rescore before code proceeds.
