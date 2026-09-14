@@ -65,9 +65,9 @@ select lives_ok(
   'authorized writer can reserve pending Document metadata'
 );
 
--- 2: RED under the current implementation. Ordinary authenticated clients
--- must not be able to create Document original objects directly; only the
--- trusted WP-2.9C server-ingest boundary may create this namespace.
+-- 2: ordinary authenticated clients must not create Document original objects
+-- directly; only the trusted WP-2.9C server-ingest boundary may create this
+-- namespace.
 select ok(
   not pg_temp.try_storage_insert(
     'ecaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/documents/ec300000-0000-4000-8000-000000000001/original'
@@ -75,9 +75,27 @@ select ok(
   'ordinary authenticated writer cannot directly insert a Document original object'
 );
 
--- 3: RED under the current implementation. If the untrusted direct INSERT is
--- still possible, object presence alone currently lets finalize_upload commit
--- ready truth even though no trusted boundary verified the reserved SHA/size.
+-- Inject the exact object with privileged Storage authority but deliberately do
+-- not create the trusted-ingest attestation. This separates "object exists"
+-- from "the trusted server independently verified these reserved bytes".
+reset role;
+set local role service_role;
+insert into storage.objects (bucket_id, name)
+values (
+  'project-private',
+  'ecaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/documents/ec300000-0000-4000-8000-000000000001/original'
+);
+reset role;
+
+set local role authenticated;
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"ec111111-1111-4111-8111-111111111111","role":"authenticated","aal":"aal1"}',
+  true
+);
+
+-- 3: privileged object presence alone is still not trusted evidence. The
+-- pending -> ready transition requires the service-only verified-ingest proof.
 select throws_ok(
   $$select public.manage_private_document(
     'finalize_upload', 'ec500000-0000-4000-8000-000000000002',
