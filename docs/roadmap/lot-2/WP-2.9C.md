@@ -18,9 +18,11 @@
 
 ## Current verdict
 
-Pass A completed successfully. The required fresh Pass B then found three unresolved MAJOR findings. Remediation implemented the AR-005 trusted cleanup/race controls and AR-007 deployment/secret/release controls, but AR-006 requires deployed Cloudflare Workers Free CPU telemetry for the exact `25,000,000`-byte trusted promotion. That provider evidence is not currently available in repository evidence, so the canonical packet state is now **BLOCKED** rather than falsely treating local workerd success as Free-plan CPU proof.
+Pass A completed successfully. The required fresh Pass B then found three unresolved MAJOR findings. Remediation implemented the AR-005 trusted cleanup/race controls and AR-007 deployment/secret/release controls, and the complete exact implementation head `68a4f6bdb7b55acc80c4c6fbb8c0afc0295bfde5` passed CI `35025384594` **5/5 SUCCESS**, including `Full verify from clean checkout`.
 
-WP-2.9C is not accepted and must not enter `REVIEW_PENDING` until AR-006 is evidenced and the resulting exact HEAD passes the complete verification gate.
+AR-006 still requires deployed Cloudflare Workers Free CPU telemetry for the exact `25,000,000`-byte trusted promotion. That provider evidence is not currently available in repository/FIR evidence, so the canonical packet state remains **BLOCKED** rather than falsely treating local workerd or repository CI success as Free-plan CPU proof.
+
+WP-2.9C is not accepted and must not enter `REVIEW_PENDING` until AR-006 is evidenced and the resulting evidence-bound exact HEAD passes the complete verification gate again.
 
 Pass-A implementation evidence:
 
@@ -38,6 +40,12 @@ Fresh Pass-B failure record:
 - finding record `deaa2432327b9512068a75635dde6f4c522467ad`;
 - packet REVIEW_FAILED record `d7fd7ae94792600d5d50afb51a7e6c96487e93a9`;
 - matrix REVIEW_FAILED record `f0ad5fab0d46a526a726028c7805b78bdb43b1d9`.
+
+Remediation exact-head verification evidence:
+
+- head `68a4f6bdb7b55acc80c4c6fbb8c0afc0295bfde5`;
+- CI `35025384594` — **5/5 SUCCESS**, clean-checkout included;
+- Core quality/security, Local Supabase DB/RLS/Pages Function, browser/mutation, privacy-safe preview and clean-checkout full verify all passed on the same implementation head.
 
 ## Current remediation findings
 
@@ -58,11 +66,13 @@ Remediation now implemented on the branch includes:
 - replay protection that does not destructively compensate a canonical object that pre-existed the current request;
 - focused RED/runtime coverage for interrupted staging, clean abandon/retry and promotion-state revalidation.
 
-Post-remediation evidence includes CI `35021446818`, where `Local Supabase DB, RLS and Pages Function` and browser/mutation jobs passed. The Core job failure on that SHA was isolated to a new uncovered invalid-abandon-receipt branch; the missing negative unit test was subsequently added. AR-005 is therefore implementation-remediated but still awaits the later exact-head complete verification and fresh Pass B required for formal closure.
+Earlier post-remediation CI `35021446818` isolated one new uncovered invalid-abandon-receipt branch in Core while the Local Supabase DB/RLS/Pages Function and browser/mutation jobs were already green. The missing negative unit test was then added. Final implementation evidence `68a4f6bdb7b55acc80c4c6fbb8c0afc0295bfde5` / `35025384594` is now **5/5 SUCCESS**, including clean-checkout full verify.
+
+AR-005 is therefore **IMPLEMENTATION-REMEDIATED / EXACT-HEAD-GREEN**. Formal finding closure still waits for the later complete fresh Pass B after AR-006 is unblocked.
 
 ### WP29C-AR-006 — MAJOR — Workers Free exact-25-MB CPU feasibility is not evidenced
 
-ADR 0010 freezes exact 25 MB promotion on the intended Workers/Pages Free operating envelope as an acceptance gate. Current exact-25-MB evidence is local Wrangler/workerd functionality only; deployed Free CPU enforcement and provider CPU consumption are not represented by that local success.
+ADR 0010 freezes exact 25 MB promotion on the intended Workers/Pages Free operating envelope as an acceptance gate. Current exact-25-MB evidence is local Wrangler/workerd functionality only; deployed Free CPU enforcement and provider CPU consumption are not represented by that local success or by repository CI.
 
 Durable blocker/proof protocol:
 
@@ -72,7 +82,9 @@ Provider limits rechecked on 2026-09-15 keep Workers Free at a normal `10 ms` CP
 
 Required unblock evidence is an isolated non-production Pages deployment on Workers Free, tied to an exact commit, with synthetic exact `25,000,000`-byte promotion and provider-produced CPU measurements. The retained controlled evidence must demonstrate normal operation inside the Free CPU budget without `exceededCpu`, Paid entitlement or a lowered file contract.
 
-No such provider CPU record is currently present. Therefore this finding is **OPEN / BLOCKING** and the packet state is **BLOCKED**.
+No concrete deployed Pages URL or provider CPU telemetry is currently recorded in the repository/FIR evidence inspected for this packet. That does not prove no external deployment exists; it means the acceptance evidence is unavailable to this packet.
+
+Therefore this finding is **OPEN / BLOCKING** and the packet state is **BLOCKED**.
 
 ### WP29C-AR-007 — MAJOR — deployment/secret operations not reconciled
 
@@ -87,7 +99,7 @@ Remediation now implemented includes:
 - `scripts/run-private-document-production-smoke.mjs` plus `npm run smoke:private-document-production`, which checks the deployed route without privileged credentials or real wedding data;
 - focused AR-007 documentation assertions to prevent silent contract drift.
 
-AR-007 is implementation-remediated but still awaits exact-head complete verification and the later complete fresh Pass B for formal closure.
+Final implementation evidence `68a4f6bdb7b55acc80c4c6fbb8c0afc0295bfde5` / `35025384594` is **5/5 SUCCESS**, including clean-checkout full verify. AR-007 is therefore **IMPLEMENTATION-REMEDIATED / EXACT-HEAD-GREEN**. Formal finding closure still waits for the later complete fresh Pass B after AR-006 is unblocked.
 
 ## Historical findings
 
@@ -195,7 +207,9 @@ Retain applicable evidence for:
 
 Pass-A head `297ecdf3337e8522d6f200a90f96b481a9e6bdb1` proved core quality/security, browser/mutation, DB/RLS/Pages runtime, preview and clean-checkout green; staging/RLS/canonical bypass controls green; same-origin bodyless promotion; old-route absence; open-ended framed-body rejection; exact-byte integrity/recovery; authorization/revocation; CORS; and exact 25 MB in the **local** runtime.
 
-Post-Pass-B AR-005 runtime evidence on CI `35021446818` additionally proves the local DB/RLS/Pages Function and browser/mutation jobs after the trusted abandon/race remediation. Later commits add the missing invalid-receipt unit coverage and AR-007 operational contracts/smoke.
+Post-Pass-B AR-005 runtime evidence on CI `35021446818` additionally proved the local DB/RLS/Pages Function and browser/mutation jobs after the trusted abandon/race remediation. Later commits added the missing invalid-receipt unit coverage and AR-007 operational contracts/smoke.
+
+Final remediation implementation head `68a4f6bdb7b55acc80c4c6fbb8c0afc0295bfde5` / CI `35025384594` is **5/5 SUCCESS**, including full verify from clean checkout. This validates the current repository implementation before the external AR-006 provider gate.
 
 Fresh Pass B specifically invalidates treating any local 25 MB success as sufficient Workers Free CPU evidence.
 
@@ -221,7 +235,7 @@ Current gate:
 1. retain AR-005 and AR-007 remediations without weakening their security contracts;
 2. obtain the deployed Workers Free exact-25-MB CPU proof defined in `WP-2.9C-AR-006-CPU-EVIDENCE.md`;
 3. if that proof fails the normal Free CPU envelope, remain `BLOCKED` and revisit architecture — do not enable Paid or lower the file contract silently;
-4. after valid AR-006 evidence, run exact-head full CI + clean-checkout verification including the AR-005/AR-007 remediations;
+4. after valid AR-006 evidence, run exact-head full CI + clean-checkout verification again over the evidence-bound candidate;
 5. transition back to `REVIEW_PENDING` only after all remediation evidence is green;
 6. run another complete fresh independent Pass B over all WP-2.9C responsibilities and AR-001..007;
 7. any BLOCKING/MAJOR finding → `REVIEW_FAILED`;
