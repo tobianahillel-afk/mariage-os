@@ -193,6 +193,7 @@ describe("SupabasePrivateDocumentIngestAdapter malformed errors", () => {
     const errors = [
       "raw provider failure",
       new Error("unknown function failure"),
+      { status: 503 },
       { context: null },
       { context: { status: "503" } },
     ];
