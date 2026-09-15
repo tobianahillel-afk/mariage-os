@@ -4,7 +4,8 @@ const WRANGLER_VERSION = "4.131.2";
 const npmExecPath = process.env.npm_execpath;
 
 function runtimeArgs() {
-  if (!npmExecPath) throw new Error("npm_execpath is required for Pages tests.");
+  if (!npmExecPath)
+    throw new Error("npm_execpath is required for Pages tests.");
   return [
     npmExecPath,
     "exec",

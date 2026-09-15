@@ -101,9 +101,7 @@ async function responsePayload(response: Response): Promise<unknown> {
   }
 }
 
-export class SupabasePrivateDocumentIngestAdapter
-  implements TrustedPrivateDocumentIngestPort
-{
+export class SupabasePrivateDocumentIngestAdapter implements TrustedPrivateDocumentIngestPort {
   constructor(
     private readonly staging: SupabasePrivateDocumentStagingClientLike,
     private readonly promotionFetch: PrivateDocumentPromotionFetch = (

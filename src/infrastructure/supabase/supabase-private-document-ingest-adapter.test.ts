@@ -17,9 +17,7 @@ interface UploadResult {
 }
 
 type SessionResult = Awaited<
-  ReturnType<
-    SupabasePrivateDocumentStagingClientLike["auth"]["getSession"]
-  >
+  ReturnType<SupabasePrivateDocumentStagingClientLike["auth"]["getSession"]>
 >;
 
 type StagingUpload = (
@@ -208,7 +206,9 @@ describe("SupabasePrivateDocumentIngestAdapter staging failures", () => {
 describe("SupabasePrivateDocumentIngestAdapter session boundary", () => {
   it("maps session lookup transport failure to retryable", async () => {
     const staging = successfulClient();
-    staging.getSession.mockRejectedValue(new Error("session store unavailable"));
+    staging.getSession.mockRejectedValue(
+      new Error("session store unavailable"),
+    );
 
     await expect(
       new SupabasePrivateDocumentIngestAdapter(staging.client).ingest(input()),
@@ -245,7 +245,9 @@ describe("SupabasePrivateDocumentIngestAdapter session boundary", () => {
       const upload = vi.fn().mockResolvedValue({ data: { path }, error: null });
       const staging = clientWith(upload, sessionResult);
       await expect(
-        new SupabasePrivateDocumentIngestAdapter(staging.client).ingest(input()),
+        new SupabasePrivateDocumentIngestAdapter(staging.client).ingest(
+          input(),
+        ),
       ).rejects.toSatisfy(
         (error: unknown) => persistenceCode(error) === "persistence_failed",
       );

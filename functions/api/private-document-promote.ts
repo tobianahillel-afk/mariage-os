@@ -98,11 +98,14 @@ interface PromotionContext {
 
 function nonEmpty(...values: ReadonlyArray<string | undefined>): string | null {
   return (
-    values.find((value) => typeof value === "string" && value.length > 0) ?? null
+    values.find((value) => typeof value === "string" && value.length > 0) ??
+    null
   );
 }
 
-function providerEnvironment(env: PagesEnvironment): ProviderEnvironment | null {
+function providerEnvironment(
+  env: PagesEnvironment,
+): ProviderEnvironment | null {
   const url = nonEmpty(env.SUPABASE_URL);
   const publishableKey = nonEmpty(
     env.SUPABASE_PUBLISHABLE_KEY,
