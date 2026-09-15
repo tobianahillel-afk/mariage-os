@@ -13,7 +13,7 @@ const PDF_SIGNATURE = new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d]);
 
 type EmptyProviderMap = Record<never, never>;
 
-interface ReservedDocument {
+type ReservedDocument = {
   readonly id: string;
   readonly project_id: string;
   readonly storage_path: string;
@@ -24,7 +24,7 @@ interface ReservedDocument {
   readonly upload_status: string;
   readonly deleted_at: string | null;
   readonly remote_url: string | null;
-}
+};
 
 interface ProviderDatabase {
   public: {
