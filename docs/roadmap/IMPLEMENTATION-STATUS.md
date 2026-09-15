@@ -40,7 +40,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.8B | Venue private archived media lifecycle | **ACCEPTED / COMPLETE** |
 | WP-2.8C | recoverable Venue remote-media metadata lifecycle | **ACCEPTED / COMPLETE** |
 | WP-2.9A | Venue-linked private PDF/document foundation | **BLOCKED — waits for WP-2.9C ACCEPTED** |
-| WP-2.9C | trusted private-document ingestion hardening | **IN_PROGRESS / A-IMPLEMENT / CURRENT** |
+| WP-2.9C | trusted private-document ingestion hardening | **BLOCKED — WP29C-AR-001 ingress architecture** |
 | WP-2.9B | generic project tags and Venue entity-tag links | **PLANNED / AFTER A** |
 | WP-2.10 | repositories, local cache, pending/offline mutations | PLANNED |
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace | PLANNED |
@@ -64,9 +64,9 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 
 ## WP-2.9 activation / remediation split
 
-The former monolithic WP-2.9 was revalidated at **12 points** and split before code into WP-2.9A and WP-2.9B. Fresh adversarial review of A later found AR-005, which requires a new trusted server/provider boundary. Because A was already 10 points, the stop/sizing rules require a separate remediation packet rather than silent scope expansion.
+The former monolithic WP-2.9 was revalidated at **12 points** and split before code into WP-2.9A and WP-2.9B. Fresh adversarial review of A later found AR-005, requiring a trusted server/provider boundary. Because A was already 10 points, the stop/sizing rules created the separate WP-2.9C remediation packet rather than silently expanding A.
 
-`ADR 0008 — Trusted server-side private-document binary ingestion` freezes that architecture. WP-2.9C is remediation/control work only; FTR-089 product ownership remains with A.
+ADR 0008 originally froze trusted server-side private-document ingestion. ADR 0009 later superseded only the raw PDF request-body transport with bounded private staging plus bodyless promotion. WP-2.9C remains remediation/control work only; FTR-089 product ownership remains with A.
 
 ### WP-2.9A — Venue-linked private document foundation
 
@@ -78,44 +78,72 @@ The former monolithic WP-2.9 was revalidated at **12 points** and split before c
 - Historical size **10**, cohesion **PASS**.
 - Split/spec freeze `40f17aba802e7faed9eade6096e2f3629fc80654` / `34788217062` — **5/5 SUCCESS**.
 - READY governance `0b30b045ef05c318d25c92abb379364f95705c4e` / `34788670807` — **5/5 SUCCESS**.
-- A-IMPLEMENT governance `f5a77c72cf5f28bccd823c7cdc78b01531b3b265` / `34789115986` — **5/5 SUCCESS**.
-- RED-first `9322915252925d3f75f5a224a82f9d391ccfec9d` / `34789545716` — expected RED only on the three frozen document-boundary assertions.
 - Pass-A implementation/evidence `e533b5c53d1be074216ccaa92f74281b425de770` / `34826553890` — **5/5 SUCCESS**; Core 152 files / 1465 tests / 100% coverage.
-- `WP29A-AR-001` — **MAJOR / CLOSED / VERIFIED**; remediation `0072792d2eb67cce1bf98c4c312d9576feacc156` / `34836621394` — **5/5 SUCCESS**.
-- `WP29A-AR-002` — **MAJOR / CLOSED / VERIFIED**; remediation `c78c22ff10c02cd6ab798a21e16b5c7acbc3effb` / `34841804605` — **5/5 SUCCESS**.
-- `WP29A-AR-003` — **MAJOR / CLOSED / VERIFIED**; RED `79afff6c87f7033af008de3fb3b86c3ff833b15c` / `34846914610`; remediation `fec1195dcbcfa15d97fe55b17a0fb5aad25b3813` / `34848872192`; fresh review governance `6a4e8087e3b6f3b1d3501c0ef2f0378defc119e4` / `34850247706` — remediation and fresh-review gates **5/5 SUCCESS**.
-- `WP29A-AR-004` — **MAJOR / OPEN**: TypeScript C1 control-character parity is incomplete for U+0080..U+009F.
-- `WP29A-AR-005` — **MAJOR / OPEN / ARCHITECTURE BLOCKER**: direct authenticated Storage ingress does not bind committed ready metadata to actual uploaded-byte SHA-256/size/MIME.
-- Durable AR-004/005 failure record `a58417f79e59e2bd2d2fcb4d202f568c15cfa947` / `34854785427` — **5/5 SUCCESS**, clean-checkout included.
+- `WP29A-AR-001` — **MAJOR / CLOSED / VERIFIED**.
+- `WP29A-AR-002` — **MAJOR / CLOSED / VERIFIED**.
+- `WP29A-AR-003` — **MAJOR / CLOSED / VERIFIED**.
+- `WP29A-AR-004` — **MAJOR / OPEN in parent**: C1 control-character parity remediation is implemented in C; parent closure waits for C acceptance and A reverification.
+- `WP29A-AR-005` — **MAJOR / OPEN / ARCHITECTURE BLOCKER in parent**: trusted stored-byte integrity remediation is implemented in C; parent closure waits for C acceptance and A reverification.
 - Blocker resolution condition: **WP-2.9C ACCEPTED**. Then A returns to `IN_PROGRESS` for integration/reverification and a fresh Pass B before Pass C.
 
 ### WP-2.9C — Trusted private-document ingestion hardening
 
-- **IN_PROGRESS / A-IMPLEMENT / CURRENT**.
+- **BLOCKED**.
+- Current/next pass: **ARCHITECTURE-DECISION**.
 - Remediation packet for `WP29A-AR-004` and `WP29A-AR-005`; no new Feature ID or product scope.
-- Architecture: ADR 0008.
-- Introduces one narrow authenticated Supabase Edge Function for private Document bytes only.
-- The server boundary resolves current user/live pending reservation, derives the canonical path, validates actual PDF bytes, computes actual-byte SHA-256, requires exact reserved size/hash, and uploads with server-only credentials and `upsert:false`.
-- Ordinary authenticated clients lose direct Document Storage INSERT authority; existing Media behavior remains unchanged.
-- Existing protected `finalize_upload` retains live `documents.write` authorization and pending→ready state responsibility.
-- C1 control parity is implemented, but parent A findings remain open until C is accepted and A is reverified.
-- Local Edge Runtime + real CI integration/adversarial evidence is required; mocks alone are insufficient.
-- Exact 25 MB PDF ingest/finalize feasibility is green, but the fresh review found unresolved resource/recovery proof defects that prevent acceptance.
-- Conservative size **10**, explicit cohesion **PASS** because endpoint, policy lock-down and exact-byte verification must ship atomically.
-- Split/READY governance `d1e561c787798eb99f49024cc0c1db49880bcd82` / `34862521697` — **5/5 SUCCESS**, clean-checkout included.
-- Initial Pass-A implementation `d90a643d929c35ef84444c19b7ec02ad9cd9e5a8` / `34896641824` — **5/5 SUCCESS**, clean-checkout included.
-- Initial REVIEW_PENDING transition `95e5a1c2c1bccc292787b745c3ca112a3f22a39b` / `34898586925` — **5/5 SUCCESS**, clean-checkout included.
-- Initial fresh Pass B found `WP29C-AR-001` MAJOR on unbounded request-body buffering.
-- AR-001 remediation implementation head `264a504e4bc8208d9ff762ef71e90bea6d18216e` / `34905438530` — **5/5 SUCCESS**, clean-checkout included; Core `162` files / `1564` tests / `100%` coverage; DB `79` files / `1376` tests PASS; live Edge Runtime proves malformed-JWT denial, direct-runtime one-byte-oversize rejection, and exact `25,000,000`-byte feasibility.
-- Fresh-review transition `e4efa0b74ffd5708d9888ff23e13174ec2032c68` / `34909259741` — **5/5 SUCCESS**, clean-checkout included.
-- Fresh independent Pass B verdict: **REVIEW_FAILED**.
-- Durable fresh Pass B failure record `54ccc8865ea67a4835a7627b14739c3eaac53f5a` / `34910156654` — **5/5 SUCCESS**, clean-checkout included.
-- `WP29C-AR-001` — **MAJOR / OPEN**: post-limit request draining still makes total ingress/read work depend on sender EOF; the frozen stop/cancel resource bound is not satisfied.
-- `WP29C-AR-002` — **MAJOR / OPEN**: existing-object recovery uses SDK Blob download/full buffering before size validation, so an oversized poisoned object can bypass the resource bound through retry.
-- `WP29C-AR-003` — **MAJOR / OPEN**: existing-object recovery accepts absent/empty stored MIME evidence instead of requiring authoritative `application/pdf` metadata.
-- `WP29C-AR-004` — **MINOR / OPEN**: `Access-Control-Allow-Origin: *` is not the explicit/minimal app-origin policy required by `SEC-NET-008`.
-- Current transition is back to **A-IMPLEMENT / RED FIRST**. Production remediation stays forbidden until focused failing evidence isolates all four findings.
-- Pass C is forbidden until remediation is exact-head green and a later fresh independent Pass B closes all findings.
+- Current accepted transport architecture: **ADR 0009 — bounded private-document staging**.
+- Proposed architecture review: **ADR 0010 — private-document promotion ingress termination boundary**.
+- Durable blocker record: `docs/roadmap/lot-2/WP-2.9C-BLOCKER.md`.
+- Conservative size **10**, cohesion **PASS**.
+
+Implemented ADR-0009 controls now include:
+
+- private `document-ingest-staging` bucket with exact `25,000,000` byte and `application/pdf` constraints;
+- one narrow authenticated pending-document INSERT policy and no ordinary staging SELECT/UPDATE/DELETE;
+- authenticated client canonical Document INSERT denial while accepted Media behavior stays unchanged;
+- browser staging with `upsert:false` followed by an application-level bodyless promotion call;
+- live current-user and `documents.write` authorization around privileged transitions;
+- authoritative reservation/path derivation and staging metadata validation before materialization;
+- actual staged-byte PDF signature, size and SHA-256 proof;
+- privileged no-overwrite canonical copy plus exact canonical retry/recovery proof;
+- service-only ingest attestation and independent finalization reauthorization;
+- server-side staging cleanup;
+- explicit/minimal CORS;
+- no application request-body read in the promotion handler.
+
+Current finding state:
+
+- `WP29C-AR-001` — **MAJOR / OPEN / ARCHITECTURE BLOCKER**: both the direct local Edge Runtime and the public local Supabase gateway wait for an intentionally open-ended framed request to reach sender EOF before the handler can terminate it. The current user Edge handler therefore cannot provide the frozen EOF-independent ingress bound.
+- `WP29C-AR-002` — **remediation implemented / runtime-green**, pending packet acceptance and later fresh Pass B closure.
+- `WP29C-AR-003` — **remediation implemented / runtime-green**, pending packet acceptance and later fresh Pass B closure.
+- `WP29C-AR-004` — **remediation implemented / runtime-green**, pending packet acceptance and later fresh Pass B closure.
+
+Key remediation history:
+
+- split/READY `d1e561c787798eb99f49024cc0c1db49880bcd82` / `34862521697` — **5/5 SUCCESS**, clean-checkout included;
+- initial Pass-A `d90a643d929c35ef84444c19b7ec02ad9cd9e5a8` / `34896641824` — **5/5 SUCCESS**;
+- initial REVIEW_PENDING `95e5a1c2c1bccc292787b745c3ca112a3f22a39b` / `34898586925` — **5/5 SUCCESS**;
+- initial fresh Pass B found AR-001;
+- first AR-001 remediation `264a504e4bc8208d9ff762ef71e90bea6d18216e` / `34905438530` — **5/5 SUCCESS** but later adversarial review proved EOF-dependent draining;
+- fresh-review transition `e4efa0b74ffd5708d9888ff23e13174ec2032c68` / `34909259741` — **5/5 SUCCESS**;
+- durable review failure `54ccc8865ea67a4835a7627b14739c3eaac53f5a` / `34910156654` — **5/5 SUCCESS**;
+- ADR-0009 implementation started at `3ed4bafe7fc1bcb2dc5d2ba506d472b288ac06cb`;
+- bodyless runtime fix `ee85d747510a36b559f6fcecbf433dfe4beeabde`;
+- public-gateway adversarial evidence `f45c322c6da7765f09a6a9607c898003af85ce00`;
+- quality-preserving harness refactor exact-head `a8ee1db32bfa41b40d4fcd5dd841146f97676881` / CI `34975265838`.
+
+Exact-head evidence `a8ee1db32bfa41b40d4fcd5dd841146f97676881` / `34975265838`:
+
+- Core quality/security: **PASS**;
+- Browser/mutation: **PASS**;
+- Privacy-safe preview: **PASS**;
+- DB/RLS: **PASS**, `80` files / `1382` tests;
+- Edge staging/auth/promotion/recovery/CORS/25 MB checks: **PASS** except AR-001;
+- AR-001: **FAIL** — `Public promotion endpoint waited for sender EOF on a framed body.`
+
+The public gateway failure independently reproduces earlier direct-runtime evidence from CI `34973827681` and gateway evidence from `34974264827`.
+
+Current Supabase documentation checked on 2026-09-15 publishes a 150-second request idle timeout and other runtime limits but no inbound request-body maximum that can serve as the required EOF-independent ingress security bound. The provider timeout therefore does not close AR-001.
 
 ### WP-2.9B — Generic project tags and Venue entity-tag links
 
@@ -128,16 +156,13 @@ The original split repairs the old WP-2.9 traceability omission by assigning `ME
 
 ## Current next-action gate
 
-1. WP-2.9A AR-004/005 failure record `a58417f79e59e2bd2d2fcb4d202f568c15cfa947` / `34854785427` is **5/5 SUCCESS**, clean-checkout included.
-2. ADR 0008 freezes the trusted server-side Document binary-ingress architecture and WP-2.9A remains **BLOCKED** until WP-2.9C is accepted.
-3. WP-2.9C split/READY `d1e561c787798eb99f49024cc0c1db49880bcd82` / `34862521697`, initial Pass-A `d90a643d929c35ef84444c19b7ec02ad9cd9e5a8` / `34896641824`, initial REVIEW_PENDING `95e5a1c2c1bccc292787b745c3ca112a3f22a39b` / `34898586925`, remediation head `264a504e4bc8208d9ff762ef71e90bea6d18216e` / `34905438530`, fresh-review transition `e4efa0b74ffd5708d9888ff23e13174ec2032c68` / `34909259741`, and durable review failure `54ccc8865ea67a4835a7627b14739c3eaac53f5a` / `34910156654` are all **5/5 SUCCESS**, clean-checkout included.
-4. Fresh Pass B remains failed on `WP29C-AR-001..004`; green CI does not override the unresolved security-contract defects.
-5. WP-2.9C is now **IN_PROGRESS / A-IMPLEMENT / CURRENT** for bounded remediation. This transition commit must itself pass exact-head CI before RED tests are added.
-6. Once the transition gate is green, add focused **test-only RED-first evidence** proving: continued post-limit senders cannot force work to EOF; oversized existing objects are not fully materialized; missing/wrong stored MIME cannot be attested; unknown CORS origins are not allowed.
-7. Production remediation code is forbidden until those RED failures are isolated to the intended findings.
-8. If the Supabase Edge runtime cannot support a hard 25 MB ingress boundary without unbounded draining, C must become `BLOCKED` and ADR 0008 must be revisited rather than weakening the contract or shrinking the 25 MB limit silently.
-9. After remediation, require exact-head CI plus another complete fresh Pass B before Pass C.
-10. C acceptance, WP-2.9A resumption and WP-2.9B activation remain forbidden until that sequence completes.
+1. WP-2.9C is **BLOCKED** on `WP29C-AR-001`.
+2. The only permitted next action is architecture review of proposed ADR 0010.
+3. Do not weaken/delete the open-ended sender test or reinterpret the 150-second timeout as closure.
+4. Do not add a Cloudflare Worker/Pages Function, proxy, queue/event trigger or other backend boundary before the architecture is explicitly accepted and direct-origin bypass is addressed.
+5. WP-2.9A remains **BLOCKED** until WP-2.9C is accepted.
+6. WP-2.9B remains **PLANNED / AFTER A**.
+7. After an ingress architecture is accepted, transition C `BLOCKED → IN_PROGRESS`, implement the accepted boundary, require exact-head CI, then perform a complete fresh Pass B before Pass C.
 
 ## Known localized repairs / stop conditions
 
@@ -145,21 +170,17 @@ The original split repairs the old WP-2.9 traceability omission by assigning `ME
 - WP-2.5 readiness/manual-assessment/dynamic guest-count semantics: **CLOSED / VERIFIED**.
 - WP-2.6 commercial/availability/contact/interaction boundaries: **CLOSED / VERIFIED**.
 - WP-2.7 origin-location snapshots/canonical portability/ACC-030: **CLOSED / VERIFIED**.
-- `docs/security/STORAGE-RLS.md`: **CLOSED / VERIFIED** for its prior defect; WP-2.9C now introduces a deliberate Document-only policy hardening under ADR 0008.
 - WP-2.8A URL/replay identity parity: **CLOSED / VERIFIED**.
 - WP-2.8B private lifecycle/Storage↔DB recovery and MED-006 receipt: **CLOSED / VERIFIED**.
 - WP-2.8C optimistic revision/provider/adversarial gaps: **CLOSED / VERIFIED**.
-- WP-2.9 pre-activation sizing and MED-008 traceability: **CLOSED / VERIFIED** by `40f17aba...` / `34788217062`.
-- WP-2.9A Pass-A coverage/format/maintainability closure: historical **CLOSED / VERIFIED** by `e533b5c5...` / `34826553890`; affected integrity verification is reopened by later review findings.
-- WP29A-AR-001 Document read/list/download foundation: **CLOSED / VERIFIED**.
-- WP29A-AR-002 read-parser Unicode-scalar filename parity: **CLOSED / VERIFIED**.
-- WP29A-AR-003 lifecycle receipt/bounded-text Unicode parity: **CLOSED / VERIFIED**.
-- WP29A-AR-004 C1 control-character parity: **MAJOR / OPEN**, assigned remediation WP-2.9C; implementation present, parent closure waits for C acceptance and A reverification.
-- WP29A-AR-005 committed-object integrity: **MAJOR / OPEN / ARCHITECTURE BLOCKER**, assigned remediation WP-2.9C under ADR 0008; parent closure waits for C acceptance and A reverification.
-- WP29C-AR-001 bounded Edge request-body resource consumption: **MAJOR / OPEN**; memory is bounded but ingress/read work still depends on EOF.
-- WP29C-AR-002 existing-object recovery resource bound: **MAJOR / OPEN**; Blob download materializes the object before size rejection.
-- WP29C-AR-003 existing-object MIME proof: **MAJOR / OPEN**; absent/empty provider MIME is currently accepted.
-- WP29C-AR-004 explicit/minimal Edge CORS: **MINOR / OPEN**.
+- WP-2.9 pre-activation sizing and MED-008 traceability: **CLOSED / VERIFIED**.
+- WP29A-AR-001 / AR-002 / AR-003: **CLOSED / VERIFIED**.
+- WP29A-AR-004: **MAJOR / OPEN in parent**, remediation implemented in C; parent closure waits for C acceptance + A reverification.
+- WP29A-AR-005: **MAJOR / OPEN in parent**, trusted-byte remediation implemented in C; parent closure waits for C acceptance + A reverification.
+- WP29C-AR-001: **MAJOR / OPEN / ARCHITECTURE BLOCKER** — public promotion ingress remains EOF-dependent before application dispatch.
+- WP29C-AR-002: **remediation implemented / runtime-green**, later fresh Pass B required after unblock.
+- WP29C-AR-003: **remediation implemented / runtime-green**, later fresh Pass B required after unblock.
+- WP29C-AR-004: **remediation implemented / runtime-green**, later fresh Pass B required after unblock.
 
 ## Durable handoff
 
@@ -172,27 +193,24 @@ Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.8C
 Last completed packet: WP-2.8C — ACCEPTED / COMPLETE
 WP-2.9A: BLOCKED — waits for WP-2.9C ACCEPTED
-Current packet: WP-2.9C — IN_PROGRESS / A-IMPLEMENT — RED FIRST
-WP-2.9C architecture: ADR 0008 — trusted server-side private-document binary ingestion
-Closed findings: WP29A-AR-001 / AR-002 / AR-003 — MAJOR — VERIFIED
-Parent open finding: WP29A-AR-004 — MAJOR — C1 control-character parity — remediation implemented in C; closure waits for C acceptance + A reverification
-Parent open finding: WP29A-AR-005 — MAJOR / architecture blocker — exact stored-byte integrity — remediation implemented in C but parent closure waits for C acceptance + A reverification
-WP29C-AR-001: MAJOR / OPEN — post-limit ingress still drains to sender EOF
-WP29C-AR-002: MAJOR / OPEN — replay path fully buffers existing object before size validation
-WP29C-AR-003: MAJOR / OPEN — replay MIME proof accepts absent/empty MIME
-WP29C-AR-004: MINOR / OPEN — wildcard CORS conflicts with SEC-NET-008
+Current packet: WP-2.9C — BLOCKED
+Current/next pass: ARCHITECTURE-DECISION
+WP-2.9C current architecture: ADR 0009 — bounded private-document staging
+Proposed review: ADR 0010 — private-document promotion ingress termination boundary
+Blocker record: docs/roadmap/lot-2/WP-2.9C-BLOCKER.md
+WP29C-AR-001: MAJOR / OPEN / ARCHITECTURE BLOCKER — public gateway waits for sender EOF on framed body
+WP29C-AR-002: remediation implemented / runtime-green
+WP29C-AR-003: remediation implemented / runtime-green
+WP29C-AR-004: remediation implemented / runtime-green
+Exact implementation evidence: a8ee1db32bfa41b40d4fcd5dd841146f97676881 / 34975265838
+Core: PASS
+Browser/mutation: PASS
+Preview: PASS
+DB/RLS: PASS — 80 files / 1382 tests
+Edge: all ADR-0009 checks PASS except WP29C-AR-001
 FTR-089 FIR: #17
-AR-004/005 durable failure: a58417f79e59e2bd2d2fcb4d202f568c15cfa947 / 34854785427 — 5/5 SUCCESS
-WP-2.9C split/READY: d1e561c787798eb99f49024cc0c1db49880bcd82 / 34862521697 — 5/5 SUCCESS
-WP-2.9C initial Pass-A: d90a643d929c35ef84444c19b7ec02ad9cd9e5a8 / 34896641824 — 5/5 SUCCESS
-WP-2.9C initial REVIEW_PENDING: 95e5a1c2c1bccc292787b745c3ca112a3f22a39b / 34898586925 — 5/5 SUCCESS
-WP29C-AR-001 remediation implementation: 264a504e4bc8208d9ff762ef71e90bea6d18216e / 34905438530 — 5/5 SUCCESS
-Fresh-review transition: e4efa0b74ffd5708d9888ff23e13174ec2032c68 / 34909259741 — 5/5 SUCCESS
-Fresh Pass B failure record: 54ccc8865ea67a4835a7627b14739c3eaac53f5a / 34910156654 — 5/5 SUCCESS
-WP-2.9C size: 10 points — cohesion PASS
-Current gate: exact-head CI for remediation transition; after green add focused test-only RED for WP29C-AR-001..004
-Production remediation only after isolated RED evidence
 WP-2.9A resumes only after WP-2.9C ACCEPTED
 WP-2.9B remains PLANNED / AFTER A
 Lots 3–12: NOT_STARTED
+Next permitted action: review/resolve ADR 0010; no implementation beyond the frozen boundary while blocked
 ```
