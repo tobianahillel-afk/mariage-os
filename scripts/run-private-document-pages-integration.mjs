@@ -35,7 +35,7 @@ function wranglerArgs(assets, environment) {
     "--binding",
     `SUPABASE_PUBLISHABLE_KEY=${environment.anonKey}`,
     "--binding",
-    `SUPABASE_SECRET_KEY=${environment.serviceRoleKey}`,
+    `PRIVATE_DOCUMENT_ADMIN_KEY=${environment.serviceRoleKey}`,
   ];
 }
 
