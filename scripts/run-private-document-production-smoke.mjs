@@ -28,7 +28,7 @@ function unavailablePayload(value) {
 }
 
 async function assertDenied(label, expectedStatus, init) {
-  const response = await fetch(routeUrl, {
+  const response = await globalThis.fetch(routeUrl, {
     redirect: "manual",
     ...init,
   });
@@ -51,7 +51,7 @@ async function assertDenied(label, expectedStatus, init) {
 }
 
 async function run() {
-  const staticResponse = await fetch(baseUrl, { redirect: "manual" });
+  const staticResponse = await globalThis.fetch(baseUrl, { redirect: "manual" });
   if (staticResponse.status >= 500) {
     throw new Error(
       `Static application smoke failed with ${staticResponse.status}.`,
