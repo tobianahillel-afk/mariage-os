@@ -1,30 +1,28 @@
-import { existsSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import supabaseConfig from "../../../supabase/config.toml?raw";
 
-const repositoryRoot = resolve(import.meta.dirname, "../../..");
-const pagesFunctionPath = resolve(
-  repositoryRoot,
-  "functions/api/private-document-promote.ts",
+const pagesPromotionModules = import.meta.glob(
+  "../../../functions/api/private-document-promote.ts",
+  { eager: true, import: "default", query: "?raw" },
 );
-const supabaseFunctionPath = resolve(
-  repositoryRoot,
-  "supabase/functions/private-document-ingest/index.ts",
+const supabasePromotionModules = import.meta.glob(
+  "../../../supabase/functions/private-document-ingest/index.ts",
+  { eager: true, import: "default", query: "?raw" },
 );
-const supabaseConfigPath = resolve(repositoryRoot, "supabase/config.toml");
 
 describe("ADR 0010 promotion deployment boundary", () => {
   it("provides the same-origin Cloudflare Pages Function", () => {
-    expect(existsSync(pagesFunctionPath)).toBe(true);
+    expect(Object.keys(pagesPromotionModules)).toHaveLength(1);
   });
 
   it("removes the deployable Supabase promotion Edge Function", () => {
-    expect(existsSync(supabaseFunctionPath)).toBe(false);
+    expect(Object.keys(supabasePromotionModules)).toHaveLength(0);
   });
 
   it("removes the Supabase promotion function configuration", () => {
-    const config = readFileSync(supabaseConfigPath, "utf8");
-    expect(config).not.toContain("[functions.private-document-ingest]");
-    expect(config).not.toContain("./functions/private-document-ingest/index.ts");
+    expect(supabaseConfig).not.toContain("[functions.private-document-ingest]");
+    expect(supabaseConfig).not.toContain(
+      "./functions/private-document-ingest/index.ts",
+    );
   });
 });
