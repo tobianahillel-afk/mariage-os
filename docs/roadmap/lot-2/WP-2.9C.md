@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.9C`
 - Lot: `2`
 - Name: Trusted private-document ingestion hardening
-- State: `REVIEW_FAILED`
-- Current pass: `B-REVIEW-FAILED`
+- State: `IN_PROGRESS`
+- Current pass: `A-IMPLEMENT — RED FIRST`
 - Primary bounded context: Documents — authoritative binary ingress for the existing WP-2.9A private PDF lifecycle
 - Branch/PR: `lot-2/venues-core` / Lot-2 integration PR not opened yet
 - FIR: `#17 / FTR-089`
@@ -23,7 +23,8 @@
 - Initial fresh Pass B found `WP29C-AR-001` below. C therefore returned to implementation/remediation and could not advance to Pass C.
 - `WP29C-AR-001` remediation implementation evidence: `264a504e4bc8208d9ff762ef71e90bea6d18216e` / CI `34905438530` — **5/5 SUCCESS**, clean-checkout included; Core `162` files / `1564` tests / `100%` statements, branches, functions and lines; DB `79` files / `1376` tests PASS; real Edge Runtime PASS includes malformed-JWT denial, direct-runtime chunked oversize rejection without trusting `Content-Length`, and exact `25,000,000`-byte feasibility.
 - Fresh-review transition: `e4efa0b74ffd5708d9888ff23e13174ec2032c68` / CI `34909259741` — **5/5 SUCCESS**, clean-checkout included.
-- The fresh independent Pass B on `e4efa0b7...` did **not** verify AR-001 closure and found additional recovery/CORS defects. Current state is therefore `REVIEW_FAILED`; Pass C remains forbidden.
+- Fresh Pass B durable failure record: `54ccc8865ea67a4835a7627b14739c3eaac53f5a` / CI `34910156654` — **5/5 SUCCESS**, clean-checkout included; unresolved `WP29C-AR-001..004` block Pass C.
+- Current transition: `REVIEW_FAILED → IN_PROGRESS / A-IMPLEMENT — RED FIRST`. Exact-head CI for this transition must be green before focused remediation RED tests are committed.
 
 ## Why this packet exists
 
@@ -304,7 +305,7 @@ Because unresolved MAJOR findings remain, Pass B verdict is **REVIEW_FAILED**. P
 
 ## State / sequencing
 
-Current state: **REVIEW_FAILED / B-REVIEW-FAILED**.
+Current state: **IN_PROGRESS / A-IMPLEMENT — RED FIRST**.
 
 Current gate:
 
@@ -313,10 +314,12 @@ Current gate:
 3. initial fresh Pass B found `WP29C-AR-001` MAJOR;
 4. remediation implementation head `264a504e4bc8208d9ff762ef71e90bea6d18216e` / CI `34905438530` is **5/5 SUCCESS**, clean-checkout included; Core `162` files / `1564` tests / `100%` coverage, DB `79` files / `1376` tests PASS, and real Edge Runtime proves malformed-JWT denial, one-byte-oversize rejection and exact `25,000,000`-byte feasibility;
 5. fresh-review transition `e4efa0b74ffd5708d9888ff23e13174ec2032c68` / CI `34909259741` is **5/5 SUCCESS**, clean-checkout included;
-6. fresh independent Pass B verdict is **REVIEW_FAILED** with `WP29C-AR-001`, `WP29C-AR-002`, `WP29C-AR-003` MAJOR open and `WP29C-AR-004` MINOR open;
-7. AR-001 is **not verified closed**: post-limit draining still makes resource use depend on sender EOF;
-8. the only permitted next action is bounded remediation. When remediation actively begins, transition C back to `IN_PROGRESS / A-IMPLEMENT — RED FIRST` and add focused failing tests for the four findings before production fixes;
-9. after remediation, require exact-head CI and then another fresh independent Pass B over the complete packet, not only patched lines;
-10. only a clean fresh Pass B may advance C to Pass C;
-11. only after **WP-2.9C ACCEPTED**, resolve WP-2.9A blocker and return A to `IN_PROGRESS` for integration/reverification;
-12. WP-2.9B remains `PLANNED / AFTER A` until A is accepted.
+6. fresh Pass B durable failure record `54ccc8865ea67a4835a7627b14739c3eaac53f5a` / CI `34910156654` is **5/5 SUCCESS**, clean-checkout included; `WP29C-AR-001`, `WP29C-AR-002`, `WP29C-AR-003` remain MAJOR open and `WP29C-AR-004` MINOR open;
+7. this remediation transition must pass exact-head CI before focused RED tests are committed;
+8. once green, add focused **test-only RED-first evidence** proving: continued post-limit senders cannot force work to EOF; oversized existing objects are not fully materialized; missing/wrong stored MIME cannot be attested; unknown CORS origins are not allowed;
+9. production remediation is forbidden until those failures are isolated to the intended findings;
+10. if the Supabase Edge runtime cannot support a hard 25 MB ingress boundary without unbounded draining, C becomes `BLOCKED` and ADR 0008 must be revisited rather than weakening the contract;
+11. after remediation, require exact-head CI and then another fresh independent Pass B over the complete packet, not only patched lines;
+12. only a clean fresh Pass B may advance C to Pass C;
+13. only after **WP-2.9C ACCEPTED**, resolve WP-2.9A blocker and return A to `IN_PROGRESS` for integration/reverification;
+14. WP-2.9B remains `PLANNED / AFTER A` until A is accepted.
