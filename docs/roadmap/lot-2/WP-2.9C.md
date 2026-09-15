@@ -4,20 +4,23 @@
 
 - Work Packet ID: `WP-2.9C`
 - Lot: `2`
-- State: `IN_PROGRESS`
-- Current pass: `REMEDIATION — AR-005 / AR-006 / AR-007`
+- State: `BLOCKED`
+- Current pass: `BLOCKED — WP29C-AR-006 DEPLOYED WORKERS FREE CPU EVIDENCE`
 - Primary bounded context: Documents — trusted binary promotion for the existing WP-2.9A private PDF lifecycle
 - Branch: `lot-2/venues-core`
 - FIR: `#17 / FTR-089`
 - Parent review findings: `WP29A-AR-004 + WP29A-AR-005`
 - Architecture chain: ADR 0008 trust/integrity → ADR 0009 bounded staging/bodyless promotion → ADR 0010 Cloudflare Pages Function promotion boundary
 - Historical architecture blocker: `docs/roadmap/lot-2/WP-2.9C-BLOCKER.md` — resolved by ADR 0010
+- Current runtime-evidence blocker: `docs/roadmap/lot-2/WP-2.9C-AR-006-CPU-EVIDENCE.md`
 - Fresh Pass-B review: `docs/roadmap/lot-2/WP-2.9C-PASS-B-REVIEW.md`
 - Size: **10 points**; cohesion review **PASS**
 
 ## Current verdict
 
-Pass A completed successfully. The required fresh Pass B then found three unresolved MAJOR findings, producing a durable `REVIEW_FAILED` state. Remediation has now started, so the canonical state is **IN_PROGRESS / REMEDIATION**. WP-2.9C is not accepted.
+Pass A completed successfully. The required fresh Pass B then found three unresolved MAJOR findings. Remediation implemented the AR-005 trusted cleanup/race controls and AR-007 deployment/secret/release controls, but AR-006 requires deployed Cloudflare Workers Free CPU telemetry for the exact `25,000,000`-byte trusted promotion. That provider evidence is not currently available in repository evidence, so the canonical packet state is now **BLOCKED** rather than falsely treating local workerd success as Free-plan CPU proof.
+
+WP-2.9C is not accepted and must not enter `REVIEW_PENDING` until AR-006 is evidenced and the resulting exact HEAD passes the complete verification gate.
 
 Pass-A implementation evidence:
 
@@ -40,42 +43,51 @@ Fresh Pass-B failure record:
 
 ### WP29C-AR-005 — MAJOR — interrupted staging/abandon cleanup and promotion race
 
-Current product recovery can remove pending DB metadata while leaving `document-ingest-staging` bytes behind because application/DB abandon reasons only about canonical `project-private`, the browser intentionally lacks staging DELETE, and trusted staging cleanup currently occurs only after successful promotion/attestation.
+The fresh Pass B found that product recovery could remove pending DB metadata while leaving `document-ingest-staging` bytes behind, and that abandon could race promotion between the initial reservation read and canonical mutation.
 
-A concurrent abandon can also remove the pending reservation after promotion's initial read but before canonical copy. Promotion rechecks permission but not reservation state at that exact mutation boundary, so canonical/staging orphan divergence can remain when attestation subsequently fails.
-
-Remediation requirements:
+Remediation now implemented on the branch includes:
 
 - trusted project/document-bound idempotent cleanup/abandon in the existing narrow Pages security boundary;
 - no ordinary browser staging DELETE;
 - exact staging/canonical absence proof before metadata abandon completes;
+- DB backstop preventing pending metadata abandon while staging/canonical bytes remain;
 - retry/response-loss safety;
 - no deletion of ready documents, another project/document or Media;
 - authoritative reservation-state recheck immediately before privileged canonical mutation;
-- compensating cleanup for post-copy failure paths that would otherwise orphan canonical data;
-- focused RED/runtime coverage for interrupted staging, clean abandon/retry/unwedge and abandon↔promotion races.
+- compensating cleanup for canonical bytes created by a failing promotion request;
+- replay protection that does not destructively compensate a canonical object that pre-existed the current request;
+- focused RED/runtime coverage for interrupted staging, clean abandon/retry and promotion-state revalidation.
+
+Post-remediation evidence includes CI `35021446818`, where `Local Supabase DB, RLS and Pages Function` and browser/mutation jobs passed. The Core job failure on that SHA was isolated to a new uncovered invalid-abandon-receipt branch; the missing negative unit test was subsequently added. AR-005 is therefore implementation-remediated but still awaits the later exact-head complete verification and fresh Pass B required for formal closure.
 
 ### WP29C-AR-006 — MAJOR — Workers Free exact-25-MB CPU feasibility is not evidenced
 
-ADR 0010 freezes exact 25 MB promotion on the intended Workers/Pages Free operating envelope as an acceptance gate. Current exact-25-MB CI evidence is local Miniflare/workerd only; deployed Free CPU enforcement is not represented by that local success.
+ADR 0010 freezes exact 25 MB promotion on the intended Workers/Pages Free operating envelope as an acceptance gate. Current exact-25-MB evidence is local Wrangler/workerd functionality only; deployed Free CPU enforcement and provider CPU consumption are not represented by that local success.
 
-Remediation requirements:
+Durable blocker/proof protocol:
 
-- produce durable CPU-specific evidence representative of Workers runtime behavior for the exact 25 MB trusted proof;
-- distinguish CPU from wall/network time;
-- do not silently enable paid compute or lower the PDF contract;
-- if the Free envelope cannot be safely established, transition WP-2.9C to `BLOCKED` and revisit architecture.
+- `docs/roadmap/lot-2/WP-2.9C-AR-006-CPU-EVIDENCE.md`.
+
+Provider limits rechecked on 2026-09-15 keep Workers Free at a normal `10 ms` CPU budget per HTTP request and `128 MB` memory. Cloudflare exposes CPU separately from wall time through Pages Functions/Workers telemetry.
+
+Required unblock evidence is an isolated non-production Pages deployment on Workers Free, tied to an exact commit, with synthetic exact `25,000,000`-byte promotion and provider-produced CPU measurements. The retained controlled evidence must demonstrate normal operation inside the Free CPU budget without `exceededCpu`, Paid entitlement or a lowered file contract.
+
+No such provider CPU record is currently present. Therefore this finding is **OPEN / BLOCKING** and the packet state is **BLOCKED**.
 
 ### WP29C-AR-007 — MAJOR — deployment/secret operations not reconciled
 
-ADR 0010 requires release/deployment documentation for Pages Function deployment, secret bindings, fail-closed `/api/private-document-promote`, static behavior preservation and legacy Supabase promotion-route absence. Existing normative release docs still describe a static production application and do not record the required concrete metadata-only inventory/rotation contract for `PRIVATE_DOCUMENT_ADMIN_KEY`.
+The fresh Pass B found that ADR 0010 required Pages Function deployment, secret bindings, fail-closed `/api/private-document-promote`, static behavior preservation and legacy-route absence while the normative release documents still described a static-only deployment and lacked concrete `PRIVATE_DOCUMENT_ADMIN_KEY` lifecycle metadata.
 
-Remediation requirements:
+Remediation now implemented includes:
 
-- update normative deployment/release/secret contracts;
-- record secret owner/storage/scope/rotation/revocation/verification metadata without any secret value;
-- add fail-closed production smoke expectations;
-- ensure Pages Function deployment and legacy-route absence are explicit.
+- ADR 0010 reconciled to the actual `PRIVATE_DOCUMENT_ADMIN_KEY` server binding and deployed-Free CPU evidence contract;
+- `SECRET-MANAGEMENT.md` metadata-only inventory, scope, storage, rotation, emergency revocation and old-credential rejection verification;
+- `CI-CD.md` requiring static assets and Pages Functions from the same exact candidate, environment bindings and fail-closed route checks;
+- `RELEASE-PROCESS.md` defining the private-document Pages release gate, legacy Supabase route absence and deny-oriented production smoke;
+- `scripts/run-private-document-production-smoke.mjs` plus `npm run smoke:private-document-production`, which checks the deployed route without privileged credentials or real wedding data;
+- focused AR-007 documentation assertions to prevent silent contract drift.
+
+AR-007 is implementation-remediated but still awaits exact-head complete verification and the later complete fresh Pass B for formal closure.
 
 ## Historical findings
 
@@ -179,11 +191,13 @@ Retain applicable evidence for:
 - `SEC-NET-008`;
 - secret/public-artifact safety.
 
-## Existing exact-head implementation evidence
+## Existing implementation evidence
 
 Pass-A head `297ecdf3337e8522d6f200a90f96b481a9e6bdb1` proved core quality/security, browser/mutation, DB/RLS/Pages runtime, preview and clean-checkout green; staging/RLS/canonical bypass controls green; same-origin bodyless promotion; old-route absence; open-ended framed-body rejection; exact-byte integrity/recovery; authorization/revocation; CORS; and exact 25 MB in the **local** runtime.
 
-Fresh Pass B specifically invalidates treating that local 25 MB success as sufficient Workers Free CPU evidence.
+Post-Pass-B AR-005 runtime evidence on CI `35021446818` additionally proves the local DB/RLS/Pages Function and browser/mutation jobs after the trusted abandon/race remediation. Later commits add the missing invalid-receipt unit coverage and AR-007 operational contracts/smoke.
+
+Fresh Pass B specifically invalidates treating any local 25 MB success as sufficient Workers Free CPU evidence.
 
 ## Explicit non-goals
 
@@ -200,22 +214,21 @@ Fresh Pass B specifically invalidates treating that local 25 MB success as suffi
 
 ## State / sequencing
 
-Current state: **IN_PROGRESS / REMEDIATION**.
+Current state: **BLOCKED — WP29C-AR-006 DEPLOYED WORKERS FREE CPU EVIDENCE**.
 
 Current gate:
 
-1. add RED/evidence-first coverage for AR-005/006/007;
-2. implement trusted cleanup/abandon, promotion state revalidation and compensation for AR-005;
-3. produce valid Workers Free CPU evidence for AR-006 or transition to `BLOCKED` if the frozen envelope cannot be established;
-4. reconcile deployment/release/secret contracts for AR-007;
-5. obtain exact-head full CI + clean-checkout verification;
-6. transition back to `REVIEW_PENDING` only after remediation is green;
-7. run another complete fresh independent Pass B over all WP-2.9C responsibilities and AR-001..007;
-8. any BLOCKING/MAJOR finding → `REVIEW_FAILED`;
-9. only a clean Pass B may enter `ACCEPTANCE_PENDING`;
-10. only Pass C may mark WP-2.9C `ACCEPTED`;
-11. only after C acceptance may WP-2.9A resume;
-12. WP-2.9B remains `PLANNED / AFTER A`.
+1. retain AR-005 and AR-007 remediations without weakening their security contracts;
+2. obtain the deployed Workers Free exact-25-MB CPU proof defined in `WP-2.9C-AR-006-CPU-EVIDENCE.md`;
+3. if that proof fails the normal Free CPU envelope, remain `BLOCKED` and revisit architecture — do not enable Paid or lower the file contract silently;
+4. after valid AR-006 evidence, run exact-head full CI + clean-checkout verification including the AR-005/AR-007 remediations;
+5. transition back to `REVIEW_PENDING` only after all remediation evidence is green;
+6. run another complete fresh independent Pass B over all WP-2.9C responsibilities and AR-001..007;
+7. any BLOCKING/MAJOR finding → `REVIEW_FAILED`;
+8. only a clean Pass B may enter `ACCEPTANCE_PENDING`;
+9. only Pass C may mark WP-2.9C `ACCEPTED`;
+10. only after C acceptance may WP-2.9A resume;
+11. WP-2.9B remains `PLANNED / AFTER A`.
 
 ## Deviations
 
