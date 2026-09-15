@@ -121,8 +121,10 @@ The Pages Function may use a Supabase server/service credential only after calle
 Required Cloudflare bindings/secrets:
 
 - `SUPABASE_URL` — server configuration;
-- a non-secret Supabase browser/publishable/anon key as required to verify/use the caller's user token;
-- `SUPABASE_SERVICE_ROLE_KEY` (or current server-secret equivalent) — Cloudflare secret, never static asset, Git value, response or log field.
+- `SUPABASE_PUBLISHABLE_KEY` or the current non-secret anon-equivalent browser key — server configuration used with the caller's user token;
+- `PRIVATE_DOCUMENT_ADMIN_KEY` — Cloudflare Pages encrypted secret containing the Supabase server/service credential used only by the narrow trusted private-document boundary after user authentication and authorization. It is never a static asset, Git value, response field or log field.
+
+`PRIVATE_DOCUMENT_ADMIN_KEY` is the application binding name for the required privileged Supabase credential; it is not a second independently generated authorization scheme. Its metadata-only owner/storage/scope/rotation/revocation/verification lifecycle is normative in `docs/security/SECRET-MANAGEMENT.md`.
 
 CI/local development may derive synthetic local Supabase credentials from `supabase status`; production credentials must never enter GitHub artifacts or repository history.
 
@@ -166,7 +168,9 @@ Before WP-2.9C can be accepted, real-runtime evidence must prove:
 - SHA-256 and authorization work is viable without relying on a paid CPU entitlement;
 - if the Free runtime cannot safely support the exact 25 MB proof, WP-2.9C returns to `BLOCKED` and architecture is revisited rather than silently enabling Workers Paid or lowering the PDF limit.
 
-Cloudflare's Free Worker CPU limit is currently `10 ms` per HTTP request with some platform flexibility; this is therefore an explicit feasibility gate, not an assumption.
+Cloudflare's Workers Free CPU limit is currently `10 ms` per HTTP request, with documented platform flexibility for infrequent excursions; this is therefore an explicit feasibility gate, not an assumption.
+
+For `WP29C-AR-006`, local Wrangler/workerd success remains required functional evidence but is **not** sufficient CPU evidence. Acceptance additionally requires an exact-commit deployment running on the intended Workers Free / Pages environment, an exact `25,000,000`-byte trusted promotion, and Cloudflare-produced CPU-specific telemetry (`CPU Time per execution` or equivalent per-invocation `CPUTimeMs`) that distinguishes CPU from wall/network duration. Evidence records the deployment/commit identity, Free-plan context, invocation outcome and CPU measurement without secret values or private wedding data. A paid entitlement must not be used to satisfy this gate.
 
 ## CI / runtime proof
 
@@ -189,7 +193,7 @@ At minimum it must prove:
 - old Supabase promotion route is absent/not used;
 - service credentials are absent from logs/static artifacts.
 
-The harness should run against local Supabase plus a real local Cloudflare Workers/Pages runtime such as Wrangler/workerd.
+The functional harness should run against local Supabase plus a real local Cloudflare Workers/Pages runtime such as Wrangler/workerd. The separate Workers Free CPU acceptance evidence described above must come from the deployed provider runtime rather than being inferred from local wall-clock timing.
 
 ## Deployment consequences
 
@@ -197,9 +201,9 @@ Cloudflare deployment is no longer purely static: the Pages project contains one
 
 Release/deployment documentation must therefore ensure:
 
-- Pages Functions are deployed with the static application;
-- required server bindings/secrets are configured outside Git;
-- `/api/private-document-promote` is security-critical and must fail closed rather than bypassing to an unprotected origin;
+- Pages Functions are deployed with the static application from the same exact candidate;
+- `SUPABASE_URL`, the non-secret publishable/anon-equivalent key and encrypted `PRIVATE_DOCUMENT_ADMIN_KEY` binding are configured for the correct environment outside Git;
+- `/api/private-document-promote` is security-critical and must fail closed rather than bypassing to an unprotected origin or static asset fallback;
 - static asset behavior remains unchanged;
 - preview artifacts/configuration contain only synthetic/non-production values;
 - the removed Supabase Edge Function is not redeployed by legacy scripts.
