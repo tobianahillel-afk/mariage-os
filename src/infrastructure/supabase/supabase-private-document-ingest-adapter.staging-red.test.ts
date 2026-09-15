@@ -21,9 +21,11 @@ describe("ADR 0010 Pages Function promotion transport", () => {
       data: { ok: true },
       error: null,
     });
-    const fetchPromotion = vi.fn().mockResolvedValue(
-      Response.json({ ok: true, replayed: false }, { status: 200 }),
+    const promotionResponse = Response.json(
+      { ok: true, replayed: false },
+      { status: 200 },
     );
+    const fetchPromotion = vi.fn().mockResolvedValue(promotionResponse);
     vi.stubGlobal("fetch", fetchPromotion);
 
     const adapter = new SupabasePrivateDocumentIngestAdapter(
