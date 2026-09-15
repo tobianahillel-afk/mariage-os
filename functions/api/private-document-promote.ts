@@ -97,7 +97,9 @@ interface PromotionContext {
 }
 
 function nonEmpty(...values: ReadonlyArray<string | undefined>): string | null {
-  return values.find((value) => typeof value === "string" && value.length > 0) ?? null;
+  return (
+    values.find((value) => typeof value === "string" && value.length > 0) ?? null
+  );
 }
 
 function providerEnvironment(env: PagesEnvironment): ProviderEnvironment | null {
@@ -106,14 +108,19 @@ function providerEnvironment(env: PagesEnvironment): ProviderEnvironment | null 
     env.SUPABASE_PUBLISHABLE_KEY,
     env.SUPABASE_ANON_KEY,
   );
-  return url === null || publishableKey === null ? null : { url, publishableKey };
+  return url === null || publishableKey === null
+    ? null
+    : { url, publishableKey };
 }
 
 function serviceKey(env: PagesEnvironment): string | null {
   return nonEmpty(env.PRIVATE_DOCUMENT_ADMIN_KEY);
 }
 
-function json(status: number, body: Readonly<Record<string, unknown>>): Response {
+function json(
+  status: number,
+  body: Readonly<Record<string, unknown>>,
+): Response {
   return Response.json(body, {
     status,
     headers: {
