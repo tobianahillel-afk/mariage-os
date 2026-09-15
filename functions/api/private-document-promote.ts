@@ -1,20 +1,25 @@
-import { createClient } from "npm:@supabase/supabase-js@2.112.4";
+import { createClient } from "@supabase/supabase-js";
 
 const CANONICAL_BUCKET = "project-private";
 const STAGING_BUCKET = "document-ingest-staging";
 const MAX_BYTES = 25_000_000;
-const LOCAL_APP_ORIGIN = "http://127.0.0.1:4173";
-const ALLOWED_ORIGINS_ENV = "PRIVATE_DOCUMENT_ALLOWED_ORIGINS";
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const SHA256_PATTERN = /^[0-9a-f]{64}$/;
 const PDF_SIGNATURE = new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d]);
 
-const baseCorsHeaders = {
-  "Access-Control-Allow-Headers":
-    "authorization, apikey, x-client-info, content-type, x-retry-count, traceparent, tracestate, baggage, x-project-id, x-document-id",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+interface PagesEnvironment {
+  readonly SUPABASE_URL?: string;
+  readonly SUPABASE_PUBLISHABLE_KEY?: string;
+  readonly SUPABASE_ANON_KEY?: string;
+  readonly SUPABASE_SECRET_KEY?: string;
+  readonly SUPABASE_SERVICE_ROLE_KEY?: string;
+}
+
+interface PagesContext {
+  readonly request: Request;
+  readonly env: PagesEnvironment;
+}
 
 interface ReservedDocument {
   readonly id: string;
@@ -29,85 +34,61 @@ interface ReservedDocument {
   readonly remote_url: string | null;
 }
 
-function normalizedOrigin(value: string): string | null {
-  try {
-    const url = new URL(value);
-    if (url.protocol !== "https:" && url.protocol !== "http:") return null;
-    if (url.username || url.password) return null;
-    return url.origin;
-  } catch {
-    return null;
-  }
+interface ProviderEnvironment {
+  readonly url: string;
+  readonly publishableKey: string;
 }
 
-function allowedOrigins(): ReadonlySet<string> {
-  const configured = Deno.env.get(ALLOWED_ORIGINS_ENV);
-  if (configured) {
-    const origins = configured
-      .split(",")
-      .map((value) => normalizedOrigin(value.trim()))
-      .filter((value): value is string => value !== null);
-    return new Set(origins);
-  }
-  return new Set([LOCAL_APP_ORIGIN]);
+function nonEmpty(...values: ReadonlyArray<string | undefined>): string | null {
+  return values.find((value) => typeof value === "string" && value.length > 0) ?? null;
+}
+
+function providerEnvironment(env: PagesEnvironment): ProviderEnvironment | null {
+  const url = nonEmpty(env.SUPABASE_URL);
+  const publishableKey = nonEmpty(
+    env.SUPABASE_PUBLISHABLE_KEY,
+    env.SUPABASE_ANON_KEY,
+  );
+  return url === null || publishableKey === null ? null : { url, publishableKey };
+}
+
+function serviceKey(env: PagesEnvironment): string | null {
+  return nonEmpty(env.SUPABASE_SECRET_KEY, env.SUPABASE_SERVICE_ROLE_KEY);
+}
+
+function json(status: number, body: Readonly<Record<string, unknown>>): Response {
+  return Response.json(body, {
+    status,
+    headers: {
+      "cache-control": "no-store",
+      "x-content-type-options": "nosniff",
+    },
+  });
+}
+
+function unavailable(status = 404): Response {
+  return json(status, { error: "private_document_unavailable" });
 }
 
 function requestOriginAllowed(request: Request): boolean {
   const origin = request.headers.get("origin");
-  return origin === null || allowedOrigins().has(origin);
-}
-
-function corsHeaders(request: Request): Readonly<Record<string, string>> {
-  const origin = request.headers.get("origin");
-  if (origin !== null && allowedOrigins().has(origin)) {
-    return {
-      ...baseCorsHeaders,
-      "Access-Control-Allow-Origin": origin,
-      Vary: "Origin",
-    };
-  }
-  return baseCorsHeaders;
-}
-
-function json(
-  request: Request,
-  status: number,
-  body: Readonly<Record<string, unknown>>,
-): Response {
-  return Response.json(body, {
-    status,
-    headers: corsHeaders(request),
-  });
-}
-
-function unavailable(request: Request, status = 404): Response {
-  return json(request, status, { error: "private_document_unavailable" });
-}
-
-function dictionaryDefaultKey(dictionary: string): string | null {
+  if (origin === null) return true;
   try {
-    const parsed = JSON.parse(dictionary) as Record<string, unknown>;
-    const value = parsed.default;
-    return typeof value === "string" && value.length > 0 ? value : null;
+    return new URL(origin).origin === new URL(request.url).origin;
   } catch {
-    return null;
+    return false;
   }
 }
 
-function environmentKey(
-  dictionaryName: string,
-  singularName: string,
-  legacyName: string,
-): string | null {
-  const dictionary = Deno.env.get(dictionaryName);
-  if (dictionary) {
-    const dictionaryKey = dictionaryDefaultKey(dictionary);
-    if (dictionaryKey !== null) return dictionaryKey;
-  }
+function requestHasBodyFrame(request: Request): boolean {
+  if (request.body !== null) return true;
+  if (request.headers.get("transfer-encoding") !== null) return true;
 
-  const singular = Deno.env.get(singularName);
-  if (singular) return singular;
-  return Deno.env.get(legacyName) ?? null;
+  const rawLength = request.headers.get("content-length");
+  if (rawLength === null) return false;
+  const normalizedLength = rawLength.trim();
+  if (!/^\d+$/.test(normalizedLength)) return true;
+  return Number(normalizedLength) !== 0;
 }
 
 function bearerToken(request: Request): string | null {
@@ -117,19 +98,18 @@ function bearerToken(request: Request): string | null {
   return token.length > 0 ? token : null;
 }
 
-function exactStoragePath(projectId: string, documentId: string): string {
-  return `${projectId}/documents/${documentId}/original`;
+function requestTargets(
+  request: Request,
+): { readonly projectId: string; readonly documentId: string } | null {
+  const projectId = request.headers.get("x-project-id") ?? "";
+  const documentId = request.headers.get("x-document-id") ?? "";
+  return UUID_PATTERN.test(projectId) && UUID_PATTERN.test(documentId)
+    ? { projectId, documentId }
+    : null;
 }
 
-function requestHasBodyFrame(request: Request): boolean {
-  if (request.headers.get("transfer-encoding") !== null) return true;
-
-  const rawLength = request.headers.get("content-length");
-  if (rawLength === null) return false;
-
-  const normalizedLength = rawLength.trim();
-  if (!/^\d+$/.test(normalizedLength)) return true;
-  return Number(normalizedLength) !== 0;
+function exactStoragePath(projectId: string, documentId: string): string {
+  return `${projectId}/documents/${documentId}/original`;
 }
 
 function isPdfSignature(bytes: Uint8Array): boolean {
@@ -204,8 +184,10 @@ async function storageObjectMatchesReservation(
     return false;
   }
 
-  const bytes = new Uint8Array(await data.arrayBuffer());
-  return bytesMatchReservation(bytes, reservation);
+  return bytesMatchReservation(
+    new Uint8Array(await data.arrayBuffer()),
+    reservation,
+  );
 }
 
 async function hasWritePermission(
@@ -279,85 +261,61 @@ async function cleanupStaging(
   return result.error === null;
 }
 
-Deno.serve(async (request: Request) => {
-  if (request.method === "OPTIONS") {
-    return new Response(null, { status: 204, headers: corsHeaders(request) });
-  }
-  if (!requestOriginAllowed(request)) return unavailable(request, 403);
-  if (request.method !== "POST") return unavailable(request, 405);
-  if (requestHasBodyFrame(request)) return unavailable(request, 413);
+async function handlePromotion(
+  request: Request,
+  env: PagesEnvironment,
+): Promise<Response> {
+  if (!requestOriginAllowed(request)) return unavailable(403);
+  if (request.method !== "POST") return unavailable(405);
+  if (requestHasBodyFrame(request)) return unavailable(413);
 
-  const projectId = request.headers.get("x-project-id") ?? "";
-  const documentId = request.headers.get("x-document-id") ?? "";
-  if (!UUID_PATTERN.test(projectId) || !UUID_PATTERN.test(documentId)) {
-    return unavailable(request, 400);
-  }
-
+  const targets = requestTargets(request);
+  if (targets === null) return unavailable(400);
   const token = bearerToken(request);
-  if (token === null) return unavailable(request, 401);
+  if (token === null) return unavailable(401);
+  const provider = providerEnvironment(env);
+  if (provider === null) return unavailable(503);
 
-  const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? null;
-  const publishableKey = environmentKey(
-    "SUPABASE_PUBLISHABLE_KEYS",
-    "SUPABASE_PUBLISHABLE_KEY",
-    "SUPABASE_ANON_KEY",
-  );
-  if (supabaseUrl === null || publishableKey === null) {
-    return unavailable(request, 503);
-  }
-
-  const userClient = createClient(supabaseUrl, publishableKey, {
+  const userClient = createClient(provider.url, provider.publishableKey, {
     auth: { persistSession: false, autoRefreshToken: false },
     global: { headers: { Authorization: `Bearer ${token}` } },
   });
   const { data: userData, error: userError } =
     await userClient.auth.getUser(token);
-  if (userError || userData.user === null) return unavailable(request, 401);
-
-  if (!(await hasWritePermission(userClient, projectId))) {
-    return unavailable(request);
+  if (userError || userData.user === null) return unavailable(401);
+  if (!(await hasWritePermission(userClient, targets.projectId))) {
+    return unavailable();
   }
 
-  const reservation = await reservationFor(userClient, projectId, documentId);
-  if (reservation === null) return unavailable(request, 409);
-
-  const secretKey = environmentKey(
-    "SUPABASE_SECRET_KEYS",
-    "SUPABASE_SECRET_KEY",
-    "SUPABASE_SERVICE_ROLE_KEY",
+  const reservation = await reservationFor(
+    userClient,
+    targets.projectId,
+    targets.documentId,
   );
-  if (secretKey === null) return unavailable(request, 503);
-
-  const admin = createClient(supabaseUrl, secretKey, {
+  if (reservation === null) return unavailable(409);
+  const secret = serviceKey(env);
+  if (secret === null) return unavailable(503);
+  const admin = createClient(provider.url, secret, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
-  const path = exactStoragePath(projectId, documentId);
-  if (
-    !(await storageObjectMatchesReservation(
-      admin,
-      STAGING_BUCKET,
-      path,
-      reservation,
-    ))
-  ) {
-    return unavailable(request, 422);
+  const path = exactStoragePath(targets.projectId, targets.documentId);
+  if (!(await storageObjectMatchesReservation(admin, STAGING_BUCKET, path, reservation))) {
+    return unavailable(422);
   }
-
-  // Narrow the membership race window immediately before privileged canonical
-  // mutation. Service authority is never used as caller authorization.
-  if (!(await hasWritePermission(userClient, projectId))) {
-    return unavailable(request);
-  }
+  if (!(await hasWritePermission(userClient, targets.projectId))) return unavailable();
 
   const promoted = await promoteToCanonical(admin, path, reservation);
-  if (!promoted.ok) return unavailable(request, 503);
+  if (!promoted.ok) return unavailable(503);
+  if (!(await hasWritePermission(userClient, targets.projectId))) return unavailable();
+  if (!(await attest(admin, reservation))) return unavailable(503);
+  if (!(await cleanupStaging(admin, path))) return unavailable(503);
+  return json(200, { ok: true, replayed: promoted.replayed });
+}
 
-  // Reauthorize again before recording the server-only trust assertion.
-  if (!(await hasWritePermission(userClient, projectId))) {
-    return unavailable(request);
+export async function onRequest(context: PagesContext): Promise<Response> {
+  try {
+    return await handlePromotion(context.request, context.env);
+  } catch {
+    return unavailable(503);
   }
-  if (!(await attest(admin, reservation))) return unavailable(request, 503);
-  if (!(await cleanupStaging(admin, path))) return unavailable(request, 503);
-
-  return json(request, 200, { ok: true, replayed: promoted.replayed });
-});
+}

@@ -60,13 +60,8 @@ template = "Your code is {{ .Code }}"
 max_frequency = "1m"
 
 [edge_runtime]
-enabled = true
+enabled = false
 policy = "per_worker"
-
-[functions.private-document-ingest]
-enabled = true
-verify_jwt = true
-entrypoint = "./functions/private-document-ingest/index.ts"
 
 [analytics]
 enabled = false

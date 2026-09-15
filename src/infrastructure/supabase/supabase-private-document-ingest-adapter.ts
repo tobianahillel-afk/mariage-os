@@ -5,15 +5,7 @@ import type {
 } from "@application/documents/private-document-ingest-port";
 
 const DOCUMENT_INGEST_STAGING_BUCKET = "document-ingest-staging" as const;
-
-interface SupabaseFunctionResponse {
-  readonly data: unknown;
-  readonly error: unknown;
-}
-
-interface SupabaseInvokeOptions {
-  readonly headers: Readonly<Record<string, string>>;
-}
+const PROMOTION_URL = "/api/private-document-promote" as const;
 
 interface SupabaseStorageResponse {
   readonly data: unknown;
@@ -28,18 +20,28 @@ interface SupabaseStagingBucketLike {
   ): PromiseLike<SupabaseStorageResponse>;
 }
 
-export interface SupabasePrivateDocumentFunctionsClientLike {
-  invoke(
-    functionName: "private-document-ingest",
-    options: SupabaseInvokeOptions,
-  ): PromiseLike<SupabaseFunctionResponse>;
+interface SupabaseSessionResult {
+  readonly data: {
+    readonly session: {
+      readonly access_token: unknown;
+    } | null;
+  };
+  readonly error: unknown;
 }
 
 export interface SupabasePrivateDocumentStagingClientLike {
   readonly storage: {
     from(bucket: string): SupabaseStagingBucketLike;
   };
+  readonly auth: {
+    getSession(): PromiseLike<SupabaseSessionResult>;
+  };
 }
+
+export type PrivateDocumentPromotionFetch = (
+  input: string,
+  init: RequestInit,
+) => Promise<Response>;
 
 function isTrustedIngestReceipt(value: unknown): boolean {
   return (
@@ -61,19 +63,10 @@ function parseProviderStatus(value: unknown): number | null {
 
 function providerStatus(error: unknown): number | null {
   if (!isRecord(error)) return null;
-
-  const directStatus = parseProviderStatus(error.status);
-  if (directStatus !== null) return directStatus;
-
-  const statusCode = parseProviderStatus(error.statusCode);
-  if (statusCode !== null) return statusCode;
-
-  if (!isRecord(error.context)) return null;
-  return parseProviderStatus(error.context.status);
+  return parseProviderStatus(error.statusCode) ?? parseProviderStatus(error.status);
 }
 
-function persistenceCode(error: unknown) {
-  const status = providerStatus(error);
+function persistenceCodeFromStatus(status: number | null) {
   return status === null || status >= 500
     ? ("storage_retryable" as const)
     : ("persistence_failed" as const);
@@ -92,10 +85,29 @@ function isExactPathReceipt(value: unknown, expectedPath: string): boolean {
   );
 }
 
-export class SupabasePrivateDocumentIngestAdapter implements TrustedPrivateDocumentIngestPort {
+function promotionToken(result: SupabaseSessionResult): string | null {
+  if (result.error !== null || result.data.session === null) return null;
+  const token = result.data.session.access_token;
+  return typeof token === "string" && token.length > 0 ? token : null;
+}
+
+async function responsePayload(response: Response): Promise<unknown> {
+  try {
+    return await response.json();
+  } catch {
+    return null;
+  }
+}
+
+export class SupabasePrivateDocumentIngestAdapter
+  implements TrustedPrivateDocumentIngestPort
+{
   constructor(
-    private readonly functions: SupabasePrivateDocumentFunctionsClientLike,
     private readonly staging: SupabasePrivateDocumentStagingClientLike,
+    private readonly promotionFetch: PrivateDocumentPromotionFetch = (
+      input,
+      init,
+    ) => globalThis.fetch(input, init),
   ) {}
 
   async ingest(input: TrustedPrivateDocumentIngestInput): Promise<void> {
@@ -117,12 +129,9 @@ export class SupabasePrivateDocumentIngestAdapter implements TrustedPrivateDocum
     }
 
     if (uploadResult.error !== null) {
-      // A pre-existing object is not accepted as proof of success. A 409 is
-      // deliberately forwarded to trusted promotion, which revalidates the
-      // authoritative staged bytes against the pending reservation.
       if (providerStatus(uploadResult.error) !== 409) {
         throw new DocumentPersistenceError(
-          persistenceCode(uploadResult.error),
+          persistenceCodeFromStatus(providerStatus(uploadResult.error)),
           "Private document staging upload failed.",
         );
       }
@@ -133,10 +142,30 @@ export class SupabasePrivateDocumentIngestAdapter implements TrustedPrivateDocum
       );
     }
 
-    let result: SupabaseFunctionResponse;
+    let sessionResult: SupabaseSessionResult;
     try {
-      result = await this.functions.invoke("private-document-ingest", {
+      sessionResult = await this.staging.auth.getSession();
+    } catch {
+      throw new DocumentPersistenceError(
+        "storage_retryable",
+        "Private document promotion session lookup failed.",
+      );
+    }
+    const token = promotionToken(sessionResult);
+    if (token === null) {
+      throw new DocumentPersistenceError(
+        "persistence_failed",
+        "Private document promotion requires an authenticated session.",
+      );
+    }
+
+    let response: Response;
+    try {
+      response = await this.promotionFetch(PROMOTION_URL, {
+        method: "POST",
+        cache: "no-store",
         headers: {
+          authorization: `Bearer ${token}`,
           "x-project-id": input.projectId,
           "x-document-id": input.documentId,
         },
@@ -148,13 +177,13 @@ export class SupabasePrivateDocumentIngestAdapter implements TrustedPrivateDocum
       );
     }
 
-    if (result.error !== null) {
+    if (!response.ok) {
       throw new DocumentPersistenceError(
-        persistenceCode(result.error),
+        persistenceCodeFromStatus(response.status),
         "Trusted private document promotion failed.",
       );
     }
-    if (!isTrustedIngestReceipt(result.data)) {
+    if (!isTrustedIngestReceipt(await responsePayload(response))) {
       throw new DocumentPersistenceError(
         "provider_response_invalid",
         "Trusted private document promotion returned an invalid response.",

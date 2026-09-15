@@ -2,7 +2,7 @@
   "compilerOptions": {
     "composite": true,
     "target": "ES2023",
-    "lib": ["ES2023"],
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "types": ["node"],
@@ -21,6 +21,7 @@
     "vitest.config.ts",
     "playwright.config.ts",
     "tests/e2e/**/*.ts",
+    "functions/**/*.ts",
     "stryker.config.mjs"
   ]
 }

@@ -1,15 +1,17 @@
 import assert from "node:assert/strict";
 import { Buffer } from "node:buffer";
-import { createHash, createHmac, randomUUID } from "node:crypto";
 import { spawnSync } from "node:child_process";
+import { createHash, createHmac, randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 
 export const BUCKET = "project-private";
 export const STAGING_BUCKET = "document-ingest-staging";
 export const MAX_BYTES = 25_000_000;
 const npmExecPath = process.env.npm_execpath;
+const clientTokens = new WeakMap();
 let cachedEnvironment = null;
 let cachedDatabaseContainer = null;
+let configuredPromotionOrigin = null;
 
 function fail(message) {
   throw new Error(message);
@@ -111,7 +113,7 @@ function requireCompleteEnvironment(environment) {
 
 export function localSupabaseEnvironment() {
   if (cachedEnvironment) return cachedEnvironment;
-  if (!npmExecPath) fail("npm_execpath is required for Edge integration.");
+  if (!npmExecPath) fail("npm_execpath is required for promotion integration.");
   const result = spawnSync(
     process.execPath,
     [npmExecPath, "exec", "--", "supabase", "status", "-o", "env"],
@@ -123,6 +125,18 @@ export function localSupabaseEnvironment() {
   const values = parseEnvironmentOutput(result.stdout);
   cachedEnvironment = requireCompleteEnvironment(environmentFromValues(values));
   return cachedEnvironment;
+}
+
+export function setPromotionOrigin(value) {
+  const url = new URL(value);
+  configuredPromotionOrigin = url.origin;
+}
+
+export function promotionUrl() {
+  if (configuredPromotionOrigin === null) {
+    fail("Pages promotion origin was not configured by the runtime harness.");
+  }
+  return `${configuredPromotionOrigin}/api/private-document-promote`;
 }
 
 function localDatabaseContainer() {
@@ -175,7 +189,7 @@ export function createProjectFixture({ projectId, userId }) {
       insert into public.projects (id, name, created_by, updated_by)
       values (
         :'project_id'::uuid,
-        'WP-2.9C Edge integration',
+        'WP-2.9C Pages integration',
         :'user_id'::uuid,
         :'user_id'::uuid
       );
@@ -272,6 +286,7 @@ export async function createSyntheticIdentity({
     auth: { persistSession: false, autoRefreshToken: false },
     global: { headers: { Authorization: `Bearer ${token}` } },
   });
+  clientTokens.set(client, token);
   return { userId, client, token };
 }
 
@@ -330,13 +345,39 @@ export function stage({
     });
 }
 
-export function invoke({ client, projectId, documentId }) {
-  return client.functions.invoke("private-document-ingest", {
-    headers: {
-      "x-project-id": projectId,
-      "x-document-id": documentId,
-    },
+function promotionError(status) {
+  return Object.assign(new Error("trusted promotion rejected"), {
+    context: { status },
   });
+}
+
+export async function invoke({ client, projectId, documentId }) {
+  const token = clientTokens.get(client);
+  const headers = {
+    "x-project-id": projectId,
+    "x-document-id": documentId,
+  };
+  if (token) headers.authorization = `Bearer ${token}`;
+
+  let response;
+  try {
+    response = await globalThis.fetch(promotionUrl(), {
+      method: "POST",
+      headers,
+    });
+  } catch (error) {
+    return { data: null, error };
+  }
+
+  let data = null;
+  try {
+    data = await response.json();
+  } catch {
+    data = null;
+  }
+  return response.ok
+    ? { data, error: null }
+    : { data: null, error: promotionError(response.status) };
 }
 
 export function assertRejected(result, message) {

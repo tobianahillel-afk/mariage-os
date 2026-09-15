@@ -6,8 +6,8 @@ import {
   documentUploadStatus,
   finalize,
   invoke,
-  localSupabaseEnvironment,
   pdfBytes,
+  promotionUrl,
   randomUUID,
   reserve,
   setMembershipRole,
@@ -17,11 +17,9 @@ import {
 } from "./private-document-edge-helpers.mjs";
 
 function rawInvoke({ token, projectId, documentId }) {
-  const { apiUrl, anonKey } = localSupabaseEnvironment();
-  return globalThis.fetch(`${apiUrl}/functions/v1/private-document-ingest`, {
+  return globalThis.fetch(promotionUrl(), {
     method: "POST",
     headers: {
-      apikey: anonKey,
       authorization: `Bearer ${token}`,
       "x-project-id": projectId,
       "x-document-id": documentId,
@@ -58,17 +56,13 @@ export async function assertMalformedJwtDenied(context, document) {
     projectId: context.projectId,
     documentId: document.documentId,
   });
-  assert.equal(
-    response.status,
-    401,
-    "Malformed JWT must be denied by runtime.",
-  );
+  assert.equal(response.status, 401, "Malformed JWT must be denied.");
   await assertNoTrustedObject({
     admin: context.admin,
     projectId: context.projectId,
     documentId: document.documentId,
   });
-  console.log("PASS malformed JWT denied by promotion runtime");
+  console.log("PASS malformed JWT denied by Pages promotion runtime");
 }
 
 export async function runFinalizeAuthorizationScenario(context) {

@@ -2,12 +2,12 @@ import assert from "node:assert/strict";
 import {
   assertMalformedJwtDenied,
   runFinalizeAuthorizationScenario,
-} from "./private-document-edge-adversarial-scenarios.mjs";
+} from "./private-document-pages-adversarial-scenarios.mjs";
 import {
   runCanonicalIntegrityScenarios,
   runStagingIntegrityScenarios,
 } from "./private-document-edge-integrity-scenarios.mjs";
-import { runReviewFindingRedScenarios } from "./private-document-edge-review-red.mjs";
+import { runReviewFindingRedScenarios } from "./private-document-pages-review.mjs";
 import {
   BUCKET,
   STAGING_BUCKET,
