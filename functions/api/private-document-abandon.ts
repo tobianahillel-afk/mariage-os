@@ -2,11 +2,20 @@ import {
   createClient,
   type SupabaseClient as SupabaseProviderClient,
 } from "@supabase/supabase-js";
+import {
+  abandonTargets,
+  bearerToken,
+  providerEnvironment,
+  requestHasBodyFrame,
+  requestOriginAllowed,
+  serviceKey,
+  type AbandonTargets as TrustedTargets,
+  type PrivateDocumentPagesEnvironment,
+  type ProviderEnvironment,
+} from "./private-document-request.js";
 
 const CANONICAL_BUCKET = "project-private";
 const STAGING_BUCKET = "document-ingest-staging";
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 type EmptyProviderMap = Record<never, never>;
 
@@ -51,17 +60,10 @@ interface AbandonDatabase {
 
 type ProviderClient = SupabaseProviderClient<AbandonDatabase>;
 
-export interface PrivateDocumentPagesEnvironment {
-  readonly SUPABASE_URL?: string;
-  readonly SUPABASE_PUBLISHABLE_KEY?: string;
-  readonly SUPABASE_ANON_KEY?: string;
-  readonly PRIVATE_DOCUMENT_ADMIN_KEY?: string;
-}
-
-interface TrustedTargets {
-  readonly projectId: string;
-  readonly documentId: string;
-  readonly operationId: string;
+interface RequestCredentials {
+  readonly targets: TrustedTargets;
+  readonly token: string;
+  readonly provider: ProviderEnvironment;
 }
 
 interface UserAuthority {
@@ -84,49 +86,6 @@ function json(
 
 function unavailable(status = 404): Response {
   return json(status, { error: "private_document_unavailable" });
-}
-
-function nonEmpty(...values: ReadonlyArray<string | undefined>): string | null {
-  return (
-    values.find((value) => typeof value === "string" && value.length > 0) ??
-    null
-  );
-}
-
-function requestOriginAllowed(request: Request): boolean {
-  const origin = request.headers.get("origin");
-  if (origin === null) return true;
-  try {
-    return new URL(origin).origin === new URL(request.url).origin;
-  } catch {
-    return false;
-  }
-}
-
-function requestHasBodyFrame(request: Request): boolean {
-  if (request.headers.get("transfer-encoding") !== null) return true;
-  const rawLength = request.headers.get("content-length");
-  if (rawLength === null) return request.body !== null;
-  const normalizedLength = rawLength.trim();
-  return !/^\d+$/.test(normalizedLength) || Number(normalizedLength) !== 0;
-}
-
-function requestTargets(request: Request): TrustedTargets | null {
-  const projectId = request.headers.get("x-project-id") ?? "";
-  const documentId = request.headers.get("x-document-id") ?? "";
-  const operationId = request.headers.get("x-operation-id") ?? "";
-  return [projectId, documentId, operationId].every((value) =>
-    UUID_PATTERN.test(value),
-  )
-    ? { projectId, documentId, operationId }
-    : null;
-}
-
-function bearerToken(request: Request): string | null {
-  const authorization = request.headers.get("authorization");
-  if (!authorization?.startsWith("Bearer ")) return null;
-  const token = authorization.slice("Bearer ".length).trim();
-  return token.length > 0 ? token : null;
 }
 
 function exactStoragePath(projectId: string, documentId: string): string {
@@ -177,31 +136,35 @@ async function reservationFor(
   return validReservation(data, targets) ? data : unavailable(409);
 }
 
-function providerValues(env: PrivateDocumentPagesEnvironment) {
-  return {
-    url: nonEmpty(env.SUPABASE_URL),
-    publishableKey: nonEmpty(
-      env.SUPABASE_PUBLISHABLE_KEY,
-      env.SUPABASE_ANON_KEY,
-    ),
-  };
+function requestFrameError(request: Request): Response | null {
+  if (!requestOriginAllowed(request)) return unavailable(403);
+  if (request.method !== "DELETE") return unavailable(405);
+  if (requestHasBodyFrame(request)) return unavailable(413);
+  return null;
+}
+
+function requestCredentials(
+  request: Request,
+  env: PrivateDocumentPagesEnvironment,
+): RequestCredentials | Response {
+  const targets = abandonTargets(request);
+  if (targets === null) return unavailable(400);
+  const token = bearerToken(request);
+  if (token === null) return unavailable(401);
+  const provider = providerEnvironment(env);
+  if (provider === null) return unavailable(503);
+  return { targets, token, provider };
 }
 
 async function userAuthority(
   request: Request,
   env: PrivateDocumentPagesEnvironment,
 ): Promise<UserAuthority | Response> {
-  if (!requestOriginAllowed(request)) return unavailable(403);
-  if (request.method !== "DELETE") return unavailable(405);
-  if (requestHasBodyFrame(request)) return unavailable(413);
-  const targets = requestTargets(request);
-  const token = bearerToken(request);
-  const provider = providerValues(env);
-  if (targets === null) return unavailable(400);
-  if (token === null) return unavailable(401);
-  if (provider.url === null || provider.publishableKey === null) {
-    return unavailable(503);
-  }
+  const frameError = requestFrameError(request);
+  if (frameError !== null) return frameError;
+  const credentials = requestCredentials(request, env);
+  if (credentials instanceof Response) return credentials;
+  const { targets, token, provider } = credentials;
   const client = createClient<AbandonDatabase>(
     provider.url,
     provider.publishableKey,
@@ -212,17 +175,18 @@ async function userAuthority(
   );
   const { data, error } = await client.auth.getUser(token);
   if (error || data.user === null) return unavailable(401);
-  if (!(await hasWritePermission(client, targets.projectId)))
+  if (!(await hasWritePermission(client, targets.projectId))) {
     return unavailable();
+  }
   return { client, targets };
 }
 
 function adminClient(
   env: PrivateDocumentPagesEnvironment,
 ): ProviderClient | null {
-  const provider = providerValues(env);
-  const secret = nonEmpty(env.PRIVATE_DOCUMENT_ADMIN_KEY);
-  if (provider.url === null || secret === null) return null;
+  const provider = providerEnvironment(env);
+  const secret = serviceKey(env);
+  if (provider === null || secret === null) return null;
   return createClient<AbandonDatabase>(provider.url, secret, {
     auth: { persistSession: false, autoRefreshToken: false },
   });

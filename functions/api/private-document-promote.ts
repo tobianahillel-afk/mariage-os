@@ -3,29 +3,30 @@ import {
   type SupabaseClient as SupabaseProviderClient,
 } from "@supabase/supabase-js";
 import { handleTrustedAbandon } from "./private-document-abandon.js";
+import {
+  bytesMatchReservation,
+  downloadMatchesStorageInfo,
+  exactStoragePath,
+  sameReservation,
+  storageInfoMatchesReservation,
+  validReservation,
+  type ReservedDocument,
+} from "./private-document-integrity.js";
+import {
+  bearerToken,
+  promotionTargets,
+  providerEnvironment,
+  requestHasBodyFrame,
+  requestOriginAllowed,
+  serviceKey,
+  type PrivateDocumentPagesEnvironment as PagesEnvironment,
+  type ProviderEnvironment,
+} from "./private-document-request.js";
 
 const CANONICAL_BUCKET = "project-private";
 const STAGING_BUCKET = "document-ingest-staging";
-const MAX_BYTES = 25_000_000;
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const SHA256_PATTERN = /^[0-9a-f]{64}$/;
-const PDF_SIGNATURE = new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d]);
 
 type EmptyProviderMap = Record<never, never>;
-
-type ReservedDocument = {
-  readonly id: string;
-  readonly project_id: string;
-  readonly storage_path: string;
-  readonly mime_type: string;
-  readonly size_bytes: number;
-  readonly sha256: string;
-  readonly classification: string;
-  readonly upload_status: string;
-  readonly deleted_at: string | null;
-  readonly remote_url: string | null;
-};
 
 interface ProviderDatabase {
   public: {
@@ -63,21 +64,9 @@ interface ProviderDatabase {
 
 type ProviderClient = SupabaseProviderClient<ProviderDatabase>;
 
-interface PagesEnvironment {
-  readonly SUPABASE_URL?: string;
-  readonly SUPABASE_PUBLISHABLE_KEY?: string;
-  readonly SUPABASE_ANON_KEY?: string;
-  readonly PRIVATE_DOCUMENT_ADMIN_KEY?: string;
-}
-
 interface PagesContext {
   readonly request: Request;
   readonly env: PagesEnvironment;
-}
-
-interface ProviderEnvironment {
-  readonly url: string;
-  readonly publishableKey: string;
 }
 
 interface RequestAuthority {
@@ -97,33 +86,6 @@ interface PromotionContext {
   readonly projectId: string;
 }
 
-type StorageInfoShape = Readonly<{ size?: unknown; contentType?: unknown }>;
-type StorageDownloadShape = Pick<Blob, "size" | "type" | "arrayBuffer">;
-
-function nonEmpty(...values: ReadonlyArray<string | undefined>): string | null {
-  return (
-    values.find((value) => typeof value === "string" && value.length > 0) ??
-    null
-  );
-}
-
-function providerEnvironment(
-  env: PagesEnvironment,
-): ProviderEnvironment | null {
-  const url = nonEmpty(env.SUPABASE_URL);
-  const publishableKey = nonEmpty(
-    env.SUPABASE_PUBLISHABLE_KEY,
-    env.SUPABASE_ANON_KEY,
-  );
-  return url === null || publishableKey === null
-    ? null
-    : { url, publishableKey };
-}
-
-function serviceKey(env: PagesEnvironment): string | null {
-  return nonEmpty(env.PRIVATE_DOCUMENT_ADMIN_KEY);
-}
-
 function json(
   status: number,
   body: Readonly<Record<string, unknown>>,
@@ -139,95 +101,6 @@ function json(
 
 function unavailable(status = 404): Response {
   return json(status, { error: "private_document_unavailable" });
-}
-
-function requestOriginAllowed(request: Request): boolean {
-  const origin = request.headers.get("origin");
-  if (origin === null) return true;
-  try {
-    return new URL(origin).origin === new URL(request.url).origin;
-  } catch {
-    return false;
-  }
-}
-
-function requestHasBodyFrame(request: Request): boolean {
-  if (request.headers.get("transfer-encoding") !== null) return true;
-
-  const rawLength = request.headers.get("content-length");
-  if (rawLength !== null) {
-    const normalizedLength = rawLength.trim();
-    if (!/^\d+$/.test(normalizedLength)) return true;
-    return Number(normalizedLength) !== 0;
-  }
-
-  return request.body !== null;
-}
-
-function bearerToken(request: Request): string | null {
-  const authorization = request.headers.get("authorization");
-  if (!authorization?.startsWith("Bearer ")) return null;
-  const token = authorization.slice("Bearer ".length).trim();
-  return token.length > 0 ? token : null;
-}
-
-function requestTargets(
-  request: Request,
-): { readonly projectId: string; readonly documentId: string } | null {
-  const projectId = request.headers.get("x-project-id") ?? "";
-  const documentId = request.headers.get("x-document-id") ?? "";
-  return UUID_PATTERN.test(projectId) && UUID_PATTERN.test(documentId)
-    ? { projectId, documentId }
-    : null;
-}
-
-function exactStoragePath(projectId: string, documentId: string): string {
-  return `${projectId}/documents/${documentId}/original`;
-}
-
-function isPdfSignature(bytes: Uint8Array): boolean {
-  if (bytes.byteLength < PDF_SIGNATURE.byteLength) return false;
-  return PDF_SIGNATURE.every((value, index) => bytes[index] === value);
-}
-
-async function sha256(bytes: Uint8Array): Promise<string> {
-  const buffer = new ArrayBuffer(bytes.byteLength);
-  new Uint8Array(buffer).set(bytes);
-  const digest = await crypto.subtle.digest("SHA-256", buffer);
-  return Array.from(new Uint8Array(digest), (value) =>
-    value.toString(16).padStart(2, "0"),
-  ).join("");
-}
-
-function validReservation(
-  value: ReservedDocument,
-  projectId: string,
-  documentId: string,
-): boolean {
-  return [
-    value.id === documentId,
-    value.project_id === projectId,
-    value.storage_path === exactStoragePath(projectId, documentId),
-    value.mime_type === "application/pdf",
-    Number.isSafeInteger(value.size_bytes),
-    value.size_bytes >= 1,
-    value.size_bytes <= MAX_BYTES,
-    SHA256_PATTERN.test(value.sha256),
-    value.classification === "private",
-    value.upload_status === "pending",
-    value.deleted_at === null,
-    value.remote_url === null,
-  ].every(Boolean);
-}
-
-async function bytesMatchReservation(
-  bytes: Uint8Array,
-  reservation: ReservedDocument,
-): Promise<boolean> {
-  if (bytes.byteLength !== reservation.size_bytes || !isPdfSignature(bytes)) {
-    return false;
-  }
-  return (await sha256(bytes)) === reservation.sha256;
 }
 
 async function storageObjectMatchesReservation(
@@ -249,33 +122,6 @@ async function storageObjectMatchesReservation(
     new Uint8Array(await data.arrayBuffer()),
     reservation,
   );
-}
-
-function storageInfoMatchesReservation(
-  info: StorageInfoShape,
-  reservation: ReservedDocument,
-): boolean {
-  const objectSize = info.size;
-  return [
-    typeof objectSize === "number",
-    Number.isSafeInteger(objectSize),
-    typeof objectSize === "number" && objectSize >= 1,
-    typeof objectSize === "number" && objectSize <= MAX_BYTES,
-    objectSize === reservation.size_bytes,
-    info.contentType === "application/pdf",
-  ].every(Boolean);
-}
-
-function downloadMatchesStorageInfo(
-  data: StorageDownloadShape,
-  objectSize: unknown,
-): boolean {
-  return [
-    typeof objectSize === "number",
-    data.size === objectSize,
-    data.size <= MAX_BYTES,
-    data.type === "application/pdf",
-  ].every(Boolean);
 }
 
 async function hasWritePermission(
@@ -346,6 +192,37 @@ async function cleanupStaging(
   return result.error === null;
 }
 
+function splitObjectPath(path: string): { folder: string; name: string } {
+  const separator = path.lastIndexOf("/");
+  return {
+    folder: path.slice(0, separator),
+    name: path.slice(separator + 1),
+  };
+}
+
+async function canonicalAbsent(
+  admin: ProviderClient,
+  path: string,
+): Promise<boolean> {
+  const { folder, name } = splitObjectPath(path);
+  const result = await admin.storage
+    .from(CANONICAL_BUCKET)
+    .list(folder, { limit: 100 });
+  return (
+    result.error === null &&
+    result.data !== null &&
+    !result.data.some((entry) => entry.name === name)
+  );
+}
+
+async function compensateCanonical(
+  admin: ProviderClient,
+  path: string,
+): Promise<boolean> {
+  const removal = await admin.storage.from(CANONICAL_BUCKET).remove([path]);
+  return removal.error === null && canonicalAbsent(admin, path);
+}
+
 function requestAuthority(
   request: Request,
   env: PagesEnvironment,
@@ -354,7 +231,7 @@ function requestAuthority(
   if (request.method !== "POST") return unavailable(405);
   if (requestHasBodyFrame(request)) return unavailable(413);
 
-  const targets = requestTargets(request);
+  const targets = promotionTargets(request);
   if (targets === null) return unavailable(400);
   const token = bearerToken(request);
   if (token === null) return unavailable(401);
@@ -403,6 +280,25 @@ async function promotionContext(
   };
 }
 
+async function reservationStillCurrent(
+  context: PromotionContext,
+): Promise<boolean> {
+  const current = await reservationFor(
+    context.userClient,
+    context.projectId,
+    context.reservation.id,
+  );
+  return current !== null && sameReservation(current, context.reservation);
+}
+
+async function failAfterCanonical(
+  context: PromotionContext,
+  status = 503,
+): Promise<Response> {
+  const compensated = await compensateCanonical(context.admin, context.path);
+  return compensated ? unavailable(status) : unavailable(503);
+}
+
 async function executePromotion(context: PromotionContext): Promise<Response> {
   const { userClient, admin, reservation, path, projectId } = context;
   if (
@@ -416,11 +312,17 @@ async function executePromotion(context: PromotionContext): Promise<Response> {
     return unavailable(422);
   }
   if (!(await hasWritePermission(userClient, projectId))) return unavailable();
+  if (!(await reservationStillCurrent(context))) return unavailable(409);
 
   const promoted = await promoteToCanonical(admin, path, reservation);
-  if (!promoted.ok) return unavailable(503);
-  if (!(await hasWritePermission(userClient, projectId))) return unavailable();
-  if (!(await attest(admin, reservation))) return unavailable(503);
+  if (!promoted.ok) return failAfterCanonical(context);
+  if (!(await hasWritePermission(userClient, projectId))) {
+    return failAfterCanonical(context, 404);
+  }
+  if (!(await reservationStillCurrent(context))) {
+    return failAfterCanonical(context, 409);
+  }
+  if (!(await attest(admin, reservation))) return failAfterCanonical(context);
   if (!(await cleanupStaging(admin, path))) return unavailable(503);
   return json(200, { ok: true, replayed: promoted.replayed });
 }
