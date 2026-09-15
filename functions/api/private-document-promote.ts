@@ -145,14 +145,16 @@ function requestOriginAllowed(request: Request): boolean {
 }
 
 function requestHasBodyFrame(request: Request): boolean {
-  if (request.body !== null) return true;
   if (request.headers.get("transfer-encoding") !== null) return true;
 
   const rawLength = request.headers.get("content-length");
-  if (rawLength === null) return false;
-  const normalizedLength = rawLength.trim();
-  if (!/^\d+$/.test(normalizedLength)) return true;
-  return Number(normalizedLength) !== 0;
+  if (rawLength !== null) {
+    const normalizedLength = rawLength.trim();
+    if (!/^\d+$/.test(normalizedLength)) return true;
+    return Number(normalizedLength) !== 0;
+  }
+
+  return request.body !== null;
 }
 
 function bearerToken(request: Request): string | null {
