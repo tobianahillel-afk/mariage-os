@@ -44,11 +44,13 @@ Local/runtime implementation evidence proves that the exact-size path is functio
 
 - local Supabase + Wrangler/workerd promotion harness includes exact `25,000,000`-byte staging and promotion;
 - post-AR-005 CI `35021446818` completed the `Local Supabase DB, RLS and Pages Function` job successfully, including `npm run test:promotion`;
-- the same remediation retains bounded staging, exact stored MIME/size checks, `%PDF-` signature validation, actual-byte SHA-256, no-overwrite canonical handling, live authorization and independent finalization authorization.
+- final remediation implementation head `68a4f6bdb7b55acc80c4c6fbb8c0afc0295bfde5` / CI `35025384594` completed **5/5 SUCCESS**, including `Core quality and security`, `Local Supabase DB, RLS and Pages Function`, `Browser and mutation harnesses`, `Privacy-safe preview artifact` and `Full verify from clean checkout`;
+- on that exact implementation head, `db:verify`, `test:promotion`, unit/coverage, dependency audit, build, E2E and mutation gates all passed;
+- the remediation retains bounded staging, exact stored MIME/size checks, `%PDF-` signature validation, actual-byte SHA-256, no-overwrite canonical handling, live authorization, trusted clean-abandon/compensation and independent finalization authorization.
 
-This evidence is necessary but **not sufficient** for AR-006 because local workerd success does not demonstrate Workers Free CPU enforcement or provider-measured CPU consumption.
+This evidence is necessary but **not sufficient** for AR-006 because local workerd/repository CI success does not demonstrate Workers Free CPU enforcement or provider-measured CPU consumption.
 
-No provider `CPUTimeMs`, Pages Functions CPU quantile, deployment identity or equivalent deployed-Free CPU record is currently present in the repository evidence.
+No provider `CPUTimeMs`, Pages Functions CPU quantile, deployment identity or equivalent deployed-Free CPU record is currently present in the repository/FIR evidence inspected for this packet. No concrete Pages deployment URL was found in that evidence either. This does not prove that no external deployment exists; it means no acceptance-grade provider record is available to the packet.
 
 ## Required deployed proof
 
@@ -104,6 +106,6 @@ The approved response is architecture review, not automatic Workers Paid activat
 
 **BLOCKED ON EXTERNAL RUNTIME EVIDENCE.**
 
-The repository can prepare and validate the implementation, test harness, release contract and fail-closed smoke locally. It cannot manufacture Cloudflare provider CPU telemetry. No Cloudflare account integration or provider CPU record is currently available through the repository evidence used for this packet.
+Repository remediation is now exact-head green at `68a4f6bdb7b55acc80c4c6fbb8c0afc0295bfde5` / CI `35025384594` — **5/5 SUCCESS**, clean checkout included. The repository can prepare and validate the implementation, test harness, release contract and fail-closed smoke locally, but it cannot manufacture Cloudflare provider CPU telemetry.
 
-Therefore AR-006 is not closed, WP-2.9C must not transition to `REVIEW_PENDING`, and WP-2.9A remains blocked until this gate is resolved and WP-2.9C later reaches acceptance.
+No acceptance-grade Cloudflare deployment identity/URL and provider CPU record are currently available in the repository/FIR evidence used for this packet. Therefore AR-006 is not closed, WP-2.9C must not transition to `REVIEW_PENDING`, and WP-2.9A remains blocked until this gate is resolved and WP-2.9C later reaches acceptance.
