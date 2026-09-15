@@ -4,6 +4,7 @@ import {
   assertMalformedJwtDenied,
   runFinalizeAuthorizationScenario,
 } from "./private-document-edge-adversarial-scenarios.mjs";
+import { runReviewFindingRedScenarios } from "./private-document-edge-review-red.mjs";
 import {
   BUCKET,
   MAX_BYTES,
@@ -351,6 +352,7 @@ export async function runTrustedIngestScenarios() {
     await runInvalidSignatureScenario(context);
     await runPoisonedExistingObjectScenario(context);
     await runFeasibilityScenario(context);
+    await runReviewFindingRedScenarios(context);
   } finally {
     await cleanupHarness(context);
   }
