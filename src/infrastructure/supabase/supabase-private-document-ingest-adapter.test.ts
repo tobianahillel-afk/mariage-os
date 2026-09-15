@@ -20,6 +20,12 @@ type SessionResult = Awaited<
   ReturnType<SupabasePrivateDocumentStagingClientLike["auth"]["getSession"]>
 >;
 
+type StagingUpload = (
+  targetPath: string,
+  body: Uint8Array,
+  options: Readonly<Record<string, unknown>>,
+) => PromiseLike<UploadResult>;
+
 function input() {
   return {
     projectId,
@@ -44,13 +50,8 @@ function clientWith(
     error: null,
   },
 ) {
-  const from = vi.fn(() => ({
-    upload: (
-      targetPath: string,
-      body: Uint8Array,
-      options: Readonly<Record<string, unknown>>,
-    ) => upload(targetPath, body, options) as PromiseLike<UploadResult>,
-  }));
+  const typedUpload = upload as unknown as StagingUpload;
+  const from = vi.fn(() => ({ upload: typedUpload }));
   const getSession = vi.fn(async () => sessionResult);
   const client: SupabasePrivateDocumentStagingClientLike = {
     storage: { from },
