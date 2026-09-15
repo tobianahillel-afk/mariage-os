@@ -5,14 +5,17 @@ import secretSource from "../../../docs/security/SECRET-MANAGEMENT.md?raw";
 import { describe, expect, it } from "vitest";
 
 describe("WP-2.9C AR-007 Pages deployment and secret operations", () => {
-  it("keeps deployment contracts aligned with the trusted Pages boundary", () => {
-    expect(adrSource).toContain("PRIVATE_DOCUMENT_ADMIN_KEY");
-    expect(ciCdSource).toContain("/api/private-document-promote");
-    expect(ciCdSource).toContain("Pages Functions");
-    expect(releaseSource).toContain("/api/private-document-promote");
-    expect(releaseSource).toContain("fail closed");
-    expect(releaseSource).toContain("legacy Supabase promotion route");
-  });
+  it(
+    "keeps deployment contracts aligned with the trusted Pages boundary",
+    () => {
+      expect(adrSource).toContain("PRIVATE_DOCUMENT_ADMIN_KEY");
+      expect(ciCdSource).toContain("/api/private-document-promote");
+      expect(ciCdSource).toContain("Pages Functions");
+      expect(releaseSource).toContain("/api/private-document-promote");
+      expect(releaseSource).toContain("fail closed");
+      expect(releaseSource).toContain("legacy Supabase promotion route");
+    },
+  );
 
   it(
     "records metadata-only lifecycle operations for the privileged Pages secret",
