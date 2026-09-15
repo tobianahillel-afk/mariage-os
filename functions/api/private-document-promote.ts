@@ -27,36 +27,36 @@ interface ReservedDocument {
 }
 
 interface ProviderDatabase {
-  readonly public: {
-    readonly Tables: {
-      readonly documents: {
-        readonly Row: ReservedDocument;
-        readonly Insert: Partial<ReservedDocument>;
-        readonly Update: Partial<ReservedDocument>;
-        readonly Relationships: [];
+  public: {
+    Tables: {
+      documents: {
+        Row: ReservedDocument;
+        Insert: Partial<ReservedDocument>;
+        Update: Partial<ReservedDocument>;
+        Relationships: [];
       };
     };
-    readonly Views: EmptyProviderMap;
-    readonly Functions: {
-      readonly has_project_permission: {
-        readonly Args: {
-          readonly target_project_id: string;
-          readonly requested_permission: string;
+    Views: EmptyProviderMap;
+    Functions: {
+      has_project_permission: {
+        Args: {
+          target_project_id: string;
+          requested_permission: string;
         };
-        readonly Returns: boolean;
+        Returns: boolean;
       };
-      readonly attest_private_document_ingest: {
-        readonly Args: {
-          readonly target_project_id: string;
-          readonly target_document_id: string;
-          readonly target_sha256: string;
-          readonly target_size_bytes: number;
+      attest_private_document_ingest: {
+        Args: {
+          target_project_id: string;
+          target_document_id: string;
+          target_sha256: string;
+          target_size_bytes: number;
         };
-        readonly Returns: boolean;
+        Returns: boolean;
       };
     };
-    readonly Enums: EmptyProviderMap;
-    readonly CompositeTypes: EmptyProviderMap;
+    Enums: EmptyProviderMap;
+    CompositeTypes: EmptyProviderMap;
   };
 }
 
