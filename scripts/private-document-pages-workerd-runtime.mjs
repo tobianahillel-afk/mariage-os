@@ -34,7 +34,7 @@ function miniflareFromWrangler(binary) {
   };
 }
 
-function buildPagesFunctions(binary, outputFile) {
+function buildPagesFunctions(binary, outputDirectory) {
   execFileSync(
     process.execPath,
     [
@@ -43,8 +43,8 @@ function buildPagesFunctions(binary, outputFile) {
       "functions",
       "build",
       "functions",
-      "--outfile",
-      outputFile,
+      "--outdir",
+      outputDirectory,
       "--fallback-service",
       "ASSETS",
     ],
@@ -56,8 +56,7 @@ async function main() {
   const temporaryDirectory = mkdtempSync(
     join(tmpdir(), "mariage-os-pages-workerd-"),
   );
-  const bundleFilename = "pages-functions.mjs";
-  const bundlePath = join(temporaryDirectory, bundleFilename);
+  const bundleFilename = "index.js";
   const binary = wranglerBinary();
   const { Miniflare, convertV4MiniflareOptions } =
     miniflareFromWrangler(binary);
@@ -65,7 +64,7 @@ async function main() {
   let runtime;
 
   try {
-    buildPagesFunctions(binary, bundlePath);
+    buildPagesFunctions(binary, temporaryDirectory);
     runtime = new Miniflare(
       convertV4MiniflareOptions({
         host: "127.0.0.1",
