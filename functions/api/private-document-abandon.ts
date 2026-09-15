@@ -212,7 +212,8 @@ async function userAuthority(
   );
   const { data, error } = await client.auth.getUser(token);
   if (error || data.user === null) return unavailable(401);
-  if (!(await hasWritePermission(client, targets.projectId))) return unavailable();
+  if (!(await hasWritePermission(client, targets.projectId)))
+    return unavailable();
   return { client, targets };
 }
 
@@ -289,7 +290,9 @@ function validAbsentReceipt(value: unknown, targets: TrustedTargets): boolean {
 }
 
 async function finishLifecycle(authority: UserAuthority): Promise<Response> {
-  if (!(await hasWritePermission(authority.client, authority.targets.projectId))) {
+  if (
+    !(await hasWritePermission(authority.client, authority.targets.projectId))
+  ) {
     return unavailable();
   }
   const { data, error } = await authority.client.rpc(
@@ -307,13 +310,17 @@ async function cleanReservedObjects(
   admin: ProviderClient,
   path: string,
 ): Promise<Response | null> {
-  if (!(await hasWritePermission(authority.client, authority.targets.projectId))) {
+  if (
+    !(await hasWritePermission(authority.client, authority.targets.projectId))
+  ) {
     return unavailable();
   }
   if (!(await removeAndProveAbsent(admin, STAGING_BUCKET, path))) {
     return unavailable(503);
   }
-  if (!(await hasWritePermission(authority.client, authority.targets.projectId))) {
+  if (
+    !(await hasWritePermission(authority.client, authority.targets.projectId))
+  ) {
     return unavailable();
   }
   if (!(await removeAndProveAbsent(admin, CANONICAL_BUCKET, path))) {
