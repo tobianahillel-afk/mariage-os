@@ -1,10 +1,14 @@
 # WP-2.9C — Architecture blocker record
 
-State: `BLOCKED`
+State: `RESOLVED`
 
-Current/next pass: `ARCHITECTURE-DECISION`
+Resolved by: `ADR 0010 — Private-document promotion ingress termination boundary` / accepted 2026-09-15
 
-Date: 2026-09-15
+Packet transition after resolution: `BLOCKED → IN_PROGRESS / A-IMPLEMENT — RED FIRST`
+
+Date opened: 2026-09-15
+
+Date resolved: 2026-09-15
 
 Branch: `lot-2/venues-core`
 
@@ -12,112 +16,91 @@ Related packet: `WP-2.9C`
 
 Related FIR: `#17 / FTR-089`
 
-Current architecture: ADR 0009 — bounded private-document staging
+## Why the packet was blocked
 
-Proposed architecture review: ADR 0010 — private-document promotion ingress termination boundary
+WP-2.9C had implemented the ADR-0009 staging/promotion flow and closed the previously identified recovery/MIME/CORS defects in real runtime evidence. The remaining `WP29C-AR-001` requirement could not be satisfied inside the Supabase Edge handler because both the direct local Edge Runtime and the public local Supabase gateway waited for an intentionally open-ended framed request to reach sender EOF before application code could terminate it.
 
-## Why the packet is blocked
-
-WP-2.9C has implemented the ADR-0009 staging/promotion flow and closed the previously identified recovery/MIME/CORS defects in real runtime evidence. The remaining `WP29C-AR-001` requirement cannot be satisfied inside the current Supabase Edge handler because both the direct local Edge Runtime and the public local Supabase gateway wait for an intentionally open-ended framed request to reach sender EOF before application code can terminate it.
-
-This is a genuine design/security dependency under the Work Packet state machine:
+This was a genuine design/security dependency under the Work Packet state machine:
 
 ```text
 ANY NON-TERMINAL STATE
 → BLOCKED
 ```
 
-No test is weakened and no new upstream/backend component is introduced silently.
+No test was weakened and no upstream/backend component was introduced before an explicit architecture decision.
 
-## Implemented ADR-0009 controls
+## Evidence that caused the blocker
 
-The current implementation provides:
-
-- private `document-ingest-staging` bucket;
-- exact `25,000,000` byte Storage limit;
-- `application/pdf` staging MIME restriction;
-- narrow authenticated staging INSERT only for exact pending project/document paths;
-- no ordinary staging SELECT/UPDATE/DELETE;
-- no authenticated canonical Document INSERT;
-- unchanged accepted Media Storage behavior;
-- browser staging with `upsert:false`;
-- bodyless promotion application contract;
-- valid JWT/current-user resolution;
-- live `documents.write` checks before reservation use and immediately before privileged canonical mutation;
-- authoritative reservation/path derivation;
-- authoritative staging metadata checks before object materialization;
-- actual staged-byte PDF signature, size and SHA-256 proof;
-- privileged staging-to-canonical copy without overwrite;
-- fail-closed canonical retry/recovery proof;
-- service-only ingest attestation;
-- independent finalization authorization;
-- server-side staging cleanup after trusted promotion;
-- explicit/minimal CORS;
-- no application request-body read in the promotion handler.
-
-## Exact-head evidence before blocker transition
-
-Implementation/refactor HEAD before this blocker record:
+Implementation/refactor HEAD before the blocker:
 
 `a8ee1db32bfa41b40d4fcd5dd841146f97676881`
 
 CI `34975265838`:
 
-- Core quality and security: **PASS**;
-- Browser and mutation harnesses: **PASS**;
-- Privacy-safe preview artifact: **PASS**;
-- DB/RLS: **PASS**, `80` files / `1382` tests;
-- Edge staging RLS/canonical bypass: **PASS**;
-- malformed JWT denial: **PASS**;
-- bodyless promotion, retry/recovery and ready-state denial: **PASS**;
-- finalization reauthorization after authority changes: **PASS**;
-- poisoned canonical recovery: **PASS / fail-closed**;
-- exact `25,000,000`-byte staging and promotion: **PASS**;
-- `WP29C-AR-004` CORS remediation: **PASS**;
-- `WP29C-AR-002` source/live resource-bound recovery remediation: **PASS**;
-- `WP29C-AR-003` source/live authoritative MIME remediation: **PASS**;
-- `WP29C-AR-001`: **FAIL / MAJOR / OPEN** — `Public promotion endpoint waited for sender EOF on a framed body.`
+- Core quality/security: PASS;
+- Browser/mutation: PASS;
+- Privacy-safe preview: PASS;
+- DB/RLS: PASS, 80 files / 1382 tests;
+- staging RLS/canonical bypass: PASS;
+- malformed JWT denial: PASS;
+- bodyless promotion/retry/recovery/ready-state denial: PASS;
+- finalization reauthorization: PASS;
+- poisoned canonical recovery: PASS / fail-closed;
+- exact 25,000,000-byte staging and promotion: PASS;
+- AR-004 CORS remediation: PASS;
+- AR-002 bounded recovery remediation: PASS;
+- AR-003 authoritative MIME remediation: PASS;
+- AR-001: FAIL — `Public promotion endpoint waited for sender EOF on a framed body.`
 
-Earlier direct-runtime proof on CI `34973827681` fails the same requirement before the public gateway test was introduced.
+Direct-runtime evidence on CI `34973827681` and public-gateway evidence on `34974264827` reproduced the same boundary limitation.
 
-Public-gateway proof on CI `34974264827` also fails the same requirement.
+Blocked-state documentation head `52572b24bba83a2aadb22c80f2764c92875219f1` / CI `34975858942` again reproduced the same single Edge security RED while Core/browser/preview/DB remained green.
 
-## Platform evidence
+## Resolution decision
 
-As checked on 2026-09-15, current Supabase Edge Function documentation publishes runtime limits including a 150-second request idle timeout, but no maximum inbound request-body size that can serve as the required EOF-independent ingress boundary:
+ADR 0010 is accepted.
 
-- <https://supabase.com/docs/guides/functions/limits>
-- <https://supabase.com/docs/guides/functions>
+The trusted promotion compute/HTTP boundary moves from Supabase Edge Functions to one narrow same-origin Cloudflare Pages Function:
 
-The timeout does not satisfy the frozen requirement because resource/ingress work can still depend on an attacker keeping the sender open until the platform timeout.
+```text
+POST /api/private-document-promote
+```
 
-## Blocked finding
+The Pages Function **replaces** the old Supabase `private-document-ingest` Edge Function; it is not a proxy in front of it. The old Supabase function must be removed from deployable code/configuration so there is no direct-origin bypass.
 
-### WP29C-AR-001 — MAJOR / OPEN / ARCHITECTURE BLOCKER
+ADR 0009 remains authoritative for bounded staging, exact-byte proof, trusted canonical recovery, attestation, cleanup and independent finalization.
 
-The promotion route is logically bodyless, and the handler rejects body-framing headers before any application body read. However, the current Supabase request pipeline does not dispatch the request to that handler early enough to return the rejection while the sender remains open.
+ADR 0001 is amended narrowly to allow this one Pages Function security boundary while continuing to reject a general custom Cloudflare backend.
 
-Therefore the required ingress termination must exist at a layer earlier than the current user Edge handler, or the promotion trigger must be redesigned so that no browser-reachable arbitrary HTTP body exists at that boundary.
+## Why this resolves the design dependency
 
-## Findings closed by the current remediation
+The packet now has an explicitly accepted layer that can be tested for the missing ingress property before the trusted promotion work executes. The design requires a real Workers/Pages runtime RED/GREEN proving that an intentionally open-ended framed sender is rejected without sender EOF.
 
-- `WP29C-AR-002` — **CLOSED BY IMPLEMENTATION / runtime-green**, pending packet acceptance and later fresh Pass B confirmation.
-- `WP29C-AR-003` — **CLOSED BY IMPLEMENTATION / runtime-green**, pending packet acceptance and later fresh Pass B confirmation.
-- `WP29C-AR-004` — **CLOSED BY IMPLEMENTATION / runtime-green**, pending packet acceptance and later fresh Pass B confirmation.
+The architecture decision itself resolves the **design blocker**, not the security finding. `WP29C-AR-001` remains MAJOR / OPEN until implementation and real-runtime evidence make that RED green.
 
-These do not permit packet acceptance while AR-001 remains open.
+## Findings already implementation-green before unblock
 
-## Next permitted action
+- `WP29C-AR-002` — bounded canonical recovery remediation implemented/runtime-green; formal closure waits for later fresh Pass B.
+- `WP29C-AR-003` — authoritative stored MIME remediation implemented/runtime-green; formal closure waits for later fresh Pass B.
+- `WP29C-AR-004` — explicit/minimal CORS remediation implemented/runtime-green; formal closure waits for later fresh Pass B.
 
-Only architecture review of ADR 0010 is permitted.
+## Current next action
 
-Do not:
+WP-2.9C may resume as:
 
-- weaken/delete the open-ended sender test;
-- treat the 150-second provider timeout as closure;
-- add a Cloudflare Worker/Pages Function or other backend silently;
-- resume WP-2.9A;
-- activate WP-2.9B;
-- advance WP-2.9C to fresh Pass B or Pass C.
+```text
+IN_PROGRESS / A-IMPLEMENT — RED FIRST
+```
 
-After an ingress architecture is explicitly accepted, transition WP-2.9C from `BLOCKED` back to `IN_PROGRESS`, implement that accepted boundary, require exact-head CI, then perform a complete fresh Pass B before Pass C.
+Required sequence:
+
+1. add/retarget focused RED-first evidence for the accepted Cloudflare Pages Function boundary, including open-ended sender rejection and old-Supabase-route absence;
+2. keep the RED isolated before production migration;
+3. implement the Pages Function and remove the Supabase promotion Edge Function;
+4. port all existing trusted-promotion security scenarios without weakening them;
+5. prove exact 25,000,000-byte feasibility on the intended free runtime;
+6. exact-head CI/full verification;
+7. complete fresh independent Pass B;
+8. only clean Pass B may advance to Pass C.
+
+If the Pages/Workers Free runtime cannot safely satisfy the exact 25 MB proof, WP-2.9C must become `BLOCKED` again rather than enabling paid infrastructure or reducing the file contract silently.
