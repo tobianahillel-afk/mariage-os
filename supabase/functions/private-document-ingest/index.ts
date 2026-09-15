@@ -125,13 +125,11 @@ function requestHasBodyFrame(request: Request): boolean {
   if (request.headers.get("transfer-encoding") !== null) return true;
 
   const rawLength = request.headers.get("content-length");
-  if (rawLength !== null) {
-    const normalizedLength = rawLength.trim();
-    if (!/^\d+$/.test(normalizedLength)) return true;
-    if (Number(normalizedLength) !== 0) return true;
-  }
+  if (rawLength === null) return false;
 
-  return request.body !== null;
+  const normalizedLength = rawLength.trim();
+  if (!/^\d+$/.test(normalizedLength)) return true;
+  return Number(normalizedLength) !== 0;
 }
 
 function isPdfSignature(bytes: Uint8Array): boolean {
