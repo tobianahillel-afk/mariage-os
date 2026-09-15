@@ -31,8 +31,16 @@ async function assertReservationAbsent(context, documentId) {
     .eq("project_id", context.projectId)
     .eq("id", documentId)
     .maybeSingle();
-  assert.equal(result.error, null, "Trusted abandon lookup must remain readable.");
-  assert.equal(result.data, null, "Trusted abandon must remove pending metadata.");
+  assert.equal(
+    result.error,
+    null,
+    "Trusted abandon lookup must remain readable.",
+  );
+  assert.equal(
+    result.data,
+    null,
+    "Trusted abandon must remove pending metadata.",
+  );
 }
 
 export async function runInterruptedStagingAbandonRed(context) {
@@ -86,7 +94,11 @@ export async function runInterruptedStagingAbandonRed(context) {
     projectId: context.projectId,
     documentId,
   });
-  assert.equal(retry.response.status, 200, "Trusted abandon retry must be idempotent.");
+  assert.equal(
+    retry.response.status,
+    200,
+    "Trusted abandon retry must be idempotent.",
+  );
   assert.deepEqual(retry.data, { ok: true, absent: true });
   await assertNoStagedObject({
     admin: context.admin,
