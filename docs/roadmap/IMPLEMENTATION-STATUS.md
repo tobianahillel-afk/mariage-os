@@ -11,14 +11,12 @@ Detailed historical packet evidence remains in packet records, acceptance record
 - AI Lot Orchestration governance: **MERGED / FROZEN**.
 - Final Design Review: **PASS**.
 - Implementation gate: **OPEN**.
-- Lot 0: **ACCEPTED** — completed 2026-09-03.
-- Lot 1: **ACCEPTED** — completed 2026-09-06.
+- Lot 0: **ACCEPTED**.
+- Lot 1: **ACCEPTED**.
 - Lot 2: **IN_PROGRESS — Venues core**.
 - Lots 3–12: **NOT_STARTED**.
 
-`main` integration truth after accepted Lot 0 + Lot 1 promotion is `f6da05626f024431230ae46ca1ec8a4becc72a1f` (PR #7). Promotion CI `34030211097`: **5/5 SUCCESS**, clean-checkout included.
-
-Lot-2 branch: `lot-2/venues-core`.
+`main` integration truth: `f6da05626f024431230ae46ca1ec8a4becc72a1f` (PR #7). Lot-2 branch: `lot-2/venues-core`.
 
 ## Lot 2 — packet status
 
@@ -40,7 +38,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.8B | Venue private archived media lifecycle | **ACCEPTED / COMPLETE** |
 | WP-2.8C | recoverable Venue remote-media metadata lifecycle | **ACCEPTED / COMPLETE** |
 | WP-2.9A | Venue-linked private PDF/document foundation | **BLOCKED — waits for WP-2.9C ACCEPTED** |
-| WP-2.9C | trusted private-document ingestion hardening | **REVIEW_FAILED / CURRENT — AR-005, AR-006, AR-007 MAJOR** |
+| WP-2.9C | trusted private-document ingestion hardening | **IN_PROGRESS / REMEDIATION — AR-005/006/007 / CURRENT** |
 | WP-2.9B | generic project tags and Venue entity-tag links | **PLANNED / AFTER A** |
 | WP-2.10 | repositories, local cache, pending/offline mutations | PLANNED |
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace | PLANNED |
@@ -48,81 +46,76 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 
 ## Accepted packet evidence summary
 
-- WP-2.1: governance CI `34040803267` — **5/5 SUCCESS**.
-- WP-2.2: governance CI `34048565452` — **5/5 SUCCESS**.
-- WP-2.3: `2e3194f7109eb30eee4e73ace7ecbdd329fd321c` / `34068703691` — **5/5 SUCCESS**.
-- WP-2.4: `93262f9459e720d97a6dfa3a83f84f02f3a02c7c` / `34137822804` — **5/5 SUCCESS**.
-- WP-2.5: `902ac6f56b84fed56da0113efc610617943e9449` / `34167062632` — **5/5 SUCCESS**.
-- WP-2.6A: `186933ed0af8c45ddaa1b5c883bfd3f70086c6fe` / `34238484533` — **5/5 SUCCESS**.
-- WP-2.6B: `8911f1523d96b95cf1329c4b144bfec2356a4a47` / `34275967235` — **5/5 SUCCESS**.
-- WP-2.6C: `f6c93b7991d832363da92a9081540b9bad95441b` / `34287865010` attempt 2 — **5/5 SUCCESS**.
-- WP-2.6D: `767017112445a38863abd114e8c62feb27af6421` / `34322712448` — **5/5 SUCCESS**.
-- WP-2.7: `db1dae663129c3281618c932fa7f5a8184a5a2ad` / `34377221997` — **5/5 SUCCESS**, gap **∅**.
-- WP-2.8A: acceptance `925cf86f3e38bf08807ed408f6d100fbbbd5c9c2` / `34418721439`; reconciliation `432e0cf893e0adc079ba3c25eb325efb9d01e3ec` / `34420275595` — both **5/5 SUCCESS**, gap **∅**.
-- WP-2.8B: acceptance `3b28c7b734a2258db455bbdabb567fcee2ee2bd1` / `34615830961`; durable closure `8317125183bc5521d6d4aac8e132f64a57aa4ca8` / `34616938470` — both **5/5 SUCCESS**, gap **∅**.
-- WP-2.8C: durable closure `7f97ab8bab9c60ba538b5c900845ca77e9b9f34c` / `34786974129` — **5/5 SUCCESS**, gap **∅**.
+WP-2.1..WP-2.8C are accepted and complete. Durable evidence remains in their packet/acceptance records. Latest accepted packet closure: WP-2.8C `7f97ab8bab9c60ba538b5c900845ca77e9b9f34c` / `34786974129` — **5/5 SUCCESS**, gap **∅**.
 
 ## WP-2.9A
 
-- **BLOCKED**.
-- FIR: `#17 / FTR-089`.
-- Pass-A implementation/evidence `e533b5c53d1be074216ccaa92f74281b425de770` / `34826553890` — **5/5 SUCCESS**.
+- **BLOCKED**; FIR `#17 / FTR-089`.
+- Pass-A `e533b5c53d1be074216ccaa92f74281b425de770` / `34826553890` — **5/5 SUCCESS**.
 - `WP29A-AR-001/002/003` — **CLOSED / VERIFIED**.
-- `WP29A-AR-004` — **MAJOR / OPEN in parent**: C1 parity remediation is implemented in C; parent closure waits for C acceptance and A reverification.
-- `WP29A-AR-005` — **MAJOR / OPEN in parent**: trusted stored-byte integrity remediation is implemented in C; parent closure waits for C acceptance and A reverification.
-- Blocker resolution condition: **WP-2.9C ACCEPTED**. Then A returns to `IN_PROGRESS` for integration/reverification and fresh Pass B before Pass C.
+- `WP29A-AR-004` — **MAJOR / OPEN in parent**; C1 remediation implemented in C; closure waits for C acceptance + A reverification.
+- `WP29A-AR-005` — **MAJOR / OPEN in parent**; trusted-byte remediation implemented in C; closure waits for C acceptance + A reverification.
+- A resumes only after **WP-2.9C ACCEPTED**, then integration/reverification → fresh Pass B → Pass C.
 
 ## WP-2.9C — current packet
 
-State: **REVIEW_FAILED**.
+State: **IN_PROGRESS / REMEDIATION** after failed fresh Pass B.
 
-Architecture blocker from ADR 0010 is resolved, and Pass A itself is green:
+Pass-A exact evidence:
 
-- implementation head `297ecdf3337e8522d6f200a90f96b481a9e6bdb1` / CI `34996240637` — **5/5 SUCCESS**, clean-checkout included;
-- review-pending governance head `e0854afb62cf5fcf834792fbad425d013b02af56` / CI `34997963836` — **5/5 SUCCESS**, clean-checkout included.
+- `297ecdf3337e8522d6f200a90f96b481a9e6bdb1` / CI `34996240637` — **5/5 SUCCESS**, clean-checkout included.
 
-Fresh independent Pass B failed. Full record:
+Review-pending exact evidence:
 
-`docs/roadmap/lot-2/WP-2.9C-PASS-B-REVIEW.md`
+- `e0854afb62cf5fcf834792fbad425d013b02af56` / CI `34997963836` — **5/5 SUCCESS**, clean-checkout included.
 
-Durable finding record commit:
+Fresh Pass-B failure:
 
-`deaa2432327b9512068a75635dde6f4c522467ad`
+- review record: `docs/roadmap/lot-2/WP-2.9C-PASS-B-REVIEW.md`;
+- finding record commit: `deaa2432327b9512068a75635dde6f4c522467ad`;
+- packet REVIEW_FAILED record: `d7fd7ae94792600d5d50afb51a7e6c96487e93a9`;
+- status REVIEW_FAILED record: `16dac2577f1ef63afddf79e48fc4ce421c2b7c60`;
+- matrix REVIEW_FAILED record: `f0ad5fab0d46a526a726028c7805b78bdb43b1d9`.
 
-Open findings:
+Open remediation targets:
 
 - `WP29C-AR-005` — **MAJOR** — interrupted staging/clean-abandon cleanup is incomplete; concurrent abandon can race promotion and leave Storage/DB orphan divergence.
-- `WP29C-AR-006` — **MAJOR** — exact-25-MB Workers/Pages Free CPU feasibility is not actually evidenced by the local workerd harness because local development does not enforce the deployed Free CPU quota.
-- `WP29C-AR-007` — **MAJOR** — deployment/release/secret operations still describe a static app and do not reconcile the new security-critical Pages Function or concrete `PRIVATE_DOCUMENT_ADMIN_KEY` inventory/rotation obligations.
+- `WP29C-AR-006` — **MAJOR** — exact-25-MB Workers/Pages Free CPU feasibility is not actually evidenced by local workerd success.
+- `WP29C-AR-007` — **MAJOR** — deployment/release/secret operations are not reconciled with the Pages Function trust boundary.
 
-Historical findings remain remediation-green but cannot be formally closed until a later complete clean fresh Pass B:
+Historical `WP29C-AR-001..004` remain implementation-green but await a later complete clean fresh Pass B for formal closure.
 
-- `WP29C-AR-001` — raw request EOF dependence;
-- `WP29C-AR-002` — bounded canonical recovery;
-- `WP29C-AR-003` — authoritative stored MIME;
-- `WP29C-AR-004` — wildcard CORS.
+### Remediation design guardrails
+
+AR-005 remediation must not grant ordinary browser staging DELETE. Trusted cleanup remains inside the same narrow Pages security boundary and must be:
+
+- bodyless;
+- current-user authenticated;
+- live `documents.write` authorized;
+- project/document bound with server-derived exact paths;
+- safe for pending/absent retry state only;
+- idempotent across response loss;
+- unable to delete ready documents, another project/document or Media;
+- verified absent before metadata abandon completes.
+
+Promotion must also close post-copy failure/orphan paths and revalidate authoritative reservation state immediately before privileged canonical mutation.
+
+AR-006 remediation must produce CPU-specific evidence; if the Workers Free envelope cannot safely support exact 25 MB, transition to `BLOCKED` and revisit architecture rather than silently enabling paid compute or shrinking the file contract.
+
+AR-007 remediation must update normative deployment/release/secret contracts and fail-closed production smoke without committing any secret value.
 
 ## Current next-action gate
 
-1. WP-2.9C is **REVIEW_FAILED**.
-2. Next permitted transition: `REVIEW_FAILED → IN_PROGRESS` only when remediation starts.
-3. Remediation must begin RED/evidence-first for AR-005/006/007; do not weaken 25 MB, authorization, coverage, static-analysis, security or runtime gates.
-4. AR-005 requires trusted project/document-bound idempotent staging/canonical cleanup and reservation-state TOCTOU closure.
-5. AR-006 requires CPU-specific Free-plan evidence; if that evidence cannot establish the Free envelope, transition C to `BLOCKED` and revisit architecture rather than using paid compute or lowering the PDF limit silently.
-6. AR-007 requires normative Pages Function deployment, fail-closed smoke and secret inventory/rotation documentation.
-7. After remediation, obtain exact-head full CI + clean-checkout evidence and return C to `REVIEW_PENDING`.
+1. WP-2.9C is **IN_PROGRESS / REMEDIATION**.
+2. Add focused RED/evidence-first coverage for AR-005/006/007.
+3. Implement AR-005 trusted cleanup and promotion compensation/state revalidation without weakening RLS/authorization/file limits.
+4. Produce valid AR-006 Free CPU evidence; if impossible, stop in `BLOCKED`.
+5. Reconcile ADR/release/secret docs for AR-007.
+6. Run exact-head full CI + clean-checkout verification.
+7. Transition C back to `REVIEW_PENDING` only after remediation evidence is green.
 8. Run another complete fresh independent Pass B over the whole packet and all seven findings.
 9. Only a clean Pass B may enter `ACCEPTANCE_PENDING`; only Pass C may mark C `ACCEPTED`.
-10. WP-2.9A remains **BLOCKED** until C is accepted; WP-2.9B remains **PLANNED / AFTER A**.
-
-## Known localized repairs / stop conditions
-
-- WP-2.4 through WP-2.8C accepted findings: **CLOSED / VERIFIED**.
-- WP29A-AR-001 / AR-002 / AR-003: **CLOSED / VERIFIED**.
-- WP29A-AR-004 / AR-005: **MAJOR / OPEN in parent**, closure waits for C acceptance + A reverification.
-- WP29C historical architecture blocker: **RESOLVED by ADR 0010**.
-- WP29C-AR-001..004: **implementation remediation green; formal closure deferred**.
-- WP29C-AR-005 / AR-006 / AR-007: **MAJOR / OPEN — current remediation targets**.
+10. WP-2.9A remains **BLOCKED** and WP-2.9B remains **PLANNED / AFTER A**.
 
 ## Durable handoff
 
@@ -134,8 +127,7 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.8C
 WP-2.9A: BLOCKED — waits for WP-2.9C ACCEPTED
-Current packet: WP-2.9C — REVIEW_FAILED
-Current/next pass: REMEDIATION after failed fresh Pass B
+Current packet: WP-2.9C — IN_PROGRESS / REMEDIATION
 Fresh Pass-B record: docs/roadmap/lot-2/WP-2.9C-PASS-B-REVIEW.md
 Open: WP29C-AR-005 MAJOR — orphan cleanup / abandon-promotion race
 Open: WP29C-AR-006 MAJOR — Free-plan exact-25-MB CPU evidence gap
@@ -146,5 +138,5 @@ FTR-089 FIR: #17
 WP-2.9A resumes only after WP-2.9C ACCEPTED
 WP-2.9B remains PLANNED / AFTER A
 Lots 3–12: NOT_STARTED
-Next permitted action: transition WP-2.9C to IN_PROGRESS and begin remediation RED/evidence-first
+Next permitted action: AR-005/006/007 remediation RED/evidence-first
 ```
