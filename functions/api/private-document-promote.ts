@@ -97,8 +97,8 @@ interface PromotionContext {
 }
 
 interface StorageInfoShape {
-  readonly size: unknown;
-  readonly contentType: unknown;
+  readonly size?: unknown;
+  readonly contentType?: unknown;
 }
 
 interface StorageDownloadShape {
