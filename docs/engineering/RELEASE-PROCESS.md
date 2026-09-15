@@ -45,13 +45,14 @@ production migration gate
 - security scans/RLS tests green;
 - changelog draft complete;
 - synthetic migration/backup fixtures green;
-- all changed user interfaces identified.
+- all changed user interfaces identified;
+- security-critical Pages Functions and their required non-secret/secret binding names identified when present.
 
 ## Release candidate
 
 Build one immutable candidate from an exact commit SHA.
 
-Deploy the exact pending migrations and application build to staging/preview with synthetic/nonproduction data.
+Deploy the exact pending migrations and application build to staging/preview with synthetic/nonproduction data. When repository `functions/` routes are present, the candidate includes those Pages Functions from the same exact commit; a static-only `dist/` upload is not equivalent deployment evidence.
 
 Perform:
 
@@ -65,6 +66,7 @@ Perform:
 - IndexedDB historical upgrade tests;
 - security configuration/header review;
 - free-tier usage/config review;
+- Pages Function route/binding smoke where security-critical routes are present;
 - visual/accessibility review for changed screens.
 
 Any change to candidate code/migrations invalidates previous candidate evidence.
@@ -82,15 +84,46 @@ Ordinary compatible release:
 5. apply backward-compatible DB/RLS migration;
 6. run DB/RLS/integrity health checks;
 7. stop if migration checks fail;
-8. promote exact commit to protected production ref;
-9. let Cloudflare deploy production static application;
-10. verify release/version manifest;
-11. run production smoke;
-12. start post-release monitoring;
-13. mark release `HEALTHY` only after verification;
-14. perform destructive cleanup only in a later compatible release when safe.
+8. verify required production Pages bindings/secrets exist without printing values;
+9. promote exact commit to protected production ref;
+10. let Cloudflare deploy the production application, including static assets and approved Pages Functions from that exact ref;
+11. verify release/version manifest;
+12. run production smoke, including security-critical Pages deny checks;
+13. start post-release monitoring;
+14. mark release `HEALTHY` only after verification;
+15. perform destructive cleanup only in a later compatible release when safe.
 
 Do not combine destructive schema removal with clients that may still depend on it.
+
+## Private-document Pages Function release gate
+
+ADR 0010 makes `/api/private-document-promote` a security-critical same-origin Cloudflare Pages Function. Any release that contains this boundary must deploy it together with the static application; the release is invalid if the frontend is live but the Function is absent, misbound or replaced by fallback content.
+
+Required configuration metadata:
+
+- `SUPABASE_URL` points to the intended Supabase environment;
+- `SUPABASE_PUBLISHABLE_KEY` or the supported non-secret anon-equivalent is available to verify/use the caller session;
+- `PRIVATE_DOCUMENT_ADMIN_KEY` is present only as the Cloudflare Pages encrypted secret for that environment;
+- no secret value appears in Git, build output, release manifest, logs, screenshots or smoke output.
+
+The legacy Supabase promotion route must remain absent: `supabase/functions/private-document-ingest` is not deployable, `supabase/config.toml` must not enable it, application code must not invoke it, and release scripts must not recreate or deploy it.
+
+### Production smoke
+
+Production smoke for this route is deliberately deny-oriented and safe for real production data. It must prove, without uploading private wedding content or printing credentials, that:
+
+1. the deployed route exists as a Function and does not resolve to SPA/static fallback;
+2. an unsupported method is rejected;
+3. a bodyless promotion request without a bearer token is rejected generically;
+4. a framed/non-zero-body request is rejected according to the bodyless ingress contract;
+5. cross-origin invocation is not granted wildcard CORS;
+6. missing/invalid trusted server configuration makes the route **fail closed** rather than falling through to an unprotected origin or static response;
+7. the legacy Supabase promotion route remains absent/not deployed;
+8. ordinary static application assets still serve normally after the Functions deployment.
+
+A positive trusted promotion proof uses staging/release-candidate synthetic data unless production-safe synthetic fixtures are explicitly provisioned. Production smoke must not create or mutate a real couple's document merely to prove deployment health.
+
+Failure of any private-document route smoke keeps the release in `PRODUCTION_VERIFYING` or moves it to `FAILED`; static hosting success alone cannot override it.
 
 ## PWA/service-worker release
 
@@ -149,11 +182,13 @@ Maintain user-relevant changes:
 
 ## Rollback / forward fix
 
-Frontend rollback may use a previous successful Cloudflare production deployment/ref only if that frontend remains compatible with the current production backend.
+Frontend rollback may use a previous successful Cloudflare production deployment/ref only if that frontend remains compatible with the current production backend and, when required, includes a compatible version of every security-critical Pages Function.
 
 Database rollback is not assumed. Prefer expand/contract + forward corrective migration. Destructive recovery requires tested backup/restore procedure.
 
 A failed production DB migration before frontend promotion stops the release. A severe defect after frontend promotion may require write degradation, compatible frontend rollback, or forward DB/app hotfix depending on root cause.
+
+A private-document Function rollback must never restore the removed browser-reachable Supabase Edge promotion route as a shortcut. If no compatible secure Function deployment is available, document promotion remains fail-closed while a forward fix is prepared.
 
 ## Monitoring
 
@@ -165,6 +200,7 @@ Observe applicable:
 - Auth anomalies;
 - DB migration/integrity state;
 - RLS/security smoke;
+- Pages Function invocation errors/resource-limit outcomes for security-critical routes;
 - sync queue failures/conflicts;
 - IndexedDB migration failures;
 - PWA/update failures;
@@ -180,9 +216,13 @@ Monitoring must not log private wedding content unnecessarily.
 
 Use `docs/templates/RELEASE-PLAN.md` for every minor/major and high-risk patch release.
 
+For releases containing the private-document Pages boundary, the release plan records the exact deployment SHA, Pages environment, binding names/presence, legacy-route absence check, production smoke result and—while WP-2.9C AR-006 is relevant—the separate Workers Free CPU evidence identifier. No secret values are recorded.
+
 ## Production release blockers
 
 See Quality Gates, Definition of Done and the release plan. P0/P1 known defects, incompatible migration state, failed required CI/security checks, unrecoverable data risk or unexplained severe post-deploy regression block/stop the release.
+
+For the private-document boundary, missing Pages Function deployment, missing/incorrect `PRIVATE_DOCUMENT_ADMIN_KEY`, any static/origin fallthrough, reappearance of the legacy Supabase promotion route, failed deny smoke, or unproven required Free-runtime feasibility is a release blocker.
 
 ## V1 real-data cutover
 
