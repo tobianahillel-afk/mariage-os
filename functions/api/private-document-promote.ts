@@ -2,7 +2,7 @@ import {
   createClient,
   type SupabaseClient as SupabaseProviderClient,
 } from "@supabase/supabase-js";
-import { handleTrustedAbandon } from "./private-document-abandon";
+import { handleTrustedAbandon } from "./private-document-abandon.js";
 
 const CANONICAL_BUCKET = "project-private";
 const STAGING_BUCKET = "document-ingest-staging";
