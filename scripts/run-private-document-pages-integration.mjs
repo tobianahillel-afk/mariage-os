@@ -87,7 +87,10 @@ function stopRuntime(processHandle) {
 
 async function main() {
   const assets = mkdtempSync(join(tmpdir(), "mariage-os-pages-"));
-  writeFileSync(join(assets, "index.html"), "<!doctype html><title>CI</title>");
+  writeFileSync(
+    join(assets, "index.html"),
+    "<!doctype html><title>CI</title>",
+  );
   const runtime = startPagesRuntime(assets, localSupabaseEnvironment());
   try {
     await waitForRuntime(runtime);
@@ -101,7 +104,9 @@ async function main() {
 
 main().catch((error) => {
   console.error(
-    error instanceof Error ? error.message : "Pages promotion integration failed.",
+    error instanceof Error
+      ? error.message
+      : "Pages promotion integration failed.",
   );
   process.exit(1);
 });
