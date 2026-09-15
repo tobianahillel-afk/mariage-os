@@ -1,3 +1,5 @@
+import { URL } from "node:url";
+
 const baseUrlValue = process.env.PRIVATE_DOCUMENT_SMOKE_BASE_URL;
 
 if (!baseUrlValue) {
