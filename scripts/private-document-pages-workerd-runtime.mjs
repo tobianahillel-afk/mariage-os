@@ -27,7 +27,11 @@ function wranglerBinary() {
 function miniflareFromWrangler(binary) {
   const packageRoot = dirname(dirname(binary));
   const requireFromWrangler = createRequire(join(packageRoot, "package.json"));
-  return requireFromWrangler("miniflare").Miniflare;
+  const miniflare = requireFromWrangler("miniflare");
+  return {
+    Miniflare: miniflare.Miniflare,
+    convertV4MiniflareOptions: miniflare.convertV4MiniflareOptions,
+  };
 }
 
 function buildPagesFunctions(binary, outputFile) {
@@ -54,27 +58,30 @@ async function main() {
   );
   const bundlePath = join(temporaryDirectory, "pages-functions.mjs");
   const binary = wranglerBinary();
-  const Miniflare = miniflareFromWrangler(binary);
+  const { Miniflare, convertV4MiniflareOptions } =
+    miniflareFromWrangler(binary);
   const environment = localSupabaseEnvironment();
   let runtime;
 
   try {
     buildPagesFunctions(binary, bundlePath);
-    runtime = new Miniflare({
-      host: "127.0.0.1",
-      port: 0,
-      scriptPath: bundlePath,
-      modules: true,
-      compatibilityDate: "2026-09-15",
-      bindings: {
-        SUPABASE_URL: environment.apiUrl,
-        SUPABASE_PUBLISHABLE_KEY: environment.anonKey,
-        PRIVATE_DOCUMENT_ADMIN_KEY: environment.serviceRoleKey,
-      },
-      serviceBindings: {
-        ASSETS: () => new Response("Not found", { status: 404 }),
-      },
-    });
+    runtime = new Miniflare(
+      convertV4MiniflareOptions({
+        host: "127.0.0.1",
+        port: 0,
+        scriptPath: bundlePath,
+        modules: true,
+        compatibilityDate: "2026-09-15",
+        bindings: {
+          SUPABASE_URL: environment.apiUrl,
+          SUPABASE_PUBLISHABLE_KEY: environment.anonKey,
+          PRIVATE_DOCUMENT_ADMIN_KEY: environment.serviceRoleKey,
+        },
+        serviceBindings: {
+          ASSETS: () => new Response("Not found", { status: 404 }),
+        },
+      }),
+    );
     const runtimeUrl = await runtime.ready;
     setPromotionOrigin(runtimeUrl.origin);
     await runTrustedIngestScenarios();
