@@ -2,15 +2,16 @@ import { createClient } from "npm:@supabase/supabase-js@2.112.4";
 
 const BUCKET = "project-private";
 const MAX_BYTES = 25_000_000;
+const LOCAL_APP_ORIGIN = "http://127.0.0.1:4173";
+const ALLOWED_ORIGINS_ENV = "PRIVATE_DOCUMENT_ALLOWED_ORIGINS";
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const SHA256_PATTERN = /^[0-9a-f]{64}$/;
 const PDF_SIGNATURE = new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d]);
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+const baseCorsHeaders = {
   "Access-Control-Allow-Headers":
-    "authorization, apikey, x-client-info, content-type, x-project-id, x-document-id, x-document-mime-type",
+    "authorization, apikey, x-client-info, content-type, x-retry-count, traceparent, tracestate, baggage, x-project-id, x-document-id, x-document-mime-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
@@ -27,18 +28,59 @@ interface ReservedDocument {
   readonly remote_url: string | null;
 }
 
+function normalizedOrigin(value: string): string | null {
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "https:" && url.protocol !== "http:") return null;
+    if (url.username || url.password) return null;
+    return url.origin;
+  } catch {
+    return null;
+  }
+}
+
+function allowedOrigins(): ReadonlySet<string> {
+  const configured = Deno.env.get(ALLOWED_ORIGINS_ENV);
+  if (configured) {
+    const origins = configured
+      .split(",")
+      .map((value) => normalizedOrigin(value.trim()))
+      .filter((value): value is string => value !== null);
+    return new Set(origins);
+  }
+  return new Set([LOCAL_APP_ORIGIN]);
+}
+
+function requestOriginAllowed(request: Request): boolean {
+  const origin = request.headers.get("origin");
+  return origin === null || allowedOrigins().has(origin);
+}
+
+function corsHeaders(request: Request): Readonly<Record<string, string>> {
+  const origin = request.headers.get("origin");
+  if (origin !== null && allowedOrigins().has(origin)) {
+    return {
+      ...baseCorsHeaders,
+      "Access-Control-Allow-Origin": origin,
+      Vary: "Origin",
+    };
+  }
+  return baseCorsHeaders;
+}
+
 function json(
+  request: Request,
   status: number,
   body: Readonly<Record<string, unknown>>,
 ): Response {
   return Response.json(body, {
     status,
-    headers: corsHeaders,
+    headers: corsHeaders(request),
   });
 }
 
-function unavailable(status = 404): Response {
-  return json(status, { error: "private_document_unavailable" });
+function unavailable(request: Request, status = 404): Response {
+  return json(request, status, { error: "private_document_unavailable" });
 }
 
 function dictionaryDefaultKey(dictionary: string): string | null {
@@ -98,28 +140,24 @@ async function readBoundedRequestBody(
   const reader = request.body.getReader();
   const chunks: Uint8Array[] = [];
   let totalBytes = 0;
-  let exceededLimit = false;
   try {
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      if (exceededLimit) continue;
 
       totalBytes += value.byteLength;
       if (totalBytes > MAX_BYTES) {
-        exceededLimit = true;
         chunks.length = 0;
-        continue;
+        void reader.cancel("private document byte limit exceeded").catch(() => {
+          // Rejection is already fail-closed; cancellation errors are non-authoritative.
+        });
+        return null;
       }
       chunks.push(value);
     }
   } finally {
     reader.releaseLock();
   }
-
-  // The Supabase main runtime tees request bodies before dispatch. Drain the
-  // overflow branch without retaining bytes so the rejection can be returned.
-  if (exceededLimit) return null;
 
   const bytes = new Uint8Array(totalBytes);
   let offset = 0;
@@ -164,10 +202,30 @@ async function bytesMatchReservation(
 async function readExistingBytes(
   admin: ReturnType<typeof createClient>,
   path: string,
+  reservation: ReservedDocument,
 ): Promise<Uint8Array | null> {
-  const { data, error } = await admin.storage.from(BUCKET).download(path);
+  const storage = admin.storage.from(BUCKET);
+  const info = await storage.info(path);
+  if (info.error || info.data === null) return null;
+  if (
+    !Number.isSafeInteger(info.data.size) ||
+    info.data.size < 1 ||
+    info.data.size > MAX_BYTES ||
+    info.data.size !== reservation.size_bytes ||
+    info.data.contentType !== "application/pdf"
+  ) {
+    return null;
+  }
+
+  const { data, error } = await storage.download(path);
   if (error || data === null) return null;
-  if (data.type && data.type !== "application/pdf") return null;
+  if (
+    data.size !== info.data.size ||
+    data.size > MAX_BYTES ||
+    data.type !== "application/pdf"
+  ) {
+    return null;
+  }
   return new Uint8Array(await data.arrayBuffer());
 }
 
@@ -184,9 +242,10 @@ async function hasWritePermission(
 
 Deno.serve(async (request: Request) => {
   if (request.method === "OPTIONS") {
-    return new Response(null, { status: 204, headers: corsHeaders });
+    return new Response(null, { status: 204, headers: corsHeaders(request) });
   }
-  if (request.method !== "POST") return unavailable(405);
+  if (!requestOriginAllowed(request)) return unavailable(request, 403);
+  if (request.method !== "POST") return unavailable(request, 405);
 
   const projectId = request.headers.get("x-project-id") ?? "";
   const documentId = request.headers.get("x-document-id") ?? "";
@@ -196,7 +255,7 @@ Deno.serve(async (request: Request) => {
     !UUID_PATTERN.test(documentId) ||
     mimeIntent !== "application/pdf"
   ) {
-    return unavailable(400);
+    return unavailable(request, 400);
   }
 
   const requestMediaType = (request.headers.get("content-type") ?? "")
@@ -207,16 +266,16 @@ Deno.serve(async (request: Request) => {
     requestMediaType !== "application/octet-stream" &&
     requestMediaType !== "application/pdf"
   ) {
-    return unavailable(415);
+    return unavailable(request, 415);
   }
 
   const declaredLength = Number(request.headers.get("content-length"));
   if (Number.isFinite(declaredLength) && declaredLength > MAX_BYTES) {
-    return unavailable(413);
+    return unavailable(request, 413);
   }
 
   const token = bearerToken(request);
-  if (token === null) return unavailable(401);
+  if (token === null) return unavailable(request, 401);
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? null;
   const publishableKey = environmentKey(
@@ -230,7 +289,7 @@ Deno.serve(async (request: Request) => {
     "SUPABASE_SERVICE_ROLE_KEY",
   );
   if (supabaseUrl === null || publishableKey === null || secretKey === null) {
-    return unavailable(503);
+    return unavailable(request, 503);
   }
 
   const userClient = createClient(supabaseUrl, publishableKey, {
@@ -239,9 +298,11 @@ Deno.serve(async (request: Request) => {
   });
   const { data: userData, error: userError } =
     await userClient.auth.getUser(token);
-  if (userError || userData.user === null) return unavailable(401);
+  if (userError || userData.user === null) return unavailable(request, 401);
 
-  if (!(await hasWritePermission(userClient, projectId))) return unavailable();
+  if (!(await hasWritePermission(userClient, projectId))) {
+    return unavailable(request);
+  }
 
   const { data: reservationData, error: reservationError } = await userClient
     .from("documents")
@@ -252,22 +313,26 @@ Deno.serve(async (request: Request) => {
     .eq("id", documentId)
     .maybeSingle();
 
-  if (reservationError || reservationData === null) return unavailable();
+  if (reservationError || reservationData === null) {
+    return unavailable(request);
+  }
   const reservation = reservationData as ReservedDocument;
   if (!validReservation(reservation, projectId, documentId)) {
-    return unavailable(409);
+    return unavailable(request, 409);
   }
 
   const body = await readBoundedRequestBody(request);
   if (body === null || body.byteLength < 1) {
-    return unavailable(413);
+    return unavailable(request, 413);
   }
   if (!(await bytesMatchReservation(body, reservation))) {
-    return unavailable(422);
+    return unavailable(request, 422);
   }
 
   // Narrow the membership race window before privileged Storage mutation.
-  if (!(await hasWritePermission(userClient, projectId))) return unavailable();
+  if (!(await hasWritePermission(userClient, projectId))) {
+    return unavailable(request);
+  }
 
   const admin = createClient(supabaseUrl, secretKey, {
     auth: { persistSession: false, autoRefreshToken: false },
@@ -280,12 +345,12 @@ Deno.serve(async (request: Request) => {
 
   let replayed = false;
   if (upload.error !== null) {
-    const existing = await readExistingBytes(admin, path);
+    const existing = await readExistingBytes(admin, path, reservation);
     if (
       existing === null ||
       !(await bytesMatchReservation(existing, reservation))
     ) {
-      return unavailable(503);
+      return unavailable(request, 503);
     }
     replayed = true;
   }
@@ -299,7 +364,7 @@ Deno.serve(async (request: Request) => {
       target_size_bytes: reservation.size_bytes,
     },
   );
-  if (attestationError !== null) return unavailable(503);
+  if (attestationError !== null) return unavailable(request, 503);
 
-  return json(200, { ok: true, replayed });
+  return json(request, 200, { ok: true, replayed });
 });

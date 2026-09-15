@@ -37,6 +37,10 @@ function edgeRuntimeIp() {
   ).trim();
 }
 
+function edgeRuntimeUrl() {
+  return `http://${edgeRuntimeIp()}:8081/private-document-ingest`;
+}
+
 function runtimeRequestHeaders({ token, projectId, documentId, anonKey }) {
   return {
     apikey: anonKey,
@@ -103,8 +107,8 @@ function openEndedOversizeInvoke({ token, projectId, documentId }) {
 }
 
 async function preflight(origin) {
-  const { apiUrl, anonKey } = localSupabaseEnvironment();
-  return globalThis.fetch(`${apiUrl}/functions/v1/private-document-ingest`, {
+  const { anonKey } = localSupabaseEnvironment();
+  return globalThis.fetch(edgeRuntimeUrl(), {
     method: "OPTIONS",
     headers: {
       apikey: anonKey,
@@ -113,6 +117,23 @@ async function preflight(origin) {
       "access-control-request-headers":
         "authorization,content-type,x-project-id,x-document-id,x-document-mime-type",
     },
+  });
+}
+
+async function unknownOriginPost({ token, projectId, documentId, bytes }) {
+  const { anonKey } = localSupabaseEnvironment();
+  return globalThis.fetch(edgeRuntimeUrl(), {
+    method: "POST",
+    headers: {
+      apikey: anonKey,
+      authorization: `Bearer ${token}`,
+      origin: UNKNOWN_ORIGIN,
+      "content-type": "application/octet-stream",
+      "x-project-id": projectId,
+      "x-document-id": documentId,
+      "x-document-mime-type": "application/pdf",
+    },
+    body: bytes,
   });
 }
 
@@ -149,7 +170,7 @@ async function assertOpenEndedOversizeDenied(context, documentId) {
   });
 }
 
-async function assertCorsOriginPolicy() {
+async function assertCorsOriginPolicy(context, document) {
   const allowed = await preflight(LOCAL_APP_ORIGIN);
   const denied = await preflight(UNKNOWN_ORIGIN);
   assert.deepEqual(
@@ -165,8 +186,30 @@ async function assertCorsOriginPolicy() {
       deniedOrigin: null,
       deniedStatus: 204,
     },
-    "CORS must explicitly allow the app origin and omit allowance for unknown origins.",
+    "Edge handler CORS must explicitly allow the app origin and omit allowance for unknown origins.",
   );
+
+  const rejected = await unknownOriginPost({
+    token: context.writer.token,
+    projectId: context.projectId,
+    documentId: document.documentId,
+    bytes: document.bytes,
+  });
+  assert.equal(
+    rejected.status,
+    403,
+    "Unknown browser origins must be rejected before trusted-ingest side effects.",
+  );
+  assert.equal(
+    rejected.headers.get("access-control-allow-origin"),
+    null,
+    "Unknown origins must not receive an application CORS allowance.",
+  );
+  await assertNoTrustedObject({
+    admin: context.admin,
+    projectId: context.projectId,
+    documentId: document.documentId,
+  });
 }
 
 function assertRecoveryResourceBoundSource() {
@@ -282,21 +325,24 @@ async function recordFinding(failures, finding, check) {
 
 async function prepareOpenEndedDocument(context) {
   const documentId = randomUUID();
-  const expected = pdfBytes(512);
+  const bytes = pdfBytes(512);
   await reserve({
     client: context.writer.client,
     projectId: context.projectId,
     documentId,
-    bytes: expected,
+    bytes,
     title: "Synthetic open-ended oversize ingress",
   });
   context.objectPaths.push(storagePath(context.projectId, documentId));
-  return documentId;
+  return { documentId, bytes };
 }
 
 export async function runReviewFindingRedScenarios(context) {
   const failures = [];
-  await recordFinding(failures, "WP29C-AR-004", assertCorsOriginPolicy);
+  const openEndedDocument = await prepareOpenEndedDocument(context);
+  await recordFinding(failures, "WP29C-AR-004", async () => {
+    await assertCorsOriginPolicy(context, openEndedDocument);
+  });
   await recordFinding(failures, "WP29C-AR-002-source", async () => {
     assertRecoveryResourceBoundSource();
   });
@@ -309,10 +355,11 @@ export async function runReviewFindingRedScenarios(context) {
   await recordFinding(failures, "WP29C-AR-003-live", async () => {
     await runWrongStoredMimeScenario(context);
   });
-
-  const documentId = await prepareOpenEndedDocument(context);
   await recordFinding(failures, "WP29C-AR-001", async () => {
-    await assertOpenEndedOversizeDenied(context, documentId);
+    await assertOpenEndedOversizeDenied(
+      context,
+      openEndedDocument.documentId,
+    );
   });
 
   if (failures.length > 0) {
