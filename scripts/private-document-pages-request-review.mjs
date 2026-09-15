@@ -46,11 +46,7 @@ function openFramedRequest({ token, projectId, documentId }) {
     request.on("error", (error) => finish(reject, error));
     request.write(new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d]));
     timer = setTimeout(
-      () =>
-        finish(
-          reject,
-          new Error("Pages promotion waited for sender EOF."),
-        ),
+      () => finish(reject, new Error("Pages promotion waited for sender EOF.")),
       RESPONSE_TIMEOUT_MS,
     );
   });
@@ -62,7 +58,11 @@ export async function assertOpenFramedRequestDenied(context, documentId) {
     projectId: context.projectId,
     documentId,
   });
-  assert.equal(status, 413, "Framed bodies must be rejected before sender EOF.");
+  assert.equal(
+    status,
+    413,
+    "Framed bodies must be rejected before sender EOF.",
+  );
   await assertNoTrustedObject({
     admin: context.admin,
     projectId: context.projectId,
