@@ -1,4 +1,7 @@
-import { createClient } from "@supabase/supabase-js";
+import {
+  createClient,
+  type SupabaseClient as SupabaseProviderClient,
+} from "@supabase/supabase-js";
 
 const CANONICAL_BUCKET = "project-private";
 const STAGING_BUCKET = "document-ingest-staging";
@@ -8,19 +11,7 @@ const UUID_PATTERN =
 const SHA256_PATTERN = /^[0-9a-f]{64}$/;
 const PDF_SIGNATURE = new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d]);
 
-type SupabaseClient = ReturnType<typeof createClient>;
-
-interface PagesEnvironment {
-  readonly SUPABASE_URL?: string;
-  readonly SUPABASE_PUBLISHABLE_KEY?: string;
-  readonly SUPABASE_ANON_KEY?: string;
-  readonly PRIVATE_DOCUMENT_ADMIN_KEY?: string;
-}
-
-interface PagesContext {
-  readonly request: Request;
-  readonly env: PagesEnvironment;
-}
+type EmptyProviderMap = Record<never, never>;
 
 interface ReservedDocument {
   readonly id: string;
@@ -33,6 +24,54 @@ interface ReservedDocument {
   readonly upload_status: string;
   readonly deleted_at: string | null;
   readonly remote_url: string | null;
+}
+
+interface ProviderDatabase {
+  readonly public: {
+    readonly Tables: {
+      readonly documents: {
+        readonly Row: ReservedDocument;
+        readonly Insert: Partial<ReservedDocument>;
+        readonly Update: Partial<ReservedDocument>;
+        readonly Relationships: [];
+      };
+    };
+    readonly Views: EmptyProviderMap;
+    readonly Functions: {
+      readonly has_project_permission: {
+        readonly Args: {
+          readonly target_project_id: string;
+          readonly requested_permission: string;
+        };
+        readonly Returns: boolean;
+      };
+      readonly attest_private_document_ingest: {
+        readonly Args: {
+          readonly target_project_id: string;
+          readonly target_document_id: string;
+          readonly target_sha256: string;
+          readonly target_size_bytes: number;
+        };
+        readonly Returns: boolean;
+      };
+    };
+    readonly Enums: EmptyProviderMap;
+    readonly CompositeTypes: EmptyProviderMap;
+  };
+}
+
+type ProviderClient = SupabaseProviderClient<ProviderDatabase>;
+
+interface PagesEnvironment {
+  readonly SUPABASE_URL?: string;
+  readonly SUPABASE_PUBLISHABLE_KEY?: string;
+  readonly SUPABASE_ANON_KEY?: string;
+  readonly PRIVATE_DOCUMENT_ADMIN_KEY?: string;
+}
+
+interface PagesContext {
+  readonly request: Request;
+  readonly env: PagesEnvironment;
 }
 
 interface ProviderEnvironment {
@@ -50,8 +89,8 @@ interface RequestAuthority {
 }
 
 interface PromotionContext {
-  readonly userClient: SupabaseClient;
-  readonly admin: SupabaseClient;
+  readonly userClient: ProviderClient;
+  readonly admin: ProviderClient;
   readonly reservation: ReservedDocument;
   readonly path: string;
   readonly projectId: string;
@@ -136,7 +175,9 @@ function isPdfSignature(bytes: Uint8Array): boolean {
 }
 
 async function sha256(bytes: Uint8Array): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  const buffer = new ArrayBuffer(bytes.byteLength);
+  new Uint8Array(buffer).set(bytes);
+  const digest = await crypto.subtle.digest("SHA-256", buffer);
   return Array.from(new Uint8Array(digest), (value) =>
     value.toString(16).padStart(2, "0"),
   ).join("");
@@ -174,7 +215,7 @@ async function bytesMatchReservation(
 }
 
 async function storageObjectMatchesReservation(
-  admin: SupabaseClient,
+  admin: ProviderClient,
   bucket: string,
   path: string,
   reservation: ReservedDocument,
@@ -182,11 +223,13 @@ async function storageObjectMatchesReservation(
   const storage = admin.storage.from(bucket);
   const info = await storage.info(path);
   if (info.error || info.data === null) return false;
+  const objectSize = info.data.size;
   if (
-    !Number.isSafeInteger(info.data.size) ||
-    info.data.size < 1 ||
-    info.data.size > MAX_BYTES ||
-    info.data.size !== reservation.size_bytes ||
+    typeof objectSize !== "number" ||
+    !Number.isSafeInteger(objectSize) ||
+    objectSize < 1 ||
+    objectSize > MAX_BYTES ||
+    objectSize !== reservation.size_bytes ||
     info.data.contentType !== "application/pdf"
   ) {
     return false;
@@ -195,7 +238,7 @@ async function storageObjectMatchesReservation(
   const { data, error } = await storage.download(path);
   if (error || data === null) return false;
   if (
-    data.size !== info.data.size ||
+    data.size !== objectSize ||
     data.size > MAX_BYTES ||
     data.type !== "application/pdf"
   ) {
@@ -209,7 +252,7 @@ async function storageObjectMatchesReservation(
 }
 
 async function hasWritePermission(
-  userClient: SupabaseClient,
+  userClient: ProviderClient,
   projectId: string,
 ): Promise<boolean> {
   const { data, error } = await userClient.rpc("has_project_permission", {
@@ -220,7 +263,7 @@ async function hasWritePermission(
 }
 
 async function reservationFor(
-  userClient: SupabaseClient,
+  userClient: ProviderClient,
   projectId: string,
   documentId: string,
 ): Promise<ReservedDocument | null> {
@@ -234,14 +277,11 @@ async function reservationFor(
     .maybeSingle();
 
   if (error || data === null) return null;
-  const reservation = data as ReservedDocument;
-  return validReservation(reservation, projectId, documentId)
-    ? reservation
-    : null;
+  return validReservation(data, projectId, documentId) ? data : null;
 }
 
 async function promoteToCanonical(
-  admin: SupabaseClient,
+  admin: ProviderClient,
   path: string,
   reservation: ReservedDocument,
 ): Promise<{ readonly ok: boolean; readonly replayed: boolean }> {
@@ -259,7 +299,7 @@ async function promoteToCanonical(
 }
 
 async function attest(
-  admin: SupabaseClient,
+  admin: ProviderClient,
   reservation: ReservedDocument,
 ): Promise<boolean> {
   const { error } = await admin.rpc("attest_private_document_ingest", {
@@ -272,7 +312,7 @@ async function attest(
 }
 
 async function cleanupStaging(
-  admin: SupabaseClient,
+  admin: ProviderClient,
   path: string,
 ): Promise<boolean> {
   const result = await admin.storage.from(STAGING_BUCKET).remove([path]);
@@ -301,10 +341,14 @@ async function promotionContext(
   env: PagesEnvironment,
 ): Promise<PromotionContext | Response> {
   const { targets, token, provider } = authority;
-  const userClient = createClient(provider.url, provider.publishableKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-    global: { headers: { Authorization: `Bearer ${token}` } },
-  });
+  const userClient = createClient<ProviderDatabase>(
+    provider.url,
+    provider.publishableKey,
+    {
+      auth: { persistSession: false, autoRefreshToken: false },
+      global: { headers: { Authorization: `Bearer ${token}` } },
+    },
+  );
   const { data: userData, error: userError } =
     await userClient.auth.getUser(token);
   if (userError || userData.user === null) return unavailable(401);
@@ -320,7 +364,7 @@ async function promotionContext(
   if (reservation === null) return unavailable(409);
   const secret = serviceKey(env);
   if (secret === null) return unavailable(503);
-  const admin = createClient(provider.url, secret, {
+  const admin = createClient<ProviderDatabase>(provider.url, secret, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
   return {
@@ -334,7 +378,14 @@ async function promotionContext(
 
 async function executePromotion(context: PromotionContext): Promise<Response> {
   const { userClient, admin, reservation, path, projectId } = context;
-  if (!(await storageObjectMatchesReservation(admin, STAGING_BUCKET, path, reservation))) {
+  if (
+    !(await storageObjectMatchesReservation(
+      admin,
+      STAGING_BUCKET,
+      path,
+      reservation,
+    ))
+  ) {
     return unavailable(422);
   }
   if (!(await hasWritePermission(userClient, projectId))) return unavailable();
