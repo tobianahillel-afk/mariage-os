@@ -8,10 +8,35 @@ This is a product constraint for the application stack, not a promise that every
 
 ## Chosen core services
 
-- Cloudflare Pages free static hosting target;
+- Cloudflare Pages Free for static hosting plus the narrowly approved Pages Functions security boundary;
 - Supabase Free for database, Auth, Storage and Realtime.
 
 Current provider limits must be rechecked at implementation/release time because free-tier terms can change.
+
+## Cloudflare Pages Functions envelope
+
+Provider limits rechecked on **2026-09-15** for WP-2.9C:
+
+- Pages Functions use the Cloudflare Workers runtime and Workers billing/limits;
+- Workers Free permits `100,000` requests/day;
+- Workers Free CPU time is `10 ms` per HTTP request;
+- Worker memory is `128 MB`;
+- Free-zone request-body maximum is `100 MB`, but Mariage OS private-document promotion remains bodyless and must not rely on that outer platform maximum.
+
+Provider references:
+
+- <https://developers.cloudflare.com/workers/platform/limits/>
+- <https://developers.cloudflare.com/workers/platform/pricing/>
+- <https://developers.cloudflare.com/pages/functions/>
+
+The private-document contract remains exact `25,000,000` bytes. Local Wrangler/workerd success proves functional compatibility but does not prove deployed Free CPU enforcement. WP-2.9C therefore requires provider-produced CPU evidence for an exact-size deployed promotion before acceptance. Cloudflare exposes `CPU Time per execution` in Pages Functions metrics and per-invocation CPU time in Workers observability; wall/network duration must not be substituted for CPU time.
+
+Evidence references:
+
+- <https://developers.cloudflare.com/pages/functions/metrics/>
+- <https://developers.cloudflare.com/changelog/post/2025-04-09-workers-timing/>
+
+Mariage OS must not rely on the runtime's documented flexibility for occasional CPU-limit excursions as its normal operating budget. If exact-size promotion cannot be demonstrated within the intended Free CPU envelope, the packet is blocked and architecture must be revisited; the application must not silently enable Workers Paid or lower the PDF limit.
 
 ## External communication-provider exception
 
@@ -107,9 +132,13 @@ If a provider changes materially:
 - preserve manual link/QR fallback for guest RSVP;
 - use provider abstractions/exports to migrate or deliberately degrade the affected channel.
 
+For security-critical Pages Functions, a provider limit change invalidates stale runtime-feasibility evidence until the affected boundary is rechecked.
+
 ## No automatic upgrade
 
 The application never automatically initiates a paid plan or billing change for core hosting or messaging providers.
+
+A Free-plan resource-limit failure remains fail-closed. It is not permission to retry on a paid plan automatically.
 
 ## Tests
 
@@ -118,4 +147,6 @@ Synthetic tests cover:
 - media-quota preflight;
 - behavior where nonessential uploads are blocked while tasks/RSVP/budget edits remain functional;
 - communication campaign blocked by configured send/cost cap;
-- automatic providers unavailable while manual secure-link/QR RSVP remains functional.
+- automatic providers unavailable while manual secure-link/QR RSVP remains functional;
+- local exact-25-MB private-document promotion under Wrangler/workerd;
+- deployed Free CPU evidence tracked separately for WP-2.9C rather than inferred from wall-clock/local success.
