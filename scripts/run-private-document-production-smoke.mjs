@@ -53,7 +53,9 @@ async function assertDenied(label, expectedStatus, init) {
 async function run() {
   const staticResponse = await fetch(baseUrl, { redirect: "manual" });
   if (staticResponse.status >= 500) {
-    throw new Error(`Static application smoke failed with ${staticResponse.status}.`);
+    throw new Error(
+      `Static application smoke failed with ${staticResponse.status}.`,
+    );
   }
 
   await assertDenied("unsupported method", 405, { method: "GET" });
