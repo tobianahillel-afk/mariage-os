@@ -86,6 +86,11 @@ interface PromotionContext {
   readonly projectId: string;
 }
 
+interface PromotionResult {
+  readonly ok: boolean;
+  readonly replayed: boolean;
+}
+
 function json(
   status: number,
   body: Readonly<Record<string, unknown>>,
@@ -157,7 +162,7 @@ async function promoteToCanonical(
   admin: ProviderClient,
   path: string,
   reservation: ReservedDocument,
-): Promise<{ readonly ok: boolean; readonly replayed: boolean }> {
+): Promise<PromotionResult> {
   const copy = await admin.storage
     .from(STAGING_BUCKET)
     .copy(path, path, { destinationBucket: CANONICAL_BUCKET });
@@ -293,10 +298,31 @@ async function reservationStillCurrent(
 
 async function failAfterCanonical(
   context: PromotionContext,
+  promoted: PromotionResult,
   status = 503,
 ): Promise<Response> {
+  if (promoted.replayed) return unavailable(status);
   const compensated = await compensateCanonical(context.admin, context.path);
   return compensated ? unavailable(status) : unavailable(503);
+}
+
+async function completePromotion(
+  context: PromotionContext,
+  promoted: PromotionResult,
+): Promise<Response> {
+  const { userClient, admin, reservation, path, projectId } = context;
+  if (!promoted.ok) return failAfterCanonical(context, promoted);
+  if (!(await hasWritePermission(userClient, projectId))) {
+    return failAfterCanonical(context, promoted, 404);
+  }
+  if (!(await reservationStillCurrent(context))) {
+    return failAfterCanonical(context, promoted, 409);
+  }
+  if (!(await attest(admin, reservation))) {
+    return failAfterCanonical(context, promoted);
+  }
+  if (!(await cleanupStaging(admin, path))) return unavailable(503);
+  return json(200, { ok: true, replayed: promoted.replayed });
 }
 
 async function executePromotion(context: PromotionContext): Promise<Response> {
@@ -313,18 +339,10 @@ async function executePromotion(context: PromotionContext): Promise<Response> {
   }
   if (!(await hasWritePermission(userClient, projectId))) return unavailable();
   if (!(await reservationStillCurrent(context))) return unavailable(409);
-
-  const promoted = await promoteToCanonical(admin, path, reservation);
-  if (!promoted.ok) return failAfterCanonical(context);
-  if (!(await hasWritePermission(userClient, projectId))) {
-    return failAfterCanonical(context, 404);
-  }
-  if (!(await reservationStillCurrent(context))) {
-    return failAfterCanonical(context, 409);
-  }
-  if (!(await attest(admin, reservation))) return failAfterCanonical(context);
-  if (!(await cleanupStaging(admin, path))) return unavailable(503);
-  return json(200, { ok: true, replayed: promoted.replayed });
+  return completePromotion(
+    context,
+    await promoteToCanonical(admin, path, reservation),
+  );
 }
 
 async function handlePromotion(
