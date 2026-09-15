@@ -9,9 +9,7 @@ describe("WP-2.9C ADR-0009 bodyless Pages promotion boundary", () => {
     expect(requestSource).not.toContain("request.arrayBuffer()");
     expect(requestSource).not.toContain("getReader()");
     expect(promotionSource).toContain("requestHasBodyFrame");
-    expect(requestSource).toContain(
-      'request.headers.get("transfer-encoding")',
-    );
+    expect(requestSource).toContain('request.headers.get("transfer-encoding")');
     expect(requestSource).toContain('request.headers.get("content-length")');
     expect(requestSource).toContain("return request.body !== null;");
   });
