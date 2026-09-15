@@ -102,7 +102,9 @@ describe("SupabasePrivateDocumentIngestAdapter staging contract", () => {
       },
     );
   });
+});
 
+describe("SupabasePrivateDocumentIngestAdapter default promotion fetch", () => {
   it("uses global fetch when no promotion fetch is injected", async () => {
     const staging = successfulClient();
     const globalFetch = vi
@@ -120,7 +122,9 @@ describe("SupabasePrivateDocumentIngestAdapter staging contract", () => {
       globalFetch.mockRestore();
     }
   });
+});
 
+describe("SupabasePrivateDocumentIngestAdapter staging receipt", () => {
   it("rejects malformed staging success before promotion", async () => {
     const upload = vi.fn().mockResolvedValue({
       data: { path: `${path}-wrong` },
