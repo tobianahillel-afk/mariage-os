@@ -38,7 +38,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.8B | Venue private archived media lifecycle | **ACCEPTED / COMPLETE** |
 | WP-2.8C | recoverable Venue remote-media metadata lifecycle | **ACCEPTED / COMPLETE** |
 | WP-2.9A | Venue-linked private PDF/document foundation | **BLOCKED — waits for WP-2.9C ACCEPTED** |
-| WP-2.9C | trusted private-document ingestion hardening | **IN_PROGRESS / REMEDIATION — AR-005/006/007 / CURRENT** |
+| WP-2.9C | trusted private-document ingestion hardening | **BLOCKED — AR-006 deployed Workers Free CPU evidence** |
 | WP-2.9B | generic project tags and Venue entity-tag links | **PLANNED / AFTER A** |
 | WP-2.10 | repositories, local cache, pending/offline mutations | PLANNED |
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace | PLANNED |
@@ -59,7 +59,7 @@ WP-2.1..WP-2.8C are accepted and complete. Durable evidence remains in their pac
 
 ## WP-2.9C — current packet
 
-State: **IN_PROGRESS / REMEDIATION** after failed fresh Pass B.
+State: **BLOCKED — WP29C-AR-006 DEPLOYED WORKERS FREE CPU EVIDENCE**.
 
 Pass-A exact evidence:
 
@@ -77,17 +77,17 @@ Fresh Pass-B failure:
 - status REVIEW_FAILED record: `16dac2577f1ef63afddf79e48fc4ce421c2b7c60`;
 - matrix REVIEW_FAILED record: `f0ad5fab0d46a526a726028c7805b78bdb43b1d9`.
 
-Open remediation targets:
+Current remediation status:
 
-- `WP29C-AR-005` — **MAJOR** — interrupted staging/clean-abandon cleanup is incomplete; concurrent abandon can race promotion and leave Storage/DB orphan divergence.
-- `WP29C-AR-006` — **MAJOR** — exact-25-MB Workers/Pages Free CPU feasibility is not actually evidenced by local workerd success.
-- `WP29C-AR-007` — **MAJOR** — deployment/release/secret operations are not reconciled with the Pages Function trust boundary.
+- `WP29C-AR-005` — **MAJOR / IMPLEMENTATION-REMEDIATED** — trusted clean-abandon path, DB orphan backstop, immediate pre-copy reservation revalidation, safe post-copy compensation and race/retry coverage implemented. CI `35021446818` passed the post-remediation Local Supabase DB/RLS/Pages Function and browser/mutation jobs; later commits added the one missing invalid-receipt coverage branch. Formal closure still requires final exact-head verification plus fresh Pass B.
+- `WP29C-AR-006` — **MAJOR / OPEN / BLOCKING** — exact-25-MB Workers/Pages Free CPU feasibility still lacks deployed provider CPU evidence. Durable proof protocol: `docs/roadmap/lot-2/WP-2.9C-AR-006-CPU-EVIDENCE.md`.
+- `WP29C-AR-007` — **MAJOR / IMPLEMENTATION-REMEDIATED** — ADR/release/CI-CD/secret contracts reconciled to Pages Functions and `PRIVATE_DOCUMENT_ADMIN_KEY`; fail-closed non-destructive deployment smoke added. Formal closure still requires final exact-head verification plus fresh Pass B.
 
 Historical `WP29C-AR-001..004` remain implementation-green but await a later complete clean fresh Pass B for formal closure.
 
-### Remediation design guardrails
+### AR-005 guardrails retained
 
-AR-005 remediation must not grant ordinary browser staging DELETE. Trusted cleanup remains inside the same narrow Pages security boundary and must be:
+Trusted cleanup remains inside the same narrow Pages security boundary and must remain:
 
 - bodyless;
 - current-user authenticated;
@@ -98,24 +98,31 @@ AR-005 remediation must not grant ordinary browser staging DELETE. Trusted clean
 - unable to delete ready documents, another project/document or Media;
 - verified absent before metadata abandon completes.
 
-Promotion must also close post-copy failure/orphan paths and revalidate authoritative reservation state immediately before privileged canonical mutation.
+Promotion retains authoritative reservation-state recheck immediately before privileged canonical mutation and safe compensation only for canonical bytes created by the failing request.
 
-AR-006 remediation must produce CPU-specific evidence; if the Workers Free envelope cannot safely support exact 25 MB, transition to `BLOCKED` and revisit architecture rather than silently enabling paid compute or shrinking the file contract.
+### AR-006 blocking evidence gate
 
-AR-007 remediation must update normative deployment/release/secret contracts and fail-closed production smoke without committing any secret value.
+Local Wrangler/workerd exact-25-MB success is functional evidence, not Workers Free CPU evidence. Current Cloudflare limits rechecked on 2026-09-15 keep the normal Workers Free CPU budget at `10 ms` per HTTP request and memory at `128 MB`.
+
+Unblock requires an exact-commit isolated Pages deployment on Workers Free, a synthetic exact `25,000,000`-byte trusted promotion, and provider-produced CPU-specific telemetry demonstrating controlled successful invocations inside the normal Free CPU budget with no `exceededCpu`, no Paid entitlement and no file-limit reduction.
+
+Until that evidence exists, WP-2.9C remains **BLOCKED**. If the proof fails, revisit architecture rather than silently enabling paid compute or shrinking the PDF contract.
+
+### AR-007 operations gate retained
+
+Normative release/deployment/secret contracts now require Pages Functions to deploy with the exact static candidate, `PRIVATE_DOCUMENT_ADMIN_KEY` to live only as an environment-specific Cloudflare encrypted secret, `/api/private-document-promote` to fail closed without static/origin fallback, and the removed Supabase promotion route to remain absent. `npm run smoke:private-document-production` provides deny-oriented deployment smoke without privileged credentials or real wedding data.
 
 ## Current next-action gate
 
-1. WP-2.9C is **IN_PROGRESS / REMEDIATION**.
-2. Add focused RED/evidence-first coverage for AR-005/006/007.
-3. Implement AR-005 trusted cleanup and promotion compensation/state revalidation without weakening RLS/authorization/file limits.
-4. Produce valid AR-006 Free CPU evidence; if impossible, stop in `BLOCKED`.
-5. Reconcile ADR/release/secret docs for AR-007.
-6. Run exact-head full CI + clean-checkout verification.
-7. Transition C back to `REVIEW_PENDING` only after remediation evidence is green.
-8. Run another complete fresh independent Pass B over the whole packet and all seven findings.
-9. Only a clean Pass B may enter `ACCEPTANCE_PENDING`; only Pass C may mark C `ACCEPTED`.
-10. WP-2.9A remains **BLOCKED** and WP-2.9B remains **PLANNED / AFTER A**.
+1. WP-2.9C is **BLOCKED** on `WP29C-AR-006`.
+2. Preserve AR-005 and AR-007 remediation behavior; do not weaken RLS/authorization/file limits or deployment/secret controls.
+3. Obtain the deployed Workers Free CPU evidence defined in `docs/roadmap/lot-2/WP-2.9C-AR-006-CPU-EVIDENCE.md`.
+4. If that evidence cannot demonstrate the normal Free envelope, remain `BLOCKED` and revisit architecture; do not enable Paid or reduce the 25 MB contract silently.
+5. After valid AR-006 evidence, run exact-head full CI + clean-checkout verification over all remediation.
+6. Transition C back to `REVIEW_PENDING` only after all remediation evidence is green.
+7. Run another complete fresh independent Pass B over the whole packet and all seven findings.
+8. Only a clean Pass B may enter `ACCEPTANCE_PENDING`; only Pass C may mark C `ACCEPTED`.
+9. WP-2.9A remains **BLOCKED** and WP-2.9B remains **PLANNED / AFTER A**.
 
 ## Durable handoff
 
@@ -127,16 +134,15 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.8C
 WP-2.9A: BLOCKED — waits for WP-2.9C ACCEPTED
-Current packet: WP-2.9C — IN_PROGRESS / REMEDIATION
+Current packet: WP-2.9C — BLOCKED
 Fresh Pass-B record: docs/roadmap/lot-2/WP-2.9C-PASS-B-REVIEW.md
-Open: WP29C-AR-005 MAJOR — orphan cleanup / abandon-promotion race
-Open: WP29C-AR-006 MAJOR — Free-plan exact-25-MB CPU evidence gap
-Open: WP29C-AR-007 MAJOR — Pages Function deployment/secret operations gap
-Pass-A evidence: 297ecdf3337e8522d6f200a90f96b481a9e6bdb1 / 34996240637 — 5/5 SUCCESS
-Review-pending evidence: e0854afb62cf5fcf834792fbad425d013b02af56 / 34997963836 — 5/5 SUCCESS
+AR-005: implementation-remediated — formal closure waits exact-head verification + fresh Pass B
+AR-006: OPEN / BLOCKING — deployed Workers Free exact-25-MB CPU evidence required
+AR-006 evidence protocol: docs/roadmap/lot-2/WP-2.9C-AR-006-CPU-EVIDENCE.md
+AR-007: implementation-remediated — formal closure waits exact-head verification + fresh Pass B
 FTR-089 FIR: #17
 WP-2.9A resumes only after WP-2.9C ACCEPTED
 WP-2.9B remains PLANNED / AFTER A
 Lots 3–12: NOT_STARTED
-Next permitted action: AR-005/006/007 remediation RED/evidence-first
+Next permitted action: obtain AR-006 deployed Workers Free CPU evidence; otherwise architecture review remains blocked
 ```
