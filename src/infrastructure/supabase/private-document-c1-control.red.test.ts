@@ -81,7 +81,10 @@ function servicePorts() {
   return {
     lifecycle,
     storage,
-    ingest: { ingest: vi.fn().mockResolvedValue(undefined) },
+    ingest: {
+      ingest: vi.fn().mockResolvedValue(undefined),
+      abandon: vi.fn().mockResolvedValue(undefined),
+    },
     sha256: { hash: vi.fn().mockResolvedValue(sha256) },
   };
 }

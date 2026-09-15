@@ -83,7 +83,10 @@ function ports() {
   return {
     lifecycle,
     storage,
-    ingest: { ingest: vi.fn().mockResolvedValue(undefined) },
+    ingest: {
+      ingest: vi.fn().mockResolvedValue(undefined),
+      abandon: vi.fn().mockResolvedValue(undefined),
+    },
     sha256: { hash: vi.fn().mockResolvedValue(sha256) },
   };
 }
@@ -225,7 +228,7 @@ describe("PrivateDocumentService abandon coverage", () => {
     });
   });
 
-  it("skips delete when the reserved object is already absent", async () => {
+  it("delegates cleanup and lifecycle completion to trusted abandon", async () => {
     const fake = ports();
     const service = new PrivateDocumentService(fake);
     await expect(
@@ -234,16 +237,20 @@ describe("PrivateDocumentService abandon coverage", () => {
       ok: true,
       value: { absent: true },
     });
+    expect(fake.ingest.abandon).toHaveBeenCalledWith({
+      operationId,
+      projectId,
+      documentId,
+    });
     expect(fake.storage.deleteReservedObject).not.toHaveBeenCalled();
+    expect(fake.lifecycle.abandonUpload).not.toHaveBeenCalled();
   });
 
-  it("returns storage_retryable when cleanup leaves the object present", async () => {
+  it("maps trusted abandon storage failure", async () => {
     const fake = ports();
-    fake.storage.inspectReservedObject.mockResolvedValue({
-      bucket: "project-private",
-      path,
-      present: true,
-    });
+    fake.ingest.abandon.mockRejectedValue(
+      new DocumentPersistenceError("storage_retryable", "cleanup failed"),
+    );
     const service = new PrivateDocumentService(fake);
     await expect(
       service.abandon(operationId, projectId, documentId),
@@ -251,12 +258,11 @@ describe("PrivateDocumentService abandon coverage", () => {
       ok: false,
       error: "storage_retryable",
     });
-    expect(fake.lifecycle.abandonUpload).not.toHaveBeenCalled();
   });
 
-  it("maps abandon lifecycle failure through persistence errors", async () => {
+  it("maps trusted abandon conflicts through persistence errors", async () => {
     const fake = ports();
-    fake.lifecycle.abandonUpload.mockRejectedValue(
+    fake.ingest.abandon.mockRejectedValue(
       new DocumentPersistenceError("conflict", "conflict"),
     );
     const service = new PrivateDocumentService(fake);

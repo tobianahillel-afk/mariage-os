@@ -153,7 +153,10 @@ describe("WP-2.9A AR-003 service Unicode scalar parity RED", () => {
       }),
       deleteReservedObject: vi.fn(),
     };
-    const ingest = { ingest: vi.fn().mockResolvedValue(undefined) };
+    const ingest = {
+      ingest: vi.fn().mockResolvedValue(undefined),
+      abandon: vi.fn().mockResolvedValue(undefined),
+    };
     const service = new PrivateDocumentService({
       lifecycle,
       storage,
