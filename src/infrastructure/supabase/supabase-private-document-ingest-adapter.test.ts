@@ -17,7 +17,9 @@ interface UploadResult {
 }
 
 type SessionResult = Awaited<
-  ReturnType<SupabasePrivateDocumentStagingClientLike["auth"]["getSession"]>
+  ReturnType<
+    SupabasePrivateDocumentStagingClientLike["auth"]["getSession"]
+  >
 >;
 
 type StagingUpload = (
