@@ -26,6 +26,7 @@
     "test:fast": "npm run typecheck && npm run static && npm run test:unit",
     "test:promotion": "node scripts/run-private-document-pages-integration.mjs",
     "test:edge": "npm run test:promotion",
+    "smoke:private-document-production": "node scripts/run-private-document-production-smoke.mjs",
     "db:start": "node scripts/run-supabase-start.mjs",
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset --local",
