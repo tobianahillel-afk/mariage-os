@@ -1,6 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.4";
 
-const BUCKET = "project-private";
+const CANONICAL_BUCKET = "project-private";
+const STAGING_BUCKET = "document-ingest-staging";
 const MAX_BYTES = 25_000_000;
 const LOCAL_APP_ORIGIN = "http://127.0.0.1:4173";
 const ALLOWED_ORIGINS_ENV = "PRIVATE_DOCUMENT_ALLOWED_ORIGINS";
@@ -11,7 +12,7 @@ const PDF_SIGNATURE = new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d]);
 
 const baseCorsHeaders = {
   "Access-Control-Allow-Headers":
-    "authorization, apikey, x-client-info, content-type, x-retry-count, traceparent, tracestate, baggage, x-project-id, x-document-id, x-document-mime-type",
+    "authorization, apikey, x-client-info, content-type, x-retry-count, traceparent, tracestate, baggage, x-project-id, x-document-id",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
@@ -120,6 +121,19 @@ function exactStoragePath(projectId: string, documentId: string): string {
   return `${projectId}/documents/${documentId}/original`;
 }
 
+function requestHasBodyFrame(request: Request): boolean {
+  if (request.headers.get("transfer-encoding") !== null) return true;
+
+  const rawLength = request.headers.get("content-length");
+  if (rawLength !== null) {
+    const normalizedLength = rawLength.trim();
+    if (!/^\d+$/.test(normalizedLength)) return true;
+    if (Number(normalizedLength) !== 0) return true;
+  }
+
+  return request.body !== null;
+}
+
 function isPdfSignature(bytes: Uint8Array): boolean {
   if (bytes.byteLength < PDF_SIGNATURE.byteLength) return false;
   return PDF_SIGNATURE.every((value, index) => bytes[index] === value);
@@ -130,42 +144,6 @@ async function sha256(bytes: Uint8Array): Promise<string> {
   return Array.from(new Uint8Array(digest), (value) =>
     value.toString(16).padStart(2, "0"),
   ).join("");
-}
-
-async function readBoundedRequestBody(
-  request: Request,
-): Promise<Uint8Array | null> {
-  if (request.body === null) return new Uint8Array(0);
-
-  const reader = request.body.getReader();
-  const chunks: Uint8Array[] = [];
-  let totalBytes = 0;
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      totalBytes += value.byteLength;
-      if (totalBytes > MAX_BYTES) {
-        chunks.length = 0;
-        void reader.cancel("private document byte limit exceeded").catch(() => {
-          // Rejection is already fail-closed; cancellation errors are non-authoritative.
-        });
-        return null;
-      }
-      chunks.push(value);
-    }
-  } finally {
-    reader.releaseLock();
-  }
-
-  const bytes = new Uint8Array(totalBytes);
-  let offset = 0;
-  for (const chunk of chunks) {
-    bytes.set(chunk, offset);
-    offset += chunk.byteLength;
-  }
-  return bytes;
 }
 
 function validReservation(
@@ -199,14 +177,15 @@ async function bytesMatchReservation(
   return (await sha256(bytes)) === reservation.sha256;
 }
 
-async function readExistingBytes(
+async function storageObjectMatchesReservation(
   admin: ReturnType<typeof createClient>,
+  bucket: string,
   path: string,
   reservation: ReservedDocument,
-): Promise<Uint8Array | null> {
-  const storage = admin.storage.from(BUCKET);
+): Promise<boolean> {
+  const storage = admin.storage.from(bucket);
   const info = await storage.info(path);
-  if (info.error || info.data === null) return null;
+  if (info.error || info.data === null) return false;
   if (
     !Number.isSafeInteger(info.data.size) ||
     info.data.size < 1 ||
@@ -214,19 +193,21 @@ async function readExistingBytes(
     info.data.size !== reservation.size_bytes ||
     info.data.contentType !== "application/pdf"
   ) {
-    return null;
+    return false;
   }
 
   const { data, error } = await storage.download(path);
-  if (error || data === null) return null;
+  if (error || data === null) return false;
   if (
     data.size !== info.data.size ||
     data.size > MAX_BYTES ||
     data.type !== "application/pdf"
   ) {
-    return null;
+    return false;
   }
-  return new Uint8Array(await data.arrayBuffer());
+
+  const bytes = new Uint8Array(await data.arrayBuffer());
+  return bytesMatchReservation(bytes, reservation);
 }
 
 async function hasWritePermission(
@@ -240,38 +221,78 @@ async function hasWritePermission(
   return error === null && data === true;
 }
 
+async function reservationFor(
+  userClient: ReturnType<typeof createClient>,
+  projectId: string,
+  documentId: string,
+): Promise<ReservedDocument | null> {
+  const { data, error } = await userClient
+    .from("documents")
+    .select(
+      "id,project_id,storage_path,mime_type,size_bytes,sha256,classification,upload_status,deleted_at,remote_url",
+    )
+    .eq("project_id", projectId)
+    .eq("id", documentId)
+    .maybeSingle();
+
+  if (error || data === null) return null;
+  const reservation = data as ReservedDocument;
+  return validReservation(reservation, projectId, documentId)
+    ? reservation
+    : null;
+}
+
+async function promoteToCanonical(
+  admin: ReturnType<typeof createClient>,
+  path: string,
+  reservation: ReservedDocument,
+): Promise<{ readonly ok: boolean; readonly replayed: boolean }> {
+  const copy = await admin.storage
+    .from(STAGING_BUCKET)
+    .copy(path, path, { destinationBucket: CANONICAL_BUCKET });
+  const replayed = copy.error !== null;
+  const ok = await storageObjectMatchesReservation(
+    admin,
+    CANONICAL_BUCKET,
+    path,
+    reservation,
+  );
+  return { ok, replayed };
+}
+
+async function attest(
+  admin: ReturnType<typeof createClient>,
+  reservation: ReservedDocument,
+): Promise<boolean> {
+  const { error } = await admin.rpc("attest_private_document_ingest", {
+    target_project_id: reservation.project_id,
+    target_document_id: reservation.id,
+    target_sha256: reservation.sha256,
+    target_size_bytes: reservation.size_bytes,
+  });
+  return error === null;
+}
+
+async function cleanupStaging(
+  admin: ReturnType<typeof createClient>,
+  path: string,
+): Promise<boolean> {
+  const result = await admin.storage.from(STAGING_BUCKET).remove([path]);
+  return result.error === null;
+}
+
 Deno.serve(async (request: Request) => {
   if (request.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: corsHeaders(request) });
   }
   if (!requestOriginAllowed(request)) return unavailable(request, 403);
   if (request.method !== "POST") return unavailable(request, 405);
+  if (requestHasBodyFrame(request)) return unavailable(request, 413);
 
   const projectId = request.headers.get("x-project-id") ?? "";
   const documentId = request.headers.get("x-document-id") ?? "";
-  const mimeIntent = request.headers.get("x-document-mime-type") ?? "";
-  if (
-    !UUID_PATTERN.test(projectId) ||
-    !UUID_PATTERN.test(documentId) ||
-    mimeIntent !== "application/pdf"
-  ) {
+  if (!UUID_PATTERN.test(projectId) || !UUID_PATTERN.test(documentId)) {
     return unavailable(request, 400);
-  }
-
-  const requestMediaType = (request.headers.get("content-type") ?? "")
-    .split(";", 1)[0]
-    .trim()
-    .toLowerCase();
-  if (
-    requestMediaType !== "application/octet-stream" &&
-    requestMediaType !== "application/pdf"
-  ) {
-    return unavailable(request, 415);
-  }
-
-  const declaredLength = Number(request.headers.get("content-length"));
-  if (Number.isFinite(declaredLength) && declaredLength > MAX_BYTES) {
-    return unavailable(request, 413);
   }
 
   const token = bearerToken(request);
@@ -283,12 +304,7 @@ Deno.serve(async (request: Request) => {
     "SUPABASE_PUBLISHABLE_KEY",
     "SUPABASE_ANON_KEY",
   );
-  const secretKey = environmentKey(
-    "SUPABASE_SECRET_KEYS",
-    "SUPABASE_SECRET_KEY",
-    "SUPABASE_SERVICE_ROLE_KEY",
-  );
-  if (supabaseUrl === null || publishableKey === null || secretKey === null) {
+  if (supabaseUrl === null || publishableKey === null) {
     return unavailable(request, 503);
   }
 
@@ -304,67 +320,46 @@ Deno.serve(async (request: Request) => {
     return unavailable(request);
   }
 
-  const { data: reservationData, error: reservationError } = await userClient
-    .from("documents")
-    .select(
-      "id,project_id,storage_path,mime_type,size_bytes,sha256,classification,upload_status,deleted_at,remote_url",
-    )
-    .eq("project_id", projectId)
-    .eq("id", documentId)
-    .maybeSingle();
+  const reservation = await reservationFor(userClient, projectId, documentId);
+  if (reservation === null) return unavailable(request, 409);
 
-  if (reservationError || reservationData === null) {
-    return unavailable(request);
-  }
-  const reservation = reservationData as ReservedDocument;
-  if (!validReservation(reservation, projectId, documentId)) {
-    return unavailable(request, 409);
-  }
-
-  const body = await readBoundedRequestBody(request);
-  if (body === null || body.byteLength < 1) {
-    return unavailable(request, 413);
-  }
-  if (!(await bytesMatchReservation(body, reservation))) {
-    return unavailable(request, 422);
-  }
-
-  // Narrow the membership race window before privileged Storage mutation.
-  if (!(await hasWritePermission(userClient, projectId))) {
-    return unavailable(request);
-  }
+  const secretKey = environmentKey(
+    "SUPABASE_SECRET_KEYS",
+    "SUPABASE_SECRET_KEY",
+    "SUPABASE_SERVICE_ROLE_KEY",
+  );
+  if (secretKey === null) return unavailable(request, 503);
 
   const admin = createClient(supabaseUrl, secretKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
   const path = exactStoragePath(projectId, documentId);
-  const upload = await admin.storage.from(BUCKET).upload(path, body, {
-    contentType: "application/pdf",
-    upsert: false,
-  });
-
-  let replayed = false;
-  if (upload.error !== null) {
-    const existing = await readExistingBytes(admin, path, reservation);
-    if (
-      existing === null ||
-      !(await bytesMatchReservation(existing, reservation))
-    ) {
-      return unavailable(request, 503);
-    }
-    replayed = true;
+  if (
+    !(await storageObjectMatchesReservation(
+      admin,
+      STAGING_BUCKET,
+      path,
+      reservation,
+    ))
+  ) {
+    return unavailable(request, 422);
   }
 
-  const { error: attestationError } = await admin.rpc(
-    "attest_private_document_ingest",
-    {
-      target_project_id: projectId,
-      target_document_id: documentId,
-      target_sha256: reservation.sha256,
-      target_size_bytes: reservation.size_bytes,
-    },
-  );
-  if (attestationError !== null) return unavailable(request, 503);
+  // Narrow the membership race window immediately before privileged canonical
+  // mutation. Service authority is never used as caller authorization.
+  if (!(await hasWritePermission(userClient, projectId))) {
+    return unavailable(request);
+  }
 
-  return json(request, 200, { ok: true, replayed });
+  const promoted = await promoteToCanonical(admin, path, reservation);
+  if (!promoted.ok) return unavailable(request, 503);
+
+  // Reauthorize again before recording the server-only trust assertion.
+  if (!(await hasWritePermission(userClient, projectId))) {
+    return unavailable(request);
+  }
+  if (!(await attest(admin, reservation))) return unavailable(request, 503);
+  if (!(await cleanupStaging(admin, path))) return unavailable(request, 503);
+
+  return json(request, 200, { ok: true, replayed: promoted.replayed });
 });

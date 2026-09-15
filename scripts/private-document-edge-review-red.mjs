@@ -10,6 +10,7 @@ import {
   assertNoAttestation,
   assertNoTrustedObject,
   assertRejected,
+  assertStagedObjectPresent,
   documentUploadStatus,
   invoke,
   localSupabaseEnvironment,
@@ -17,6 +18,7 @@ import {
   randomUUID,
   reserve,
   rpcFailure,
+  stage,
   storagePath,
 } from "./private-document-edge-helpers.mjs";
 
@@ -49,11 +51,10 @@ function runtimeRequestHeaders({ token, projectId, documentId, anonKey }) {
     "transfer-encoding": "chunked",
     "x-project-id": projectId,
     "x-document-id": documentId,
-    "x-document-mime-type": "application/pdf",
   };
 }
 
-function openEndedOversizeInvoke({ token, projectId, documentId }) {
+function openEndedBodyInvoke({ token, projectId, documentId }) {
   const { anonKey } = localSupabaseEnvironment();
   const hostname = edgeRuntimeIp();
   return new Promise((resolve, reject) => {
@@ -88,18 +89,12 @@ function openEndedOversizeInvoke({ token, projectId, documentId }) {
     }
 
     request.on("error", (error) => finish(reject, error));
-    const chunk = new Uint8Array(1_000_000);
-    for (let offset = 0; offset < MAX_BYTES; offset += chunk.byteLength) {
-      request.write(chunk);
-    }
-    request.write(new Uint8Array([0]));
+    request.write(new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d]));
     timer = setTimeout(
       () =>
         finish(
           reject,
-          new Error(
-            "Edge Runtime did not reject oversize ingress before sender EOF.",
-          ),
+          new Error("Edge Runtime waited for sender EOF on a framed body."),
         ),
       OPEN_ENDED_RESPONSE_TIMEOUT_MS,
     );
@@ -115,12 +110,12 @@ async function preflight(origin) {
       origin,
       "access-control-request-method": "POST",
       "access-control-request-headers":
-        "authorization,content-type,x-project-id,x-document-id,x-document-mime-type",
+        "authorization,content-type,x-project-id,x-document-id",
     },
   });
 }
 
-async function unknownOriginPost({ token, projectId, documentId, bytes }) {
+async function unknownOriginPost({ token, projectId, documentId }) {
   const { anonKey } = localSupabaseEnvironment();
   return globalThis.fetch(edgeRuntimeUrl(), {
     method: "POST",
@@ -128,12 +123,9 @@ async function unknownOriginPost({ token, projectId, documentId, bytes }) {
       apikey: anonKey,
       authorization: `Bearer ${token}`,
       origin: UNKNOWN_ORIGIN,
-      "content-type": "application/octet-stream",
       "x-project-id": projectId,
       "x-document-id": documentId,
-      "x-document-mime-type": "application/pdf",
     },
-    body: bytes,
   });
 }
 
@@ -145,15 +137,17 @@ function recoverySource() {
     ),
     "utf8",
   );
-  const start = source.indexOf("async function readExistingBytes(");
+  const start = source.indexOf(
+    "async function storageObjectMatchesReservation(",
+  );
   const end = source.indexOf("\nasync function hasWritePermission", start);
-  assert.notEqual(start, -1, "Trusted-ingest recovery function must exist.");
-  assert.notEqual(end, -1, "Trusted-ingest recovery function must be bounded.");
+  assert.notEqual(start, -1, "Trusted object verifier must exist.");
+  assert.notEqual(end, -1, "Trusted object verifier must be bounded.");
   return source.slice(start, end);
 }
 
-async function assertOpenEndedOversizeDenied(context, documentId) {
-  const status = await openEndedOversizeInvoke({
+async function assertOpenEndedBodyDenied(context, documentId) {
+  const status = await openEndedBodyInvoke({
     token: context.writer.token,
     projectId: context.projectId,
     documentId,
@@ -161,9 +155,14 @@ async function assertOpenEndedOversizeDenied(context, documentId) {
   assert.equal(
     status,
     413,
-    "Oversize ingress must be rejected before the sender closes the body.",
+    "Framed request bodies must be rejected before sender EOF.",
   );
   await assertNoTrustedObject({
+    admin: context.admin,
+    projectId: context.projectId,
+    documentId,
+  });
+  await assertStagedObjectPresent({
     admin: context.admin,
     projectId: context.projectId,
     documentId,
@@ -186,25 +185,16 @@ async function assertCorsOriginPolicy(context, document) {
       deniedOrigin: null,
       deniedStatus: 204,
     },
-    "Edge handler CORS must explicitly allow the app origin and omit allowance for unknown origins.",
+    "CORS must allow only the configured application origin.",
   );
 
   const rejected = await unknownOriginPost({
     token: context.writer.token,
     projectId: context.projectId,
     documentId: document.documentId,
-    bytes: document.bytes,
   });
-  assert.equal(
-    rejected.status,
-    403,
-    "Unknown browser origins must be rejected before trusted-ingest side effects.",
-  );
-  assert.equal(
-    rejected.headers.get("access-control-allow-origin"),
-    null,
-    "Unknown origins must not receive an application CORS allowance.",
-  );
+  assert.equal(rejected.status, 403, "Unknown browser origins must be denied.");
+  assert.equal(rejected.headers.get("access-control-allow-origin"), null);
   await assertNoTrustedObject({
     admin: context.admin,
     projectId: context.projectId,
@@ -216,29 +206,22 @@ function assertRecoveryResourceBoundSource() {
   const source = recoverySource();
   const infoIndex = source.indexOf(".info(");
   const downloadIndex = source.indexOf(".download(");
-  const usesStream =
-    source.includes(".asStream(") || source.includes(".getReader(");
-  const metadataBoundsBeforeDownload =
-    infoIndex >= 0 && downloadIndex >= 0 && infoIndex < downloadIndex;
   assert.ok(
-    usesStream || metadataBoundsBeforeDownload,
-    "Recovery must stream with a byte bound or validate authoritative object metadata before materializing download bytes.",
+    infoIndex >= 0 && downloadIndex >= 0 && infoIndex < downloadIndex,
+    "Storage metadata bounds must be checked before object materialization.",
   );
   assert.ok(
-    source.includes("MAX_BYTES") || source.includes("size_bytes"),
-    "Recovery must enforce the frozen byte bound before untrusted object materialization.",
+    source.includes("MAX_BYTES") && source.includes("size_bytes"),
+    "Object verification must enforce both frozen and reserved byte bounds.",
   );
 }
 
 function assertRecoveryStoredMimeSource() {
   const source = recoverySource();
-  assert.ok(
-    source.includes(".info("),
-    "Recovery must read authoritative Storage metadata for MIME proof.",
-  );
+  assert.ok(source.includes(".info("), "Authoritative MIME metadata is required.");
   assert.ok(
     source.includes('"application/pdf"'),
-    "Recovery must require authoritative application/pdf Storage metadata.",
+    "Object verification must require authoritative application/pdf metadata.",
   );
 }
 
@@ -254,23 +237,29 @@ async function runOversizedExistingObjectScenario(context) {
   });
   const path = storagePath(context.projectId, documentId);
   context.objectPaths.push(path);
+  rpcFailure(
+    (await stage({
+      client: context.writer.client,
+      projectId: context.projectId,
+      documentId,
+      bytes: expected,
+    })).error,
+    "Synthetic staging precondition",
+  );
   const oversized = new Uint8Array(MAX_BYTES + 1);
   oversized.set([0x25, 0x50, 0x44, 0x46, 0x2d]);
-  const injected = await context.admin.storage
-    .from(BUCKET)
-    .upload(path, oversized, {
-      contentType: "application/pdf",
-      upsert: false,
-    });
+  const injected = await context.admin.storage.from(BUCKET).upload(path, oversized, {
+    contentType: "application/pdf",
+    upsert: false,
+  });
   rpcFailure(injected.error, "Synthetic oversized recovery object injection");
   assertRejected(
     await invoke({
       client: context.writer.client,
       projectId: context.projectId,
       documentId,
-      bytes: expected,
     }),
-    "Oversized existing object must fail closed on replay.",
+    "Oversized existing canonical object must fail closed.",
   );
   assertNoAttestation({ projectId: context.projectId, documentId });
   assert.equal(
@@ -291,21 +280,27 @@ async function runWrongStoredMimeScenario(context) {
   });
   const path = storagePath(context.projectId, documentId);
   context.objectPaths.push(path);
-  const injected = await context.admin.storage
-    .from(BUCKET)
-    .upload(path, expected, {
-      contentType: "application/octet-stream",
-      upsert: false,
-    });
+  rpcFailure(
+    (await stage({
+      client: context.writer.client,
+      projectId: context.projectId,
+      documentId,
+      bytes: expected,
+    })).error,
+    "Synthetic staging precondition",
+  );
+  const injected = await context.admin.storage.from(BUCKET).upload(path, expected, {
+    contentType: "application/octet-stream",
+    upsert: false,
+  });
   rpcFailure(injected.error, "Synthetic wrong-MIME recovery object injection");
   assertRejected(
     await invoke({
       client: context.writer.client,
       projectId: context.projectId,
       documentId,
-      bytes: expected,
     }),
-    "Wrong authoritative stored MIME must fail closed on replay.",
+    "Wrong canonical MIME must fail closed on recovery.",
   );
   assertNoAttestation({ projectId: context.projectId, documentId });
 }
@@ -331,17 +326,26 @@ async function prepareOpenEndedDocument(context) {
     projectId: context.projectId,
     documentId,
     bytes,
-    title: "Synthetic open-ended oversize ingress",
+    title: "Synthetic bodyless promotion boundary",
   });
   context.objectPaths.push(storagePath(context.projectId, documentId));
+  rpcFailure(
+    (await stage({
+      client: context.writer.client,
+      projectId: context.projectId,
+      documentId,
+      bytes,
+    })).error,
+    "Synthetic staging precondition",
+  );
   return { documentId, bytes };
 }
 
 export async function runReviewFindingRedScenarios(context) {
   const failures = [];
-  const openEndedDocument = await prepareOpenEndedDocument(context);
+  const document = await prepareOpenEndedDocument(context);
   await recordFinding(failures, "WP29C-AR-004", async () => {
-    await assertCorsOriginPolicy(context, openEndedDocument);
+    await assertCorsOriginPolicy(context, document);
   });
   await recordFinding(failures, "WP29C-AR-002-source", async () => {
     assertRecoveryResourceBoundSource();
@@ -356,7 +360,7 @@ export async function runReviewFindingRedScenarios(context) {
     await runWrongStoredMimeScenario(context);
   });
   await recordFinding(failures, "WP29C-AR-001", async () => {
-    await assertOpenEndedOversizeDenied(context, openEndedDocument.documentId);
+    await assertOpenEndedBodyDenied(context, document.documentId);
   });
 
   if (failures.length > 0) {

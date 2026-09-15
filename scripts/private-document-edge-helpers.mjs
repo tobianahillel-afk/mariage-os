@@ -5,6 +5,7 @@ import { spawnSync } from "node:child_process";
 import { createClient } from "@supabase/supabase-js";
 
 export const BUCKET = "project-private";
+export const STAGING_BUCKET = "document-ingest-staging";
 export const MAX_BYTES = 25_000_000;
 const npmExecPath = process.env.npm_execpath;
 let cachedEnvironment = null;
@@ -116,8 +117,9 @@ export function localSupabaseEnvironment() {
     [npmExecPath, "exec", "--", "supabase", "status", "-o", "env"],
     { encoding: "utf8", env: process.env },
   );
-  if (result.status !== 0)
+  if (result.status !== 0) {
     fail("Unable to read the local Supabase environment.");
+  }
   const values = parseEnvironmentOutput(result.stdout);
   cachedEnvironment = requireCompleteEnvironment(environmentFromValues(values));
   return cachedEnvironment;
@@ -161,8 +163,9 @@ function runLocalSql(sql, variables = {}) {
     encoding: "utf8",
     env: process.env,
   });
-  if (result.status !== 0)
+  if (result.status !== 0) {
     fail("Local synthetic SQL fixture operation failed.");
+  }
   return result.stdout.trim();
 }
 
@@ -312,19 +315,26 @@ export async function finalize({ client, projectId, documentId }) {
   rpcFailure(result.error, "Private document finalization");
 }
 
-export function invoke({
+export function stage({
   client,
   projectId,
   documentId,
   bytes,
   mimeType = "application/pdf",
 }) {
+  return client.storage
+    .from(STAGING_BUCKET)
+    .upload(storagePath(projectId, documentId), bytes, {
+      contentType: mimeType,
+      upsert: false,
+    });
+}
+
+export function invoke({ client, projectId, documentId }) {
   return client.functions.invoke("private-document-ingest", {
-    body: bytes.slice().buffer,
     headers: {
       "x-project-id": projectId,
       "x-document-id": documentId,
-      "x-document-mime-type": mimeType,
     },
   });
 }
@@ -350,12 +360,31 @@ export async function assertNoTrustedObject({ admin, projectId, documentId }) {
   const object = await admin.storage
     .from(BUCKET)
     .download(storagePath(projectId, documentId));
-  assertRejected(object, "Rejected ingest must not create Storage bytes.");
+  assertRejected(object, "Rejected promotion must not create canonical bytes.");
   assert.equal(
     attestationCount(projectId, documentId),
     0,
-    "Rejected ingest must not create an attestation.",
+    "Rejected promotion must not create an attestation.",
   );
+}
+
+export async function assertStagedObjectPresent({
+  admin,
+  projectId,
+  documentId,
+}) {
+  const info = await admin.storage
+    .from(STAGING_BUCKET)
+    .info(storagePath(projectId, documentId));
+  assert.equal(info.error, null, "Expected staging object must remain present.");
+  assert.notEqual(info.data, null, "Expected staging metadata must exist.");
+}
+
+export async function assertNoStagedObject({ admin, projectId, documentId }) {
+  const object = await admin.storage
+    .from(STAGING_BUCKET)
+    .download(storagePath(projectId, documentId));
+  assertRejected(object, "Trusted promotion must clean the staging object.");
 }
 
 export function assertNoAttestation({ projectId, documentId }) {
@@ -384,8 +413,10 @@ export async function cleanupHarness({
   objectPaths,
   userIds,
 }) {
-  if (objectPaths.length > 0)
+  if (objectPaths.length > 0) {
     await admin.storage.from(BUCKET).remove(objectPaths);
+    await admin.storage.from(STAGING_BUCKET).remove(objectPaths);
+  }
   runLocalSql(`delete from public.projects where id = :'project_id'::uuid;`, {
     project_id: projectId,
   });
