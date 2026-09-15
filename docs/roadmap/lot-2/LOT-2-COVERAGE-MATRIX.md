@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1..WP-2.8C ACCEPTED; WP-2.9A BLOCKED; WP-2.9C REVIEW_FAILED / CURRENT; WP-2.9B PLANNED / AFTER A**
+Status: **IN_PROGRESS — WP-2.1..WP-2.8C ACCEPTED; WP-2.9A BLOCKED; WP-2.9C IN_PROGRESS / REMEDIATION / CURRENT; WP-2.9B PLANNED / AFTER A**
 
 Purpose: durable current responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`. Detailed historical evidence remains in packet records, acceptance records, FIRs and Git history.
 
@@ -29,14 +29,14 @@ Integration prerequisite is accepted Lot 0 + Lot 1 on `main` through PR #7; `mai
 | remote image references | FTR-024, VEN-013, MED-007/008/013 | WP-2.8A, WP-2.11 | WP-2.8A **ACCEPTED** |
 | private archived Venue image lifecycle | FTR-024 private slice, FTR-092 Lot-2, VEN-013, MED-004/005/006/009/010, ACC-055/056/058 | WP-2.8B | **ACCEPTED / COMPLETE** |
 | recoverable remote-media metadata lifecycle | FTR-024/FTR-092 Lot-2 continuation, MED-007/010/013 | WP-2.8C | **ACCEPTED / COMPLETE** |
-| Venue-linked ordinary private PDFs, provenance and document links | FTR-089 Lot-2; MED-001/002/003/008/010; PRD-008 link slice; file-security/deletion-retention | WP-2.9A + WP-2.9C remediation + WP-2.11 | **WP-2.9A BLOCKED**; **WP-2.9C REVIEW_FAILED / CURRENT**; FIR #17 |
+| Venue-linked ordinary private PDFs, provenance and document links | FTR-089 Lot-2; MED-001/002/003/008/010; PRD-008 link slice; file-security/deletion-retention | WP-2.9A + WP-2.9C remediation + WP-2.11 | **WP-2.9A BLOCKED**; **WP-2.9C IN_PROGRESS / REMEDIATION / CURRENT**; FIR #17 |
 | generic project Tags and Venue entity-tag assignments | FTR-093 Lot-2 | WP-2.9B, WP-2.11 | **PLANNED / AFTER A** |
-| repository/read-model/provider ports and Supabase adapters | architecture, AUTHZ-006/020 | WP-2.1..WP-2.10 + WP-2.9C | accepted packets green; C remediation required |
+| repository/read-model/provider ports and Supabase adapters | architecture, AUTHZ-006/020 | WP-2.1..WP-2.10 + WP-2.9C | accepted packets green; C remediation active |
 | local cache/pending Venue edits | FTR-028 Lot-2, SYN-001..003/007..011, PWA-003/004/006 | WP-2.10, WP-2.12 | PLANNED |
 | gallery/table/detail/compare/deep-link workspace | FTR-015/016/017/027, VEN-010/011/014/015 | WP-2.11 | PLANNED |
 | mobile visit mode | FTR-028, PWA-004 | WP-2.12 | PLANNED |
-| file/content validation, trusted binary lifecycle, no private production data in public artifacts | MED-001..010/013 + security/quality controls | WP-2.8A/B/C, WP-2.9A, WP-2.9C, WP-2.12 | media accepted; C currently REVIEW_FAILED on cleanup/resource/deployment evidence |
-| explicit permissions/grants/RLS/direct endpoint and Storage allow+deny evidence | AUTHZ-001..009/012/017/018/020 | owning packets WP-2.1..WP-2.9C | accepted authorization evidence green; C remediation next |
+| file/content validation, trusted binary lifecycle, no private production data in public artifacts | MED-001..010/013 + security/quality controls | WP-2.8A/B/C, WP-2.9A, WP-2.9C, WP-2.12 | media accepted; C remediation active on cleanup/resource/deployment findings |
+| explicit permissions/grants/RLS/direct endpoint and Storage allow+deny evidence | AUTHZ-001..009/012/017/018/020 | owning packets WP-2.1..WP-2.9C | accepted authorization evidence green; C remediation active |
 | synthetic complex Venue exit fixture/integrated workflows | Lot-2 acceptance | WP-2.12 + Lot Integration Pass | downstream |
 | Lot reconciliation + separate Integration Pass | AI-LOT-ORCHESTRATION | after WP-2.1..WP-2.12 | downstream |
 
@@ -49,7 +49,7 @@ Accepted/evidenced packets: **WP-2.1..WP-2.8C**.
 The former monolithic WP-2.9 was split before code because it scored 12 points. Fresh review of WP-2.9A later required a separate remediation/control packet rather than silently expanding A.
 
 - **WP-2.9A** — FTR-089 private Document foundation/product responsibility; currently **BLOCKED** until C is accepted.
-- **WP-2.9C** — trusted Document ingress/lifecycle hardening; currently **REVIEW_FAILED / CURRENT**.
+- **WP-2.9C** — trusted Document ingress/lifecycle hardening; currently **IN_PROGRESS / REMEDIATION / CURRENT** after failed fresh Pass B.
 - **WP-2.9B** — generic Tags/entity-tags; remains **PLANNED / AFTER A**.
 
 C adds no new product Feature ID or permission key.
@@ -79,9 +79,11 @@ Review-pending governance evidence:
 
 Fresh Pass-B result:
 
-- **REVIEW_FAILED**;
+- **REVIEW_FAILED**, now transitioned to **IN_PROGRESS / REMEDIATION**;
 - record: `docs/roadmap/lot-2/WP-2.9C-PASS-B-REVIEW.md`;
-- finding record commit: `deaa2432327b9512068a75635dde6f4c522467ad`.
+- finding record commit: `deaa2432327b9512068a75635dde6f4c522467ad`;
+- remediation-start status: `40b1995ffc31b0de70cb0b0b4411ab8558b83529`;
+- remediation-start packet record: `839983bd4fa6c167d66f80e1dc847b8e86a37c32`.
 
 Open findings:
 
@@ -109,7 +111,7 @@ Historical findings `WP29C-AR-001..004` remain implementation-green but await a 
 | WP-2.8B | **ACCEPTED / COMPLETE** | private archive lifecycle |
 | WP-2.8C | **ACCEPTED / COMPLETE** | recoverable remote metadata lifecycle |
 | WP-2.9A | **BLOCKED** | FTR-089 foundation; waits for C acceptance |
-| WP-2.9C | **REVIEW_FAILED / CURRENT** | trusted private-Document ingress/lifecycle hardening; AR-005/006/007 open |
+| WP-2.9C | **IN_PROGRESS / REMEDIATION / CURRENT** | trusted private-Document ingress/lifecycle hardening; AR-005/006/007 open |
 | WP-2.9B | **PLANNED / AFTER A** | generic project Tags + Venue entity-tags |
 | WP-2.10 | PLANNED | repositories/local cache/pending offline mutations |
 | WP-2.11 | PLANNED | gallery/table/detail/compare/deep-link workspace |
@@ -120,9 +122,9 @@ Historical findings `WP29C-AR-001..004` remain implementation-green but await a 
 ```text
 WP-2.1..WP-2.8C [ACCEPTED]
   → WP-2.9A [BLOCKED until WP-2.9C ACCEPTED]
-    → WP-2.9C [REVIEW_FAILED / CURRENT]
-      → remediation starts: IN_PROGRESS
-        → exact-head verification
+    → WP-2.9C [IN_PROGRESS / REMEDIATION / CURRENT]
+      → RED/evidence-first AR-005/006/007
+        → remediation + exact-head verification
           → REVIEW_PENDING
             → complete fresh Pass B
               → BLOCKING/MAJOR ? REVIEW_FAILED
@@ -152,13 +154,13 @@ Only one packet may be implementing at a time. WP-2.9A is blocked, not concurren
 required current-Lot-2 responsibilities - assigned product packet responsibilities = ∅
 accepted/evidenced packets = WP-2.1..WP-2.8C
 WP-2.9A = BLOCKED until WP-2.9C ACCEPTED
-WP-2.9C = REVIEW_FAILED / CURRENT
+WP-2.9C = IN_PROGRESS / REMEDIATION / CURRENT
 fresh Pass-B record = docs/roadmap/lot-2/WP-2.9C-PASS-B-REVIEW.md
 open = WP29C-AR-005 MAJOR — cleanup/abandon-promotion race
 open = WP29C-AR-006 MAJOR — Free-plan exact-25-MB CPU evidence gap
 open = WP29C-AR-007 MAJOR — Pages Function deployment/secret operations gap
 WP-2.9B = PLANNED / AFTER A
-next permitted action = REVIEW_FAILED → IN_PROGRESS when WP-2.9C remediation begins
+next permitted action = RED/evidence-first remediation of AR-005/006/007
 Pass C forbidden until a later clean Pass B yields ACCEPTANCE_PENDING
 ```
 
