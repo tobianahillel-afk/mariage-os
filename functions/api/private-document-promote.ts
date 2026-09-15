@@ -8,6 +8,8 @@ const UUID_PATTERN =
 const SHA256_PATTERN = /^[0-9a-f]{64}$/;
 const PDF_SIGNATURE = new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d]);
 
+type SupabaseClient = ReturnType<typeof createClient>;
+
 interface PagesEnvironment {
   readonly SUPABASE_URL?: string;
   readonly SUPABASE_PUBLISHABLE_KEY?: string;
@@ -36,6 +38,23 @@ interface ReservedDocument {
 interface ProviderEnvironment {
   readonly url: string;
   readonly publishableKey: string;
+}
+
+interface RequestAuthority {
+  readonly targets: {
+    readonly projectId: string;
+    readonly documentId: string;
+  };
+  readonly token: string;
+  readonly provider: ProviderEnvironment;
+}
+
+interface PromotionContext {
+  readonly userClient: SupabaseClient;
+  readonly admin: SupabaseClient;
+  readonly reservation: ReservedDocument;
+  readonly path: string;
+  readonly projectId: string;
 }
 
 function nonEmpty(...values: ReadonlyArray<string | undefined>): string | null {
@@ -155,7 +174,7 @@ async function bytesMatchReservation(
 }
 
 async function storageObjectMatchesReservation(
-  admin: ReturnType<typeof createClient>,
+  admin: SupabaseClient,
   bucket: string,
   path: string,
   reservation: ReservedDocument,
@@ -190,7 +209,7 @@ async function storageObjectMatchesReservation(
 }
 
 async function hasWritePermission(
-  userClient: ReturnType<typeof createClient>,
+  userClient: SupabaseClient,
   projectId: string,
 ): Promise<boolean> {
   const { data, error } = await userClient.rpc("has_project_permission", {
@@ -201,7 +220,7 @@ async function hasWritePermission(
 }
 
 async function reservationFor(
-  userClient: ReturnType<typeof createClient>,
+  userClient: SupabaseClient,
   projectId: string,
   documentId: string,
 ): Promise<ReservedDocument | null> {
@@ -222,7 +241,7 @@ async function reservationFor(
 }
 
 async function promoteToCanonical(
-  admin: ReturnType<typeof createClient>,
+  admin: SupabaseClient,
   path: string,
   reservation: ReservedDocument,
 ): Promise<{ readonly ok: boolean; readonly replayed: boolean }> {
@@ -240,7 +259,7 @@ async function promoteToCanonical(
 }
 
 async function attest(
-  admin: ReturnType<typeof createClient>,
+  admin: SupabaseClient,
   reservation: ReservedDocument,
 ): Promise<boolean> {
   const { error } = await admin.rpc("attest_private_document_ingest", {
@@ -253,17 +272,17 @@ async function attest(
 }
 
 async function cleanupStaging(
-  admin: ReturnType<typeof createClient>,
+  admin: SupabaseClient,
   path: string,
 ): Promise<boolean> {
   const result = await admin.storage.from(STAGING_BUCKET).remove([path]);
   return result.error === null;
 }
 
-async function handlePromotion(
+function requestAuthority(
   request: Request,
   env: PagesEnvironment,
-): Promise<Response> {
+): RequestAuthority | Response {
   if (!requestOriginAllowed(request)) return unavailable(403);
   if (request.method !== "POST") return unavailable(405);
   if (requestHasBodyFrame(request)) return unavailable(413);
@@ -274,7 +293,14 @@ async function handlePromotion(
   if (token === null) return unavailable(401);
   const provider = providerEnvironment(env);
   if (provider === null) return unavailable(503);
+  return { targets, token, provider };
+}
 
+async function promotionContext(
+  authority: RequestAuthority,
+  env: PagesEnvironment,
+): Promise<PromotionContext | Response> {
+  const { targets, token, provider } = authority;
   const userClient = createClient(provider.url, provider.publishableKey, {
     auth: { persistSession: false, autoRefreshToken: false },
     global: { headers: { Authorization: `Bearer ${token}` } },
@@ -297,29 +323,38 @@ async function handlePromotion(
   const admin = createClient(provider.url, secret, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
-  const path = exactStoragePath(targets.projectId, targets.documentId);
-  if (
-    !(await storageObjectMatchesReservation(
-      admin,
-      STAGING_BUCKET,
-      path,
-      reservation,
-    ))
-  ) {
+  return {
+    userClient,
+    admin,
+    reservation,
+    path: exactStoragePath(targets.projectId, targets.documentId),
+    projectId: targets.projectId,
+  };
+}
+
+async function executePromotion(context: PromotionContext): Promise<Response> {
+  const { userClient, admin, reservation, path, projectId } = context;
+  if (!(await storageObjectMatchesReservation(admin, STAGING_BUCKET, path, reservation))) {
     return unavailable(422);
   }
-  if (!(await hasWritePermission(userClient, targets.projectId))) {
-    return unavailable();
-  }
+  if (!(await hasWritePermission(userClient, projectId))) return unavailable();
 
   const promoted = await promoteToCanonical(admin, path, reservation);
   if (!promoted.ok) return unavailable(503);
-  if (!(await hasWritePermission(userClient, targets.projectId))) {
-    return unavailable();
-  }
+  if (!(await hasWritePermission(userClient, projectId))) return unavailable();
   if (!(await attest(admin, reservation))) return unavailable(503);
   if (!(await cleanupStaging(admin, path))) return unavailable(503);
   return json(200, { ok: true, replayed: promoted.replayed });
+}
+
+async function handlePromotion(
+  request: Request,
+  env: PagesEnvironment,
+): Promise<Response> {
+  const authority = requestAuthority(request, env);
+  if (authority instanceof Response) return authority;
+  const context = await promotionContext(authority, env);
+  return context instanceof Response ? context : executePromotion(context);
 }
 
 export async function onRequest(context: PagesContext): Promise<Response> {
