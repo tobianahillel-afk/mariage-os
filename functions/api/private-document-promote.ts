@@ -12,8 +12,7 @@ interface PagesEnvironment {
   readonly SUPABASE_URL?: string;
   readonly SUPABASE_PUBLISHABLE_KEY?: string;
   readonly SUPABASE_ANON_KEY?: string;
-  readonly SUPABASE_SECRET_KEY?: string;
-  readonly SUPABASE_SERVICE_ROLE_KEY?: string;
+  readonly PRIVATE_DOCUMENT_ADMIN_KEY?: string;
 }
 
 interface PagesContext {
@@ -53,7 +52,7 @@ function providerEnvironment(env: PagesEnvironment): ProviderEnvironment | null 
 }
 
 function serviceKey(env: PagesEnvironment): string | null {
-  return nonEmpty(env.SUPABASE_SECRET_KEY, env.SUPABASE_SERVICE_ROLE_KEY);
+  return nonEmpty(env.PRIVATE_DOCUMENT_ADMIN_KEY);
 }
 
 function json(status: number, body: Readonly<Record<string, unknown>>): Response {
@@ -299,14 +298,25 @@ async function handlePromotion(
     auth: { persistSession: false, autoRefreshToken: false },
   });
   const path = exactStoragePath(targets.projectId, targets.documentId);
-  if (!(await storageObjectMatchesReservation(admin, STAGING_BUCKET, path, reservation))) {
+  if (
+    !(await storageObjectMatchesReservation(
+      admin,
+      STAGING_BUCKET,
+      path,
+      reservation,
+    ))
+  ) {
     return unavailable(422);
   }
-  if (!(await hasWritePermission(userClient, targets.projectId))) return unavailable();
+  if (!(await hasWritePermission(userClient, targets.projectId))) {
+    return unavailable();
+  }
 
   const promoted = await promoteToCanonical(admin, path, reservation);
   if (!promoted.ok) return unavailable(503);
-  if (!(await hasWritePermission(userClient, targets.projectId))) return unavailable();
+  if (!(await hasWritePermission(userClient, targets.projectId))) {
+    return unavailable();
+  }
   if (!(await attest(admin, reservation))) return unavailable(503);
   if (!(await cleanupStaging(admin, path))) return unavailable(503);
   return json(200, { ok: true, replayed: promoted.replayed });
