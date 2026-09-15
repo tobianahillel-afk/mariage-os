@@ -43,7 +43,7 @@ async function assertReservationAbsent(context, documentId) {
   );
 }
 
-export async function runInterruptedStagingAbandonRed(context) {
+async function prepareInterruptedStaging(context) {
   const documentId = randomUUID();
   const bytes = pdfBytes(704);
   await reserve({
@@ -65,18 +65,16 @@ export async function runInterruptedStagingAbandonRed(context) {
     ).error,
     "Interrupted staging abandon precondition",
   );
+  return documentId;
+}
 
-  const first = await invokeTrustedAbandon({
-    token: context.writer.token,
-    projectId: context.projectId,
-    documentId,
-  });
+async function assertTrustedAbandonResult(context, documentId, result) {
   assert.equal(
-    first.response.status,
+    result.response.status,
     200,
     "Trusted abandon must clean an interrupted staged upload.",
   );
-  assert.deepEqual(first.data, { ok: true, absent: true });
+  assert.deepEqual(result.data, { ok: true, absent: true });
   await assertNoStagedObject({
     admin: context.admin,
     projectId: context.projectId,
@@ -88,29 +86,29 @@ export async function runInterruptedStagingAbandonRed(context) {
     documentId,
   });
   await assertReservationAbsent(context, documentId);
+}
 
-  const retry = await invokeTrustedAbandon({
+export async function runInterruptedStagingAbandonRed(context) {
+  const documentId = await prepareInterruptedStaging(context);
+  const request = {
     token: context.writer.token,
     projectId: context.projectId,
     documentId,
-  });
+  };
+
+  await assertTrustedAbandonResult(
+    context,
+    documentId,
+    await invokeTrustedAbandon(request),
+  );
+
+  const retry = await invokeTrustedAbandon(request);
   assert.equal(
     retry.response.status,
     200,
     "Trusted abandon retry must be idempotent.",
   );
-  assert.deepEqual(retry.data, { ok: true, absent: true });
-  await assertNoStagedObject({
-    admin: context.admin,
-    projectId: context.projectId,
-    documentId,
-  });
-  await assertNoTrustedObject({
-    admin: context.admin,
-    projectId: context.projectId,
-    documentId,
-  });
-  await assertReservationAbsent(context, documentId);
+  await assertTrustedAbandonResult(context, documentId, retry);
 
   console.log("PASS interrupted staging trusted abandon and idempotent retry");
 }
