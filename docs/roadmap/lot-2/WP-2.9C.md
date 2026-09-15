@@ -5,50 +5,59 @@
 - Work Packet ID: `WP-2.9C`
 - Lot: `2`
 - Name: Trusted private-document ingestion hardening
-- State: `IN_PROGRESS`
-- Current pass: `A-IMPLEMENT — RED FIRST`
+- State: `BLOCKED`
+- Current/next pass: `ARCHITECTURE-DECISION`
 - Primary bounded context: Documents — authoritative binary ingress for the existing WP-2.9A private PDF lifecycle
 - Branch/PR: `lot-2/venues-core` / Lot-2 integration PR not opened yet
 - FIR: `#17 / FTR-089`
 - Parent review failure: `WP-2.9A / WP29A-AR-004 + WP29A-AR-005`
-- Architecture decision: `ADR 0008 — Trusted server-side private-document binary ingestion`
+- Current accepted transport architecture: `ADR 0009 — Bounded private-document staging`
+- Proposed blocker-resolution architecture review: `ADR 0010 — Private-document promotion ingress termination boundary`
+- Durable blocker record: `docs/roadmap/lot-2/WP-2.9C-BLOCKER.md`
 - Size: **10 points**; explicit cohesion review **PASS**
 
-## Activation evidence
+## Current packet verdict
 
-- WP-2.9A durable AR-004/005 failure record: `a58417f79e59e2bd2d2fcb4d202f568c15cfa947` / CI `34854785427` — **5/5 SUCCESS**, clean-checkout included.
-- ADR 0008 + WP-2.9C split/READY governance: `d1e561c787798eb99f49024cc0c1db49880bcd82` / CI `34862521697` — **5/5 SUCCESS**, clean-checkout included.
-- Pass-A implementation evidence: `d90a643d929c35ef84444c19b7ec02ad9cd9e5a8` / CI `34896641824` — **5/5 SUCCESS**, clean-checkout included; DB `79` files / `1376` tests PASS; real Edge-runtime adversarial harness PASS including exact `25,000,000`-byte feasibility.
-- Initial REVIEW_PENDING transition: `95e5a1c2c1bccc292787b745c3ca112a3f22a39b` / CI `34898586925` — **5/5 SUCCESS**, clean-checkout included.
-- Initial fresh Pass B found `WP29C-AR-001` below. C therefore returned to implementation/remediation and could not advance to Pass C.
-- `WP29C-AR-001` remediation implementation evidence: `264a504e4bc8208d9ff762ef71e90bea6d18216e` / CI `34905438530` — **5/5 SUCCESS**, clean-checkout included; Core `162` files / `1564` tests / `100%` statements, branches, functions and lines; DB `79` files / `1376` tests PASS; real Edge Runtime PASS includes malformed-JWT denial, direct-runtime chunked oversize rejection without trusting `Content-Length`, and exact `25,000,000`-byte feasibility.
-- Fresh-review transition: `e4efa0b74ffd5708d9888ff23e13174ec2032c68` / CI `34909259741` — **5/5 SUCCESS**, clean-checkout included.
-- Fresh Pass B durable failure record: `54ccc8865ea67a4835a7627b14739c3eaac53f5a` / CI `34910156654` — **5/5 SUCCESS**, clean-checkout included; unresolved `WP29C-AR-001..004` block Pass C.
-- Current transition: `REVIEW_FAILED → IN_PROGRESS / A-IMPLEMENT — RED FIRST`. Exact-head CI for this transition must be green before focused remediation RED tests are committed.
+WP-2.9C is **not acceptable yet**.
+
+ADR 0009 remediation is implemented and real-runtime evidence closes the previously open recovery, stored-MIME and CORS defects at the implementation level. One MAJOR security finding remains:
+
+- `WP29C-AR-001` — **MAJOR / OPEN / ARCHITECTURE BLOCKER**: both the direct local Supabase Edge Runtime and the public local Supabase gateway wait for an intentionally open-ended framed request to reach sender EOF before application code can terminate it.
+
+The promotion handler itself does not consume request bytes and rejects body-framing headers before any application body read. The remaining defect exists earlier in the request pipeline: the request is not dispatched early enough for that rejection to terminate an open sender.
+
+Under `AI-LOT-ORCHESTRATION.md`, this is an external/design/security dependency and therefore requires:
+
+```text
+ANY NON-TERMINAL STATE
+→ BLOCKED
+```
+
+No test may be weakened to make the packet green. No new proxy, Worker, queue/event trigger or other backend boundary may be introduced without an explicitly accepted architecture decision.
 
 ## Why this packet exists
 
-Fresh adversarial review of WP-2.9A closed AR-003 but found two MAJOR defects:
+Fresh adversarial review of WP-2.9A found two MAJOR defects:
 
-- `WP29A-AR-004`: TypeScript document text/filename validation misses Unicode C1 controls U+0080..U+009F that PostgreSQL 17 rejects through `[[:cntrl:]]`.
-- `WP29A-AR-005`: the existing direct authenticated Storage path can commit `ready` metadata without proving that the actual stored bytes match the reserved SHA-256/size/MIME.
+- `WP29A-AR-004`: TypeScript document text/filename validation missed Unicode C1 controls U+0080..U+009F that PostgreSQL 17 rejects through `[[:cntrl:]]`.
+- `WP29A-AR-005`: the direct authenticated Storage path could commit `ready` metadata without proving that the actual stored bytes matched reserved SHA-256/size/MIME.
 
-AR-005 requires a new privileged server/provider boundary. WP-2.9A was already a 10-point packet, so `AI-LOT-ORCHESTRATION.md` requires a split rather than silently expanding it above the normal maximum. WP-2.9C is a remediation implementation-control unit; it introduces no new product capability.
+WP-2.9A was already a 10-point packet, so repository sizing rules required a separate remediation/control packet rather than silent scope expansion. WP-2.9C introduces no new product capability, Feature ID or permission.
 
-WP-2.9A is blocked until C is accepted. After C acceptance, A returns to `IN_PROGRESS` for integration/reverification, then fresh Pass B. WP-2.9B remains inactive until A itself is accepted.
+WP-2.9A remains blocked until C is accepted. After C acceptance, A returns to `IN_PROGRESS` for integration/reverification and a fresh Pass B. WP-2.9B remains inactive until A itself is accepted.
 
 ## Complexity / cohesion review
 
 | Change type | Points |
 |---|---:|
-| new authenticated server endpoint | 2 |
+| authenticated trusted promotion boundary | 2 |
 | changed Storage/privileged authorization boundary | 2 |
 | Supabase Edge Function/provider runtime integration | 3 |
 | forward-only migration/policy hardening family | 1 |
 | security-sensitive exact-byte SHA-256 integrity boundary | 2 |
 | **Total** | **10** |
 
-Cohesion: **PASS**. Endpoint, Storage lock-down, exact-byte digest verification and recovery behavior form one atomic trust boundary. Splitting them further would create an intermediate state where either clients retain an integrity bypass or the application cannot upload Documents.
+Cohesion: **PASS**. Staging, Storage lock-down, trusted promotion, exact-byte verification, recovery and finalization evidence form one atomic trust boundary. Splitting them into independently shippable states would recreate either an integrity bypass or an unusable Document flow.
 
 ## Assigned responsibility
 
@@ -57,239 +66,253 @@ C owns only the remediation necessary to make the already-frozen FTR-089 Lot-2 D
 1. close `WP29A-AR-004` with exact Unicode-control parity;
 2. close `WP29A-AR-005` with trusted actual-byte ingestion/verification;
 3. preserve all already-accepted WP-2.9A behavior and WP-2.8 Media behavior;
-4. add the minimum runtime/CI/deployment evidence required by the new server boundary.
+4. add the minimum runtime/CI/deployment evidence required by the trusted boundary.
 
-No feature/requirement is newly added. Current responsibility remains under `FTR-089`, `MED-002`, `MED-003`, `MED-010`, the inherited interrupted-upload validity invariant, and packet-applicable `SEC-VAL-*`, `SEC-FILE-*`, `SEC-AUTHZ-*` controls.
+No product requirement is newly added. Current responsibility remains under `FTR-089`, `MED-002`, `MED-003`, `MED-010`, the interrupted-upload validity invariant, and packet-applicable `SEC-VAL-*`, `SEC-FILE-*`, `SEC-AUTHZ-*`, `SEC-ABUSE-*` and `SEC-NET-*` controls.
 
-## Frozen remediation architecture
+## Architecture history
 
-### Browser/application
+### ADR 0008 — original trusted-ingest boundary
 
-The browser may continue early PDF validation/hash calculation for immediate UX and reservation semantics, but it is untrusted for authoritative byte integrity.
+ADR 0008 introduced the server-trust requirement:
 
-The application flow remains conceptually:
+- current user/JWT must be authenticated;
+- live project/document authorization must be resolved server-side;
+- canonical path must derive from authoritative Document state;
+- actual PDF bytes must be independently validated and SHA-256 verified;
+- authenticated clients must not directly create canonical Document objects;
+- existing canonical-object recovery must be fail-closed;
+- service credentials must remain server-only;
+- finalization must independently reauthorize.
+
+Fresh review later proved that raw PDF request-body transport could not provide the required bounded ingress/resource contract in the Supabase Edge runtime.
+
+### ADR 0009 — current accepted transport architecture
+
+ADR 0009 supersedes only the raw PDF Edge request-body transport from ADR 0008. The current flow is:
 
 ```text
-validate locally
-→ reserve pending metadata
-→ trusted server binary ingest
-→ inspect/recover as needed
-→ finalize pending → ready
+browser local validation/hash
+→ reserve pending document metadata
+→ authenticated INSERT into bounded private staging bucket
+→ bodyless authenticated promotion request
+→ live auth + authoritative reservation/staging inspection
+→ bounded server reread + PDF signature + exact size/SHA proof
+→ privileged no-overwrite copy to canonical project-private
+→ service-only ingest attestation
+→ independent DB finalize pending → ready
+→ server staging cleanup
 ```
 
-The application no longer uploads `/documents/.../original` directly through an authenticated client Storage INSERT.
+### Staging bucket contract
 
-### Authenticated server ingest
+The staging bucket is exactly `document-ingest-staging` and must remain:
 
-One narrow Supabase Edge Function receives the pending document identity and PDF bytes.
+- `public=false`;
+- exact `file_size_limit=25000000`;
+- MIME allowlist only `application/pdf`;
+- no anonymous policy;
+- no ordinary authenticated SELECT/UPDATE/DELETE;
+- exactly one narrow authenticated INSERT path for a live pending private Document reservation;
+- exact path `<project_id>/documents/<document_id>/original`;
+- `upsert:false`.
 
-Required behavior:
+The browser never receives service credentials and never receives ordinary canonical Document INSERT authority.
 
-- JWT verification enabled; no anonymous mode;
-- resolve current user from the request, never from a caller-supplied user ID;
-- obtain the pending Document row through live authorization;
-- derive the exact canonical Storage path from authoritative row state;
-- require pending, active, ordinary-private Document state;
-- reject foreign/missing/revoked/unauthorized identity generically;
-- validate actual received bytes as PDF: expected MIME intent, `%PDF-`, size `1..25,000,000`;
-- compute SHA-256 from the actual received bytes with Web Crypto;
-- require exact equality with reserved `size_bytes` and lowercase `sha256`;
-- upload only those bytes with a server-only Supabase secret and `upsert:false`;
-- never accept caller-provided path/storage identity as authority;
-- never expose/log the server secret or private bytes;
-- make retry behavior safe if the exact pending object already exists.
+### Bodyless promotion contract
 
-### Storage authorization
+The trusted promotion boundary must:
 
-Authenticated clients lose direct INSERT permission for the Document namespace only.
+- require valid JWT/current user;
+- accept only project/document target identifiers;
+- never accept caller-provided storage path or user identity as authority;
+- perform live `documents.write` authorization before trusted reservation use and immediately before the first privileged canonical mutation;
+- derive staging/canonical paths from authoritative Document state;
+- require pending, active, ordinary-private, non-remote, non-deleted state;
+- inspect authoritative staging metadata before materialization;
+- require stored MIME exactly `application/pdf`;
+- require exact reserved size and size `1..25,000,000`;
+- bounded-read the staged object;
+- validate `%PDF-`;
+- compute actual staged-byte SHA-256 and require exact reserved digest/size equality;
+- copy only trusted bytes/provider object to canonical storage without overwrite;
+- recover an existing canonical object only after equally strong authoritative metadata + bounded byte proof;
+- attest only after trusted canonical proof;
+- clean staging server-side after trusted success and safely after invalid staging where appropriate;
+- preserve independent finalization authorization;
+- emit explicit/minimal CORS;
+- log no secrets, private bytes, private filename or unnecessary digest data.
 
-- accepted Media INSERT/SELECT/DELETE behavior remains unchanged;
-- Document pending SELECT/recovery may remain writer-authorized;
-- exact pending Document DELETE cleanup may remain writer-authorized;
-- no UPDATE policy is added;
-- ready objects remain immutable and non-deletable through ordinary authenticated client policy.
+### AR-004 TypeScript/PostgreSQL parity
 
-### Finalization
-
-The existing protected DB `finalize_upload` transition remains responsible for:
-
-- locking/validating the target Document;
-- live `documents.write` re-authorization;
-- exact canonical path/state invariants;
-- verifying object presence before `pending → ready`;
-- audit/revision/replay behavior.
-
-Because only the trusted server ingest can create a Document object after C, object presence at that path becomes evidence that the binary passed the trusted byte validation boundary. C must prove there is no remaining ordinary authenticated INSERT path that recreates AR-005.
-
-### Existing-object recovery
-
-A retry must never treat mere pre-existence as trustworthy without proof.
-
-If the pending object is already present, the server boundary must either:
-
-- re-read and revalidate/re-hash the actual object and confirm it matches the reservation, or
-- use an equivalently strong server-owned proof created only by this boundary.
-
-Caller-controlled object/user metadata is not sufficient proof. Mismatch fails closed and must not transition the document to ready.
-
-## AR-004 exact remediation
-
-The canonical TypeScript scalar-control predicate must reject:
+The canonical scalar-control predicate must reject:
 
 ```text
 U+0000..U+001F
 U+007F..U+009F
 ```
 
-It remains scalar-aware, rejects malformed surrogate input, preserves ECMAScript trim semantics and remains the single predicate reused by bounded `document_type`/`title` and private filename validation.
-
-Focused RED must include at least representative U+0080, U+0085 and U+009F cases at meaningful service/provider boundaries before the fix is applied.
+This remediation is implemented and remains green in unit/provider evidence. Parent `WP29A-AR-004` remains formally open until C is accepted and A is reverified.
 
 ## Security requirements
 
-At minimum directly evidence applicable forms of:
+At minimum the packet must evidence applicable forms of:
 
-- `SEC-AUTHZ-001..009`, especially direct endpoint/Storage bypass resistance;
+- `SEC-AUTHZ-001..009`, especially endpoint/Storage bypass resistance;
 - `SEC-VAL-001`, `SEC-VAL-002`, `SEC-VAL-003`, `SEC-VAL-008`;
 - `SEC-FILE-001`, `SEC-FILE-002`, `SEC-FILE-003`, `SEC-FILE-004`, `SEC-FILE-008`, `SEC-FILE-009`;
 - `AUTHZ-001`, `AUTHZ-002`, `AUTHZ-005`, `AUTHZ-007`, `AUTHZ-008`, `AUTHZ-018`, `AUTHZ-020`;
-- `SEC-ABUSE-001` for bounded expensive-upload resource consumption;
-- `SEC-NET-008` for explicit/minimal CORS at the app-controlled Edge endpoint;
-- secret handling / public-artifact safety for the new server runtime.
+- `SEC-ABUSE-001` for bounded expensive-upload/request resource consumption;
+- `SEC-NET-008` for explicit/minimal CORS;
+- secret handling/public-artifact safety for the trusted runtime.
 
-The service/secret key exists only in the Edge Function runtime environment. It is never bundled in the Vite app, committed in Git, returned to the client or logged.
+The service/secret key exists only in the trusted runtime environment. It is never bundled in the Vite app, committed in Git, returned to the client or logged.
 
-## Required RED-first evidence
+## Review history
 
-Before remediation implementation, add focused tests that fail for the exact defects:
+### Parent WP-2.9A findings assigned to C
 
-1. C1 control-character input is currently accepted by the shared TypeScript predicate/provider boundary when PostgreSQL rejects it.
-2. An authenticated writer can currently create a Document Storage object directly at a valid pending path and finalize metadata whose reserved SHA-256 does not describe those actual bytes.
+- `WP29A-AR-004` — **MAJOR / OPEN in parent** — C1 control-character parity. Remediation implemented in C; parent closure waits for C acceptance + A reverification.
+- `WP29A-AR-005` — **MAJOR / OPEN in parent** — committed ready truth not bound to actual stored-byte integrity. Trusted-byte remediation implemented in C; parent closure waits for C acceptance + A reverification.
 
-The RED must not weaken/delete the existing WP-2.9A RED contract or unrelated accepted tests.
+### Initial C review
 
-## Pass B — ADVERSARIAL REVIEW
+The original Edge implementation used full request buffering. Fresh Pass B found `WP29C-AR-001` MAJOR and C returned to remediation.
 
-### First fresh review — `WP29C-AR-001`
+### Fresh post-remediation Pass B
 
-`WP29C-AR-001` — **MAJOR**: the initial Edge implementation used `await request.arrayBuffer()`, so absent/unusable `Content-Length` could cause the full untrusted body to be buffered before authoritative `25,000,000`-byte rejection. The required remediation explicitly froze a bounded streaming reader that stops/cancels once the cumulative body exceeds the limit, while preserving exact 25 MB acceptance and exact-byte validation.
+Reviewed transition head `e4efa0b74ffd5708d9888ff23e13174ec2032c68`, CI `34909259741` — **5/5 SUCCESS**, clean-checkout included.
 
-### Fresh post-remediation review — REVIEW_FAILED
+It found:
 
-Reviewed exact transition head: `e4efa0b74ffd5708d9888ff23e13174ec2032c68`, CI `34909259741` — **5/5 SUCCESS**, clean-checkout included.
+- `WP29C-AR-001` — MAJOR — request ingress/read work remained sender-EOF dependent;
+- `WP29C-AR-002` — MAJOR — canonical recovery fully buffered before size rejection;
+- `WP29C-AR-003` — MAJOR — canonical recovery accepted missing/empty provider MIME;
+- `WP29C-AR-004` — MINOR — wildcard CORS did not satisfy explicit/minimal policy.
 
-The review was reconstructed from ADR 0008, this packet, `SECURITY-REQUIREMENTS.md`, `FILE-SECURITY.md`, `STORAGE-RLS.md`, `AUTHORIZATION-REQUIREMENTS.md`, the current Edge/migration/client implementation, the real-runtime harness and the exact pinned Supabase SDK behavior. Green CI was treated as evidence, not as a substitute for adversarial contract review.
+Durable review failure: `54ccc8865ea67a4835a7627b14739c3eaac53f5a` / CI `34910156654` — **5/5 SUCCESS**, clean-checkout included.
 
-Open findings:
+## Current finding disposition
 
-### `WP29C-AR-001` — MAJOR / OPEN — oversize ingress still depends on consuming the sender to EOF
+### `WP29C-AR-001` — MAJOR / OPEN / ARCHITECTURE BLOCKER
 
-The remediation bounds **retained application memory**, but it does not implement the frozen stop/cancel behavior. Once `totalBytes > MAX_BYTES`, `readBoundedRequestBody` sets `exceededLimit = true`, clears retained chunks, and then continues `reader.read()` until `done`, discarding every remaining chunk.
+Current ADR-0009 promotion is logically bodyless. The handler rejects `transfer-encoding` and non-zero/invalid `content-length` before any application body read and does not consume untrusted request bytes.
 
-Consequences:
+Real runtime evidence nevertheless proves that both tested Supabase request paths wait for an intentionally open-ended framed sender to reach EOF before the handler can terminate it:
 
-- a client that sends `25,000,001` bytes and closes is rejected, which the current direct-runtime test proves;
-- a malicious or malfunctioning client can continue streaming arbitrarily beyond the accepted body limit and keep the worker/runtime consuming ingress until EOF or an outer timeout;
-- input bytes, read duration and network/runtime work are therefore not bounded by the 25 MB product limit;
-- the current test ends immediately after the first excess byte and therefore does not prove rejection is independent of sender EOF;
-- this remains inconsistent with the frozen AR-001 remediation, `SEC-FILE-004` and `SEC-ABUSE-001`.
+- direct runtime evidence: CI `34973827681`;
+- public local Supabase gateway evidence: CI `34974264827`;
+- quality-preserving exact implementation head `a8ee1db32bfa41b40d4fcd5dd841146f97676881` / CI `34975265838`;
+- durable blocked-state documentation head `52572b24bba83a2aadb22c80f2764c92875219f1` / CI `34975858942` reproduces the same single Edge failure.
 
-The Supabase main runtime request tee explains why an early user-worker cancellation caused the local public route to stall/504 during remediation experiments, but that runtime constraint does not make an unbounded drain satisfy the frozen security contract. Remediation must enforce a hard ingress boundary at a layer that can actually terminate/reject the request without consuming arbitrary post-limit bytes, or the ADR/runtime architecture must be revisited explicitly. A RED must keep the sender open/continue past the limit and prove the trusted boundary does not depend on EOF to bound work.
-
-### `WP29C-AR-002` — MAJOR / OPEN — existing-object recovery fully buffers an untrusted object before size validation
-
-The idempotent retry path treats a pre-existing canonical object as untrusted until revalidated, but `readExistingBytes` currently calls:
+The exact failure remains:
 
 ```text
-admin.storage.from(BUCKET).download(path)
-→ BlobDownloadBuilder
-→ await Response.blob()
-→ await data.arrayBuffer()
+WP29C-AR-001: Public promotion endpoint waited for sender EOF on a framed body.
 ```
 
-The packet pins `@supabase/supabase-js@2.112.4`; that exact SDK's `BlobDownloadBuilder` materializes the entire response with `await result.blob()` before returning it. `bytesMatchReservation` checks size only **after** that materialization. A stale/poisoned/privileged object larger than the 25 MB contract can therefore force the trusted worker to buffer the entire object on replay before it fails closed.
+The current Supabase Edge documentation checked on 2026-09-15 publishes runtime limits including a 150-second request idle timeout, but no maximum inbound request-body size usable as the required EOF-independent ingress boundary. The timeout is finite but does not satisfy `SEC-FILE-004` / `SEC-ABUSE-001` because work can still depend on an attacker keeping the sender open until the provider timeout.
 
-This bypasses the same file/resource boundary through recovery and violates `SEC-FILE-004` / `SEC-ABUSE-001`. The pinned SDK already exposes `download(...).asStream()`, and `info(path)` exposes object size/content type; remediation must use an equivalently bounded recovery path rather than Blob-first download. RED evidence must exercise an oversized existing object at the canonical path and prove no full-object materialization, no attestation and no ready transition.
+Resolution requires an explicitly accepted ingress termination architecture. ADR 0010 is `Proposed` and intentionally chooses no option yet.
 
-### `WP29C-AR-003` — MAJOR / OPEN — existing-object MIME proof is fail-open when content type is absent
+### `WP29C-AR-002` — remediation implemented / runtime-green
 
-Recovery currently accepts MIME with:
+Canonical recovery now uses authoritative metadata and bounded streaming rather than Blob-first full materialization. Source and live adversarial contracts pass. Formal closure waits for unblock + complete fresh Pass B.
 
-```ts
-if (data.type && data.type !== "application/pdf") return null;
-```
+### `WP29C-AR-003` — remediation implemented / runtime-green
 
-That rejects a wrong **non-empty** Blob type but accepts an empty/absent type. ADR 0008 and parent AR-005 require the existing object to receive equally strong trusted proof of reserved size/hash/**MIME**, not merely PDF signature plus hash/size when provider MIME evidence is absent.
+Recovery now fails closed unless authoritative stored MIME is exactly `application/pdf`, while still proving signature, size and hash. Source and live adversarial contracts pass. Formal closure waits for unblock + complete fresh Pass B.
 
-Recovery must fail closed unless authoritative Storage metadata proves `application/pdf`, while still independently validating `%PDF-`, exact size and exact SHA-256. RED evidence must cover missing/empty and wrong stored content type and prove neither can create a trusted attestation/ready truth.
+### `WP29C-AR-004` — remediation implemented / runtime-green
 
-### `WP29C-AR-004` — MINOR / OPEN — Edge CORS is wildcard rather than explicit/minimal
+CORS is explicit/minimal and positive/negative runtime evidence passes. Formal closure waits for unblock + complete fresh Pass B.
 
-The app-controlled Edge endpoint currently emits `Access-Control-Allow-Origin: *` for ordinary and preflight responses. Authorization remains JWT/permission based, so this is not treated as an authorization bypass, but it does not satisfy `SEC-NET-008`'s explicit/minimal CORS requirement.
+## Exact implementation evidence
 
-Remediation must define the allowed app-origin policy/configuration, emit CORS only for allowed origins, preserve local/preview needs explicitly, and add positive/negative preflight evidence. CORS must remain independent from authorization decisions.
+Quality-preserving implementation/refactor head before blocked-state documentation:
 
-Reviewed and currently clean/non-blocking:
+`a8ee1db32bfa41b40d4fcd5dd841146f97676881`
 
-- malformed/missing JWT denial is runtime-tested; current user identity comes from verified auth rather than caller-supplied user ID;
-- project/document IDs are only request targets; canonical Storage path derives from authoritative IDs/state and caller path substitution is absent;
-- live `documents.write` is checked before reservation access and again immediately before the first privileged Storage mutation;
-- foreign/outsider/viewer/revoked/downgraded access fails generically in the live harness;
-- ordinary authenticated Document Storage INSERT is removed while accepted Media behavior remains covered;
-- actual new-upload bytes are bounded in retained memory, signature-checked, exact-size checked and SHA-256 checked before service-role upload with `upsert:false`;
-- attestation RPC/table authority is service-only and finalization independently reauthorizes current `documents.write`;
-- exact-object replay rejects mismatched bytes in current tests; the remaining findings concern resource/MIME completeness of that recovery proof;
-- the second authorization check immediately before the first privileged side effect satisfies the ADR's stated race-window rule; a later revocation cannot produce ready truth because finalization independently reauthorizes;
-- service/secret credentials are server-only and current code does not log secrets/private bytes/private filenames;
-- C1 control-character parity remediation and associated parent behavior remain implementation-green;
-- exact `25,000,000`-byte ingest/finalize feasibility remains proven by the real-runtime harness.
+CI `34975265838`:
 
-Because unresolved MAJOR findings remain, Pass B verdict is **REVIEW_FAILED**. Pass C is forbidden.
+- Core quality and security: **PASS**;
+- Browser and mutation harnesses: **PASS**;
+- Privacy-safe preview artifact: **PASS**;
+- DB/RLS: **PASS**, `80` files / `1382` tests;
+- staging RLS/canonical bypass denial: **PASS**;
+- malformed JWT denial: **PASS**;
+- bodyless promotion, retry/recovery and ready-state denial: **PASS**;
+- finalization reauthorization: **PASS**;
+- poisoned canonical recovery: **PASS / fail-closed**;
+- exact `25,000,000`-byte staging and promotion: **PASS**;
+- `WP29C-AR-002` source/live remediation contracts: **PASS**;
+- `WP29C-AR-003` source/live remediation contracts: **PASS**;
+- `WP29C-AR-004` CORS remediation contract: **PASS**;
+- `WP29C-AR-001`: **FAIL / expected blocker evidence**.
 
-## Verification plan
+Blocked-state documentation head:
+
+`52572b24bba83a2aadb22c80f2764c92875219f1`
+
+CI `34975858942`:
+
+- Core quality/security: **PASS**;
+- Browser/mutation: **PASS**;
+- Privacy-safe preview: **PASS**;
+- DB/RLS: **PASS**, `80` files / `1382` tests;
+- all ADR-0009 Edge checks pass except the same AR-001 EOF-dependent ingress test;
+- full clean-checkout verify is skipped because the intentional security RED keeps the Edge job failed.
+
+This is a known blocked-state RED, not a regression to be suppressed.
+
+## Verification contract after architecture unblock
+
+After an ingress termination architecture is accepted, C must return `BLOCKED → IN_PROGRESS` and prove all of the following before another review transition:
 
 ### Domain/application
 
 - U+0080/U+0085/U+009F rejected in bounded text/private filename paths;
-- existing Unicode scalar-limit, surrogate, trim, PDF and SHA boundaries remain green;
-- application uses a typed trusted-ingest port rather than direct Document Storage upload for new bytes;
-- recovery/delete semantics remain exact-path and fail closed.
+- scalar-limit, surrogate, trim, PDF and SHA boundaries remain green;
+- application stages via the typed trusted-ingest path, not direct canonical Document upload;
+- recovery/cleanup semantics remain exact-path and fail-closed.
 
-### Edge Function
+### Staging / Storage
 
+- exact `25,000,000` bytes staging succeeds;
+- `25,000,001` rejected by Storage before promotion;
+- wrong MIME rejected by Storage;
+- writer can insert only exact pending private path;
+- viewer/outsider/revoked/project substitution/non-pending denied;
+- staging SELECT/UPDATE/DELETE denied;
+- canonical client Document INSERT denied;
+- accepted Media behavior unchanged.
+
+### Promotion/runtime
+
+- promotion request is bodyless;
+- a framed/open-ended sender receives deterministic rejection without sender EOF at the accepted ingress termination layer;
+- direct-origin bypass of that layer is impossible or equivalently bounded;
 - missing/invalid JWT denied;
-- outsider/project-B/revoked/downgraded user denied;
-- caller cannot substitute path/project/document/user identity;
-- missing/non-pending/deleted/ready target rejected appropriately;
-- non-PDF MIME intent, bad signature, empty and oversize bytes rejected before privileged upload;
-- actual request-body work is bounded even when `Content-Length` is absent/unusable and the sender continues transmitting after the first excess byte;
-- actual size mismatch rejected;
-- actual SHA-256 mismatch rejected;
-- exact reserved bytes upload successfully with `upsert:false`;
-- retry on exact existing object is idempotent only after bounded trusted verification;
-- oversized existing object is rejected without full-object buffering/materialization;
-- existing object requires authoritative stored MIME `application/pdf` plus signature/size/hash equality;
-- mismatched existing object never becomes trusted/ready;
-- provider/runtime failures map to safe retryable/non-disclosing errors;
-- CORS allows only explicitly configured app origins and rejects/omits allowance for unknown origins;
-- secret/private bytes/private filename absent from logs and public build artifacts.
+- outsider/project-B/revoked/downgraded denied;
+- authoritative reservation/path derivation preserved;
+- exact staged-byte signature/size/SHA proof preserved;
+- bounded canonical recovery preserved;
+- authoritative stored MIME proof preserved;
+- poisoned staging/canonical fail closed;
+- role revocation before promotion/finalization fails closed;
+- project/document-bound cleanup preserved;
+- explicit/minimal CORS preserved;
+- no secrets/private bytes/private filename in logs/artifacts;
+- exact 25 MB successful end-to-end path remains feasible.
 
-### DB / Storage
+### CI / review
 
-- ordinary authenticated direct Document INSERT denied after policy hardening;
-- accepted Media Storage policy matrix remains green;
-- pending Document writer read/recovery semantics remain as frozen;
-- exact pending cleanup remains project-safe;
-- ready update/delete/overwrite remains denied;
-- function-created exact object can be finalized by an authorized current writer;
-- finalize after revocation/downgrade is denied and does not create ready truth.
-
-### CI / runtime
-
-- local Edge Runtime enabled only as needed for reviewed Functions;
-- CI runs a real local function integration/adversarial harness in addition to unit mocks;
-- clean-checkout full verification includes the new boundary;
-- 25 MB accepted PDF limit gets runtime/resource feasibility evidence before C acceptance; if the runtime cannot safely support the required hard ingress boundary, C becomes `BLOCKED` rather than silently weakening the frozen product/security contract.
+- exact-head CI after implementation;
+- complete real-runtime integration/adversarial harness;
+- then a **fresh independent Pass B over the complete packet**, not only patched lines;
+- any BLOCKING/MAJOR finding returns to remediation;
+- only clean Pass B may advance to Pass C;
+- only Pass C may mark WP-2.9C `ACCEPTED`.
 
 ## Explicit non-goals
 
@@ -300,26 +323,53 @@ Because unresolved MAJOR findings remain, Pass B verdict is **REVIEW_FAILED**. P
 - no signed-URL product flow;
 - no offline pending-file queue;
 - no automatic deduplication;
-- no change to the 25 MB PDF contract without a separate approved scope decision;
-- no real wedding data.
+- no change to the 25 MB PDF product contract without separate approved scope decision;
+- no real/private wedding data.
+
+## Activation / gate history
+
+- WP-2.9A durable AR-004/005 failure: `a58417f79e59e2bd2d2fcb4d202f568c15cfa947` / `34854785427` — **5/5 SUCCESS**.
+- ADR 0008 + C split/READY: `d1e561c787798eb99f49024cc0c1db49880bcd82` / `34862521697` — **5/5 SUCCESS**.
+- Initial Pass-A: `d90a643d929c35ef84444c19b7ec02ad9cd9e5a8` / `34896641824` — **5/5 SUCCESS**.
+- Initial REVIEW_PENDING: `95e5a1c2c1bccc292787b745c3ca112a3f22a39b` / `34898586925` — **5/5 SUCCESS**.
+- First AR-001 remediation: `264a504e4bc8208d9ff762ef71e90bea6d18216e` / `34905438530` — **5/5 SUCCESS**.
+- Fresh-review transition: `e4efa0b74ffd5708d9888ff23e13174ec2032c68` / `34909259741` — **5/5 SUCCESS**.
+- Durable Pass-B failure: `54ccc8865ea67a4835a7627b14739c3eaac53f5a` / `34910156654` — **5/5 SUCCESS**.
+- ADR-0009 bounded-staging implementation began at `3ed4bafe7fc1bcb2dc5d2ba506d472b288ac06cb`.
+- Bodyless runtime fix: `ee85d747510a36b559f6fcecbf433dfe4beeabde`.
+- Public-gateway adversarial test: `f45c322c6da7765f09a6a9607c898003af85ce00`.
+- Quality/harness exact implementation head: `a8ee1db32bfa41b40d4fcd5dd841146f97676881` / `34975265838`.
+- Proposed ADR 0010: `d6beb3c8fa9d68b8ee88e3472db0f3744dd1a7e9`.
+- Durable blocker record: `173baa83fd6592aefd45da4f933d72f17f09aceb`.
+- Implementation status blocked cursor: `52572b24bba83a2aadb22c80f2764c92875219f1` / `34975858942`.
 
 ## State / sequencing
 
-Current state: **IN_PROGRESS / A-IMPLEMENT — RED FIRST**.
+Current state: **BLOCKED**.
 
-Current gate:
+Current/next pass: **ARCHITECTURE-DECISION**.
 
-1. Pass-A implementation HEAD `d90a643d929c35ef84444c19b7ec02ad9cd9e5a8` / CI `34896641824` is **5/5 SUCCESS**, clean-checkout included;
-2. initial REVIEW_PENDING transition `95e5a1c2c1bccc292787b745c3ca112a3f22a39b` / CI `34898586925` is **5/5 SUCCESS**, clean-checkout included;
-3. initial fresh Pass B found `WP29C-AR-001` MAJOR;
-4. remediation implementation head `264a504e4bc8208d9ff762ef71e90bea6d18216e` / CI `34905438530` is **5/5 SUCCESS**, clean-checkout included; Core `162` files / `1564` tests / `100%` coverage, DB `79` files / `1376` tests PASS, and real Edge Runtime proves malformed-JWT denial, one-byte-oversize rejection and exact `25,000,000`-byte feasibility;
-5. fresh-review transition `e4efa0b74ffd5708d9888ff23e13174ec2032c68` / CI `34909259741` is **5/5 SUCCESS**, clean-checkout included;
-6. fresh Pass B durable failure record `54ccc8865ea67a4835a7627b14739c3eaac53f5a` / CI `34910156654` is **5/5 SUCCESS**, clean-checkout included; `WP29C-AR-001`, `WP29C-AR-002`, `WP29C-AR-003` remain MAJOR open and `WP29C-AR-004` MINOR open;
-7. this remediation transition must pass exact-head CI before focused RED tests are committed;
-8. once green, add focused **test-only RED-first evidence** proving: continued post-limit senders cannot force work to EOF; oversized existing objects are not fully materialized; missing/wrong stored MIME cannot be attested; unknown CORS origins are not allowed;
-9. production remediation is forbidden until those failures are isolated to the intended findings;
-10. if the Supabase Edge runtime cannot support a hard 25 MB ingress boundary without unbounded draining, C becomes `BLOCKED` and ADR 0008 must be revisited rather than weakening the contract;
-11. after remediation, require exact-head CI and then another fresh independent Pass B over the complete packet, not only patched lines;
-12. only a clean fresh Pass B may advance C to Pass C;
-13. only after **WP-2.9C ACCEPTED**, resolve WP-2.9A blocker and return A to `IN_PROGRESS` for integration/reverification;
-14. WP-2.9B remains `PLANNED / AFTER A` until A is accepted.
+Only permitted next action:
+
+1. review proposed ADR 0010 and choose/accept an ingress termination architecture that can act before arbitrary request-body drain;
+2. prove the accepted design closes direct-origin/bypass risk and preserves the zero-cost/operational constraints that remain applicable;
+3. only after the architecture is accepted, transition C `BLOCKED → IN_PROGRESS`;
+4. implement the accepted boundary without weakening AR-001 evidence;
+5. require exact-head CI and real-runtime proof;
+6. run a complete fresh Pass B;
+7. only after clean Pass B may Pass C begin;
+8. only after C is `ACCEPTED` may WP-2.9A resume;
+9. WP-2.9B remains `PLANNED / AFTER A` until A is accepted.
+
+Forbidden while blocked:
+
+- weakening/deleting the open-ended sender test;
+- treating the 150-second provider timeout as AR-001 closure;
+- adding a Cloudflare Worker/Pages Function, proxy, queue/event trigger or other backend silently;
+- resuming WP-2.9A;
+- activating WP-2.9B;
+- advancing C to Pass B or Pass C.
+
+## Deviations
+
+No security-contract deviation is authorized. ADR 0010 is `Proposed`, not accepted.
