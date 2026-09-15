@@ -69,7 +69,10 @@ interface UserAuthority {
   readonly targets: TrustedTargets;
 }
 
-function json(status: number, body: Readonly<Record<string, unknown>>): Response {
+function json(
+  status: number,
+  body: Readonly<Record<string, unknown>>,
+): Response {
   return Response.json(body, {
     status,
     headers: {
@@ -148,7 +151,8 @@ function validReservation(
   return [
     value.id === targets.documentId,
     value.project_id === targets.projectId,
-    value.storage_path === exactStoragePath(targets.projectId, targets.documentId),
+    value.storage_path ===
+      exactStoragePath(targets.projectId, targets.documentId),
     value.classification === "private",
     value.upload_status === "pending",
     value.deleted_at === null,
@@ -176,7 +180,10 @@ async function reservationFor(
 function providerValues(env: PrivateDocumentPagesEnvironment) {
   return {
     url: nonEmpty(env.SUPABASE_URL),
-    publishableKey: nonEmpty(env.SUPABASE_PUBLISHABLE_KEY, env.SUPABASE_ANON_KEY),
+    publishableKey: nonEmpty(
+      env.SUPABASE_PUBLISHABLE_KEY,
+      env.SUPABASE_ANON_KEY,
+    ),
   };
 }
 
@@ -195,10 +202,14 @@ async function userAuthority(
   if (provider.url === null || provider.publishableKey === null) {
     return unavailable(503);
   }
-  const client = createClient<AbandonDatabase>(provider.url, provider.publishableKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-    global: { headers: { Authorization: `Bearer ${token}` } },
-  });
+  const client = createClient<AbandonDatabase>(
+    provider.url,
+    provider.publishableKey,
+    {
+      auth: { persistSession: false, autoRefreshToken: false },
+      global: { headers: { Authorization: `Bearer ${token}` } },
+    },
+  );
   const { data, error } = await client.auth.getUser(token);
   if (error || data.user === null) return unavailable(401);
   if (!(await hasWritePermission(client, targets.projectId))) return unavailable();
@@ -218,7 +229,10 @@ function adminClient(
 
 function splitObjectPath(path: string): { folder: string; name: string } {
   const separator = path.lastIndexOf("/");
-  return { folder: path.slice(0, separator), name: path.slice(separator + 1) };
+  return {
+    folder: path.slice(0, separator),
+    name: path.slice(separator + 1),
+  };
 }
 
 async function objectAbsent(
@@ -282,7 +296,9 @@ async function finishLifecycle(authority: UserAuthority): Promise<Response> {
     "manage_private_document",
     abandonArgs(authority.targets),
   );
-  if (error || !validAbsentReceipt(data, authority.targets)) return unavailable(409);
+  if (error || !validAbsentReceipt(data, authority.targets)) {
+    return unavailable(409);
+  }
   return json(200, { ok: true, absent: true });
 }
 
