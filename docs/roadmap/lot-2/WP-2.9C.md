@@ -4,166 +4,159 @@
 
 - Work Packet ID: `WP-2.9C`
 - Lot: `2`
-- Name: Trusted private-document ingestion hardening
-- State: `REVIEW_PENDING`
-- Current pass: `B-ADVERSARIAL-REVIEW`
+- State: `REVIEW_FAILED`
+- Current pass: `B-ADVERSARIAL-REVIEW — FAILED; remediation next`
 - Primary bounded context: Documents — trusted binary promotion for the existing WP-2.9A private PDF lifecycle
-- Branch/PR: `lot-2/venues-core` / Lot-2 integration PR not opened yet
+- Branch: `lot-2/venues-core`
 - FIR: `#17 / FTR-089`
-- Parent review failure: `WP-2.9A / WP29A-AR-004 + WP29A-AR-005`
-- Architecture chain: ADR 0008 trust/integrity intent → ADR 0009 bounded staging/bodyless promotion → ADR 0010 accepted Cloudflare Pages Function promotion boundary
-- Historical architecture blocker record: `docs/roadmap/lot-2/WP-2.9C-BLOCKER.md` — **RESOLVED by ADR 0010**
+- Parent review findings: `WP29A-AR-004 + WP29A-AR-005`
+- Architecture chain: ADR 0008 trust/integrity → ADR 0009 bounded staging/bodyless promotion → ADR 0010 Cloudflare Pages Function promotion boundary
+- Historical architecture blocker: `docs/roadmap/lot-2/WP-2.9C-BLOCKER.md` — resolved by ADR 0010
+- Fresh Pass-B review: `docs/roadmap/lot-2/WP-2.9C-PASS-B-REVIEW.md`
 - Size: **10 points**; cohesion review **PASS**
 
-## Current packet verdict
+## Current verdict
 
-WP-2.9C Pass A is complete and the packet is now **REVIEW_PENDING**. It is not accepted.
+Pass A completed successfully, but the required fresh Pass B found three unresolved MAJOR findings. WP-2.9C is therefore **REVIEW_FAILED** and is not accepted.
 
-ADR-0010 migration/remediation is implementation-green on exact head `297ecdf3337e8522d6f200a90f96b481a9e6bdb1` / CI `34996240637` — **5/5 SUCCESS**, including clean-checkout `npm run verify`.
+Pass-A implementation evidence:
 
-Current finding posture before fresh Pass B:
+- head `297ecdf3337e8522d6f200a90f96b481a9e6bdb1`;
+- CI `34996240637` — **5/5 SUCCESS**, clean-checkout included.
 
-- `WP29C-AR-001` — remediation implemented/runtime-green: the old Supabase promotion function is removed from deployable code/config, application promotion targets same-origin `/api/private-document-promote`, and the real Wrangler/workerd adversarial harness proves framed/open-ended promotion requests are rejected without waiting for sender EOF. Formal closure waits for complete fresh Pass B.
-- `WP29C-AR-002` — remediation implemented/runtime-green: bounded canonical recovery; formal closure waits for fresh Pass B.
-- `WP29C-AR-003` — remediation implemented/runtime-green: authoritative stored MIME proof; formal closure waits for fresh Pass B.
-- `WP29C-AR-004` — remediation implemented/runtime-green: explicit/minimal CORS; formal closure waits for fresh Pass B.
+Review-pending governance evidence:
 
-The next permitted action is a complete fresh independent/adversarial Pass B over the whole packet. Any BLOCKING/MAJOR finding transitions the packet to `REVIEW_FAILED`; only a clean Pass B may advance to `ACCEPTANCE_PENDING`.
+- head `e0854afb62cf5fcf834792fbad425d013b02af56`;
+- CI `34997963836` — **5/5 SUCCESS**, clean-checkout included.
+
+Fresh Pass-B review record:
+
+- `docs/roadmap/lot-2/WP-2.9C-PASS-B-REVIEW.md`;
+- durable finding record commit `deaa2432327b9512068a75635dde6f4c522467ad`.
+
+## Fresh Pass-B findings
+
+### WP29C-AR-005 — MAJOR — interrupted staging/abandon cleanup and promotion race
+
+The current product recovery path does not clean `document-ingest-staging` when staging succeeds but promotion does not complete. `PrivateDocumentService.abandon()` and `manage_private_document(... abandon_upload ...)` reason only about canonical `project-private`; the browser intentionally has no staging DELETE; trusted staging cleanup currently occurs only after successful promotion/attestation.
+
+This permits private staged bytes to survive a clean metadata abandon and can wedge a later deterministic path retry. A concurrent abandon can also delete the pending reservation after promotion's initial reservation read but before canonical copy; promotion rechecks permission but not reservation state immediately before that mutation, so canonical/staging orphan divergence can remain when attestation subsequently fails.
+
+Required remediation:
+
+- trusted project/document-bound idempotent cleanup/abandon;
+- exact staging/canonical absence proof before metadata abandon completes;
+- retry/response-loss safety;
+- no ability to delete ready documents, other project/document objects or Media;
+- authoritative reservation-state recheck immediately before privileged canonical mutation;
+- focused RED/runtime coverage for interrupted staging, abandon/retry/unwedge and concurrent abandon/promotion.
+
+### WP29C-AR-006 — MAJOR — Workers Free exact-25-MB CPU feasibility is not evidenced
+
+ADR 0010 freezes exact 25 MB promotion on the intended Workers/Pages **Free** operating envelope as an acceptance gate. Current CI proves exact 25 MB only in local Miniflare/workerd. Cloudflare documents that CPU limits are enforced on the deployed network, not local development, so the current green harness does not prove the Free 10 ms CPU entitlement is sufficient.
+
+Required remediation:
+
+- durable CPU-specific evidence representative of the Workers runtime and exact 25 MB path;
+- no paid entitlement and no reduced file contract may be silently substituted;
+- if the Free envelope cannot be safely established, transition WP-2.9C to `BLOCKED` and revisit architecture.
+
+### WP29C-AR-007 — MAJOR — deployment/secret operations not reconciled
+
+ADR 0010 requires release/deployment documentation for Pages Function deployment, Cloudflare secret bindings, fail-closed `/api/private-document-promote`, static behavior preservation and legacy Supabase promotion-route removal. Current normative release docs still describe a static production application and do not contain the required concrete secret inventory/rotation record for the new `PRIVATE_DOCUMENT_ADMIN_KEY` binding.
+
+Required remediation:
+
+- update normative deployment/release/secret contracts;
+- record metadata-only secret owner/storage/scope/rotation/revocation/verification;
+- add fail-closed production smoke expectations;
+- ensure Pages Function deployment and legacy-route absence are explicit;
+- keep all secret values out of Git, browser assets, preview artifacts and logs.
+
+## Historical C findings
+
+The fresh review did not find evidence reopening these implementation remediations, but formal closure still waits for a later clean fresh Pass B after AR-005/006/007 remediation:
+
+- `WP29C-AR-001` — raw-body EOF dependence: remediation runtime-green under ADR 0010;
+- `WP29C-AR-002` — bounded canonical recovery: remediation source/live-green;
+- `WP29C-AR-003` — authoritative stored MIME: remediation source/live-green;
+- `WP29C-AR-004` — wildcard CORS: remediation runtime-green.
+
+Historical fresh-review failure for AR-001..004: `54ccc8865ea67a4835a7627b14739c3eaac53f5a` / CI `34910156654`.
 
 ## Why this packet exists
 
 Fresh adversarial review of WP-2.9A found:
 
 - `WP29A-AR-004`: TypeScript document text/filename validation missed Unicode C1 controls U+0080..U+009F rejected by PostgreSQL;
-- `WP29A-AR-005`: direct authenticated Storage ingress could commit `ready` metadata without trusted proof that the actual stored bytes matched reserved SHA-256/size/MIME.
+- `WP29A-AR-005`: direct authenticated Storage ingress could commit `ready` metadata without trusted proof that actual stored bytes matched reserved SHA-256/size/MIME.
 
-WP-2.9A was already a 10-point packet, so repository sizing rules required a separate remediation/control packet. WP-2.9C introduces no new product capability, Feature ID or permission.
+WP-2.9A was already a 10-point packet, so remediation is isolated here. WP-2.9C adds no product Feature ID or permission key.
 
-WP-2.9A remains blocked until C is accepted. WP-2.9B remains inactive until A itself is accepted.
+WP-2.9A remains blocked until C is accepted. WP-2.9B remains inactive until A is accepted.
 
 ## Assigned responsibility
 
-C owns only the remediation needed to make frozen FTR-089 true against an untrusted browser client:
+WP-2.9C owns only the remediation/control boundary needed to make FTR-089 correct against an untrusted browser:
 
-1. exact TypeScript/PostgreSQL control-character parity;
+1. TypeScript/PostgreSQL C1-control parity;
 2. trusted actual-byte PDF integrity proof;
-3. bounded private staging and fail-closed promotion/recovery;
+3. bounded private staging and fail-closed promotion/recovery/cleanup;
 4. live authorization around trusted transitions;
-5. exact runtime/CI evidence for the trusted HTTP/provider boundary;
-6. preservation of accepted WP-2.9A and WP-2.8 Media behavior.
+5. exact runtime/CI evidence for the trusted provider boundary;
+6. operational/deployment proof for that boundary;
+7. preservation of accepted WP-2.9A and WP-2.8 Media behavior.
 
 ## Frozen architecture
 
-### Browser/application
-
-The browser may perform early validation/hash for UX and reservation semantics but is not trusted for authoritative byte integrity.
+Browser/application flow:
 
 ```text
 local PDF validation/hash
 → reserve pending metadata
 → authenticated upload to bounded private Supabase staging
-→ bodyless POST /api/private-document-promote on the same Cloudflare Pages origin
-→ trusted promotion proof/copy/attestation/cleanup
+→ bodyless same-origin Pages promotion
+→ live authorization + authoritative staging proof
+→ privileged canonical copy/recovery
+→ service-only ingest attestation
+→ trusted staging cleanup
 → independently authorized DB finalize pending → ready
 ```
 
-### Bounded staging — ADR 0009
-
-The staging bucket remains exactly `document-ingest-staging`:
+Staging bucket remains exactly `document-ingest-staging`:
 
 - private;
-- exact `file_size_limit=25000000`;
-- MIME allowlist only `application/pdf`;
+- `file_size_limit=25000000` exactly;
+- only `application/pdf`;
 - no anonymous policy;
 - no ordinary authenticated SELECT/UPDATE/DELETE;
-- exactly one narrow authenticated INSERT path for a live pending private Document reservation;
-- exact path `<project_id>/documents/<document_id>/original`;
+- one narrow authenticated INSERT for an exact live pending Document path;
 - `upsert:false`.
 
-Authenticated clients still have no ordinary canonical Document INSERT authority. Accepted Media policies remain unchanged.
-
-### Trusted promotion compute — ADR 0010
-
-The trusted promotion implementation is now one narrow Cloudflare Pages Function:
+Trusted promotion route remains:
 
 ```text
 POST /api/private-document-promote
 ```
 
-It **replaces** the former Supabase `private-document-ingest` Edge Function. It is not a proxy in front of it.
+The old Supabase `private-document-ingest` Edge Function remains removed from deployable source/config/application flow.
 
-Required migration invariant:
+Promotion must remain bodyless, validate current Supabase user authority, derive paths from authoritative state, re-check `documents.write` immediately before privileged canonical mutation, independently verify staged MIME/size/PDF signature/SHA-256, avoid overwrite, fail closed on poisoned recovery, attest only after canonical proof, and preserve independent finalization authorization.
 
-- remove `supabase/functions/private-document-ingest` from deployable code;
-- remove its enabled function entry from `supabase/config.toml`;
-- application code must stop invoking `supabase.functions.invoke("private-document-ingest", ...)`;
-- runtime/source tests must prove the old promotion route is absent/not used;
-- no second public promotion implementation may remain.
+## C1 parity
 
-### Promotion ingress contract
-
-Before any request-body read:
-
-- only `POST` is accepted;
-- `Transfer-Encoding` is rejected;
-- `Content-Length` must be absent or exactly `0`;
-- malformed/non-zero/ambiguous body framing is rejected;
-- the handler never calls `arrayBuffer()`, `text()`, `json()`, `formData()` or otherwise consumes inbound promotion bytes;
-- project/document identity remains bounded request metadata;
-- real Wrangler/workerd evidence must keep a chunked sender open and receive rejection without sender EOF.
-
-### Authentication and authorization
-
-The browser sends its current Supabase user access token to the same-origin Pages Function.
-
-The Function must:
-
-1. reject missing/malformed authorization generically;
-2. verify current user through Supabase Auth using the supplied user token, never caller-supplied user identity;
-3. use live user/RLS authority for project/document access;
-4. require `documents.write` before authoritative reservation use;
-5. re-check `documents.write` immediately before the first privileged canonical mutation;
-6. preserve independent authorization in DB finalization.
-
-### Trusted byte proof
-
-Preserve ADR-0009 proof strength:
-
-- derive staging/canonical paths from authoritative Document state;
-- require pending, active, ordinary-private, non-remote, non-deleted state;
-- inspect authoritative staging metadata before materialization;
-- require stored MIME exactly `application/pdf`;
-- require exact reserved size and `1..25,000,000` bytes;
-- bounded-read staged bytes;
-- validate `%PDF-`;
-- compute actual staged-byte SHA-256;
-- require exact reserved digest/size;
-- copy to canonical storage without overwrite;
-- recover existing canonical object only after equally strong authoritative metadata + bounded byte proof;
-- attest only after trusted canonical proof;
-- clean staging server-side after trusted success and safely after invalid staging where appropriate;
-- preserve independent finalization authorization.
-
-### Server credentials
-
-Production service/server credentials exist only as Cloudflare secret bindings. They are never bundled into Vite assets, committed, returned, or logged.
-
-ADR 0010 does not authorize a paid dependency or general Cloudflare backend.
-
-## AR-004 TypeScript/PostgreSQL parity
-
-The canonical scalar-control predicate rejects:
+The shared scalar-control rule rejects:
 
 ```text
 U+0000..U+001F
 U+007F..U+009F
 ```
 
-This remediation is implemented and green. Parent `WP29A-AR-004` remains formally open until C acceptance + A reverification.
+That remediation remains green. Parent `WP29A-AR-004` remains formally open until C acceptance and A reverification.
 
-## Security requirements
+## Security controls
 
-At minimum evidence applicable forms of:
+At minimum retain evidence for applicable forms of:
 
 - `SEC-AUTHZ-001..009`;
 - `SEC-VAL-001/002/003/008`;
@@ -173,169 +166,54 @@ At minimum evidence applicable forms of:
 - `SEC-NET-008`;
 - secret/public-artifact safety.
 
-## Review history
+## Existing exact-head implementation evidence
 
-### Parent A findings assigned to C
+The Pass-A head `297ecdf3337e8522d6f200a90f96b481a9e6bdb1` proved:
 
-- `WP29A-AR-004` — MAJOR/open in parent; implementation present in C, formal closure waits for C acceptance + A reverification.
-- `WP29A-AR-005` — MAJOR/open in parent; trusted-byte implementation present in C, formal closure waits for C acceptance + A reverification.
+- core quality/security, browser/mutation, DB/RLS/Pages Function, preview and clean-checkout verification green;
+- static gates and 100% unit coverage thresholds retained;
+- staging bucket/RLS/canonical bypass controls green;
+- same-origin bodyless promotion green;
+- old Supabase promotion implementation absent;
+- real Wrangler/workerd open-ended framed-body rejection without sender EOF green;
+- staged/canonical exact-byte proof, stored MIME, recovery and poisoned-object failure green;
+- authorization/revocation and finalization reauthorization green;
+- exact 25,000,000-byte **local runtime path** green;
+- CORS and public-artifact secret scans green.
 
-### Fresh C Pass B findings
-
-Fresh review of `e4efa0b74ffd5708d9888ff23e13174ec2032c68` / CI `34909259741` found:
-
-- `WP29C-AR-001` MAJOR — ingress work sender-EOF dependent;
-- `WP29C-AR-002` MAJOR — canonical recovery Blob-first buffering;
-- `WP29C-AR-003` MAJOR — missing/empty stored MIME accepted;
-- `WP29C-AR-004` MINOR — wildcard CORS.
-
-Durable review failure: `54ccc8865ea67a4835a7627b14739c3eaac53f5a` / CI `34910156654`.
-
-### ADR-0009 implementation evidence
-
-Quality-preserving implementation head:
-
-`a8ee1db32bfa41b40d4fcd5dd841146f97676881` / CI `34975265838`:
-
-- Core quality/security: PASS;
-- Browser/mutation: PASS;
-- Privacy-safe preview: PASS;
-- DB/RLS: PASS — 80 files / 1382 tests;
-- staging RLS/canonical bypass: PASS;
-- malformed JWT denial: PASS;
-- bodyless promotion/retry/recovery/ready-state denial: PASS;
-- finalization reauthorization: PASS;
-- poisoned canonical recovery: PASS/fail-closed;
-- exact `25,000,000`-byte staging/promotion: PASS;
-- AR-002 source/live remediation: PASS;
-- AR-003 source/live remediation: PASS;
-- AR-004 CORS remediation: PASS;
-- AR-001: FAIL — `Public promotion endpoint waited for sender EOF on a framed body.`
-
-Blocked-state documentation `52572b24bba83a2aadb22c80f2764c92875219f1` / CI `34975858942` reproduced the same single security RED while Core/browser/preview/DB stayed green.
-
-### ADR-0010 Pass-A implementation evidence
-
-Exact implementation head `297ecdf3337e8522d6f200a90f96b481a9e6bdb1` / CI `34996240637`:
-
-- Core quality/security: **PASS**;
-- Browser/mutation: **PASS**;
-- Local Supabase DB/RLS + Pages Function promotion harness: **PASS**;
-- Privacy-safe preview: **PASS**;
-- Full verify from clean checkout: **PASS**;
-- static gates: formatting, lint, architecture, deadcode and forbidden markers **PASS**;
-- unit suite: **1578 tests PASS with global 100% thresholds preserved**;
-- staging bucket/RLS/canonical bypass contracts: **PASS**;
-- same-origin bodyless promotion contract: **PASS**;
-- old Supabase promotion function/config/application invocation absence: **PASS**;
-- real Wrangler/workerd open-ended framed-body rejection without sender EOF: **PASS**;
-- bounded staged/canonical byte proof, stored MIME, recovery, poisoned-object failure, live authorization/revocation and finalization reauthorization: **PASS**;
-- exact `25,000,000`-byte trusted promotion feasibility: **PASS**;
-- CORS and secret/public-artifact safety checks: **PASS**.
-
-This evidence completes Pass A. It does not itself close review findings; fresh Pass B is mandatory.
-
-## Architecture-blocker resolution history
-
-- ADR 0010 initially proposed: `d6beb3c8fa9d68b8ee88e3472db0f3744dd1a7e9`.
-- blocker record opened: `173baa83fd6592aefd45da4f933d72f17f09aceb`.
-- blocked implementation cursor: `52572b24bba83a2aadb22c80f2764c92875219f1`.
-- packet record synchronized blocked: `ae45fe740c59774f5da86cc54bc49e449f5c6749`.
-- ADR 0010 accepted: `c369e33541dcb984e15f690a254992d0b7149830`.
-- ADR 0001 narrowly amended: `f1869cd6b4751d579d34262f8efa0392a2fdcdfc`.
-- blocker record marked resolved: `7c355b472cbf8e060736bb7eb302f4ed4862d8d1`.
-- implementation-status resume cursor: `54f2bdc4a7419062d6279004138c9c14f0be0f36`.
-
-ADR 0010 resolves the historical design dependency. The current implementation is now exact-head green and awaits fresh Pass B.
-
-## RED-first contract for current pass
-
-Historical Pass-A RED contract before production migration:
-
-1. application promotion adapter must target same-origin `/api/private-document-promote` with no body rather than Supabase Functions;
-2. deployable Supabase configuration/source must not retain `private-document-ingest` after GREEN;
-3. real Pages/Workers runtime must reject an intentionally open-ended framed sender before EOF;
-4. non-zero `Content-Length` must be rejected before body consumption;
-5. all existing staging/auth/integrity/recovery/finalization scenarios must remain represented and must not be deleted to obtain green.
-
-These RED targets are now GREEN on the Pass-A head above and become fresh Pass-B review inputs rather than reasons to skip review.
-
-## Verification contract after GREEN
-
-### Application
-
-- same-origin promotion call with current user authorization and no body;
-- no Supabase Functions invocation for private-document promotion;
-- existing local PDF/hash/reservation/finalization behavior preserved.
-
-### Storage
-
-- exact 25,000,000 staging succeeds;
-- 25,000,001 rejected before promotion;
-- wrong MIME rejected;
-- writer-only exact pending staging path;
-- viewer/outsider/revoked/project substitution/non-pending denied;
-- staging SELECT/UPDATE/DELETE denied;
-- canonical client Document INSERT denied;
-- Media behavior unchanged.
-
-### Pages Function/runtime
-
-- open-ended framed sender rejected without sender EOF;
-- direct old Supabase promotion route absent/not used;
-- missing/invalid JWT denied;
-- outsider/project-B/revoked/downgraded denied;
-- authoritative reservation/path derivation;
-- exact staged-byte signature/size/SHA proof;
-- bounded canonical recovery;
-- authoritative stored MIME proof;
-- poisoned staging/canonical fail closed;
-- role revocation before promotion/finalization fails closed;
-- project/document-bound cleanup;
-- same-origin/no wildcard CORS;
-- no secrets/private bytes/private filename in logs/artifacts;
-- exact 25 MB successful path feasible on intended Workers/Pages Free runtime.
-
-If the intended Free runtime cannot safely satisfy the exact 25 MB proof, C returns to `BLOCKED` rather than enabling paid infrastructure or shrinking the file contract silently.
-
-### CI / review
-
-- exact-head CI and clean full verification after implementation;
-- real local Pages/Workers runtime evidence, not only handler mocks;
-- then complete fresh independent Pass B over the whole packet;
-- any BLOCKING/MAJOR finding returns to remediation;
-- only clean Pass B may advance to Pass C;
-- only Pass C may mark C accepted.
+Pass B specifically invalidates the claim that local 25 MB success alone proves the Workers Free CPU operating envelope.
 
 ## Explicit non-goals
 
 - no UI/presentation work;
 - no document versioning or contract-readiness workflow;
-- no generic Cloudflare API/backend;
+- no general Cloudflare backend;
 - no D1/R2/KV application datastore;
 - no new permission key;
-- no signed-URL product flow;
+- no signed-upload product flow;
 - no offline pending-file queue;
 - no automatic deduplication;
-- no change to 25 MB PDF contract without separate approved scope decision;
+- no silent change to the 25 MB PDF contract;
 - no real/private wedding data.
 
 ## State / sequencing
 
-Current state: **REVIEW_PENDING / B-ADVERSARIAL-REVIEW**.
+Current state: **REVIEW_FAILED**.
 
 Current gate:
 
-1. Pass-A implementation head `297ecdf3337e8522d6f200a90f96b481a9e6bdb1` / CI `34996240637` is exact-head **5/5 SUCCESS**, clean-checkout included;
-2. perform a complete fresh independent/adversarial Pass B over all WP-2.9C responsibilities and historical findings;
-3. explicitly re-test ADR-0010 ingress/bodyless behavior, old-route absence, authorization/revocation, staging/canonical integrity, cleanup, CORS, secret safety and exact 25 MB feasibility;
-4. any BLOCKING/MAJOR finding → `REVIEW_FAILED` with durable finding/remediation record;
-5. if Pass B has no unresolved BLOCKING/MAJOR finding → `ACCEPTANCE_PENDING`;
-6. only from `ACCEPTANCE_PENDING` may Pass C mechanically reconcile EXPECTED vs IMPLEMENTED vs VERIFIED;
-7. only Pass C may mark WP-2.9C `ACCEPTED`;
-8. only after C ACCEPTED may WP-2.9A resume;
-9. WP-2.9B remains `PLANNED / AFTER A` until A is accepted.
+1. fresh Pass B failed on AR-005/006/007;
+2. next permitted transition is `REVIEW_FAILED → IN_PROGRESS` when remediation starts;
+3. implement focused RED/evidence first, then remediation, without weakening frozen contracts or quality thresholds;
+4. obtain exact-head full CI + clean-checkout evidence;
+5. transition back to `REVIEW_PENDING`;
+6. run another complete fresh independent/adversarial Pass B over the whole packet and all seven findings;
+7. BLOCKING/MAJOR → `REVIEW_FAILED` again;
+8. only a clean Pass B may enter `ACCEPTANCE_PENDING`;
+9. only Pass C may mark WP-2.9C `ACCEPTED`;
+10. only after C acceptance may WP-2.9A resume integration/reverification/fresh Pass B;
+11. WP-2.9B remains `PLANNED / AFTER A`.
 
 ## Deviations
 
-No security-contract deviation is authorized. Pass A is green; no finding is formally closed until fresh Pass B disposition.
+No security-contract deviation is authorized.
