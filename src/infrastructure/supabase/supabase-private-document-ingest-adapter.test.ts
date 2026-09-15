@@ -1,12 +1,24 @@
 import { describe, expect, it, vi } from "vitest";
 import { DocumentPersistenceError } from "@application/documents/document-persistence-error";
-import { SupabasePrivateDocumentIngestAdapter } from "./supabase-private-document-ingest-adapter";
+import {
+  SupabasePrivateDocumentIngestAdapter,
+  type SupabasePrivateDocumentStagingClientLike,
+} from "./supabase-private-document-ingest-adapter";
 
 const projectId = "11111111-1111-4111-8111-111111111111";
 const documentId = "22222222-2222-4222-8222-222222222222";
 const path = `${projectId}/documents/${documentId}/original`;
 const bytes = new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d, 0x31]);
 const token = "synthetic-access-token";
+
+interface UploadResult {
+  readonly data: unknown;
+  readonly error: unknown;
+}
+
+type SessionResult = Awaited<
+  ReturnType<SupabasePrivateDocumentStagingClientLike["auth"]["getSession"]>
+>;
 
 function input() {
   return {
@@ -27,14 +39,24 @@ function storageError(message: string, statusCode: number | string) {
 
 function clientWith(
   upload: ReturnType<typeof vi.fn>,
-  sessionResult: unknown = {
+  sessionResult: SessionResult = {
     data: { session: { access_token: token } },
     error: null,
   },
 ) {
-  const from = vi.fn(() => ({ upload }));
-  const getSession = vi.fn().mockResolvedValue(sessionResult);
-  return { from, getSession, client: { storage: { from }, auth: { getSession } } };
+  const from = vi.fn(() => ({
+    upload: (
+      targetPath: string,
+      body: Uint8Array,
+      options: Readonly<Record<string, unknown>>,
+    ) => upload(targetPath, body, options) as PromiseLike<UploadResult>,
+  }));
+  const getSession = vi.fn(async () => sessionResult);
+  const client: SupabasePrivateDocumentStagingClientLike = {
+    storage: { from },
+    auth: { getSession },
+  };
+  return { from, getSession, client };
 }
 
 function successfulClient() {
