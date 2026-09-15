@@ -1,116 +1,264 @@
 # ADR 0010 — Private-document promotion ingress termination boundary
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-09-15
 - Owner: WP-2.9C / FTR-089
 - Related: ADR 0001, ADR 0008, ADR 0009
 
 ## Context
 
-ADR 0009 moved private PDF bytes out of the Supabase Edge Function request body and into the bounded private `document-ingest-staging` Storage bucket. The browser now stages a PDF under Storage's exact 25,000,000-byte and `application/pdf` limits, and the Edge Function receives only project/document identifiers before verifying and promoting the staged object.
+ADR 0009 moved private PDF bytes out of the Supabase Edge Function request body and into the bounded private `document-ingest-staging` Storage bucket. The browser stages a PDF under Storage's exact `25,000,000`-byte and `application/pdf` limits, while trusted code verifies and promotes the staged object before finalization.
 
-That architecture closes the original raw-binary integrity/resource defects, but ADR 0009 also requires the public promotion endpoint to reject any framed/request body before consuming it and without depending on sender EOF. This is required by `SEC-FILE-004`, `SEC-ABUSE-001` and `WP29C-AR-001`.
+ADR 0009 also requires the promotion ingress boundary to reject any framed/non-empty request without consuming arbitrary attacker-controlled body bytes and without depending on sender EOF. This is required by `SEC-FILE-004`, `SEC-ABUSE-001` and `WP29C-AR-001`.
 
-Real local-runtime evidence now proves that the current Supabase request path does not expose the request to application code early enough to satisfy that requirement:
+Real runtime evidence proved that the current Supabase Edge request path cannot satisfy that boundary:
 
-- direct Edge Runtime evidence: CI `34973827681` — the bodyless promotion flow and all other remediation checks pass, but an intentionally open-ended framed request does not receive rejection before sender EOF;
-- public Supabase gateway evidence: CI `34974264827` and exact-head CI `34975265838` — the same open-ended sender still waits for EOF when targeting `/functions/v1/private-document-ingest` through the public local gateway;
-- exact-head `a8ee1db32bfa41b40d4fcd5dd841146f97676881` / CI `34975265838`: Core quality/security PASS, browser/mutation PASS, preview PASS, DB/RLS `80` files / `1382` tests PASS, and all Edge staging/promotion/auth/recovery/CORS/25 MB scenarios PASS except `WP29C-AR-001`.
+- direct local Edge Runtime evidence: CI `34973827681`;
+- public local Supabase gateway evidence: CI `34974264827`;
+- exact implementation evidence `a8ee1db32bfa41b40d4fcd5dd841146f97676881` / CI `34975265838`;
+- blocked-state evidence `52572b24bba83a2aadb22c80f2764c92875219f1` / CI `34975858942`.
 
-The handler itself no longer reads untrusted request bytes. It rejects `transfer-encoding` or non-zero/invalid `content-length` before any application body read, but the request is not dispatched to that handler early enough for the rejection to terminate an open-ended sender.
+In all cases the ADR-0009 staging/auth/recovery/CORS/25 MB controls pass, but an intentionally open-ended framed promotion request waits for sender EOF before application code can terminate it.
 
-Current Supabase hosted Edge Function documentation lists runtime limits such as a 150-second request idle timeout, memory and CPU limits, but does not publish a maximum inbound request-body size that can be used as an EOF-independent ingress security bound:
+The handler itself does not need the request body. The defect exists earlier in the Supabase request pipeline: dispatch to user Edge code happens too late to make a bodyless application handler the ingress-termination layer.
 
-- <https://supabase.com/docs/guides/functions/limits>
-- <https://supabase.com/docs/guides/functions>
+Current Supabase documentation exposes runtime limits and an idle timeout but does not expose a documented inbound request-body rule that can serve as the required EOF-independent security boundary. Supabase S3 compatibility also does not provide a replacement trusted SHA-256 path for this packet: `PutObject` does not support `Content-MD5`, and S3 checksum controls required for a provider-only SHA-256 proof are not implemented on the relevant upload/copy surface.
 
-A timeout is a finite outer failure mode, but it does not satisfy the frozen contract that arbitrary post-limit ingress work must not depend on sender EOF.
+## Decision
 
-## Stop condition
+Replace the browser-reachable Supabase Edge promotion endpoint with **one narrow same-origin Cloudflare Pages Function**:
 
-This is an architecture/security dependency, not an implementation defect that can be safely patched inside the current Edge handler.
+```text
+POST /api/private-document-promote
+```
 
-Under `AI-LOT-ORCHESTRATION.md`, WP-2.9C must therefore remain blocked until an architecture capable of terminating/rejecting the request before arbitrary body drain is explicitly accepted and verified.
+The Pages Function is the trusted promotion implementation. It is **not** a proxy in front of the existing Supabase Edge Function.
 
-No option below is accepted by this ADR yet.
+The Supabase `private-document-ingest` Edge Function must be removed from the deployable repository/configuration. There must be no alternate browser-reachable Supabase promotion route that can bypass the Cloudflare ingress boundary.
 
-## Non-solutions already disproved
+The frozen file flow becomes:
 
-The following do **not** close `WP29C-AR-001`:
+```text
+browser local validation/hash
+→ reserve pending document metadata in Supabase
+→ authenticated browser upload to bounded private Supabase staging bucket
+→ same-origin bodyless POST to Cloudflare Pages Function
+→ Pages Function verifies current Supabase user/JWT
+→ live project/document authorization
+→ authoritative staging metadata inspection
+→ bounded staged-object read + PDF signature + exact size/SHA-256 proof
+→ privileged no-overwrite copy to canonical project-private
+→ service-only ingest attestation
+→ server staging cleanup
+→ browser performs independently authorized finalize pending → ready
+```
 
-- `request.arrayBuffer()` or any full request buffering;
-- bounded retained-memory streaming followed by draining to EOF;
-- `ReadableStream.cancel()`/reader cancellation inside the user worker when the platform has not dispatched the request early enough;
-- checking `Content-Length` while accepting chunked/open-ended framing;
-- relying on normal browser behavior to keep the request body empty;
-- relying on the 150-second request idle timeout;
-- deleting or weakening the open-ended sender test;
-- shrinking the 25 MB PDF product limit, because the promotion endpoint is bodyless and the abuse exists independently of the staged file size.
+ADR 0009 remains authoritative for staging, byte-integrity, attestation, cleanup and finalization semantics. ADR 0010 changes only the trusted compute/HTTP ingress location used for promotion.
 
-## Candidate architecture A — provider/gateway hard ingress policy
+## Why Pages Functions
 
-Use a Supabase/provider gateway control only if the platform exposes a documented and enforceable rule that rejects framed/non-empty promotion requests before arbitrary body consumption or dispatch.
+Mariage OS already targets Cloudflare Pages for the application deployment. Pages Functions run on the Cloudflare Workers runtime and can add a narrow server route to that same deployment without operating a separate VPS or general-purpose backend.
 
-Required proof:
+This is a deliberately narrow amendment to ADR 0001, not adoption of a general Cloudflare backend:
 
-- the rule applies to the public production function route, not only application code;
-- it is configured/deployed as code or otherwise durably controlled;
-- a sender can remain open after beginning a framed request and receives deterministic rejection without EOF;
-- direct route bypass is impossible;
-- the rule is available on the intended free-tier deployment and has a local/CI verification strategy or an explicitly approved production-only verification exception.
+- the PWA/static application remains a Cloudflare Pages application;
+- PostgreSQL/Auth/Storage/Realtime remain Supabase-managed;
+- only the security-sensitive private-document promotion boundary moves to Pages Functions;
+- no D1/R2/KV application datastore is introduced;
+- no generic API layer is introduced;
+- no product feature is moved out of Supabase unless a later ADR explicitly decides so.
 
-No such documented request-body limit/control has been identified as of 2026-09-15.
+Pages Functions use the Workers runtime. Current Cloudflare Free limits include `100,000` Worker/Pages Function requests per day, `128 MB` memory and a `100 MB` request-body outer limit for Free-zone requests. The packet must still prove its stricter bodyless contract itself; the `100 MB` platform maximum is defense in depth, not the acceptance condition.
 
-## Candidate architecture B — non-browser promotion trigger
+## Ingress contract
 
-Remove the browser-reachable arbitrary HTTP promotion request from the trust boundary. A server-owned event/queue/database/storage-triggered mechanism could promote a newly staged object without accepting an attacker-controlled streaming HTTP body for the promotion step.
+The Pages Function must reject request framing before reading `request.body`:
 
-Required investigation/proof:
+- only `POST` is accepted for promotion;
+- `Transfer-Encoding` is rejected;
+- `Content-Length` must be absent or exactly `0`;
+- any non-zero, malformed or ambiguous framing is rejected;
+- the handler never calls `arrayBuffer()`, `text()`, `json()`, `formData()` or otherwise consumes the inbound promotion body;
+- the project/document target remains in bounded headers or an equivalently bounded non-body representation;
+- real Workers/Pages runtime evidence must hold a chunked sender open and receive rejection without sender EOF.
 
-- the trigger is generated from authoritative staging/reservation state rather than caller-controlled identity;
-- current-user authorization semantics remain correct for the staging operation and finalization;
-- revocation/race behavior remains fail-closed;
-- retries are idempotent;
-- no new public endpoint recreates the same ingress problem;
-- the mechanism is supported by the frozen Supabase/zero-cost operating constraints.
+A synthetic unit test alone is insufficient.
 
-This is a material flow change and requires a superseding/accepted ADR before implementation.
+## Direct-origin / bypass contract
 
-## Candidate architecture C — external upstream request guard
+The old Supabase Edge route is removed rather than hidden behind Cloudflare.
 
-Introduce an upstream component capable of rejecting framed/non-empty requests before forwarding a strictly bodyless promotion call.
+Acceptance must prove:
 
-A narrow Cloudflare Worker/Pages Function is one possible technology, but ADR 0001 currently freezes Cloudflare Pages as static hosting and explicitly rejected a custom Cloudflare backend as unnecessary maintenance. Therefore this option is an architecture widening, not a routine implementation detail.
+- `supabase/functions/private-document-ingest` is not deployable after the migration;
+- `supabase/config.toml` contains no enabled promotion Edge Function entry;
+- application code no longer invokes `supabase.functions.invoke("private-document-ingest", ...)`;
+- local/runtime tests treat the old Supabase function route as absent/not usable;
+- production deployment documentation does not deploy the removed Edge Function;
+- no second public promotion implementation exists.
 
-It is also insufficient unless the direct Supabase function origin cannot be used to bypass the guard. Any accepted version must prove that an authenticated attacker cannot send the same open-ended request directly to the Supabase route and consume the protected runtime/gateway resource.
+This is what closes candidate-C's direct-origin bypass problem.
 
-Required proof:
+## Authentication and authorization
 
-- direct-origin bypass is closed at a layer that acts before body drain;
-- no service secret is exposed to the browser;
-- JWT/project authorization remains end-to-end;
-- the guard is deployment-managed and covered by adversarial runtime evidence;
-- operating-cost and maintenance consequences are reconciled with ADR 0001.
+The browser sends its current Supabase user access token in `Authorization: Bearer <token>` to the same-origin Pages Function.
 
-## Decision required
+The Pages Function must:
 
-Choose and accept a termination boundary that can actually act before arbitrary request-body drain. Until then:
+1. reject missing/malformed authorization generically;
+2. verify the current user against Supabase Auth using the user token, never caller-supplied user identity;
+3. use a user-scoped Supabase client/RLS path for live project/document authorization;
+4. require `documents.write` before authoritative reservation use;
+5. re-check `documents.write` immediately before the first privileged canonical mutation;
+6. preserve independent authorization in the existing DB finalization transition.
 
-- WP-2.9C is `BLOCKED`;
-- `WP29C-AR-001` remains **MAJOR / OPEN / ARCHITECTURE BLOCKER**;
-- AR-002, AR-003 and AR-004 remediation remains implemented and runtime-green but does not make the packet acceptable;
-- WP-2.9A remains blocked waiting for WP-2.9C acceptance;
-- WP-2.9B remains inactive;
-- Pass B/Pass C advancement is forbidden.
+A later revocation must never create `ready` truth without the independently authorized finalization step.
 
-## Acceptance criteria for a later decision
+## Trusted server credentials
 
-A superseding or accepted revision must provide all of the following before WP-2.9C returns to `IN_PROGRESS`:
+The Pages Function may use a Supabase server/service credential only after caller authentication and authoritative target-state validation.
 
-1. a named ingress-termination layer with an enforceable deployment contract;
-2. a real-runtime adversarial test that keeps a framed sender open and receives rejection without sender EOF;
-3. explicit direct-origin/bypass coverage;
-4. no client-visible service credentials;
-5. preservation of the ADR-0009 staging bucket limits and exact 25,000,000-byte successful PDF path;
-6. preservation of live `documents.write` authorization, canonical exact-byte proof, service-only attestation and independent finalization;
-7. updated ADR/packet/security/deployment documentation and clean exact-head CI before fresh Pass B.
+Required Cloudflare bindings/secrets:
+
+- `SUPABASE_URL` — server configuration;
+- a non-secret Supabase browser/publishable/anon key as required to verify/use the caller's user token;
+- `SUPABASE_SERVICE_ROLE_KEY` (or current server-secret equivalent) — Cloudflare secret, never static asset, Git value, response or log field.
+
+CI/local development may derive synthetic local Supabase credentials from `supabase status`; production credentials must never enter GitHub artifacts or repository history.
+
+## Trusted byte proof
+
+The Pages Function preserves ADR-0009 proof strength:
+
+- derive staging/canonical paths from authoritative reservation state;
+- require pending, active, ordinary-private, non-remote, non-deleted state;
+- inspect authoritative staging metadata before materializing bytes;
+- require stored MIME exactly `application/pdf`;
+- require exact reserved size and `1..25,000,000` bytes;
+- bounded-read the staged object;
+- validate `%PDF-`;
+- compute SHA-256 over actual staged bytes;
+- require exact reserved digest and size;
+- copy to canonical storage without overwrite;
+- if canonical already exists, use authoritative metadata first and then bounded signature/size/SHA-256 verification before treating it as trusted;
+- attest only after trusted canonical proof;
+- clean staging server-side after success and safely after invalid staging where appropriate.
+
+The browser remains unable to create canonical Document objects directly.
+
+## CORS / origin behavior
+
+Because the Pages Function is deployed with the application, normal browser invocation is same-origin.
+
+The promotion route must not emit wildcard CORS. The preferred default is no cross-origin allowance at all. Authorization must remain JWT/permission based rather than treating `Origin` as an authorization control.
+
+Preview deployments remain same-origin with their own Pages Function route.
+
+## Zero-cost and runtime feasibility
+
+This ADR does **not** authorize a paid Cloudflare dependency or automatic paid upgrade.
+
+Before WP-2.9C can be accepted, real-runtime evidence must prove:
+
+- exact `25,000,000`-byte staged PDF promotion remains feasible within the intended Cloudflare Pages Functions / Workers Free operating envelope;
+- no implementation buffers the inbound promotion request;
+- trusted staged/canonical materialization stays below the `128 MB` Worker memory limit;
+- SHA-256 and authorization work is viable without relying on a paid CPU entitlement;
+- if the Free runtime cannot safely support the exact 25 MB proof, WP-2.9C returns to `BLOCKED` and architecture is revisited rather than silently enabling Workers Paid or lowering the PDF limit.
+
+Cloudflare's Free Worker CPU limit is currently `10 ms` per HTTP request with some platform flexibility; this is therefore an explicit feasibility gate, not an assumption.
+
+## CI / runtime proof
+
+WP-2.9C must add a real Pages/Workers runtime harness, not only direct handler unit tests.
+
+At minimum it must prove:
+
+- a normal bodyless promotion reaches the function;
+- an intentionally open-ended `Transfer-Encoding: chunked` request is rejected promptly before EOF;
+- a non-zero `Content-Length` request is rejected before body consumption;
+- missing/malformed JWT denied;
+- viewer/outsider/revoked/project substitution denied;
+- direct canonical authenticated Document upload remains denied;
+- exact staged-byte promotion succeeds;
+- wrong staging MIME, size mismatch, SHA mismatch and bad PDF signature fail closed;
+- poisoned existing canonical object fails closed;
+- exact canonical replay is idempotent;
+- finalization reauthorizes after promotion;
+- exact `25,000,000` bytes succeeds;
+- old Supabase promotion route is absent/not used;
+- service credentials are absent from logs/static artifacts.
+
+The harness should run against local Supabase plus a real local Cloudflare Workers/Pages runtime such as Wrangler/workerd.
+
+## Deployment consequences
+
+Cloudflare deployment is no longer purely static: the Pages project contains one narrow Function route.
+
+Release/deployment documentation must therefore ensure:
+
+- Pages Functions are deployed with the static application;
+- required server bindings/secrets are configured outside Git;
+- `/api/private-document-promote` is security-critical and must fail closed rather than bypassing to an unprotected origin;
+- static asset behavior remains unchanged;
+- preview artifacts/configuration contain only synthetic/non-production values;
+- the removed Supabase Edge Function is not redeployed by legacy scripts.
+
+## Alternatives rejected
+
+### A — rely on Supabase gateway/body limit
+
+Rejected because no documented/configurable EOF-independent rule satisfying this packet was found, and the real local public gateway reproduces AR-001.
+
+### B — database/storage webhook to the same Supabase Edge Function
+
+Rejected because triggering the call server-side does not remove the browser-reachable Edge Function origin. An authenticated attacker could still target that route directly and reproduce the ingress abuse.
+
+### B2 — replace SHA-256 proof with Supabase Storage/S3 metadata
+
+Rejected. Supabase Storage metadata/ETag is useful for provider metadata, but the frozen FTR-089 contract requires exact SHA-256 byte binding. Current Supabase S3 compatibility does not expose the needed checksum upload/copy guarantees on the relevant surface, and `Content-MD5` is not a substitute for the frozen SHA-256 contract.
+
+### C1 — Cloudflare only as a proxy in front of Supabase Edge
+
+Rejected because the direct Supabase function URL would remain a bypass.
+
+### C2 — general custom Cloudflare backend
+
+Rejected as unnecessary. Only the narrow promotion function is authorized.
+
+## Consequences
+
+Positive:
+
+- closes the architecture cause of `WP29C-AR-001` if the runtime RED becomes green;
+- removes direct Supabase promotion-origin bypass by deleting that public function;
+- keeps file upload on bounded Supabase Storage rather than sending PDF bytes through Cloudflare ingress;
+- preserves Supabase Auth/RLS/Storage/Postgres as the core backend;
+- same-origin browser call removes the need for permissive CORS;
+- reuses the already-chosen Cloudflare Pages deployment and Free-plan request allowance.
+
+Tradeoffs:
+
+- Pages deployment now includes one server-side Function;
+- one additional production secret must be configured in Cloudflare;
+- local/CI tooling must include Wrangler/workerd runtime evidence;
+- Free-plan CPU feasibility for the exact 25 MB trusted hash/read path must be proven rather than assumed;
+- provider coupling increases slightly at this one security boundary.
+
+## Supersession / amendment
+
+- ADR 0008 remains authoritative for trusted byte integrity, authorization, attestation and finalization intent.
+- ADR 0009 remains authoritative for bounded staging and bodyless promotion semantics.
+- ADR 0010 supersedes the **Supabase Edge Function compute location** for promotion and moves that trusted compute to Cloudflare Pages Functions.
+- ADR 0001 is amended narrowly: Cloudflare Pages remains the application host, with one approved Pages Function security boundary; the rejection of a general custom Cloudflare backend remains in force.
+
+## Unblock condition
+
+ADR 0010 is accepted, so WP-2.9C may transition:
+
+```text
+BLOCKED
+→ IN_PROGRESS / A-IMPLEMENT — RED FIRST
+```
+
+The existing AR-001 runtime failure remains the required RED until the Pages Function boundary is implemented and proven. Pass B and Pass C remain forbidden until implementation is exact-head verified and a later complete fresh Pass B is clean.
