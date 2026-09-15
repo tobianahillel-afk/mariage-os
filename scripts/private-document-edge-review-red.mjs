@@ -55,16 +55,14 @@ function runtimeRequestHeaders({ token, projectId, documentId, anonKey }) {
 }
 
 function openEndedBodyInvoke({ token, projectId, documentId }) {
-  const { anonKey } = localSupabaseEnvironment();
-  const hostname = edgeRuntimeIp();
+  const { apiUrl, anonKey } = localSupabaseEnvironment();
+  const endpoint = new URL(`${apiUrl}/functions/v1/private-document-ingest`);
   return new Promise((resolve, reject) => {
     let settled = false;
     let timer = null;
     const request = httpRequest(
+      endpoint,
       {
-        hostname,
-        port: 8081,
-        path: "/private-document-ingest",
         method: "POST",
         headers: runtimeRequestHeaders({
           token,
@@ -94,7 +92,9 @@ function openEndedBodyInvoke({ token, projectId, documentId }) {
       () =>
         finish(
           reject,
-          new Error("Edge Runtime waited for sender EOF on a framed body."),
+          new Error(
+            "Public promotion endpoint waited for sender EOF on a framed body.",
+          ),
         ),
       OPEN_ENDED_RESPONSE_TIMEOUT_MS,
     );
@@ -218,7 +218,10 @@ function assertRecoveryResourceBoundSource() {
 
 function assertRecoveryStoredMimeSource() {
   const source = recoverySource();
-  assert.ok(source.includes(".info("), "Authoritative MIME metadata is required.");
+  assert.ok(
+    source.includes(".info("),
+    "Authoritative MIME metadata is required.",
+  );
   assert.ok(
     source.includes('"application/pdf"'),
     "Object verification must require authoritative application/pdf metadata.",
@@ -238,20 +241,24 @@ async function runOversizedExistingObjectScenario(context) {
   const path = storagePath(context.projectId, documentId);
   context.objectPaths.push(path);
   rpcFailure(
-    (await stage({
-      client: context.writer.client,
-      projectId: context.projectId,
-      documentId,
-      bytes: expected,
-    })).error,
+    (
+      await stage({
+        client: context.writer.client,
+        projectId: context.projectId,
+        documentId,
+        bytes: expected,
+      })
+    ).error,
     "Synthetic staging precondition",
   );
   const oversized = new Uint8Array(MAX_BYTES + 1);
   oversized.set([0x25, 0x50, 0x44, 0x46, 0x2d]);
-  const injected = await context.admin.storage.from(BUCKET).upload(path, oversized, {
-    contentType: "application/pdf",
-    upsert: false,
-  });
+  const injected = await context.admin.storage
+    .from(BUCKET)
+    .upload(path, oversized, {
+      contentType: "application/pdf",
+      upsert: false,
+    });
   rpcFailure(injected.error, "Synthetic oversized recovery object injection");
   assertRejected(
     await invoke({
@@ -281,18 +288,22 @@ async function runWrongStoredMimeScenario(context) {
   const path = storagePath(context.projectId, documentId);
   context.objectPaths.push(path);
   rpcFailure(
-    (await stage({
-      client: context.writer.client,
-      projectId: context.projectId,
-      documentId,
-      bytes: expected,
-    })).error,
+    (
+      await stage({
+        client: context.writer.client,
+        projectId: context.projectId,
+        documentId,
+        bytes: expected,
+      })
+    ).error,
     "Synthetic staging precondition",
   );
-  const injected = await context.admin.storage.from(BUCKET).upload(path, expected, {
-    contentType: "application/octet-stream",
-    upsert: false,
-  });
+  const injected = await context.admin.storage
+    .from(BUCKET)
+    .upload(path, expected, {
+      contentType: "application/octet-stream",
+      upsert: false,
+    });
   rpcFailure(injected.error, "Synthetic wrong-MIME recovery object injection");
   assertRejected(
     await invoke({
@@ -330,12 +341,14 @@ async function prepareOpenEndedDocument(context) {
   });
   context.objectPaths.push(storagePath(context.projectId, documentId));
   rpcFailure(
-    (await stage({
-      client: context.writer.client,
-      projectId: context.projectId,
-      documentId,
-      bytes,
-    })).error,
+    (
+      await stage({
+        client: context.writer.client,
+        projectId: context.projectId,
+        documentId,
+        bytes,
+      })
+    ).error,
     "Synthetic staging precondition",
   );
   return { documentId, bytes };
