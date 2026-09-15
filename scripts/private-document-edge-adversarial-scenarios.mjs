@@ -48,6 +48,10 @@ function finalizeResult({ client, projectId, documentId }) {
   });
 }
 
+function assertPending(projectId, documentId) {
+  assert.equal(documentUploadStatus({ projectId, documentId }), "pending");
+}
+
 export async function assertMalformedJwtDenied(context, document) {
   const response = await rawInvoke({
     token: "malformed.jwt",
@@ -91,10 +95,7 @@ export async function runFinalizeAuthorizationScenario(context) {
     documentId,
   });
   assert.equal(ingest.error, null, "Precondition promotion must succeed.");
-  assert.equal(
-    documentUploadStatus({ projectId: context.projectId, documentId }),
-    "pending",
-  );
+  assertPending(context.projectId, documentId);
 
   const membership = {
     projectId: context.projectId,
@@ -110,10 +111,7 @@ export async function runFinalizeAuthorizationScenario(context) {
     await finalizeResult(finalization),
     "Role downgrade after promotion must deny finalize.",
   );
-  assert.equal(
-    documentUploadStatus({ projectId: context.projectId, documentId }),
-    "pending",
-  );
+  assertPending(context.projectId, documentId);
 
   setMembershipRole({ ...membership, roleKey: "owner" });
   setMembershipStatus({ ...membership, status: "revoked" });
@@ -121,10 +119,7 @@ export async function runFinalizeAuthorizationScenario(context) {
     await finalizeResult(finalization),
     "Membership revocation after promotion must deny finalize.",
   );
-  assert.equal(
-    documentUploadStatus({ projectId: context.projectId, documentId }),
-    "pending",
-  );
+  assertPending(context.projectId, documentId);
 
   setMembershipStatus({ ...membership, status: "active" });
   await finalize(finalization);
