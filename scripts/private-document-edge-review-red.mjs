@@ -120,12 +120,7 @@ async function preflight(origin) {
   });
 }
 
-async function unknownOriginPost({
-  token,
-  projectId,
-  documentId,
-  bytes,
-}) {
+async function unknownOriginPost({ token, projectId, documentId, bytes }) {
   const { anonKey } = localSupabaseEnvironment();
   return globalThis.fetch(edgeRuntimeUrl(), {
     method: "POST",
