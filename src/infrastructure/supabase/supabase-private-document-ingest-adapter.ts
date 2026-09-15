@@ -101,6 +101,103 @@ async function responsePayload(response: Response): Promise<unknown> {
   }
 }
 
+async function stageDocument(
+  staging: SupabasePrivateDocumentStagingClientLike,
+  input: TrustedPrivateDocumentIngestInput,
+  path: string,
+): Promise<void> {
+  let uploadResult: SupabaseStorageResponse;
+  try {
+    uploadResult = await staging.storage
+      .from(DOCUMENT_INGEST_STAGING_BUCKET)
+      .upload(path, input.bytes, {
+        contentType: input.mimeType,
+        upsert: false,
+      });
+  } catch {
+    throw new DocumentPersistenceError(
+      "storage_retryable",
+      "Private document staging upload failed.",
+    );
+  }
+
+  if (uploadResult.error !== null) {
+    const status = providerStatus(uploadResult.error);
+    if (status !== 409) {
+      throw new DocumentPersistenceError(
+        persistenceCodeFromStatus(status),
+        "Private document staging upload failed.",
+      );
+    }
+    return;
+  }
+  if (!isExactPathReceipt(uploadResult.data, path)) {
+    throw new DocumentPersistenceError(
+      "provider_response_invalid",
+      "Private document staging returned an invalid upload response.",
+    );
+  }
+}
+
+async function promotionAccessToken(
+  staging: SupabasePrivateDocumentStagingClientLike,
+): Promise<string> {
+  let sessionResult: SupabaseSessionResult;
+  try {
+    sessionResult = await staging.auth.getSession();
+  } catch {
+    throw new DocumentPersistenceError(
+      "storage_retryable",
+      "Private document promotion session lookup failed.",
+    );
+  }
+  const token = promotionToken(sessionResult);
+  if (token === null) {
+    throw new DocumentPersistenceError(
+      "persistence_failed",
+      "Private document promotion requires an authenticated session.",
+    );
+  }
+  return token;
+}
+
+async function promoteDocument(
+  promotionFetch: PrivateDocumentPromotionFetch,
+  input: TrustedPrivateDocumentIngestInput,
+  token: string,
+): Promise<void> {
+  let response: Response;
+  try {
+    response = await promotionFetch(PROMOTION_URL, {
+      method: "POST",
+      cache: "no-store",
+      headers: {
+        authorization: `Bearer ${token}`,
+        "x-project-id": input.projectId,
+        "x-document-id": input.documentId,
+      },
+    });
+  } catch {
+    throw new DocumentPersistenceError(
+      "storage_retryable",
+      "Trusted private document promotion failed.",
+    );
+  }
+
+  if (!response.ok) {
+    throw new DocumentPersistenceError(
+      persistenceCodeFromStatus(response.status),
+      "Trusted private document promotion failed.",
+    );
+  }
+  if (!isTrustedIngestReceipt(await responsePayload(response))) {
+    throw new DocumentPersistenceError(
+      "provider_response_invalid",
+      "Trusted private document promotion returned an invalid response.",
+    );
+  }
+}
+
 export class SupabasePrivateDocumentIngestAdapter implements TrustedPrivateDocumentIngestPort {
   constructor(
     private readonly staging: SupabasePrivateDocumentStagingClientLike,
@@ -112,82 +209,8 @@ export class SupabasePrivateDocumentIngestAdapter implements TrustedPrivateDocum
 
   async ingest(input: TrustedPrivateDocumentIngestInput): Promise<void> {
     const path = stagingPath(input);
-    let uploadResult: SupabaseStorageResponse;
-
-    try {
-      uploadResult = await this.staging.storage
-        .from(DOCUMENT_INGEST_STAGING_BUCKET)
-        .upload(path, input.bytes, {
-          contentType: input.mimeType,
-          upsert: false,
-        });
-    } catch {
-      throw new DocumentPersistenceError(
-        "storage_retryable",
-        "Private document staging upload failed.",
-      );
-    }
-
-    if (uploadResult.error !== null) {
-      if (providerStatus(uploadResult.error) !== 409) {
-        throw new DocumentPersistenceError(
-          persistenceCodeFromStatus(providerStatus(uploadResult.error)),
-          "Private document staging upload failed.",
-        );
-      }
-    } else if (!isExactPathReceipt(uploadResult.data, path)) {
-      throw new DocumentPersistenceError(
-        "provider_response_invalid",
-        "Private document staging returned an invalid upload response.",
-      );
-    }
-
-    let sessionResult: SupabaseSessionResult;
-    try {
-      sessionResult = await this.staging.auth.getSession();
-    } catch {
-      throw new DocumentPersistenceError(
-        "storage_retryable",
-        "Private document promotion session lookup failed.",
-      );
-    }
-    const token = promotionToken(sessionResult);
-    if (token === null) {
-      throw new DocumentPersistenceError(
-        "persistence_failed",
-        "Private document promotion requires an authenticated session.",
-      );
-    }
-
-    let response: Response;
-    try {
-      response = await this.promotionFetch(PROMOTION_URL, {
-        method: "POST",
-        cache: "no-store",
-        headers: {
-          authorization: `Bearer ${token}`,
-          "x-project-id": input.projectId,
-          "x-document-id": input.documentId,
-        },
-      });
-    } catch {
-      throw new DocumentPersistenceError(
-        "storage_retryable",
-        "Trusted private document promotion failed.",
-      );
-    }
-
-    if (!response.ok) {
-      throw new DocumentPersistenceError(
-        persistenceCodeFromStatus(response.status),
-        "Trusted private document promotion failed.",
-      );
-    }
-    if (!isTrustedIngestReceipt(await responsePayload(response))) {
-      throw new DocumentPersistenceError(
-        "provider_response_invalid",
-        "Trusted private document promotion returned an invalid response.",
-      );
-    }
+    await stageDocument(this.staging, input, path);
+    const token = await promotionAccessToken(this.staging);
+    await promoteDocument(this.promotionFetch, input, token);
   }
 }

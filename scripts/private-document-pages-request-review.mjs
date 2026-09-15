@@ -11,7 +11,7 @@ const UNKNOWN_ORIGIN = "https://attacker.invalid";
 const RESPONSE_TIMEOUT_MS = 5_000;
 
 function openFramedRequest({ token, projectId, documentId }) {
-  const endpoint = new URL(promotionUrl());
+  const endpoint = new globalThis.URL(promotionUrl());
   return new Promise((resolve, reject) => {
     let settled = false;
     let timer = null;
@@ -88,7 +88,7 @@ async function preflight(origin) {
 }
 
 export async function assertSameOriginPolicy(context, documentId) {
-  const sameOrigin = new URL(promotionUrl()).origin;
+  const sameOrigin = new globalThis.URL(promotionUrl()).origin;
   const sameOriginOptions = await preflight(sameOrigin);
   const foreignOptions = await preflight(UNKNOWN_ORIGIN);
   assert.equal(sameOriginOptions.status, 405);

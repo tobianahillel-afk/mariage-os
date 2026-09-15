@@ -17,7 +17,10 @@ import {
 
 function verifierSource() {
   const source = readFileSync(
-    new URL("../functions/api/private-document-promote.ts", import.meta.url),
+    new globalThis.URL(
+      "../functions/api/private-document-promote.ts",
+      import.meta.url,
+    ),
     "utf8",
   );
   const start = source.indexOf(

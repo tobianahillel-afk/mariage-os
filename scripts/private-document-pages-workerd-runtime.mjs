@@ -79,7 +79,7 @@ async function main() {
           PRIVATE_DOCUMENT_ADMIN_KEY: environment.serviceRoleKey,
         },
         serviceBindings: {
-          ASSETS: () => new Response("Not found", { status: 404 }),
+          ASSETS: () => new globalThis.Response("Not found", { status: 404 }),
         },
       }),
     );

@@ -96,6 +96,17 @@ interface PromotionContext {
   readonly projectId: string;
 }
 
+interface StorageInfoShape {
+  readonly size: unknown;
+  readonly contentType: unknown;
+}
+
+interface StorageDownloadShape {
+  readonly size: number;
+  readonly type: string;
+  arrayBuffer(): Promise<ArrayBuffer>;
+}
+
 function nonEmpty(...values: ReadonlyArray<string | undefined>): string | null {
   return (
     values.find((value) => typeof value === "string" && value.length > 0) ??
@@ -200,20 +211,20 @@ function validReservation(
   projectId: string,
   documentId: string,
 ): boolean {
-  return (
-    value.id === documentId &&
-    value.project_id === projectId &&
-    value.storage_path === exactStoragePath(projectId, documentId) &&
-    value.mime_type === "application/pdf" &&
-    Number.isSafeInteger(value.size_bytes) &&
-    value.size_bytes >= 1 &&
-    value.size_bytes <= MAX_BYTES &&
-    SHA256_PATTERN.test(value.sha256) &&
-    value.classification === "private" &&
-    value.upload_status === "pending" &&
-    value.deleted_at === null &&
-    value.remote_url === null
-  );
+  return [
+    value.id === documentId,
+    value.project_id === projectId,
+    value.storage_path === exactStoragePath(projectId, documentId),
+    value.mime_type === "application/pdf",
+    Number.isSafeInteger(value.size_bytes),
+    value.size_bytes >= 1,
+    value.size_bytes <= MAX_BYTES,
+    SHA256_PATTERN.test(value.sha256),
+    value.classification === "private",
+    value.upload_status === "pending",
+    value.deleted_at === null,
+    value.remote_url === null,
+  ].every(Boolean);
 }
 
 async function bytesMatchReservation(
@@ -235,32 +246,43 @@ async function storageObjectMatchesReservation(
   const storage = admin.storage.from(bucket);
   const info = await storage.info(path);
   if (info.error || info.data === null) return false;
-  const objectSize = info.data.size;
-  if (
-    typeof objectSize !== "number" ||
-    !Number.isSafeInteger(objectSize) ||
-    objectSize < 1 ||
-    objectSize > MAX_BYTES ||
-    objectSize !== reservation.size_bytes ||
-    info.data.contentType !== "application/pdf"
-  ) {
-    return false;
-  }
+  if (!storageInfoMatchesReservation(info.data, reservation)) return false;
 
   const { data, error } = await storage.download(path);
   if (error || data === null) return false;
-  if (
-    data.size !== objectSize ||
-    data.size > MAX_BYTES ||
-    data.type !== "application/pdf"
-  ) {
-    return false;
-  }
+  if (!downloadMatchesStorageInfo(data, info.data.size)) return false;
 
   return bytesMatchReservation(
     new Uint8Array(await data.arrayBuffer()),
     reservation,
   );
+}
+
+function storageInfoMatchesReservation(
+  info: StorageInfoShape,
+  reservation: ReservedDocument,
+): boolean {
+  const objectSize = info.size;
+  return [
+    typeof objectSize === "number",
+    Number.isSafeInteger(objectSize),
+    typeof objectSize === "number" && objectSize >= 1,
+    typeof objectSize === "number" && objectSize <= MAX_BYTES,
+    objectSize === reservation.size_bytes,
+    info.contentType === "application/pdf",
+  ].every(Boolean);
+}
+
+function downloadMatchesStorageInfo(
+  data: StorageDownloadShape,
+  objectSize: unknown,
+): boolean {
+  return [
+    typeof objectSize === "number",
+    data.size === objectSize,
+    data.size <= MAX_BYTES,
+    data.type === "application/pdf",
+  ].every(Boolean);
 }
 
 async function hasWritePermission(
