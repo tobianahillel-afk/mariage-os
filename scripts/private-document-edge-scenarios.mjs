@@ -3,6 +3,7 @@ import {
   assertMalformedJwtDenied,
   runFinalizeAuthorizationScenario,
 } from "./private-document-pages-adversarial-scenarios.mjs";
+import { runInterruptedStagingAbandonRed } from "./private-document-pages-abandon-red.mjs";
 import {
   runCanonicalIntegrityScenarios,
   runStagingIntegrityScenarios,
@@ -276,6 +277,7 @@ export async function runTrustedIngestScenarios() {
     await runFinalizeAuthorizationScenario(context);
     await runCanonicalIntegrityScenarios(context);
     await runReviewFindingRedScenarios(context);
+    await runInterruptedStagingAbandonRed(context);
   } finally {
     await cleanupHarness(context);
   }
