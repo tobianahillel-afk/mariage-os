@@ -111,7 +111,9 @@ describe("SupabasePrivateDocumentIngestAdapter staging contract", () => {
 
     try {
       await expect(
-        new SupabasePrivateDocumentIngestAdapter(staging.client).ingest(input()),
+        new SupabasePrivateDocumentIngestAdapter(staging.client).ingest(
+          input(),
+        ),
       ).resolves.toBeUndefined();
       expect(globalFetch).toHaveBeenCalledOnce();
     } finally {
