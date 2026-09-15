@@ -44,9 +44,7 @@ export function assertRecoverySourceContracts() {
   const boundIndex = verifier.indexOf("storageInfoMatchesReservation");
   const downloadIndex = verifier.indexOf(".download(");
   assert.ok(
-    infoIndex >= 0 &&
-      boundIndex > infoIndex &&
-      downloadIndex > boundIndex,
+    infoIndex >= 0 && boundIndex > infoIndex && downloadIndex > boundIndex,
     "Storage metadata bounds must precede object materialization.",
   );
   assert.ok(
