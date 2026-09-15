@@ -137,7 +137,11 @@ async function runStagingAuthorizationScenarios(context, document) {
     "Project outsiders must not write staging bytes.",
   );
   assertRejected(
-    await stage({ ...common, projectId: randomUUID(), client: context.writer.client }),
+    await stage({
+      ...common,
+      projectId: randomUUID(),
+      client: context.writer.client,
+    }),
     "Caller-substituted project paths must not write staging bytes.",
   );
   const staged = await stage({ ...common, client: context.writer.client });
@@ -146,10 +150,14 @@ async function runStagingAuthorizationScenarios(context, document) {
 
   const directUpload = await context.writer.client.storage
     .from(BUCKET)
-    .upload(storagePath(context.projectId, document.documentId), document.bytes, {
-      contentType: "application/pdf",
-      upsert: false,
-    });
+    .upload(
+      storagePath(context.projectId, document.documentId),
+      document.bytes,
+      {
+        contentType: "application/pdf",
+        upsert: false,
+      },
+    );
   assertRejected(
     directUpload,
     "Authenticated writer must not bypass promotion into canonical storage.",
@@ -242,7 +250,10 @@ async function runSuccessfulPromotionScenario(context, document) {
   assert.equal(replay.error, null, "Exact canonical retry must recover.");
   assert.deepEqual(replay.data, { ok: true, replayed: true });
   await finalize(request);
-  assertReady({ projectId: context.projectId, documentId: document.documentId });
+  assertReady({
+    projectId: context.projectId,
+    documentId: document.documentId,
+  });
   assertRejected(
     await stage({ ...request, bytes: document.bytes }),
     "Ready documents must not accept new staging bytes.",
@@ -364,12 +375,14 @@ async function runInvalidSignatureScenario(context) {
     "Synthetic invalid staging signature",
   );
   rpcFailure(
-    (await stage({
-      client: context.writer.client,
-      projectId: context.projectId,
-      documentId: document.documentId,
-      bytes,
-    })).error,
+    (
+      await stage({
+        client: context.writer.client,
+        projectId: context.projectId,
+        documentId: document.documentId,
+        bytes,
+      })
+    ).error,
     "Invalid-signature staging precondition",
   );
   assertRejected(
@@ -394,21 +407,25 @@ async function runPoisonedExistingObjectScenario(context) {
     "Synthetic poisoned existing object",
   );
   rpcFailure(
-    (await stage({
-      client: context.writer.client,
-      projectId: context.projectId,
-      documentId: document.documentId,
-      bytes: document.bytes,
-    })).error,
+    (
+      await stage({
+        client: context.writer.client,
+        projectId: context.projectId,
+        documentId: document.documentId,
+        bytes: document.bytes,
+      })
+    ).error,
     "Poisoned-canonical staging precondition",
   );
   const path = storagePath(context.projectId, document.documentId);
   const poisoned = document.bytes.slice();
   poisoned[poisoned.length - 1] ^= 0xff;
-  const injected = await context.admin.storage.from(BUCKET).upload(path, poisoned, {
-    contentType: "application/pdf",
-    upsert: false,
-  });
+  const injected = await context.admin.storage
+    .from(BUCKET)
+    .upload(path, poisoned, {
+      contentType: "application/pdf",
+      upsert: false,
+    });
   rpcFailure(injected.error, "Synthetic privileged stale object injection");
   assertRejected(
     await invoke({
@@ -432,12 +449,14 @@ async function runFeasibilityScenario(context) {
     "Synthetic 25 MB feasibility PDF",
   );
   rpcFailure(
-    (await stage({
-      client: context.writer.client,
-      projectId: context.projectId,
-      documentId: document.documentId,
-      bytes: document.bytes,
-    })).error,
+    (
+      await stage({
+        client: context.writer.client,
+        projectId: context.projectId,
+        documentId: document.documentId,
+        bytes: document.bytes,
+      })
+    ).error,
     "Exact 25 MB staging",
   );
   const accepted = await invoke({
