@@ -120,7 +120,12 @@ async function preflight(origin) {
   });
 }
 
-async function unknownOriginPost({ token, projectId, documentId, bytes }) {
+async function unknownOriginPost({
+  token,
+  projectId,
+  documentId,
+  bytes,
+}) {
   const { anonKey } = localSupabaseEnvironment();
   return globalThis.fetch(edgeRuntimeUrl(), {
     method: "POST",
@@ -356,10 +361,7 @@ export async function runReviewFindingRedScenarios(context) {
     await runWrongStoredMimeScenario(context);
   });
   await recordFinding(failures, "WP29C-AR-001", async () => {
-    await assertOpenEndedOversizeDenied(
-      context,
-      openEndedDocument.documentId,
-    );
+    await assertOpenEndedOversizeDenied(context, openEndedDocument.documentId);
   });
 
   if (failures.length > 0) {
