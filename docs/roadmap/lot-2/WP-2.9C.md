@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.9C`
 - Lot: `2`
 - Name: Trusted private-document ingestion hardening
-- State: `IN_PROGRESS`
-- Current pass: `A-IMPLEMENT — RED FIRST`
+- State: `REVIEW_PENDING`
+- Current pass: `B-ADVERSARIAL-REVIEW`
 - Primary bounded context: Documents — trusted binary promotion for the existing WP-2.9A private PDF lifecycle
 - Branch/PR: `lot-2/venues-core` / Lot-2 integration PR not opened yet
 - FIR: `#17 / FTR-089`
@@ -17,19 +17,18 @@
 
 ## Current packet verdict
 
-WP-2.9C is active again but **not acceptable yet**.
+WP-2.9C Pass A is complete and the packet is now **REVIEW_PENDING**. It is not accepted.
 
-The prior design blocker is resolved by accepted ADR 0010. The security finding itself remains open and is now the focused RED target:
+ADR-0010 migration/remediation is implementation-green on exact head `297ecdf3337e8522d6f200a90f96b481a9e6bdb1` / CI `34996240637` — **5/5 SUCCESS**, including clean-checkout `npm run verify`.
 
-- `WP29C-AR-001` — **MAJOR / OPEN / RED TARGET**: the former Supabase promotion route waits for sender EOF on an intentionally open-ended framed request. The accepted replacement must prove EOF-independent rejection in a real Cloudflare Pages/Workers runtime and remove the old Supabase promotion route so no direct-origin bypass remains.
+Current finding posture before fresh Pass B:
 
-Already-implemented remediation remains green for:
+- `WP29C-AR-001` — remediation implemented/runtime-green: the old Supabase promotion function is removed from deployable code/config, application promotion targets same-origin `/api/private-document-promote`, and the real Wrangler/workerd adversarial harness proves framed/open-ended promotion requests are rejected without waiting for sender EOF. Formal closure waits for complete fresh Pass B.
+- `WP29C-AR-002` — remediation implemented/runtime-green: bounded canonical recovery; formal closure waits for fresh Pass B.
+- `WP29C-AR-003` — remediation implemented/runtime-green: authoritative stored MIME proof; formal closure waits for fresh Pass B.
+- `WP29C-AR-004` — remediation implemented/runtime-green: explicit/minimal CORS; formal closure waits for fresh Pass B.
 
-- `WP29C-AR-002` — bounded canonical recovery;
-- `WP29C-AR-003` — authoritative stored MIME proof;
-- `WP29C-AR-004` — explicit/minimal CORS behavior.
-
-Formal closure of AR-002/003/004 still waits for a complete fresh Pass B after the ADR-0010 migration.
+The next permitted action is a complete fresh independent/adversarial Pass B over the whole packet. Any BLOCKING/MAJOR finding transitions the packet to `REVIEW_FAILED`; only a clean Pass B may advance to `ACCEPTANCE_PENDING`.
 
 ## Why this packet exists
 
@@ -215,6 +214,27 @@ Quality-preserving implementation head:
 
 Blocked-state documentation `52572b24bba83a2aadb22c80f2764c92875219f1` / CI `34975858942` reproduced the same single security RED while Core/browser/preview/DB stayed green.
 
+### ADR-0010 Pass-A implementation evidence
+
+Exact implementation head `297ecdf3337e8522d6f200a90f96b481a9e6bdb1` / CI `34996240637`:
+
+- Core quality/security: **PASS**;
+- Browser/mutation: **PASS**;
+- Local Supabase DB/RLS + Pages Function promotion harness: **PASS**;
+- Privacy-safe preview: **PASS**;
+- Full verify from clean checkout: **PASS**;
+- static gates: formatting, lint, architecture, deadcode and forbidden markers **PASS**;
+- unit suite: **1578 tests PASS with global 100% thresholds preserved**;
+- staging bucket/RLS/canonical bypass contracts: **PASS**;
+- same-origin bodyless promotion contract: **PASS**;
+- old Supabase promotion function/config/application invocation absence: **PASS**;
+- real Wrangler/workerd open-ended framed-body rejection without sender EOF: **PASS**;
+- bounded staged/canonical byte proof, stored MIME, recovery, poisoned-object failure, live authorization/revocation and finalization reauthorization: **PASS**;
+- exact `25,000,000`-byte trusted promotion feasibility: **PASS**;
+- CORS and secret/public-artifact safety checks: **PASS**.
+
+This evidence completes Pass A. It does not itself close review findings; fresh Pass B is mandatory.
+
 ## Architecture-blocker resolution history
 
 - ADR 0010 initially proposed: `d6beb3c8fa9d68b8ee88e3472db0f3744dd1a7e9`.
@@ -226,11 +246,11 @@ Blocked-state documentation `52572b24bba83a2aadb22c80f2764c92875219f1` / CI `349
 - blocker record marked resolved: `7c355b472cbf8e060736bb7eb302f4ed4862d8d1`.
 - implementation-status resume cursor: `54f2bdc4a7419062d6279004138c9c14f0be0f36`.
 
-ADR 0010 resolves the **design dependency**. It does not close AR-001; AR-001 remains the implementation RED target.
+ADR 0010 resolves the historical design dependency. The current implementation is now exact-head green and awaits fresh Pass B.
 
 ## RED-first contract for current pass
 
-Before production migration, focused tests must fail for exactly the still-unimplemented ADR-0010 boundary:
+Historical Pass-A RED contract before production migration:
 
 1. application promotion adapter must target same-origin `/api/private-document-promote` with no body rather than Supabase Functions;
 2. deployable Supabase configuration/source must not retain `private-document-ingest` after GREEN;
@@ -238,7 +258,7 @@ Before production migration, focused tests must fail for exactly the still-unimp
 4. non-zero `Content-Length` must be rejected before body consumption;
 5. all existing staging/auth/integrity/recovery/finalization scenarios must remain represented and must not be deleted to obtain green.
 
-The initial RED may include missing Pages Function/runtime infrastructure. Production removal/porting begins only after those failures are isolated to this boundary.
+These RED targets are now GREEN on the Pass-A head above and become fresh Pass-B review inputs rather than reasons to skip review.
 
 ## Verification contract after GREEN
 
@@ -302,22 +322,20 @@ If the intended Free runtime cannot safely satisfy the exact 25 MB proof, C retu
 
 ## State / sequencing
 
-Current state: **IN_PROGRESS / A-IMPLEMENT — RED FIRST**.
+Current state: **REVIEW_PENDING / B-ADVERSARIAL-REVIEW**.
 
 Current gate:
 
-1. ADR 0010 is accepted and architecture blocker is resolved;
-2. add focused **test-only RED** for Pages Function migration/runtime/direct-origin absence;
-3. confirm RED is isolated to the intended boundary;
-4. implement Pages Function and remove the old Supabase promotion Edge Function;
-5. port/preserve all existing security scenarios;
-6. prove exact 25 MB Free-runtime feasibility;
-7. exact-head CI/full verification;
-8. complete fresh independent Pass B;
-9. only clean Pass B may advance to Pass C;
-10. only after C ACCEPTED may WP-2.9A resume;
-11. WP-2.9B remains `PLANNED / AFTER A` until A is accepted.
+1. Pass-A implementation head `297ecdf3337e8522d6f200a90f96b481a9e6bdb1` / CI `34996240637` is exact-head **5/5 SUCCESS**, clean-checkout included;
+2. perform a complete fresh independent/adversarial Pass B over all WP-2.9C responsibilities and historical findings;
+3. explicitly re-test ADR-0010 ingress/bodyless behavior, old-route absence, authorization/revocation, staging/canonical integrity, cleanup, CORS, secret safety and exact 25 MB feasibility;
+4. any BLOCKING/MAJOR finding → `REVIEW_FAILED` with durable finding/remediation record;
+5. if Pass B has no unresolved BLOCKING/MAJOR finding → `ACCEPTANCE_PENDING`;
+6. only from `ACCEPTANCE_PENDING` may Pass C mechanically reconcile EXPECTED vs IMPLEMENTED vs VERIFIED;
+7. only Pass C may mark WP-2.9C `ACCEPTED`;
+8. only after C ACCEPTED may WP-2.9A resume;
+9. WP-2.9B remains `PLANNED / AFTER A` until A is accepted.
 
 ## Deviations
 
-No security-contract deviation is authorized. ADR 0010 is accepted; AR-001 remains open until implementation evidence closes it.
+No security-contract deviation is authorized. Pass A is green; no finding is formally closed until fresh Pass B disposition.
