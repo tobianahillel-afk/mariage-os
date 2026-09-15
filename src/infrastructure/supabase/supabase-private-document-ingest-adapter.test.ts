@@ -21,9 +21,7 @@ function persistenceCode(value: unknown) {
 }
 
 function functionError(message: string, status: number) {
-  return Object.assign(new Error(message), {
-    context: { status },
-  });
+  return Object.assign(new Error(message), { context: { status } });
 }
 
 function storageError(message: string, statusCode: number | string) {
@@ -39,12 +37,9 @@ function successfulStaging() {
   return { upload, from, client: { storage: { from } } };
 }
 
-describe("SupabasePrivateDocumentIngestAdapter request contract", () => {
+describe("SupabasePrivateDocumentIngestAdapter staging contract", () => {
   it("stages exact bytes and promotes only authoritative identifiers", async () => {
-    const invoke = vi.fn().mockResolvedValue({
-      data: { ok: true },
-      error: null,
-    });
+    const invoke = vi.fn().mockResolvedValue({ data: { ok: true }, error: null });
     const staging = successfulStaging();
     const adapter = new SupabasePrivateDocumentIngestAdapter(
       { invoke },
@@ -83,16 +78,15 @@ describe("SupabasePrivateDocumentIngestAdapter request contract", () => {
     );
     expect(invoke).not.toHaveBeenCalled();
   });
+});
 
-  it("forwards an existing staging conflict to trusted promotion for revalidation", async () => {
+describe("SupabasePrivateDocumentIngestAdapter staging retry contract", () => {
+  it("forwards an existing staging conflict for trusted revalidation", async () => {
     const upload = vi.fn().mockResolvedValue({
       data: null,
       error: storageError("already exists", "409"),
     });
-    const invoke = vi.fn().mockResolvedValue({
-      data: { ok: true },
-      error: null,
-    });
+    const invoke = vi.fn().mockResolvedValue({ data: { ok: true }, error: null });
     const adapter = new SupabasePrivateDocumentIngestAdapter(
       { invoke },
       { storage: { from: () => ({ upload }) } },
@@ -122,8 +116,8 @@ describe("SupabasePrivateDocumentIngestAdapter response contract", () => {
   });
 });
 
-describe("SupabasePrivateDocumentIngestAdapter retryable failures", () => {
-  it("maps staging transport failures to retryable storage failure without promotion", async () => {
+describe("SupabasePrivateDocumentIngestAdapter staging failures", () => {
+  it("maps staging transport failures to retryable without promotion", async () => {
     const upload = vi.fn().mockRejectedValue(new Error("network down"));
     const invoke = vi.fn();
     const adapter = new SupabasePrivateDocumentIngestAdapter(
@@ -137,7 +131,7 @@ describe("SupabasePrivateDocumentIngestAdapter retryable failures", () => {
     expect(invoke).not.toHaveBeenCalled();
   });
 
-  it("maps staging server failures to retryable storage failure without promotion", async () => {
+  it("maps staging server failures to retryable without promotion", async () => {
     const upload = vi.fn().mockResolvedValue({
       data: null,
       error: storageError("storage unavailable", 503),
@@ -153,7 +147,9 @@ describe("SupabasePrivateDocumentIngestAdapter retryable failures", () => {
     );
     expect(invoke).not.toHaveBeenCalled();
   });
+});
 
+describe("SupabasePrivateDocumentIngestAdapter promotion failures", () => {
   it("maps promotion server failures to retryable storage failure", async () => {
     const invoke = vi.fn().mockResolvedValue({
       data: null,
@@ -184,7 +180,9 @@ describe("SupabasePrivateDocumentIngestAdapter retryable failures", () => {
       (error: unknown) => persistenceCode(error) === "storage_retryable",
     );
   });
+});
 
+describe("SupabasePrivateDocumentIngestAdapter malformed provider failures", () => {
   it("treats malformed promotion provider errors as retryable", async () => {
     const errors = [
       "raw provider failure",

@@ -49,26 +49,27 @@ function isTrustedIngestReceipt(value: unknown): boolean {
   );
 }
 
+function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+  return typeof value === "object" && value !== null;
+}
+
+function parseProviderStatus(value: unknown): number | null {
+  if (typeof value === "number" && Number.isInteger(value)) return value;
+  if (typeof value === "string" && /^\d{3}$/.test(value)) return Number(value);
+  return null;
+}
+
 function providerStatus(error: unknown): number | null {
-  if (typeof error !== "object" || error === null) return null;
+  if (!isRecord(error)) return null;
 
-  const directStatus = (error as { readonly status?: unknown }).status;
-  if (typeof directStatus === "number" && Number.isInteger(directStatus)) {
-    return directStatus;
-  }
+  const directStatus = parseProviderStatus(error.status);
+  if (directStatus !== null) return directStatus;
 
-  const statusCode = (error as { readonly statusCode?: unknown }).statusCode;
-  if (typeof statusCode === "number" && Number.isInteger(statusCode)) {
-    return statusCode;
-  }
-  if (typeof statusCode === "string" && /^\d{3}$/.test(statusCode)) {
-    return Number(statusCode);
-  }
+  const statusCode = parseProviderStatus(error.statusCode);
+  if (statusCode !== null) return statusCode;
 
-  const context = (error as { readonly context?: unknown }).context;
-  if (typeof context !== "object" || context === null) return null;
-  const status = (context as { readonly status?: unknown }).status;
-  return typeof status === "number" && Number.isInteger(status) ? status : null;
+  if (!isRecord(error.context)) return null;
+  return parseProviderStatus(error.context.status);
 }
 
 function persistenceCode(error: unknown) {
