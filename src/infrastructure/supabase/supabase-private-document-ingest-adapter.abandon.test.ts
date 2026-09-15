@@ -9,18 +9,32 @@ const documentId = "22222222-2222-4222-8222-222222222222";
 const operationId = "33333333-3333-4333-8333-333333333333";
 const token = "synthetic-access-token";
 
-describe("SupabasePrivateDocumentIngestAdapter trusted abandon", () => {
-  it("uses the bodyless trusted boundary instead of client Storage deletion", async () => {
-    const upload = vi.fn();
-    const from = vi.fn(() => ({ upload }));
-    const getSession = vi.fn(async () => ({
-      data: { session: { access_token: token } },
-      error: null,
-    }));
-    const client: SupabasePrivateDocumentStagingClientLike = {
+function stagingClient(): {
+  readonly client: SupabasePrivateDocumentStagingClientLike;
+  readonly from: ReturnType<typeof vi.fn>;
+  readonly upload: ReturnType<typeof vi.fn>;
+  readonly getSession: ReturnType<typeof vi.fn>;
+} {
+  const upload = vi.fn();
+  const from = vi.fn(() => ({ upload }));
+  const getSession = vi.fn(async () => ({
+    data: { session: { access_token: token } },
+    error: null,
+  }));
+  return {
+    client: {
       storage: { from },
       auth: { getSession },
-    };
+    },
+    from,
+    upload,
+    getSession,
+  };
+}
+
+describe("SupabasePrivateDocumentIngestAdapter trusted abandon", () => {
+  it("uses the bodyless trusted boundary instead of client Storage deletion", async () => {
+    const { client, from, upload, getSession } = stagingClient();
     const promotionFetch = vi.fn().mockResolvedValue(
       new Response(JSON.stringify({ ok: true, absent: true }), {
         status: 200,
@@ -52,5 +66,27 @@ describe("SupabasePrivateDocumentIngestAdapter trusted abandon", () => {
         },
       },
     );
+  });
+
+  it("fails closed when the trusted abandon receipt does not prove absence", async () => {
+    const { client } = stagingClient();
+    const promotionFetch = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ ok: true, absent: false }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }),
+    );
+    const adapter = new SupabasePrivateDocumentIngestAdapter(
+      client,
+      promotionFetch,
+    );
+
+    await expect(
+      adapter.abandon({ operationId, projectId, documentId }),
+    ).rejects.toMatchObject({
+      name: "DocumentPersistenceError",
+      code: "provider_response_invalid",
+      message: "Trusted private document abandon returned an invalid response.",
+    });
   });
 });
