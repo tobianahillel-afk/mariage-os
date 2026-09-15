@@ -225,6 +225,22 @@ describe("SupabasePrivateDocumentIngestAdapter staging failures", () => {
   });
 });
 
+describe("SupabasePrivateDocumentIngestAdapter provider error shape", () => {
+  it("treats unstructured staging errors as retryable", async () => {
+    const upload = vi.fn().mockResolvedValue({
+      data: null,
+      error: "unstructured provider failure",
+    });
+    const staging = clientWith(upload);
+
+    await expect(
+      new SupabasePrivateDocumentIngestAdapter(staging.client).ingest(input()),
+    ).rejects.toSatisfy(
+      (error: unknown) => persistenceCode(error) === "storage_retryable",
+    );
+  });
+});
+
 describe("SupabasePrivateDocumentIngestAdapter session boundary", () => {
   it("maps session lookup transport failure to retryable", async () => {
     const staging = successfulClient();
