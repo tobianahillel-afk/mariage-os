@@ -376,7 +376,11 @@ export async function assertStagedObjectPresent({
   const info = await admin.storage
     .from(STAGING_BUCKET)
     .info(storagePath(projectId, documentId));
-  assert.equal(info.error, null, "Expected staging object must remain present.");
+  assert.equal(
+    info.error,
+    null,
+    "Expected staging object must remain present.",
+  );
   assert.notEqual(info.data, null, "Expected staging metadata must exist.");
 }
 
