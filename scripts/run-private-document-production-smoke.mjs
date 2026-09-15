@@ -51,7 +51,9 @@ async function assertDenied(label, expectedStatus, init) {
 }
 
 async function run() {
-  const staticResponse = await globalThis.fetch(baseUrl, { redirect: "manual" });
+  const staticResponse = await globalThis.fetch(baseUrl, {
+    redirect: "manual",
+  });
   if (staticResponse.status >= 500) {
     throw new Error(
       `Static application smoke failed with ${staticResponse.status}.`,
