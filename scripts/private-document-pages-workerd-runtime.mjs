@@ -56,7 +56,8 @@ async function main() {
   const temporaryDirectory = mkdtempSync(
     join(tmpdir(), "mariage-os-pages-workerd-"),
   );
-  const bundlePath = join(temporaryDirectory, "pages-functions.mjs");
+  const bundleFilename = "pages-functions.mjs";
+  const bundlePath = join(temporaryDirectory, bundleFilename);
   const binary = wranglerBinary();
   const { Miniflare, convertV4MiniflareOptions } =
     miniflareFromWrangler(binary);
@@ -69,7 +70,8 @@ async function main() {
       convertV4MiniflareOptions({
         host: "127.0.0.1",
         port: 0,
-        scriptPath: bundlePath,
+        rootPath: temporaryDirectory,
+        scriptPath: bundleFilename,
         modules: true,
         compatibilityDate: "2026-09-15",
         bindings: {
