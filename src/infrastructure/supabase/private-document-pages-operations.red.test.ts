@@ -14,10 +14,15 @@ describe("WP-2.9C AR-007 Pages deployment and secret operations", () => {
     expect(releaseSource).toContain("legacy Supabase promotion route");
   });
 
-  it("records metadata-only lifecycle operations for the privileged Pages secret", () => {
-    expect(secretSource).toContain("PRIVATE_DOCUMENT_ADMIN_KEY");
-    expect(secretSource).toContain("Cloudflare Pages encrypted secret");
-    expect(secretSource).toContain("Supabase server/service credential");
-    expect(secretSource).toContain("verify the previous credential is rejected");
-  });
+  it(
+    "records metadata-only lifecycle operations for the privileged Pages secret",
+    () => {
+      expect(secretSource).toContain("PRIVATE_DOCUMENT_ADMIN_KEY");
+      expect(secretSource).toContain("Cloudflare Pages encrypted secret");
+      expect(secretSource).toContain("Supabase server/service credential");
+      expect(secretSource).toContain(
+        "verify the previous credential is rejected",
+      );
+    },
+  );
 });
