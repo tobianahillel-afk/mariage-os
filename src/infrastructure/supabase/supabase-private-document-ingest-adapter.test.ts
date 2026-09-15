@@ -38,8 +38,11 @@ function successfulStaging() {
 }
 
 describe("SupabasePrivateDocumentIngestAdapter staging contract", () => {
-  it("stages exact bytes and promotes only authoritative identifiers", async () => {
-    const invoke = vi.fn().mockResolvedValue({ data: { ok: true }, error: null });
+  it("stages exact bytes and promotes only identifiers", async () => {
+    const invoke = vi.fn().mockResolvedValue({
+      data: { ok: true },
+      error: null,
+    });
     const staging = successfulStaging();
     const adapter = new SupabasePrivateDocumentIngestAdapter(
       { invoke },
@@ -61,7 +64,7 @@ describe("SupabasePrivateDocumentIngestAdapter staging contract", () => {
     });
   });
 
-  it("fails closed on malformed staging success and does not promote", async () => {
+  it("rejects malformed staging success before promotion", async () => {
     const upload = vi.fn().mockResolvedValue({
       data: { path: `${path}-wrong` },
       error: null,
@@ -80,13 +83,16 @@ describe("SupabasePrivateDocumentIngestAdapter staging contract", () => {
   });
 });
 
-describe("SupabasePrivateDocumentIngestAdapter staging retry contract", () => {
-  it("forwards an existing staging conflict for trusted revalidation", async () => {
+describe("SupabasePrivateDocumentIngestAdapter staging retry", () => {
+  it("forwards a conflict for trusted revalidation", async () => {
     const upload = vi.fn().mockResolvedValue({
       data: null,
       error: storageError("already exists", "409"),
     });
-    const invoke = vi.fn().mockResolvedValue({ data: { ok: true }, error: null });
+    const invoke = vi.fn().mockResolvedValue({
+      data: { ok: true },
+      error: null,
+    });
     const adapter = new SupabasePrivateDocumentIngestAdapter(
       { invoke },
       { storage: { from: () => ({ upload }) } },
@@ -98,7 +104,7 @@ describe("SupabasePrivateDocumentIngestAdapter staging retry contract", () => {
 });
 
 describe("SupabasePrivateDocumentIngestAdapter response contract", () => {
-  it("fails closed on malformed successful promotion data", async () => {
+  it("fails closed on malformed promotion data", async () => {
     const invoke = vi.fn().mockResolvedValue({
       data: { ok: false },
       error: null,
@@ -117,7 +123,7 @@ describe("SupabasePrivateDocumentIngestAdapter response contract", () => {
 });
 
 describe("SupabasePrivateDocumentIngestAdapter staging failures", () => {
-  it("maps staging transport failures to retryable without promotion", async () => {
+  it("maps staging transport failure to retryable", async () => {
     const upload = vi.fn().mockRejectedValue(new Error("network down"));
     const invoke = vi.fn();
     const adapter = new SupabasePrivateDocumentIngestAdapter(
@@ -131,7 +137,7 @@ describe("SupabasePrivateDocumentIngestAdapter staging failures", () => {
     expect(invoke).not.toHaveBeenCalled();
   });
 
-  it("maps staging server failures to retryable without promotion", async () => {
+  it("maps staging server failure to retryable", async () => {
     const upload = vi.fn().mockResolvedValue({
       data: null,
       error: storageError("storage unavailable", 503),
@@ -150,7 +156,7 @@ describe("SupabasePrivateDocumentIngestAdapter staging failures", () => {
 });
 
 describe("SupabasePrivateDocumentIngestAdapter promotion failures", () => {
-  it("maps promotion server failures to retryable storage failure", async () => {
+  it("maps promotion server failure to retryable", async () => {
     const invoke = vi.fn().mockResolvedValue({
       data: null,
       error: functionError("server unavailable", 503),
@@ -167,7 +173,7 @@ describe("SupabasePrivateDocumentIngestAdapter promotion failures", () => {
     );
   });
 
-  it("maps promotion transport failures to retryable storage failure", async () => {
+  it("maps promotion transport failure to retryable", async () => {
     const invoke = vi.fn().mockRejectedValue(new Error("network down"));
     const staging = successfulStaging();
 
@@ -182,8 +188,8 @@ describe("SupabasePrivateDocumentIngestAdapter promotion failures", () => {
   });
 });
 
-describe("SupabasePrivateDocumentIngestAdapter malformed provider failures", () => {
-  it("treats malformed promotion provider errors as retryable", async () => {
+describe("SupabasePrivateDocumentIngestAdapter malformed errors", () => {
+  it("treats malformed promotion errors as retryable", async () => {
     const errors = [
       "raw provider failure",
       new Error("unknown function failure"),
@@ -207,7 +213,7 @@ describe("SupabasePrivateDocumentIngestAdapter malformed provider failures", () 
 });
 
 describe("SupabasePrivateDocumentIngestAdapter non-retryable failures", () => {
-  it("maps staging 4xx denial to persistence failure without promotion", async () => {
+  it("maps staging 4xx denial to persistence failure", async () => {
     const upload = vi.fn().mockResolvedValue({
       data: null,
       error: storageError("denied", 403),
@@ -224,7 +230,7 @@ describe("SupabasePrivateDocumentIngestAdapter non-retryable failures", () => {
     expect(invoke).not.toHaveBeenCalled();
   });
 
-  it("maps authenticated promotion 4xx denial to persistence failure", async () => {
+  it("maps promotion 4xx denial to persistence failure", async () => {
     const invoke = vi.fn().mockResolvedValue({
       data: null,
       error: functionError("denied", 403),
