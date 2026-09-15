@@ -31,7 +31,7 @@ async function invokeTrustedAbandon({
 }
 
 async function assertReservationAbsent(context, documentId) {
-  const result = await context.admin
+  const result = await context.writer.client
     .from("documents")
     .select("id")
     .eq("project_id", context.projectId)
@@ -40,7 +40,7 @@ async function assertReservationAbsent(context, documentId) {
   assert.equal(
     result.error,
     null,
-    "Trusted abandon lookup must remain readable.",
+    "Authorized writer abandon lookup must remain readable.",
   );
   assert.equal(
     result.data,
