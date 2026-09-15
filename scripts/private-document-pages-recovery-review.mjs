@@ -15,14 +15,15 @@ import {
   storagePath,
 } from "./private-document-edge-helpers.mjs";
 
-function verifierSource() {
-  const source = readFileSync(
-    new globalThis.URL(
-      "../functions/api/private-document-promote.ts",
-      import.meta.url,
-    ),
+function sourceFile(relativePath) {
+  return readFileSync(
+    new globalThis.URL(relativePath, import.meta.url),
     "utf8",
   );
+}
+
+function verifierSource() {
+  const source = sourceFile("../functions/api/private-document-promote.ts");
   const start = source.indexOf(
     "async function storageObjectMatchesReservation(",
   );
@@ -32,16 +33,30 @@ function verifierSource() {
   return source.slice(start, end);
 }
 
+function integritySource() {
+  return sourceFile("../functions/api/private-document-integrity.ts");
+}
+
 export function assertRecoverySourceContracts() {
-  const source = verifierSource();
-  const infoIndex = source.indexOf(".info(");
-  const downloadIndex = source.indexOf(".download(");
+  const verifier = verifierSource();
+  const integrity = integritySource();
+  const infoIndex = verifier.indexOf(".info(");
+  const boundIndex = verifier.indexOf("storageInfoMatchesReservation");
+  const downloadIndex = verifier.indexOf(".download(");
   assert.ok(
-    infoIndex >= 0 && downloadIndex >= 0 && infoIndex < downloadIndex,
+    infoIndex >= 0 &&
+      boundIndex > infoIndex &&
+      downloadIndex > boundIndex,
     "Storage metadata bounds must precede object materialization.",
   );
-  assert.ok(source.includes("MAX_BYTES") && source.includes("size_bytes"));
-  assert.ok(source.includes('"application/pdf"'));
+  assert.ok(
+    integrity.includes("MAX_BYTES") && integrity.includes("size_bytes"),
+    "Shared integrity logic must enforce reserved and provider size bounds.",
+  );
+  assert.ok(
+    integrity.includes('"application/pdf"'),
+    "Shared integrity logic must enforce authoritative PDF MIME.",
+  );
 }
 
 export async function assertOversizedCanonicalRejected(context) {
