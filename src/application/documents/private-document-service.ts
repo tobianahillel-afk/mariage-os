@@ -238,18 +238,8 @@ export class PrivateDocumentService {
     ) {
       return { ok: false, error: "invalid_identity" };
     }
-    const exactPath = storagePath(projectId, documentId);
     try {
-      const before = await this.ports.storage.inspectReservedObject(exactPath);
-      if (before.present)
-        await this.ports.storage.deleteReservedObject(exactPath);
-      const after = await this.ports.storage.inspectReservedObject(exactPath);
-      if (after.present) return { ok: false, error: "storage_retryable" };
-      await this.ports.lifecycle.abandonUpload({
-        operationId,
-        projectId,
-        documentId,
-      });
+      await this.ports.ingest.abandon({ operationId, projectId, documentId });
       return { ok: true, value: { absent: true } };
     } catch (error) {
       return { ok: false, error: persistenceFailure(error) };

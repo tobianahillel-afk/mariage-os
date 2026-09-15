@@ -11,13 +11,19 @@ import {
   storagePath,
 } from "./private-document-edge-helpers.mjs";
 
-async function invokeTrustedAbandon({ token, projectId, documentId }) {
+async function invokeTrustedAbandon({
+  token,
+  projectId,
+  documentId,
+  operationId,
+}) {
   const response = await globalThis.fetch(promotionUrl(), {
     method: "DELETE",
     headers: {
       authorization: `Bearer ${token}`,
       "x-project-id": projectId,
       "x-document-id": documentId,
+      "x-operation-id": operationId,
     },
   });
   const data = await response.json().catch(() => null);
@@ -94,6 +100,7 @@ export async function runInterruptedStagingAbandonRed(context) {
     token: context.writer.token,
     projectId: context.projectId,
     documentId,
+    operationId: randomUUID(),
   };
 
   await assertTrustedAbandonResult(

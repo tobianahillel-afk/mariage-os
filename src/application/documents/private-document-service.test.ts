@@ -75,7 +75,10 @@ function ports(present: boolean) {
       absent: true as const,
     }),
   };
-  const ingest = { ingest: vi.fn().mockResolvedValue(undefined) };
+  const ingest = {
+    ingest: vi.fn().mockResolvedValue(undefined),
+    abandon: vi.fn().mockResolvedValue(undefined),
+  };
   const sha256Port = { hash: vi.fn().mockResolvedValue(sha256) };
   return { lifecycle, storage, ingest, sha256: sha256Port };
 }
@@ -165,15 +168,8 @@ describe("PrivateDocumentService validation and cleanup", () => {
     expect(fake.lifecycle.reserveUpload).not.toHaveBeenCalled();
   });
 
-  it("derives the opaque cleanup path instead of accepting caller path authority", async () => {
+  it("delegates interrupted cleanup and lifecycle abandon to the trusted boundary", async () => {
     const fake = ports(true);
-    fake.storage.inspectReservedObject
-      .mockResolvedValueOnce({ bucket: "project-private", path, present: true })
-      .mockResolvedValueOnce({
-        bucket: "project-private",
-        path,
-        present: false,
-      });
     const service = new PrivateDocumentService(fake);
 
     await expect(
@@ -182,6 +178,30 @@ describe("PrivateDocumentService validation and cleanup", () => {
       ok: true,
       value: { absent: true },
     });
-    expect(fake.storage.deleteReservedObject).toHaveBeenCalledWith(path);
+    expect(fake.ingest.abandon).toHaveBeenCalledWith({
+      operationId,
+      projectId,
+      documentId,
+    });
+    expect(fake.storage.inspectReservedObject).not.toHaveBeenCalled();
+    expect(fake.storage.deleteReservedObject).not.toHaveBeenCalled();
+    expect(fake.lifecycle.abandonUpload).not.toHaveBeenCalled();
+  });
+
+  it("fails closed when trusted abandon cannot prove cleanup", async () => {
+    const fake = ports(false);
+    fake.ingest.abandon.mockRejectedValue(
+      new DocumentPersistenceError(
+        "storage_retryable",
+        "Trusted private document abandon failed.",
+      ),
+    );
+    const service = new PrivateDocumentService(fake);
+
+    await expect(
+      service.abandon(operationId, projectId, documentId),
+    ).resolves.toEqual({ ok: false, error: "storage_retryable" });
+    expect(fake.lifecycle.abandonUpload).not.toHaveBeenCalled();
+    expect(fake.storage.deleteReservedObject).not.toHaveBeenCalled();
   });
 });

@@ -2,6 +2,7 @@ import {
   createClient,
   type SupabaseClient as SupabaseProviderClient,
 } from "@supabase/supabase-js";
+import { handleTrustedAbandon } from "./private-document-abandon";
 
 const CANONICAL_BUCKET = "project-private";
 const STAGING_BUCKET = "document-ingest-staging";
@@ -436,6 +437,9 @@ async function handlePromotion(
 
 export async function onRequest(context: PagesContext): Promise<Response> {
   try {
+    if (context.request.method === "DELETE") {
+      return await handleTrustedAbandon(context.request, context.env);
+    }
     return await handlePromotion(context.request, context.env);
   } catch {
     return unavailable(503);

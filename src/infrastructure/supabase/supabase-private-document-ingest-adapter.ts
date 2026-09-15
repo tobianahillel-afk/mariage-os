@@ -1,5 +1,6 @@
 import { DocumentPersistenceError } from "@application/documents/document-persistence-error";
 import type {
+  TrustedPrivateDocumentAbandonInput,
   TrustedPrivateDocumentIngestInput,
   TrustedPrivateDocumentIngestPort,
 } from "@application/documents/private-document-ingest-port";
@@ -48,6 +49,15 @@ function isTrustedIngestReceipt(value: unknown): boolean {
     typeof value === "object" &&
     value !== null &&
     (value as Record<string, unknown>).ok === true
+  );
+}
+
+function isTrustedAbandonReceipt(value: unknown): boolean {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    (value as Record<string, unknown>).ok === true &&
+    (value as Record<string, unknown>).absent === true
   );
 }
 
@@ -161,39 +171,76 @@ async function promotionAccessToken(
   return token;
 }
 
+async function trustedRequest(
+  promotionFetch: PrivateDocumentPromotionFetch,
+  method: "POST" | "DELETE",
+  headers: Readonly<Record<string, string>>,
+): Promise<unknown> {
+  let response: Response;
+  try {
+    response = await promotionFetch(PROMOTION_URL, {
+      method,
+      cache: "no-store",
+      headers,
+    });
+  } catch {
+    throw new DocumentPersistenceError(
+      "storage_retryable",
+      "Trusted private document request failed.",
+    );
+  }
+  if (!response.ok) {
+    throw new DocumentPersistenceError(
+      persistenceCodeFromStatus(response.status),
+      "Trusted private document request failed.",
+    );
+  }
+  return responsePayload(response);
+}
+
+function trustedHeaders(
+  token: string,
+  projectId: string,
+  documentId: string,
+): Record<string, string> {
+  return {
+    authorization: `Bearer ${token}`,
+    "x-project-id": projectId,
+    "x-document-id": documentId,
+  };
+}
+
 async function promoteDocument(
   promotionFetch: PrivateDocumentPromotionFetch,
   input: TrustedPrivateDocumentIngestInput,
   token: string,
 ): Promise<void> {
-  let response: Response;
-  try {
-    response = await promotionFetch(PROMOTION_URL, {
-      method: "POST",
-      cache: "no-store",
-      headers: {
-        authorization: `Bearer ${token}`,
-        "x-project-id": input.projectId,
-        "x-document-id": input.documentId,
-      },
-    });
-  } catch {
-    throw new DocumentPersistenceError(
-      "storage_retryable",
-      "Trusted private document promotion failed.",
-    );
-  }
-
-  if (!response.ok) {
-    throw new DocumentPersistenceError(
-      persistenceCodeFromStatus(response.status),
-      "Trusted private document promotion failed.",
-    );
-  }
-  if (!isTrustedIngestReceipt(await responsePayload(response))) {
+  const payload = await trustedRequest(
+    promotionFetch,
+    "POST",
+    trustedHeaders(token, input.projectId, input.documentId),
+  );
+  if (!isTrustedIngestReceipt(payload)) {
     throw new DocumentPersistenceError(
       "provider_response_invalid",
       "Trusted private document promotion returned an invalid response.",
+    );
+  }
+}
+
+async function abandonDocument(
+  promotionFetch: PrivateDocumentPromotionFetch,
+  input: TrustedPrivateDocumentAbandonInput,
+  token: string,
+): Promise<void> {
+  const payload = await trustedRequest(promotionFetch, "DELETE", {
+    ...trustedHeaders(token, input.projectId, input.documentId),
+    "x-operation-id": input.operationId,
+  });
+  if (!isTrustedAbandonReceipt(payload)) {
+    throw new DocumentPersistenceError(
+      "provider_response_invalid",
+      "Trusted private document abandon returned an invalid response.",
     );
   }
 }
@@ -212,5 +259,10 @@ export class SupabasePrivateDocumentIngestAdapter implements TrustedPrivateDocum
     await stageDocument(this.staging, input, path);
     const token = await promotionAccessToken(this.staging);
     await promoteDocument(this.promotionFetch, input, token);
+  }
+
+  async abandon(input: TrustedPrivateDocumentAbandonInput): Promise<void> {
+    const token = await promotionAccessToken(this.staging);
+    await abandonDocument(this.promotionFetch, input, token);
   }
 }
