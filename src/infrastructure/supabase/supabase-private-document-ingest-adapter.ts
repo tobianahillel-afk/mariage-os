@@ -63,7 +63,9 @@ function parseProviderStatus(value: unknown): number | null {
 
 function providerStatus(error: unknown): number | null {
   if (!isRecord(error)) return null;
-  return parseProviderStatus(error.statusCode) ?? parseProviderStatus(error.status);
+  return (
+    parseProviderStatus(error.statusCode) ?? parseProviderStatus(error.status)
+  );
 }
 
 function persistenceCodeFromStatus(status: number | null) {
