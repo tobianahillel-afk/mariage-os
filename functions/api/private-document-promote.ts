@@ -96,16 +96,8 @@ interface PromotionContext {
   readonly projectId: string;
 }
 
-interface StorageInfoShape {
-  readonly size?: unknown;
-  readonly contentType?: unknown;
-}
-
-interface StorageDownloadShape {
-  readonly size: number;
-  readonly type: string;
-  arrayBuffer(): Promise<ArrayBuffer>;
-}
+type StorageInfoShape = Readonly<{ size?: unknown; contentType?: unknown }>;
+type StorageDownloadShape = Pick<Blob, "size" | "type" | "arrayBuffer">;
 
 function nonEmpty(...values: ReadonlyArray<string | undefined>): string | null {
   return (
