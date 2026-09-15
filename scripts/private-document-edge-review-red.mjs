@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { request as httpRequest } from "node:http";
+import { clearTimeout, setTimeout } from "node:timers";
+import { URL } from "node:url";
 import {
   BUCKET,
   MAX_BYTES,
