@@ -10,6 +10,8 @@ Related FIR: `#17 / FTR-089`
 
 Execution job: `.github/workflows/ci.yml` → `ar006-provider-evidence`
 
+Provider preflight: `npm run preflight:ar006`
+
 Evidence harness: `scripts/run-private-document-ar006-evidence.mjs`
 
 CPU normalization helper: `scripts/private-document-ar006-metrics.mjs`
@@ -79,6 +81,8 @@ The isolated Pages **preview** environment must already expose:
 
 `PRIVATE_DOCUMENT_ADMIN_KEY` must not be copied into GitHub Actions secrets. The evidence job verifies only that the Pages preview binding exists as `secret_text`; it never reads or prints its value.
 
+Before any candidate build or deployment, `npm run preflight:ar006` performs only read-only readiness checks: it verifies access to the isolated Pages project and expected preview bindings, verifies the Analytics token can query the intended Cloudflare account, signs in as the synthetic Supabase user, and requires live `documents.write` through `has_project_permission`. The preflight does not deploy, reserve a document, upload bytes, call the trusted promotion route, or mutate application data.
+
 ## GitHub Environment contract
 
 Create the GitHub Environment named exactly `ar006-isolated`. Apply reviewer/protection controls where available.
@@ -131,21 +135,23 @@ After `full-verify` succeeds, the provider job:
 
 1. checks out the exact evidence-trigger SHA with persisted Git credentials disabled;
 2. requires the isolated Workers Free attestation and all non-secret environment metadata;
-3. installs dependencies, runs secret scanning and builds the candidate;
-4. deploys `dist/` **and the repository Pages Functions** through pinned Wrangler `4.131.2` to an isolated preview branch derived from the exact Git SHA;
-5. queries the Pages API and requires `uses_functions=true`;
-6. verifies that the preview configuration exposes the expected non-production Supabase values and an encrypted `PRIVATE_DOCUMENT_ADMIN_KEY` binding without printing the secret;
-7. resolves the exact deployment ID, URL, branch and `preview_script_name` for the same commit SHA;
-8. runs `smoke:private-document-production` against that deployment;
-9. signs in as the ordinary synthetic Supabase user;
-10. constructs one deterministic synthetic PDF of exactly `25,000,000` bytes;
-11. performs 10 separate reserve → staging upload → bodyless trusted promotion → finalize attempts using unique document IDs;
-12. spaces promotions so provider analytics can attribute controlled requests to distinct time buckets;
-13. polls Cloudflare `workersInvocationsAdaptive` for request/error/status and raw CPU p50/p99 values for the isolated preview script and evidence window;
-14. normalizes raw CPU microseconds to milliseconds by dividing by `1000` and retains **both** representations in the sanitized artifact;
-15. requires exactly 10 attributable request buckets, one request each, zero errors, `success` status and both normalized CPU quantiles `<= 10 ms` for every bucket;
-16. writes only sanitized metadata to `ar006-workers-free-evidence.json` using schema `mariage-os.wp29c.ar006.v2`;
-17. uploads that JSON as a 30-day Actions artifact, including on a provider-gate failure when a sanitized evidence file exists.
+3. installs dependencies and runs secret scanning;
+4. runs `npm run preflight:ar006` with the isolated deployment/analytics credentials and synthetic-user password, requiring read-only Pages configuration, Analytics access and live Supabase `documents.write` readiness before any deployment or data mutation;
+5. builds the exact candidate;
+6. deploys `dist/` **and the repository Pages Functions** through pinned Wrangler `4.131.2` to an isolated preview branch derived from the exact Git SHA;
+7. queries the Pages API and requires `uses_functions=true`;
+8. verifies that the preview configuration exposes the expected non-production Supabase values and an encrypted `PRIVATE_DOCUMENT_ADMIN_KEY` binding without printing the secret;
+9. resolves the exact deployment ID, URL, branch and `preview_script_name` for the same commit SHA;
+10. runs `smoke:private-document-production` against that deployment;
+11. signs in as the ordinary synthetic Supabase user;
+12. constructs one deterministic synthetic PDF of exactly `25,000,000` bytes;
+13. performs 10 separate reserve → staging upload → bodyless trusted promotion → finalize attempts using unique document IDs;
+14. spaces promotions so provider analytics can attribute controlled requests to distinct time buckets;
+15. polls Cloudflare `workersInvocationsAdaptive` for request/error/status and raw CPU p50/p99 values for the isolated preview script and evidence window;
+16. normalizes raw CPU microseconds to milliseconds by dividing by `1000` and retains **both** representations in the sanitized artifact;
+17. requires exactly 10 attributable request buckets, one request each, zero errors, `success` status and both normalized CPU quantiles `<= 10 ms` for every bucket;
+18. writes only sanitized metadata to `ar006-workers-free-evidence.json` using schema `mariage-os.wp29c.ar006.v2`;
+19. uploads that JSON as a 30-day Actions artifact, including on a provider-gate failure when a sanitized evidence file exists.
 
 The job does not merge the branch, change production, enable Workers Paid, change the 25 MB contract or auto-transition WP-2.9C.
 
