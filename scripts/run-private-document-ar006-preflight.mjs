@@ -70,7 +70,9 @@ async function verifyPagesProject() {
   if (preview?.PRIVATE_DOCUMENT_ADMIN_KEY?.type !== "secret_text") {
     throw new Error("PRIVATE_DOCUMENT_ADMIN_KEY preview secret is missing.");
   }
-  if (preview?.SUPABASE_URL?.value !== requiredEnv("AR006_SUPABASE_URL")) {
+  if (
+    preview?.SUPABASE_URL?.value !== requiredEnv("AR006_SUPABASE_URL")
+  ) {
     throw new Error("Pages preview SUPABASE_URL does not match AR-006.");
   }
   if (
@@ -112,7 +114,9 @@ async function verifyAnalytics(scriptName) {
     {
       method: "POST",
       headers: {
-        authorization: `Bearer ${requiredEnv("AR006_CLOUDFLARE_ANALYTICS_TOKEN")}`,
+        authorization: `Bearer ${requiredEnv(
+          "AR006_CLOUDFLARE_ANALYTICS_TOKEN",
+        )}`,
         "content-type": "application/json",
       },
       body: JSON.stringify({
@@ -141,7 +145,9 @@ async function main() {
     requiredEnv("AR006_WORKERS_FREE_ATTESTATION") !==
     "YES-WORKERS-FREE-ISOLATED"
   ) {
-    throw new Error("Workers Free isolated-environment attestation is required.");
+    throw new Error(
+      "Workers Free isolated-environment attestation is required.",
+    );
   }
   const projectId = requiredEnv("AR006_PROJECT_ID");
   assertUuid("AR006_PROJECT_ID", projectId);
