@@ -110,7 +110,9 @@ function delay(ms) {
 }
 
 async function queryObservability(context, token, timeframe) {
-  const url = `${API_ROOT}/${encodeURIComponent(context.accountId)}/workers/observability/telemetry/query`;
+  const url =
+    `${API_ROOT}/${encodeURIComponent(context.accountId)}` +
+    "/workers/observability/telemetry/query";
   const response = await globalThis.fetch(url, {
     method: "POST",
     headers: {
@@ -181,7 +183,9 @@ async function writeEvidence(context, result, tokenPresent) {
     `${JSON.stringify(evidence, null, 2)}\n`,
     "utf8",
   );
-  console.log(`AR-006 Workers Observability preflight written to ${OUTPUT_PATH}.`);
+  console.log(
+    `AR-006 Workers Observability preflight written to ${OUTPUT_PATH}.`,
+  );
   return pass;
 }
 
@@ -197,7 +201,9 @@ async function main() {
   const token = envValue("CLOUDFLARE_OBSERVABILITY_API_TOKEN");
   if (!token) {
     await writeEvidence(context, null, false);
-    throw new Error("Dedicated Cloudflare Workers Observability token is required.");
+    throw new Error(
+      "Dedicated Cloudflare Workers Observability token is required.",
+    );
   }
 
   const result = await collect(context, token);
