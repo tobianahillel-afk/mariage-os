@@ -92,7 +92,11 @@ async function verifyPagesProject() {
   );
   const project = requirePagesProject(payload);
   const preview = requirePreviewBindings(project);
-  requireMatchingBinding(preview, "SUPABASE_URL", requiredEnv("AR006_SUPABASE_URL"));
+  requireMatchingBinding(
+    preview,
+    "SUPABASE_URL",
+    requiredEnv("AR006_SUPABASE_URL"),
+  );
   requireMatchingBinding(
     preview,
     "SUPABASE_PUBLISHABLE_KEY",
