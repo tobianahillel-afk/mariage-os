@@ -109,17 +109,18 @@ Latest external provider-readiness execution:
 
 These repository-green gates validate the AR-005/AR-007 implementation remediations, preserve the local exact-25-MB functional path, and validate the AR-006 evidence harness/unit handling and fail-before-deploy readiness path. The first real readiness execution additionally proves the gate fails closed before provider mutation when its isolated configuration is absent. None of this satisfies AR-006 because that finding still requires provider-produced Cloudflare Workers Free CPU telemetry from the isolated deployed path.
 
-External isolated-provider setup on **2026-09-16** (configuration only; **not AR-006 evidence**):
+External isolated-provider setup and readiness on **2026-09-16** (configuration only; **not AR-006 CPU evidence**):
 
-- Created the dedicated Supabase Free project `rpdmqqvupmhxlxosasqi` (`mariage-os-ar006-isolated`, `eu-west-3`; URL `https://rpdmqqvupmhxlxosasqi.supabase.co`). Its quoted monthly project cost was €0. Applied all **63** SQL migrations from repository head `73404903bffe2800567c41675ca18cbab25e26a7` in filename order. Verified that `public.projects`, `public.project_members`, `public.documents`, `storage.objects` and `documents.write` exist and that `public.documents` has RLS enabled. No synthetic member/project was created or used.
-- Created the dedicated Cloudflare Pages project `mariage-os-ar006-isolated` (project ID `1223854c-79fc-4617-855b-7919597e809f`, `mariage-os-ar006-isolated.pages.dev`). Configured its **preview** `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` as public/plain-text bindings for that isolated Supabase project. No deployment was performed.
-- The preview `PRIVATE_DOCUMENT_ADMIN_KEY` encrypted binding is still absent. The available Supabase connection exposes public keys but no administrative/service-role key. The available GitHub connection cannot administer Environment variables/secrets; the last preflight therefore remains the only observed GitHub Environment readiness result. Cloudflare subscription/billing reads returned API authentication error `10000`, so the Workers Free entitlement is **not attested**. Neither `[AR006-PREFLIGHT]` nor `[AR006-EVIDENCE]` was triggered during this setup.
-- Next required external setup: obtain and place the isolated Supabase administrative key **only** in the Pages encrypted preview binding; create an ordinary synthetic user and project with live `documents.write`; establish the Workers Free/no-Paid basis; configure all seven `ar006-isolated` GitHub Environment variables and three scoped secrets from the runbook. Then run a new read-only `[AR006-PREFLIGHT]` on the current exact tree. Keep AR-006 and WP-2.9C **BLOCKED** until the required provider proof exists.
+- Dedicated Supabase Free project `rpdmqqvupmhxlxosasqi` (`mariage-os-ar006-isolated`, `eu-west-3`) has all **63** repository SQL migrations. Synthetic project `3651c5b8-fffa-494a-9686-2abcf0757a9d` and confirmed user `ar006-synthetic-20260916-rpdm@example.com` exist; the user is an active `editor` with `documents.write`. The user has not signed in successfully.
+- Dedicated Cloudflare Pages project `mariage-os-ar006-isolated` (project ID `1223854c-79fc-4617-855b-7919597e809f`) has preview `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` and encrypted `PRIVATE_DOCUMENT_ADMIN_KEY` for this isolated Supabase project. Cloudflare dashboard displays **Workers Free — Current plan** with the normal **10 ms CPU/request** limit. No Pages deployment has occurred.
+- GitHub Environment `ar006-isolated` is restricted to `lot-2/venues-core`; all seven runbook variables and three scoped secrets are configured. Two Cloudflare tokens have only Pages Write and Account Analytics Read respectively and expire in seven days. The synthetic Supabase user password is stored only as an Environment secret, not in Git or this status board.
+- No-content exact-tree readiness head `918ed0e198574f9c3e7f17d4c67cab7e1bc27c4d` triggered CI `35133580074`. All five repository jobs passed, including clean-checkout full verification. The isolated provider preflight job `104920622572` passed Cloudflare Pages and Analytics checks, then **FAILED** at synthetic Supabase password authentication. The provider-evidence job was **SKIPPED**. Preflight made no deployment or application-data mutation.
+- A fresh synthetic user with an explicitly chosen password is being prepared because the first Supabase account-creation form appeared to contain a masked password before operator entry. Treat the cause as a likely credential mismatch, not proven. Once the new user exists, give it live `documents.write` on the synthetic project, update only the GitHub test email/password credentials, then repeat read-only `[AR006-PREFLIGHT]`. Do not trigger `[AR006-EVIDENCE]` while readiness is red.
 
 Current remediation status:
 
 - `WP29C-AR-005` — **MAJOR / IMPLEMENTATION-REMEDIATED / EXACT-HEAD-GREEN** — trusted clean-abandon path, DB orphan backstop, immediate pre-copy reservation revalidation, safe post-copy compensation and race/retry coverage implemented. Formal closure now waits only for the later complete fresh Pass B after AR-006 is unblocked.
-- `WP29C-AR-006` — **MAJOR / OPEN / BLOCKING** — exact-25-MB Workers/Pages Free CPU feasibility still lacks deployed provider CPU evidence; the immediate prerequisite is to configure the isolated GitHub Environment/provider test resources and obtain a green read-only readiness preflight. Durable proof protocol: `docs/roadmap/lot-2/WP-2.9C-AR-006-CPU-EVIDENCE.md`; executable runbook: `docs/roadmap/lot-2/WP-2.9C-AR-006-RUNBOOK.md`.
+- `WP29C-AR-006` — **MAJOR / OPEN / BLOCKING** — exact-25-MB Workers/Pages Free CPU feasibility still lacks deployed provider CPU evidence; the immediate prerequisite is to correct synthetic Supabase authentication and obtain a green read-only readiness preflight. Durable proof protocol: `docs/roadmap/lot-2/WP-2.9C-AR-006-CPU-EVIDENCE.md`; executable runbook: `docs/roadmap/lot-2/WP-2.9C-AR-006-RUNBOOK.md`.
 - `WP29C-AR-007` — **MAJOR / IMPLEMENTATION-REMEDIATED / EXACT-HEAD-GREEN** — ADR/release/CI-CD/secret contracts reconciled to Pages Functions and `PRIVATE_DOCUMENT_ADMIN_KEY`; fail-closed non-destructive deployment smoke added. Formal closure now waits only for the later complete fresh Pass B after AR-006 is unblocked.
 
 Historical `WP29C-AR-001..004` remain implementation-green but await a later complete clean fresh Pass B for formal closure.
@@ -152,7 +153,7 @@ The branch CI contains two distinct guarded jobs:
 - `ar006-provider-preflight` runs only after `core` on a push to `lot-2/venues-core` whose head commit contains `[AR006-PREFLIGHT]`. It is read-only and may not deploy or mutate application data.
 - `ar006-provider-evidence` runs only after `full-verify` on a push to the same branch whose head commit contains `[AR006-EVIDENCE]`. It repeats the read-only preflight before building/deploying and collecting exact-size provider CPU evidence.
 
-Both jobs use the `ar006-isolated` GitHub Environment. Ordinary pushes/PRs skip both provider jobs and do not receive those credentials. The first real readiness run (`55b02f40e8b4519db12f99ee8a38fe095e81a534` / `35083615839`) failed closed because the required Environment variables/secrets resolved empty, so `[AR006-EVIDENCE]` remains unauthorized.
+Both jobs use the `ar006-isolated` GitHub Environment. Ordinary pushes/PRs skip both provider jobs and do not receive those credentials. The latest readiness run (`918ed0e198574f9c3e7f17d4c67cab7e1bc27c4d` / `35133580074`) reached Supabase after Cloudflare checks but failed synthetic password authentication, so `[AR006-EVIDENCE]` remains unauthorized.
 
 No acceptance-grade deployed Pages identity plus provider CPU telemetry is recorded in the repository/FIR evidence used for this packet. Absence from repository evidence is not proof that no external deployment exists; it means the acceptance evidence is unavailable to the packet.
 
@@ -166,8 +167,8 @@ Normative release/deployment/secret contracts now require Pages Functions to dep
 
 1. WP-2.9C is **BLOCKED** on `WP29C-AR-006`.
 2. Preserve AR-005 and AR-007 remediation behavior; do not weaken RLS/authorization/file limits or deployment/secret controls.
-3. Complete GitHub Environment `ar006-isolated` with the seven variables and three secrets specified in `docs/roadmap/lot-2/WP-2.9C-AR-006-RUNBOOK.md`; the last readiness run found them all empty, and no subsequent Environment read is available.
-4. The isolated Pages preview already has `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY`, and the isolated Supabase project has the 63 repository migrations. Add the encrypted Pages `PRIVATE_DOCUMENT_ADMIN_KEY`, create the synthetic user/project with live `documents.write`, and establish the Workers Free/no-Paid basis before a new preflight.
+3. Correct isolated synthetic Supabase authentication. A new user creation with an explicitly chosen password is pending; grant that user active `documents.write` on the synthetic project and update the GitHub Environment test email/password.
+4. Preserve the verified Pages preview bindings, scoped Cloudflare tokens and Workers Free/no-Paid basis. These prerequisites passed the latest read-only provider preflight.
 5. Repeat a no-content `[AR006-PREFLIGHT]` commit using the exact current tree. The readiness job must pass before any evidence trigger is authorized.
 6. Only after a green readiness preflight, trigger a no-content exact candidate with `[AR006-EVIDENCE]`; its preflight must pass again before build/deployment or document mutation occurs.
 7. Inspect the sanitized schema-v2 artifact and require 10 successful exact-size controlled invocations, raw CPU microsecond values with arithmetically consistent millisecond normalization, and normalized CPU p50/p99 `<= 10 ms` for every retained invocation.
@@ -191,10 +192,10 @@ WP-2.9A: BLOCKED — waits for WP-2.9C ACCEPTED
 Current packet: WP-2.9C — BLOCKED
 Fresh Pass-B record: docs/roadmap/lot-2/WP-2.9C-PASS-B-REVIEW.md
 Remediation implementation evidence: 68a4f6bdb7b55acc80c4c6fbb8c0afc0295bfde5 / 35025384594 — 5/5 SUCCESS, clean checkout included
-Latest repository-green AR-006 execution-support head: 2aa0b91da82b09f479cd93fb52763786f9a7874f / 35082871383 — 5/5 SUCCESS, clean checkout included; both provider jobs SKIPPED on ordinary push
-Latest AR-006 readiness attempt: 55b02f40e8b4519db12f99ee8a38fe095e81a534 / 35083615839 / job 104753395475 — FAILED CLOSED before provider calls because all required ar006-isolated variables/secrets resolved empty; no deployment or application-data mutation occurred
+Latest repository-green head: 918ed0e198574f9c3e7f17d4c67cab7e1bc27c4d / 35133580074 — 5/5 repository jobs SUCCESS, clean checkout included; provider preflight FAILED at synthetic authentication, evidence job SKIPPED
+Latest AR-006 readiness attempt: 918ed0e198574f9c3e7f17d4c67cab7e1bc27c4d / 35133580074 / job 104920622572 — five repository jobs green; Pages/Analytics checks passed; synthetic Supabase password authentication failed; no deployment or application-data mutation occurred
 AR-005: implementation-remediated / exact-head-green — formal closure waits fresh Pass B after AR-006 unblock
-AR-006: OPEN / BLOCKING — isolated Supabase and Pages public preview setup completed 2026-09-16; admin binding, synthetic user/project, Workers Free attestation and GitHub Environment remain; then green [AR006-PREFLIGHT] and deployed exact-25-MB CPU evidence
+AR-006: OPEN / BLOCKING — isolated provider setup and Environment complete; correct synthetic Supabase login, obtain green [AR006-PREFLIGHT], then deployed exact-25-MB CPU evidence
 AR-006 evidence protocol: docs/roadmap/lot-2/WP-2.9C-AR-006-CPU-EVIDENCE.md
 AR-006 execution runbook: docs/roadmap/lot-2/WP-2.9C-AR-006-RUNBOOK.md
 AR-007: implementation-remediated / exact-head-green — formal closure waits fresh Pass B after AR-006 unblock
@@ -202,5 +203,5 @@ FTR-089 FIR: #17 — BLOCKED
 WP-2.9A resumes only after WP-2.9C ACCEPTED
 WP-2.9B remains PLANNED / AFTER A
 Lots 3–12: NOT_STARTED
-Next permitted action: populate the isolated GitHub Environment/provider test resources and rerun [AR006-PREFLIGHT]; [AR006-EVIDENCE] remains forbidden until readiness is green
+Next permitted action: create a synthetic user with explicitly known password, grant live documents.write, update isolated GitHub test credentials and rerun [AR006-PREFLIGHT]; [AR006-EVIDENCE] remains forbidden until readiness is green
 ```
