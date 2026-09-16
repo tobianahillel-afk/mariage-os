@@ -243,6 +243,18 @@ function analyticsWindow(invocations) {
   return { start: start.toISOString(), end: end.toISOString() };
 }
 
+function analyticsRows(payload) {
+  try {
+    const rows = payload.data.viewer.accounts[0].workersInvocationsAdaptive;
+    if (!Array.isArray(rows)) {
+      throw new Error("Unexpected analytics rows.");
+    }
+    return rows;
+  } catch {
+    throw new Error("Cloudflare analytics response shape is invalid.");
+  }
+}
+
 async function queryAnalytics(scriptName, window) {
   const query = `query Evidence($accountTag: string, $start: string, $end: string, $scriptName: string) {
     viewer {
@@ -276,14 +288,15 @@ async function queryAnalytics(scriptName, window) {
     }),
   });
   const payload = await response.json();
-  if (!response.ok || payload.errors?.length) {
+  if (!response.ok) throw new Error("Cloudflare analytics query failed.");
+  if (Array.isArray(payload.errors) && payload.errors.length > 0) {
     throw new Error("Cloudflare analytics query failed.");
   }
-  return payload.data?.viewer?.accounts?.[0]?.workersInvocationsAdaptive ?? [];
+  return analyticsRows(payload);
 }
 
 function requestCount(rows) {
-  return rows.reduce((sum, row) => sum + Number(row.sum?.requests ?? 0), 0);
+  return rows.reduce((sum, row) => sum + Number(row.sum.requests), 0);
 }
 
 async function collectMetrics(scriptName, invocations) {
@@ -304,13 +317,24 @@ function finiteNumber(value) {
 
 function metricEvidence(rows) {
   return rows.map((row) => ({
-    datetime: String(row.dimensions?.datetime ?? ""),
-    status: String(row.dimensions?.status ?? ""),
-    requests: Number(row.sum?.requests ?? 0),
-    errors: Number(row.sum?.errors ?? 0),
-    cpuTimeP50Ms: finiteNumber(row.quantiles?.cpuTimeP50),
-    cpuTimeP99Ms: finiteNumber(row.quantiles?.cpuTimeP99),
+    datetime: String(row.dimensions.datetime),
+    status: String(row.dimensions.status),
+    requests: Number(row.sum.requests),
+    errors: Number(row.sum.errors),
+    cpuTimeP50Ms: finiteNumber(row.quantiles.cpuTimeP50),
+    cpuTimeP99Ms: finiteNumber(row.quantiles.cpuTimeP99),
   }));
+}
+
+function measurementPass(row) {
+  if (row.requests !== 1) return false;
+  if (row.errors !== 0) return false;
+  if (row.status !== "success") return false;
+  if (row.cpuTimeP50Ms === null) return false;
+  if (row.cpuTimeP99Ms === null) return false;
+  if (row.cpuTimeP50Ms > CPU_BUDGET_MS) return false;
+  if (row.cpuTimeP99Ms > CPU_BUDGET_MS) return false;
+  return true;
 }
 
 function metricsPass(measurements) {
@@ -320,19 +344,10 @@ function metricsPass(measurements) {
   );
   if (totalRequests !== INVOCATION_COUNT) return false;
   if (measurements.length !== INVOCATION_COUNT) return false;
-  return measurements.every(
-    (row) =>
-      row.requests === 1 &&
-      row.errors === 0 &&
-      row.status === "success" &&
-      row.cpuTimeP50Ms !== null &&
-      row.cpuTimeP99Ms !== null &&
-      row.cpuTimeP50Ms <= CPU_BUDGET_MS &&
-      row.cpuTimeP99Ms <= CPU_BUDGET_MS,
-  );
+  return measurements.every(measurementPass);
 }
 
-async function main() {
+function evidenceContext() {
   if (
     requiredEnv("AR006_WORKERS_FREE_ATTESTATION") !==
     "YES-WORKERS-FREE-ISOLATED"
@@ -349,38 +364,25 @@ async function main() {
   if (bytes.byteLength !== MAX_BYTES) {
     throw new Error("Synthetic PDF size drifted.");
   }
-  const sha256 = digest(bytes);
-  const identity = await signIn();
-  await delay(3_000);
-  const invocations = await runPromotions({
-    identity,
-    deploymentUrl,
-    projectId,
-    bytes,
-    sha256,
-  });
-  const metrics = await collectMetrics(
-    requiredEnv("AR006_SCRIPT_NAME"),
-    invocations,
-  );
-  const measurements = metricEvidence(metrics.rows);
-  const pass =
-    invocations.every((item) => item.success) && metricsPass(measurements);
-  const evidence = {
+  return { projectId, deploymentUrl, bytes, sha256: digest(bytes) };
+}
+
+function evidenceRecord({ context, invocations, metrics, measurements, pass }) {
+  return {
     schema: "mariage-os.wp29c.ar006.v1",
     generatedAt: new Date().toISOString(),
     gitCommit: requiredEnv("AR006_EXPECTED_SHA"),
     pagesProject: requiredEnv("AR006_PAGES_PROJECT"),
     deployment: {
       id: requiredEnv("AR006_DEPLOYMENT_ID"),
-      url: deploymentUrl,
+      url: context.deploymentUrl,
       scriptName: requiredEnv("AR006_SCRIPT_NAME"),
       branch: requiredEnv("AR006_DEPLOYMENT_BRANCH"),
     },
     workersPlanAttestation: "Workers Free / isolated non-production",
     exactBytes: MAX_BYTES,
-    sha256,
-    projectId,
+    sha256: context.sha256,
+    projectId: context.projectId,
     invocationCount: INVOCATION_COUNT,
     invocations,
     analyticsWindow: metrics.window,
@@ -389,12 +391,32 @@ async function main() {
     paidCpuEntitlementAttestedAbsent: true,
     pass,
   };
+}
+
+async function writeEvidence(evidence) {
   await writeFile(
     EVIDENCE_PATH,
     `${JSON.stringify(evidence, null, 2)}\n`,
     "utf8",
   );
   console.log(`AR-006 provider evidence written to ${EVIDENCE_PATH}.`);
+}
+
+async function main() {
+  const context = evidenceContext();
+  const identity = await signIn();
+  await delay(3_000);
+  const invocations = await runPromotions({ identity, ...context });
+  const metrics = await collectMetrics(
+    requiredEnv("AR006_SCRIPT_NAME"),
+    invocations,
+  );
+  const measurements = metricEvidence(metrics.rows);
+  const pass =
+    invocations.every((item) => item.success) && metricsPass(measurements);
+  await writeEvidence(
+    evidenceRecord({ context, invocations, metrics, measurements, pass }),
+  );
   if (!pass) {
     throw new Error(
       "AR-006 provider evidence did not satisfy the Free CPU gate.",
