@@ -4,23 +4,40 @@ const INPUT_PATH = "ar006-pages-tail-raw.log";
 const OUTPUT_PATH = "ar006-pages-tail-probe.json";
 const CPU_FIELD = /(^|\.)cpuTimeMs$/iu;
 
-function collectShape(value, path, shapes, cpuValues) {
-  if (Array.isArray(value)) {
-    shapes.add(path ? `${path}[]` : "[]");
-    for (const item of value) {
-      collectShape(item, `${path}[]`, shapes, cpuValues);
-    }
-    return;
+function isObject(value) {
+  return typeof value === "object" && value !== null;
+}
+
+function recordCpuValue(path, value, cpuValues) {
+  if (!CPU_FIELD.test(path)) return;
+  const numericValue = Number(value);
+  if (Number.isFinite(numericValue)) cpuValues.push(numericValue);
+}
+
+function collectArrayShape(value, path, shapes, cpuValues) {
+  const arrayPath = path ? `${path}[]` : "[]";
+  shapes.add(arrayPath);
+  for (const item of value) {
+    collectShape(item, arrayPath, shapes, cpuValues);
   }
-  if (typeof value !== "object" || value === null) return;
+}
+
+function collectObjectShape(value, path, shapes, cpuValues) {
   for (const [key, child] of Object.entries(value)) {
     const childPath = path ? `${path}.${key}` : key;
     shapes.add(childPath);
-    if (CPU_FIELD.test(childPath) && Number.isFinite(Number(child))) {
-      cpuValues.push(Number(child));
-    }
+    recordCpuValue(childPath, child, cpuValues);
     collectShape(child, childPath, shapes, cpuValues);
   }
+}
+
+function collectShape(value, path, shapes, cpuValues) {
+  if (Array.isArray(value)) {
+    collectArrayShape(value, path, shapes, cpuValues);
+    return;
+  }
+  if (!isObject(value)) return;
+  collectObjectShape(value, path, shapes, cpuValues);
 }
 
 function parseJsonLines(raw) {
