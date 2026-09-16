@@ -85,17 +85,14 @@ function sanitizeEvent(event, scriptName) {
       typeof event?.$metadata?.cloudService === "string"
         ? event.$metadata.cloudService
         : null,
-    requestId:
-      typeof workers.requestId === "string" ? workers.requestId : null,
+    requestId: typeof workers.requestId === "string" ? workers.requestId : null,
     scriptName: workers.scriptName,
-    eventType:
-      typeof workers.eventType === "string" ? workers.eventType : null,
+    eventType: typeof workers.eventType === "string" ? workers.eventType : null,
     outcome: typeof workers.outcome === "string" ? workers.outcome : null,
     cpuTimeMs,
     wallTimeMs: finiteNumber(workers.wallTimeMs),
     statusCode: finiteNumber(workers.statusCode),
-    withinFreeCpuBudget:
-      cpuTimeMs === null ? null : cpuTimeMs <= CPU_BUDGET_MS,
+    withinFreeCpuBudget: cpuTimeMs === null ? null : cpuTimeMs <= CPU_BUDGET_MS,
   };
 }
 
