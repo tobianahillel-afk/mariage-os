@@ -12,6 +12,10 @@ Execution job: `.github/workflows/ci.yml` → `ar006-provider-evidence`
 
 Evidence harness: `scripts/run-private-document-ar006-evidence.mjs`
 
+CPU normalization helper: `scripts/private-document-ar006-metrics.mjs`
+
+CPU regression control: `npm run test:ar006:metrics`
+
 ## Purpose
 
 This runbook turns the AR-006 provider-evidence protocol into one reproducible, fail-closed execution path that can run **before Lot-2 integration to `main`**.
@@ -43,10 +47,13 @@ Current Cloudflare contracts used by this runbook:
 - Pages Functions metrics: <https://developers.cloudflare.com/pages/functions/metrics/>;
 - Workers metrics GraphQL query shape: <https://developers.cloudflare.com/analytics/graphql-api/tutorials/querying-workers-metrics/>;
 - Workers Free limits: <https://developers.cloudflare.com/workers/platform/limits/>;
+- Cloudflare GraphQL reference: `workersInvocationsAdaptive` CPU aggregation uses microseconds (`cpuTimeUs`), and CPU quantiles belong to that same CPU-time family;
 - analytics credential: Account Analytics Read;
 - deployment credential: the narrowest Pages write/edit permission that supports the isolated project.
 
 The normal Workers Free CPU limit was rechecked on 2026-09-16 as `10 ms` per HTTP request. Provider contracts must be rechecked before a later evidence run if Cloudflare limits or metric semantics change.
+
+The GraphQL `cpuTimeP50` / `cpuTimeP99` values consumed by this runbook are treated as **microseconds**. The harness records the raw values as `cpuTimeP50Us` / `cpuTimeP99Us`, divides by exactly `1000`, and records the normalized values as `cpuTimeP50Ms` / `cpuTimeP99Ms` before comparing them with the `10 ms` Free budget. `npm run test:ar006:metrics` locks this unit conversion and the 10 ms boundary into repository CI.
 
 ## Isolated environment prerequisites
 
@@ -134,10 +141,11 @@ After `full-verify` succeeds, the provider job:
 10. constructs one deterministic synthetic PDF of exactly `25,000,000` bytes;
 11. performs 10 separate reserve → staging upload → bodyless trusted promotion → finalize attempts using unique document IDs;
 12. spaces promotions so provider analytics can attribute controlled requests to distinct time buckets;
-13. polls Cloudflare `workersInvocationsAdaptive` for request/error/status and CPU p50/p99 values for the isolated preview script and evidence window;
-14. requires exactly 10 attributable request buckets, one request each, zero errors, `success` status and both retained CPU quantiles `<= 10 ms` for every bucket;
-15. writes only sanitized metadata to `ar006-workers-free-evidence.json`;
-16. uploads that JSON as a 30-day Actions artifact, including on a provider-gate failure when a sanitized evidence file exists.
+13. polls Cloudflare `workersInvocationsAdaptive` for request/error/status and raw CPU p50/p99 values for the isolated preview script and evidence window;
+14. normalizes raw CPU microseconds to milliseconds by dividing by `1000` and retains **both** representations in the sanitized artifact;
+15. requires exactly 10 attributable request buckets, one request each, zero errors, `success` status and both normalized CPU quantiles `<= 10 ms` for every bucket;
+16. writes only sanitized metadata to `ar006-workers-free-evidence.json` using schema `mariage-os.wp29c.ar006.v2`;
+17. uploads that JSON as a 30-day Actions artifact, including on a provider-gate failure when a sanitized evidence file exists.
 
 The job does not merge the branch, change production, enable Workers Paid, change the 25 MB contract or auto-transition WP-2.9C.
 
@@ -151,6 +159,12 @@ The bytes exist only in runner memory and in the isolated test Storage objects. 
 
 The harness uses Cloudflare's account-level `workersInvocationsAdaptive` dataset with dimensions `datetime`, `scriptName` and `status`, plus `cpuTimeP50` and `cpuTimeP99`.
 
+The provider CPU quantiles are interpreted as microseconds. Each evidence row therefore contains:
+
+- `cpuTimeP50Us` / `cpuTimeP99Us`: raw Cloudflare quantile values;
+- `cpuTimeP50Ms` / `cpuTimeP99Ms`: raw values divided by exactly `1000`;
+- the `10 ms` acceptance comparison is performed **only** against the normalized millisecond fields.
+
 Acceptance is intentionally stricter than a broad dashboard screenshot:
 
 - Pages API supplies the isolated project's preview script name;
@@ -159,14 +173,14 @@ Acceptance is intentionally stricter than a broad dashboard screenshot:
 - analytics must contain exactly 10 requests for that script inside the evidence window;
 - exactly 10 rows must remain, each carrying one request;
 - each row must report zero errors and `success` status;
-- CPU p50 and p99 must both be present and `<= 10 ms` for every retained row;
+- normalized CPU p50 and p99 must both be present and `<= 10 ms` for every retained row;
 - extra traffic contaminates attribution and fails the run rather than being discarded.
 
-If Cloudflare no longer exposes sufficiently attributable Free-plan metrics, AR-006 remains blocked. Do not replace CPU telemetry with wall time.
+If Cloudflare changes the units/semantics of these fields or no longer exposes sufficiently attributable Free-plan metrics, AR-006 remains blocked until the harness and evidence contract are deliberately revalidated. Do not infer units from field magnitude and do not replace CPU telemetry with wall time.
 
 ## Sanitized artifact schema
 
-`ar006-workers-free-evidence.json` may contain only:
+`ar006-workers-free-evidence.json` schema `mariage-os.wp29c.ar006.v2` may contain only:
 
 - schema/version marker;
 - generation timestamp;
@@ -179,8 +193,9 @@ If Cloudflare no longer exposes sufficiently attributable Free-plan metrics, AR-
 - controlled request timestamps and HTTP status/success booleans;
 - analytics window;
 - provider request/error/status fields;
-- CPU p50/p99 values;
-- CPU budget and final pass boolean.
+- raw CPU p50/p99 values in microseconds;
+- normalized CPU p50/p99 values in milliseconds;
+- CPU budget in milliseconds and final pass boolean.
 
 It must not contain credentials, bearer/session tokens, `PRIVATE_DOCUMENT_ADMIN_KEY`, passwords, PDF bytes or real wedding identifiers/content.
 
@@ -194,11 +209,12 @@ Before changing packet state:
 2. verify the run SHA equals the intended evidence candidate;
 3. verify Pages deployment metadata resolves to that same SHA;
 4. verify the Cloudflare account/project really used Workers Free with no Paid CPU entitlement;
-5. verify all 10 controlled promotions succeeded and every retained CPU measurement is within `10 ms`;
-6. verify the deny smoke passed and Pages Functions were present;
-7. record sanitized evidence durably in FIR/repository records without credentials;
-8. keep complete exact-head CI/clean-checkout evidence for that candidate;
-9. only then consider transitioning C to `REVIEW_PENDING` and start a new independent Pass B over AR-001..007.
+5. verify all 10 controlled promotions succeeded and every retained **normalized** CPU measurement is within `10 ms`;
+6. verify raw microsecond and normalized millisecond values are both present and arithmetically consistent;
+7. verify the deny smoke passed and Pages Functions were present;
+8. record sanitized evidence durably in FIR/repository records without credentials;
+9. keep complete exact-head CI/clean-checkout evidence for that candidate;
+10. only then consider transitioning C to `REVIEW_PENDING` and start a new independent Pass B over AR-001..007.
 
 After accepted evidence capture, reset or destroy dedicated synthetic test data according to the non-production test-data procedure. Do not use an application bypass or production credential merely for cleanup.
 
@@ -206,6 +222,6 @@ After accepted evidence capture, reset or destroy dedicated synthetic test data 
 
 A red provider job is evidence, not permission to weaken the contract.
 
-If exact-size promotions fail, CPU exceeds `10 ms`, attribution is contaminated, metrics are unavailable, or success requires Paid CPU, keep WP-2.9C `BLOCKED` and reopen architecture review.
+If exact-size promotions fail, normalized CPU exceeds `10 ms`, attribution is contaminated, metrics are unavailable, metric units cannot be established, or success requires Paid CPU, keep WP-2.9C `BLOCKED` and reopen architecture review.
 
 Do not silently enable Workers Paid and do not reduce the `25,000,000`-byte PDF contract.
