@@ -55,9 +55,7 @@ async function main() {
   await writeFile(OUTPUT_PATH, `${JSON.stringify(result, null, 2)}\n`, "utf8");
   console.log(`AR-006 Pages tail probe written to ${OUTPUT_PATH}.`);
   if (!result.pass) {
-    throw new Error(
-      "Pages deployment tail did not expose provider cpuTimeMs.",
-    );
+    throw new Error("Pages deployment tail did not expose provider cpuTimeMs.");
   }
 }
 
