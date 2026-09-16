@@ -85,21 +85,34 @@ Remediation exact-head verification:
 
 Latest AR-006 execution-support verification:
 
-- evidence-support head `f7c9d05046b8374c685cf9bbe219706d925c07f6`;
-- CI `35080989572` — **5/5 SUCCESS**, including `Full verify from clean checkout`;
+- execution-support head `2aa0b91da82b09f479cd93fb52763786f9a7874f`;
+- CI `35082871383` — **5/5 SUCCESS**, including `Full verify from clean checkout`;
+- Core quality/security, Local Supabase DB/RLS/Pages Function, browser/mutation, privacy-safe preview and clean-checkout full verify all passed on that exact head;
+- the dedicated `AR-006 isolated provider preflight` job and `Exact 25 MB Workers Free provider evidence` job were both **SKIPPED** on that ordinary push, as required;
 - `npm run test:ar006:metrics` passed in Core and is also part of `npm run verify`;
 - provider CPU GraphQL quantiles are treated as microseconds, retained raw as `cpuTimeP50Us` / `cpuTimeP99Us`, normalized by exact division by `1000` to `cpuTimeP50Ms` / `cpuTimeP99Ms`, then compared with the `10 ms` Workers Free budget;
 - regression controls prove `10,000 µs = 10 ms` is accepted and `10,001 µs = 10.001 ms` is rejected;
-- `npm run preflight:ar006` is a read-only readiness guard executed inside the evidence job before build/deployment; it checks the isolated Pages project and preview bindings, Analytics access, synthetic Supabase authentication and live `documents.write` without deploying or mutating document data;
-- post-deployment checks still independently require the exact candidate to expose Pages Functions, expected bindings, deployment identity and `preview_script_name` before smoke/evidence collection;
-- `Exact 25 MB Workers Free provider evidence` was **SKIPPED** on this ordinary push, as required because the commit did not carry `[AR006-EVIDENCE]` and no provider evidence was requested.
+- `npm run preflight:ar006` is a read-only readiness guard. The dedicated `[AR006-PREFLIGHT]` job runs it separately before provider evidence is authorized; the `[AR006-EVIDENCE]` job also runs the same guard before build/deployment;
+- post-deployment checks still independently require the exact candidate to expose Pages Functions, expected bindings, deployment identity and `preview_script_name` before smoke/evidence collection.
 
-These repository-green gates validate the AR-005/AR-007 implementation remediations, preserve the local exact-25-MB functional path, and validate the AR-006 evidence harness/unit handling and fail-before-deploy readiness path. They do **not** satisfy AR-006 because that finding still requires provider-produced Cloudflare Workers Free CPU telemetry from the isolated deployed path.
+Latest external provider-readiness execution:
+
+- no-content readiness head `55b02f40e8b4519db12f99ee8a38fe095e81a534`, using the exact tree of repository-green parent `2aa0b91da82b09f479cd93fb52763786f9a7874f`;
+- CI `35083615839` / preflight job `104753395475`;
+- `AR-006 isolated provider preflight` — **FAILURE BEFORE DEPLOYMENT / BEFORE DATA MUTATION**;
+- checkout, Node setup, dependency install and secret scan passed;
+- every required `ar006-isolated` Environment variable resolved empty: `AR006_PAGES_PROJECT`, `CLOUDFLARE_ACCOUNT_ID`, `AR006_SUPABASE_URL`, `AR006_SUPABASE_PUBLISHABLE_KEY`, `AR006_TEST_USER_EMAIL`, `AR006_PROJECT_ID`, `AR006_WORKERS_FREE_ATTESTATION`;
+- all three required Environment secrets also resolved empty at the preflight step: `AR006_CLOUDFLARE_DEPLOY_TOKEN`, `AR006_CLOUDFLARE_ANALYTICS_TOKEN`, `AR006_TEST_USER_PASSWORD`;
+- the first fail-closed error was `AR006_WORKERS_FREE_ATTESTATION is required.`;
+- therefore the run did not reach the Cloudflare Pages API, Cloudflare Analytics, Supabase authentication or `has_project_permission`, and performed no deployment, document reservation, Storage upload, promotion/finalization or application-data mutation;
+- this is an **external GitHub Environment/provider-test configuration blocker**, not CPU-feasibility evidence and not a repository implementation regression.
+
+These repository-green gates validate the AR-005/AR-007 implementation remediations, preserve the local exact-25-MB functional path, and validate the AR-006 evidence harness/unit handling and fail-before-deploy readiness path. The first real readiness execution additionally proves the gate fails closed before provider mutation when its isolated configuration is absent. None of this satisfies AR-006 because that finding still requires provider-produced Cloudflare Workers Free CPU telemetry from the isolated deployed path.
 
 Current remediation status:
 
 - `WP29C-AR-005` — **MAJOR / IMPLEMENTATION-REMEDIATED / EXACT-HEAD-GREEN** — trusted clean-abandon path, DB orphan backstop, immediate pre-copy reservation revalidation, safe post-copy compensation and race/retry coverage implemented. Formal closure now waits only for the later complete fresh Pass B after AR-006 is unblocked.
-- `WP29C-AR-006` — **MAJOR / OPEN / BLOCKING** — exact-25-MB Workers/Pages Free CPU feasibility still lacks deployed provider CPU evidence. Durable proof protocol: `docs/roadmap/lot-2/WP-2.9C-AR-006-CPU-EVIDENCE.md`; executable runbook: `docs/roadmap/lot-2/WP-2.9C-AR-006-RUNBOOK.md`.
+- `WP29C-AR-006` — **MAJOR / OPEN / BLOCKING** — exact-25-MB Workers/Pages Free CPU feasibility still lacks deployed provider CPU evidence; the immediate prerequisite is to configure the isolated GitHub Environment/provider test resources and obtain a green read-only readiness preflight. Durable proof protocol: `docs/roadmap/lot-2/WP-2.9C-AR-006-CPU-EVIDENCE.md`; executable runbook: `docs/roadmap/lot-2/WP-2.9C-AR-006-RUNBOOK.md`.
 - `WP29C-AR-007` — **MAJOR / IMPLEMENTATION-REMEDIATED / EXACT-HEAD-GREEN** — ADR/release/CI-CD/secret contracts reconciled to Pages Functions and `PRIVATE_DOCUMENT_ADMIN_KEY`; fail-closed non-destructive deployment smoke added. Formal closure now waits only for the later complete fresh Pass B after AR-006 is unblocked.
 
 Historical `WP29C-AR-001..004` remain implementation-green but await a later complete clean fresh Pass B for formal closure.
@@ -127,11 +140,16 @@ The provider evidence harness consumes `workersInvocationsAdaptive` CPU quantile
 
 Unblock requires an exact-commit isolated Pages deployment on Workers Free, a synthetic exact `25,000,000`-byte trusted promotion, and provider-produced CPU-specific telemetry demonstrating controlled successful invocations inside the normal Free CPU budget with no `exceededCpu`, no Paid entitlement and no file-limit reduction.
 
-The branch CI contains a guarded `ar006-provider-evidence` job that runs only after `full-verify` on a `push` to `lot-2/venues-core` whose head commit message contains `[AR006-EVIDENCE]`, and only inside the `ar006-isolated` GitHub Environment with the explicit Workers Free attestation and required isolated provider configuration. The job now runs the read-only `preflight:ar006` guard before building or deploying; ordinary pushes/PRs skip the provider job and do not receive those credentials.
+The branch CI contains two distinct guarded jobs:
+
+- `ar006-provider-preflight` runs only after `core` on a push to `lot-2/venues-core` whose head commit contains `[AR006-PREFLIGHT]`. It is read-only and may not deploy or mutate application data.
+- `ar006-provider-evidence` runs only after `full-verify` on a push to the same branch whose head commit contains `[AR006-EVIDENCE]`. It repeats the read-only preflight before building/deploying and collecting exact-size provider CPU evidence.
+
+Both jobs use the `ar006-isolated` GitHub Environment. Ordinary pushes/PRs skip both provider jobs and do not receive those credentials. The first real readiness run (`55b02f40e8b4519db12f99ee8a38fe095e81a534` / `35083615839`) failed closed because the required Environment variables/secrets resolved empty, so `[AR006-EVIDENCE]` remains unauthorized.
 
 No acceptance-grade deployed Pages identity plus provider CPU telemetry is recorded in the repository/FIR evidence used for this packet. Absence from repository evidence is not proof that no external deployment exists; it means the acceptance evidence is unavailable to the packet.
 
-Until that evidence exists, WP-2.9C remains **BLOCKED**. If the proof fails, revisit architecture rather than silently enabling paid compute or shrinking the PDF contract.
+Until that evidence exists, WP-2.9C remains **BLOCKED**. If the proof fails after a correctly configured readiness gate, revisit architecture rather than silently enabling paid compute or shrinking the PDF contract.
 
 ### AR-007 operations gate retained
 
@@ -141,15 +159,17 @@ Normative release/deployment/secret contracts now require Pages Functions to dep
 
 1. WP-2.9C is **BLOCKED** on `WP29C-AR-006`.
 2. Preserve AR-005 and AR-007 remediation behavior; do not weaken RLS/authorization/file limits or deployment/secret controls.
-3. Configure the isolated Cloudflare Pages/Workers Free + Supabase test environment and GitHub Environment `ar006-isolated` described in `docs/roadmap/lot-2/WP-2.9C-AR-006-RUNBOOK.md`.
-4. Only after that environment exists, trigger the guarded evidence job with an exact candidate commit whose message contains `[AR006-EVIDENCE]`; its read-only preflight must pass before any build/deployment or document mutation occurs.
-5. Inspect the sanitized schema-v2 artifact and require 10 successful exact-size controlled invocations, raw CPU microsecond values with arithmetically consistent millisecond normalization, and normalized CPU p50/p99 `<= 10 ms` for every retained invocation.
-6. If that evidence cannot demonstrate the normal Free envelope, remain `BLOCKED` and revisit architecture; do not enable Paid or reduce the 25 MB contract silently.
-7. After valid AR-006 evidence, preserve/run exact-head full CI + clean-checkout verification over the evidence-bound candidate.
-8. Transition C back to `REVIEW_PENDING` only after all remediation evidence is green.
-9. Run another complete fresh independent Pass B over the whole packet and all seven findings.
-10. Only a clean Pass B may enter `ACCEPTANCE_PENDING`; only Pass C may mark C `ACCEPTED`.
-11. WP-2.9A remains **BLOCKED** and WP-2.9B remains **PLANNED / AFTER A**.
+3. Configure GitHub Environment `ar006-isolated` with the seven variables and three secrets specified in `docs/roadmap/lot-2/WP-2.9C-AR-006-RUNBOOK.md`; the latest readiness run proves they currently resolve empty.
+4. Ensure the isolated Cloudflare Pages preview already exposes the expected `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` and encrypted `PRIVATE_DOCUMENT_ADMIN_KEY`, and the isolated Supabase project contains the migrated schema plus the synthetic user/project with live `documents.write`.
+5. Repeat a no-content `[AR006-PREFLIGHT]` commit using the exact current tree. The readiness job must pass before any evidence trigger is authorized.
+6. Only after a green readiness preflight, trigger a no-content exact candidate with `[AR006-EVIDENCE]`; its preflight must pass again before build/deployment or document mutation occurs.
+7. Inspect the sanitized schema-v2 artifact and require 10 successful exact-size controlled invocations, raw CPU microsecond values with arithmetically consistent millisecond normalization, and normalized CPU p50/p99 `<= 10 ms` for every retained invocation.
+8. If that evidence cannot demonstrate the normal Free envelope, remain `BLOCKED` and revisit architecture; do not enable Paid or reduce the 25 MB contract silently.
+9. After valid AR-006 evidence, preserve/run exact-head full CI + clean-checkout verification over the evidence-bound candidate.
+10. Transition C back to `REVIEW_PENDING` only after all remediation evidence is green.
+11. Run another complete fresh independent Pass B over the whole packet and all seven findings.
+12. Only a clean Pass B may enter `ACCEPTANCE_PENDING`; only Pass C may mark C `ACCEPTED`.
+13. WP-2.9A remains **BLOCKED** and WP-2.9B remains **PLANNED / AFTER A**.
 
 ## Durable handoff
 
@@ -164,9 +184,10 @@ WP-2.9A: BLOCKED — waits for WP-2.9C ACCEPTED
 Current packet: WP-2.9C — BLOCKED
 Fresh Pass-B record: docs/roadmap/lot-2/WP-2.9C-PASS-B-REVIEW.md
 Remediation implementation evidence: 68a4f6bdb7b55acc80c4c6fbb8c0afc0295bfde5 / 35025384594 — 5/5 SUCCESS, clean checkout included
-Latest AR-006 evidence-support head: f7c9d05046b8374c685cf9bbe219706d925c07f6 / 35080989572 — 5/5 SUCCESS, clean checkout included; CPU µs→ms regression control green; read-only fail-before-deploy provider preflight repository-green; provider job SKIPPED on ordinary push
+Latest repository-green AR-006 execution-support head: 2aa0b91da82b09f479cd93fb52763786f9a7874f / 35082871383 — 5/5 SUCCESS, clean checkout included; both provider jobs SKIPPED on ordinary push
+Latest AR-006 readiness attempt: 55b02f40e8b4519db12f99ee8a38fe095e81a534 / 35083615839 / job 104753395475 — FAILED CLOSED before provider calls because all required ar006-isolated variables/secrets resolved empty; no deployment or application-data mutation occurred
 AR-005: implementation-remediated / exact-head-green — formal closure waits fresh Pass B after AR-006 unblock
-AR-006: OPEN / BLOCKING — deployed Workers Free exact-25-MB CPU evidence required
+AR-006: OPEN / BLOCKING — first configure ar006-isolated, then green [AR006-PREFLIGHT], then deployed Workers Free exact-25-MB CPU evidence
 AR-006 evidence protocol: docs/roadmap/lot-2/WP-2.9C-AR-006-CPU-EVIDENCE.md
 AR-006 execution runbook: docs/roadmap/lot-2/WP-2.9C-AR-006-RUNBOOK.md
 AR-007: implementation-remediated / exact-head-green — formal closure waits fresh Pass B after AR-006 unblock
@@ -174,5 +195,5 @@ FTR-089 FIR: #17 — BLOCKED
 WP-2.9A resumes only after WP-2.9C ACCEPTED
 WP-2.9B remains PLANNED / AFTER A
 Lots 3–12: NOT_STARTED
-Next permitted action: configure isolated AR-006 provider environment, then obtain provider CPU evidence; otherwise architecture review remains blocked
+Next permitted action: populate the isolated GitHub Environment/provider test resources and rerun [AR006-PREFLIGHT]; [AR006-EVIDENCE] remains forbidden until readiness is green
 ```
