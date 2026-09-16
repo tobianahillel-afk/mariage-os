@@ -1,0 +1,56 @@
+name: AR-006 delayed telemetry requery
+
+on:
+  push:
+    branches:
+      - lot-2/venues-core
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mariage-os-ar006-requery-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  requery:
+    name: AR-006 delayed provider CPU requery
+    if: >-
+      contains(github.event.head_commit.message, '[AR006-REQUERY]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: ar006-isolated
+    env:
+      AR006_PAGES_PROJECT: ${{ vars.AR006_PAGES_PROJECT }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      AR006_WORKERS_FREE_ATTESTATION: ${{ vars.AR006_WORKERS_FREE_ATTESTATION }}
+      AR006_REQUERY_TARGET_SHA: 4f40613060b4c9de41a32d99ed43fcf6e12c9791
+      AR006_REQUERY_DEPLOYMENT_ID: 064d50b9-3c3d-414e-a6c3-afdcc1051be9
+      AR006_REQUERY_SCRIPT_NAME: pages-worker--19505720-preview
+      AR006_REQUERY_WINDOW_START: 2026-09-16T19:13:57.417Z
+      AR006_REQUERY_WINDOW_END: 2026-09-16T19:16:29.334Z
+      AR006_REQUERY_EXPECTED_REQUESTS: '10'
+      AR006_REQUERY_SOURCE_ARTIFACT_ID: '10464581885'
+      AR006_REQUERY_SOURCE_ARTIFACT_ZIP_SHA256: 56c809b27dadf42a3ef26a003855eb628dbf0ef437774bb76d82c02b33ada3c5
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run security:secrets
+      - name: Re-query existing isolated Cloudflare CPU telemetry
+        env:
+          CLOUDFLARE_ANALYTICS_API_TOKEN: ${{ secrets.AR006_CLOUDFLARE_ANALYTICS_TOKEN }}
+        run: node scripts/run-private-document-ar006-requery.mjs
+      - name: Retain sanitized delayed AR-006 telemetry
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: wp-2.9c-ar006-requery-${{ github.sha }}
+          path: ar006-workers-free-requery.json
+          if-no-files-found: warn
+          retention-days: 30
