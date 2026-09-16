@@ -7,7 +7,9 @@ const CPU_FIELD = /(^|\.)cpuTimeMs$/iu;
 function collectShape(value, path, shapes, cpuValues) {
   if (Array.isArray(value)) {
     shapes.add(path ? `${path}[]` : "[]");
-    for (const item of value) collectShape(item, `${path}[]`, shapes, cpuValues);
+    for (const item of value) {
+      collectShape(item, `${path}[]`, shapes, cpuValues);
+    }
     return;
   }
   if (typeof value !== "object" || value === null) return;
@@ -53,7 +55,9 @@ async function main() {
   await writeFile(OUTPUT_PATH, `${JSON.stringify(result, null, 2)}\n`, "utf8");
   console.log(`AR-006 Pages tail probe written to ${OUTPUT_PATH}.`);
   if (!result.pass) {
-    throw new Error("Pages deployment tail did not expose provider cpuTimeMs.");
+    throw new Error(
+      "Pages deployment tail did not expose provider cpuTimeMs.",
+    );
   }
 }
 
