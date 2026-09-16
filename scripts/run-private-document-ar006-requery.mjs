@@ -20,14 +20,18 @@ function requiredEnv(name) {
 function isoInstant(name) {
   const value = requiredEnv(name);
   const parsed = Date.parse(value);
-  if (!Number.isFinite(parsed)) throw new Error(`${name} must be an ISO instant.`);
+  if (!Number.isFinite(parsed)) {
+    throw new Error(`${name} must be an ISO instant.`);
+  }
   return { value, parsed };
 }
 
 function expectedRequestCount() {
   const count = Number(requiredEnv("AR006_REQUERY_EXPECTED_REQUESTS"));
   if (!Number.isInteger(count) || count <= 0) {
-    throw new Error("AR006_REQUERY_EXPECTED_REQUESTS must be a positive integer.");
+    throw new Error(
+      "AR006_REQUERY_EXPECTED_REQUESTS must be a positive integer.",
+    );
   }
   return count;
 }
@@ -37,7 +41,9 @@ function assertContext() {
     requiredEnv("AR006_WORKERS_FREE_ATTESTATION") !==
     "YES-WORKERS-FREE-ISOLATED"
   ) {
-    throw new Error("Workers Free isolated-environment attestation is required.");
+    throw new Error(
+      "Workers Free isolated-environment attestation is required.",
+    );
   }
   const targetGitCommit = requiredEnv("AR006_REQUERY_TARGET_SHA");
   if (!SHA_PATTERN.test(targetGitCommit)) {
@@ -104,7 +110,10 @@ async function queryAnalytics(scriptName, window) {
     }),
   });
   const payload = await response.json();
-  if (!response.ok || (Array.isArray(payload.errors) && payload.errors.length > 0)) {
+  if (
+    !response.ok ||
+    (Array.isArray(payload.errors) && payload.errors.length > 0)
+  ) {
     throw new Error("Cloudflare analytics query failed.");
   }
   return analyticsRows(payload);
@@ -166,7 +175,9 @@ async function main() {
   );
   await writeEvidence(context, measurements, pass);
   if (!pass) {
-    throw new Error("AR-006 delayed provider telemetry still does not satisfy the CPU gate.");
+    throw new Error(
+      "AR-006 delayed provider telemetry still does not satisfy the CPU gate.",
+    );
   }
 }
 
