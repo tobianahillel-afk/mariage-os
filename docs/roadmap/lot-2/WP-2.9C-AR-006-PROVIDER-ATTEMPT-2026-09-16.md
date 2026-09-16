@@ -38,13 +38,24 @@ A bounded provider-native tail experiment was then executed before any further e
 - Raw tail output was intentionally not retained. The result therefore does **not** prove that every possible Pages tail event lacks CPU; it proves only that the bounded probe captured no parseable JSON CPU event.
 - Cloudflare's documented standard Pages deployment-tail event shape does not define a CPU-time field. The architecture review therefore rejects standard Pages tail as the packet's final CPU-evidence mechanism and forbids rerunning the ten exact-size promotions merely to retry that channel.
 
+## Workers Observability capability preflight
+
+A dedicated repository-green capability harness was added to test the existing exact Pages deployment through Workers Observability before any further exact-size mutation run.
+
+- Harness quality-gate head `ed65b6beec8c66c50eca7eca019d972a0b75a748` / CI `35159378110` — **5/5 SUCCESS**, including `Full verify from clean checkout`.
+- No-content exact-tree trigger `ea948913a1b56fc959557ee005763b0950b30a07` launched workflow `35161863114`, job `105014208798`.
+- The exact existing Pages deployment deny-only smoke passed. No PDF upload, Supabase authentication, deployment, or application-data mutation occurred.
+- The Workers Observability query step failed **before any provider telemetry request** because GitHub Environment secret `AR006_CLOUDFLARE_OBSERVABILITY_TOKEN` resolved empty. The job log recorded `CLOUDFLARE_OBSERVABILITY_API_TOKEN:` as empty and `Dedicated Cloudflare Workers Observability token is required.`
+- Sanitized artifact `10473471272` (ZIP SHA-256 `f3bcaa6b9f6b2e83c21b7a21622e4b9ae48a985c84f1b46065c5983a2e56e43d`) records `tokenPresent: false`, `httpStatus: null`, `matchingEventCount: 0`, `cpuEventCount: 0`, `pass: false`.
+- This attempt is **external secret-configuration evidence only**. It is not evidence that Workers Observability is unavailable, that the API rejected the token, or that CPU is within/outside budget. The capability question remains untested until a dedicated short-lived token with the required Workers Observability permission is configured.
+
 ## Current architecture-review direction
 
 The next bounded candidate is Cloudflare Workers Observability telemetry. Its provider event model explicitly includes `$workers.cpuTimeMs` and script/request attribution, while the API model includes `pages` as a possible cloud-service origin.
 
 Before any further exact-size mutation run, a dedicated capability preflight must prove that the **existing exact Pages preview script** appears in Workers Observability with numeric provider `cpuTimeMs`. The probe remains application-read-only: existing deny smoke plus provider telemetry query only.
 
-Cloudflare currently documents `Workers Observability Write` as the accepted API-token permission for telemetry query/key endpoints. The repository therefore requires a separate short-lived secret `AR006_CLOUDFLARE_OBSERVABILITY_TOKEN`; it must not reuse the Pages deployment token or the Account Analytics token.
+Cloudflare currently documents `Workers Observability Write` as the accepted API-token permission for telemetry query/key endpoints. The repository therefore requires a separate short-lived secret `AR006_CLOUDFLARE_OBSERVABILITY_TOKEN`; it must not reuse the Pages deployment token or the Account Analytics token. The first capability trigger proved that this secret is not yet configured in `ar006-isolated`; after provisioning it, rerun the same `[AR006-OBS-PREFLIGHT]` path before any exact-size mutation evidence run.
 
 If the existing Pages deployment cannot expose attributable CPU through Workers Observability without a material runtime/configuration migration, stop and make an explicit architecture decision. Do not silently migrate Pages to Workers, enable Workers Paid, infer CPU from wall time/HTTP success, or lower the 25 MB contract.
 
