@@ -8,21 +8,15 @@ const executable = path.resolve(
 );
 
 const MAX_DIAGNOSTIC_CHARS = 4000;
+const JWT_PATTERN = /\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/g;
+const SUPABASE_KEY_PATTERN = /\bsb_(?:publishable|secret)_[A-Za-z0-9_-]+\b/g;
+const POSTGRES_PASSWORD_PATTERN = /(postgresql?:\/\/[^:\s/@]+:)[^@\s]+@/gi;
 
 function redactDiagnostic(value) {
   return value
-    .replace(
-      /\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/g,
-      "[REDACTED_JWT]",
-    )
-    .replace(
-      /\bsb_(?:publishable|secret)_[A-Za-z0-9_-]+\b/g,
-      "[REDACTED_SUPABASE_KEY]",
-    )
-    .replace(
-      /(postgresql?:\/\/[^:\s/@]+:)[^@\s]+@/gi,
-      "$1[REDACTED]@",
-    )
+    .replace(JWT_PATTERN, "[REDACTED_JWT]")
+    .replace(SUPABASE_KEY_PATTERN, "[REDACTED_SUPABASE_KEY]")
+    .replace(POSTGRES_PASSWORD_PATTERN, "$1[REDACTED]@")
     .slice(-MAX_DIAGNOSTIC_CHARS);
 }
 
