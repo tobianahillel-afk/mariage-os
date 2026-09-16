@@ -166,6 +166,12 @@ jobs:
           test -n "$AR006_PROJECT_ID"
       - run: npm ci --no-audit --no-fund
       - run: npm run security:secrets
+      - name: Preflight isolated provider readiness before deployment
+        env:
+          AR006_CLOUDFLARE_DEPLOY_TOKEN: ${{ secrets.AR006_CLOUDFLARE_DEPLOY_TOKEN }}
+          AR006_CLOUDFLARE_ANALYTICS_TOKEN: ${{ secrets.AR006_CLOUDFLARE_ANALYTICS_TOKEN }}
+          AR006_TEST_USER_PASSWORD: ${{ secrets.AR006_TEST_USER_PASSWORD }}
+        run: npm run preflight:ar006
       - run: npm run build
       - name: Deploy exact candidate to isolated Pages preview
         env:
