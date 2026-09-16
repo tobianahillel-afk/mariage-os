@@ -53,7 +53,9 @@ This result does **not** establish that all Pages tail events lack CPU fields be
 
 ### C. Workers Observability persisted invocation logs / REST API — current bounded candidate
 
-Cloudflare's Workers Observability telemetry API is provider-native and its current event model explicitly exposes `$workers.cpuTimeMs`, `$workers.wallTimeMs`, request ID, script name and outcome. The same model describes `$metadata.cloudService` values including `pages`.
+Cloudflare's Workers Observability telemetry API is provider-native and its current event model explicitly exposes `$workers.cpuTimeMs`, `$workers.wallTimeMs`, request ID, script name and outcome. The same API model describes `$metadata.cloudService` values including `pages`.
+
+There is an important provider-documentation tension that must remain explicit during this experiment: Cloudflare's Pages Functions logging documentation says the standard Pages Function log stream is not stored, while the Workers Observability Query Builder documentation says its queries search logs stored in Workers Logs. The Observability API schema nevertheless names `pages` as a possible `cloudService`. Therefore neither Pages support nor Pages non-support may be inferred from documentation alone; the existing exact deployment must be tested through the provider API before any architecture conclusion.
 
 Before this mechanism can be approved for final evidence, Mariage OS must prove all of the following without changing the runtime architecture:
 
@@ -63,7 +65,11 @@ Before this mechanism can be approved for final evidence, Mariage OS must prove 
 4. the capability works on the existing Workers Free / Pages deployment without enabling Paid;
 5. the required API permission can be isolated to a dedicated short-lived token and is never reused as the Pages deployment token or Analytics token.
 
-Cloudflare currently documents `Workers Observability Write` as the API-token permission accepted by the telemetry query/key endpoints. Because this is a broader capability than the existing Analytics Read token, the probe must use a dedicated secret named `AR006_CLOUDFLARE_OBSERVABILITY_TOKEN`. Its value must never be printed, committed or included in artifacts.
+Cloudflare currently documents `Workers Observability Write` as the API-token permission accepted by the telemetry query endpoint. Because this is a broader capability than the existing Analytics Read token, the probe must use a dedicated secret named `AR006_CLOUDFLARE_OBSERVABILITY_TOKEN`. Its value must never be printed, committed or included in artifacts.
+
+The repository implementation of this bounded capability probe is verified at `ed65b6beec8c66c50eca7eca019d972a0b75a748` / CI `35159378110` — **5/5 SUCCESS**, including clean-checkout full verification.
+
+The first exact-tree no-content trigger `ea948913a1b56fc959557ee005763b0950b30a07` / workflow `35161863114` / job `105014208798` passed the deny-only smoke but stopped before any Workers Observability API request because `AR006_CLOUDFLARE_OBSERVABILITY_TOKEN` was not configured. Sanitized artifact `10473471272` (ZIP SHA-256 `f3bcaa6b9f6b2e83c21b7a21622e4b9ae48a985c84f1b46065c5983a2e56e43d`) records `tokenPresent: false`, `httpStatus: null`, zero provider events and `pass: false`. This is an external secret-configuration result only; it does not answer the capability question.
 
 The capability probe is deny-only and read-only with respect to application data: run the existing production deny smoke against the exact deployment, query a short Observability window filtered to the exact script, retain only sanitized provider metadata required to determine CPU availability, and fail closed on missing authorization, missing events or missing CPU.
 
@@ -79,7 +85,7 @@ These mechanisms do not provide Cloudflare's authoritative CPU consumption for t
 
 ## Current decision
 
-**Proceed with a separately guarded Workers Observability API capability preflight before any new exact-25-MB mutation run.**
+**Provision the dedicated Workers Observability token, then rerun the separately guarded capability preflight against the existing exact deployment before any new exact-25-MB mutation run.**
 
 The preflight must:
 
@@ -96,6 +102,7 @@ If the existing Pages deployment cannot produce attributable CPU through Workers
 
 - <https://developers.cloudflare.com/pages/functions/debugging-and-logging/>
 - <https://developers.cloudflare.com/workers/wrangler/commands/pages/#pages-deployment-tail>
+- <https://developers.cloudflare.com/workers/observability/query-builder/>
 - <https://developers.cloudflare.com/api/resources/workers/subresources/observability/subresources/telemetry/>
 - <https://developers.cloudflare.com/api/resources/workers/subresources/observability/subresources/telemetry/methods/query/>
 - <https://developers.cloudflare.com/api/resources/workers/subresources/observability/subresources/telemetry/methods/keys/>
