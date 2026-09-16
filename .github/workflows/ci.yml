@@ -40,6 +40,7 @@ jobs:
       - run: npm run static
       - run: npm run quality:negative
       - run: npm run security:negative
+      - run: npm run test:ar006:metrics
       - run: npm run test:unit
       - run: npm run security:dependencies
       - run: npm run build
