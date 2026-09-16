@@ -3,6 +3,10 @@ import { createHash, randomUUID } from "node:crypto";
 import { writeFile } from "node:fs/promises";
 import { URL } from "node:url";
 import { createClient } from "@supabase/supabase-js";
+import {
+  metricEvidence,
+  metricsPass,
+} from "./private-document-ar006-metrics.mjs";
 
 const MAX_BYTES = 25_000_000;
 const INVOCATION_COUNT = 10;
@@ -310,43 +314,6 @@ async function collectMetrics(scriptName, invocations) {
   return { window, rows };
 }
 
-function finiteNumber(value) {
-  const number = Number(value);
-  return Number.isFinite(number) ? number : null;
-}
-
-function metricEvidence(rows) {
-  return rows.map((row) => ({
-    datetime: String(row.dimensions.datetime),
-    status: String(row.dimensions.status),
-    requests: Number(row.sum.requests),
-    errors: Number(row.sum.errors),
-    cpuTimeP50Ms: finiteNumber(row.quantiles.cpuTimeP50),
-    cpuTimeP99Ms: finiteNumber(row.quantiles.cpuTimeP99),
-  }));
-}
-
-function measurementPass(row) {
-  if (row.requests !== 1) return false;
-  if (row.errors !== 0) return false;
-  if (row.status !== "success") return false;
-  if (row.cpuTimeP50Ms === null) return false;
-  if (row.cpuTimeP99Ms === null) return false;
-  if (row.cpuTimeP50Ms > CPU_BUDGET_MS) return false;
-  if (row.cpuTimeP99Ms > CPU_BUDGET_MS) return false;
-  return true;
-}
-
-function metricsPass(measurements) {
-  const totalRequests = measurements.reduce(
-    (sum, row) => sum + row.requests,
-    0,
-  );
-  if (totalRequests !== INVOCATION_COUNT) return false;
-  if (measurements.length !== INVOCATION_COUNT) return false;
-  return measurements.every(measurementPass);
-}
-
 function evidenceContext() {
   if (
     requiredEnv("AR006_WORKERS_FREE_ATTESTATION") !==
@@ -369,7 +336,7 @@ function evidenceContext() {
 
 function evidenceRecord({ context, invocations, metrics, measurements, pass }) {
   return {
-    schema: "mariage-os.wp29c.ar006.v1",
+    schema: "mariage-os.wp29c.ar006.v2",
     generatedAt: new Date().toISOString(),
     gitCommit: requiredEnv("AR006_EXPECTED_SHA"),
     pagesProject: requiredEnv("AR006_PAGES_PROJECT"),
@@ -413,7 +380,8 @@ async function main() {
   );
   const measurements = metricEvidence(metrics.rows);
   const pass =
-    invocations.every((item) => item.success) && metricsPass(measurements);
+    invocations.every((item) => item.success) &&
+    metricsPass(measurements, INVOCATION_COUNT, CPU_BUDGET_MS);
   await writeEvidence(
     evidenceRecord({ context, invocations, metrics, measurements, pass }),
   );
