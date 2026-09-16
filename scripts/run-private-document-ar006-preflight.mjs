@@ -1,3 +1,4 @@
+import { URL } from "node:url";
 import { createClient } from "@supabase/supabase-js";
 
 const ANALYTICS_URL = "https://api.cloudflare.com/client/v4/graphql";
@@ -49,6 +50,36 @@ async function verifySupabase(projectId) {
   }
 }
 
+function requirePagesProject(payload) {
+  if (payload.success !== true || payload.result === null) {
+    throw new Error("Cloudflare Pages project preflight failed.");
+  }
+  if (payload.result.uses_functions !== true) {
+    throw new Error("AR-006 Pages project is not Functions-enabled.");
+  }
+  return payload.result;
+}
+
+function requirePreviewBindings(project) {
+  const preview = project.deployment_configs?.preview?.env_vars;
+  if (preview?.PRIVATE_DOCUMENT_ADMIN_KEY?.type !== "secret_text") {
+    throw new Error("PRIVATE_DOCUMENT_ADMIN_KEY preview secret is missing.");
+  }
+  return preview;
+}
+
+function requireMatchingBinding(preview, bindingName, expectedValue) {
+  if (preview[bindingName]?.value !== expectedValue) {
+    throw new Error(`Pages preview ${bindingName} does not match AR-006.`);
+  }
+}
+
+function requirePreviewScriptName(project) {
+  const scriptName = String(project.preview_script_name ?? "").trim();
+  if (!scriptName) throw new Error("Pages preview_script_name is unavailable.");
+  return scriptName;
+}
+
 async function verifyPagesProject() {
   const accountId = requiredEnv("CLOUDFLARE_ACCOUNT_ID");
   const projectName = requiredEnv("AR006_PAGES_PROJECT");
@@ -59,31 +90,15 @@ async function verifyPagesProject() {
     { headers: { authorization: `Bearer ${deployToken}` } },
     "Cloudflare Pages project preflight failed.",
   );
-  if (payload.success !== true) {
-    throw new Error("Cloudflare Pages project preflight failed.");
-  }
-  const project = payload.result;
-  if (project?.uses_functions !== true) {
-    throw new Error("AR-006 Pages project is not Functions-enabled.");
-  }
-  const preview = project?.deployment_configs?.preview?.env_vars;
-  if (preview?.PRIVATE_DOCUMENT_ADMIN_KEY?.type !== "secret_text") {
-    throw new Error("PRIVATE_DOCUMENT_ADMIN_KEY preview secret is missing.");
-  }
-  if (preview?.SUPABASE_URL?.value !== requiredEnv("AR006_SUPABASE_URL")) {
-    throw new Error("Pages preview SUPABASE_URL does not match AR-006.");
-  }
-  if (
-    preview?.SUPABASE_PUBLISHABLE_KEY?.value !==
-    requiredEnv("AR006_SUPABASE_PUBLISHABLE_KEY")
-  ) {
-    throw new Error(
-      "Pages preview SUPABASE_PUBLISHABLE_KEY does not match AR-006.",
-    );
-  }
-  const scriptName = String(project?.preview_script_name ?? "").trim();
-  if (!scriptName) throw new Error("Pages preview_script_name is unavailable.");
-  return scriptName;
+  const project = requirePagesProject(payload);
+  const preview = requirePreviewBindings(project);
+  requireMatchingBinding(preview, "SUPABASE_URL", requiredEnv("AR006_SUPABASE_URL"));
+  requireMatchingBinding(
+    preview,
+    "SUPABASE_PUBLISHABLE_KEY",
+    requiredEnv("AR006_SUPABASE_PUBLISHABLE_KEY"),
+  );
+  return requirePreviewScriptName(project);
 }
 
 function analyticsWindow() {
