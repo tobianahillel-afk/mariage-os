@@ -83,12 +83,21 @@ Remediation exact-head verification:
 - CI `35025384594` — **5/5 SUCCESS**, including `Full verify from clean checkout`;
 - Core quality/security, Local Supabase DB/RLS/Pages Function, browser/mutation, privacy-safe preview and clean-checkout full verify all passed on the same exact implementation head.
 
-This exact-head repository gate validates the AR-005/AR-007 implementation remediations and preserves the local exact-25-MB functional path. It does **not** satisfy AR-006 because that finding requires provider-produced Cloudflare Workers Free CPU telemetry.
+Latest AR-006 execution-support verification:
+
+- evidence-support head `d4c0f5d460d0d3b85a4cdee2699d277679950992`;
+- CI `35076763526` — **5/5 SUCCESS**, including `Full verify from clean checkout`;
+- `npm run test:ar006:metrics` passed in Core and is also part of `npm run verify`;
+- provider CPU GraphQL quantiles are treated as microseconds, retained raw as `cpuTimeP50Us` / `cpuTimeP99Us`, normalized by exact division by `1000` to `cpuTimeP50Ms` / `cpuTimeP99Ms`, then compared with the `10 ms` Workers Free budget;
+- regression controls prove `10,000 µs = 10 ms` is accepted and `10,001 µs = 10.001 ms` is rejected;
+- `Exact 25 MB Workers Free provider evidence` was **SKIPPED** on this ordinary push, as required because the commit did not carry `[AR006-EVIDENCE]` and no provider evidence was requested.
+
+These repository-green gates validate the AR-005/AR-007 implementation remediations, preserve the local exact-25-MB functional path, and validate the AR-006 evidence harness/unit handling. They do **not** satisfy AR-006 because that finding still requires provider-produced Cloudflare Workers Free CPU telemetry from the isolated deployed path.
 
 Current remediation status:
 
 - `WP29C-AR-005` — **MAJOR / IMPLEMENTATION-REMEDIATED / EXACT-HEAD-GREEN** — trusted clean-abandon path, DB orphan backstop, immediate pre-copy reservation revalidation, safe post-copy compensation and race/retry coverage implemented. Formal closure now waits only for the later complete fresh Pass B after AR-006 is unblocked.
-- `WP29C-AR-006` — **MAJOR / OPEN / BLOCKING** — exact-25-MB Workers/Pages Free CPU feasibility still lacks deployed provider CPU evidence. Durable proof protocol: `docs/roadmap/lot-2/WP-2.9C-AR-006-CPU-EVIDENCE.md`.
+- `WP29C-AR-006` — **MAJOR / OPEN / BLOCKING** — exact-25-MB Workers/Pages Free CPU feasibility still lacks deployed provider CPU evidence. Durable proof protocol: `docs/roadmap/lot-2/WP-2.9C-AR-006-CPU-EVIDENCE.md`; executable runbook: `docs/roadmap/lot-2/WP-2.9C-AR-006-RUNBOOK.md`.
 - `WP29C-AR-007` — **MAJOR / IMPLEMENTATION-REMEDIATED / EXACT-HEAD-GREEN** — ADR/release/CI-CD/secret contracts reconciled to Pages Functions and `PRIVATE_DOCUMENT_ADMIN_KEY`; fail-closed non-destructive deployment smoke added. Formal closure now waits only for the later complete fresh Pass B after AR-006 is unblocked.
 
 Historical `WP29C-AR-001..004` remain implementation-green but await a later complete clean fresh Pass B for formal closure.
@@ -110,11 +119,15 @@ Promotion retains authoritative reservation-state recheck immediately before pri
 
 ### AR-006 blocking evidence gate
 
-Local Wrangler/workerd exact-25-MB success is functional evidence, not Workers Free CPU evidence. Current Cloudflare limits rechecked on 2026-09-15 keep the normal Workers Free CPU budget at `10 ms` per HTTP request and memory at `128 MB`.
+Local Wrangler/workerd exact-25-MB success is functional evidence, not Workers Free CPU evidence. Current Cloudflare limits rechecked on **2026-09-16** keep the normal Workers Free CPU budget at `10 ms` per HTTP request and memory at `128 MB`.
+
+The provider evidence harness consumes `workersInvocationsAdaptive` CPU quantiles as microseconds, stores both the raw microsecond values and their millisecond normalization, and applies the `<= 10 ms` acceptance gate only to normalized millisecond values. `npm run test:ar006:metrics` is a deterministic repository regression control for that unit boundary.
 
 Unblock requires an exact-commit isolated Pages deployment on Workers Free, a synthetic exact `25,000,000`-byte trusted promotion, and provider-produced CPU-specific telemetry demonstrating controlled successful invocations inside the normal Free CPU budget with no `exceededCpu`, no Paid entitlement and no file-limit reduction.
 
-No concrete deployed Pages URL or provider CPU telemetry is recorded in the repository/FIR evidence inspected for this packet. Absence from repository evidence is not proof that no external deployment exists; it means the acceptance evidence is unavailable here.
+The branch CI contains a guarded `ar006-provider-evidence` job that runs only after `full-verify` on a `push` to `lot-2/venues-core` whose head commit message contains `[AR006-EVIDENCE]`, and only inside the `ar006-isolated` GitHub Environment with the explicit Workers Free attestation and required isolated provider configuration. Ordinary pushes/PRs skip the provider job and do not receive those credentials.
+
+No acceptance-grade deployed Pages identity plus provider CPU telemetry is recorded in the repository/FIR evidence used for this packet. Absence from repository evidence is not proof that no external deployment exists; it means the acceptance evidence is unavailable to the packet.
 
 Until that evidence exists, WP-2.9C remains **BLOCKED**. If the proof fails, revisit architecture rather than silently enabling paid compute or shrinking the PDF contract.
 
@@ -126,13 +139,15 @@ Normative release/deployment/secret contracts now require Pages Functions to dep
 
 1. WP-2.9C is **BLOCKED** on `WP29C-AR-006`.
 2. Preserve AR-005 and AR-007 remediation behavior; do not weaken RLS/authorization/file limits or deployment/secret controls.
-3. Obtain the deployed Workers Free CPU evidence defined in `docs/roadmap/lot-2/WP-2.9C-AR-006-CPU-EVIDENCE.md`.
-4. If that evidence cannot demonstrate the normal Free envelope, remain `BLOCKED` and revisit architecture; do not enable Paid or reduce the 25 MB contract silently.
-5. After valid AR-006 evidence, run exact-head full CI + clean-checkout verification again over all remediation and the evidence-bound candidate.
-6. Transition C back to `REVIEW_PENDING` only after all remediation evidence is green.
-7. Run another complete fresh independent Pass B over the whole packet and all seven findings.
-8. Only a clean Pass B may enter `ACCEPTANCE_PENDING`; only Pass C may mark C `ACCEPTED`.
-9. WP-2.9A remains **BLOCKED** and WP-2.9B remains **PLANNED / AFTER A**.
+3. Configure the isolated Cloudflare Pages/Workers Free + Supabase test environment and GitHub Environment `ar006-isolated` described in `docs/roadmap/lot-2/WP-2.9C-AR-006-RUNBOOK.md`.
+4. Only after that environment exists, trigger the guarded evidence job with an exact candidate commit whose message contains `[AR006-EVIDENCE]`.
+5. Inspect the sanitized schema-v2 artifact and require 10 successful exact-size controlled invocations, raw CPU microsecond values with arithmetically consistent millisecond normalization, and normalized CPU p50/p99 `<= 10 ms` for every retained invocation.
+6. If that evidence cannot demonstrate the normal Free envelope, remain `BLOCKED` and revisit architecture; do not enable Paid or reduce the 25 MB contract silently.
+7. After valid AR-006 evidence, preserve/run exact-head full CI + clean-checkout verification over the evidence-bound candidate.
+8. Transition C back to `REVIEW_PENDING` only after all remediation evidence is green.
+9. Run another complete fresh independent Pass B over the whole packet and all seven findings.
+10. Only a clean Pass B may enter `ACCEPTANCE_PENDING`; only Pass C may mark C `ACCEPTED`.
+11. WP-2.9A remains **BLOCKED** and WP-2.9B remains **PLANNED / AFTER A**.
 
 ## Durable handoff
 
@@ -147,13 +162,15 @@ WP-2.9A: BLOCKED — waits for WP-2.9C ACCEPTED
 Current packet: WP-2.9C — BLOCKED
 Fresh Pass-B record: docs/roadmap/lot-2/WP-2.9C-PASS-B-REVIEW.md
 Remediation implementation evidence: 68a4f6bdb7b55acc80c4c6fbb8c0afc0295bfde5 / 35025384594 — 5/5 SUCCESS, clean checkout included
+Latest AR-006 evidence-support head: d4c0f5d460d0d3b85a4cdee2699d277679950992 / 35076763526 — 5/5 SUCCESS, clean checkout included; CPU µs→ms regression control green; provider job SKIPPED on ordinary push
 AR-005: implementation-remediated / exact-head-green — formal closure waits fresh Pass B after AR-006 unblock
 AR-006: OPEN / BLOCKING — deployed Workers Free exact-25-MB CPU evidence required
 AR-006 evidence protocol: docs/roadmap/lot-2/WP-2.9C-AR-006-CPU-EVIDENCE.md
+AR-006 execution runbook: docs/roadmap/lot-2/WP-2.9C-AR-006-RUNBOOK.md
 AR-007: implementation-remediated / exact-head-green — formal closure waits fresh Pass B after AR-006 unblock
 FTR-089 FIR: #17 — BLOCKED
 WP-2.9A resumes only after WP-2.9C ACCEPTED
 WP-2.9B remains PLANNED / AFTER A
 Lots 3–12: NOT_STARTED
-Next permitted action: obtain AR-006 deployed Workers Free CPU evidence; otherwise architecture review remains blocked
+Next permitted action: configure isolated AR-006 provider environment, then obtain provider CPU evidence; otherwise architecture review remains blocked
 ```
