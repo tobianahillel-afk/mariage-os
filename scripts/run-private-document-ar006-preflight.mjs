@@ -70,9 +70,7 @@ async function verifyPagesProject() {
   if (preview?.PRIVATE_DOCUMENT_ADMIN_KEY?.type !== "secret_text") {
     throw new Error("PRIVATE_DOCUMENT_ADMIN_KEY preview secret is missing.");
   }
-  if (
-    preview?.SUPABASE_URL?.value !== requiredEnv("AR006_SUPABASE_URL")
-  ) {
+  if (preview?.SUPABASE_URL?.value !== requiredEnv("AR006_SUPABASE_URL")) {
     throw new Error("Pages preview SUPABASE_URL does not match AR-006.");
   }
   if (
