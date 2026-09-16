@@ -11,9 +11,18 @@ const MAX_DIAGNOSTIC_CHARS = 4000;
 
 function redactDiagnostic(value) {
   return value
-    .replace(/\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/g, "[REDACTED_JWT]")
-    .replace(/\bsb_(?:publishable|secret)_[A-Za-z0-9_-]+\b/g, "[REDACTED_SUPABASE_KEY]")
-    .replace(/(postgresql?:\/\/[^:\s/@]+:)[^@\s]+@/gi, "$1[REDACTED]@")
+    .replace(
+      /\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/g,
+      "[REDACTED_JWT]",
+    )
+    .replace(
+      /\bsb_(?:publishable|secret)_[A-Za-z0-9_-]+\b/g,
+      "[REDACTED_SUPABASE_KEY]",
+    )
+    .replace(
+      /(postgresql?:\/\/[^:\s/@]+:)[^@\s]+@/gi,
+      "$1[REDACTED]@",
+    )
     .slice(-MAX_DIAGNOSTIC_CHARS);
 }
 
