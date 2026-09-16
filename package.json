@@ -27,6 +27,7 @@
     "test:promotion": "node scripts/run-private-document-pages-integration.mjs",
     "test:edge": "npm run test:promotion",
     "test:ar006:metrics": "node scripts/run-private-document-ar006-metrics-controls.mjs",
+    "preflight:ar006": "node scripts/run-private-document-ar006-preflight.mjs",
     "smoke:private-document-production": "node scripts/run-private-document-production-smoke.mjs",
     "db:start": "node scripts/run-supabase-start.mjs",
     "db:stop": "supabase stop",
