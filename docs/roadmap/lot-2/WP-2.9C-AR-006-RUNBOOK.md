@@ -4,17 +4,23 @@ Status: **EXECUTION SUPPORT — DOES NOT CLOSE AR-006 BY ITSELF**
 
 Related blocker: `WP-2.9C-AR-006-CPU-EVIDENCE.md`
 
+Related architecture review: `WP-2.9C-AR-006-ARCHITECTURE-REVIEW.md`
+
 Related packet: `WP-2.9C`
 
 Related FIR: `#17 / FTR-089`
 
 Read-only readiness job: `.github/workflows/ci.yml` → `ar006-provider-preflight`
 
-Evidence job: `.github/workflows/ci.yml` → `ar006-provider-evidence`
+Historical exact-size evidence job: `.github/workflows/ci.yml` → `ar006-provider-evidence`
+
+Workers Observability capability job: `.github/workflows/ar006-observability-preflight.yml`
 
 Provider preflight: `npm run preflight:ar006`
 
-Evidence harness: `scripts/run-private-document-ar006-evidence.mjs`
+Historical exact-size evidence harness: `scripts/run-private-document-ar006-evidence.mjs`
+
+Workers Observability capability harness: `scripts/run-private-document-ar006-observability-preflight.mjs`
 
 CPU normalization helper: `scripts/private-document-ar006-metrics.mjs`
 
@@ -22,11 +28,11 @@ CPU regression control: `npm run test:ar006:metrics`
 
 ## Purpose
 
-This runbook turns the AR-006 provider-evidence protocol into one reproducible, fail-closed execution path that can run **before Lot-2 integration to `main`**.
+This runbook turns the AR-006 provider-evidence protocol into reproducible, fail-closed execution paths that can run **before Lot-2 integration to `main`**.
 
 It does not weaken the frozen `25,000,000`-byte contract, does not authorize Workers Paid, does not use production wedding data, and does not auto-transition WP-2.9C.
 
-The readiness and evidence jobs are part of the normal branch CI because GitHub `workflow_dispatch` only receives events when the workflow file exists on the repository default branch. WP-2.9C must obtain this evidence before it can be accepted and integrated, so a Lot-2-only standalone dispatch workflow would not be executable at the required phase.
+The original readiness and evidence jobs are part of the normal branch CI because GitHub `workflow_dispatch` only receives events when the workflow file exists on the repository default branch. WP-2.9C must obtain this evidence before it can be accepted and integrated, so a Lot-2-only standalone dispatch workflow would not be executable at the required phase.
 
 The non-destructive readiness job is guarded by all of these conditions:
 
@@ -38,7 +44,7 @@ The non-destructive readiness job is guarded by all of these conditions:
 - environment variable `AR006_WORKERS_FREE_ATTESTATION` is exactly `YES-WORKERS-FREE-ISOLATED`;
 - all required isolated-provider metadata and credentials are present.
 
-The provider-evidence job is guarded separately by all of these conditions:
+The historical exact-size provider-evidence job is guarded separately by all of these conditions:
 
 - event is `push`;
 - ref is exactly `refs/heads/lot-2/venues-core`;
@@ -48,9 +54,11 @@ The provider-evidence job is guarded separately by all of these conditions:
 - environment variable `AR006_WORKERS_FREE_ATTESTATION` is exactly `YES-WORKERS-FREE-ISOLATED`;
 - all required isolated-provider metadata and credentials are present.
 
-On ordinary pushes and pull requests both AR-006 provider jobs are skipped and receive no environment credentials.
+The Workers Observability capability workflow is a third, separately guarded path. It runs only on `lot-2/venues-core` when the pushed commit message contains `[AR006-OBS-PREFLIGHT]`, uses the same `ar006-isolated` environment, and receives only its dedicated Observability token in addition to non-secret exact-deployment metadata. It may not deploy, authenticate to Supabase, upload a PDF or mutate application data.
 
-A successful provider-evidence job is still only evidence input. AR-006 remains open until its sanitized provider evidence is reviewed, durably attached to the FIR/repository record, the exact evidence-bound HEAD remains fully verified, and the later fresh Pass B accepts the whole packet.
+On ordinary pushes and pull requests all AR-006 provider-specific jobs are skipped and receive no provider credentials.
+
+A successful provider job is still only evidence input. AR-006 remains open until sanitized provider evidence is reviewed, durably attached to the FIR/repository record, the exact evidence-bound HEAD remains fully verified, and the later fresh Pass B accepts the whole packet.
 
 ## Provider basis
 
@@ -59,15 +67,21 @@ Current Cloudflare contracts used by this runbook:
 - Pages Direct Upload with Wrangler: <https://developers.cloudflare.com/pages/how-to/use-direct-upload-with-continuous-integration/>;
 - Pages API / deployment metadata: <https://developers.cloudflare.com/pages/configuration/api/>;
 - Pages Functions metrics: <https://developers.cloudflare.com/pages/functions/metrics/>;
+- Pages Functions debugging/logging: <https://developers.cloudflare.com/pages/functions/debugging-and-logging/>;
 - Workers metrics GraphQL query shape: <https://developers.cloudflare.com/analytics/graphql-api/tutorials/querying-workers-metrics/>;
+- Workers Observability Query Builder: <https://developers.cloudflare.com/workers/observability/query-builder/>;
+- Workers Observability telemetry query API: <https://developers.cloudflare.com/api/resources/workers/subresources/observability/subresources/telemetry/methods/query/>;
 - Workers Free limits: <https://developers.cloudflare.com/workers/platform/limits/>;
 - Cloudflare GraphQL reference: `workersInvocationsAdaptive` CPU aggregation uses microseconds (`cpuTimeUs`), and CPU quantiles belong to that same CPU-time family;
-- analytics credential: Account Analytics Read;
-- deployment credential: the narrowest Pages write/edit permission that supports the isolated project.
+- historical analytics credential: Account Analytics Read;
+- deployment credential: the narrowest Pages write/edit permission that supports the isolated project;
+- Observability capability credential: dedicated `Workers Observability Write` only, as currently documented by the telemetry query endpoint.
 
 The normal Workers Free CPU limit was rechecked on 2026-09-16 as `10 ms` per HTTP request. Provider contracts must be rechecked before a later evidence run if Cloudflare limits or metric semantics change.
 
-The GraphQL `cpuTimeP50` / `cpuTimeP99` values consumed by this runbook are treated as **microseconds**. The harness records the raw values as `cpuTimeP50Us` / `cpuTimeP99Us`, divides by exactly `1000`, and records the normalized values as `cpuTimeP50Ms` / `cpuTimeP99Ms` before comparing them with the `10 ms` Free budget. `npm run test:ar006:metrics` locks this unit conversion and the 10 ms boundary into repository CI.
+The historical GraphQL `cpuTimeP50` / `cpuTimeP99` values consumed by the original exact-size harness are treated as **microseconds**. The harness records the raw values as `cpuTimeP50Us` / `cpuTimeP99Us`, divides by exactly `1000`, and records the normalized values as `cpuTimeP50Ms` / `cpuTimeP99Ms` before comparing them with the `10 ms` Free budget. `npm run test:ar006:metrics` locks this unit conversion and the 10 ms boundary into repository CI.
+
+The open architecture review now treats Workers Observability as a **capability candidate**, not an accepted replacement yet. Cloudflare's Observability API schema allows `pages` as a `cloudService`, while Pages Functions documentation says its standard streamed logs are not stored and the Query Builder documentation says it searches Workers Logs stored by Cloudflare. The repository must therefore test the exact existing Pages deployment through the provider API rather than infer support or non-support from documentation alone.
 
 ## Isolated environment prerequisites
 
@@ -83,7 +97,7 @@ Do not use:
 
 The isolated Supabase project must contain the current migrations and one synthetic member with live `documents.write` on one synthetic project.
 
-The harness signs in as that ordinary synthetic user, reserves each pending document through `manage_private_document`, uploads through the authenticated staging policy, invokes the deployed trusted Pages route, and finalizes successful promotions through the ordinary RPC.
+The historical exact-size harness signs in as that ordinary synthetic user, reserves each pending document through `manage_private_document`, uploads through the authenticated staging policy, invokes the deployed trusted Pages route, and finalizes successful promotions through the ordinary RPC.
 
 The isolated Pages **preview** environment must already expose:
 
@@ -117,6 +131,7 @@ Configure these **environment secrets**:
 |---|---|---|
 | `AR006_CLOUDFLARE_DEPLOY_TOKEN` | isolated Pages deployment write permission only | revoke after the evidence exercise or on suspected exposure |
 | `AR006_CLOUDFLARE_ANALYTICS_TOKEN` | Account Analytics Read for the isolated Cloudflare account | revoke after evidence capture; no write permission |
+| `AR006_CLOUDFLARE_OBSERVABILITY_TOKEN` | dedicated Workers Observability Write for the isolated Cloudflare account; no Pages deployment permission | short-lived; revoke after capability/evidence exercise or on suspected exposure |
 | `AR006_TEST_USER_PASSWORD` | only the synthetic non-production Supabase user | rotate/delete the synthetic user after the evidence exercise |
 
 This table is the metadata-only inventory for AR-006-specific credentials and supplements `docs/security/SECRET-MANAGEMENT.md`.
@@ -141,11 +156,49 @@ A green preflight demonstrates environment readiness only. It is **not** Workers
 
 A red preflight means the isolated provider/GitHub Environment is not acceptance-ready. Correct the external configuration or permissions, then rerun the read-only preflight. Do not proceed to `[AR006-EVIDENCE]` merely to obtain a more detailed failure.
 
-## Provider-evidence trigger
+## Workers Observability capability preflight
 
-Only after the readiness preflight is green should the deployed provider evidence be triggered.
+This capability path exists only because the original GraphQL CPU channel remained empty during both the exact-size evidence run and the delayed requery, and the standard Pages deployment tail is not an approved CPU source.
 
-The evidence candidate is a commit on `lot-2/venues-core` whose message contains the literal marker:
+Repository support is verified at `ed65b6beec8c66c50eca7eca019d972a0b75a748` / CI `35159378110` — **5/5 SUCCESS**, including clean-checkout full verification.
+
+Before triggering it, configure a separate short-lived GitHub Environment secret named exactly:
+
+```text
+AR006_CLOUDFLARE_OBSERVABILITY_TOKEN
+```
+
+The provider token must have only the minimum current Cloudflare permission required by the telemetry query endpoint (`Workers Observability Write`) for the isolated account. Do not reuse or widen `AR006_CLOUDFLARE_DEPLOY_TOKEN` or `AR006_CLOUDFLARE_ANALYTICS_TOKEN`.
+
+Create a no-content commit on `lot-2/venues-core` using the exact repository-green tree and a message containing:
+
+```text
+[AR006-OBS-PREFLIGHT]
+```
+
+The dedicated workflow then:
+
+1. checks out the exact trigger commit with persisted Git credentials disabled;
+2. installs dependencies and runs the repository secret scan;
+3. runs the existing deny-only production smoke against deployment `064d50b9-3c3d-414e-a6c3-afdcc1051be9` / script `pages-worker--19505720-preview`;
+4. queries a short Workers Observability window filtered to that exact script;
+5. sanitizes results to provider attribution/CPU metadata only;
+6. requires at least one event attributable to the exact Pages script with numeric provider `cpuTimeMs`;
+7. uploads only the sanitized capability artifact, including on a fail-closed capability result.
+
+This workflow may not deploy, authenticate to Supabase, reserve a document, upload a PDF, promote/finalize a document or mutate application data.
+
+The first trigger `ea948913a1b56fc959557ee005763b0950b30a07` / workflow `35161863114` / job `105014208798` passed the deny-only smoke but stopped **before any Observability API request** because `AR006_CLOUDFLARE_OBSERVABILITY_TOKEN` resolved empty. Artifact `10473471272` (ZIP SHA-256 `f3bcaa6b9f6b2e83c21b7a21622e4b9ae48a985c84f1b46065c5983a2e56e43d`) records `tokenPresent: false`, `httpStatus: null` and `pass: false`. This is configuration evidence only and does not answer the provider capability question.
+
+A green Observability capability preflight still does **not** close AR-006 and does **not** authorize an immediate exact-size rerun. It only authorizes redesigning and independently reviewing the final exact-25-MB evidence harness around attributable provider `cpuTimeMs` events.
+
+If the API returns no attributable Pages event or no numeric CPU after a correctly scoped token is configured, keep WP-2.9C blocked and return to the architecture review. If making telemetry visible would require a material Pages/Workers runtime or configuration migration, make that decision explicitly before changing the deployment architecture.
+
+## Historical provider-evidence trigger
+
+The existing `[AR006-EVIDENCE]` path is the historical GraphQL-based exact-size harness. **Do not trigger it again merely because the Observability capability preflight becomes green.** The final evidence harness must first be deliberately redesigned and reviewed to use the approved provider channel.
+
+The historical evidence candidate is a commit on `lot-2/venues-core` whose message contains the literal marker:
 
 ```text
 [AR006-EVIDENCE]
@@ -159,9 +212,11 @@ If any normal repository gate fails, provider deployment never begins.
 
 If the evidence marker is absent, the provider-evidence job is skipped.
 
-## Provider-evidence execution
+## Historical provider-evidence execution
 
-After `full-verify` succeeds, the provider job:
+The currently implemented `[AR006-EVIDENCE]` job is retained as historical/reproducibility support for the already-recorded GraphQL attempt. Until the architecture review approves a revised final evidence design, it must not be treated as the next execution path.
+
+Its existing implementation:
 
 1. checks out the exact evidence-trigger SHA with persisted Git credentials disabled;
 2. requires the isolated Workers Free attestation and all non-secret environment metadata;
@@ -187,21 +242,21 @@ The job does not merge the branch, change production, enable Workers Paid, chang
 
 ## Synthetic PDF
 
-The harness creates a structurally minimal deterministic PDF beginning with `%PDF-1.4` and pads it to exactly `25,000,000` bytes.
+The historical harness creates a structurally minimal deterministic PDF beginning with `%PDF-1.4` and pads it to exactly `25,000,000` bytes.
 
 The bytes exist only in runner memory and in the isolated test Storage objects. PDF contents are never written to the evidence artifact.
 
-## CPU attribution rule
+## Historical GraphQL CPU attribution rule
 
-The harness uses Cloudflare's account-level `workersInvocationsAdaptive` dataset with dimensions `datetime`, `scriptName` and `status`, plus `cpuTimeP50` and `cpuTimeP99`.
+The original harness uses Cloudflare's account-level `workersInvocationsAdaptive` dataset with dimensions `datetime`, `scriptName` and `status`, plus `cpuTimeP50` and `cpuTimeP99`.
 
-The provider CPU quantiles are interpreted as microseconds. Each evidence row therefore contains:
+The provider CPU quantiles are interpreted as microseconds. Each historical evidence row therefore contains:
 
 - `cpuTimeP50Us` / `cpuTimeP99Us`: raw Cloudflare quantile values;
 - `cpuTimeP50Ms` / `cpuTimeP99Ms`: raw values divided by exactly `1000`;
 - the `10 ms` acceptance comparison is performed **only** against the normalized millisecond fields.
 
-Acceptance is intentionally stricter than a broad dashboard screenshot:
+Historical acceptance logic was intentionally stricter than a broad dashboard screenshot:
 
 - Pages API supplies the isolated project's preview script name;
 - the evidence window surrounds only the controlled promotions after the deny smoke;
@@ -212,11 +267,11 @@ Acceptance is intentionally stricter than a broad dashboard screenshot:
 - normalized CPU p50 and p99 must both be present and `<= 10 ms` for every retained row;
 - extra traffic contaminates attribution and fails the run rather than being discarded.
 
-If Cloudflare changes the units/semantics of these fields or no longer exposes sufficiently attributable Free-plan metrics, AR-006 remains blocked until the harness and evidence contract are deliberately revalidated. Do not infer units from field magnitude and do not replace CPU telemetry with wall time.
+The 2026-09-16 execution proved that this GraphQL channel did not return the required rows for the isolated Pages preview, including after a delayed requery. Do not infer units from field magnitude and do not replace CPU telemetry with wall time.
 
-## Sanitized artifact schema
+## Sanitized artifact requirements
 
-`ar006-workers-free-evidence.json` schema `mariage-os.wp29c.ar006.v2` may contain only:
+Any final AR-006 exact-size artifact may contain only:
 
 - schema/version marker;
 - generation timestamp;
@@ -227,26 +282,31 @@ If Cloudflare changes the units/semantics of these fields or no longer exposes s
 - exact byte size and synthetic SHA-256;
 - synthetic project/document UUIDs;
 - controlled request timestamps and HTTP status/success booleans;
-- analytics window;
-- provider request/error/status fields;
-- raw CPU p50/p99 values in microseconds;
-- normalized CPU p50/p99 values in milliseconds;
+- provider attribution and CPU-specific fields required by the approved evidence channel;
 - CPU budget in milliseconds and final pass boolean.
 
-It must not contain credentials, bearer/session tokens, `PRIVATE_DOCUMENT_ADMIN_KEY`, passwords, PDF bytes or real wedding identifiers/content.
+It must not contain credentials, bearer/session tokens, `PRIVATE_DOCUMENT_ADMIN_KEY`, passwords, PDF bytes, raw provider logs/source payloads or real wedding identifiers/content.
 
 ## Success handling
 
-A green provider job does **not** automatically close AR-006.
+A green capability or final provider job does **not** automatically close AR-006.
 
-Before changing packet state:
+For an Observability capability success:
+
+1. inspect the sanitized capability artifact and exact workflow SHA;
+2. verify attribution to the existing exact Pages deployment/script and numeric provider `cpuTimeMs`;
+3. verify no Paid entitlement or material runtime migration was introduced;
+4. redesign the final exact-size evidence harness around the proven provider channel;
+5. review and repository-verify that revised harness before another exact-size mutation run.
+
+For later final exact-size evidence, before changing packet state:
 
 1. download and inspect the artifact for the exact Actions run;
 2. verify the run SHA equals the intended evidence candidate;
 3. verify Pages deployment metadata resolves to that same SHA;
 4. verify the Cloudflare account/project really used Workers Free with no Paid CPU entitlement;
-5. verify all 10 controlled promotions succeeded and every retained **normalized** CPU measurement is within `10 ms`;
-6. verify raw microsecond and normalized millisecond values are both present and arithmetically consistent;
+5. verify all 10 controlled promotions succeeded and every retained provider CPU measurement is within `10 ms` under the approved channel;
+6. verify provider attribution and CPU units/semantics are explicit and arithmetically consistent where normalization is required;
 7. verify the deny smoke passed and Pages Functions were present;
 8. record sanitized evidence durably in FIR/repository records without credentials;
 9. keep complete exact-head CI/clean-checkout evidence for that candidate;
@@ -256,10 +316,14 @@ After accepted evidence capture, reset or destroy dedicated synthetic test data 
 
 ## Failure handling
 
-A red readiness preflight means provider/GitHub Environment configuration is incomplete or unauthorized; it is not CPU feasibility evidence. Correct the isolated configuration and repeat `[AR006-PREFLIGHT]` before any evidence trigger.
+A red readiness preflight means provider/GitHub Environment configuration is incomplete or unauthorized; it is not CPU feasibility evidence. Correct the isolated configuration and repeat the relevant read-only preflight before any evidence trigger.
 
-A red provider-evidence job is evidence, not permission to weaken the contract.
+A red Workers Observability capability preflight before an actual API call, such as an absent dedicated token, is external configuration evidence only. Correct the scoped secret and rerun `[AR006-OBS-PREFLIGHT]`.
 
-If exact-size promotions fail, normalized CPU exceeds `10 ms`, attribution is contaminated, metrics are unavailable, metric units cannot be established, or success requires Paid CPU, keep WP-2.9C `BLOCKED` and reopen architecture review.
+A correctly authorized Observability response with no attributable Pages event or no numeric provider CPU keeps WP-2.9C blocked and returns the packet to explicit architecture review; it does not authorize a fallback to wall time, Pages tail, Paid CPU or a smaller file.
+
+A red final provider-evidence job is evidence, not permission to weaken the contract.
+
+If exact-size promotions fail, provider CPU exceeds `10 ms`, attribution is contaminated, metrics are unavailable, metric units cannot be established, or success requires Paid CPU, keep WP-2.9C `BLOCKED` and continue architecture review.
 
 Do not silently enable Workers Paid and do not reduce the `25,000,000`-byte PDF contract.
