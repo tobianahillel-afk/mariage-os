@@ -109,6 +109,13 @@ Latest external provider-readiness execution:
 
 These repository-green gates validate the AR-005/AR-007 implementation remediations, preserve the local exact-25-MB functional path, and validate the AR-006 evidence harness/unit handling and fail-before-deploy readiness path. The first real readiness execution additionally proves the gate fails closed before provider mutation when its isolated configuration is absent. None of this satisfies AR-006 because that finding still requires provider-produced Cloudflare Workers Free CPU telemetry from the isolated deployed path.
 
+External isolated-provider setup on **2026-09-16** (configuration only; **not AR-006 evidence**):
+
+- Created the dedicated Supabase Free project `rpdmqqvupmhxlxosasqi` (`mariage-os-ar006-isolated`, `eu-west-3`; URL `https://rpdmqqvupmhxlxosasqi.supabase.co`). Its quoted monthly project cost was €0. Applied all **63** SQL migrations from repository head `73404903bffe2800567c41675ca18cbab25e26a7` in filename order. Verified that `public.projects`, `public.project_members`, `public.documents`, `storage.objects` and `documents.write` exist and that `public.documents` has RLS enabled. No synthetic member/project was created or used.
+- Created the dedicated Cloudflare Pages project `mariage-os-ar006-isolated` (project ID `1223854c-79fc-4617-855b-7919597e809f`, `mariage-os-ar006-isolated.pages.dev`). Configured its **preview** `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` as public/plain-text bindings for that isolated Supabase project. No deployment was performed.
+- The preview `PRIVATE_DOCUMENT_ADMIN_KEY` encrypted binding is still absent. The available Supabase connection exposes public keys but no administrative/service-role key. The available GitHub connection cannot administer Environment variables/secrets; the last preflight therefore remains the only observed GitHub Environment readiness result. Cloudflare subscription/billing reads returned API authentication error `10000`, so the Workers Free entitlement is **not attested**. Neither `[AR006-PREFLIGHT]` nor `[AR006-EVIDENCE]` was triggered during this setup.
+- Next required external setup: obtain and place the isolated Supabase administrative key **only** in the Pages encrypted preview binding; create an ordinary synthetic user and project with live `documents.write`; establish the Workers Free/no-Paid basis; configure all seven `ar006-isolated` GitHub Environment variables and three scoped secrets from the runbook. Then run a new read-only `[AR006-PREFLIGHT]` on the current exact tree. Keep AR-006 and WP-2.9C **BLOCKED** until the required provider proof exists.
+
 Current remediation status:
 
 - `WP29C-AR-005` — **MAJOR / IMPLEMENTATION-REMEDIATED / EXACT-HEAD-GREEN** — trusted clean-abandon path, DB orphan backstop, immediate pre-copy reservation revalidation, safe post-copy compensation and race/retry coverage implemented. Formal closure now waits only for the later complete fresh Pass B after AR-006 is unblocked.
@@ -159,8 +166,8 @@ Normative release/deployment/secret contracts now require Pages Functions to dep
 
 1. WP-2.9C is **BLOCKED** on `WP29C-AR-006`.
 2. Preserve AR-005 and AR-007 remediation behavior; do not weaken RLS/authorization/file limits or deployment/secret controls.
-3. Configure GitHub Environment `ar006-isolated` with the seven variables and three secrets specified in `docs/roadmap/lot-2/WP-2.9C-AR-006-RUNBOOK.md`; the latest readiness run proves they currently resolve empty.
-4. Ensure the isolated Cloudflare Pages preview already exposes the expected `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` and encrypted `PRIVATE_DOCUMENT_ADMIN_KEY`, and the isolated Supabase project contains the migrated schema plus the synthetic user/project with live `documents.write`.
+3. Complete GitHub Environment `ar006-isolated` with the seven variables and three secrets specified in `docs/roadmap/lot-2/WP-2.9C-AR-006-RUNBOOK.md`; the last readiness run found them all empty, and no subsequent Environment read is available.
+4. The isolated Pages preview already has `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY`, and the isolated Supabase project has the 63 repository migrations. Add the encrypted Pages `PRIVATE_DOCUMENT_ADMIN_KEY`, create the synthetic user/project with live `documents.write`, and establish the Workers Free/no-Paid basis before a new preflight.
 5. Repeat a no-content `[AR006-PREFLIGHT]` commit using the exact current tree. The readiness job must pass before any evidence trigger is authorized.
 6. Only after a green readiness preflight, trigger a no-content exact candidate with `[AR006-EVIDENCE]`; its preflight must pass again before build/deployment or document mutation occurs.
 7. Inspect the sanitized schema-v2 artifact and require 10 successful exact-size controlled invocations, raw CPU microsecond values with arithmetically consistent millisecond normalization, and normalized CPU p50/p99 `<= 10 ms` for every retained invocation.
@@ -187,7 +194,7 @@ Remediation implementation evidence: 68a4f6bdb7b55acc80c4c6fbb8c0afc0295bfde5 / 
 Latest repository-green AR-006 execution-support head: 2aa0b91da82b09f479cd93fb52763786f9a7874f / 35082871383 — 5/5 SUCCESS, clean checkout included; both provider jobs SKIPPED on ordinary push
 Latest AR-006 readiness attempt: 55b02f40e8b4519db12f99ee8a38fe095e81a534 / 35083615839 / job 104753395475 — FAILED CLOSED before provider calls because all required ar006-isolated variables/secrets resolved empty; no deployment or application-data mutation occurred
 AR-005: implementation-remediated / exact-head-green — formal closure waits fresh Pass B after AR-006 unblock
-AR-006: OPEN / BLOCKING — first configure ar006-isolated, then green [AR006-PREFLIGHT], then deployed Workers Free exact-25-MB CPU evidence
+AR-006: OPEN / BLOCKING — isolated Supabase and Pages public preview setup completed 2026-09-16; admin binding, synthetic user/project, Workers Free attestation and GitHub Environment remain; then green [AR006-PREFLIGHT] and deployed exact-25-MB CPU evidence
 AR-006 evidence protocol: docs/roadmap/lot-2/WP-2.9C-AR-006-CPU-EVIDENCE.md
 AR-006 execution runbook: docs/roadmap/lot-2/WP-2.9C-AR-006-RUNBOOK.md
 AR-007: implementation-remediated / exact-head-green — formal closure waits fresh Pass B after AR-006 unblock
