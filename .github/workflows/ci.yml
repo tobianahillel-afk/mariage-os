@@ -127,6 +127,42 @@ jobs:
       - run: npx playwright install --with-deps chromium firefox webkit
       - run: npm run verify
 
+  ar006-provider-preflight:
+    name: AR-006 isolated provider preflight
+    needs:
+      - core
+    if: >-
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/lot-2/venues-core' &&
+      contains(github.event.head_commit.message, '[AR006-PREFLIGHT]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: ar006-isolated
+    env:
+      AR006_PAGES_PROJECT: ${{ vars.AR006_PAGES_PROJECT }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      AR006_SUPABASE_URL: ${{ vars.AR006_SUPABASE_URL }}
+      AR006_SUPABASE_PUBLISHABLE_KEY: ${{ vars.AR006_SUPABASE_PUBLISHABLE_KEY }}
+      AR006_TEST_USER_EMAIL: ${{ vars.AR006_TEST_USER_EMAIL }}
+      AR006_PROJECT_ID: ${{ vars.AR006_PROJECT_ID }}
+      AR006_WORKERS_FREE_ATTESTATION: ${{ vars.AR006_WORKERS_FREE_ATTESTATION }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run security:secrets
+      - name: Preflight isolated provider readiness without deployment
+        env:
+          AR006_CLOUDFLARE_DEPLOY_TOKEN: ${{ secrets.AR006_CLOUDFLARE_DEPLOY_TOKEN }}
+          AR006_CLOUDFLARE_ANALYTICS_TOKEN: ${{ secrets.AR006_CLOUDFLARE_ANALYTICS_TOKEN }}
+          AR006_TEST_USER_PASSWORD: ${{ secrets.AR006_TEST_USER_PASSWORD }}
+        run: npm run preflight:ar006
+
   ar006-provider-evidence:
     name: Exact 25 MB Workers Free provider evidence
     needs:
