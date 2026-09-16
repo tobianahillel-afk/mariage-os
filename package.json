@@ -28,6 +28,7 @@
     "test:edge": "npm run test:promotion",
     "test:ar006:metrics": "node scripts/run-private-document-ar006-metrics-controls.mjs",
     "preflight:ar006": "node scripts/run-private-document-ar006-preflight.mjs",
+    "configure:ar006:github-environment": "node scripts/configure-ar006-github-environment.mjs",
     "smoke:private-document-production": "node scripts/run-private-document-production-smoke.mjs",
     "db:start": "node scripts/run-supabase-start.mjs",
     "db:stop": "supabase stop",
