@@ -1,0 +1,55 @@
+name: AR-006 Workers Observability CPU capability probe
+
+on:
+  push:
+    branches:
+      - lot-2/venues-core
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mariage-os-ar006-observability-preflight-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  observability-preflight:
+    name: AR-006 Workers Observability CPU capability probe
+    if: >-
+      contains(github.event.head_commit.message, '[AR006-OBS-PREFLIGHT]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: ar006-isolated
+    env:
+      AR006_PAGES_PROJECT: ${{ vars.AR006_PAGES_PROJECT }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      AR006_WORKERS_FREE_ATTESTATION: ${{ vars.AR006_WORKERS_FREE_ATTESTATION }}
+      AR006_OBS_DEPLOYMENT_ID: 064d50b9-3c3d-414e-a6c3-afdcc1051be9
+      AR006_OBS_DEPLOYMENT_URL: https://064d50b9.mariage-os-ar006-isolated.pages.dev
+      AR006_OBS_SCRIPT_NAME: pages-worker--19505720-preview
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run security:secrets
+      - name: Exercise exact Pages deployment with deny-only smoke
+        env:
+          PRIVATE_DOCUMENT_SMOKE_BASE_URL: ${{ env.AR006_OBS_DEPLOYMENT_URL }}
+        run: npm run smoke:private-document-production
+      - name: Query exact Pages script through Workers Observability
+        env:
+          CLOUDFLARE_OBSERVABILITY_API_TOKEN: ${{ secrets.AR006_CLOUDFLARE_OBSERVABILITY_TOKEN }}
+        run: node scripts/run-private-document-ar006-observability-preflight.mjs
+      - name: Retain sanitized Observability capability result
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: wp-2.9c-ar006-observability-preflight-${{ github.sha }}
+          path: ar006-workers-observability-preflight.json
+          if-no-files-found: warn
+          retention-days: 30

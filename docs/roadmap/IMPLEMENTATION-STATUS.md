@@ -38,7 +38,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.8B | Venue private archived media lifecycle | **ACCEPTED / COMPLETE** |
 | WP-2.8C | recoverable Venue remote-media metadata lifecycle | **ACCEPTED / COMPLETE** |
 | WP-2.9A | Venue-linked private PDF/document foundation | **BLOCKED — waits for WP-2.9C ACCEPTED** |
-| WP-2.9C | trusted private-document ingestion hardening | **BLOCKED — AR-006 deployed Workers Free CPU evidence** |
+| WP-2.9C | trusted private-document ingestion hardening | **BLOCKED — AR-006 provider CPU evidence architecture review** |
 | WP-2.9B | generic project tags and Venue entity-tag links | **PLANNED / AFTER A** |
 | WP-2.10 | repositories, local cache, pending/offline mutations | PLANNED |
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace | PLANNED |
@@ -59,7 +59,7 @@ WP-2.1..WP-2.8C are accepted and complete. Durable evidence remains in their pac
 
 ## WP-2.9C — current packet
 
-State: **BLOCKED — WP29C-AR-006 DEPLOYED WORKERS FREE CPU EVIDENCE**.
+State: **BLOCKED — WP29C-AR-006 PROVIDER CPU EVIDENCE ARCHITECTURE REVIEW**.
 
 Pass-A exact evidence:
 
@@ -95,43 +95,46 @@ Latest AR-006 execution-support verification:
 - `npm run preflight:ar006` is a read-only readiness guard. The dedicated `[AR006-PREFLIGHT]` job runs it separately before provider evidence is authorized; the `[AR006-EVIDENCE]` job also runs the same guard before build/deployment;
 - post-deployment checks still independently require the exact candidate to expose Pages Functions, expected bindings, deployment identity and `preview_script_name` before smoke/evidence collection.
 
-Latest external provider-readiness execution:
+Historical initial provider-readiness execution:
 
 - no-content readiness head `55b02f40e8b4519db12f99ee8a38fe095e81a534`, using the exact tree of repository-green parent `2aa0b91da82b09f479cd93fb52763786f9a7874f`;
 - CI `35083615839` / preflight job `104753395475`;
-- `AR-006 isolated provider preflight` — **FAILURE BEFORE DEPLOYMENT / BEFORE DATA MUTATION**;
+- `AR-006 isolated provider preflight` — **FAILURE BEFORE DEPLOYMENT / BEFORE DATA MUTATION** because the isolated GitHub Environment values were not yet configured;
 - checkout, Node setup, dependency install and secret scan passed;
-- every required `ar006-isolated` Environment variable resolved empty: `AR006_PAGES_PROJECT`, `CLOUDFLARE_ACCOUNT_ID`, `AR006_SUPABASE_URL`, `AR006_SUPABASE_PUBLISHABLE_KEY`, `AR006_TEST_USER_EMAIL`, `AR006_PROJECT_ID`, `AR006_WORKERS_FREE_ATTESTATION`;
-- all three required Environment secrets also resolved empty at the preflight step: `AR006_CLOUDFLARE_DEPLOY_TOKEN`, `AR006_CLOUDFLARE_ANALYTICS_TOKEN`, `AR006_TEST_USER_PASSWORD`;
-- the first fail-closed error was `AR006_WORKERS_FREE_ATTESTATION is required.`;
-- therefore the run did not reach the Cloudflare Pages API, Cloudflare Analytics, Supabase authentication or `has_project_permission`, and performed no deployment, document reservation, Storage upload, promotion/finalization or application-data mutation;
-- this is an **external GitHub Environment/provider-test configuration blocker**, not CPU-feasibility evidence and not a repository implementation regression.
+- the run did not reach the Cloudflare Pages API, Cloudflare Analytics, Supabase authentication or `has_project_permission`, and performed no deployment, document reservation, Storage upload, promotion/finalization or application-data mutation.
 
-These repository-green gates validate the AR-005/AR-007 implementation remediations, preserve the local exact-25-MB functional path, and validate the AR-006 evidence harness/unit handling and fail-before-deploy readiness path. The first real readiness execution additionally proves the gate fails closed before provider mutation when its isolated configuration is absent. None of this satisfies AR-006 because that finding still requires provider-produced Cloudflare Workers Free CPU telemetry from the isolated deployed path.
+Historical isolated-provider setup and credential-readiness attempts earlier on **2026-09-16**:
 
-Historical isolated-provider setup and failed readiness attempts earlier on **2026-09-16** (superseded by the successful execution below):
+- Dedicated Supabase Free project `rpdmqqvupmhxlxosasqi` (`mariage-os-ar006-isolated`, `eu-west-3`) has all **63** repository SQL migrations. Synthetic project `3651c5b8-fffa-494a-9686-2abcf0757a9d` exists.
+- Dedicated Cloudflare Pages project `mariage-os-ar006-isolated` (project ID `1223854c-79fc-4617-855b-7919597e809f`) has preview `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` and encrypted `PRIVATE_DOCUMENT_ADMIN_KEY` for this isolated Supabase project. Cloudflare dashboard displayed **Workers Free — Current plan** with the normal **10 ms CPU/request** limit.
+- GitHub Environment `ar006-isolated` is restricted to `lot-2/venues-core`; runbook variables and scoped secrets were configured. Provider credential values are not stored in this board.
+- Readiness heads `918ed0e198574f9c3e7f17d4c67cab7e1bc27c4d` / `35133580074` and `803b2e641b75074aa1d966cc6681c9523d36c1c1` / `35135570623` failed closed only at synthetic Supabase password authentication; no Pages deployment or application-data mutation occurred.
+- Final confirmed synthetic user `ar006-synthetic-20260916-rpdm-final@example.com` (UUID `650241aa-fbf6-41ce-a277-9708f26b946a`) has active `editor` / `documents.write`. Its password is not retained in the repository.
 
-- Dedicated Supabase Free project `rpdmqqvupmhxlxosasqi` (`mariage-os-ar006-isolated`, `eu-west-3`) has all **63** repository SQL migrations. Synthetic project `3651c5b8-fffa-494a-9686-2abcf0757a9d` and confirmed user `ar006-synthetic-20260916-rpdm@example.com` exist; the user is an active `editor` with `documents.write`. The user has not signed in successfully.
-- Dedicated Cloudflare Pages project `mariage-os-ar006-isolated` (project ID `1223854c-79fc-4617-855b-7919597e809f`) has preview `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` and encrypted `PRIVATE_DOCUMENT_ADMIN_KEY` for this isolated Supabase project. Cloudflare dashboard displays **Workers Free — Current plan** with the normal **10 ms CPU/request** limit. No Pages deployment has occurred.
-- GitHub Environment `ar006-isolated` is restricted to `lot-2/venues-core`; all seven runbook variables and three scoped secrets are configured. Two Cloudflare tokens have only Pages Write and Account Analytics Read respectively and expire in seven days. The synthetic Supabase user password is stored only as an Environment secret, not in Git or this status board.
-- No-content exact-tree readiness head `918ed0e198574f9c3e7f17d4c67cab7e1bc27c4d` triggered CI `35133580074`. All five repository jobs passed, including clean-checkout full verification. The isolated provider preflight job `104920622572` passed Cloudflare Pages and Analytics checks, then **FAILED** at synthetic Supabase password authentication. The provider-evidence job was **SKIPPED**. Preflight made no deployment or application-data mutation.
-- Replacement confirmed synthetic user `ar006-synthetic-20260916-rpdm-retry@example.com` (UUID `5b89113d-4ed9-42b5-806c-d83a483bb271`) was created at 18:35:54 UTC and granted active `editor` membership on the same synthetic project. GitHub Environment `AR006_TEST_USER_EMAIL` points to this user. The password secret's latest observed update preceded user creation (about 18:33 UTC); the value is never read or recorded.
-- No-content exact-tree readiness head `803b2e641b75074aa1d966cc6681c9523d36c1c1` triggered CI `35135570623`. All five normal repository jobs passed, including clean-checkout full verification. Preflight job `104927719402` again passed Cloudflare Pages/Analytics checks but **FAILED** at synthetic Supabase password authentication; evidence job was **SKIPPED**. No Pages deployment or application-data mutation occurred. The exact credential mismatch cause is not proven. At that time, the credential handoff remained unresolved; it was completed by the later confirmed synthetic user and green preflight recorded below.
+Exact isolated provider execution on **2026-09-16**:
 
-Latest isolated provider execution on **2026-09-16** (functional path succeeded; CPU evidence unavailable):
-
-- The replacement confirmed synthetic user `ar006-synthetic-20260916-rpdm-final@example.com` (UUID `650241aa-fbf6-41ce-a277-9708f26b946a`) has active `editor` / `documents.write` on the isolated synthetic project. Its password was entered by the user in Supabase and the same value was entered by the user into GitHub Environment secret `AR006_TEST_USER_PASSWORD`; neither value was read or retained in this repository.
-- No-content preflight head `d89b3601d066996c3958f30ad9067b34675f8b22` / CI `35138142860` / provider preflight job `104935966498` — **SUCCESS**. The preflight job completed successfully; the overall workflow was later cancelled by the subsequent evidence push before all normal jobs and clean-checkout verification completed. The evidence candidate below did receive complete 5/5 verification.
+- No-content preflight head `d89b3601d066996c3958f30ad9067b34675f8b22` / CI `35138142860` / provider preflight job `104935966498` — **SUCCESS**.
 - No-content evidence head `4f40613060b4c9de41a32d99ed43fcf6e12c9791` / CI `35138368708` — normal five repository jobs **5/5 SUCCESS**, including clean-checkout full verification. Provider evidence job `104939181956` deployed the exact head to isolated Workers Free Pages preview deployment `064d50b9-3c3d-414e-a6c3-afdcc1051be9` at `https://064d50b9.mariage-os-ar006-isolated.pages.dev`, branch `ar006-4f40613060b4`, preview script `pages-worker--19505720-preview`. Deployment identity, preview Functions/bindings and deny smoke passed.
-- The sanitized schema-v2 [Actions artifact](https://github.com/tobianahillel-afk/mariage-os/actions/runs/35138368708/artifacts/10464581885) (ZIP SHA-256 `56c809b27dadf42a3ef26a003855eb628dbf0ef437774bb76d82c02b33ada3c5`) records ten distinct exact `25,000,000`-byte synthetic promotions, all HTTP 200 and finalized. Its controlled analytics window is `2026-09-16T19:13:57.417Z` to `19:16:29.334Z`.
-- Provider CPU evidence is **absent**, not above budget: artifact `providerCpuMeasurements: []`, `pass: false`, and provider job **FAILURE**. Cloudflare GraphQL `workersInvocationsAdaptive` returned no rows even without script filter over the full account day; the Pages Preview metrics dashboard also displayed no request/CPU data as of 19:45 UTC, approximately 29 minutes after the last controlled invocation. Cloudflare documents possible aggregation delay. No CPU value or CPU-limit outcome can be inferred from HTTP 200 or zero dashboard counts.
-- Detailed durable attempt record: `docs/roadmap/lot-2/WP-2.9C-AR-006-PROVIDER-ATTEMPT-2026-09-16.md`. WP-2.9C remains **BLOCKED**. Re-query provider telemetry after aggregation delay. If still unavailable or unattributable, reopen AR-006 architecture review per the runbook; do not accept, enable Workers Paid or reduce the PDF limit.
+- Sanitized schema-v2 Actions artifact `10464581885` (ZIP SHA-256 `56c809b27dadf42a3ef26a003855eb628dbf0ef437774bb76d82c02b33ada3c5`) records ten distinct exact `25,000,000`-byte synthetic promotions, all HTTP 200 and finalized. Controlled analytics window: `2026-09-16T19:13:57.417Z` to `19:16:29.334Z`.
+- Provider CPU evidence was **absent, not above budget**: `providerCpuMeasurements: []`, `pass: false`. Cloudflare GraphQL `workersInvocationsAdaptive` returned no rows. No CPU value or CPU-limit outcome can be inferred from HTTP 200.
+- Detailed attempt record: `docs/roadmap/lot-2/WP-2.9C-AR-006-PROVIDER-ATTEMPT-2026-09-16.md`.
+
+AR-006 evidence-channel follow-up and architecture review:
+
+- Read-only delayed requery trigger `9b139d23a7de47f8d3927a54c54d79298ca96a6b` / workflow `35149303081` re-read the same exact script/window roughly 1 h 40 later and still returned no provider CPU rows. Artifact `10468931194` remained fail-closed.
+- Therefore the GraphQL aggregation-delay hypothesis did not unblock AR-006. `docs/roadmap/lot-2/WP-2.9C-AR-006-ARCHITECTURE-REVIEW.md` is **OPEN**.
+- A bounded Pages deployment-tail capability support tree `d04edd0ed0d3daa3b9bfe20d954003bb13545200` was verified on parent `82e05a8dab9f61377f045b74005fd6582da0afe3` / CI `35152382433` — **5/5 SUCCESS**, including clean-checkout full verification.
+- No-content exact-tree tail trigger `7645a9e769c641640f52fdba535deb6140401fc6` launched workflow `35153132971`, job `104986087784`. The exact deployment tail attached and the deny-only production smoke succeeded with no PDF upload, Supabase auth or application-data mutation.
+- Sanitized tail artifact `10469354745`, ZIP SHA-256 `6b1c9db4b0b54d83881614867c1f68bd3e45b71fa767fec55c09203a72ac1f8c`, recorded `parsedJsonEventCount: 0`, `providerCpuTimeMs: []`, `pass: false`. Raw tail data was deliberately not retained.
+- That result does not prove every Pages-tail event lacks CPU, but Cloudflare's documented standard Pages deployment-tail event shape does not define CPU time. Standard Pages tail is therefore **not approved as the final AR-006 CPU channel** and the ten exact-size promotions must not be rerun merely to retry it.
+- Current bounded candidate: **Workers Observability telemetry REST API**, whose provider event model includes `$workers.cpuTimeMs`, request ID, script name, outcome and `pages` as a possible cloud-service origin. Capability must be proven against the existing exact Pages preview before any new exact-size mutation run.
+- The Observability capability probe must use a dedicated short-lived `AR006_CLOUDFLARE_OBSERVABILITY_TOKEN`; Cloudflare currently documents `Workers Observability Write` as the API permission for the telemetry query/key endpoints. This token must not replace/reuse the Pages deployment or Account Analytics tokens.
 
 Current remediation status:
 
-- `WP29C-AR-005` — **MAJOR / IMPLEMENTATION-REMEDIATED / EXACT-HEAD-GREEN** — trusted clean-abandon path, DB orphan backstop, immediate pre-copy reservation revalidation, safe post-copy compensation and race/retry coverage implemented. Formal closure now waits only for the later complete fresh Pass B after AR-006 is unblocked.
-- `WP29C-AR-006` — **MAJOR / OPEN / BLOCKING** — exact-25-MB Workers/Pages Free CPU feasibility still lacks deployed provider CPU evidence; the isolated exact-25-MB deployment and ten functional promotions succeeded, but provider CPU metrics have not appeared; re-query after provider aggregation delay and keep the packet blocked until attributable CPU evidence exists. Durable proof protocol: `docs/roadmap/lot-2/WP-2.9C-AR-006-CPU-EVIDENCE.md`; executable runbook: `docs/roadmap/lot-2/WP-2.9C-AR-006-RUNBOOK.md`.
-- `WP29C-AR-007` — **MAJOR / IMPLEMENTATION-REMEDIATED / EXACT-HEAD-GREEN** — ADR/release/CI-CD/secret contracts reconciled to Pages Functions and `PRIVATE_DOCUMENT_ADMIN_KEY`; fail-closed non-destructive deployment smoke added. Formal closure now waits only for the later complete fresh Pass B after AR-006 is unblocked.
+- `WP29C-AR-005` — **MAJOR / IMPLEMENTATION-REMEDIATED / EXACT-HEAD-GREEN** — trusted clean-abandon path, DB orphan backstop, immediate pre-copy reservation revalidation, safe post-copy compensation and race/retry coverage implemented. Formal closure waits for the later complete fresh Pass B after AR-006 is unblocked.
+- `WP29C-AR-006` — **MAJOR / OPEN / BLOCKING / ARCHITECTURE REVIEW** — exact-size functionality is proven, but provider CPU evidence is unavailable through the original GraphQL channel and standard Pages tail is not an approved CPU source. The next permitted provider experiment is the deny-only Workers Observability capability preflight against the existing exact Pages script. No exact-size rerun is authorized before that capability succeeds.
+- `WP29C-AR-007` — **MAJOR / IMPLEMENTATION-REMEDIATED / EXACT-HEAD-GREEN** — ADR/release/CI-CD/secret contracts reconciled to Pages Functions and `PRIVATE_DOCUMENT_ADMIN_KEY`; fail-closed non-destructive deployment smoke added. Formal closure waits for the later complete fresh Pass B after AR-006 is unblocked.
 
 Historical `WP29C-AR-001..004` remain implementation-green but await a later complete clean fresh Pass B for formal closure.
 
@@ -152,34 +155,34 @@ Promotion retains authoritative reservation-state recheck immediately before pri
 
 ### AR-006 blocking evidence gate
 
-Local Wrangler/workerd exact-25-MB success is functional evidence, not Workers Free CPU evidence. Current Cloudflare limits rechecked on **2026-09-16** keep the normal Workers Free CPU budget at `10 ms` per HTTP request and memory at `128 MB`.
+Local Wrangler/workerd exact-25-MB success is functional evidence, not Workers Free CPU evidence. The frozen normal Workers Free acceptance budget remains `10 ms` CPU per request.
 
-The provider evidence harness consumes `workersInvocationsAdaptive` CPU quantiles as microseconds, stores both the raw microsecond values and their millisecond normalization, and applies the `<= 10 ms` acceptance gate only to normalized millisecond values. `npm run test:ar006:metrics` is a deterministic repository regression control for that unit boundary.
+The original provider evidence harness and delayed requery used `workersInvocationsAdaptive` CPU quantiles as microseconds, retained raw values, normalized by division by `1000`, and failed closed because no provider rows were returned. That channel is now historical evidence, not the sole planned channel.
 
-Unblock requires an exact-commit isolated Pages deployment on Workers Free, a synthetic exact `25,000,000`-byte trusted promotion, and provider-produced CPU-specific telemetry demonstrating controlled successful invocations inside the normal Free CPU budget with no `exceededCpu`, no Paid entitlement and no file-limit reduction.
+Unblock still requires an exact-commit isolated Pages deployment on Workers Free, exact `25,000,000`-byte trusted promotions, and provider-produced CPU-specific telemetry demonstrating at least ten controlled successes inside the normal Free CPU budget with no CPU-limit outcome, no Paid entitlement and no file-limit reduction.
 
-The branch CI contains two distinct guarded jobs:
+Provider-observation exploration is now governed by the open architecture review:
 
-- `ar006-provider-preflight` runs only after `core` on a push to `lot-2/venues-core` whose head commit contains `[AR006-PREFLIGHT]`. It is read-only and may not deploy or mutate application data.
-- `ar006-provider-evidence` runs only after `full-verify` on a push to the same branch whose head commit contains `[AR006-EVIDENCE]`. It repeats the read-only preflight before building/deploying and collecting exact-size provider CPU evidence.
+- GraphQL `workersInvocationsAdaptive`: unavailable for this isolated Pages preview after immediate and delayed queries;
+- standard Pages deployment tail: bounded deny-only probe executed, but no parseable CPU event was retained and the documented tail event contract does not define CPU time;
+- Workers Observability telemetry REST API: next bounded capability candidate because its provider model defines `$workers.cpuTimeMs`; capability against the existing Pages script must be proven before any exact-size rerun;
+- wall time, HTTP 200, application timing, Paid-only shortcuts and file-limit reduction remain invalid substitutes.
 
-Both jobs use the `ar006-isolated` GitHub Environment. Ordinary pushes/PRs skip both provider jobs and do not receive those credentials. The later readiness run (`d89b3601d066996c3958f30ad9067b34675f8b22` / `35138142860`) passed. The authorized evidence run (`4f40613060b4c9de41a32d99ed43fcf6e12c9791` / `35138368708`) completed ten exact-size promotions but failed closed because Cloudflare returned no CPU rows.
-
-An exact-commit isolated Pages deployment identity and ten successful controlled promotions are now recorded, but no provider CPU measurement is available. The missing CPU evidence prevents AR-006 closure.
-
-Until that evidence exists, WP-2.9C remains **BLOCKED**. If the proof fails after a correctly configured readiness gate, revisit architecture rather than silently enabling paid compute or shrinking the PDF contract.
+Until provider CPU evidence exists, WP-2.9C remains **BLOCKED**.
 
 ### AR-007 operations gate retained
 
-Normative release/deployment/secret contracts now require Pages Functions to deploy with the exact static candidate, `PRIVATE_DOCUMENT_ADMIN_KEY` to live only as an environment-specific Cloudflare encrypted secret, `/api/private-document-promote` to fail closed without static/origin fallback, and the removed Supabase promotion route to remain absent. `npm run smoke:private-document-production` provides deny-oriented deployment smoke without privileged credentials or real wedding data.
+Normative release/deployment/secret contracts require Pages Functions to deploy with the exact static candidate, `PRIVATE_DOCUMENT_ADMIN_KEY` to live only as an environment-specific Cloudflare encrypted secret, `/api/private-document-promote` to fail closed without static/origin fallback, and the removed Supabase promotion route to remain absent. `npm run smoke:private-document-production` provides deny-oriented deployment smoke without privileged credentials or real wedding data.
 
 ## Current next-action gate
 
 1. WP-2.9C remains **BLOCKED** on `WP29C-AR-006`; preserve AR-005 and AR-007 controls.
-2. Re-query Cloudflare provider metrics for the exact isolated preview script and controlled window after the documented aggregation delay. Require attributable request count, status and raw CPU p50/p99 for all ten promotions, normalize µs / 1000, and check every value against 10 ms. Do not interpret empty rows as zero CPU.
-3. If the current deployment's provider telemetry remains unavailable or unattributable, reopen AR-006 architecture review according to the runbook. Any revised evidence path must be explicitly justified and must still prove CPU-specific normal Free-plan operation for exact 25 MB. Do not silently change the file limit or enable Paid.
-4. Only after valid AR-006 evidence, record it durably, verify exact-head CI/clean checkout, transition C to `REVIEW_PENDING`, run a complete fresh independent Pass B and then Pass C before acceptance.
-5. WP-2.9A remains **BLOCKED** until C is accepted; WP-2.9B and later Lots remain inactive.
+2. Verify the repository implementation of the separately guarded Workers Observability capability preflight. Ordinary pushes must receive no Observability token.
+3. Configure a dedicated short-lived `AR006_CLOUDFLARE_OBSERVABILITY_TOKEN` with only the provider permission required by Cloudflare's Observability telemetry endpoint; do not reuse the Pages deployment or Analytics token.
+4. Trigger `[AR006-OBS-PREFLIGHT]` only after repository CI/clean-checkout is green. The provider probe may run deny-only route smoke plus an Observability query filtered to `pages-worker--19505720-preview`; it may not deploy, authenticate to Supabase, upload a PDF or mutate application data.
+5. If attributable provider `cpuTimeMs` is present for the exact Pages script, redesign and re-review the final exact-25-MB evidence harness before running another ten promotions. If it is unavailable without material Pages/Workers migration, stop for an explicit architecture decision.
+6. Only after valid AR-006 exact-size CPU evidence, record it durably, verify exact-head CI/clean checkout, transition C to `REVIEW_PENDING`, run a complete fresh independent Pass B and then Pass C before acceptance.
+7. WP-2.9A remains **BLOCKED** until C is accepted; WP-2.9B and later Lots remain inactive.
 
 ## Durable handoff
 
@@ -191,15 +194,19 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.8C
 WP-2.9A: BLOCKED — waits for WP-2.9C ACCEPTED
-Current packet: WP-2.9C — BLOCKED on AR-006 provider CPU telemetry
+Current packet: WP-2.9C — BLOCKED on AR-006 provider CPU evidence architecture review
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
-Latest evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS, provider job 104939181956 FAILURE only on absent CPU telemetry
-Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9, exact commit and Pages preview verified; ten exact 25,000,000-byte promotions HTTP 200/finalized
-Evidence artifact: Actions artifact 10464581885, ZIP SHA-256 56c809b27dadf42a3ef26a003855eb628dbf0ef437774bb76d82c02b33ada3c5; providerCpuMeasurements=[]; pass=false
-AR-006 attempt record: docs/roadmap/lot-2/WP-2.9C-AR-006-PROVIDER-ATTEMPT-2026-09-16.md
+Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
+Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
+Exact-size evidence artifact: 10464581885 / ZIP SHA-256 56c809b27dadf42a3ef26a003855eb628dbf0ef437774bb76d82c02b33ada3c5 / providerCpuMeasurements=[] / pass=false
+Delayed GraphQL requery: 9b139d23a7de47f8d3927a54c54d79298ca96a6b / workflow 35149303081 / artifact 10468931194 — still no CPU rows
+AR-006 architecture review: OPEN
+Tail support green tree: d04edd0ed0d3daa3b9bfe20d954003bb13545200 / parent 82e05a8dab9f61377f045b74005fd6582da0afe3 / CI 35152382433 — 5/5 SUCCESS
+Tail capability trigger: 7645a9e769c641640f52fdba535deb6140401fc6 / workflow 35153132971 / job 104986087784 / artifact 10469354745 — deny smoke SUCCESS; parsedJsonEventCount=0; providerCpuTimeMs=[]; pass=false
+Next provider channel: Workers Observability telemetry REST API capability preflight, exact script only, deny-only, no application mutation
 AR-005 and AR-007: implementation-remediated / exact-head-green — formal closure waits fresh Pass B after AR-006 unblock
 FTR-089 FIR: #17 — BLOCKED
 WP-2.9B: PLANNED / AFTER A
 Lots 3–12: NOT_STARTED
-Next permitted action: re-query provider CPU telemetry after aggregation delay; if unavailable or unattributable, reopen AR-006 architecture review without weakening Workers Free/25 MB contract
+Next permitted action: repository-green Workers Observability capability support → dedicated scoped provider token → [AR006-OBS-PREFLIGHT]; no exact-size rerun before capability success
 ```

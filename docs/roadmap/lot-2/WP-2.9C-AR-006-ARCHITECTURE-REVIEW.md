@@ -1,6 +1,6 @@
 # WP-2.9C / WP29C-AR-006 — CPU evidence architecture review
 
-Status: **OPEN — GRAPHQL EVIDENCE CHANNEL UNAVAILABLE; LIVE PROVIDER TELEMETRY CHANNEL UNDER VALIDATION**
+Status: **OPEN — GRAPHQL AND PAGES-TAIL CHANNELS INSUFFICIENT; WORKERS OBSERVABILITY CAPABILITY UNDER VALIDATION**
 
 Date reopened: 2026-09-16
 
@@ -18,7 +18,7 @@ The isolated Workers Free evidence candidate `4f40613060b4c9de41a32d99ed43fcf6e1
 
 A later read-only requery at `9b139d23a7de47f8d3927a54c54d79298ca96a6b` used the same exact script and controlled time window after the aggregation-delay hypothesis had ample time to resolve. Cloudflare still returned no `workersInvocationsAdaptive` CPU rows. Empty telemetry is not zero CPU and cannot close AR-006.
 
-The functional architecture is therefore not shown to be defective. The current **evidence channel** is the blocker: the GraphQL dataset used by the first harness is not producing attributable CPU data for this isolated Pages preview execution.
+The functional architecture is therefore not shown to be defective. The current **evidence channel** is the blocker: the original GraphQL dataset is not producing attributable CPU data for this isolated Pages preview execution.
 
 ## Frozen constraints
 
@@ -30,40 +30,48 @@ This review may change the provider-observation mechanism only. It must not weak
 - provider CPU, not wall time or application timing, must prove the runtime envelope;
 - normal Workers Free budget remains `10 ms` CPU per request;
 - at least ten controlled successful exact-size promotions remain required for final evidence;
-- no real wedding data, bearer tokens, secret values or PDF bytes may enter durable artifacts;
+- no real wedding data, bearer tokens, secret values, raw provider logs or PDF bytes may enter durable artifacts;
 - authorization, RLS, staging, integrity, finalize and cleanup controls remain unchanged.
 
 ## Provider evidence channels considered
 
 ### A. `workersInvocationsAdaptive` GraphQL — observed unavailable
 
-This was the original approved harness. It remains a valid provider API in principle, but the isolated Pages preview returned no rows during the evidence run and again during a delayed read-only requery. It must not remain the sole acceptance channel for this packet.
+This was the original approved harness. The isolated Pages preview returned no rows during the exact evidence run and again during a delayed read-only requery. It must not remain the sole acceptance channel for this packet.
 
-### B. Pages deployment live tail — next bounded experiment
+### B. Pages deployment live tail — capability experiment executed; not an approved CPU channel
 
-Cloudflare exposes an API and Wrangler command to create a tail session for one exact Pages deployment. This is attractive because it can be bound directly to the already-known isolated deployment and can be exercised without redeploying or mutating application data.
+A bounded deny-only experiment was executed against the already-recorded isolated Pages deployment without redeploying, authenticating to Supabase, uploading a PDF or mutating application data.
 
-Cloudflare also documents provider CPU time on Workers invocation observability/trace records. Before relying on Pages tail for final evidence, Mariage OS must empirically prove that the exact Pages deployment tail event available to this account/runtime actually contains a provider CPU field with established units and enough identity to attribute the event to the request.
+- Repository support tree: `d04edd0ed0d3daa3b9bfe20d954003bb13545200`; green implementation parent `82e05a8dab9f61377f045b74005fd6582da0afe3` / CI `35152382433` completed the normal repository gates including clean-checkout full verification.
+- No-content provider trigger: `7645a9e769c641640f52fdba535deb6140401fc6` with the exact same tree.
+- Pages-tail workflow: `35153132971`, job `104986087784`.
+- The exact deployment tail opened successfully and the production deny smoke passed without privileged credentials.
+- Sanitized artifact `10469354745`, ZIP SHA-256 `6b1c9db4b0b54d83881614867c1f68bd3e45b71fa767fec55c09203a72ac1f8c`, recorded `parsedJsonEventCount: 0`, `providerCpuTimeMs: []`, `pass: false`.
 
-The first experiment is therefore intentionally **deny-only and non-mutating**:
+This result does **not** establish that all Pages tail events lack CPU fields because no JSON event was retained by the bounded probe. Independently, Cloudflare's documented Pages deployment-tail JSON contract describes invocation outcome/script/log/request metadata but does not document a CPU-time field. Therefore the packet must not depend on the standard Pages tail as its CPU evidence channel, and the ten exact-size mutations must not be rerun merely to retry this path.
 
-1. open a tail on deployment `064d50b9-3c3d-414e-a6c3-afdcc1051be9`;
-2. issue only unauthorized/deny-oriented requests to `/api/private-document-promote` on that exact deployment;
-3. capture and sanitize the provider event shape;
-4. close/delete the tail session;
-5. pass only if an invocation event includes provider CPU data with unambiguous units and deployment/request attribution.
+### C. Workers Observability persisted invocation logs / REST API — current bounded candidate
 
-A successful capability preflight does **not** close AR-006. It only authorizes redesigning the exact-size evidence harness to capture provider CPU during the ten controlled promotions.
+Cloudflare's Workers Observability telemetry API is provider-native and its current event model explicitly exposes `$workers.cpuTimeMs`, `$workers.wallTimeMs`, request ID, script name and outcome. The same model describes `$metadata.cloudService` values including `pages`.
 
-### C. Workers Observability persisted invocation logs / REST API — secondary candidate
+Before this mechanism can be approved for final evidence, Mariage OS must prove all of the following without changing the runtime architecture:
 
-Cloudflare Workers Observability exposes invocation records containing `cpuTimeMs`, outcome, request ID, script name and wall time. This is provider-native and suitable in semantics, but Pages-specific enablement/retention and the exact token permission required by the account must be demonstrated before it becomes an approved packet mechanism.
+1. the isolated Pages preview invocation is visible through the Workers Observability telemetry API;
+2. the event can be restricted and attributed to `pages-worker--19505720-preview` on deployment `064d50b9-3c3d-414e-a6c3-afdcc1051be9`;
+3. the provider returns numeric `cpuTimeMs` rather than application timing;
+4. the capability works on the existing Workers Free / Pages deployment without enabling Paid;
+5. the required API permission can be isolated to a dedicated short-lived token and is never reused as the Pages deployment token or Analytics token.
 
-Use this path only if the deployment-tail capability preflight cannot expose CPU or if persisted invocation records provide materially stronger attribution without changing the runtime contract.
+Cloudflare currently documents `Workers Observability Write` as the API-token permission accepted by the telemetry query/key endpoints. Because this is a broader capability than the existing Analytics Read token, the probe must use a dedicated secret named `AR006_CLOUDFLARE_OBSERVABILITY_TOKEN`. Its value must never be printed, committed or included in artifacts.
+
+The capability probe is deny-only and read-only with respect to application data: run the existing production deny smoke against the exact deployment, query a short Observability window filtered to the exact script, retain only sanitized provider metadata required to determine CPU availability, and fail closed on missing authorization, missing events or missing CPU.
+
+A green capability result does **not** close AR-006. It only authorizes redesigning the final exact-25-MB evidence harness around provider Observability events.
 
 ### D. Tail Workers — rejected for this packet
 
-Cloudflare Tail Workers are a separate producer/consumer feature available on Paid/Enterprise tiers. They are not acceptable because AR-006 explicitly forbids relying on Paid entitlement.
+Cloudflare Tail Workers are a separate producer/consumer feature whose use would change the entitlement assumptions. They are not an acceptable shortcut for this AR-006 gate.
 
 ### E. application timing, wall time, custom Analytics Engine metrics — rejected
 
@@ -71,21 +79,27 @@ These mechanisms do not provide Cloudflare's authoritative CPU consumption for t
 
 ## Current decision
 
-**Proceed with a bounded Pages deployment-tail capability preflight before any new exact-25-MB mutation run.**
+**Proceed with a separately guarded Workers Observability API capability preflight before any new exact-25-MB mutation run.**
 
-The capability preflight must be separately guarded, use the existing isolated Pages deployment, perform no deployment and no Supabase/application mutation, and retain only a sanitized event-shape result. If CPU is absent from the Pages live-tail event, do not rerun the ten promotions. Move to a focused Workers Observability API capability probe instead.
+The preflight must:
 
-If neither provider-native Free-plan channel can expose attributable CPU for the Pages Function, this review must escalate to an explicit architecture decision rather than weakening the acceptance contract.
+- use the existing isolated Pages deployment and exact preview script;
+- perform no deployment and no successful/private-document mutation;
+- use only deny-oriented route smoke plus a provider telemetry query;
+- receive a dedicated `Workers Observability` token only on the explicit `[AR006-OBS-PREFLIGHT]` trigger;
+- upload only a sanitized capability artifact;
+- pass only when an event attributable to the exact Pages script includes provider `cpuTimeMs`.
+
+If the existing Pages deployment cannot produce attributable CPU through Workers Observability without a material runtime/configuration migration, stop and make an explicit architecture decision. Do not silently migrate Pages to Workers, enable Paid, use wall time, or lower the 25 MB contract.
 
 ## Provider references
 
+- <https://developers.cloudflare.com/pages/functions/debugging-and-logging/>
 - <https://developers.cloudflare.com/workers/wrangler/commands/pages/#pages-deployment-tail>
-- <https://developers.cloudflare.com/api/resources/pages/subresources/projects/subresources/deployments/>
-- <https://developers.cloudflare.com/workers/observability/>
-- <https://developers.cloudflare.com/workers/observability/logs/workers-logs/>
-- <https://developers.cloudflare.com/api/typescript/resources/workers/subresources/observability/>
+- <https://developers.cloudflare.com/api/resources/workers/subresources/observability/subresources/telemetry/>
+- <https://developers.cloudflare.com/api/resources/workers/subresources/observability/subresources/telemetry/methods/query/>
+- <https://developers.cloudflare.com/api/resources/workers/subresources/observability/subresources/telemetry/methods/keys/>
 - <https://developers.cloudflare.com/logs/logpush/logpush-job/datasets/account/workers_trace_events/>
-- <https://developers.cloudflare.com/changelog/post/2025-04-09-workers-timing/>
 
 ## Governance
 
