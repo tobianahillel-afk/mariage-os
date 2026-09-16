@@ -34,10 +34,7 @@ assert.equal(withinBudget[0].cpuTimeP50Us, 9_999);
 assert.equal(withinBudget[0].cpuTimeP99Us, 10_000);
 assert.equal(withinBudget[0].cpuTimeP50Ms, 9.999);
 assert.equal(withinBudget[0].cpuTimeP99Ms, 10);
-assert.equal(
-  metricsPass(withinBudget, INVOCATION_COUNT, CPU_BUDGET_MS),
-  true,
-);
+assert.equal(metricsPass(withinBudget, INVOCATION_COUNT, CPU_BUDGET_MS), true);
 
 const overBudget = metricEvidence([
   ...Array.from({ length: INVOCATION_COUNT - 1 }, (_, index) =>
@@ -46,9 +43,6 @@ const overBudget = metricEvidence([
   row(INVOCATION_COUNT - 1, 10_000, 10_001),
 ]);
 
-assert.equal(
-  metricsPass(overBudget, INVOCATION_COUNT, CPU_BUDGET_MS),
-  false,
-);
+assert.equal(metricsPass(overBudget, INVOCATION_COUNT, CPU_BUDGET_MS), false);
 
 console.log("AR-006 CPU unit controls passed.");
