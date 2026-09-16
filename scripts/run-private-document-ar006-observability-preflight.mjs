@@ -34,6 +34,31 @@ function assertContext() {
   };
 }
 
+function isRecord(value) {
+  return typeof value === "object" && value !== null;
+}
+
+function recordProperty(value, key) {
+  if (!isRecord(value)) return undefined;
+  return value[key];
+}
+
+function stringOrNull(value) {
+  return typeof value === "string" ? value : null;
+}
+
+function numberPropertyOrNull(value, key) {
+  const candidate = recordProperty(value, key);
+  if (typeof candidate !== "number") return null;
+  if (!Number.isFinite(candidate)) return null;
+  return candidate;
+}
+
+function finiteNumber(value) {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : null;
+}
+
 function queryBody(scriptName, timeframe) {
   return {
     queryId: "mariage-os-ar006-observability-preflight",
@@ -58,41 +83,51 @@ function queryBody(scriptName, timeframe) {
 }
 
 function apiErrors(payload) {
-  if (!Array.isArray(payload?.errors)) return [];
-  return payload.errors.map((error) => ({
-    code: typeof error?.code === "number" ? error.code : null,
+  const errors = recordProperty(payload, "errors");
+  if (!Array.isArray(errors)) return [];
+  return errors.map((error) => ({
+    code: numberPropertyOrNull(error, "code"),
   }));
 }
 
 function responseEvents(payload) {
-  const events = payload?.result?.events?.events;
+  const result = recordProperty(payload, "result");
+  const eventGroup = recordProperty(result, "events");
+  const events = recordProperty(eventGroup, "events");
   return Array.isArray(events) ? events : [];
 }
 
-function finiteNumber(value) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : null;
+function workerRecord(event) {
+  const workers = recordProperty(event, "$workers");
+  return isRecord(workers) ? workers : null;
+}
+
+function metadataValue(event, key) {
+  const metadata = recordProperty(event, "$metadata");
+  return recordProperty(metadata, key);
+}
+
+function withinFreeCpuBudget(cpuTimeMs) {
+  if (cpuTimeMs === null) return null;
+  return cpuTimeMs <= CPU_BUDGET_MS;
 }
 
 function sanitizeEvent(event, scriptName) {
-  const workers = event?.$workers;
-  if (!workers || workers.scriptName !== scriptName) return null;
-  const cpuTimeMs = finiteNumber(workers.cpuTimeMs);
+  const workers = workerRecord(event);
+  if (workers === null) return null;
+  if (recordProperty(workers, "scriptName") !== scriptName) return null;
+  const cpuTimeMs = finiteNumber(recordProperty(workers, "cpuTimeMs"));
   return {
-    eventId:
-      typeof event?.$metadata?.id === "string" ? event.$metadata.id : null,
-    cloudService:
-      typeof event?.$metadata?.cloudService === "string"
-        ? event.$metadata.cloudService
-        : null,
-    requestId: typeof workers.requestId === "string" ? workers.requestId : null,
-    scriptName: workers.scriptName,
-    eventType: typeof workers.eventType === "string" ? workers.eventType : null,
-    outcome: typeof workers.outcome === "string" ? workers.outcome : null,
+    eventId: stringOrNull(metadataValue(event, "id")),
+    cloudService: stringOrNull(metadataValue(event, "cloudService")),
+    requestId: stringOrNull(recordProperty(workers, "requestId")),
+    scriptName,
+    eventType: stringOrNull(recordProperty(workers, "eventType")),
+    outcome: stringOrNull(recordProperty(workers, "outcome")),
     cpuTimeMs,
-    wallTimeMs: finiteNumber(workers.wallTimeMs),
-    statusCode: finiteNumber(workers.statusCode),
-    withinFreeCpuBudget: cpuTimeMs === null ? null : cpuTimeMs <= CPU_BUDGET_MS,
+    wallTimeMs: finiteNumber(recordProperty(workers, "wallTimeMs")),
+    statusCode: finiteNumber(recordProperty(workers, "statusCode")),
+    withinFreeCpuBudget: withinFreeCpuBudget(cpuTimeMs),
   };
 }
 
@@ -104,6 +139,14 @@ function sanitizeEvents(events, scriptName) {
 
 function delay(ms) {
   return new Promise((resolve) => globalThis.setTimeout(resolve, ms));
+}
+
+async function parseJsonResponse(response) {
+  try {
+    return await response.json();
+  } catch {
+    return null;
+  }
 }
 
 async function queryObservability(context, token, timeframe) {
@@ -118,13 +161,18 @@ async function queryObservability(context, token, timeframe) {
     },
     body: JSON.stringify(queryBody(context.scriptName, timeframe)),
   });
-  let payload = null;
-  try {
-    payload = await response.json();
-  } catch {
-    payload = null;
-  }
+  const payload = await parseJsonResponse(response);
   return { response, payload };
+}
+
+function responseOk(response) {
+  if (!isRecord(response)) return false;
+  return response.ok === true;
+}
+
+function payloadSucceeded(payload) {
+  if (!isRecord(payload)) return false;
+  return payload.success === true;
 }
 
 async function collect(context, token) {
@@ -138,37 +186,67 @@ async function collect(context, token) {
       context.scriptName,
     );
     latest = { ...result, timeframe, events, attempt };
-    if (!result.response.ok || result.payload?.success !== true) break;
+    if (!responseOk(result.response) || !payloadSucceeded(result.payload))
+      break;
     if (events.some((event) => event.cpuTimeMs !== null)) break;
     if (attempt < 3) await delay(5_000);
   }
   return latest;
 }
 
+function resultField(result, key) {
+  const value = recordProperty(result, key);
+  if (value === undefined) return null;
+  return value;
+}
+
+function resultEvents(result) {
+  const events = resultField(result, "events");
+  return Array.isArray(events) ? events : [];
+}
+
+function contextField(context, key) {
+  const value = recordProperty(context, key);
+  if (value === undefined) return null;
+  return value;
+}
+
+function planAttestation(context) {
+  if (!isRecord(context)) return null;
+  return "Workers Free / isolated non-production";
+}
+
+function responseStatus(response) {
+  if (!isRecord(response)) return null;
+  return finiteNumber(response.status);
+}
+
+function capabilityPass(tokenPresent, response, payload, cpuEvents) {
+  if (!tokenPresent) return false;
+  if (!responseOk(response)) return false;
+  if (!payloadSucceeded(payload)) return false;
+  return cpuEvents.length > 0;
+}
+
 async function writeEvidence(context, result, tokenPresent) {
-  const response = result?.response ?? null;
-  const payload = result?.payload ?? null;
-  const events = result?.events ?? [];
+  const response = resultField(result, "response");
+  const payload = resultField(result, "payload");
+  const events = resultEvents(result);
   const cpuEvents = events.filter((event) => event.cpuTimeMs !== null);
-  const pass =
-    tokenPresent &&
-    response?.ok === true &&
-    payload?.success === true &&
-    cpuEvents.length > 0;
+  const pass = capabilityPass(tokenPresent, response, payload, cpuEvents);
   const evidence = {
     schema: "mariage-os.wp29c.ar006.observability-preflight.v1",
     generatedAt: new Date().toISOString(),
-    pagesProject: context?.pagesProject ?? null,
-    deploymentId: context?.deploymentId ?? null,
-    scriptName: context?.scriptName ?? null,
-    workersPlanAttestation:
-      context === null ? null : "Workers Free / isolated non-production",
+    pagesProject: contextField(context, "pagesProject"),
+    deploymentId: contextField(context, "deploymentId"),
+    scriptName: contextField(context, "scriptName"),
+    workersPlanAttestation: planAttestation(context),
     tokenPresent,
-    httpStatus: response?.status ?? null,
-    apiSuccess: payload?.success === true,
+    httpStatus: responseStatus(response),
+    apiSuccess: payloadSucceeded(payload),
     providerErrorMetadata: apiErrors(payload),
-    queryAttempt: result?.attempt ?? null,
-    timeframe: result?.timeframe ?? null,
+    queryAttempt: resultField(result, "attempt"),
+    timeframe: resultField(result, "timeframe"),
     matchingEventCount: events.length,
     cpuEventCount: cpuEvents.length,
     cpuBudgetMs: CPU_BUDGET_MS,
@@ -186,23 +264,27 @@ async function writeEvidence(context, result, tokenPresent) {
   return pass;
 }
 
-async function main() {
-  let context = null;
+async function loadContext() {
   try {
-    context = assertContext();
+    return assertContext();
   } catch (error) {
     await writeEvidence(null, null, false);
     throw error;
   }
+}
 
+async function requireObservabilityToken(context) {
   const token = envValue("CLOUDFLARE_OBSERVABILITY_API_TOKEN");
-  if (!token) {
-    await writeEvidence(context, null, false);
-    throw new Error(
-      "Dedicated Cloudflare Workers Observability token is required.",
-    );
-  }
+  if (token) return token;
+  await writeEvidence(context, null, false);
+  throw new Error(
+    "Dedicated Cloudflare Workers Observability token is required.",
+  );
+}
 
+async function main() {
+  const context = await loadContext();
+  const token = await requireObservabilityToken(context);
   const result = await collect(context, token);
   const pass = await writeEvidence(context, result, true);
   if (!pass) {
