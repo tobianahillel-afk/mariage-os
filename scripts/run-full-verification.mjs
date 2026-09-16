@@ -24,6 +24,7 @@ const orderedChecks = [
   "quality:negative",
   "security:negative",
   "security:dependencies",
+  "test:ar006:metrics",
   "test:e2e",
   "test:mutation",
   "build",
