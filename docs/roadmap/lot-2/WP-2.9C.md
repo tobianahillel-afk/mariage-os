@@ -20,7 +20,7 @@
 
 Pass A completed successfully. The required fresh Pass B then found three unresolved MAJOR findings. Remediation implemented the AR-005 trusted cleanup/race controls and AR-007 deployment/secret/release controls, and the complete exact implementation head `68a4f6bdb7b55acc80c4c6fbb8c0afc0295bfde5` passed CI `35025384594` **5/5 SUCCESS**, including `Full verify from clean checkout`.
 
-AR-006 still requires deployed Cloudflare Workers Free CPU telemetry for the exact `25,000,000`-byte trusted promotion. That provider evidence is not currently available in repository/FIR evidence, so the canonical packet state remains **BLOCKED** rather than falsely treating local workerd or repository CI success as Free-plan CPU proof.
+AR-006 still requires provider Cloudflare Workers Free CPU telemetry for the exact `25,000,000`-byte trusted promotion. The 2026-09-16 isolated deployment passed ten functional promotions, but its provider CPU dataset returned no rows, so the canonical packet state remains **BLOCKED**.
 
 WP-2.9C is not accepted and must not enter `REVIEW_PENDING` until AR-006 is evidenced and the resulting evidence-bound exact HEAD passes the complete verification gate again.
 
@@ -82,7 +82,7 @@ Provider limits rechecked on 2026-09-15 keep Workers Free at a normal `10 ms` CP
 
 Required unblock evidence is an isolated non-production Pages deployment on Workers Free, tied to an exact commit, with synthetic exact `25,000,000`-byte promotion and provider-produced CPU measurements. The retained controlled evidence must demonstrate normal operation inside the Free CPU budget without `exceededCpu`, Paid entitlement or a lowered file contract.
 
-No concrete deployed Pages URL or provider CPU telemetry is currently recorded in the repository/FIR evidence inspected for this packet. That does not prove no external deployment exists; it means the acceptance evidence is unavailable to this packet.
+The 2026-09-16 isolated deployment of `4f40613060b4c9de41a32d99ed43fcf6e12c9791` completed ten exact-size promotions, but Cloudflare returned zero provider CPU rows. Deployment and functional evidence are recorded in `WP-2.9C-AR-006-PROVIDER-ATTEMPT-2026-09-16.md`; CPU feasibility remains unevidenced.
 
 Therefore this finding is **OPEN / BLOCKING** and the packet state is **BLOCKED**.
 

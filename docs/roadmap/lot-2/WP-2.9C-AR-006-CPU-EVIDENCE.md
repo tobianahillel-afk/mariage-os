@@ -54,7 +54,7 @@ Local/runtime implementation evidence proves that the exact-size path is functio
 
 This evidence is necessary but **not sufficient** for AR-006 because local workerd/repository CI success does not demonstrate Workers Free CPU enforcement or provider-measured CPU consumption.
 
-No acceptance-grade provider deployment identity plus CPU evidence artifact is currently present in the repository/FIR evidence for this packet. This does not prove that no external deployment exists; it means no acceptance-grade provider record is available to the packet.
+An exact-commit provider deployment and ten successful controlled promotions are now recorded in the 2026-09-16 attempt, but the artifact has no provider CPU rows. See `WP-2.9C-AR-006-PROVIDER-ATTEMPT-2026-09-16.md`. Functional success does not satisfy this CPU gate.
 
 ## Required deployed proof
 
@@ -114,6 +114,6 @@ The approved response is architecture review, not automatic Workers Paid activat
 
 **BLOCKED ON EXTERNAL RUNTIME EVIDENCE.**
 
-Repository remediation and AR-006 execution support are repository-green on prior exact heads, but the packet still lacks a successful provider-evidence artifact from the isolated Workers Free execution path. The repository can prepare and validate the implementation, harness, unit conversion, release contract and fail-closed smoke locally, but it cannot manufacture Cloudflare provider CPU telemetry.
+Repository remediation, exact-head CI and the isolated exact-size functional path are green, but the provider-evidence artifact failed closed because CPU telemetry is absent. The repository can prepare and validate the implementation, harness, unit conversion, release contract and fail-closed smoke locally, but it cannot manufacture Cloudflare provider CPU telemetry.
 
-No acceptance-grade Cloudflare deployment identity plus provider CPU record is currently attached to the repository/FIR evidence used for this packet. Therefore AR-006 is not closed, WP-2.9C must not transition to `REVIEW_PENDING`, and WP-2.9A remains blocked until this gate is resolved and WP-2.9C later reaches acceptance.
+The deployment identity is recorded, but provider CPU measurements are absent (`providerCpuMeasurements: []`). Re-query after Cloudflare's possible aggregation delay; if telemetry remains unavailable or unattributable, reopen architecture review under the runbook. AR-006 is not closed, WP-2.9C must not transition to `REVIEW_PENDING`, and WP-2.9A remains blocked.

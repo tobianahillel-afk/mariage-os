@@ -93,7 +93,7 @@ Current findings:
 
 Historical findings `WP29C-AR-001..004` remain implementation-green but await a later complete clean fresh Pass B for formal closure.
 
-Repository-side AR-006 execution support is green: guarded read-only preflight, provider evidence harness, µs→ms CPU normalization regression control, Pages deployment/binding checks and exact-head clean-checkout verification are implemented. Recorded external readiness attempts failed closed before deployment/data mutation because the isolated GitHub Environment/provider configuration resolved empty. This is a provider-test configuration blocker, not CPU-feasibility evidence and not a repository implementation regression.
+Repository-side AR-006 execution support and exact-head CI are green. An isolated read-only preflight passed at `d89b3601d066996c3958f30ad9067b34675f8b22` / `35138142860`. The exact evidence candidate `4f40613060b4c9de41a32d99ed43fcf6e12c9791` / `35138368708` deployed to Workers Free Pages preview and completed ten exact-25-MB promotions; however, the provider evidence job failed closed because Cloudflare returned no CPU rows (`providerCpuMeasurements: []`). See `WP-2.9C-AR-006-PROVIDER-ATTEMPT-2026-09-16.md`. AR-006 remains open.
 
 ## Work Packet plan
 
@@ -125,9 +125,10 @@ Repository-side AR-006 execution support is green: guarded read-only preflight, 
 WP-2.1..WP-2.8C [ACCEPTED]
   → WP-2.9A [BLOCKED until WP-2.9C ACCEPTED]
     → WP-2.9C [BLOCKED — AR-006 PROVIDER EVIDENCE]
-      → configure isolated provider resources + green read-only [AR006-PREFLIGHT]
-        → exact [AR006-EVIDENCE] candidate
-          → valid Workers Free exact-25-MB CPU evidence
+      → isolated provider + [AR006-PREFLIGHT] GREEN
+        → exact [AR006-EVIDENCE] candidate: 10 promotions SUCCESS, CPU rows MISSING
+          → re-query telemetry after aggregation delay / architecture review if unavailable
+            → valid Workers Free exact-25-MB CPU evidence
             → exact-head full verification
               → REVIEW_PENDING
                 → complete fresh Pass B
@@ -164,7 +165,8 @@ implementation-remediated = WP29C-AR-005 MAJOR — cleanup/abandon-promotion rac
 open/blocking = WP29C-AR-006 MAJOR — Free-plan exact-25-MB CPU evidence gap
 implementation-remediated = WP29C-AR-007 MAJOR — Pages Function deployment/secret operations gap
 WP-2.9B = PLANNED / AFTER A
-next permitted action = configure isolated provider resources, obtain a green read-only [AR006-PREFLIGHT], then run [AR006-EVIDENCE]
+latest provider attempt = 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 10 exact-size promotions successful, providerCpuMeasurements=[]
+next permitted action = re-query Cloudflare provider CPU telemetry after aggregation delay; if unavailable/unattributable, reopen AR-006 architecture review
 Pass C forbidden until valid AR-006 evidence, exact-head verification and a later clean Pass B yield ACCEPTANCE_PENDING
 ```
 
