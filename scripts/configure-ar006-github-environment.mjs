@@ -34,7 +34,8 @@ function readRequired(name, trim = true) {
 }
 
 function collectInputs(names, trim = true) {
-  return new Map(names.map((name) => [name, readRequired(name, trim)]));
+  const entries = names.map((name) => [name, readRequired(name, trim)]);
+  return new Map(entries);
 }
 
 function ghEnvironment() {
@@ -53,85 +54,65 @@ function runGh(args, input) {
     windowsHide: true,
   });
 
-  if (result.error) {
-    throw result.error;
-  }
-  if (result.status !== 0) {
-    const detail =
-      result.stderr.trim() || result.stdout.trim() || `exit ${result.status}`;
-    throw new Error(`GitHub CLI command failed: ${detail}`);
-  }
-  return result.stdout.trim();
+  if (result.error) throw result.error;
+  if (result.status === 0) return result.stdout.trim();
+
+  const stderr = result.stderr.trim();
+  const stdout = result.stdout.trim();
+  const detail = stderr || stdout || `exit ${result.status}`;
+  throw new Error(`GitHub CLI command failed: ${detail}`);
 }
 
 function assertAttestation(variables) {
-  if (
-    variables.get("AR006_WORKERS_FREE_ATTESTATION") !== EXPECTED_ATTESTATION
-  ) {
-    throw new Error(
-      `AR006_WORKERS_FREE_ATTESTATION must equal ${EXPECTED_ATTESTATION}.`,
-    );
-  }
+  const actual = variables.get("AR006_WORKERS_FREE_ATTESTATION");
+  if (actual === EXPECTED_ATTESTATION) return;
+
+  const message = "AR006_WORKERS_FREE_ATTESTATION must confirm Workers Free.";
+  throw new Error(message);
+}
+
+function listAsJson(kind, fields) {
+  const output = runGh([
+    kind,
+    "list",
+    "--env",
+    GITHUB_ENVIRONMENT,
+    "--repo",
+    REPOSITORY,
+    "--json",
+    fields,
+  ]);
+  return JSON.parse(output || "[]");
 }
 
 function assertGhReady() {
   runGh(["--version"]);
   runGh(["auth", "status", "--hostname", "github.com"]);
-  runGh([
-    "variable",
-    "list",
-    "--env",
-    GITHUB_ENVIRONMENT,
-    "--repo",
-    REPOSITORY,
-    "--json",
-    "name",
-  ]);
+  listAsJson("variable", "name");
 }
 
 function setEnvironmentValue(kind, name, value) {
-  runGh(
-    [
-      kind,
-      "set",
-      name,
-      "--env",
-      GITHUB_ENVIRONMENT,
-      "--repo",
-      REPOSITORY,
-    ],
-    `${value}\n`,
-  );
+  const args = [
+    kind,
+    "set",
+    name,
+    "--env",
+    GITHUB_ENVIRONMENT,
+    "--repo",
+    REPOSITORY,
+  ];
+  runGh(args, `${value}\n`);
 }
 
 function configuredVariables() {
-  const output = runGh([
-    "variable",
-    "list",
-    "--env",
-    GITHUB_ENVIRONMENT,
-    "--repo",
-    REPOSITORY,
-    "--json",
-    "name,value",
-  ]);
-  return new Map(
-    JSON.parse(output || "[]").map((row) => [row.name, row.value]),
-  );
+  const rows = listAsJson("variable", "name,value");
+  const entries = rows.map((row) => [row.name, row.value]);
+  return new Map(entries);
 }
 
 function configuredSecretNames() {
-  const output = runGh([
-    "secret",
-    "list",
-    "--env",
-    GITHUB_ENVIRONMENT,
-    "--repo",
-    REPOSITORY,
-    "--json",
-    "name",
-  ]);
-  return new Set(JSON.parse(output || "[]").map((row) => row.name));
+  const rows = listAsJson("secret", "name");
+  return new Set(rows.map((row) => row.name));
 }
 
 function verifyVariables(expected) {
@@ -152,29 +133,26 @@ function verifySecretNames() {
   }
 }
 
+function configureEntries(kind, entries) {
+  for (const [name, value] of entries) {
+    setEnvironmentValue(kind, name, value);
+  }
+}
+
 function main() {
   const variables = collectInputs(VARIABLE_NAMES);
   const secrets = collectInputs(SECRET_NAMES, false);
 
   assertAttestation(variables);
   assertGhReady();
-
-  for (const [name, value] of variables) {
-    setEnvironmentValue("variable", name, value);
-  }
-  for (const [name, value] of secrets) {
-    setEnvironmentValue("secret", name, value);
-  }
-
+  configureEntries("variable", variables);
+  configureEntries("secret", secrets);
   verifyVariables(variables);
   verifySecretNames();
 
-  console.log(
-    `Configured ${VARIABLE_NAMES.length} variables and ${SECRET_NAMES.length} secrets in ${GITHUB_ENVIRONMENT}.`,
-  );
-  console.log(
-    "Secret values were sent to GitHub CLI over stdin and were never printed or passed as command-line arguments.",
-  );
+  console.log(`Configured AR-006 environment: ${GITHUB_ENVIRONMENT}.`);
+  console.log("Seven variables and three secret names were verified.");
+  console.log("Secret values were never printed or passed as CLI arguments.");
 }
 
 try {
