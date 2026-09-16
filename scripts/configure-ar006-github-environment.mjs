@@ -115,7 +115,9 @@ function configuredVariables() {
     "--json",
     "name,value",
   ]);
-  return new Map(JSON.parse(output || "[]").map((row) => [row.name, row.value]));
+  return new Map(
+    JSON.parse(output || "[]").map((row) => [row.name, row.value]),
+  );
 }
 
 function configuredSecretNames() {
