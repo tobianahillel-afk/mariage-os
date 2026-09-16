@@ -8,7 +8,9 @@ Related packet: `WP-2.9C`
 
 Related FIR: `#17 / FTR-089`
 
-Execution job: `.github/workflows/ci.yml` → `ar006-provider-evidence`
+Read-only readiness job: `.github/workflows/ci.yml` → `ar006-provider-preflight`
+
+Evidence job: `.github/workflows/ci.yml` → `ar006-provider-evidence`
 
 Provider preflight: `npm run preflight:ar006`
 
@@ -24,9 +26,19 @@ This runbook turns the AR-006 provider-evidence protocol into one reproducible, 
 
 It does not weaken the frozen `25,000,000`-byte contract, does not authorize Workers Paid, does not use production wedding data, and does not auto-transition WP-2.9C.
 
-The evidence job is part of the normal branch CI because GitHub `workflow_dispatch` only receives events when the workflow file exists on the repository default branch. WP-2.9C must obtain this evidence before it can be accepted and integrated, so a Lot-2-only standalone dispatch workflow would not be executable at the required phase.
+The readiness and evidence jobs are part of the normal branch CI because GitHub `workflow_dispatch` only receives events when the workflow file exists on the repository default branch. WP-2.9C must obtain this evidence before it can be accepted and integrated, so a Lot-2-only standalone dispatch workflow would not be executable at the required phase.
 
-The job is therefore guarded by all of these conditions:
+The non-destructive readiness job is guarded by all of these conditions:
+
+- event is `push`;
+- ref is exactly `refs/heads/lot-2/venues-core`;
+- pushed commit message contains the explicit marker `[AR006-PREFLIGHT]`;
+- normal `core` succeeds first;
+- GitHub Environment is exactly `ar006-isolated`;
+- environment variable `AR006_WORKERS_FREE_ATTESTATION` is exactly `YES-WORKERS-FREE-ISOLATED`;
+- all required isolated-provider metadata and credentials are present.
+
+The provider-evidence job is guarded separately by all of these conditions:
 
 - event is `push`;
 - ref is exactly `refs/heads/lot-2/venues-core`;
@@ -36,7 +48,7 @@ The job is therefore guarded by all of these conditions:
 - environment variable `AR006_WORKERS_FREE_ATTESTATION` is exactly `YES-WORKERS-FREE-ISOLATED`;
 - all required isolated-provider metadata and credentials are present.
 
-On ordinary pushes and pull requests the provider-evidence job is skipped and receives no environment credentials.
+On ordinary pushes and pull requests both AR-006 provider jobs are skipped and receive no environment credentials.
 
 A successful provider-evidence job is still only evidence input. AR-006 remains open until its sanitized provider evidence is reviewed, durably attached to the FIR/repository record, the exact evidence-bound HEAD remains fully verified, and the later fresh Pass B accepts the whole packet.
 
@@ -79,7 +91,7 @@ The isolated Pages **preview** environment must already expose:
 - `SUPABASE_PUBLISHABLE_KEY` for that project;
 - `PRIVATE_DOCUMENT_ADMIN_KEY` as an encrypted Pages secret for that same isolated Supabase project.
 
-`PRIVATE_DOCUMENT_ADMIN_KEY` must not be copied into GitHub Actions secrets. The evidence job verifies only that the Pages preview binding exists as `secret_text`; it never reads or prints its value.
+`PRIVATE_DOCUMENT_ADMIN_KEY` must not be copied into GitHub Actions secrets. The readiness/evidence jobs verify only that the Pages preview binding exists as `secret_text`; they never read or print its value.
 
 Before any candidate build or deployment, `npm run preflight:ar006` performs only read-only readiness checks: it verifies access to the isolated Pages project and expected preview bindings, verifies the Analytics token can query the intended Cloudflare account, signs in as the synthetic Supabase user, and requires live `documents.write` through `has_project_permission`. The preflight does not deploy, reserve a document, upload bytes, call the trusted promotion route, or mutate application data.
 
@@ -111,9 +123,27 @@ This table is the metadata-only inventory for AR-006-specific credentials and su
 
 No token value, hash, fingerprint or password belongs in Git, Actions artifacts, FIR comments or screenshots.
 
-## Trigger contract
+## Readiness preflight trigger
 
-Do not trigger the provider job until the isolated Cloudflare/Supabase environment and GitHub Environment are ready.
+Do **not** use `[AR006-EVIDENCE]` merely to discover whether the environment is configured.
+
+After the isolated Cloudflare/Supabase resources and GitHub Environment are believed to be ready, create a no-content commit on `lot-2/venues-core` using the exact current tree and a message containing the literal marker:
+
+```text
+[AR006-PREFLIGHT]
+```
+
+The `ar006-provider-preflight` job starts only after normal `core` succeeds on that exact SHA. It checks out the exact commit, installs dependencies, runs secret scanning and executes `npm run preflight:ar006` with the isolated environment credentials.
+
+A preflight run must remain non-destructive: it performs no Pages deployment, no document reservation, no Storage upload, no promotion/finalization and no application-data mutation.
+
+A green preflight demonstrates environment readiness only. It is **not** Workers Free CPU evidence and does not close AR-006 or authorize a packet-state transition.
+
+A red preflight means the isolated provider/GitHub Environment is not acceptance-ready. Correct the external configuration or permissions, then rerun the read-only preflight. Do not proceed to `[AR006-EVIDENCE]` merely to obtain a more detailed failure.
+
+## Provider-evidence trigger
+
+Only after the readiness preflight is green should the deployed provider evidence be triggered.
 
 The evidence candidate is a commit on `lot-2/venues-core` whose message contains the literal marker:
 
@@ -127,7 +157,7 @@ The normal CI starts on that push. `ar006-provider-evidence` does **not** start 
 
 If any normal repository gate fails, provider deployment never begins.
 
-If the marker is absent, the provider job is skipped.
+If the evidence marker is absent, the provider-evidence job is skipped.
 
 ## Provider-evidence execution
 
@@ -226,7 +256,9 @@ After accepted evidence capture, reset or destroy dedicated synthetic test data 
 
 ## Failure handling
 
-A red provider job is evidence, not permission to weaken the contract.
+A red readiness preflight means provider/GitHub Environment configuration is incomplete or unauthorized; it is not CPU feasibility evidence. Correct the isolated configuration and repeat `[AR006-PREFLIGHT]` before any evidence trigger.
+
+A red provider-evidence job is evidence, not permission to weaken the contract.
 
 If exact-size promotions fail, normalized CPU exceeds `10 ms`, attribution is contaminated, metrics are unavailable, metric units cannot be established, or success requires Paid CPU, keep WP-2.9C `BLOCKED` and reopen architecture review.
 
