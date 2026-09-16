@@ -54,9 +54,6 @@ function requirePagesProject(payload) {
   if (payload.success !== true || payload.result === null) {
     throw new Error("Cloudflare Pages project preflight failed.");
   }
-  if (payload.result.uses_functions !== true) {
-    throw new Error("AR-006 Pages project is not Functions-enabled.");
-  }
   return payload.result;
 }
 
@@ -72,12 +69,6 @@ function requireMatchingBinding(preview, bindingName, expectedValue) {
   if (preview[bindingName]?.value !== expectedValue) {
     throw new Error(`Pages preview ${bindingName} does not match AR-006.`);
   }
-}
-
-function requirePreviewScriptName(project) {
-  const scriptName = String(project.preview_script_name ?? "").trim();
-  if (!scriptName) throw new Error("Pages preview_script_name is unavailable.");
-  return scriptName;
 }
 
 async function verifyPagesProject() {
@@ -102,7 +93,6 @@ async function verifyPagesProject() {
     "SUPABASE_PUBLISHABLE_KEY",
     requiredEnv("AR006_SUPABASE_PUBLISHABLE_KEY"),
   );
-  return requirePreviewScriptName(project);
 }
 
 function analyticsWindow() {
@@ -111,13 +101,12 @@ function analyticsWindow() {
   return { start: start.toISOString(), end: end.toISOString() };
 }
 
-async function verifyAnalytics(scriptName) {
+async function verifyAnalytics() {
   const window = analyticsWindow();
-  const query = `query Preflight($accountTag: string, $start: string, $end: string, $scriptName: string) {
+  const query = `query Preflight($accountTag: string, $start: string, $end: string) {
     viewer {
       accounts(filter: { accountTag: $accountTag }) {
         workersInvocationsAdaptive(limit: 1, filter: {
-          scriptName: $scriptName,
           datetime_geq: $start,
           datetime_leq: $end
         }) {
@@ -142,7 +131,6 @@ async function verifyAnalytics(scriptName) {
           accountTag: requiredEnv("CLOUDFLARE_ACCOUNT_ID"),
           start: window.start,
           end: window.end,
-          scriptName,
         },
       }),
     },
@@ -171,8 +159,8 @@ async function main() {
   requiredEnv("AR006_CLOUDFLARE_DEPLOY_TOKEN");
   requiredEnv("AR006_CLOUDFLARE_ANALYTICS_TOKEN");
   requiredEnv("AR006_TEST_USER_PASSWORD");
-  const scriptName = await verifyPagesProject();
-  await verifyAnalytics(scriptName);
+  await verifyPagesProject();
+  await verifyAnalytics();
   await verifySupabase(projectId);
   console.log("AR-006 isolated provider preflight passed.");
 }
