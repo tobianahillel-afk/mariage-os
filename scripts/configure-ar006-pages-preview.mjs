@@ -17,7 +17,19 @@ function httpsOrigin(name) {
 async function requestJson(url, options, message) {
   const response = await fetch(url, options);
   const payload = await response.json().catch(() => null);
-  if (!response.ok || payload?.success !== true) throw new Error(message);
+  if (!response.ok || payload?.success !== true) {
+    const details = Array.isArray(payload?.errors)
+      ? payload.errors
+          .map((error) =>
+            typeof error?.code === "number" && typeof error?.message === "string"
+              ? `[${error.code}] ${error.message}`
+              : null,
+          )
+          .filter((detail) => detail !== null)
+          .join("; ")
+      : "";
+    throw new Error(details === "" ? message : message + " " + details);
+  }
   return payload.result;
 }
 
