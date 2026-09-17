@@ -1,0 +1,51 @@
+name: AR-006 Pages Preview configuration
+
+on:
+  push:
+    branches:
+      - lot-2/venues-core
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mariage-os-ar006-pages-preview-config-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  configure-preview:
+    name: Configure isolated Pages Preview bindings
+    if: >-
+      contains(github.event.head_commit.message, '[AR006-PAGES-PREVIEW-CONFIG]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: ar006-isolated
+    env:
+      AR006_PAGES_PROJECT: ${{ vars.AR006_PAGES_PROJECT }}
+      AR006_PRIVATE_DOCUMENT_WORKER: ${{ vars.AR006_PRIVATE_DOCUMENT_WORKER }}
+      AR006_SUPABASE_URL: ${{ vars.AR006_SUPABASE_URL }}
+      AR006_SUPABASE_PUBLISHABLE_KEY: ${{ vars.AR006_SUPABASE_PUBLISHABLE_KEY }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run security:secrets
+      - name: Configure and verify only the Pages Preview environment
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.AR006_CLOUDFLARE_DEPLOY_TOKEN }}
+          PRIVATE_DOCUMENT_ADMIN_KEY: ${{ secrets.AR006_PAGES_PREVIEW_ADMIN_KEY }}
+        run: node scripts/configure-ar006-pages-preview.mjs
+      - name: Retain a sanitized Preview configuration receipt
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: wp-2.9c-ar006-pages-preview-config-${{ github.sha }}
+          path: ar006-pages-preview-config.json
+          if-no-files-found: warn
+          retention-days: 30
