@@ -38,7 +38,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.8B | Venue private archived media lifecycle | **ACCEPTED / COMPLETE** |
 | WP-2.8C | recoverable Venue remote-media metadata lifecycle | **ACCEPTED / COMPLETE** |
 | WP-2.9A | Venue-linked private PDF/document foundation | **BLOCKED — waits for WP-2.9C ACCEPTED** |
-| WP-2.9C | trusted private-document ingestion hardening | **BLOCKED — AR-006 provider CPU evidence architecture review** |
+| WP-2.9C | trusted private-document ingestion hardening | **IN_PROGRESS — AR-006 private Worker implementation / provider verification** |
 | WP-2.9B | generic project tags and Venue entity-tag links | **PLANNED / AFTER A** |
 | WP-2.10 | repositories, local cache, pending/offline mutations | PLANNED |
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace | PLANNED |
@@ -59,7 +59,7 @@ WP-2.1..WP-2.8C are accepted and complete. Durable evidence remains in their pac
 
 ## WP-2.9C — current packet
 
-State: **BLOCKED — WP29C-AR-006 PROVIDER CPU EVIDENCE ARCHITECTURE REVIEW**.
+State: **IN_PROGRESS — WP29C-AR-006 ADR 0011 PRIVATE WORKER IMPLEMENTATION**.
 
 Pass-A exact evidence:
 
@@ -134,7 +134,7 @@ AR-006 evidence-channel follow-up and architecture review:
 Current remediation status:
 
 - `WP29C-AR-005` — **MAJOR / IMPLEMENTATION-REMEDIATED / EXACT-HEAD-GREEN** — trusted clean-abandon path, DB orphan backstop, immediate pre-copy reservation revalidation, safe post-copy compensation and race/retry coverage implemented. Formal closure waits for the later complete fresh Pass B after AR-006 is unblocked.
-- `WP29C-AR-006` — **MAJOR / OPEN / BLOCKING / ARCHITECTURE REVIEW** — exact-size functionality is proven, but provider CPU evidence is unavailable through GraphQL, standard Pages tail and the correctly configured Workers Observability capability preflight. The latest query executed without application mutation and still yielded no attributable numeric CPU. No exact-size rerun is authorized.
+- `WP29C-AR-006` — **MAJOR / OPEN / IN_PROGRESS** — GraphQL, Pages tail and unchanged-Pages Observability did not yield numeric CPU. ADR 0011 now authorizes a private Worker Service Binding with persisted Worker invocation logs. Exact-size evidence remains absent; implementation, isolated binding configuration and final provider verification are required before review.
 - `WP29C-AR-007` — **MAJOR / IMPLEMENTATION-REMEDIATED / EXACT-HEAD-GREEN** — ADR/release/CI-CD/secret contracts reconciled to Pages Functions and `PRIVATE_DOCUMENT_ADMIN_KEY`; fail-closed non-destructive deployment smoke added. Formal closure waits for the later complete fresh Pass B after AR-006 is unblocked.
 
 Historical `WP29C-AR-001..004` remain implementation-green but await a later complete clean fresh Pass B for formal closure.
@@ -169,7 +169,7 @@ Provider-observation exploration is now governed by the open architecture review
 - Workers Observability telemetry REST API: next bounded capability candidate because its provider model defines `$workers.cpuTimeMs`; capability against the existing Pages script must be proven before any exact-size rerun;
 - wall time, HTTP 200, application timing, Paid-only shortcuts and file-limit reduction remain invalid substitutes.
 
-Until provider CPU evidence exists, WP-2.9C remains **BLOCKED**.
+Until provider CPU evidence exists, WP-2.9C remains **IN_PROGRESS** only for ADR 0011 implementation and configuration; it cannot enter `REVIEW_PENDING`.
 
 ### AR-007 operations gate retained
 
@@ -177,11 +177,11 @@ Normative release/deployment/secret contracts require Pages Functions to deploy 
 
 ## Current next-action gate
 
-1. WP-2.9C remains **BLOCKED** on `WP29C-AR-006`; preserve AR-005 and AR-007 controls.
-2. Verify the repository implementation of the separately guarded Workers Observability capability preflight. Ordinary pushes must receive no Observability token.
-3. Configure a dedicated short-lived `AR006_CLOUDFLARE_OBSERVABILITY_TOKEN` with only the provider permission required by Cloudflare's Observability telemetry endpoint; do not reuse the Pages deployment or Analytics token.
-4. Trigger `[AR006-OBS-PREFLIGHT]` only after repository CI/clean-checkout is green. The provider probe may run deny-only route smoke plus an Observability query filtered to `pages-worker--19505720-preview`; it may not deploy, authenticate to Supabase, upload a PDF or mutate application data.
-5. The Workers Observability preflight has now executed with its dedicated secret and produced no attributable numeric provider CPU. Stop for an explicit architecture decision; no further provider experiment or exact-size rerun is permitted under the unchanged runtime/configuration. Any proposed runtime, provider or acceptance change requires governed design review before implementation.
+1. Finish ADR 0011 Worker/Pages delegation and the exact Worker-telemetry harness; preserve AR-005 and AR-007 controls.
+2. Run ordinary exact-head CI, then `[AR006-WORKER-BOOTSTRAP]` to deploy the private Worker without application mutation.
+3. Configure only the isolated Worker/Page bindings and encrypted provider secret, then require `[AR006-PREFLIGHT]` to pass.
+4. Trigger `[AR006-EVIDENCE]` only for the final Worker-correlated ten-promotion exercise. Do not repeat the historical GraphQL, Pages-tail or unchanged-Pages channels.
+5. If telemetry is absent/ambiguous or a measurement exceeds the Free budget, keep AR-006 open and return to architecture review. Do not substitute wall time, dashboard aggregate, Paid entitlement or a lower file limit.
 6. Only after valid AR-006 exact-size CPU evidence, record it durably, verify exact-head CI/clean checkout, transition C to `REVIEW_PENDING`, run a complete fresh independent Pass B and then Pass C before acceptance.
 7. WP-2.9A remains **BLOCKED** until C is accepted; WP-2.9B and later Lots remain inactive.
 
@@ -195,20 +195,20 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.8C
 WP-2.9A: BLOCKED — waits for WP-2.9C ACCEPTED
-Current packet: WP-2.9C — BLOCKED on AR-006 provider CPU evidence architecture review
+Current packet: WP-2.9C — IN_PROGRESS on ADR 0011 Worker implementation and isolated provider configuration
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
 Exact-size evidence artifact: 10464581885 / ZIP SHA-256 56c809b27dadf42a3ef26a003855eb628dbf0ef437774bb76d82c02b33ada3c5 / providerCpuMeasurements=[] / pass=false
 Delayed GraphQL requery: 9b139d23a7de47f8d3927a54c54d79298ca96a6b / workflow 35149303081 / artifact 10468931194 — still no CPU rows
-AR-006 architecture review: OPEN
+AR-006 architecture review: DECISION RECORDED IN ADR 0011; implementation/verification open
 Tail support green tree: d04edd0ed0d3daa3b9bfe20d954003bb13545200 / parent 82e05a8dab9f61377f045b74005fd6582da0afe3 / CI 35152382433 — 5/5 SUCCESS
 Tail capability trigger: 7645a9e769c641640f52fdba535deb6140401fc6 / workflow 35153132971 / job 104986087784 / artifact 10469354745 — deny smoke SUCCESS; parsedJsonEventCount=0; providerCpuTimeMs=[]; pass=false
 Workers Observability configured capability preflight: bd3fdb4baab6ef59983e40f77b5b2f44ba6dc8b7 / workflow 35213157767 / job 105175271234 / artifact 10494251279 (ZIP SHA-256 02438aadb3e377f6c8e6ed66b3b00c0c0d3e473008c3bb710acbfb805f2dde7c) — deny smoke passed; no attributable numeric provider CPU; pass=false
-AR-006 architecture review: OPEN — all three bounded provider channels are insufficient for the unchanged isolated Pages deployment
+AR-006 architecture review: ADR 0011 accepted after the three Pages channels were insufficient; private Worker evidence path in implementation
 AR-005 and AR-007: implementation-remediated / exact-head-green — formal closure waits fresh Pass B after AR-006 unblock
 FTR-089 FIR: #17 — BLOCKED
 WP-2.9B: PLANNED / AFTER A
 Lots 3–12: NOT_STARTED
-Next permitted action: explicit governed architecture decision on a provider-supported CPU evidence path or an approved runtime/acceptance change; no exact-size rerun before that decision
+Next permitted action: finish and verify ADR 0011, deploy/configure the isolated private Worker, then run the governed Worker-correlated evidence sequence
 ```

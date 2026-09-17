@@ -140,6 +140,7 @@ jobs:
     environment: ar006-isolated
     env:
       AR006_PAGES_PROJECT: ${{ vars.AR006_PAGES_PROJECT }}
+      AR006_PRIVATE_DOCUMENT_WORKER: ${{ vars.AR006_PRIVATE_DOCUMENT_WORKER }}
       CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
       AR006_SUPABASE_URL: ${{ vars.AR006_SUPABASE_URL }}
       AR006_SUPABASE_PUBLISHABLE_KEY: ${{ vars.AR006_SUPABASE_PUBLISHABLE_KEY }}
@@ -159,7 +160,6 @@ jobs:
       - name: Preflight isolated provider readiness without deployment
         env:
           AR006_CLOUDFLARE_DEPLOY_TOKEN: ${{ secrets.AR006_CLOUDFLARE_DEPLOY_TOKEN }}
-          AR006_CLOUDFLARE_ANALYTICS_TOKEN: ${{ secrets.AR006_CLOUDFLARE_ANALYTICS_TOKEN }}
           AR006_TEST_USER_PASSWORD: ${{ secrets.AR006_TEST_USER_PASSWORD }}
         run: npm run preflight:ar006
 
@@ -176,6 +176,7 @@ jobs:
     environment: ar006-isolated
     env:
       AR006_PAGES_PROJECT: ${{ vars.AR006_PAGES_PROJECT }}
+      AR006_PRIVATE_DOCUMENT_WORKER: ${{ vars.AR006_PRIVATE_DOCUMENT_WORKER }}
       CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
       AR006_SUPABASE_URL: ${{ vars.AR006_SUPABASE_URL }}
       AR006_SUPABASE_PUBLISHABLE_KEY: ${{ vars.AR006_SUPABASE_PUBLISHABLE_KEY }}
@@ -195,6 +196,7 @@ jobs:
           set -eu
           test "$AR006_WORKERS_FREE_ATTESTATION" = "YES-WORKERS-FREE-ISOLATED"
           test -n "$AR006_PAGES_PROJECT"
+          test -n "$AR006_PRIVATE_DOCUMENT_WORKER"
           test -n "$CLOUDFLARE_ACCOUNT_ID"
           test -n "$AR006_SUPABASE_URL"
           test -n "$AR006_SUPABASE_PUBLISHABLE_KEY"
@@ -205,10 +207,19 @@ jobs:
       - name: Preflight isolated provider readiness before deployment
         env:
           AR006_CLOUDFLARE_DEPLOY_TOKEN: ${{ secrets.AR006_CLOUDFLARE_DEPLOY_TOKEN }}
-          AR006_CLOUDFLARE_ANALYTICS_TOKEN: ${{ secrets.AR006_CLOUDFLARE_ANALYTICS_TOKEN }}
           AR006_TEST_USER_PASSWORD: ${{ secrets.AR006_TEST_USER_PASSWORD }}
         run: npm run preflight:ar006
       - run: npm run build
+      - name: Deploy private Worker before the Pages caller
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.AR006_CLOUDFLARE_WORKER_DEPLOY_TOKEN }}
+        run: |
+          set -eu
+          test -n "$CLOUDFLARE_API_TOKEN"
+          test "$AR006_PRIVATE_DOCUMENT_WORKER" = "mariage-os-private-document-promotion"
+          npx --yes wrangler@4.131.2 deploy \
+            --config workers/private-document-promotion/wrangler.jsonc \
+            --keep-vars
       - name: Deploy exact candidate to isolated Pages preview
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.AR006_CLOUDFLARE_DEPLOY_TOKEN }}
@@ -238,6 +249,8 @@ jobs:
             '.result.deployment_configs.preview.env_vars.SUPABASE_URL.value == $value' >/dev/null
           printf '%s' "$PROJECT_JSON" | jq -e --arg value "$AR006_SUPABASE_PUBLISHABLE_KEY" \
             '.result.deployment_configs.preview.env_vars.SUPABASE_PUBLISHABLE_KEY.value == $value' >/dev/null
+          printf '%s' "$PROJECT_JSON" | jq -e --arg worker "$AR006_PRIVATE_DOCUMENT_WORKER" \
+            '[.result.deployment_configs.preview.services[]? | select(.binding == "PRIVATE_DOCUMENT_PROMOTION_WORKER" and .service == $worker)] | length == 1' >/dev/null
           SCRIPT_NAME="$(printf '%s' "$PROJECT_JSON" | jq -r '.result.preview_script_name // empty')"
           test -n "$SCRIPT_NAME"
           DEPLOYMENTS_JSON="$(curl --fail --silent --show-error \
@@ -264,9 +277,9 @@ jobs:
       - name: Collect exact-size promotion and CPU evidence
         env:
           AR006_EXPECTED_SHA: ${{ github.sha }}
-          CLOUDFLARE_ANALYTICS_API_TOKEN: ${{ secrets.AR006_CLOUDFLARE_ANALYTICS_TOKEN }}
+          CLOUDFLARE_OBSERVABILITY_API_TOKEN: ${{ secrets.AR006_CLOUDFLARE_OBSERVABILITY_TOKEN }}
           AR006_TEST_USER_PASSWORD: ${{ secrets.AR006_TEST_USER_PASSWORD }}
-        run: node scripts/run-private-document-ar006-evidence.mjs
+        run: node scripts/run-private-document-ar006-worker-evidence.mjs
       - name: Retain sanitized AR-006 evidence
         if: always()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f

@@ -1,6 +1,6 @@
 # WP-2.9C / WP29C-AR-006 — CPU evidence architecture review
 
-Status: **OPEN — GRAPHQL, PAGES-TAIL AND WORKERS OBSERVABILITY CHANNELS INSUFFICIENT; EXPLICIT ARCHITECTURE DECISION REQUIRED**
+Status: **IN_PROGRESS — ADR 0011 ACCEPTED; PRIVATE-WORKER IMPLEMENTATION AND PROVIDER VERIFICATION REQUIRED**
 
 Date reopened: 2026-09-16
 
@@ -95,7 +95,7 @@ Cloudflare Tail Workers are a separate producer/consumer feature whose use would
 
 These mechanisms do not provide Cloudflare's authoritative CPU consumption for the invocation. They cannot substitute for provider CPU evidence.
 
-## Current decision
+## Historical stop condition
 
 **Stop for an explicit architecture decision.** The configured Workers Observability preflight has completed without attributable numeric provider CPU, after GraphQL and standard Pages tail were already insufficient. No additional same-configuration preflight or exact-size mutation run is authorized.
 
@@ -110,6 +110,18 @@ The preflight must:
 
 If the existing Pages deployment cannot produce attributable CPU through Workers Observability without a material runtime/configuration migration, stop and make an explicit architecture decision. Do not silently migrate Pages to Workers, enable Paid, use wall time, or lower the 25 MB contract.
 
+## Governed decision and current permitted action
+
+The required decision is recorded in `docs/adr/0011-private-document-worker-cpu-evidence.md`, accepted on 2026-09-17 after the three bounded Pages evidence channels above failed closed. The final design is now:
+
+```text
+browser -> same-origin bodyless Pages route -> private Worker Service Binding -> Supabase
+```
+
+The Worker must have no public route, `workers_dev: false`, persisted invocation logs and full head sampling. It repeats the security-critical promotion checks; Pages remains the public origin/method/body gate and retains DELETE abandon. The final harness sends a UUID-only marker, joins it to exactly one persisted `cf-worker-event` by provider request ID, and accepts only ten HTTP-200, numeric `cpuTimeMs <= 10` measurements from the private Worker.
+
+This replaces neither the exact-size contract nor the requirement for fresh review. It moves WP-2.9C to `IN_PROGRESS` for Pass A only. The current permitted action is to finish and verify the Worker, the isolated bindings and the governed evidence workflow. A missing secret, missing binding, missing provider event, non-numeric CPU, CPU above budget or CPU-limit outcome remains a fail-closed AR-006 result.
+
 ## Provider references
 
 - <https://developers.cloudflare.com/pages/functions/debugging-and-logging/>
@@ -122,4 +134,4 @@ If the existing Pages deployment cannot produce attributable CPU through Workers
 
 ## Governance
 
-WP-2.9C remains **BLOCKED** throughout this review. No `REVIEW_PENDING`, fresh Pass B, Pass C, WP-2.9A resumption, Workers Paid activation or 25 MB reduction is authorized until valid AR-006 evidence exists. The next action is a governed architecture decision that identifies a provider-supported CPU evidence path or explicitly approves a narrower design change; repository implementation must not choose either unilaterally.
+WP-2.9C is **IN_PROGRESS** only for ADR 0011 implementation. No `REVIEW_PENDING`, fresh Pass B, Pass C, WP-2.9A resumption, Workers Paid activation or 25 MB reduction is authorized until valid AR-006 evidence exists on the exact candidate.

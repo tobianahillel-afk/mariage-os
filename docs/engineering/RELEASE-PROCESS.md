@@ -97,13 +97,14 @@ Do not combine destructive schema removal with clients that may still depend on 
 
 ## Private-document Pages Function release gate
 
-ADR 0010 makes `/api/private-document-promote` a security-critical same-origin Cloudflare Pages Function. Any release that contains this boundary must deploy it together with the static application; the release is invalid if the frontend is live but the Function is absent, misbound or replaced by fallback content.
+ADR 0010 makes `/api/private-document-promote` a security-critical same-origin Cloudflare Pages Function. ADR 0011 keeps that ingress and delegates promotion to a private Service-Bound Worker. Any release that contains this boundary must deploy the Worker before the Pages caller and deploy the Pages Function together with the static application; the release is invalid if either runtime is absent, misbound or replaced by fallback content.
 
 Required configuration metadata:
 
 - `SUPABASE_URL` points to the intended Supabase environment;
 - `SUPABASE_PUBLISHABLE_KEY` or the supported non-secret anon-equivalent is available to verify/use the caller session;
-- `PRIVATE_DOCUMENT_ADMIN_KEY` is present only as the Cloudflare Pages encrypted secret for that environment;
+- `PRIVATE_DOCUMENT_ADMIN_KEY` is present only as separate encrypted Cloudflare Pages and private-Worker secrets for that environment;
+- `PRIVATE_DOCUMENT_PROMOTION_WORKER` points only to the intended non-public Worker, which has no public route and preserves invocation logs where AR-006 evidence is required;
 - no secret value appears in Git, build output, release manifest, logs, screenshots or smoke output.
 
 The legacy Supabase promotion route must remain absent: `supabase/functions/private-document-ingest` is not deployable, `supabase/config.toml` must not enable it, application code must not invoke it, and release scripts must not recreate or deploy it.

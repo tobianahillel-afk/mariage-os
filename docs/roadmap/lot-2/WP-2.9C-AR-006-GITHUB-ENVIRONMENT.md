@@ -35,7 +35,7 @@ The helper:
   `ar006-isolated`;
 - sends both variables and secrets to `gh` over stdin rather than placing
   values in command-line arguments;
-- removes the three AR-006 secret values from the child-process environment
+- removes the four AR-006 secret values from the child-process environment
   before invoking `gh`;
 - never prints secret values;
 - verifies non-secret variable values after storage without printing them;
@@ -58,13 +58,13 @@ Official references:
 Before running the helper, the external isolated resources described by
 `WP-2.9C-AR-006-RUNBOOK.md` must already exist:
 
-- one non-production Cloudflare Pages project on Workers Free;
+- one non-production Cloudflare Pages project on Workers Free and one private Worker named `mariage-os-private-document-promotion`;
 - expected preview bindings for the isolated Supabase project;
-- encrypted Pages secret `PRIVATE_DOCUMENT_ADMIN_KEY`;
+- encrypted Pages and private-Worker secrets `PRIVATE_DOCUMENT_ADMIN_KEY`, with the same isolated Supabase server credential;
 - one isolated Supabase project with current migrations;
 - one synthetic ordinary user;
 - one synthetic project where that user has live `documents.write`;
-- narrow Cloudflare deployment and Analytics tokens.
+- narrow Pages deployment, Worker deployment and Workers Observability tokens.
 
 Authenticate GitHub CLI locally with an account permitted to configure the
 repository environment. Do not put AR-006 provider secrets in Git, issue
@@ -72,10 +72,11 @@ comments, screenshots, shell history, or command-line arguments.
 
 ## Required local process variables
 
-Provide these seven non-secret values to the local process:
+Provide these eight non-secret values to the local process:
 
 ```text
 AR006_PAGES_PROJECT
+AR006_PRIVATE_DOCUMENT_WORKER
 CLOUDFLARE_ACCOUNT_ID
 AR006_SUPABASE_URL
 AR006_SUPABASE_PUBLISHABLE_KEY
@@ -90,13 +91,14 @@ AR006_WORKERS_FREE_ATTESTATION
 YES-WORKERS-FREE-ISOLATED
 ```
 
-Provide these three secret values to the local process using a secure local
+Provide these four secret values to the local process using a secure local
 secret source such as a password manager or a shell facility that does not
 record the value in history:
 
 ```text
 AR006_CLOUDFLARE_DEPLOY_TOKEN
-AR006_CLOUDFLARE_ANALYTICS_TOKEN
+AR006_CLOUDFLARE_WORKER_DEPLOY_TOKEN
+AR006_CLOUDFLARE_OBSERVABILITY_TOKEN
 AR006_TEST_USER_PASSWORD
 ```
 
@@ -113,9 +115,9 @@ npm run configure:ar006:github-environment
 ```
 
 A successful run prints only counts and environment/name information. It does
-not print the three secret values.
+not print the four secret values.
 
-After the command exits, clear the three secret environment variables from the
+After the command exits, clear the four secret environment variables from the
 local shell/session according to the operator's shell and password-manager
 procedure.
 
@@ -126,11 +128,13 @@ Configuration by this helper is **not** readiness evidence.
 After a successful helper run:
 
 1. keep the repository tree unchanged;
-2. create a no-content commit whose message contains `[AR006-PREFLIGHT]`;
-3. require `AR-006 isolated provider preflight` to become green;
-4. inspect any red preflight as provider/configuration evidence, not CPU
+2. create a no-content commit whose message contains `[AR006-WORKER-BOOTSTRAP]` to deploy only the private Worker;
+3. configure the isolated Worker secret/bindings and the Pages Service Binding through the provider console, without putting values in GitHub Actions;
+4. create a no-content commit whose message contains `[AR006-PREFLIGHT]`;
+5. require `AR-006 isolated provider preflight` to become green;
+6. inspect any red preflight as provider/configuration evidence, not CPU
    feasibility evidence;
-5. only after a green preflight may an exact no-content
+7. only after a green preflight may an exact no-content
    `[AR006-EVIDENCE]` candidate be created.
 
 A green preflight still does not close AR-006. The exact-size deployed Workers

@@ -160,6 +160,7 @@ Deployment/release automation must ensure:
 - the route is built and deployed from the same exact commit as the frontend;
 - `SUPABASE_URL` and the configured non-secret publishable/anon-equivalent key point to the intended environment;
 - `PRIVATE_DOCUMENT_ADMIN_KEY` is supplied only as a Cloudflare encrypted secret for that environment;
+- when ADR 0011 is enabled, Pages declares the private `PRIVATE_DOCUMENT_PROMOTION_WORKER` Service Binding and the Worker has its own encrypted `PRIVATE_DOCUMENT_ADMIN_KEY`; deployment publishes the Worker before the Pages caller and retains dashboard-held bindings with `--keep-vars`;
 - missing/invalid server configuration makes the route fail closed and never fall through to a static asset, SPA fallback or unprotected upstream origin;
 - the removed Supabase `private-document-ingest` Edge Function is absent from deployable source/configuration and is not invoked or redeployed by a legacy script;
 - production evidence records route outcome, deployment identity and configuration presence only, never secret values.
@@ -227,7 +228,7 @@ CI classifies changed paths to trigger required review/tests, including:
 - domain → unit/property/mutation + dependent features;
 - Supabase adapters → integration/RLS/security;
 - IndexedDB → local migration/offline/restart;
-- `functions/` or Pages bindings → Pages runtime + deployment-contract + security smoke review;
+- `functions/`, `workers/` or Pages/Worker bindings → paired runtime + deployment-contract + security smoke review;
 - UI → UX/accessibility/mobile/visual evidence;
 - import/export → hostile-file/idempotence/round-trip;
 - PWA/service worker → update/cache/offline suite;

@@ -79,7 +79,7 @@ Each secret:
 
 GitHub Actions/job tokens use minimum workflow permissions. Untrusted PR code must not receive production secrets.
 
-`PRIVATE_DOCUMENT_ADMIN_KEY` is additionally constrained by application architecture: it may be consumed only inside the narrow same-origin Pages private-document promote/abandon boundary, only after current-user authentication plus live project/document authorization and authoritative target-state validation. Possession of the binding is not itself a user authorization decision.
+`PRIVATE_DOCUMENT_ADMIN_KEY` is additionally constrained by application architecture: it may be consumed only inside the narrow same-origin Pages private-document abandon boundary or the ADR 0011 private Worker promotion executor, only after current-user authentication plus live project/document authorization and authoritative target-state validation. Possession of the binding is not itself a user authorization decision.
 
 ## 5. Rotation/revocation
 
@@ -98,7 +98,7 @@ Rotate immediately after known/suspected exposure. Do not wait for periodic rota
 
 Periodic rotation follows provider/risk needs; arbitrary frequent rotation is not a substitute for proper scoping/storage.
 
-For `PRIVATE_DOCUMENT_ADMIN_KEY`, planned rotation is provider-first and environment-specific: create/activate the replacement Supabase server/service credential, replace the Cloudflare Pages encrypted secret in the intended environment, deploy the exact approved application candidate, run the private-document route smoke and synthetic/non-production success proof where permitted, then revoke the previous credential. For an exposure incident, revoke/disable the exposed provider credential immediately, accept temporary fail-closed document promotion if necessary, install the replacement secret, redeploy and verify recovery. In both cases, verify the previous credential is rejected before declaring rotation complete.
+For `PRIVATE_DOCUMENT_ADMIN_KEY`, planned rotation is provider-first and environment-specific: create/activate the replacement Supabase server/service credential, replace the Cloudflare Pages and private Worker encrypted secrets in the intended environment, deploy the exact approved application candidate, run the private-document route smoke and synthetic/non-production success proof where permitted, then revoke the previous credential. For an exposure incident, revoke/disable the exposed provider credential immediately, accept temporary fail-closed document promotion if necessary, install the replacement secret in both runtimes, redeploy and verify recovery. In both cases, verify the previous credential is rejected before declaring rotation complete.
 
 ## 6. Exposure response
 
@@ -152,7 +152,7 @@ Production/security review maintains a secret inventory containing **metadata on
 
 | Secret ID | Owner / system | Environment | Purpose | Scope | Storage | Rotation / revocation | Verification | Last reviewed |
 |---|---|---|---|---|---|---|---|---|
-| `PRIVATE_DOCUMENT_ADMIN_KEY` | Mariage OS production operator / Supabase | isolated value per preview/staging/production environment where the trusted route is enabled | privileged Storage copy/remove plus service-only private-document attestation after user authz | Supabase server/service credential scoped to exactly one Supabase project; server-only; usable only through the narrow Pages route by application contract | Cloudflare Pages encrypted secret; never browser, Git, static artifact or plain-text Pages variable | rotate/revoke at Supabase, replace the exact Pages environment secret, deploy and smoke; revoke immediately on suspected exposure | route deny checks plus synthetic/non-production trusted-flow proof where allowed; verify the previous credential is rejected; review logs/artifacts for value absence | 2026-09-15 |
+| `PRIVATE_DOCUMENT_ADMIN_KEY` | Mariage OS production operator / Supabase | isolated value per preview/staging/production environment where the trusted route is enabled | privileged Storage copy/remove plus service-only private-document attestation after user authz | Supabase server/service credential scoped to exactly one Supabase project; server-only; usable only through the narrow Pages ingress/Worker executor by application contract | a Cloudflare Pages encrypted secret and a separate private Worker encrypted secret; never browser, Git, static artifact or plain-text variable | rotate/revoke at Supabase, replace both runtime secrets, deploy and smoke; revoke immediately on suspected exposure | route deny checks plus synthetic/non-production trusted-flow proof where allowed; verify the previous credential is rejected; review logs/artifacts for value absence | 2026-09-17 |
 
 `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY`/anon-equivalent are configuration/public-client values, not privileged inventory entries, unless a future provider contract changes their secrecy classification.
 

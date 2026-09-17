@@ -23,7 +23,7 @@ function sourceFile(relativePath) {
 }
 
 function verifierSource() {
-  const source = sourceFile("../functions/api/private-document-promote.ts");
+  const source = sourceFile("../functions/api/private-document-promotion-core.ts");
   const start = source.indexOf(
     "async function storageObjectMatchesReservation(",
   );

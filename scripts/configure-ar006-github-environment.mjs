@@ -6,6 +6,7 @@ const EXPECTED_ATTESTATION = "YES-WORKERS-FREE-ISOLATED";
 
 const VARIABLE_NAMES = [
   "AR006_PAGES_PROJECT",
+  "AR006_PRIVATE_DOCUMENT_WORKER",
   "CLOUDFLARE_ACCOUNT_ID",
   "AR006_SUPABASE_URL",
   "AR006_SUPABASE_PUBLISHABLE_KEY",
@@ -16,7 +17,8 @@ const VARIABLE_NAMES = [
 
 const SECRET_NAMES = [
   "AR006_CLOUDFLARE_DEPLOY_TOKEN",
-  "AR006_CLOUDFLARE_ANALYTICS_TOKEN",
+  "AR006_CLOUDFLARE_WORKER_DEPLOY_TOKEN",
+  "AR006_CLOUDFLARE_OBSERVABILITY_TOKEN",
   "AR006_TEST_USER_PASSWORD",
 ];
 
@@ -151,7 +153,7 @@ function main() {
   verifySecretNames();
 
   console.log(`Configured AR-006 environment: ${GITHUB_ENVIRONMENT}.`);
-  console.log("Seven variables and three secret names were verified.");
+  console.log("Eight variables and four secret names were verified.");
   console.log("Secret values were never printed or passed as CLI arguments.");
 }
 

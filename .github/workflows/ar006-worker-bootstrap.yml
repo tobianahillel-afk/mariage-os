@@ -1,0 +1,44 @@
+name: AR-006 private Worker bootstrap
+
+on:
+  push:
+    branches:
+      - lot-2/venues-core
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mariage-os-ar006-worker-bootstrap-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-private-worker:
+    name: Deploy private AR-006 Worker without application mutation
+    if: >-
+      contains(github.event.head_commit.message, '[AR006-WORKER-BOOTSTRAP]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: ar006-isolated
+    env:
+      AR006_PRIVATE_DOCUMENT_WORKER: ${{ vars.AR006_PRIVATE_DOCUMENT_WORKER }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run security:secrets
+      - name: Deploy the non-public Worker and keep dashboard-held bindings
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.AR006_CLOUDFLARE_WORKER_DEPLOY_TOKEN }}
+        run: |
+          set -eu
+          test -n "$CLOUDFLARE_API_TOKEN"
+          test "$AR006_PRIVATE_DOCUMENT_WORKER" = "mariage-os-private-document-promotion"
+          npx --yes wrangler@4.131.2 deploy \
+            --config workers/private-document-promotion/wrangler.jsonc \
+            --keep-vars

@@ -2,7 +2,8 @@ import { execFileSync } from "node:child_process";
 import { existsSync, mkdtempSync, realpathSync, rmSync } from "node:fs";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
-import { delimiter, dirname, join } from "node:path";
+import { delimiter, dirname, join, resolve } from "node:path";
+import { build } from "vite";
 import {
   localSupabaseEnvironment,
   setPromotionOrigin,
@@ -52,6 +53,24 @@ function buildPagesFunctions(binary, outputDirectory) {
   );
 }
 
+async function buildPromotionWorker(outputDirectory) {
+  await build({
+    configFile: false,
+    logLevel: "error",
+    build: {
+      emptyOutDir: false,
+      lib: {
+        entry: resolve("workers/private-document-promotion/src/worker.ts"),
+        formats: ["es"],
+        fileName: () => "private-document-promotion.js",
+      },
+      outDir: outputDirectory,
+      target: "es2022",
+    },
+  });
+  return join(outputDirectory, "private-document-promotion.js");
+}
+
 async function main() {
   const temporaryDirectory = mkdtempSync(
     join(tmpdir(), "mariage-os-pages-workerd-"),
@@ -65,22 +84,42 @@ async function main() {
 
   try {
     buildPagesFunctions(binary, temporaryDirectory);
+    const promotionWorkerPath = await buildPromotionWorker(temporaryDirectory);
     runtime = new Miniflare(
       convertV4MiniflareOptions({
         host: "127.0.0.1",
         port: 0,
-        rootPath: temporaryDirectory,
-        scriptPath: bundleFilename,
-        modules: true,
-        compatibilityDate: "2026-09-15",
-        bindings: {
-          SUPABASE_URL: environment.apiUrl,
-          SUPABASE_PUBLISHABLE_KEY: environment.anonKey,
-          PRIVATE_DOCUMENT_ADMIN_KEY: environment.serviceRoleKey,
-        },
-        serviceBindings: {
-          ASSETS: () => new globalThis.Response("Not found", { status: 404 }),
-        },
+        workers: [
+          {
+            name: "pages-promotion-ingress",
+            rootPath: temporaryDirectory,
+            scriptPath: bundleFilename,
+            modules: true,
+            compatibilityDate: "2026-09-17",
+            bindings: {
+              SUPABASE_URL: environment.apiUrl,
+              SUPABASE_PUBLISHABLE_KEY: environment.anonKey,
+              PRIVATE_DOCUMENT_ADMIN_KEY: environment.serviceRoleKey,
+            },
+            serviceBindings: {
+              ASSETS: () =>
+                new globalThis.Response("Not found", { status: 404 }),
+              PRIVATE_DOCUMENT_PROMOTION_WORKER: "private-document-promotion",
+            },
+          },
+          {
+            name: "private-document-promotion",
+            rootPath: temporaryDirectory,
+            scriptPath: promotionWorkerPath,
+            modules: true,
+            compatibilityDate: "2026-09-17",
+            bindings: {
+              SUPABASE_URL: environment.apiUrl,
+              SUPABASE_PUBLISHABLE_KEY: environment.anonKey,
+              PRIVATE_DOCUMENT_ADMIN_KEY: environment.serviceRoleKey,
+            },
+          },
+        ],
       }),
     );
     const runtimeUrl = await runtime.ready;

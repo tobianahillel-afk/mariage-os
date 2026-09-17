@@ -4,13 +4,13 @@
 
 - Work Packet ID: `WP-2.9C`
 - Lot: `2`
-- State: `BLOCKED`
-- Current pass: `BLOCKED — WP29C-AR-006 DEPLOYED WORKERS FREE CPU EVIDENCE`
+- State: `IN_PROGRESS`
+- Current pass: `A — ADR 0011 PRIVATE WORKER IMPLEMENTATION / PROVIDER VERIFICATION`
 - Primary bounded context: Documents — trusted binary promotion for the existing WP-2.9A private PDF lifecycle
 - Branch: `lot-2/venues-core`
 - FIR: `#17 / FTR-089`
 - Parent review findings: `WP29A-AR-004 + WP29A-AR-005`
-- Architecture chain: ADR 0008 trust/integrity → ADR 0009 bounded staging/bodyless promotion → ADR 0010 Cloudflare Pages Function promotion boundary
+- Architecture chain: ADR 0008 trust/integrity → ADR 0009 bounded staging/bodyless promotion → ADR 0010 Cloudflare Pages Function ingress → ADR 0011 private Worker execution / CPU evidence
 - Historical architecture blocker: `docs/roadmap/lot-2/WP-2.9C-BLOCKER.md` — resolved by ADR 0010
 - Current runtime-evidence blocker: `docs/roadmap/lot-2/WP-2.9C-AR-006-CPU-EVIDENCE.md`
 - Fresh Pass-B review: `docs/roadmap/lot-2/WP-2.9C-PASS-B-REVIEW.md`
@@ -20,7 +20,7 @@
 
 Pass A completed successfully. The required fresh Pass B then found three unresolved MAJOR findings. Remediation implemented the AR-005 trusted cleanup/race controls and AR-007 deployment/secret/release controls, and the complete exact implementation head `68a4f6bdb7b55acc80c4c6fbb8c0afc0295bfde5` passed CI `35025384594` **5/5 SUCCESS**, including `Full verify from clean checkout`.
 
-AR-006 still requires provider Cloudflare Workers Free CPU telemetry for the exact `25,000,000`-byte trusted promotion. The 2026-09-16 isolated deployment passed ten functional promotions, but its provider CPU dataset returned no rows. The later correctly configured Workers Observability capability preflight `bd3fdb4baab6ef59983e40f77b5b2f44ba6dc8b7` / workflow `35213157767` / job `105175271234` also found no attributable numeric provider CPU for the existing exact Pages script. Its deny-only smoke passed; it performed no application mutation. Sanitized artifact `10494251279` (ZIP SHA-256 `02438aadb3e377f6c8e6ed66b3b00c0c0d3e473008c3bb710acbfb805f2dde7c`) failed closed. The dedicated Cloudflare token and its GitHub Environment secret were revoked/deleted immediately afterward. The canonical packet state remains **BLOCKED** pending an explicit architecture decision.
+AR-006 still requires provider Cloudflare Workers Free CPU telemetry for the exact `25,000,000`-byte trusted promotion. The 2026-09-16 isolated deployment passed ten functional promotions, but its provider CPU dataset returned no rows. The later correctly configured Workers Observability capability preflight `bd3fdb4baab6ef59983e40f77b5b2f44ba6dc8b7` / workflow `35213157767` / job `105175271234` also found no attributable numeric provider CPU for the existing Pages script. Its deny-only smoke passed; it performed no application mutation. Sanitized artifact `10494251279` (ZIP SHA-256 `02438aadb3e377f6c8e6ed66b3b00c0c0d3e473008c3bb710acbfb805f2dde7c`) failed closed and the dedicated token was revoked. ADR 0011 now records the governed private-Worker successor path. The packet is **IN_PROGRESS** for that implementation only; AR-006 remains open.
 
 WP-2.9C is not accepted and must not enter `REVIEW_PENDING` until AR-006 is evidenced and the resulting evidence-bound exact HEAD passes the complete verification gate again.
 
@@ -84,7 +84,7 @@ Required unblock evidence is an isolated non-production Pages deployment on Work
 
 The 2026-09-16 isolated deployment of `4f40613060b4c9de41a32d99ed43fcf6e12c9791` completed ten exact-size promotions, but Cloudflare returned zero provider CPU rows. Deployment and functional evidence are recorded in `WP-2.9C-AR-006-PROVIDER-ATTEMPT-2026-09-16.md`; CPU feasibility remains unevidenced.
 
-Therefore this finding is **OPEN / BLOCKING** and the packet state is **BLOCKED**.
+Therefore this finding is **OPEN / IN_PROGRESS**. ADR 0011 implementation must produce the missing Worker-correlated provider evidence before review.
 
 ### WP29C-AR-007 — MAJOR — deployment/secret operations not reconciled
 
@@ -228,13 +228,13 @@ Fresh Pass B specifically invalidates treating any local 25 MB success as suffic
 
 ## State / sequencing
 
-Current state: **BLOCKED — WP29C-AR-006 DEPLOYED WORKERS FREE CPU EVIDENCE**.
+Current state: **IN_PROGRESS — WP29C-AR-006 ADR 0011 PRIVATE WORKER IMPLEMENTATION**.
 
 Current gate:
 
 1. retain AR-005 and AR-007 remediations without weakening their security contracts;
-2. obtain the deployed Workers Free exact-25-MB CPU proof defined in `WP-2.9C-AR-006-CPU-EVIDENCE.md`;
-3. if that proof fails the normal Free CPU envelope, remain `BLOCKED` and revisit architecture — do not enable Paid or lower the file contract silently;
+2. deploy/configure the ADR 0011 private Worker and obtain the Worker-correlated deployed Workers Free exact-25-MB CPU proof defined in `WP-2.9C-AR-006-RUNBOOK.md`;
+3. if that proof fails the normal Free CPU envelope, keep AR-006 open and revisit architecture — do not enable Paid or lower the file contract silently;
 4. after valid AR-006 evidence, run exact-head full CI + clean-checkout verification again over the evidence-bound candidate;
 5. transition back to `REVIEW_PENDING` only after all remediation evidence is green;
 6. run another complete fresh independent Pass B over all WP-2.9C responsibilities and AR-001..007;

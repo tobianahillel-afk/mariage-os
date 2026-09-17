@@ -6,6 +6,8 @@ coverage/
 playwright-report/
 test-results/
 .stryker-tmp/
+*.tsbuildinfo
+/.tmp-worker-build/
 
 # Environment / secrets
 .env

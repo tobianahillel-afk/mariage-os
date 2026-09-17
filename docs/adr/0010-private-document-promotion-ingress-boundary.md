@@ -3,7 +3,7 @@
 - Status: Accepted
 - Date: 2026-09-15
 - Owner: WP-2.9C / FTR-089
-- Related: ADR 0001, ADR 0008, ADR 0009
+- Related: ADR 0001, ADR 0008, ADR 0009, ADR 0011
 
 ## Context
 
@@ -32,7 +32,7 @@ Replace the browser-reachable Supabase Edge promotion endpoint with **one narrow
 POST /api/private-document-promote
 ```
 
-The Pages Function is the trusted promotion implementation. It is **not** a proxy in front of the existing Supabase Edge Function.
+The Pages Function is the trusted browser ingress. It is **not** a proxy in front of the removed Supabase Edge Function. ADR 0011 later moves only the expensive trusted promotion execution to a non-public Cloudflare Worker reached through a Service Binding; Pages remains the same-origin, method, target, bearer and bodyless-frame gate.
 
 The Supabase `private-document-ingest` Edge Function must be removed from the deployable repository/configuration. There must be no alternate browser-reachable Supabase promotion route that can bypass the Cloudflare ingress boundary.
 
@@ -43,7 +43,8 @@ browser local validation/hash
 → reserve pending document metadata in Supabase
 → authenticated browser upload to bounded private Supabase staging bucket
 → same-origin bodyless POST to Cloudflare Pages Function
-→ Pages Function verifies current Supabase user/JWT
+→ Pages Function rejects invalid bodyless ingress framing
+→ private Worker verifies current Supabase user/JWT
 → live project/document authorization
 → authoritative staging metadata inspection
 → bounded staged-object read + PDF signature + exact size/SHA-256 proof
@@ -103,7 +104,7 @@ This is what closes candidate-C's direct-origin bypass problem.
 
 The browser sends its current Supabase user access token in `Authorization: Bearer <token>` to the same-origin Pages Function.
 
-The Pages Function must:
+The trusted promotion executor must:
 
 1. reject missing/malformed authorization generically;
 2. verify the current user against Supabase Auth using the user token, never caller-supplied user identity;
@@ -116,13 +117,13 @@ A later revocation must never create `ready` truth without the independently aut
 
 ## Trusted server credentials
 
-The Pages Function may use a Supabase server/service credential only after caller authentication and authoritative target-state validation.
+The private Worker promotion executor may use a Supabase server/service credential only after caller authentication and authoritative target-state validation. Pages retains its own encrypted binding only for the trusted DELETE abandon route.
 
 Required Cloudflare bindings/secrets:
 
 - `SUPABASE_URL` — server configuration;
 - `SUPABASE_PUBLISHABLE_KEY` or the current non-secret anon-equivalent browser key — server configuration used with the caller's user token;
-- `PRIVATE_DOCUMENT_ADMIN_KEY` — Cloudflare Pages encrypted secret containing the Supabase server/service credential used only by the narrow trusted private-document boundary after user authentication and authorization. It is never a static asset, Git value, response field or log field.
+- `PRIVATE_DOCUMENT_ADMIN_KEY` — separate encrypted Cloudflare Pages and private-Worker secrets containing the isolated Supabase server/service credential used only by the narrow trusted private-document boundary after user authentication and authorization. It is never a static asset, Git value, response field or log field.
 
 `PRIVATE_DOCUMENT_ADMIN_KEY` is the application binding name for the required privileged Supabase credential; it is not a second independently generated authorization scheme. Its metadata-only owner/storage/scope/rotation/revocation/verification lifecycle is normative in `docs/security/SECRET-MANAGEMENT.md`.
 
@@ -130,7 +131,7 @@ CI/local development may derive synthetic local Supabase credentials from `supab
 
 ## Trusted byte proof
 
-The Pages Function preserves ADR-0009 proof strength:
+The private Worker preserves ADR-0009 proof strength:
 
 - derive staging/canonical paths from authoritative reservation state;
 - require pending, active, ordinary-private, non-remote, non-deleted state;
@@ -203,6 +204,7 @@ Release/deployment documentation must therefore ensure:
 
 - Pages Functions are deployed with the static application from the same exact candidate;
 - `SUPABASE_URL`, the non-secret publishable/anon-equivalent key and encrypted `PRIVATE_DOCUMENT_ADMIN_KEY` binding are configured for the correct environment outside Git;
+- ADR 0011 deploys the non-public Worker before Pages, keeps the Pages `PRIVATE_DOCUMENT_PROMOTION_WORKER` Service Binding and Worker secret outside Git, and retains dashboard-held bindings on Worker redeploy;
 - `/api/private-document-promote` is security-critical and must fail closed rather than bypassing to an unprotected origin or static asset fallback;
 - static asset behavior remains unchanged;
 - preview artifacts/configuration contain only synthetic/non-production values;
@@ -254,6 +256,7 @@ Tradeoffs:
 - ADR 0008 remains authoritative for trusted byte integrity, authorization, attestation and finalization intent.
 - ADR 0009 remains authoritative for bounded staging and bodyless promotion semantics.
 - ADR 0010 supersedes the **Supabase Edge Function compute location** for promotion and moves that trusted compute to Cloudflare Pages Functions.
+- ADR 0011 narrows the preceding sentence: Pages owns the browser ingress, while its private Service-Bound Worker owns promotion execution and provider CPU evidence.
 - ADR 0001 is amended narrowly: Cloudflare Pages remains the application host, with one approved Pages Function security boundary; the rejection of a general custom Cloudflare backend remains in force.
 
 ## Unblock condition

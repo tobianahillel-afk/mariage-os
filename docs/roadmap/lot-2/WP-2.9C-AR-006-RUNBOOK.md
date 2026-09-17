@@ -12,17 +12,17 @@ Related FIR: `#17 / FTR-089`
 
 Read-only readiness job: `.github/workflows/ci.yml` → `ar006-provider-preflight`
 
-Historical exact-size evidence job: `.github/workflows/ci.yml` → `ar006-provider-evidence`
+Current exact-size evidence job: `.github/workflows/ci.yml` → `ar006-provider-evidence`
 
 Workers Observability capability job: `.github/workflows/ar006-observability-preflight.yml`
 
 Provider preflight: `npm run preflight:ar006`
 
-Historical exact-size evidence harness: `scripts/run-private-document-ar006-evidence.mjs`
+Current exact-size evidence harness: `scripts/run-private-document-ar006-worker-evidence.mjs`
 
 Workers Observability capability harness: `scripts/run-private-document-ar006-observability-preflight.mjs`
 
-CPU normalization helper: `scripts/private-document-ar006-metrics.mjs`
+Worker correlation helper: `scripts/private-document-ar006-worker-metrics.mjs`
 
 CPU regression control: `npm run test:ar006:metrics`
 
@@ -327,3 +327,80 @@ A red final provider-evidence job is evidence, not permission to weaken the cont
 If exact-size promotions fail, provider CPU exceeds `10 ms`, attribution is contaminated, metrics are unavailable, metric units cannot be established, or success requires Paid CPU, keep WP-2.9C `BLOCKED` and continue architecture review.
 
 Do not silently enable Workers Paid and do not reduce the `25,000,000`-byte PDF contract.
+
+## ADR 0011 Worker evidence protocol (current)
+
+The earlier GraphQL, Pages-tail and unchanged-Pages Observability experiments are
+historical failure evidence. They must not be retried as the final acceptance
+channel. ADR 0011 is the current approved execution path.
+
+### Isolated provider topology
+
+```text
+browser -> Pages /api/private-document-promote -> PRIVATE_DOCUMENT_PROMOTION_WORKER -> Supabase
+```
+
+The Pages route performs the same-origin, method, target, bearer and bodyless
+frame checks before forwarding. The Worker is deployed first with
+`workers_dev: false`, no public route, persisted invocation logs and
+`head_sampling_rate: 1`. It repeats all trusted-promotion authorization and
+integrity checks. Pages keeps the DELETE abandon route; DELETE is outside this
+CPU exercise.
+
+The Worker and Pages preview each receive the same isolated
+`PRIVATE_DOCUMENT_ADMIN_KEY` as separate encrypted provider secrets. They also
+receive the isolated `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` bindings.
+The worker secret never enters GitHub Actions, repository files or evidence.
+Pages declares `PRIVATE_DOCUMENT_PROMOTION_WORKER` as a Service Binding to
+`mariage-os-private-document-promotion`.
+
+### Current GitHub Environment inventory
+
+Non-secret variables:
+
+| Name | Required value/purpose |
+|---|---|
+| `AR006_PRIVATE_DOCUMENT_WORKER` | exactly `mariage-os-private-document-promotion` |
+| existing AR-006 Pages/Supabase/project/Free-attestation variables | unchanged isolated metadata |
+
+Secrets:
+
+| Name | Minimum scope |
+|---|---|
+| `AR006_CLOUDFLARE_DEPLOY_TOKEN` | isolated Pages project configuration/deploy write |
+| `AR006_CLOUDFLARE_WORKER_DEPLOY_TOKEN` | isolated Worker Scripts write |
+| `AR006_CLOUDFLARE_OBSERVABILITY_TOKEN` | Workers Observability telemetry query permission only |
+| `AR006_TEST_USER_PASSWORD` | synthetic isolated user only |
+
+All Cloudflare API tokens are short-lived and independently scoped. The
+historical Analytics token is not used by the current preflight or final
+harness. It is retained only for the historical requery workflow and must not
+be widened or substituted for these tokens.
+
+### Execution order
+
+1. Commit and pass ordinary repository CI for the exact Worker implementation.
+2. Trigger `[AR006-WORKER-BOOTSTRAP]`; it deploys only the private Worker with
+   `--keep-vars` and performs no application mutation.
+3. Set the three non-secret Supabase bindings and the encrypted
+   `PRIVATE_DOCUMENT_ADMIN_KEY` on the Worker; create the Pages Service Binding.
+   Verify the Page and Worker are both isolated before proceeding.
+4. Trigger `[AR006-PREFLIGHT]`. It checks Pages binding presence and synthetic
+   user authorization without deploying, reserving, uploading or promoting.
+5. Trigger `[AR006-EVIDENCE]` only after the exact normal `full-verify` and
+   preflight are green. The job redeploys the private Worker first with
+   `--keep-vars`, deploys the exact Pages preview candidate, runs deny smoke,
+   then performs ten sequential synthetic `25,000,000`-byte promotions.
+6. The final harness assigns a version-4 UUID to each controlled promotion.
+   The Worker logs only `{ event, evidenceId, status }`. The telemetry query
+   obtains the associated `cf-worker-event` by provider request ID and retains
+   only synthetic identifiers, HTTP status, outcome and numeric `cpuTimeMs`.
+7. Accept the provider portion only if there are exactly ten successful
+   promotions and exactly one HTTP-200 invocation log per UUID, every one has a
+   numeric `cpuTimeMs <= 10`, and no `exceededCpu` outcome. The uploaded JSON
+   contains no raw provider event, PDF bytes, token, password or server secret.
+
+Any missing/duplicate marker, missing/duplicate invocation, non-numeric CPU,
+provider query error, status mismatch, CPU over budget or CPU-limit outcome is
+an AR-006 failure. Do not replace it with a dashboard aggregate, wall time,
+Paid compute or a smaller file.

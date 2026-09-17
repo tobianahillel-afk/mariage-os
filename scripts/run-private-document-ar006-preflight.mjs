@@ -1,7 +1,6 @@
 import { URL } from "node:url";
 import { createClient } from "@supabase/supabase-js";
 
-const ANALYTICS_URL = "https://api.cloudflare.com/client/v4/graphql";
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
 
@@ -58,16 +57,34 @@ function requirePagesProject(payload) {
 }
 
 function requirePreviewBindings(project) {
-  const preview = project.deployment_configs?.preview?.env_vars;
+  const previewConfig = project.deployment_configs?.preview;
+  const preview = previewConfig?.env_vars;
   if (preview?.PRIVATE_DOCUMENT_ADMIN_KEY?.type !== "secret_text") {
     throw new Error("PRIVATE_DOCUMENT_ADMIN_KEY preview secret is missing.");
   }
-  return preview;
+  return { preview, previewConfig };
 }
 
 function requireMatchingBinding(preview, bindingName, expectedValue) {
   if (preview[bindingName]?.value !== expectedValue) {
     throw new Error(`Pages preview ${bindingName} does not match AR-006.`);
+  }
+}
+
+function requirePromotionWorkerBinding(previewConfig) {
+  const services = previewConfig?.services;
+  const expectedWorker = requiredEnv("AR006_PRIVATE_DOCUMENT_WORKER");
+  const configured =
+    Array.isArray(services) &&
+    services.some(
+      (service) =>
+        service?.binding === "PRIVATE_DOCUMENT_PROMOTION_WORKER" &&
+        service?.service === expectedWorker,
+    );
+  if (!configured) {
+    throw new Error(
+      "Private promotion Worker binding is missing or incorrect.",
+    );
   }
 }
 
@@ -82,7 +99,7 @@ async function verifyPagesProject() {
     "Cloudflare Pages project preflight failed.",
   );
   const project = requirePagesProject(payload);
-  const preview = requirePreviewBindings(project);
+  const { preview, previewConfig } = requirePreviewBindings(project);
   requireMatchingBinding(
     preview,
     "SUPABASE_URL",
@@ -93,56 +110,7 @@ async function verifyPagesProject() {
     "SUPABASE_PUBLISHABLE_KEY",
     requiredEnv("AR006_SUPABASE_PUBLISHABLE_KEY"),
   );
-}
-
-function analyticsWindow() {
-  const end = new Date();
-  const start = new Date(end.getTime() - 5 * 60 * 1000);
-  return { start: start.toISOString(), end: end.toISOString() };
-}
-
-async function verifyAnalytics() {
-  const window = analyticsWindow();
-  const query = `query Preflight($accountTag: string, $start: string, $end: string) {
-    viewer {
-      accounts(filter: { accountTag: $accountTag }) {
-        workersInvocationsAdaptive(limit: 1, filter: {
-          datetime_geq: $start,
-          datetime_leq: $end
-        }) {
-          sum { requests }
-        }
-      }
-    }
-  }`;
-  const payload = await jsonRequest(
-    ANALYTICS_URL,
-    {
-      method: "POST",
-      headers: {
-        authorization: `Bearer ${requiredEnv(
-          "AR006_CLOUDFLARE_ANALYTICS_TOKEN",
-        )}`,
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        query,
-        variables: {
-          accountTag: requiredEnv("CLOUDFLARE_ACCOUNT_ID"),
-          start: window.start,
-          end: window.end,
-        },
-      }),
-    },
-    "Cloudflare Analytics preflight failed.",
-  );
-  if (Array.isArray(payload.errors) && payload.errors.length > 0) {
-    throw new Error("Cloudflare Analytics preflight failed.");
-  }
-  const accounts = payload?.data?.viewer?.accounts;
-  if (!Array.isArray(accounts) || accounts.length !== 1) {
-    throw new Error("Cloudflare Analytics account scope is invalid.");
-  }
+  requirePromotionWorkerBinding(previewConfig);
 }
 
 async function main() {
@@ -156,11 +124,10 @@ async function main() {
   }
   const projectId = requiredEnv("AR006_PROJECT_ID");
   assertUuid("AR006_PROJECT_ID", projectId);
+  requiredEnv("AR006_PRIVATE_DOCUMENT_WORKER");
   requiredEnv("AR006_CLOUDFLARE_DEPLOY_TOKEN");
-  requiredEnv("AR006_CLOUDFLARE_ANALYTICS_TOKEN");
   requiredEnv("AR006_TEST_USER_PASSWORD");
   await verifyPagesProject();
-  await verifyAnalytics();
   await verifySupabase(projectId);
   console.log("AR-006 isolated provider preflight passed.");
 }

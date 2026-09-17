@@ -22,6 +22,7 @@
     "playwright.config.ts",
     "tests/e2e/**/*.ts",
     "functions/**/*.ts",
+    "workers/**/*.ts",
     "stryker.config.mjs"
   ]
 }
