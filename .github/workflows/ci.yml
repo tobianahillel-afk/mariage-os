@@ -249,8 +249,17 @@ jobs:
             '.result.deployment_configs.preview.env_vars.SUPABASE_URL.value == $value' >/dev/null
           printf '%s' "$PROJECT_JSON" | jq -e --arg value "$AR006_SUPABASE_PUBLISHABLE_KEY" \
             '.result.deployment_configs.preview.env_vars.SUPABASE_PUBLISHABLE_KEY.value == $value' >/dev/null
-          printf '%s' "$PROJECT_JSON" | jq -e --arg worker "$AR006_PRIVATE_DOCUMENT_WORKER" \
-            '[.result.deployment_configs.preview.services[]? | select(.binding == "PRIVATE_DOCUMENT_PROMOTION_WORKER" and .service == $worker)] | length == 1' >/dev/null
+          printf '%s' "$PROJECT_JSON" | jq -e --arg worker "$AR006_PRIVATE_DOCUMENT_WORKER" '
+            .result.deployment_configs.preview.services as $services
+            | if ($services | type) == "array" then
+                [$services[]? | select(.binding == "PRIVATE_DOCUMENT_PROMOTION_WORKER" and .service == $worker)]
+                | length == 1
+              elif ($services | type) == "object" then
+                $services.PRIVATE_DOCUMENT_PROMOTION_WORKER.service == $worker
+              else
+                false
+              end
+          ' >/dev/null
           SCRIPT_NAME="$(printf '%s' "$PROJECT_JSON" | jq -r '.result.preview_script_name // empty')"
           test -n "$SCRIPT_NAME"
           DEPLOYMENTS_JSON="$(curl --fail --silent --show-error \
