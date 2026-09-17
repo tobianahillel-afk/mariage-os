@@ -127,13 +127,14 @@ AR-006 evidence-channel follow-up and architecture review:
 - No-content exact-tree tail trigger `7645a9e769c641640f52fdba535deb6140401fc6` launched workflow `35153132971`, job `104986087784`. The exact deployment tail attached and the deny-only production smoke succeeded with no PDF upload, Supabase auth or application-data mutation.
 - Sanitized tail artifact `10469354745`, ZIP SHA-256 `6b1c9db4b0b54d83881614867c1f68bd3e45b71fa767fec55c09203a72ac1f8c`, recorded `parsedJsonEventCount: 0`, `providerCpuTimeMs: []`, `pass: false`. Raw tail data was deliberately not retained.
 - That result does not prove every Pages-tail event lacks CPU, but Cloudflare's documented standard Pages deployment-tail event shape does not define CPU time. Standard Pages tail is therefore **not approved as the final AR-006 CPU channel** and the ten exact-size promotions must not be rerun merely to retry it.
-- Current bounded candidate: **Workers Observability telemetry REST API**, whose provider event model includes `$workers.cpuTimeMs`, request ID, script name, outcome and `pages` as a possible cloud-service origin. Capability must be proven against the existing exact Pages preview before any new exact-size mutation run.
+- Workers Observability capability preflight after dedicated secret configuration: no-content commit `bd3fdb4baab6ef59983e40f77b5b2f44ba6dc8b7`, workflow `35213157767`, job `105175271234`. The deny-only smoke passed and the query ran with the configured dedicated secret, but Cloudflare exposed no attributable numeric provider CPU for `pages-worker--19505720-preview`. Sanitized artifact `10494251279` (ZIP SHA-256 `02438aadb3e377f6c8e6ed66b3b00c0c0d3e473008c3bb710acbfb805f2dde7c`) failed closed. It contains no credentials or application data.
+- The three tested provider channels are now insufficient for this unchanged isolated Pages deployment: GraphQL, standard Pages tail and Workers Observability. No exact-size promotion, Paid entitlement, timing substitute, contract reduction or runtime migration is authorized by this result.
 - The Observability capability probe must use a dedicated short-lived `AR006_CLOUDFLARE_OBSERVABILITY_TOKEN`; Cloudflare currently documents `Workers Observability Write` as the API permission for the telemetry query/key endpoints. This token must not replace/reuse the Pages deployment or Account Analytics tokens.
 
 Current remediation status:
 
 - `WP29C-AR-005` — **MAJOR / IMPLEMENTATION-REMEDIATED / EXACT-HEAD-GREEN** — trusted clean-abandon path, DB orphan backstop, immediate pre-copy reservation revalidation, safe post-copy compensation and race/retry coverage implemented. Formal closure waits for the later complete fresh Pass B after AR-006 is unblocked.
-- `WP29C-AR-006` — **MAJOR / OPEN / BLOCKING / ARCHITECTURE REVIEW** — exact-size functionality is proven, but provider CPU evidence is unavailable through the original GraphQL channel and standard Pages tail is not an approved CPU source. The next permitted provider experiment is the deny-only Workers Observability capability preflight against the existing exact Pages script. No exact-size rerun is authorized before that capability succeeds.
+- `WP29C-AR-006` — **MAJOR / OPEN / BLOCKING / ARCHITECTURE REVIEW** — exact-size functionality is proven, but provider CPU evidence is unavailable through GraphQL, standard Pages tail and the correctly configured Workers Observability capability preflight. The latest query executed without application mutation and still yielded no attributable numeric CPU. No exact-size rerun is authorized.
 - `WP29C-AR-007` — **MAJOR / IMPLEMENTATION-REMEDIATED / EXACT-HEAD-GREEN** — ADR/release/CI-CD/secret contracts reconciled to Pages Functions and `PRIVATE_DOCUMENT_ADMIN_KEY`; fail-closed non-destructive deployment smoke added. Formal closure waits for the later complete fresh Pass B after AR-006 is unblocked.
 
 Historical `WP29C-AR-001..004` remain implementation-green but await a later complete clean fresh Pass B for formal closure.
@@ -180,7 +181,7 @@ Normative release/deployment/secret contracts require Pages Functions to deploy 
 2. Verify the repository implementation of the separately guarded Workers Observability capability preflight. Ordinary pushes must receive no Observability token.
 3. Configure a dedicated short-lived `AR006_CLOUDFLARE_OBSERVABILITY_TOKEN` with only the provider permission required by Cloudflare's Observability telemetry endpoint; do not reuse the Pages deployment or Analytics token.
 4. Trigger `[AR006-OBS-PREFLIGHT]` only after repository CI/clean-checkout is green. The provider probe may run deny-only route smoke plus an Observability query filtered to `pages-worker--19505720-preview`; it may not deploy, authenticate to Supabase, upload a PDF or mutate application data.
-5. If attributable provider `cpuTimeMs` is present for the exact Pages script, redesign and re-review the final exact-25-MB evidence harness before running another ten promotions. If it is unavailable without material Pages/Workers migration, stop for an explicit architecture decision.
+5. The Workers Observability preflight has now executed with its dedicated secret and produced no attributable numeric provider CPU. Stop for an explicit architecture decision; no further provider experiment or exact-size rerun is permitted under the unchanged runtime/configuration. Any proposed runtime, provider or acceptance change requires governed design review before implementation.
 6. Only after valid AR-006 exact-size CPU evidence, record it durably, verify exact-head CI/clean checkout, transition C to `REVIEW_PENDING`, run a complete fresh independent Pass B and then Pass C before acceptance.
 7. WP-2.9A remains **BLOCKED** until C is accepted; WP-2.9B and later Lots remain inactive.
 
@@ -203,10 +204,11 @@ Delayed GraphQL requery: 9b139d23a7de47f8d3927a54c54d79298ca96a6b / workflow 351
 AR-006 architecture review: OPEN
 Tail support green tree: d04edd0ed0d3daa3b9bfe20d954003bb13545200 / parent 82e05a8dab9f61377f045b74005fd6582da0afe3 / CI 35152382433 — 5/5 SUCCESS
 Tail capability trigger: 7645a9e769c641640f52fdba535deb6140401fc6 / workflow 35153132971 / job 104986087784 / artifact 10469354745 — deny smoke SUCCESS; parsedJsonEventCount=0; providerCpuTimeMs=[]; pass=false
-Next provider channel: Workers Observability telemetry REST API capability preflight, exact script only, deny-only, no application mutation
+Workers Observability configured capability preflight: bd3fdb4baab6ef59983e40f77b5b2f44ba6dc8b7 / workflow 35213157767 / job 105175271234 / artifact 10494251279 (ZIP SHA-256 02438aadb3e377f6c8e6ed66b3b00c0c0d3e473008c3bb710acbfb805f2dde7c) — deny smoke passed; no attributable numeric provider CPU; pass=false
+AR-006 architecture review: OPEN — all three bounded provider channels are insufficient for the unchanged isolated Pages deployment
 AR-005 and AR-007: implementation-remediated / exact-head-green — formal closure waits fresh Pass B after AR-006 unblock
 FTR-089 FIR: #17 — BLOCKED
 WP-2.9B: PLANNED / AFTER A
 Lots 3–12: NOT_STARTED
-Next permitted action: repository-green Workers Observability capability support → dedicated scoped provider token → [AR006-OBS-PREFLIGHT]; no exact-size rerun before capability success
+Next permitted action: explicit governed architecture decision on a provider-supported CPU evidence path or an approved runtime/acceptance change; no exact-size rerun before that decision
 ```

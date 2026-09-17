@@ -1,6 +1,6 @@
 # WP-2.9C / WP29C-AR-006 — isolated provider attempt, 2026-09-16
 
-Status: **FAILED CLOSED — PROVIDER CPU TELEMETRY UNAVAILABLE; ARCHITECTURE REVIEW OPEN / WP-2.9C BLOCKED**
+Status: **FAILED CLOSED — THREE PROVIDER CHANNELS INSUFFICIENT; ARCHITECTURE REVIEW OPEN / WP-2.9C BLOCKED**
 
 This is a sanitized operational record. It contains no token, password, private PDF bytes, raw provider logs, or wedding data. The [CPU evidence protocol](WP-2.9C-AR-006-CPU-EVIDENCE.md), [execution runbook](WP-2.9C-AR-006-RUNBOOK.md), and [AR-006 architecture review](WP-2.9C-AR-006-ARCHITECTURE-REVIEW.md) remain normative.
 
@@ -47,7 +47,14 @@ A dedicated repository-green capability harness was added to test the existing e
 - The exact existing Pages deployment deny-only smoke passed. No PDF upload, Supabase authentication, deployment, or application-data mutation occurred.
 - The Workers Observability query step failed **before any provider telemetry request** because GitHub Environment secret `AR006_CLOUDFLARE_OBSERVABILITY_TOKEN` resolved empty. The job log recorded `CLOUDFLARE_OBSERVABILITY_API_TOKEN:` as empty and `Dedicated Cloudflare Workers Observability token is required.`
 - Sanitized artifact `10473471272` (ZIP SHA-256 `f3bcaa6b9f6b2e83c21b7a21622e4b9ae48a985c84f1b46065c5983a2e56e43d`) records `tokenPresent: false`, `httpStatus: null`, `matchingEventCount: 0`, `cpuEventCount: 0`, `pass: false`.
-- This attempt is **external secret-configuration evidence only**. It is not evidence that Workers Observability is unavailable, that the API rejected the token, or that CPU is within/outside budget. The capability question remains untested until a dedicated short-lived token with the required Workers Observability permission is configured.
+- This attempt is **external secret-configuration evidence only**. It is not evidence that Workers Observability is unavailable, that the API rejected the token, or that CPU is within/outside budget. The capability question remained untested until a dedicated token with the required Workers Observability permission was configured.
+
+### Configured Workers Observability result
+
+- The dedicated secret was configured in the isolated GitHub Environment and the exact-tree deny-only trigger `bd3fdb4baab6ef59983e40f77b5b2f44ba6dc8b7` launched workflow `35213157767`, job `105175271234`.
+- The production deny smoke passed. The job ran the Workers Observability preflight against the existing exact deployment/script. It did not deploy, authenticate to Supabase, upload a PDF or mutate application data.
+- Sanitized artifact `10494251279` (ZIP SHA-256 `02438aadb3e377f6c8e6ed66b3b00c0c0d3e473008c3bb710acbfb805f2dde7c`) was uploaded after the query. The job failed closed because no attributable numeric provider CPU telemetry was exposed for `pages-worker--19505720-preview`.
+- The result demonstrates neither zero CPU nor compliance with the 10 ms envelope. It only shows that the third bounded provider channel is insufficient under the unchanged isolated Pages deployment.
 
 ## Current architecture-review direction
 
@@ -57,7 +64,7 @@ Before any further exact-size mutation run, a dedicated capability preflight mus
 
 Cloudflare currently documents `Workers Observability Write` as the accepted API-token permission for telemetry query/key endpoints. The repository therefore requires a separate short-lived secret `AR006_CLOUDFLARE_OBSERVABILITY_TOKEN`; it must not reuse the Pages deployment token or the Account Analytics token. The first capability trigger proved that this secret is not yet configured in `ar006-isolated`; after provisioning it, rerun the same `[AR006-OBS-PREFLIGHT]` path before any exact-size mutation evidence run.
 
-If the existing Pages deployment cannot expose attributable CPU through Workers Observability without a material runtime/configuration migration, stop and make an explicit architecture decision. Do not silently migrate Pages to Workers, enable Workers Paid, infer CPU from wall time/HTTP success, or lower the 25 MB contract.
+The configured Workers Observability preflight did not expose attributable CPU. Stop for an explicit architecture decision. Do not run another same-configuration capability probe or exact-size promotion, silently migrate Pages to Workers, enable Workers Paid, infer CPU from wall time/HTTP success, or lower the 25 MB contract.
 
 ## Verdict
 

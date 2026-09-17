@@ -1,6 +1,6 @@
 # WP-2.9C / WP29C-AR-006 — CPU evidence architecture review
 
-Status: **OPEN — GRAPHQL AND PAGES-TAIL CHANNELS INSUFFICIENT; WORKERS OBSERVABILITY CAPABILITY UNDER VALIDATION**
+Status: **OPEN — GRAPHQL, PAGES-TAIL AND WORKERS OBSERVABILITY CHANNELS INSUFFICIENT; EXPLICIT ARCHITECTURE DECISION REQUIRED**
 
 Date reopened: 2026-09-16
 
@@ -75,6 +75,17 @@ The capability probe is deny-only and read-only with respect to application data
 
 A green capability result does **not** close AR-006. It only authorizes redesigning the final exact-25-MB evidence harness around provider Observability events.
 
+### Configured Workers Observability result — unavailable
+
+The dedicated secret was then configured in the isolated GitHub Environment and the same bounded preflight was repeated without changing repository content or the existing Pages deployment.
+
+- Exact trigger: commit `bd3fdb4baab6ef59983e40f77b5b2f44ba6dc8b7`, workflow `35213157767`, job `105175271234`.
+- The job completed the deny-only production smoke and progressed through the configured Workers Observability query. It did not deploy, authenticate to Supabase, upload a PDF or mutate application data.
+- Sanitized artifact `10494251279`, ZIP SHA-256 `02438aadb3e377f6c8e6ed66b3b00c0c0d3e473008c3bb710acbfb805f2dde7c`, recorded the fail-closed result. The job reported that Workers Observability did not expose attributable provider CPU telemetry for the exact Pages script.
+- This result is not a CPU value, a CPU-budget pass/fail, or authorization to repeat the ten exact-size promotions. It is provider-evidence absence after the dedicated-secret precondition was met.
+
+Workers Observability is therefore no longer an untested candidate under the unchanged isolated Pages configuration.
+
 ### D. Tail Workers — rejected for this packet
 
 Cloudflare Tail Workers are a separate producer/consumer feature whose use would change the entitlement assumptions. They are not an acceptable shortcut for this AR-006 gate.
@@ -85,7 +96,7 @@ These mechanisms do not provide Cloudflare's authoritative CPU consumption for t
 
 ## Current decision
 
-**Provision the dedicated Workers Observability token, then rerun the separately guarded capability preflight against the existing exact deployment before any new exact-25-MB mutation run.**
+**Stop for an explicit architecture decision.** The configured Workers Observability preflight has completed without attributable numeric provider CPU, after GraphQL and standard Pages tail were already insufficient. No additional same-configuration preflight or exact-size mutation run is authorized.
 
 The preflight must:
 
@@ -110,4 +121,4 @@ If the existing Pages deployment cannot produce attributable CPU through Workers
 
 ## Governance
 
-WP-2.9C remains **BLOCKED** throughout this review. No `REVIEW_PENDING`, fresh Pass B, Pass C, WP-2.9A resumption, Workers Paid activation or 25 MB reduction is authorized until valid AR-006 evidence exists.
+WP-2.9C remains **BLOCKED** throughout this review. No `REVIEW_PENDING`, fresh Pass B, Pass C, WP-2.9A resumption, Workers Paid activation or 25 MB reduction is authorized until valid AR-006 evidence exists. The next action is a governed architecture decision that identifies a provider-supported CPU evidence path or explicitly approves a narrower design change; repository implementation must not choose either unilaterally.
