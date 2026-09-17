@@ -71,16 +71,24 @@ function requireMatchingBinding(preview, bindingName, expectedValue) {
   }
 }
 
-function requirePromotionWorkerBinding(previewConfig) {
-  const services = previewConfig?.services;
-  const expectedWorker = requiredEnv("AR006_PRIVATE_DOCUMENT_WORKER");
-  const configured =
-    Array.isArray(services) &&
-    services.some(
+function serviceBindingMatches(services, expectedWorker) {
+  if (Array.isArray(services)) {
+    return services.some(
       (service) =>
         service?.binding === "PRIVATE_DOCUMENT_PROMOTION_WORKER" &&
         service?.service === expectedWorker,
     );
+  }
+  return (
+    services?.PRIVATE_DOCUMENT_PROMOTION_WORKER?.service === expectedWorker
+  );
+}
+
+function requirePromotionWorkerBinding(previewConfig) {
+  const configured = serviceBindingMatches(
+    previewConfig?.services,
+    requiredEnv("AR006_PRIVATE_DOCUMENT_WORKER"),
+  );
   if (!configured) {
     throw new Error(
       "Private promotion Worker binding is missing or incorrect.",
