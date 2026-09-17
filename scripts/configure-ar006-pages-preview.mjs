@@ -100,11 +100,12 @@ async function main() {
   );
   const preview = project.deployment_configs?.preview ?? {};
   const production = project.deployment_configs?.production ?? {};
+  if (typeof production.fail_open !== "boolean") {
+    throw new Error("Cloudflare Pages Production fail_open is unavailable.");
+  }
   const nextPreview = {
     ...preview,
-    ...(typeof production.fail_open === "boolean"
-      ? { fail_open: production.fail_open }
-      : {}),
+    fail_open: production.fail_open,
     env_vars: {
       PRIVATE_DOCUMENT_ADMIN_KEY: { type: "secret_text", value: adminKey },
       SUPABASE_URL: { type: "plain_text", value: supabaseUrl },
@@ -121,7 +122,10 @@ async function main() {
       method: "PATCH",
       headers,
       body: JSON.stringify({
-        deployment_configs: { preview: nextPreview },
+        deployment_configs: {
+          production: { fail_open: production.fail_open },
+          preview: nextPreview,
+        },
       }),
     },
     "Cloudflare Pages Preview configuration update failed.",
