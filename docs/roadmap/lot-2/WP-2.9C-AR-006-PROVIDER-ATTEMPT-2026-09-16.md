@@ -54,6 +54,7 @@ A dedicated repository-green capability harness was added to test the existing e
 - The dedicated secret was configured in the isolated GitHub Environment and the exact-tree deny-only trigger `bd3fdb4baab6ef59983e40f77b5b2f44ba6dc8b7` launched workflow `35213157767`, job `105175271234`.
 - The production deny smoke passed. The job ran the Workers Observability preflight against the existing exact deployment/script. It did not deploy, authenticate to Supabase, upload a PDF or mutate application data.
 - Sanitized artifact `10494251279` (ZIP SHA-256 `02438aadb3e377f6c8e6ed66b3b00c0c0d3e473008c3bb710acbfb805f2dde7c`) was uploaded after the query. The job failed closed because no attributable numeric provider CPU telemetry was exposed for `pages-worker--19505720-preview`.
+- The dedicated Cloudflare token was revoked and `AR006_CLOUDFLARE_OBSERVABILITY_TOKEN` was removed from the GitHub Environment after the failed-closed exercise.
 - The result demonstrates neither zero CPU nor compliance with the 10 ms envelope. It only shows that the third bounded provider channel is insufficient under the unchanged isolated Pages deployment.
 
 ## Current architecture-review direction

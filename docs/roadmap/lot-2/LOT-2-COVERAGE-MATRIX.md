@@ -166,7 +166,7 @@ open/blocking = WP29C-AR-006 MAJOR — Free-plan exact-25-MB CPU evidence gap
 implementation-remediated = WP29C-AR-007 MAJOR — Pages Function deployment/secret operations gap
 WP-2.9B = PLANNED / AFTER A
 latest exact-size provider attempt = 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 10 exact-size promotions successful, providerCpuMeasurements=[]
-latest Observability capability attempt = bd3fdb4baab6ef59983e40f77b5b2f44ba6dc8b7 / 35213157767 / job 105175271234 / artifact 10494251279 — deny smoke passed, configured provider query found no attributable numeric CPU, pass=false
+latest Observability capability attempt = bd3fdb4baab6ef59983e40f77b5b2f44ba6dc8b7 / 35213157767 / job 105175271234 / artifact 10494251279 — deny smoke passed, configured provider query found no attributable numeric CPU, pass=false; dedicated token revoked and GitHub Environment secret deleted
 next permitted action = explicit governed architecture decision; GraphQL, Pages tail and Workers Observability are insufficient under the unchanged isolated Pages configuration
 Pass C forbidden until valid AR-006 evidence, exact-head verification and a later clean Pass B yield ACCEPTANCE_PENDING
 ```

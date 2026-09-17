@@ -82,6 +82,7 @@ The dedicated secret was then configured in the isolated GitHub Environment and 
 - Exact trigger: commit `bd3fdb4baab6ef59983e40f77b5b2f44ba6dc8b7`, workflow `35213157767`, job `105175271234`.
 - The job completed the deny-only production smoke and progressed through the configured Workers Observability query. It did not deploy, authenticate to Supabase, upload a PDF or mutate application data.
 - Sanitized artifact `10494251279`, ZIP SHA-256 `02438aadb3e377f6c8e6ed66b3b00c0c0d3e473008c3bb710acbfb805f2dde7c`, recorded the fail-closed result. The job reported that Workers Observability did not expose attributable provider CPU telemetry for the exact Pages script.
+- The dedicated Cloudflare token was revoked and the GitHub Environment secret was deleted after the exercise; neither remains usable.
 - This result is not a CPU value, a CPU-budget pass/fail, or authorization to repeat the ten exact-size promotions. It is provider-evidence absence after the dedicated-secret precondition was met.
 
 Workers Observability is therefore no longer an untested candidate under the unchanged isolated Pages configuration.
