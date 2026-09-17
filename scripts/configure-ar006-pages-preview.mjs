@@ -21,7 +21,8 @@ async function requestJson(url, options, message) {
     const details = Array.isArray(payload?.errors)
       ? payload.errors
           .map((error) =>
-            typeof error?.code === "number" && typeof error?.message === "string"
+            typeof error?.code === "number" &&
+            typeof error?.message === "string"
               ? `[${error.code}] ${error.message}`
               : null,
           )
