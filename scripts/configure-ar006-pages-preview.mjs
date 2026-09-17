@@ -99,8 +99,12 @@ async function main() {
     "Cloudflare Pages project read failed.",
   );
   const preview = project.deployment_configs?.preview ?? {};
+  const production = project.deployment_configs?.production ?? {};
   const nextPreview = {
     ...preview,
+    ...(typeof production.fail_open === "boolean"
+      ? { fail_open: production.fail_open }
+      : {}),
     env_vars: {
       PRIVATE_DOCUMENT_ADMIN_KEY: { type: "secret_text", value: adminKey },
       SUPABASE_URL: { type: "plain_text", value: supabaseUrl },
