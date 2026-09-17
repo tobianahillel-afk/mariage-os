@@ -3,6 +3,7 @@ import {
   CPU_BUDGET_MS,
   evaluateAr006WorkerEvents,
 } from "../../../scripts/private-document-ar006-worker-metrics.mjs";
+import { workerEvidenceTimeframe } from "../../../scripts/private-document-ar006-observability-timeframe.mjs";
 
 const evidenceId = "8b6d1122-bc15-4f17-a5bd-bcec57fcc0c6";
 const requestId = "c91e2d6a-4eb1-4b72-9d43-873ae7bc2fd3";
@@ -35,6 +36,20 @@ function invocation(cpuTimeMs = CPU_BUDGET_MS) {
 }
 
 describe("AR-006 Worker provider-event correlation", () => {
+  it("uses numeric Unix-millisecond bounds for the Observability API", () => {
+    const timeframe = workerEvidenceTimeframe(
+      "2026-09-17T17:10:00.000Z",
+      "2026-09-17T17:10:30.000Z",
+    );
+    expect(timeframe).toEqual({
+      request: { from: 1_789_664_990_000, to: 1_789_665_030_000 },
+      record: {
+        from: "2026-09-17T17:09:50.000Z",
+        to: "2026-09-17T17:10:30.000Z",
+      },
+    });
+  });
+
   it("requires one opaque marker and one numeric invocation log", () => {
     const result = evaluateAr006WorkerEvents(
       [marker(), invocation()],

@@ -8,6 +8,7 @@ import {
   observabilityErrorCodes,
   observabilityEvents,
 } from "./private-document-ar006-worker-metrics.mjs";
+import { workerEvidenceTimeframe } from "./private-document-ar006-observability-timeframe.mjs";
 import { createExactPdf } from "./private-document-ar006-synthetic-pdf.mjs";
 
 const MAX_BYTES = 25_000_000;
@@ -244,21 +245,13 @@ async function queryObservability(context, timeframe) {
   };
 }
 
-function observationWindow(invocations) {
-  const start = new Date(invocations[0].startedAt);
-  start.setSeconds(start.getSeconds() - 10);
-  return { from: start.toISOString(), to: new Date().toISOString() };
-}
-
 async function collectWorkerEvidence(context, invocations) {
   const expectedEvidenceIds = invocations.map((item) => item.evidenceId);
-  const window = observationWindow(invocations);
+  const startedAt = invocations[0].startedAt;
   let latest = null;
   for (let attempt = 1; attempt <= OBSERVABILITY_ATTEMPTS; attempt += 1) {
-    const result = await queryObservability(context, {
-      from: window.from,
-      to: new Date().toISOString(),
-    });
+    const timeframe = workerEvidenceTimeframe(startedAt);
+    const result = await queryObservability(context, timeframe.request);
     const evaluation = evaluateAr006WorkerEvents(
       result.events,
       expectedEvidenceIds,
@@ -266,7 +259,7 @@ async function collectWorkerEvidence(context, invocations) {
     );
     latest = {
       ...result,
-      window: { from: window.from, to: new Date().toISOString() },
+      window: timeframe.record,
       attempt,
       evaluation,
     };
