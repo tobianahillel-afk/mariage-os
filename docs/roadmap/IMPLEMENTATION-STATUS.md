@@ -108,7 +108,8 @@ Latest read-only source requery and credential recovery:
 - support head `2ef0e13b755ffc609972ac83c1d2260ca73ff8de` / CI `35337938664` — normal repository verification jobs **5/5 SUCCESS**, including `Full verify from clean checkout`;
 - sanitized requery artifact `10544340701` (ZIP SHA-256 `d048098fa251b409ca8545fcda4d9e72c50cd76ebb3810d1b290e88be0bb0424`) contains no application mutation and failed closed before provider event retrieval: all three telemetry calls returned HTTP `401` / provider code `10000`, with zero measurements;
 - this is an external credential/configuration failure, not CPU evidence or proof of telemetry absence. The dedicated encrypted observability secret was replaced with a one-year, Workers-Observability-only account token; its value is not recorded here;
-- one recovery execution of the same bounded read-only query is permitted after clean `full-verify`. It must not deploy or rerun the ten promotions.
+- the one permitted recovery at `a937d6e1484640afba52848e895f5480ab4ea8a8` / CI `35339776360` completed normal CI **5/5 SUCCESS**, including `Full verify from clean checkout`, but its telemetry job again returned HTTP `401` / provider code `10000` on all three calls. Sanitized artifact `10545420236` (ZIP SHA-256 `dbac3d188a41dfc94420618406456d6a17f65ddbec485507a4fe98100e09eb86`) has zero measurements and `pass: false`;
+- the bounded requery protocol is exhausted. No further token rotation, telemetry requery, deployment or promotion is permitted without an explicit architecture decision.
 
 
 Historical initial provider-readiness execution:
@@ -193,9 +194,9 @@ Normative release/deployment/secret contracts require Pages Functions to deploy 
 
 ## Current next-action gate
 
-1. Run ordinary exact-head CI, then the one marker-gated `[AR006-WORKER-REQUERY]` credential-recovery job to re-query only the retained ten private-Worker UUIDs. It must not deploy or mutate application data.
-2. If it records exactly ten valid source-correlated CPU measurements, inspect the sanitized artifact, reconcile AR-006, then verify the evidence-bound exact head before returning C to `REVIEW_PENDING`.
-3. If this recovery cannot authenticate, telemetry is absent/ambiguous, rate-limited after bounded backoff, duplicated or above budget, keep AR-006 open and return to architecture review. Do not substitute wall time, dashboard aggregate, Paid entitlement or a lower file limit.
+1. Return AR-006 to architecture review. The source requery protocol is exhausted after two non-mutating HTTP `401` / `10000` outcomes and zero CPU measurements.
+2. Do not issue another telemetry query, rotate/change a token, deploy or repeat a promotion unless a new explicit architecture decision authorizes a specific diagnostic or evidence channel.
+3. Do not substitute wall time, dashboard aggregate, Paid entitlement or a lower file limit.
 4. Only after valid AR-006 exact-size CPU evidence, run a complete fresh independent Pass B and then Pass C before acceptance.
 5. WP-2.9A remains **BLOCKED** until C is accepted; WP-2.9B and later Lots remain inactive.
 
@@ -209,7 +210,7 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.8C
 WP-2.9A: BLOCKED — waits for WP-2.9C ACCEPTED
-Current packet: WP-2.9C — IN_PROGRESS on ADR 0011 Worker evidence; one credential-recovery source requery pending
+Current packet: WP-2.9C — IN_PROGRESS; AR-006 evidence blocked in architecture review after bounded authentication recovery
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
@@ -218,7 +219,8 @@ Delayed GraphQL requery: 9b139d23a7de47f8d3927a54c54d79298ca96a6b / workflow 351
 AR-006 architecture review: DECISION RECORDED IN ADR 0011; implementation/verification open
 Latest private-Worker evidence: bdb3d95cc788d4b43205fe9c0e109966f72c7798 / CI 35286381507 / artifact 10525006138 (ZIP SHA-256 42ce5db8d9b8d046bbfada9b34494bfa93d0b6c58e21adef8a4cf3adead3e25f) — ten exact 25,000,000-byte HTTP-200 synthetic promotions; provider query attempt 6 rate-limited (429/10429); pass=false
 Latest Worker requery: 2ef0e13b755ffc609972ac83c1d2260ca73ff8de / CI 35337938664 / artifact 10544340701 (ZIP SHA-256 d048098fa251b409ca8545fcda4d9e72c50cd76ebb3810d1b290e88be0bb0424) — normal CI 5/5 SUCCESS; telemetry request rejected 401/10000 before event retrieval; pass=false
-Current permitted action: one `[AR006-WORKER-REQUERY]` credential-recovery execution after exact-head `full-verify`, as defined in WP-2.9C-AR-006-WORKER-REQUERY.md; same read-only source telemetry query only
+Final bounded Worker requery: a937d6e1484640afba52848e895f5480ab4ea8a8 / CI 35339776360 / artifact 10545420236 (ZIP SHA-256 dbac3d188a41dfc94420618406456d6a17f65ddbec485507a4fe98100e09eb86) — normal CI 5/5 SUCCESS; telemetry rejected 401/10000 on all three calls; zero measurements; pass=false
+Current permitted action: architecture review only. A new external diagnostic or provider-evidence channel requires an explicit decision before any further token or telemetry action.
 Tail support green tree: d04edd0ed0d3daa3b9bfe20d954003bb13545200 / parent 82e05a8dab9f61377f045b74005fd6582da0afe3 / CI 35152382433 — 5/5 SUCCESS
 Tail capability trigger: 7645a9e769c641640f52fdba535deb6140401fc6 / workflow 35153132971 / job 104986087784 / artifact 10469354745 — deny smoke SUCCESS; parsedJsonEventCount=0; providerCpuTimeMs=[]; pass=false
 Workers Observability configured capability preflight: bd3fdb4baab6ef59983e40f77b5b2f44ba6dc8b7 / workflow 35213157767 / job 105175271234 / artifact 10494251279 (ZIP SHA-256 02438aadb3e377f6c8e6ed66b3b00c0c0d3e473008c3bb710acbfb805f2dde7c) — deny smoke passed; no attributable numeric provider CPU; pass=false
@@ -227,5 +229,5 @@ AR-005 and AR-007: implementation-remediated / exact-head-green — formal closu
 FTR-089 FIR: #17 — BLOCKED
 WP-2.9B: PLANNED / AFTER A
 Lots 3–12: NOT_STARTED
-Next permitted action: run the bounded credential-recovery source query after `full-verify`; inspect its sanitized artifact and either reconcile exact CPU evidence or return AR-006 to architecture review
+Next permitted action: obtain an explicit architecture decision for a permitted external authentication diagnostic or alternate provider evidence channel; AR-006 remains open and no rerun is authorized
 ```

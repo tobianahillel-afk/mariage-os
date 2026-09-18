@@ -130,10 +130,16 @@ provider code `10000` before event retrieval (artifact `10544340701`, ZIP
 SHA-256 `d048098fa251b409ca8545fcda4d9e72c50cd76ebb3810d1b290e88be0bb0424`).
 That is an authentication/configuration failure, not a CPU observation.
 
-The current permitted follow-up is one credential-recovery execution of the
-same bounded, read-only source query in `WP-2.9C-AR-006-WORKER-REQUERY.md`. It
-uses the corrected encrypted Observability secret, still honors Cloudflare's
-`Retry-After`, and does not repeat the ten document mutations. Its result
-remains fail-closed.
+The credential-recovery execution at
+`a937d6e1484640afba52848e895f5480ab4ea8a8` also completed normal CI but its
+three telemetry calls again returned HTTP `401` / provider code `10000` before
+event retrieval (artifact `10545420236`, ZIP SHA-256
+`dbac3d188a41dfc94420618406456d6a17f65ddbec485507a4fe98100e09eb86`). It has
+zero measurements and `pass: false`.
+
+The requery protocol is exhausted. AR-006 remains blocked on external runtime
+evidence and returns to architecture review. No token change, telemetry requery,
+deployment or new ten-document campaign is authorized without an explicit
+architecture decision.
 
 The deployment identity is recorded, but provider CPU measurements are absent (`providerCpuMeasurements: []`). Re-query after Cloudflare's possible aggregation delay; if telemetry remains unavailable or unattributable, reopen architecture review under the runbook. AR-006 is not closed, WP-2.9C must not transition to `REVIEW_PENDING`, and WP-2.9A remains blocked.

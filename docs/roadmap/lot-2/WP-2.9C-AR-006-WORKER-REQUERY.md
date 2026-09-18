@@ -54,9 +54,24 @@ write was created with one-year expiry and saved only as the encrypted
 `AR006_CLOUDFLARE_OBSERVABILITY_TOKEN` Environment secret. Its value is not
 retained in the repository or in any artifact.
 
-One recovery execution is authorized after `full-verify`: it repeats exactly the
-same retained-source query with the corrected secret and the same marker. It
-must not deploy, reconfigure, authenticate to Supabase or repeat a promotion.
+The authorized recovery executed at
+`a937d6e1484640afba52848e895f5480ab4ea8a8` / workflow `35339776360` after all
+five normal repository jobs, including clean-checkout `full-verify`, succeeded.
+Its read-only job `105584662070` wrote sanitized artifact `10545420236` (ZIP
+SHA-256 `dbac3d188a41dfc94420618406456d6a17f65ddbec485507a4fe98100e09eb86`).
+All three provider calls again returned HTTP `401` / provider code `10000`;
+there were zero measurements and `pass: false`.
+
+The Cloudflare dashboard listed the dedicated account token as Active and
+scoped only to `Workers Observability Telemetry Write`, but it recorded no
+successful use. The public provider documentation states that account API
+tokens are compatible with Workers Observability. The repository cannot
+resolve whether the rejected request is secret propagation, token validity or
+provider authentication behaviour without an additional external diagnostic.
+
+The bounded recovery is therefore exhausted. No further telemetry requery,
+token rotation, scope change, deployment or promotion is authorized by this
+record. The packet returns to architecture review for an explicit decision.
 
 
 ## Authorized action
@@ -93,13 +108,11 @@ no CPU-limit outcome. It remains evidence input rather than packet acceptance:
 inspect the artifact, reconcile the source run and exact CI, update the AR-006
 record, then run the required fresh Pass B and Pass C.
 
-The initial execution documented above returned an authentication failure before
-event retrieval. The one authorized recovery execution may correct only the
-dedicated encrypted credential and re-run this identical read-only source query.
-If that recovery returns an authentication or provider-query error, no
-attributable numeric CPU, a rate-limit error after bounded backoff, duplicate
-correlation or an over-budget value, AR-006 remains open. Do not rerun the ten
-promotions automatically; return to the architecture review under the runbook.
+Both bounded executions failed before event retrieval: the initial attempt and
+the authorized credential recovery each returned HTTP `401` / provider code
+`10000`. No attributable numeric CPU was returned. AR-006 remains open. Do not
+rerun the ten promotions, telemetry query, token rotation or scope change
+without a new explicit architecture decision under the runbook.
 
 ## Provider references
 

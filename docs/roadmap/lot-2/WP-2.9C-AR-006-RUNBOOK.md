@@ -422,10 +422,14 @@ received HTTP `401` / provider code `10000` for all three query attempts
 `d048098fa251b409ca8545fcda4d9e72c50cd76ebb3810d1b290e88be0bb0424`). This
 credential/configuration failure contains no provider observation.
 
-One recovery execution may use the corrected dedicated Observability secret and
-the same retained source range and opaque UUID correlation set. It must not
-deploy, authenticate to Supabase, create/reserve/finalize a document, upload a
-PDF or call the promotion route. A further authentication/provider-query error,
-rate-limit response after bounded `Retry-After` handling, missing/duplicate
-correlation or invalid CPU measurement keeps AR-006 open and returns to the
-architecture review; it does not authorize a new ten-promotion campaign.
+The one recovery execution used the corrected dedicated Observability secret
+and the same retained source range and opaque UUID correlation set at
+`a937d6e1484640afba52848e895f5480ab4ea8a8` / CI `35339776360`. Normal CI was
+5/5 SUCCESS including clean-checkout verification, but the source query again
+returned HTTP `401` / provider code `10000` three times. Artifact `10545420236`
+(ZIP SHA-256 `dbac3d188a41dfc94420618406456d6a17f65ddbec485507a4fe98100e09eb86`)
+records zero measurements and `pass: false`.
+
+The bounded requery path is exhausted. This outcome keeps AR-006 open and
+returns to architecture review; it does not authorize a new ten-promotion
+campaign, another telemetry query, token rotation or scope change.

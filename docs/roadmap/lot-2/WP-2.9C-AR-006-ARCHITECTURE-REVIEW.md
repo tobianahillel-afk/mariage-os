@@ -147,13 +147,23 @@ event retrieval (artifact `10544340701`, ZIP SHA-256
 `d048098fa251b409ca8545fcda4d9e72c50cd76ebb3810d1b290e88be0bb0424`). This is
 an authentication/configuration failure and cannot be interpreted as missing
 telemetry. One replacement token with only Workers Observability scope was
-stored as the encrypted isolated Environment secret; one identical read-only
-recovery query is authorized.
+stored as the encrypted isolated Environment secret.
 
-If that recovery cannot provide exactly one valid CPU event per source UUID,
-the provider evidence remains unavailable. Keep AR-006 open and return to this
-architecture review without enabling Paid, using wall time or lowering the file
-contract.
+That one recovery query ran at `a937d6e1484640afba52848e895f5480ab4ea8a8` /
+workflow `35339776360` after normal CI **5/5 SUCCESS**, including clean-checkout
+verification. It again returned HTTP `401` / provider code `10000` on all three
+calls; artifact `10545420236` (ZIP SHA-256
+`dbac3d188a41dfc94420618406456d6a17f65ddbec485507a4fe98100e09eb86`) contains
+zero measurements. The active account token is constrained to Workers
+Observability and Cloudflare's published compatibility matrix lists Workers
+Observability as supported for account API tokens. The recorded result still
+cannot distinguish secret propagation, token validity or provider-specific
+authentication behaviour.
+
+The bounded protocol is exhausted. The provider evidence remains unavailable;
+keep AR-006 open and return to this architecture review without enabling Paid,
+using wall time or lowering the file contract. Any further external diagnostic,
+token operation or query requires an explicit architecture decision.
 
 ## Provider references
 
