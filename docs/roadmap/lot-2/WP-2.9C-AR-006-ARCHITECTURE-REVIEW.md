@@ -190,6 +190,28 @@ The schema-conforming 200/5-ms regression passes; null, string and negative CPU
 values fail closed. Provider-specific jobs were skipped. This is no evidence of
 token validity, available Worker logs or actual Workers Free CPU consumption.
 
+### 2026-09-18 decision — one bounded provider check after parser repair
+
+The user requested a deployed check of the corrected verifier. The source
+Worker/Pages runtime files under `functions/` and `workers/` have not changed
+since the ten successful promotions at `bdb3d95cc788d4b43205fe9c0e109966f72c7798`;
+only test/support code and documentation have changed. Cloudflare documents
+Workers Free log retention as three days, so the source window beginning
+`2026-09-17T23:28:18.499Z` may still be available during this check.
+
+Authorize exactly one read-only GitHub Environment job after same-head
+`full-verify`. First call Cloudflare's account-token `verify` endpoint with the
+existing encrypted `AR006_CLOUDFLARE_OBSERVABILITY_TOKEN`, retaining only HTTP
+status, provider error codes and active/inactive status. If verification does
+not return an active token, stop without a telemetry query. If active, query
+only the existing private Worker and ten retained source UUIDs, using the
+corrected event evaluator and the existing bounded retry/rate-limit rules.
+Retain only sanitized evidence; never print the token, provider raw logs or
+document content. This authorizes no token change, deployment, new PDF
+promotion or Paid entitlement. Failure or missing measurements returns AR-006
+to architecture review; a passing result still requires evidence review and
+the packet's fresh Pass B and Pass C before acceptance.
+
 ## Provider references
 
 - <https://developers.cloudflare.com/pages/functions/debugging-and-logging/>
