@@ -165,6 +165,24 @@ keep AR-006 open and return to this architecture review without enabling Paid,
 using wall time or lowering the file contract. Any further external diagnostic,
 token operation or query requires an explicit architecture decision.
 
+### 2026-09-18 decision — local evidence-parser correction only
+
+The Cloudflare Workers Observability query response schema places the invocation
+HTTP status at `$metadata.statusCode` and CPU time at `$workers.cpuTimeMs`. The
+current local evaluator reads `$workers.statusCode`, so a schema-conforming
+successful invocation is rejected. It also coerces `null` CPU to numeric zero,
+which could falsely accept absent provider CPU evidence. These are verifier
+defects; neither changes the runtime architecture or the AR-006 acceptance bar.
+
+Authorize a bounded local correction to read the documented status field and
+accept CPU only when the provider value is a finite JSON number. First retain
+failing regression tests for a schema-conforming 200/5-ms event and for null
+CPU, then repair the evaluator and run ordinary repository verification. Record
+the exact implementation and CI result in the packet handoff. No external API
+diagnostic, telemetry requery, token operation, deployment or promotion is
+authorized by this decision. The HTTP `401` cause and actual Worker Free CPU
+measurements remain unresolved, so AR-006 stays open.
+
 ## Provider references
 
 - <https://developers.cloudflare.com/pages/functions/debugging-and-logging/>
