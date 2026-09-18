@@ -84,36 +84,59 @@ async function collectWorkerEvidence(context) {
   return { latest, attempts };
 }
 
+function sourceEvidence(context) {
+  return {
+    artifact: context.sourceArtifact,
+    gitCommit: context.gitCommit,
+    deployment: context.deployment,
+    workerName: context.workerName,
+    exactBytes: context.exactBytes,
+    sha256: context.sha256,
+    invocationCount: context.expectedEvidenceIds.length,
+  };
+}
+
+function noProviderEvidence() {
+  return {
+    httpStatus: null,
+    apiSuccess: false,
+    providerErrorCodes: [],
+    observationWindow: null,
+    measurements: [],
+    failures: [{ code: "no_provider_query", evidenceId: null }],
+  };
+}
+
+function providerEvidence(latest, attempts) {
+  if (latest === null) {
+    return { ...noProviderEvidence(), queryAttempts: attempts };
+  }
+  return {
+    httpStatus: latest.httpStatus,
+    apiSuccess: latest.apiSuccess,
+    providerErrorCodes: latest.providerErrorCodes,
+    observationWindow: latest.window,
+    queryAttempts: attempts,
+    measurements: latest.evaluation.measurements,
+    failures: latest.evaluation.failures,
+  };
+}
+
+function evidencePass(latest) {
+  return latest !== null && latest.apiSuccess && latest.evaluation.pass;
+}
+
 function evidenceRecord(context, observation) {
   const { latest, attempts } = observation;
-  const pass = latest !== null && latest.apiSuccess && latest.evaluation.pass;
   return {
     schema: "mariage-os.wp29c.ar006.worker-observability-requery.v1",
     generatedAt: new Date().toISOString(),
-    source: {
-      artifact: context.sourceArtifact,
-      gitCommit: context.gitCommit,
-      deployment: context.deployment,
-      workerName: context.workerName,
-      exactBytes: context.exactBytes,
-      sha256: context.sha256,
-      invocationCount: context.expectedEvidenceIds.length,
-    },
+    source: sourceEvidence(context),
     workersPlanAttestation: "Workers Free / isolated non-production",
-    provider: {
-      httpStatus: latest?.httpStatus ?? null,
-      apiSuccess: latest?.apiSuccess ?? false,
-      providerErrorCodes: latest?.providerErrorCodes ?? [],
-      observationWindow: latest?.window ?? null,
-      queryAttempts: attempts,
-      measurements: latest?.evaluation.measurements ?? [],
-      failures: latest?.evaluation.failures ?? [
-        { code: "no_provider_query", evidenceId: null },
-      ],
-    },
+    provider: providerEvidence(latest, attempts),
     cpuBudgetMs: CPU_BUDGET_MS,
     paidCpuEntitlementAttestedAbsent: true,
-    pass,
+    pass: evidencePass(latest),
   };
 }
 
