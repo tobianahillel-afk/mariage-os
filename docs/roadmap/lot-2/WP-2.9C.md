@@ -237,6 +237,15 @@ provider HTTP status from `$metadata.statusCode` and rejects non-numeric,
 non-finite or negative `$workers.cpuTimeMs`. No Cloudflare query or promotion ran
 in that CI. This does not resolve the HTTP `401` evidence-channel block.
 
+The bounded live retest at `8dd0da2b948e4bdad3edaba274ef658fc850b4ef` /
+CI `35366867329` passed all five normal jobs, including clean-checkout
+verification, but the account-token precheck failed HTTP `401` / provider code
+`1000`. Requery job `105673740056` produced sanitized artifact `10557066610`
+(ZIP SHA-256
+`414ba6803b1a75d65ae2ed9930c0fbb4a49b784c06538966847c19962b9ae990`):
+no telemetry query, no CPU measurement, `pass: false`. Thus the parser fix is
+locally verified but not live-provider verified; AR-006 stays open.
+
 Current gate:
 
 1. retain AR-005 and AR-007 remediations without weakening their security contracts;

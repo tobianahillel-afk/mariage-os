@@ -114,6 +114,18 @@ the authorized credential recovery each returned HTTP `401` / provider code
 rerun the ten promotions, telemetry query, token rotation or scope change
 without a new explicit architecture decision under the runbook.
 
+The subsequent, separately authorized parser-repair check at
+`8dd0da2b948e4bdad3edaba274ef658fc850b4ef` / CI `35366867329` passed
+all five normal jobs, including clean-checkout verification. Isolated requery
+job `105673740056` failed closed on the initial account-token verification:
+HTTP `401` / provider code `1000`, `tokenActive: false`. Sanitized artifact
+`10557066610` (ZIP SHA-256
+`414ba6803b1a75d65ae2ed9930c0fbb4a49b784c06538966847c19962b9ae990`)
+records `no_provider_query`, no telemetry attempts, zero CPU measurements and
+`pass: false`. This check does not test the parser against live Cloudflare
+events or resolve AR-006. The authorization is exhausted; return to
+architecture review before any further external action.
+
 ## Provider references
 
 - <https://developers.cloudflare.com/fundamentals/api/reference/limits/>

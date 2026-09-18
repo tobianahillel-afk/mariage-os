@@ -212,6 +212,21 @@ promotion or Paid entitlement. Failure or missing measurements returns AR-006
 to architecture review; a passing result still requires evidence review and
 the packet's fresh Pass B and Pass C before acceptance.
 
+The authorized check ran at `8dd0da2b948e4bdad3edaba274ef658fc850b4ef` /
+CI `35366867329`, after all five normal jobs succeeded, including clean-checkout
+`full-verify`. The isolated requery job `105673740056` failed closed. Its
+sanitized artifact `10557066610` (ZIP SHA-256
+`414ba6803b1a75d65ae2ed9930c0fbb4a49b784c06538966847c19962b9ae990`)
+records account-token verification HTTP `401` / provider code `1000`,
+`tokenActive: false`, no telemetry query, zero CPU measurements and
+`pass: false`. This establishes that the existing GitHub Environment secret
+did not authenticate at the documented account-token verification endpoint
+in this run; it does not establish whether the stored value, token/account
+association or provider behavior caused the rejection. The corrected event
+parser was not exercised against live events. The one-check authorization is
+exhausted. AR-006 stays open; any further token or telemetry action requires
+a new explicit architecture decision.
+
 ## Provider references
 
 - <https://developers.cloudflare.com/pages/functions/debugging-and-logging/>
