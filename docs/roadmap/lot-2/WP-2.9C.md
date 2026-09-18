@@ -234,15 +234,16 @@ Current gate:
 
 1. retain AR-005 and AR-007 remediations without weakening their security contracts;
 2. deploy/configure the ADR 0011 private Worker and obtain the Worker-correlated deployed Workers Free exact-25-MB CPU proof defined in `WP-2.9C-AR-006-RUNBOOK.md`;
-3. if that proof fails the normal Free CPU envelope, keep AR-006 open and revisit architecture — do not enable Paid or lower the file contract silently;
-4. after valid AR-006 evidence, run exact-head full CI + clean-checkout verification again over the evidence-bound candidate;
-5. transition back to `REVIEW_PENDING` only after all remediation evidence is green;
-6. run another complete fresh independent Pass B over all WP-2.9C responsibilities and AR-001..007;
-7. any BLOCKING/MAJOR finding → `REVIEW_FAILED`;
-8. only a clean Pass B may enter `ACCEPTANCE_PENDING`;
-9. only Pass C may mark WP-2.9C `ACCEPTED`;
-10. only after C acceptance may WP-2.9A resume;
-11. WP-2.9B remains `PLANNED / AFTER A`.
+3. perform the bounded read-only Worker telemetry requery after the rate-limited source attempt, as governed by `WP-2.9C-AR-006-WORKER-REQUERY.md`; do not repeat application mutations;
+4. if that evidence is unavailable, ambiguous or outside the normal Free CPU envelope, keep AR-006 open and revisit architecture — do not enable Paid or lower the file contract silently;
+5. after valid AR-006 evidence, run exact-head full CI + clean-checkout verification again over the evidence-bound candidate;
+6. transition back to `REVIEW_PENDING` only after all remediation evidence is green;
+7. run another complete fresh independent Pass B over all WP-2.9C responsibilities and AR-001..007;
+8. any BLOCKING/MAJOR finding → `REVIEW_FAILED`;
+9. only a clean Pass B may enter `ACCEPTANCE_PENDING`;
+10. only Pass C may mark WP-2.9C `ACCEPTED`;
+11. only after C acceptance may WP-2.9A resume;
+12. WP-2.9B remains `PLANNED / AFTER A`.
 
 ## Deviations
 

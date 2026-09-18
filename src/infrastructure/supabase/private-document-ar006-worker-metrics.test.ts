@@ -3,6 +3,10 @@ import {
   CPU_BUDGET_MS,
   evaluateAr006WorkerEvents,
 } from "../../../scripts/private-document-ar006-worker-metrics.mjs";
+import {
+  nextObservabilityDelayMs,
+  retryAfterDelayMs,
+} from "../../../scripts/private-document-ar006-observability-client.mjs";
 import { workerEvidenceTimeframe } from "../../../scripts/private-document-ar006-observability-timeframe.mjs";
 
 const evidenceId = "8b6d1122-bc15-4f17-a5bd-bcec57fcc0c6";
@@ -48,6 +52,22 @@ describe("AR-006 Worker provider-event correlation", () => {
         to: "2026-09-17T17:10:30.000Z",
       },
     });
+  });
+
+  it("honors Cloudflare Retry-After on an Observability rate limit", () => {
+    expect(retryAfterDelayMs(new Headers({ "retry-after": "300" }))).toBe(
+      300_000,
+    );
+    expect(retryAfterDelayMs(new Headers({ "retry-after": "0" }))).toBeNull();
+    expect(
+      nextObservabilityDelayMs(
+        { httpStatus: 429, retryAfterMs: 300_000 },
+        10_000,
+      ),
+    ).toBe(300_000);
+    expect(
+      nextObservabilityDelayMs({ httpStatus: 429, retryAfterMs: null }, 10_000),
+    ).toBe(10_000);
   });
 
   it("requires one opaque marker and one numeric invocation log", () => {

@@ -95,6 +95,14 @@ Latest AR-006 execution-support verification:
 - `npm run preflight:ar006` is a read-only readiness guard. The dedicated `[AR006-PREFLIGHT]` job runs it separately before provider evidence is authorized; the `[AR006-EVIDENCE]` job also runs the same guard before build/deployment;
 - post-deployment checks still independently require the exact candidate to expose Pages Functions, expected bindings, deployment identity and `preview_script_name` before smoke/evidence collection.
 
+Latest ADR 0011 private-Worker provider attempt:
+
+- evidence head `bdb3d95cc788d4b43205fe9c0e109966f72c7798` / CI `35286381507` — normal repository verification jobs **5/5 SUCCESS**, including `Full verify from clean checkout`;
+- private Worker deployment, isolated Pages Service Binding validation, exact Pages preview deployment and deny-oriented smoke succeeded;
+- sanitized artifact `10525006138` (ZIP SHA-256 `42ce5db8d9b8d046bbfada9b34494bfa93d0b6c58e21adef8a4cf3adead3e25f`) records ten distinct exact `25,000,000`-byte synthetic promotions, all HTTP `200` / `success: true`;
+- the final Workers Observability collection is **FAIL-CLOSED**: attempts 1–5 had no UUID-correlated marker, attempt 6 returned HTTP `429` / provider code `10429`, and no numeric CPU measurement was retained;
+- Cloudflare's REST rate-limit documentation requires `Retry-After` handling. The permitted repair is the no-mutation source requery recorded in `WP-2.9C-AR-006-WORKER-REQUERY.md`; it must not be represented as AR-006 acceptance.
+
 Historical initial provider-readiness execution:
 
 - no-content readiness head `55b02f40e8b4519db12f99ee8a38fe095e81a534`, using the exact tree of repository-green parent `2aa0b91da82b09f479cd93fb52763786f9a7874f`;
@@ -177,13 +185,11 @@ Normative release/deployment/secret contracts require Pages Functions to deploy 
 
 ## Current next-action gate
 
-1. Finish ADR 0011 Worker/Pages delegation and the exact Worker-telemetry harness; preserve AR-005 and AR-007 controls.
-2. Run ordinary exact-head CI, then `[AR006-WORKER-BOOTSTRAP]` to deploy the private Worker without application mutation.
-3. Configure only the isolated Worker/Page bindings and encrypted provider secret, then require `[AR006-PREFLIGHT]` to pass.
-4. Trigger `[AR006-EVIDENCE]` only for the final Worker-correlated ten-promotion exercise. Do not repeat the historical GraphQL, Pages-tail or unchanged-Pages channels.
-5. If telemetry is absent/ambiguous or a measurement exceeds the Free budget, keep AR-006 open and return to architecture review. Do not substitute wall time, dashboard aggregate, Paid entitlement or a lower file limit.
-6. Only after valid AR-006 exact-size CPU evidence, record it durably, verify exact-head CI/clean checkout, transition C to `REVIEW_PENDING`, run a complete fresh independent Pass B and then Pass C before acceptance.
-7. WP-2.9A remains **BLOCKED** until C is accepted; WP-2.9B and later Lots remain inactive.
+1. Run ordinary exact-head CI, then the marker-gated `[AR006-WORKER-REQUERY]` job to re-query only the retained ten private-Worker UUIDs with `Retry-After` handling. It must not deploy or mutate application data.
+2. If it records exactly ten valid source-correlated CPU measurements, inspect the sanitized artifact, reconcile AR-006, then verify the evidence-bound exact head before returning C to `REVIEW_PENDING`.
+3. If telemetry is absent/ambiguous, rate-limited after bounded backoff, duplicated or above budget, keep AR-006 open and return to architecture review. Do not substitute wall time, dashboard aggregate, Paid entitlement or a lower file limit.
+4. Only after valid AR-006 exact-size CPU evidence, run a complete fresh independent Pass B and then Pass C before acceptance.
+5. WP-2.9A remains **BLOCKED** until C is accepted; WP-2.9B and later Lots remain inactive.
 
 ## Durable handoff
 
@@ -202,6 +208,8 @@ Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--195057
 Exact-size evidence artifact: 10464581885 / ZIP SHA-256 56c809b27dadf42a3ef26a003855eb628dbf0ef437774bb76d82c02b33ada3c5 / providerCpuMeasurements=[] / pass=false
 Delayed GraphQL requery: 9b139d23a7de47f8d3927a54c54d79298ca96a6b / workflow 35149303081 / artifact 10468931194 — still no CPU rows
 AR-006 architecture review: DECISION RECORDED IN ADR 0011; implementation/verification open
+Latest private-Worker evidence: bdb3d95cc788d4b43205fe9c0e109966f72c7798 / CI 35286381507 / artifact 10525006138 (ZIP SHA-256 42ce5db8d9b8d046bbfada9b34494bfa93d0b6c58e21adef8a4cf3adead3e25f) — ten exact 25,000,000-byte HTTP-200 synthetic promotions; provider query attempt 6 rate-limited (429/10429); pass=false
+Current permitted action: `[AR006-WORKER-REQUERY]` after exact-head `full-verify`, as defined in WP-2.9C-AR-006-WORKER-REQUERY.md; read-only source telemetry query with Retry-After handling
 Tail support green tree: d04edd0ed0d3daa3b9bfe20d954003bb13545200 / parent 82e05a8dab9f61377f045b74005fd6582da0afe3 / CI 35152382433 — 5/5 SUCCESS
 Tail capability trigger: 7645a9e769c641640f52fdba535deb6140401fc6 / workflow 35153132971 / job 104986087784 / artifact 10469354745 — deny smoke SUCCESS; parsedJsonEventCount=0; providerCpuTimeMs=[]; pass=false
 Workers Observability configured capability preflight: bd3fdb4baab6ef59983e40f77b5b2f44ba6dc8b7 / workflow 35213157767 / job 105175271234 / artifact 10494251279 (ZIP SHA-256 02438aadb3e377f6c8e6ed66b3b00c0c0d3e473008c3bb710acbfb805f2dde7c) — deny smoke passed; no attributable numeric provider CPU; pass=false

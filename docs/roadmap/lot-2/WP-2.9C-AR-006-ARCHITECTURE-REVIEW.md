@@ -122,6 +122,29 @@ The Worker must have no public route, `workers_dev: false`, persisted invocation
 
 This replaces neither the exact-size contract nor the requirement for fresh review. It moves WP-2.9C to `IN_PROGRESS` for Pass A only. The current permitted action is to finish and verify the Worker, the isolated bindings and the governed evidence workflow. A missing secret, missing binding, missing provider event, non-numeric CPU, CPU above budget or CPU-limit outcome remains a fail-closed AR-006 result.
 
+### ADR 0011 Worker attempt — rate-limited final query
+
+The first fully configured private-Worker evidence execution ran at
+`bdb3d95cc788d4b43205fe9c0e109966f72c7798` / workflow `35286381507`. The
+private Worker and Pages Service Binding preflight passed; the exact candidate
+was deployed; and all ten controlled `25,000,000`-byte promotions returned
+HTTP `200`. Its final Workers Observability collection nevertheless failed
+closed: the sixth query received HTTP `429` with provider error `10429`, after
+the earlier five queries returned no UUID-correlated markers.
+
+This is a provider rate-limit result, not a valid CPU sample and not a basis to
+infer permanent telemetry absence. Cloudflare's REST rate-limit contract
+provides `Retry-After`; the corrected client honors it. The narrowly authorized
+next action is the non-mutating source requery recorded in
+`WP-2.9C-AR-006-WORKER-REQUERY.md`. It queries only the retained ten opaque
+UUIDs and same Worker through the dedicated Observability token after
+`full-verify`; it cannot deploy, reconfigure a binding or repeat promotion.
+
+If that requery cannot provide exactly one valid CPU event per source UUID, the
+provider evidence remains unavailable. Keep AR-006 open and return to this
+architecture review without enabling Paid, using wall time or lowering the file
+contract.
+
 ## Provider references
 
 - <https://developers.cloudflare.com/pages/functions/debugging-and-logging/>

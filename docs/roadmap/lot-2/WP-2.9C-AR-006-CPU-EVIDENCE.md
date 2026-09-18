@@ -114,6 +114,18 @@ The approved response is architecture review, not automatic Workers Paid activat
 
 **BLOCKED ON EXTERNAL RUNTIME EVIDENCE.**
 
-Repository remediation, exact-head CI and the isolated exact-size functional path are green, but the provider-evidence artifact failed closed because CPU telemetry is absent. The repository can prepare and validate the implementation, harness, unit conversion, release contract and fail-closed smoke locally, but it cannot manufacture Cloudflare provider CPU telemetry.
+Repository remediation, exact-head CI and the isolated exact-size functional path are green, but the provider-evidence artifact failed closed without acceptable CPU telemetry. The repository can prepare and validate the implementation, harness, unit conversion, release contract and fail-closed smoke locally, but it cannot manufacture Cloudflare provider CPU telemetry.
+
+The ADR 0011 private-Worker attempt at
+`bdb3d95cc788d4b43205fe9c0e109966f72c7798` then completed ten synthetic exact
+`25,000,000`-byte promotions successfully, but its sixth Workers Observability
+REST query was rate-limited (`HTTP 429`, provider code `10429`). The retained
+artifact has no measurements because the earlier queries had no UUID-correlated
+events and the final query was not successful. This is neither a CPU pass nor
+proof that Worker telemetry is permanently absent.
+
+The current permitted follow-up is the bounded, read-only source requery in
+`WP-2.9C-AR-006-WORKER-REQUERY.md`. It honors Cloudflare's `Retry-After` and
+does not repeat the ten document mutations. Its result remains fail-closed.
 
 The deployment identity is recorded, but provider CPU measurements are absent (`providerCpuMeasurements: []`). Re-query after Cloudflare's possible aggregation delay; if telemetry remains unavailable or unattributable, reopen architecture review under the runbook. AR-006 is not closed, WP-2.9C must not transition to `REVIEW_PENDING`, and WP-2.9A remains blocked.

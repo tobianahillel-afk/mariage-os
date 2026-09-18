@@ -404,3 +404,22 @@ Any missing/duplicate marker, missing/duplicate invocation, non-numeric CPU,
 provider query error, status mismatch, CPU over budget or CPU-limit outcome is
 an AR-006 failure. Do not replace it with a dashboard aggregate, wall time,
 Paid compute or a smaller file.
+
+### Rate-limited private-Worker requery
+
+The exact source attempt
+`bdb3d95cc788d4b43205fe9c0e109966f72c7798` completed its ten application
+promotions before the final Workers Observability query failed with HTTP `429`
+and provider code `10429`. That original artifact remains failed closed. The
+provider documentation requires REST clients to use `Retry-After` before
+retrying a rate-limited request.
+
+The only authorized follow-up is the read-only source query described in
+`WP-2.9C-AR-006-WORKER-REQUERY.md`, triggered by
+`[AR006-WORKER-REQUERY]` after ordinary `full-verify`. It must not deploy,
+authenticate to Supabase, create/reserve/finalize a document, upload a PDF or
+call the promotion route. It may query only the retained source time range and
+opaque UUID correlation set, using the dedicated Observability token. A
+rate-limit response after bounded `Retry-After` handling, missing/duplicate
+correlation or invalid CPU measurement keeps AR-006 open and returns to the
+architecture review; it does not authorize a new ten-promotion campaign.

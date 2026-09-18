@@ -5,19 +5,19 @@ import { createClient } from "@supabase/supabase-js";
 import {
   CPU_BUDGET_MS,
   evaluateAr006WorkerEvents,
-  observabilityErrorCodes,
-  observabilityEvents,
 } from "./private-document-ar006-worker-metrics.mjs";
+import {
+  nextObservabilityDelayMs,
+  queryWorkersObservability,
+} from "./private-document-ar006-observability-client.mjs";
 import { workerEvidenceTimeframe } from "./private-document-ar006-observability-timeframe.mjs";
 import { createExactPdf } from "./private-document-ar006-synthetic-pdf.mjs";
 
 const MAX_BYTES = 25_000_000;
 const INVOCATION_COUNT = 10;
-const API_ROOT = "https://api.cloudflare.com/client/v4/accounts";
 const EVIDENCE_PATH = "ar006-workers-free-evidence.json";
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
-const QUERY_LIMIT = 100;
 const OBSERVABILITY_ATTEMPTS = 6;
 const OBSERVABILITY_DELAY_MS = 10_000;
 
@@ -197,52 +197,14 @@ async function runPromotions({
   return invocations;
 }
 
-function queryBody(workerName, timeframe) {
-  return {
-    queryId: "mariage-os-ar006-worker-evidence",
-    timeframe,
-    view: "events",
-    limit: QUERY_LIMIT,
-    dry: true,
-    parameters: {
-      datasets: [],
-      filterCombination: "and",
-      filters: [
-        {
-          kind: "filter",
-          key: "$workers.scriptName",
-          operation: "eq",
-          type: "string",
-          value: workerName,
-        },
-      ],
-    },
-  };
-}
-
 async function queryObservability(context, timeframe) {
-  const response = await globalThis.fetch(
-    `${API_ROOT}/${encodeURIComponent(context.accountId)}/workers/observability/telemetry/query`,
-    {
-      method: "POST",
-      headers: {
-        authorization: `Bearer ${requiredEnv("CLOUDFLARE_OBSERVABILITY_API_TOKEN")}`,
-        "content-type": "application/json",
-      },
-      body: JSON.stringify(queryBody(context.workerName, timeframe)),
-    },
-  );
-  const payload = await response.json().catch(() => null);
-  return {
-    httpStatus: response.status,
-    apiSuccess:
-      response.ok &&
-      typeof payload === "object" &&
-      payload !== null &&
-      payload.success === true,
-    providerErrorCodes: observabilityErrorCodes(payload),
-    events: observabilityEvents(payload),
-  };
+  return queryWorkersObservability({
+    accountId: context.accountId,
+    workerName: context.workerName,
+    token: requiredEnv("CLOUDFLARE_OBSERVABILITY_API_TOKEN"),
+    timeframe,
+    queryId: "mariage-os-ar006-worker-evidence",
+  });
 }
 
 async function collectWorkerEvidence(context, invocations) {
@@ -264,7 +226,9 @@ async function collectWorkerEvidence(context, invocations) {
       evaluation,
     };
     if (result.apiSuccess && evaluation.pass) break;
-    if (attempt < OBSERVABILITY_ATTEMPTS) await delay(OBSERVABILITY_DELAY_MS);
+    if (attempt < OBSERVABILITY_ATTEMPTS) {
+      await delay(nextObservabilityDelayMs(result, OBSERVABILITY_DELAY_MS));
+    }
   }
   return latest;
 }
@@ -312,6 +276,7 @@ function providerResult(observation) {
     httpStatus: observation.httpStatus,
     apiSuccess: observation.apiSuccess,
     providerErrorCodes: observation.providerErrorCodes,
+    retryAfterMs: observation.retryAfterMs,
     queryAttempt: observation.attempt,
     observationWindow: observation.window,
     measurements: observation.evaluation.measurements,
