@@ -1,0 +1,221 @@
+name: Photo Recovery Batch8
+
+on:
+  push:
+    branches:
+      - photo-recovery-batch8-20260918
+    paths:
+      - 'tmp/photo-recovery-batch8/**'
+      - '.github/workflows/photo-recovery-batch8.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout recovery branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: python -m pip install --upgrade requests Pillow
+
+      - name: Recover, validate and package 27 images
+        shell: bash
+        run: |
+          python - <<'PY'
+          import csv
+          import hashlib
+          import io
+          import json
+          import os
+          import re
+          import shutil
+          import sys
+          import zipfile
+          from pathlib import Path
+          from urllib.parse import quote
+
+          import requests
+          from PIL import Image, ImageOps
+
+          root = Path("tmp/photo-recovery-batch8")
+          manifest_path = root / "manifest.json"
+          out = root / "output"
+          images_dir = out / "images"
+          out.mkdir(parents=True, exist_ok=True)
+          images_dir.mkdir(parents=True, exist_ok=True)
+
+          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          if len(manifest) != 27:
+              raise SystemExit(f"Manifest count is {len(manifest)}, expected 27")
+
+          session = requests.Session()
+          session.headers.update({
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/152 Safari/537.36",
+              "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+          })
+
+          def safe(s):
+              s = re.sub(r'[^A-Za-z0-9._-]+', '_', s)
+              return s.strip('_')[:100] or 'image'
+
+          def fetch_bytes(item):
+              src = item["image_url"]
+              referer = item.get("source_page") or ""
+              # First choice: neutral image proxy, which also normalizes WebP/PNG/social CDN images.
+              proxy = "https://images.weserv.nl/?url=" + quote(src, safe="") + "&w=1280&output=jpg&q=88"
+              attempts = [
+                  ("weserv", proxy, {"Referer": referer} if referer else {}),
+                  ("direct", src, {"Referer": referer} if referer else {}),
+              ]
+              errors = []
+              for method, url, headers in attempts:
+                  try:
+                      r = session.get(url, headers=headers, timeout=(20, 90), allow_redirects=True)
+                      ct = r.headers.get("content-type", "")
+                      if r.status_code != 200:
+                          errors.append(f"{method}: HTTP {r.status_code}")
+                          continue
+                      if len(r.content) < 1000:
+                          errors.append(f"{method}: only {len(r.content)} bytes")
+                          continue
+                      try:
+                          im = Image.open(io.BytesIO(r.content))
+                          im.load()
+                      except Exception as e:
+                          errors.append(f"{method}: invalid image ({e})")
+                          continue
+                      return method, r.url, ct, r.content, im
+                  except Exception as e:
+                      errors.append(f"{method}: {type(e).__name__}: {e}")
+              raise RuntimeError("; ".join(errors))
+
+          rows = []
+          failures = []
+
+          for i, item in enumerate(manifest, 1):
+              ident = int(item["id"])
+              venue = item["venue"]
+              cat = item["category"]
+              print(f"[{i:02d}/27] ID {ident:03d} {venue} {cat}")
+              try:
+                  method, final_url, content_type, raw, im = fetch_bytes(item)
+                  im = ImageOps.exif_transpose(im)
+                  if im.mode != "RGB":
+                      im = im.convert("RGB")
+
+                  # Keep Excel-friendly dimensions while retaining a useful preview.
+                  max_edge = 1280
+                  if max(im.size) > max_edge:
+                      im.thumbnail((max_edge, max_edge), Image.Resampling.LANCZOS)
+
+                  filename = f"{ident:03d}_{safe(item['code'])}_{safe(cat)}_{safe(venue)}.jpg"
+                  path = images_dir / filename
+                  im.save(path, "JPEG", quality=90, optimize=True, progressive=False)
+                  data = path.read_bytes()
+                  check = Image.open(io.BytesIO(data))
+                  check.load()
+                  width, height = check.size
+                  check.close()
+
+                  row = {
+                      "id": ident,
+                      "code": item["code"],
+                      "venue": venue,
+                      "category": cat,
+                      "kind": item["kind"],
+                      "source_page": item["source_page"],
+                      "image_url": item["image_url"],
+                      "fetch_method": method,
+                      "final_url": final_url,
+                      "filename": filename,
+                      "bytes": len(data),
+                      "width": width,
+                      "height": height,
+                      "sha256": hashlib.sha256(data).hexdigest(),
+                      "status": "OK",
+                      "error": "",
+                  }
+                  rows.append(row)
+                  print(f"   OK {width}x{height} {len(data)} bytes via {method}")
+              except Exception as e:
+                  row = {
+                      "id": ident,
+                      "code": item["code"],
+                      "venue": venue,
+                      "category": cat,
+                      "kind": item["kind"],
+                      "source_page": item["source_page"],
+                      "image_url": item["image_url"],
+                      "fetch_method": "",
+                      "final_url": "",
+                      "filename": "",
+                      "bytes": "",
+                      "width": "",
+                      "height": "",
+                      "sha256": "",
+                      "status": "FAILED",
+                      "error": f"{type(e).__name__}: {e}",
+                  }
+                  rows.append(row)
+                  failures.append(row)
+                  print("   FAILED", row["error"])
+
+          fields = [
+              "id","code","venue","category","kind","source_page","image_url",
+              "fetch_method","final_url","filename","bytes","width","height","sha256",
+              "status","error"
+          ]
+          with (out / "recovery_manifest.csv").open("w", newline="", encoding="utf-8-sig") as f:
+              w = csv.DictWriter(f, fieldnames=fields)
+              w.writeheader()
+              w.writerows(rows)
+
+          (out / "recovery_manifest.json").write_text(
+              json.dumps(rows, ensure_ascii=False, indent=2), encoding="utf-8"
+          )
+          (out / "README.txt").write_text(
+              "Mariage Batch8 - récupération complémentaire des 27 images.\n"
+              f"OK: {len(rows)-len(failures)}/27\n"
+              f"FAILED: {len(failures)}\n"
+              "kind=refreshed_exact : même média social, URL rafraîchie.\n"
+              "kind=original_stable : URL originale stable.\n"
+              "kind=replacement_same_venue : ancienne attribution/URL remplacée par une image publique du bon lieu.\n",
+              encoding="utf-8"
+          )
+
+          zip_path = Path("Mariage_27_Photos_Recovery_BATCH8.zip")
+          if zip_path.exists():
+              zip_path.unlink()
+          with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED, compresslevel=6) as z:
+              for p in sorted(out.rglob("*")):
+                  if p.is_file():
+                      z.write(p, arcname=str(p.relative_to(out)).replace(os.sep, "/"))
+
+          print(f"ZIP={zip_path} size={zip_path.stat().st_size}")
+          print(f"RESULT={len(rows)-len(failures)}/27")
+          if failures:
+              print("FAILED_IDS=" + ",".join(str(x["id"]) for x in failures))
+              sys.exit(2)
+          PY
+
+      - name: Upload recovery ZIP
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Mariage_27_Photos_Recovery_BATCH8
+          path: |
+            Mariage_27_Photos_Recovery_BATCH8.zip
+            tmp/photo-recovery-batch8/output/recovery_manifest.csv
+            tmp/photo-recovery-batch8/output/recovery_manifest.json
+            tmp/photo-recovery-batch8/output/README.txt
+          if-no-files-found: error
+          retention-days: 7
