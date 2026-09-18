@@ -183,6 +183,13 @@ diagnostic, telemetry requery, token operation, deployment or promotion is
 authorized by this decision. The HTTP `401` cause and actual Worker Free CPU
 measurements remain unresolved, so AR-006 stays open.
 
+The local correction is verified at implementation head
+`18cf24cebb545b67fd2fe6791a7a3ece13e60f94` / CI `35364734978`: all five
+normal repository jobs succeeded, including `Full verify from clean checkout`.
+The schema-conforming 200/5-ms regression passes; null, string and negative CPU
+values fail closed. Provider-specific jobs were skipped. This is no evidence of
+token validity, available Worker logs or actual Workers Free CPU consumption.
+
 ## Provider references
 
 - <https://developers.cloudflare.com/pages/functions/debugging-and-logging/>

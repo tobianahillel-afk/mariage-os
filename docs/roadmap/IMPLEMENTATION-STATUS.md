@@ -111,6 +111,13 @@ Latest read-only source requery and credential recovery:
 - the one permitted recovery at `a937d6e1484640afba52848e895f5480ab4ea8a8` / CI `35339776360` completed normal CI **5/5 SUCCESS**, including `Full verify from clean checkout`, but its telemetry job again returned HTTP `401` / provider code `10000` on all three calls. Sanitized artifact `10545420236` (ZIP SHA-256 `dbac3d188a41dfc94420618406456d6a17f65ddbec485507a4fe98100e09eb86`) has zero measurements and `pass: false`;
 - the bounded requery protocol is exhausted. No further token rotation, telemetry requery, deployment or promotion is permitted without an explicit architecture decision.
 
+Local AR-006 evidence-parser correction after architecture review:
+
+- the bounded local-only decision is recorded at `202f149` in `WP-2.9C-AR-006-ARCHITECTURE-REVIEW.md`;
+- implementation head `18cf24cebb545b67fd2fe6791a7a3ece13e60f94` / CI `35364734978` completed the five normal jobs **5/5 SUCCESS**, including `Full verify from clean checkout`; provider preflight, promotion evidence and Worker telemetry requery were **SKIPPED**;
+- the evaluator now reads Cloudflare's invocation HTTP status from `$metadata.statusCode` and requires a finite, non-negative JSON number at `$workers.cpuTimeMs`. Focused regression tests accept a schema-conforming `200` / `5 ms` event and reject absent, string and negative CPU values;
+- this repairs the local verifier only. The previous provider HTTP `401` / `10000` responses and missing CPU measurements remain unresolved; AR-006 and WP-2.9C are not accepted.
+
 
 Historical initial provider-readiness execution:
 
@@ -220,6 +227,7 @@ AR-006 architecture review: DECISION RECORDED IN ADR 0011; implementation/verifi
 Latest private-Worker evidence: bdb3d95cc788d4b43205fe9c0e109966f72c7798 / CI 35286381507 / artifact 10525006138 (ZIP SHA-256 42ce5db8d9b8d046bbfada9b34494bfa93d0b6c58e21adef8a4cf3adead3e25f) — ten exact 25,000,000-byte HTTP-200 synthetic promotions; provider query attempt 6 rate-limited (429/10429); pass=false
 Latest Worker requery: 2ef0e13b755ffc609972ac83c1d2260ca73ff8de / CI 35337938664 / artifact 10544340701 (ZIP SHA-256 d048098fa251b409ca8545fcda4d9e72c50cd76ebb3810d1b290e88be0bb0424) — normal CI 5/5 SUCCESS; telemetry request rejected 401/10000 before event retrieval; pass=false
 Final bounded Worker requery: a937d6e1484640afba52848e895f5480ab4ea8a8 / CI 35339776360 / artifact 10545420236 (ZIP SHA-256 dbac3d188a41dfc94420618406456d6a17f65ddbec485507a4fe98100e09eb86) — normal CI 5/5 SUCCESS; telemetry rejected 401/10000 on all three calls; zero measurements; pass=false
+Local evidence parser repair: architecture decision 202f149; implementation 18cf24cebb545b67fd2fe6791a7a3ece13e60f94 / CI 35364734978 — normal CI 5/5 SUCCESS including clean-checkout; no provider query or promotion; AR-006 remains open
 Current permitted action: architecture review only. A new external diagnostic or provider-evidence channel requires an explicit decision before any further token or telemetry action.
 Tail support green tree: d04edd0ed0d3daa3b9bfe20d954003bb13545200 / parent 82e05a8dab9f61377f045b74005fd6582da0afe3 / CI 35152382433 — 5/5 SUCCESS
 Tail capability trigger: 7645a9e769c641640f52fdba535deb6140401fc6 / workflow 35153132971 / job 104986087784 / artifact 10469354745 — deny smoke SUCCESS; parsedJsonEventCount=0; providerCpuTimeMs=[]; pass=false

@@ -230,6 +230,13 @@ Fresh Pass B specifically invalidates treating any local 25 MB success as suffic
 
 Current state: **IN_PROGRESS — WP29C-AR-006 ADR 0011 PRIVATE WORKER IMPLEMENTATION**.
 
+The local AR-006 provider-event evaluator was corrected at
+`18cf24cebb545b67fd2fe6791a7a3ece13e60f94` / CI `35364734978` (**5/5**
+normal jobs successful, including clean-checkout verification). It now reads
+provider HTTP status from `$metadata.statusCode` and rejects non-numeric,
+non-finite or negative `$workers.cpuTimeMs`. No Cloudflare query or promotion ran
+in that CI. This does not resolve the HTTP `401` evidence-channel block.
+
 Current gate:
 
 1. retain AR-005 and AR-007 remediations without weakening their security contracts;
