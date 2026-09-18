@@ -4,9 +4,9 @@
     "code": "S11A",
     "venue": "Château Hermitage de Combas",
     "category": "F",
-    "kind": "refreshed_exact",
-    "source_page": "https://www.instagram.com/mimosadesigndecoflorale/p/Db00ZiDgsfq/",
-    "image_url": "https://scontent-sjc6-1.cdninstagram.com/v/t51.82787-15/769385862_17946036849256529_1608881257342759307_n.jpg?stp=c604.0.1815.1814a_dst-jpg_e35_s640x640_tt6&_nc_cat=104&ccb=7-5&_nc_sid=18de74&efg=eyJlZmdfdGFnIjoiQ0FST1VTRUxfSVRFTS5iZXN0X2ltYWdlX3VybGdlbi5DMyJ9&_nc_ohc=LbhynJRGF6gQ7kNvwGLqvLZ&_nc_oc=AdrR6bJ2xhYe1P-GQhB-U63REdYXDw979D_7gjWGpq4KIQJxOfruZqyYS4FnrUDw_bA&_nc_zt=23&_nc_ht=scontent-sjc6-1.cdninstagram.com&_nc_gid=sQhNSYSp0DxPe0jeJWq8Mw&_nc_ss=7b689&oh=00_AQJeJYQsZxqE76q8JVAH684xUuBE2GlP"
+    "kind": "replacement_same_venue",
+    "source_page": "https://www.nadeigebranger-destinationwedding.com/post/domaine-reception-mariage-herault-combas",
+    "image_url": "https://static.wixstatic.com/media/62dc60_ed62eafa81574b1a92393ac459c8f86b~mv2.jpg/v1/fill/w_787,h_520,al_c,q_85/62dc60_ed62eafa81574b1a92393ac459c8f86b~mv2.jpg"
   },
   {
     "id": 30,
@@ -49,9 +49,9 @@
     "code": "S32",
     "venue": "Domaine de Sarson / Les Terres de Sarson",
     "category": "BG",
-    "kind": "original_stable",
-    "source_page": "https://www.domainedesarson.com/",
-    "image_url": "https://www.domainedesarson.com/images/Galerie-photos/grangeSarson.jpg"
+    "kind": "replacement_same_venue",
+    "source_page": "https://www.terresdesarson.com/",
+    "image_url": "https://www.terresdesarson.com/assets/images/domaine/grange-lumineuse.webp"
   },
   {
     "id": 67,
@@ -67,9 +67,9 @@
     "code": "P13",
     "venue": "Domaine de la Muette",
     "category": "BDG",
-    "kind": "original_stable",
-    "source_page": "https://www.domaine-de-la-muette.fr/mariage.php",
-    "image_url": "https://www.domaine-de-la-muette.fr/assets/images/img-site/Image%2028-05-2019%2019.23.jpg"
+    "kind": "replacement_same_venue",
+    "source_page": "https://www.abcsalles.com/lieu/domaine-de-la-muette",
+    "image_url": "https://media.abcsalles.com/images/1/salles/960x640/20686/domaine-de-la-muette-rftp-28.jpg"
   },
   {
     "id": 88,
@@ -94,9 +94,9 @@
     "code": "S03",
     "venue": "Mas de Coupie",
     "category": "F",
-    "kind": "refreshed_exact",
-    "source_page": "https://www.instagram.com/p/DbqkppcjJD_/",
-    "image_url": "https://scontent-lax3-2.cdninstagram.com/v/t51.82787-15/761281505_18063762542754651_2121965868798941423_n.jpg?stp=cmp1_dst-jpg_e35_s640x640_tt6&_nc_cat=100&ccb=7-5&_nc_sid=18de74&efg=eyJlZmdfdGFnIjoiQ0FST1VTRUxfSVRFTS5iZXN0X2ltYWdlX3VybGdlbi5DMyJ9&_nc_ohc=udpak6eiFQkQ7kNvwF0TsHr&_nc_oc=AdqoXWjt7IxDjh7K6Cpi-HyFQe8IMlDOciYP7c18lYv_osI9AwRRltFddqNiCTghwtw&_nc_zt=23&_nc_ht=scontent-lax3-2.cdninstagram.com&_nc_gid=xtDaTwYkX_uAoChG-067TA&_nc_ss=7ba8c&oh=00_AQKgWGO3Wj77wcL1PSKhzYcy5D0Q-3MHDeUXOfVcw5AMN"
+    "kind": "replacement_same_venue",
+    "source_page": "https://www.dsteiner.fr/s-j-mariage-au-mas-de-coupie-eyguieres/",
+    "image_url": "https://i0.wp.com/www.dsteiner.fr/wp-content/uploads/2021/09/S-J-165.jpg?fit=1620%2C1080&ssl=1"
   },
   {
     "id": 105,
@@ -130,9 +130,9 @@
     "code": "P24",
     "venue": "Château de la Bussière",
     "category": "D",
-    "kind": "original_stable",
-    "source_page": "https://www.evenementielpourtous.com/chateau-de-la-bussiere-122928",
-    "image_url": "https://www.evenementielpourtous.com/upload/122928_5_big_286196.webp"
+    "kind": "replacement_same_venue",
+    "source_page": "https://www.chateau-de-la-bussiere.com/salles-de-reception/",
+    "image_url": "https://www.chateau-de-la-bussiere.com/wp-content/uploads/2025/05/Salles-de-Reception-1920-04.png"
   },
   {
     "id": 154,
@@ -184,18 +184,18 @@
     "code": "S15",
     "venue": "Château de la Napoule",
     "category": "D",
-    "kind": "original_stable",
-    "source_page": "https://www.aleou.fr/salle-seminaire/15021-chateau-de-la-napoule",
-    "image_url": "https://usr.aleou.fr/xusers/ximg/wsuppliers/15021/max/chateau-de-la-napoule-banquet.webp"
+    "kind": "replacement_same_venue",
+    "source_page": "https://www.abcsalles.com/lieu/chateau-lanapoule",
+    "image_url": "https://media.abcsalles.com/images/1/salles/960x640/27339/chateau-de-la-napoule-115.jpg"
   },
   {
     "id": 199,
     "code": "SHC05",
     "venue": "Domaines de Patras",
     "category": "BDG",
-    "kind": "original_stable",
-    "source_page": "https://www.evenementielpourtous.com/domaines-de-patras-63788",
-    "image_url": "https://www.evenementielpourtous.com/upload/63788_2_big_272689.webp"
+    "kind": "replacement_same_venue",
+    "source_page": "https://lesdomainesdepatras.fr/domaine",
+    "image_url": "https://lesdomainesdepatras.fr/images/AtelierdesChef_Patras03.avif"
   },
   {
     "id": 213,
