@@ -33,6 +33,32 @@ Cloudflare documents `Retry-After` for REST API rate limits and says callers
 must wait before retrying. The returned rate-limit response is a transient
 provider condition, not a reason to repeat the ten application mutations.
 
+## 2026-09-18 authentication recovery
+
+The first execution of this requery support at
+`2ef0e13b755ffc609972ac83c1d2260ca73ff8de` / workflow `35337938664`
+completed the five normal repository jobs successfully, including clean-checkout
+`full-verify`. Its isolated read-only requery job `105579141917` then wrote
+sanitized artifact `10544340701` (ZIP SHA-256
+`d048098fa251b409ca8545fcda4d9e72c50cd76ebb3810d1b290e88be0bb0424`).
+
+All three provider queries returned HTTP `401` with provider code `10000`; the
+artifact retained zero measurements and `pass: false`. This is a credential or
+provider-authentication failure before event retrieval. It establishes neither
+CPU compliance nor absence of Worker telemetry. The job made no deployment,
+configuration, Supabase or application-data mutation.
+
+The prior observability credential had no demonstrated successful use. A new
+dedicated Cloudflare account token scoped only to Workers Observability telemetry
+write was created with one-year expiry and saved only as the encrypted
+`AR006_CLOUDFLARE_OBSERVABILITY_TOKEN` Environment secret. Its value is not
+retained in the repository or in any artifact.
+
+One recovery execution is authorized after `full-verify`: it repeats exactly the
+same retained-source query with the corrected secret and the same marker. It
+must not deploy, reconfigure, authenticate to Supabase or repeat a promotion.
+
+
 ## Authorized action
 
 The `AR-006 private Worker telemetry requery` job in `.github/workflows/ci.yml`
@@ -67,10 +93,13 @@ no CPU-limit outcome. It remains evidence input rather than packet acceptance:
 inspect the artifact, reconcile the source run and exact CI, update the AR-006
 record, then run the required fresh Pass B and Pass C.
 
-If this read-only requery returns no attributable numeric CPU, a rate-limit
-error after its bounded backoff, duplicate correlation or an over-budget value,
-AR-006 remains open. Do not rerun the ten promotions automatically; return to
-the architecture review under the runbook.
+The initial execution documented above returned an authentication failure before
+event retrieval. The one authorized recovery execution may correct only the
+dedicated encrypted credential and re-run this identical read-only source query.
+If that recovery returns an authentication or provider-query error, no
+attributable numeric CPU, a rate-limit error after bounded backoff, duplicate
+correlation or an over-budget value, AR-006 remains open. Do not rerun the ten
+promotions automatically; return to the architecture review under the runbook.
 
 ## Provider references
 

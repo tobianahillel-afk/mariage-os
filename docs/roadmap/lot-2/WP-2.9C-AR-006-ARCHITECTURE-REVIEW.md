@@ -140,8 +140,18 @@ next action is the non-mutating source requery recorded in
 UUIDs and same Worker through the dedicated Observability token after
 `full-verify`; it cannot deploy, reconfigure a binding or repeat promotion.
 
-If that requery cannot provide exactly one valid CPU event per source UUID, the
-provider evidence remains unavailable. Keep AR-006 open and return to this
+Its initial execution at `2ef0e13b755ffc609972ac83c1d2260ca73ff8de` / workflow
+`35337938664` passed the five normal repository jobs, but the read-only job
+received HTTP `401` / provider code `10000` on all three provider calls before
+event retrieval (artifact `10544340701`, ZIP SHA-256
+`d048098fa251b409ca8545fcda4d9e72c50cd76ebb3810d1b290e88be0bb0424`). This is
+an authentication/configuration failure and cannot be interpreted as missing
+telemetry. One replacement token with only Workers Observability scope was
+stored as the encrypted isolated Environment secret; one identical read-only
+recovery query is authorized.
+
+If that recovery cannot provide exactly one valid CPU event per source UUID,
+the provider evidence remains unavailable. Keep AR-006 open and return to this
 architecture review without enabling Paid, using wall time or lowering the file
 contract.
 

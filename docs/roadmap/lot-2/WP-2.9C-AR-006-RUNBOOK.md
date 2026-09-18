@@ -414,12 +414,18 @@ and provider code `10429`. That original artifact remains failed closed. The
 provider documentation requires REST clients to use `Retry-After` before
 retrying a rate-limited request.
 
-The only authorized follow-up is the read-only source query described in
-`WP-2.9C-AR-006-WORKER-REQUERY.md`, triggered by
-`[AR006-WORKER-REQUERY]` after ordinary `full-verify`. It must not deploy,
-authenticate to Supabase, create/reserve/finalize a document, upload a PDF or
-call the promotion route. It may query only the retained source time range and
-opaque UUID correlation set, using the dedicated Observability token. A
+The source query is described in `WP-2.9C-AR-006-WORKER-REQUERY.md` and is
+triggered by `[AR006-WORKER-REQUERY]` after ordinary `full-verify`. Its first
+execution at `2ef0e13b755ffc609972ac83c1d2260ca73ff8de` completed normal CI but
+received HTTP `401` / provider code `10000` for all three query attempts
+(artifact `10544340701`, ZIP SHA-256
+`d048098fa251b409ca8545fcda4d9e72c50cd76ebb3810d1b290e88be0bb0424`). This
+credential/configuration failure contains no provider observation.
+
+One recovery execution may use the corrected dedicated Observability secret and
+the same retained source range and opaque UUID correlation set. It must not
+deploy, authenticate to Supabase, create/reserve/finalize a document, upload a
+PDF or call the promotion route. A further authentication/provider-query error,
 rate-limit response after bounded `Retry-After` handling, missing/duplicate
 correlation or invalid CPU measurement keeps AR-006 open and returns to the
 architecture review; it does not authorize a new ten-promotion campaign.

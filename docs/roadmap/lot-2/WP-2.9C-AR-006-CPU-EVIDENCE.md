@@ -124,8 +124,16 @@ artifact has no measurements because the earlier queries had no UUID-correlated
 events and the final query was not successful. This is neither a CPU pass nor
 proof that Worker telemetry is permanently absent.
 
-The current permitted follow-up is the bounded, read-only source requery in
-`WP-2.9C-AR-006-WORKER-REQUERY.md`. It honors Cloudflare's `Retry-After` and
-does not repeat the ten document mutations. Its result remains fail-closed.
+The first bounded source requery at `2ef0e13b755ffc609972ac83c1d2260ca73ff8de`
+completed normal CI but its three telemetry calls all returned HTTP `401` /
+provider code `10000` before event retrieval (artifact `10544340701`, ZIP
+SHA-256 `d048098fa251b409ca8545fcda4d9e72c50cd76ebb3810d1b290e88be0bb0424`).
+That is an authentication/configuration failure, not a CPU observation.
+
+The current permitted follow-up is one credential-recovery execution of the
+same bounded, read-only source query in `WP-2.9C-AR-006-WORKER-REQUERY.md`. It
+uses the corrected encrypted Observability secret, still honors Cloudflare's
+`Retry-After`, and does not repeat the ten document mutations. Its result
+remains fail-closed.
 
 The deployment identity is recorded, but provider CPU measurements are absent (`providerCpuMeasurements: []`). Re-query after Cloudflare's possible aggregation delay; if telemetry remains unavailable or unattributable, reopen architecture review under the runbook. AR-006 is not closed, WP-2.9C must not transition to `REVIEW_PENDING`, and WP-2.9A remains blocked.

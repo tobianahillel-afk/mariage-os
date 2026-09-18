@@ -234,7 +234,7 @@ Current gate:
 
 1. retain AR-005 and AR-007 remediations without weakening their security contracts;
 2. deploy/configure the ADR 0011 private Worker and obtain the Worker-correlated deployed Workers Free exact-25-MB CPU proof defined in `WP-2.9C-AR-006-RUNBOOK.md`;
-3. perform the bounded read-only Worker telemetry requery after the rate-limited source attempt, as governed by `WP-2.9C-AR-006-WORKER-REQUERY.md`; do not repeat application mutations;
+3. perform the one bounded credential-recovery read-only Worker telemetry requery governed by `WP-2.9C-AR-006-WORKER-REQUERY.md`; it reuses the retained source only and must not repeat application mutations;
 4. if that evidence is unavailable, ambiguous or outside the normal Free CPU envelope, keep AR-006 open and revisit architecture — do not enable Paid or lower the file contract silently;
 5. after valid AR-006 evidence, run exact-head full CI + clean-checkout verification again over the evidence-bound candidate;
 6. transition back to `REVIEW_PENDING` only after all remediation evidence is green;
