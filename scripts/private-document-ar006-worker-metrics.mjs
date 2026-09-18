@@ -15,8 +15,7 @@ function stringOrNull(value) {
 }
 
 function finiteNumber(value) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? numeric : null;
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
 function markerFields(value) {
@@ -88,7 +87,7 @@ function invocationRecord(events, scriptName, requestId) {
     }
     matches.push({
       cpuTimeMs: finiteNumber(workers.cpuTimeMs),
-      statusCode: finiteNumber(workers.statusCode),
+      statusCode: finiteNumber(metadata.statusCode),
       outcome: stringOrNull(workers.outcome),
     });
   }
@@ -101,7 +100,9 @@ function failure(code, evidenceId) {
 
 function invalidMeasurement(marker, invocation) {
   const withinFreeCpuBudget =
-    invocation.cpuTimeMs !== null && invocation.cpuTimeMs <= CPU_BUDGET_MS;
+    invocation.cpuTimeMs !== null &&
+    invocation.cpuTimeMs >= 0 &&
+    invocation.cpuTimeMs <= CPU_BUDGET_MS;
   const exceededCpu =
     invocation.outcome !== null && /exceeded?cpu/iu.test(invocation.outcome);
   const valid =

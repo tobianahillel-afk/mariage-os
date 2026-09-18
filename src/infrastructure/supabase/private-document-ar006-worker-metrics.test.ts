@@ -26,14 +26,13 @@ function marker() {
   };
 }
 
-function invocation(cpuTimeMs = CPU_BUDGET_MS) {
+function invocation(cpuTimeMs: number | null | string = CPU_BUDGET_MS) {
   return {
-    $metadata: { type: "cf-worker-event" },
+    $metadata: { type: "cf-worker-event", statusCode: 200 },
     $workers: {
       scriptName,
       requestId,
       cpuTimeMs,
-      statusCode: 200,
       outcome: "ok",
     },
   };
@@ -94,6 +93,32 @@ describe("AR-006 Worker provider-event correlation", () => {
     expect(
       evaluateAr006WorkerEvents(
         [marker(), invocation(CPU_BUDGET_MS + 0.1)],
+        [evidenceId],
+        scriptName,
+      ).pass,
+    ).toBe(false);
+  });
+});
+
+describe("AR-006 Worker CPU value validation", () => {
+  it("rejects absent or non-numeric provider CPU values", () => {
+    expect(
+      evaluateAr006WorkerEvents(
+        [marker(), invocation(null)],
+        [evidenceId],
+        scriptName,
+      ).pass,
+    ).toBe(false);
+    expect(
+      evaluateAr006WorkerEvents(
+        [marker(), invocation("5")],
+        [evidenceId],
+        scriptName,
+      ).pass,
+    ).toBe(false);
+    expect(
+      evaluateAr006WorkerEvents(
+        [marker(), invocation(-1)],
         [evidenceId],
         scriptName,
       ).pass,
