@@ -6,6 +6,7 @@ import {
 import {
   nextObservabilityDelayMs,
   queryWorkersObservability,
+  verifyObservabilityAccountToken,
 } from "./private-document-ar006-observability-client.mjs";
 import { workerEvidenceTimeframe } from "./private-document-ar006-observability-timeframe.mjs";
 import { workerEvidenceRequerySource } from "./private-document-ar006-worker-requery-source.mjs";
@@ -126,24 +127,28 @@ function evidencePass(latest) {
   return latest !== null && latest.apiSuccess && latest.evaluation.pass;
 }
 
-function evidenceRecord(context, observation) {
+function evidenceRecord(context, verification, observation) {
   const { latest, attempts } = observation;
   return {
-    schema: "mariage-os.wp29c.ar006.worker-observability-requery.v1",
+    schema: "mariage-os.wp29c.ar006.worker-observability-requery.v2",
     generatedAt: new Date().toISOString(),
     source: sourceEvidence(context),
     workersPlanAttestation: "Workers Free / isolated non-production",
+    tokenVerification: verification,
     provider: providerEvidence(latest, attempts),
     cpuBudgetMs: CPU_BUDGET_MS,
     paidCpuEntitlementAttestedAbsent: true,
-    pass: evidencePass(latest),
+    pass: verification.tokenActive && evidencePass(latest),
   };
 }
 
 async function main() {
   const context = assertContext();
-  const observation = await collectWorkerEvidence(context);
-  const evidence = evidenceRecord(context, observation);
+  const verification = await verifyObservabilityAccountToken(context);
+  const observation = verification.tokenActive
+    ? await collectWorkerEvidence(context)
+    : { latest: null, attempts: [] };
+  const evidence = evidenceRecord(context, verification, observation);
   await writeFile(
     EVIDENCE_PATH,
     `${JSON.stringify(evidence, null, 2)}\n`,

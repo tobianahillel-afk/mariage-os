@@ -6,6 +6,18 @@ export interface Ar006ObservabilityResult {
   retryAfterMs: number | null;
 }
 
+export interface Ar006ObservabilityTokenVerification {
+  httpStatus: number;
+  apiSuccess: boolean;
+  tokenActive: boolean;
+  providerErrorCodes: number[];
+}
+
+export function verifyObservabilityAccountToken(input: {
+  accountId: string;
+  token: string;
+}): Promise<Ar006ObservabilityTokenVerification>;
+
 export function retryAfterDelayMs(headers: Headers): number | null;
 
 export function nextObservabilityDelayMs(
