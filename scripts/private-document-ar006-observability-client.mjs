@@ -6,11 +6,10 @@ import {
 const API_ROOT = "https://api.cloudflare.com/client/v4/accounts";
 const DEFAULT_LIMIT = 100;
 
-export async function verifyObservabilityAccountToken({ accountId, token }) {
-  const response = await globalThis.fetch(
-    `${API_ROOT}/${encodeURIComponent(accountId)}/tokens/verify`,
-    { headers: { authorization: `Bearer ${token}` } },
-  );
+async function verifyToken(url, token) {
+  const response = await globalThis.fetch(url, {
+    headers: { authorization: `Bearer ${token}` },
+  });
   const payload = await response.json().catch(() => null);
   const apiSuccess =
     response.ok &&
@@ -23,6 +22,20 @@ export async function verifyObservabilityAccountToken({ accountId, token }) {
     tokenActive: apiSuccess && payload.result?.status === "active",
     providerErrorCodes: observabilityErrorCodes(payload),
   };
+}
+
+export function verifyObservabilityAccountToken({ accountId, token }) {
+  return verifyToken(
+    `${API_ROOT}/${encodeURIComponent(accountId)}/tokens/verify`,
+    token,
+  );
+}
+
+export function verifyObservabilityUserToken({ token }) {
+  return verifyToken(
+    "https://api.cloudflare.com/client/v4/user/tokens/verify",
+    token,
+  );
 }
 
 function queryBody(workerName, timeframe, queryId) {

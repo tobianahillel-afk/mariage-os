@@ -262,6 +262,15 @@ evidence campaign separately because the previous invocation logs expired.
 AR-006 remains open until ten new, attributable numeric CPU values satisfy
 the unchanged acceptance contract and the packet completes fresh Pass B/C.
 
+Initial metadata inventory: the Cloudflare connector returned `9109`
+(`Unauthorized to access requested resource`) for both account-owned and
+user-owned token lists, so it supplied no token owner, scope or expiry evidence.
+GitHub's Environment-secret metadata confirms
+`AR006_CLOUDFLARE_OBSERVABILITY_TOKEN` exists in `ar006-isolated`, last updated
+`2026-09-17T22:39:40Z`; GitHub does not reveal its value. The isolated CI
+diagnostic must determine whether that stored value verifies at either owner
+endpoint. No Cloudflare or GitHub credential was changed by this inventory.
+
 ## Provider references
 
 - <https://developers.cloudflare.com/pages/functions/debugging-and-logging/>

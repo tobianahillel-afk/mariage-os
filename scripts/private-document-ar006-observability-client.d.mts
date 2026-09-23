@@ -18,6 +18,10 @@ export function verifyObservabilityAccountToken(input: {
   token: string;
 }): Promise<Ar006ObservabilityTokenVerification>;
 
+export function verifyObservabilityUserToken(input: {
+  token: string;
+}): Promise<Ar006ObservabilityTokenVerification>;
+
 export function retryAfterDelayMs(headers: Headers): number | null;
 
 export function nextObservabilityDelayMs(

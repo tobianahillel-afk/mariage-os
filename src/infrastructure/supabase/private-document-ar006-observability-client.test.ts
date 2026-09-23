@@ -1,5 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { verifyObservabilityAccountToken } from "../../../scripts/private-document-ar006-observability-client.mjs";
+import {
+  verifyObservabilityAccountToken,
+  verifyObservabilityUserToken,
+} from "../../../scripts/private-document-ar006-observability-client.mjs";
 
 const accountId = "e33a5fde02b4ecbc0a36f4ad47ad0597";
 const token = "synthetic-test-token";
@@ -50,5 +53,50 @@ describe("AR-006 Cloudflare account token precheck", () => {
         providerErrorCodes: [10000],
       },
     );
+  });
+});
+
+describe("AR-006 Cloudflare user token precheck", () => {
+  it("recognizes an active user token at the documented user endpoint", async () => {
+    const fetch = vi.fn(async () =>
+      Response.json({
+        success: true,
+        errors: [],
+        result: { id: "opaque-provider-token-id", status: "active" },
+      }),
+    );
+    vi.stubGlobal("fetch", fetch);
+
+    const result = await verifyObservabilityUserToken({ token });
+
+    expect(fetch).toHaveBeenCalledWith(
+      "https://api.cloudflare.com/client/v4/user/tokens/verify",
+      { headers: { authorization: `Bearer ${token}` } },
+    );
+    expect(result).toEqual({
+      httpStatus: 200,
+      apiSuccess: true,
+      tokenActive: true,
+      providerErrorCodes: [],
+    });
+  });
+
+  it("retains only sanitized status on user-token rejection", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        Response.json(
+          { success: false, errors: [{ code: 1000, message: "sensitive" }] },
+          { status: 401 },
+        ),
+      ),
+    );
+
+    expect(await verifyObservabilityUserToken({ token })).toEqual({
+      httpStatus: 401,
+      apiSuccess: false,
+      tokenActive: false,
+      providerErrorCodes: [1000],
+    });
   });
 });
