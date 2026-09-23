@@ -227,6 +227,41 @@ parser was not exercised against live events. The one-check authorization is
 exhausted. AR-006 stays open; any further token or telemetry action requires
 a new explicit architecture decision.
 
+### 2026-09-23 decision — bounded credential diagnosis and recovery
+
+The user requested recovery from the account-token verification HTTP `401`.
+Cloudflare documents distinct verification endpoints for user-owned and
+account-owned tokens. The failed run used only the account endpoint; its
+result does not establish that the secret is invalid. The 2026-09-17 source
+Worker logs are now outside the documented three-day Workers Free retention,
+so another requery of those ten UUIDs cannot supply current CPU proof.
+
+Authorize a metadata-only inventory of the isolated Cloudflare account's
+Observability token(s), including owner type, active state, scope, expiry and
+last-use time, and the GitHub `ar006-isolated` secret's presence/update time.
+Authorize one isolated CI credential diagnostic that verifies the existing
+encrypted secret against **both** documented token-owner endpoints, stores
+only statuses/error codes and an opaque token ID when Cloudflare returns one,
+and performs no telemetry query, deployment or application mutation. The
+diagnostic must run after ordinary exact-commit `full-verify`.
+
+If this identifies a live, correctly scoped token, repair the verifier to
+match its owner and prove the authorization with a narrow read-only
+Observability capability request. If the secret is missing, expired, mismatched
+or has the wrong permission, authorize one replacement token scoped only to
+Workers Observability for the isolated account, expiring no later than one
+year. Install it directly as the encrypted GitHub Environment secret without
+printing or persisting its value, verify the installed credential from CI,
+then revoke the superseded token only after the replacement is proven.
+Retain only sanitized metadata/evidence. If account or GitHub permissions
+prevent safe rotation, stop and record the exact external block.
+
+This decision does not authorize another exact-size promotion or acceptance
+claim. Once the credential is proven, review a fresh exact-commit Workers Free
+evidence campaign separately because the previous invocation logs expired.
+AR-006 remains open until ten new, attributable numeric CPU values satisfy
+the unchanged acceptance contract and the packet completes fresh Pass B/C.
+
 ## Provider references
 
 - <https://developers.cloudflare.com/pages/functions/debugging-and-logging/>
