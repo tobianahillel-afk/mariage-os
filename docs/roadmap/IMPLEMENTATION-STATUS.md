@@ -22,27 +22,27 @@ Detailed historical packet evidence remains in packet records, acceptance record
 
 Required current-lot responsibilities minus assigned packet responsibilities: **∅**.
 
-| Packet | Responsibility | State |
-|---|---|---|
-| WP-2.1 | venue identity, authorized persistence, lifecycle history | **ACCEPTED / COMPLETE** |
-| WP-2.2 | spaces, capacity, member ratings/preferences | **ACCEPTED / COMPLETE** |
-| WP-2.3 | fact definitions, typed retained facts, value validation | **ACCEPTED / COMPLETE** |
-| WP-2.4 | observations, sources, evidence/confidence/freshness, conflicts | **ACCEPTED / COMPLETE** |
-| WP-2.5 | deterministic criteria, blockers, score/readiness, missing information | **ACCEPTED / COMPLETE** |
-| WP-2.6A | Venue offers and offer components | **ACCEPTED / COMPLETE** |
-| WP-2.6B | Venue availability observations | **ACCEPTED / COMPLETE** |
-| WP-2.6C | Venue contacts | **ACCEPTED / COMPLETE** |
-| WP-2.6D | Venue interaction history | **ACCEPTED / COMPLETE** |
-| WP-2.7 | contextual venue access-route observations | **ACCEPTED / COMPLETE** |
-| WP-2.8A | Venue remote-image metadata and Venue links | **ACCEPTED / COMPLETE** |
-| WP-2.8B | Venue private archived media lifecycle | **ACCEPTED / COMPLETE** |
-| WP-2.8C | recoverable Venue remote-media metadata lifecycle | **ACCEPTED / COMPLETE** |
-| WP-2.9A | Venue-linked private PDF/document foundation | **BLOCKED — waits for WP-2.9C ACCEPTED** |
-| WP-2.9C | trusted private-document ingestion hardening | **IN_PROGRESS — AR-006 private Worker implementation / provider verification** |
-| WP-2.9B | generic project tags and Venue entity-tag links | **PLANNED / AFTER A** |
-| WP-2.10 | repositories, local cache, pending/offline mutations | PLANNED |
-| WP-2.11 | gallery/table/detail/compare/deep-link workspace | PLANNED |
-| WP-2.12 | mobile/offline venue-visit workflow and packet E2E completion | PLANNED |
+| Packet  | Responsibility                                                         | State                                                                          |
+| ------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| WP-2.1  | venue identity, authorized persistence, lifecycle history              | **ACCEPTED / COMPLETE**                                                        |
+| WP-2.2  | spaces, capacity, member ratings/preferences                           | **ACCEPTED / COMPLETE**                                                        |
+| WP-2.3  | fact definitions, typed retained facts, value validation               | **ACCEPTED / COMPLETE**                                                        |
+| WP-2.4  | observations, sources, evidence/confidence/freshness, conflicts        | **ACCEPTED / COMPLETE**                                                        |
+| WP-2.5  | deterministic criteria, blockers, score/readiness, missing information | **ACCEPTED / COMPLETE**                                                        |
+| WP-2.6A | Venue offers and offer components                                      | **ACCEPTED / COMPLETE**                                                        |
+| WP-2.6B | Venue availability observations                                        | **ACCEPTED / COMPLETE**                                                        |
+| WP-2.6C | Venue contacts                                                         | **ACCEPTED / COMPLETE**                                                        |
+| WP-2.6D | Venue interaction history                                              | **ACCEPTED / COMPLETE**                                                        |
+| WP-2.7  | contextual venue access-route observations                             | **ACCEPTED / COMPLETE**                                                        |
+| WP-2.8A | Venue remote-image metadata and Venue links                            | **ACCEPTED / COMPLETE**                                                        |
+| WP-2.8B | Venue private archived media lifecycle                                 | **ACCEPTED / COMPLETE**                                                        |
+| WP-2.8C | recoverable Venue remote-media metadata lifecycle                      | **ACCEPTED / COMPLETE**                                                        |
+| WP-2.9A | Venue-linked private PDF/document foundation                           | **BLOCKED — waits for WP-2.9C ACCEPTED**                                       |
+| WP-2.9C | trusted private-document ingestion hardening                           | **IN_PROGRESS — AR-006 private Worker implementation / provider verification** |
+| WP-2.9B | generic project tags and Venue entity-tag links                        | **PLANNED / AFTER A**                                                          |
+| WP-2.10 | repositories, local cache, pending/offline mutations                   | PLANNED                                                                        |
+| WP-2.11 | gallery/table/detail/compare/deep-link workspace                       | PLANNED                                                                        |
+| WP-2.12 | mobile/offline venue-visit workflow and packet E2E completion          | PLANNED                                                                        |
 
 ## Accepted packet evidence summary
 
@@ -117,7 +117,6 @@ Local AR-006 evidence-parser correction after architecture review:
 - implementation head `18cf24cebb545b67fd2fe6791a7a3ece13e60f94` / CI `35364734978` completed the five normal jobs **5/5 SUCCESS**, including `Full verify from clean checkout`; provider preflight, promotion evidence and Worker telemetry requery were **SKIPPED**;
 - the evaluator now reads Cloudflare's invocation HTTP status from `$metadata.statusCode` and requires a finite, non-negative JSON number at `$workers.cpuTimeMs`. Focused regression tests accept a schema-conforming `200` / `5 ms` event and reject absent, string and negative CPU values;
 - this repairs the local verifier only. The previous provider HTTP `401` / `10000` responses and missing CPU measurements remain unresolved; AR-006 and WP-2.9C are not accepted.
-
 
 Historical initial provider-readiness execution:
 
@@ -201,8 +200,8 @@ Normative release/deployment/secret contracts require Pages Functions to deploy 
 
 ## Current next-action gate
 
-1. The 2026-09-23 AR-006 architecture decision permits a metadata-only token/secret inventory and one isolated CI diagnostic against both documented token-owner verification endpoints. The previous account-only check failed HTTP `401` / code `1000`; no telemetry query ran and zero CPU measurements exist.
-2. Follow the conditional credential recovery in that decision. The old 2026-09-17 Worker logs exceeded Workers Free retention. No new exact-size promotion is authorized by the credential diagnostic.
+1. The 2026-09-23 bounded diagnostic verified the existing GitHub Environment secret against both documented token-owner endpoints. Both returned HTTP `401` / code `1000`, so the secret is not currently usable. The Cloudflare connector cannot manage tokens (`9109`). No telemetry query ran and zero CPU measurements exist.
+2. Follow the conditional credential recovery in that decision using a new, narrowly scoped account token. The old 2026-09-17 Worker logs exceeded Workers Free retention. No new exact-size promotion is authorized by the credential diagnostic.
 3. Do not substitute wall time, dashboard aggregate, Paid entitlement or a lower file limit.
 4. Only after valid AR-006 exact-size CPU evidence, run a complete fresh independent Pass B and then Pass C before acceptance.
 5. WP-2.9A remains **BLOCKED** until C is accepted; WP-2.9B and later Lots remain inactive.
@@ -229,7 +228,8 @@ Latest Worker requery: 2ef0e13b755ffc609972ac83c1d2260ca73ff8de / CI 35337938664
 Final bounded Worker requery: a937d6e1484640afba52848e895f5480ab4ea8a8 / CI 35339776360 / artifact 10545420236 (ZIP SHA-256 dbac3d188a41dfc94420618406456d6a17f65ddbec485507a4fe98100e09eb86) — normal CI 5/5 SUCCESS; telemetry rejected 401/10000 on all three calls; zero measurements; pass=false
 Local evidence parser repair: architecture decision 202f149; implementation 18cf24cebb545b67fd2fe6791a7a3ece13e60f94 / CI 35364734978 — normal CI 5/5 SUCCESS including clean-checkout; no provider query or promotion; AR-006 remains open
 Bounded parser-repair live retest: 8dd0da2b948e4bdad3edaba274ef658fc850b4ef / CI 35366867329 — normal CI 5/5 SUCCESS including clean-checkout; isolated job 105673740056 FAILURE at account-token verification 401/1000; artifact 10557066610 (ZIP SHA-256 414ba6803b1a75d65ae2ed9930c0fbb4a49b784c06538966847c19962b9ae990) has no provider query, no CPU measurement, pass=false
-Current permitted action: metadata inventory found the GitHub secret present but Cloudflare token lists inaccessible (`9109`); execute the isolated CI credential diagnostic under the 2026-09-23 AR-006 architecture decision; keep AR-006 open.
+Owner-type credential diagnostic: e5c9c93ae23a1350511c986629f78f58db308e61 / CI 35912545590 — normal CI 5/5 SUCCESS including clean-checkout; isolated job 107358251456 failed closed; artifact 10774515322 (ZIP SHA-256 8ce43d8acba16bb4c5d7ee97c49d40b4057b5c3e54059d4a9022da579dedfa60) records account 401/1000 and user 401/1000, no telemetry query, pass=false
+Current permitted action: replace the unusable Observability token under the 2026-09-23 decision, verify its isolated GitHub secret from CI, then decide on a fresh exact-size evidence campaign; AR-006 remains open.
 Tail support green tree: d04edd0ed0d3daa3b9bfe20d954003bb13545200 / parent 82e05a8dab9f61377f045b74005fd6582da0afe3 / CI 35152382433 — 5/5 SUCCESS
 Tail capability trigger: 7645a9e769c641640f52fdba535deb6140401fc6 / workflow 35153132971 / job 104986087784 / artifact 10469354745 — deny smoke SUCCESS; parsedJsonEventCount=0; providerCpuTimeMs=[]; pass=false
 Workers Observability configured capability preflight: bd3fdb4baab6ef59983e40f77b5b2f44ba6dc8b7 / workflow 35213157767 / job 105175271234 / artifact 10494251279 (ZIP SHA-256 02438aadb3e377f6c8e6ed66b3b00c0c0d3e473008c3bb710acbfb805f2dde7c) — deny smoke passed; no attributable numeric provider CPU; pass=false
@@ -238,5 +238,5 @@ AR-005 and AR-007: implementation-remediated / exact-head-green — formal closu
 FTR-089 FIR: #17 — BLOCKED
 WP-2.9B: PLANNED / AFTER A
 Lots 3–12: NOT_STARTED
-Next permitted action: bounded metadata inventory and one isolated CI credential diagnostic under the 2026-09-23 architecture decision; no old-log requery or new exact-size promotion
+Next permitted action: create and install a one-year, Workers-Observability-only account token for `ar006-isolated`, verify it from CI; no old-log requery or new exact-size promotion yet
 ```

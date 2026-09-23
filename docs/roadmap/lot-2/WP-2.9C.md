@@ -246,6 +246,15 @@ verification, but the account-token precheck failed HTTP `401` / provider code
 no telemetry query, no CPU measurement, `pass: false`. Thus the parser fix is
 locally verified but not live-provider verified; AR-006 stays open.
 
+The follow-up owner-type diagnostic at
+`e5c9c93ae23a1350511c986629f78f58db308e61` / CI `35912545590` completed
+normal verification **5/5 SUCCESS**, but the isolated token job
+`107358251456` returned HTTP `401` / provider code `1000` at both Cloudflare
+verification endpoints. Artifact `10774515322` (ZIP SHA-256
+`8ce43d8acba16bb4c5d7ee97c49d40b4057b5c3e54059d4a9022da579dedfa60`)
+contains no telemetry query or CPU measurement. A replacement credential and
+fresh provider evidence remain required under the architecture decision.
+
 Current gate:
 
 1. retain AR-005 and AR-007 remediations without weakening their security contracts;

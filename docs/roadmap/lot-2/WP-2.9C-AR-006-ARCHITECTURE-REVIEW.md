@@ -271,6 +271,25 @@ GitHub's Environment-secret metadata confirms
 diagnostic must determine whether that stored value verifies at either owner
 endpoint. No Cloudflare or GitHub credential was changed by this inventory.
 
+The bounded diagnostic ran at `e5c9c93ae23a1350511c986629f78f58db308e61`
+/ CI `35912545590`. All five ordinary jobs succeeded, including clean-checkout
+verification. Isolated job `107358251456` failed closed. Its sanitized artifact
+`10774515322` (ZIP SHA-256
+`8ce43d8acba16bb4c5d7ee97c49d40b4057b5c3e54059d4a9022da579dedfa60`)
+records HTTP `401` / code `1000` at **both** account and user verification
+endpoints, no transport error and `pass: false`. This rules out merely choosing
+the wrong verification endpoint for the currently stored value. It does not
+identify whether the value was revoked, expired, copied incorrectly or belongs
+to another credential type. No telemetry query, deployment or PDF promotion
+ran. The Cloudflare connector cannot list or create account tokens with its
+current authorization (`9109` on token and permission-group reads). Credential
+recovery therefore awaits a newly created, narrowly scoped account token from
+the authenticated Cloudflare account. A marker-gated CI preflight is prepared
+to verify the replacement token and its read-only telemetry-query capability
+without recording event contents; it does not close AR-006. The separate web
+automation session did not inherit the signed-in in-app browser session and
+reached the Cloudflare login page. AR-006 remains open.
+
 ## Provider references
 
 - <https://developers.cloudflare.com/pages/functions/debugging-and-logging/>
