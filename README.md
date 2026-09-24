@@ -15,10 +15,10 @@ Current implementation state:
 - Lot 0 — **ACCEPTED**;
 - Lot 1 — **ACCEPTED** and promoted to `main` through PR #7;
 - Lot 2 — **IN_PROGRESS — Venues core** on `lot-2/venues-core`;
-- current executable/control packet — **WP-2.9C BLOCKED on WP29C-AR-006 deployed Workers Free CPU evidence**;
+- current executable/control packet — **WP-2.9C IN_PROGRESS at the ADR 0012 isolated provider-preflight gate; WP29C-AR-006 remains OPEN / BLOCKING**;
 - WP-2.9A remains blocked until WP-2.9C is accepted; WP-2.9B and WP-2.10..2.12 remain downstream.
 
-The repository-side AR-006 harness/read-only preflight is implemented. The remaining gate is isolated external Cloudflare Pages/Workers Free + Supabase provider evidence for the exact `25,000,000`-byte private-PDF path. Do not bypass that gate by enabling Paid compute, reducing the file contract or skipping the required Pass B/Pass C sequence.
+ADR 0011's stateless private Worker was rejected by deployed Workers Free CPU evidence. ADR 0012 replaces it with direct Pages → private per-document SQLite Durable Object execution. The implementation/provider remediation is repository-green and freshly reviewed for one isolated provider preflight. Exact `25,000,000`-byte evidence is still disabled until that preflight passes and a new two-surface CPU evaluator is implemented/reviewed. Do not bypass those gates by enabling Paid compute, reducing the file contract or skipping Pass B/Pass C.
 
 Current exact phase/gate/next action: [`docs/roadmap/IMPLEMENTATION-STATUS.md`](docs/roadmap/IMPLEMENTATION-STATUS.md). Lot-2 packet map: [`docs/roadmap/lot-2/LOT-2-COVERAGE-MATRIX.md`](docs/roadmap/lot-2/LOT-2-COVERAGE-MATRIX.md).
 
@@ -161,4 +161,4 @@ Mandatory integration checkpoints re-review the whole product after Lots 0–3, 
 
 ## Current next step
 
-**Continue Lot 2 only through the current WP-2.9C / AR-006 gate.** Configure the isolated provider resources, obtain a green read-only `[AR006-PREFLIGHT]`, then run an exact `[AR006-EVIDENCE]` candidate. Do not resume WP-2.9A, start WP-2.9B or advance to Pass B/Pass C until the recorded gate permits it.
+**Continue Lot 2 only through the current WP-2.9C / AR-006 gate.** After the exact-head-green remediation review/status handoff, run one bounded `[AR006-DO-PREFLIGHT]`. If it is green, implement and review the two-surface Pages + Durable Object CPU evaluator before enabling any `[AR006-DO-EVIDENCE]` exact-size candidate. Do not resume WP-2.9A, start WP-2.9B or advance to Pass B/Pass C until the recorded gate permits it.

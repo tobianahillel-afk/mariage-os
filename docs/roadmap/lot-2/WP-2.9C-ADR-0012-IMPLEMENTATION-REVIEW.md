@@ -1,6 +1,6 @@
 # WP-2.9C ADR 0012 — Adversarial implementation review
 
-Status: **REVIEW_FAILED — PROVIDER/OPERATIONS REMEDIATION REQUIRED**
+Status: **REMEDIATION REVIEW PASSED — ISOLATED ADR 0012 PREFLIGHT AUTHORIZED; EXACT-SIZE EVIDENCE STILL GATED**
 
 Review date: 2026-09-24  
 Reviewed implementation head: `99ff618781f46073964b14d49b7969c9c132bc92`  
@@ -102,7 +102,7 @@ Required remediation:
 - document the Pages Durable Object namespace binding and deployment order;
 - update the operations guard test so future regressions fail CI.
 
-## Review conclusion
+## Initial review conclusion (historical)
 
 The application/runtime design is sufficiently promising to continue, but the
 provider and operations layer is not yet equivalent to ADR 0012.
@@ -122,3 +122,105 @@ Required sequence:
    bootstrap/config/preflight sequence;
 6. a 25 MB campaign remains separately gated until the new two-surface CPU
    evaluator is implemented and reviewed.
+
+
+## Remediation review — 2026-09-24
+
+Status: **PASS — INITIAL ADR12-IR-001..004 CLOSED / VERIFIED FOR PREFLIGHT SCOPE**
+
+Reviewed remediation head: `7492dd06677f6d5c5ae7627a1c0129bf841c6175`  
+Exact-head CI: `36038873857` — **5/5 SUCCESS**, including `Full verify from clean checkout`.  
+Provider mutation/evidence jobs on that ordinary commit: **SKIPPED**.
+
+The fresh review covered the complete remediation diff from the initially reviewed
+`99ff618781f46073964b14d49b7969c9c132bc92` through
+`7492dd06677f6d5c5ae7627a1c0129bf841c6175`, including the provider configurator, namespace resolver,
+preflight, CI gates, release/secret documentation and regression tests.
+
+### ADR12-IR-001 — CLOSED / VERIFIED
+
+The Pages Preview configurator now:
+
+- resolves exactly one SQLite `PrivateDocumentLifecycle` namespace on the exact
+  private Worker using the existing Workers Scripts credential;
+- binds it as `PRIVATE_DOCUMENT_LIFECYCLE`;
+- removes the superseded `PRIVATE_DOCUMENT_PROMOTION_WORKER` Service Binding;
+- removes `PRIVATE_DOCUMENT_ADMIN_KEY` from Pages;
+- preserves unrelated Preview bindings/configuration;
+- emits only the sanitized `ar006-pages-preview-config.json` receipt;
+- retains that receipt as a bounded GitHub Actions artifact, with a regression
+  test that fails if retention disappears.
+
+The historical standalone Pages configurator is hard-disabled and no longer
+references the retired Pages admin secret.
+
+### ADR12-IR-002 — CLOSED / VERIFIED
+
+The provider preflight now proves the ADR 0012 architecture rather than ADR 0011:
+
+- bounded Durable Object namespace inventory;
+- exactly one class `PrivateDocumentLifecycle` on the exact private Worker;
+- SQLite backend required;
+- Pages `PRIVATE_DOCUMENT_LIFECYCLE.namespace_id` must exactly match;
+- Pages admin secret and legacy Service Binding must both be absent;
+- Worker-host `PRIVATE_DOCUMENT_ADMIN_KEY` is checked by metadata only, never
+  read or logged;
+- synthetic Supabase authentication and live `documents.write` remain required;
+- the route preflight uses a fresh nonexistent document UUID and requires the
+  expected generic `409`, proving the request reached the lifecycle executor
+  without reserving/uploading/finalizing a document.
+
+Cloudflare's current provider contract documents `Workers Scripts Read` or
+`Workers Scripts Write` for namespace listing and returns the script/class/
+`use_sqlite` metadata used by the resolver. No new credential is required.
+
+### ADR12-IR-003 — CLOSED / VERIFIED FOR PREFLIGHT; EXACT-SIZE EVIDENCE REMAINS GATED
+
+The semantically stale ADR 0011 evidence path is no longer executable:
+
+- the old `[AR006-EVIDENCE]` acceptance trigger is absent;
+- the exact-size job is hard-disabled with `if: ${{ false }}`;
+- `[AR006-DO-EVIDENCE]` is reserved for a future reviewed two-surface CPU
+  evaluator and is not currently an execution path;
+- ordinary commits and the authorized preflight cannot run the 25 MB campaign.
+
+A future evaluator must separately attribute provider CPU to the stateless Pages
+ingress and to `executionModel=durableObject`, with numeric CPU and no
+CPU-limit outcome. This review does **not** accept AR-006 evidence.
+
+### ADR12-IR-004 — CLOSED / VERIFIED
+
+Normative CI/CD, release and secret-management documentation now places
+`PRIVATE_DOCUMENT_ADMIN_KEY` only on the private Worker/Durable Object host,
+documents direct Pages → Durable Object binding/deployment order, requires the
+legacy Service Binding to remain absent and keeps Pages as the same-origin
+bodyless ingress/router only. The AR-007 operations test guards that contract.
+
+### Additional fresh-review observations
+
+- the direct Pages → Durable Object local/workerd integration remains green;
+- promotion and abandon share an explicit per-document serial gate while
+  retaining independent Supabase authentication/live authorization/reservation
+  re-checks;
+- different document lifecycle instances are not globally serialized;
+- the Worker remains non-public (`workers_dev: false`);
+- no real/private wedding data, secret value or privileged credential was added
+  to Git or CI artifacts;
+- no Paid entitlement and no reduction of the exact `25,000,000`-byte contract
+  was introduced.
+
+## Remediation review conclusion
+
+No BLOCKING/MAJOR finding remains in the **ADR 0012 implementation/provider-
+preflight path** reviewed here.
+
+One bounded isolated `[AR006-DO-PREFLIGHT]` is authorized **only after the
+documentation/status reconciliation commit containing this review itself passes
+ordinary exact-head CI and clean-checkout verification**. That preflight may
+deploy the private Durable Object host and configure the isolated Pages Preview,
+then prove the route with synthetic/non-mutating input.
+
+The exact-size 25 MB campaign remains separately forbidden. A green preflight
+only authorizes implementation + adversarial review of the new two-surface CPU
+evaluator. AR-006 remains **OPEN / BLOCKING** until valid provider evidence,
+followed by exact-head verification, a complete fresh Pass B and Pass C.
