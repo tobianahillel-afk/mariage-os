@@ -74,64 +74,73 @@ async function buildPromotionWorker(outputDirectory) {
   return join(outputDirectory, "private-document-promotion.js");
 }
 
+function pagesWorker(temporaryDirectory) {
+  return {
+    name: "pages-promotion-ingress",
+    rootPath: temporaryDirectory,
+    scriptPath: "index.js",
+    modules: true,
+    compatibilityDate: "2026-09-17",
+    serviceBindings: {
+      ASSETS: () => new globalThis.Response("Not found", { status: 404 }),
+    },
+    durableObjects: {
+      PRIVATE_DOCUMENT_LIFECYCLE: {
+        className: "PrivateDocumentLifecycle",
+        scriptName: "private-document-promotion",
+        useSQLite: true,
+      },
+    },
+  };
+}
+
+function promotionWorker(temporaryDirectory, promotionWorkerPath, environment) {
+  return {
+    name: "private-document-promotion",
+    rootPath: temporaryDirectory,
+    scriptPath: promotionWorkerPath,
+    modules: true,
+    compatibilityDate: "2026-09-17",
+    bindings: {
+      SUPABASE_URL: environment.apiUrl,
+      SUPABASE_PUBLISHABLE_KEY: environment.anonKey,
+      PRIVATE_DOCUMENT_ADMIN_KEY: environment.serviceRoleKey,
+    },
+    durableObjects: {
+      PrivateDocumentLifecycle: {
+        className: "PrivateDocumentLifecycle",
+        useSQLite: true,
+      },
+    },
+  };
+}
+
+async function createRuntime(binary, temporaryDirectory) {
+  const { Miniflare, convertV4MiniflareOptions } =
+    miniflareFromWrangler(binary);
+  const environment = localSupabaseEnvironment();
+  buildPagesFunctions(binary, temporaryDirectory);
+  const promotionWorkerPath = await buildPromotionWorker(temporaryDirectory);
+  return new Miniflare(
+    convertV4MiniflareOptions({
+      host: "127.0.0.1",
+      port: 0,
+      workers: [
+        pagesWorker(temporaryDirectory),
+        promotionWorker(temporaryDirectory, promotionWorkerPath, environment),
+      ],
+    }),
+  );
+}
+
 async function main() {
   const temporaryDirectory = mkdtempSync(
     join(tmpdir(), "mariage-os-pages-workerd-"),
   );
-  const bundleFilename = "index.js";
-  const binary = wranglerBinary();
-  const { Miniflare, convertV4MiniflareOptions } =
-    miniflareFromWrangler(binary);
-  const environment = localSupabaseEnvironment();
   let runtime;
 
   try {
-    buildPagesFunctions(binary, temporaryDirectory);
-    const promotionWorkerPath = await buildPromotionWorker(temporaryDirectory);
-    runtime = new Miniflare(
-      convertV4MiniflareOptions({
-        host: "127.0.0.1",
-        port: 0,
-        workers: [
-          {
-            name: "pages-promotion-ingress",
-            rootPath: temporaryDirectory,
-            scriptPath: bundleFilename,
-            modules: true,
-            compatibilityDate: "2026-09-17",
-            serviceBindings: {
-              ASSETS: () =>
-                new globalThis.Response("Not found", { status: 404 }),
-            },
-            durableObjects: {
-              PRIVATE_DOCUMENT_LIFECYCLE: {
-                className: "PrivateDocumentLifecycle",
-                scriptName: "private-document-promotion",
-                useSQLite: true,
-              },
-            },
-          },
-          {
-            name: "private-document-promotion",
-            rootPath: temporaryDirectory,
-            scriptPath: promotionWorkerPath,
-            modules: true,
-            compatibilityDate: "2026-09-17",
-            bindings: {
-              SUPABASE_URL: environment.apiUrl,
-              SUPABASE_PUBLISHABLE_KEY: environment.anonKey,
-              PRIVATE_DOCUMENT_ADMIN_KEY: environment.serviceRoleKey,
-            },
-            durableObjects: {
-              PrivateDocumentLifecycle: {
-                className: "PrivateDocumentLifecycle",
-                useSQLite: true,
-              },
-            },
-          },
-        ],
-      }),
-    );
+    runtime = await createRuntime(wranglerBinary(), temporaryDirectory);
     const runtimeUrl = await runtime.ready;
     setPromotionOrigin(runtimeUrl.origin);
     await runTrustedIngestScenarios();
