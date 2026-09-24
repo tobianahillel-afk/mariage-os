@@ -23,61 +23,68 @@ function observation(eventPageComplete = true, evaluationPass = true) {
   };
 }
 
-describe("ADR 0012 exact-size campaign verdict", () => {
+function verdict(
+  invocations = successfulInvocations,
+  markerPreflight = discovery(),
+  campaignDiscovery = discovery(),
+  campaignObservation = observation(),
+) {
+  return campaignPassed(
+    invocations,
+    markerPreflight,
+    campaignDiscovery,
+    campaignObservation,
+    invocations.length,
+  );
+}
+
+describe("ADR 0012 exact-size campaign verdict success", () => {
   it("passes only the complete reviewed campaign shape", () => {
-    expect(
-      campaignPassed(
-        successfulInvocations,
-        discovery(),
-        observation(),
-        successfulInvocations.length,
-      ),
-    ).toBe(true);
+    expect(verdict()).toBe(true);
   });
 
+  it("rejects a failed marker preflight", () => {
+    expect(verdict(successfulInvocations, discovery(false))).toBe(false);
+  });
+});
+
+describe("ADR 0012 exact-size campaign verdict provider failures", () => {
   it("rejects incomplete provider event pages", () => {
     expect(
-      campaignPassed(
-        successfulInvocations,
-        discovery(false),
-        observation(),
-        successfulInvocations.length,
-      ),
+      verdict(successfulInvocations, discovery(), discovery(false)),
     ).toBe(false);
     expect(
-      campaignPassed(
+      verdict(
         successfulInvocations,
         discovery(),
+        discovery(),
         observation(false),
-        successfulInvocations.length,
       ),
     ).toBe(false);
   });
 
-  it("rejects failed promotion or provider evaluation", () => {
-    const failed = [...successfulInvocations];
-    failed[0] = { success: false, status: 503, finalized: false };
+  it("rejects a provider evaluation failure", () => {
     expect(
-      campaignPassed(failed, discovery(), observation(), failed.length),
-    ).toBe(false);
-
-    const notFinalized = [...successfulInvocations];
-    notFinalized[0] = { success: true, status: 200, finalized: false };
-    expect(
-      campaignPassed(
-        notFinalized,
-        discovery(),
-        observation(),
-        notFinalized.length,
-      ),
-    ).toBe(false);
-    expect(
-      campaignPassed(
+      verdict(
         successfulInvocations,
         discovery(),
+        discovery(),
         observation(true, false),
-        successfulInvocations.length,
       ),
     ).toBe(false);
+  });
+});
+
+describe("ADR 0012 exact-size campaign verdict flow failures", () => {
+  it("rejects a failed promotion", () => {
+    const failed = [...successfulInvocations];
+    failed[0] = { success: false, status: 503, finalized: false };
+    expect(verdict(failed)).toBe(false);
+  });
+
+  it("rejects a promotion that was not verified finalized", () => {
+    const notFinalized = [...successfulInvocations];
+    notFinalized[0] = { success: true, status: 200, finalized: false };
+    expect(verdict(notFinalized)).toBe(false);
   });
 });

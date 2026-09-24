@@ -28,12 +28,14 @@ function observationPassed(observation) {
 
 export function campaignPassed(
   invocations,
+  markerPreflight,
   discovery,
   observation,
   expectedCount,
 ) {
   return (
     invocationsPassed(invocations, expectedCount) &&
+    discoveryPassed(markerPreflight) &&
     discoveryPassed(discovery) &&
     observationPassed(observation)
   );

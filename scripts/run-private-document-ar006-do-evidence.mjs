@@ -215,15 +215,71 @@ function evidenceContext() {
   };
 }
 
-async function queryMarkers(context, startedAt, attempt) {
+async function queryMarkers(
+  context,
+  startedAt,
+  attempt,
+  label = "marker-discovery",
+) {
   const timeframe = workerEvidenceTimeframe(startedAt);
   const result = await queryAr006MarkerObservability({
     accountId: context.accountId,
     token: context.token,
     timeframe: timeframe.request,
-    queryId: `mariage-os-ar006-do-marker-discovery-${attempt}`,
+    queryId: `mariage-os-ar006-do-${label}-${attempt}`,
   });
   return { ...result, window: timeframe.record, attempt };
+}
+
+async function invokeMarkerPreflight(context, identity, evidenceId) {
+  const response = await globalThis.fetch(
+    `${context.deploymentUrl}/api/private-document-promote`,
+    {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${identity.token}`,
+        origin: context.deploymentUrl,
+        "x-project-id": context.projectId,
+        "x-document-id": randomUUID(),
+        "x-mariage-os-ar006-evidence-id": evidenceId,
+      },
+    },
+  );
+  const payload = await response.json().catch(() => null);
+  if (
+    response.status !== 409 ||
+    payload?.error !== "private_document_unavailable"
+  ) {
+    throw new Error("ADR 0012 marker preflight did not reach the lifecycle DO.");
+  }
+}
+
+async function verifyMarkerObservability(context, identity) {
+  const evidenceId = randomUUID();
+  const startedAt = new Date().toISOString();
+  await invokeMarkerPreflight(context, identity, evidenceId);
+  let latest = null;
+  for (let attempt = 1; attempt <= OBSERVABILITY_ATTEMPTS; attempt += 1) {
+    const result = await queryMarkers(
+      context,
+      startedAt,
+      attempt,
+      "marker-preflight",
+    );
+    const discovery = discoverAr006SurfaceScripts({
+      events: result.events,
+      expectedEvidenceIds: [evidenceId],
+      durableObjectScriptName: context.durableObjectScriptName,
+    });
+    latest = { ...result, discovery };
+    if (result.apiSuccess && result.eventPageComplete && discovery.pass) {
+      return latest;
+    }
+    if (attempt < OBSERVABILITY_ATTEMPTS) {
+      await delay(nextObservabilityDelayMs(result, OBSERVABILITY_DELAY_MS));
+    }
+  }
+  throw new Error("ADR 0012 two-surface marker preflight failed.");
 }
 
 async function discoverPagesScript(context, invocations) {
@@ -336,7 +392,8 @@ async function observeCampaign(context, invocations) {
 async function main() {
   const context = evidenceContext();
   const identity = await signIn();
-  await delay(3_000);
+  const markerPreflight = await verifyMarkerObservability(context, identity);
+  await delay(20_000);
   const invocations = await runPromotions(context, identity);
   const { discovery, observation } = await observeCampaign(
     context,
@@ -344,6 +401,7 @@ async function main() {
   );
   const pass = campaignPassed(
     invocations,
+    markerPreflight,
     discovery,
     observation,
     AR006_EVIDENCE_COUNT,
@@ -352,6 +410,7 @@ async function main() {
     buildEvidenceRecord({
       context,
       invocations,
+      markerPreflight,
       discovery,
       observation,
       pass,

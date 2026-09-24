@@ -42,6 +42,7 @@ function sanitizedEvaluation(observation) {
 export function buildEvidenceRecord({
   context,
   invocations,
+  markerPreflight,
   discovery,
   observation,
   pass,
@@ -69,6 +70,7 @@ export function buildEvidenceRecord({
     projectId: context.projectId,
     invocationCount,
     invocations,
+    markerPreflight: sanitizedDiscovery(markerPreflight),
     discovery: sanitizedDiscovery(discovery),
     provider: sanitizedEvaluation(observation),
     paidCpuEntitlementAttestedAbsent: true,

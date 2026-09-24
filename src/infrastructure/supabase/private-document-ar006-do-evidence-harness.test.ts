@@ -11,6 +11,16 @@ function evidenceJobSource(): string {
   return ciSource.slice(start, end);
 }
 
+describe("ADR 0012 two-surface marker preflight contract", () => {
+  it("proves both marker surfaces before any exact-size mutation", () => {
+    expect(harnessSource).toContain("verifyMarkerObservability");
+    expect(harnessSource).toContain('"marker-preflight"');
+    expect(harnessSource).toContain("expectedEvidenceIds: [evidenceId]");
+    expect(harnessSource).toContain("await delay(20_000)");
+    expect(recordSource).toContain("markerPreflight:");
+  });
+});
+
 describe("ADR 0012 exact-size harness contract", () => {
   it("keeps the frozen exact-size and ten-flow evidence shape", () => {
     expect(harnessSource).toContain("const MAX_BYTES = 25_000_000");
