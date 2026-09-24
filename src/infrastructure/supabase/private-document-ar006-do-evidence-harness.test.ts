@@ -70,12 +70,16 @@ describe("ADR 0012 exact-size harness contract", () => {
 });
 
 describe("ADR 0012 provider evidence job gating", () => {
-  it("stays hard-disabled while the provider harness review is open", () => {
+  it("runs only on an explicit reviewed same-branch push marker", () => {
     const job = evidenceJobSource();
     expect(job).toContain("- full-verify");
-    expect(ciSource).toContain("[AR006-DO-EVIDENCE]");
+    expect(job).toContain("github.event_name == 'push'");
+    expect(job).toContain("github.ref == 'refs/heads/lot-2/venues-core'");
+    expect(job).toContain(
+      "contains(github.event.head_commit.message, '[AR006-DO-EVIDENCE]')",
+    );
     expect(job).toContain("environment: ar006-isolated");
-    expect(job).toContain("if: ${{ false }}");
+    expect(job).not.toContain("if: ${{ false }}");
   });
 
   it("deploys the exact candidate without restoring the legacy Pages trust path", () => {
