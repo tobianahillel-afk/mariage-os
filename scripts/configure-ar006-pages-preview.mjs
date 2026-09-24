@@ -87,9 +87,7 @@ function previewPatch(project, input, namespaceId) {
       ? preview.fail_open
       : production.fail_open;
   if (typeof failOpen !== "boolean") {
-    throw new Error(
-      "Cloudflare Pages fail_open configuration is unavailable.",
-    );
+    throw new Error("Cloudflare Pages fail_open configuration is unavailable.");
   }
   return {
     ...preview,
@@ -139,9 +137,7 @@ function requirePreview(project, input, namespaceId) {
   }
   const binding = preview.durable_object_namespaces?.[LIFECYCLE_BINDING];
   if (binding?.namespace_id !== namespaceId) {
-    throw new Error(
-      "Pages Preview Durable Object namespace does not match.",
-    );
+    throw new Error("Pages Preview Durable Object namespace does not match.");
   }
   return preview;
 }
