@@ -7,8 +7,12 @@ import {
   queryAr006MarkerObservability,
   queryWorkersObservability,
 } from "./private-document-ar006-observability-client.mjs";
-import { workerEvidenceTimeframe } from "./private-document-ar006-observability-timeframe.mjs";
-import { discoverAr006SurfaceScripts } from "./private-document-ar006-surface-discovery.mjs";
+import {
+  workerEvidenceTimeframe,
+} from "./private-document-ar006-observability-timeframe.mjs";
+import {
+  discoverAr006SurfaceScripts,
+} from "./private-document-ar006-surface-discovery.mjs";
 import { createExactPdf } from "./private-document-ar006-synthetic-pdf.mjs";
 import {
   AR006_EVIDENCE_COUNT,
@@ -62,7 +66,14 @@ async function signIn() {
   return { client, token: result.data.session.access_token };
 }
 
-async function reserve({ client, projectId, documentId, bytes, sha256, index }) {
+async function reserve({
+  client,
+  projectId,
+  documentId,
+  bytes,
+  sha256,
+  index,
+}) {
   const result = await client.rpc("manage_private_document", {
     target_action: "reserve_upload",
     target_operation_id: randomUUID(),
@@ -246,7 +257,11 @@ function maxDelay(...results) {
   );
 }
 
-async function collectTwoSurfaceEvidence(context, invocations, pagesScriptName) {
+async function collectTwoSurfaceEvidence(
+  context,
+  invocations,
+  pagesScriptName,
+) {
   const expectedEvidenceIds = invocations.map((item) => item.evidenceId);
   const startedAt = invocations[0].startedAt;
   let latest = null;
@@ -346,7 +361,11 @@ function evidenceRecord(context, invocations, discovery, observation, pass) {
 }
 
 async function writeEvidence(record) {
-  await writeFile(EVIDENCE_PATH, `${JSON.stringify(record, null, 2)}\n`, "utf8");
+  await writeFile(
+    EVIDENCE_PATH,
+    `${JSON.stringify(record, null, 2)}\n`,
+    "utf8",
+  );
   console.log(`ADR 0012 provider evidence written to ${EVIDENCE_PATH}.`);
 }
 
@@ -373,7 +392,9 @@ async function main() {
     evidenceRecord(context, invocations, discovery, observation, pass),
   );
   if (!pass) {
-    throw new Error("ADR 0012 provider evidence did not satisfy both CPU gates.");
+    throw new Error(
+      "ADR 0012 provider evidence did not satisfy both CPU gates.",
+    );
   }
 }
 
