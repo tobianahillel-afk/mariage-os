@@ -53,8 +53,7 @@ function failure(code, evidenceId = null) {
 
 function expectedMarker(markers, evidenceId, surface) {
   return markers.filter(
-    (marker) =>
-      marker.evidenceId === evidenceId && marker.surface === surface,
+    (marker) => marker.evidenceId === evidenceId && marker.surface === surface,
   );
 }
 
@@ -111,15 +110,12 @@ export function discoverAr006SurfaceScripts({
   const pageNames = new Set(pages.scripts);
   const durableNames = new Set(durable.scripts);
   if (pageNames.size !== 1) failures.push(failure("ambiguous_pages_script"));
-  if (
-    durableNames.size !== 1 ||
-    !durableNames.has(durableObjectScriptName)
-  ) {
+  if (durableNames.size !== 1 || !durableNames.has(durableObjectScriptName)) {
     failures.push(failure("unexpected_durable_object_script"));
   }
 
   const pagesScriptName =
-    failures.length === 0 ? [...pageNames][0] ?? null : null;
+    failures.length === 0 ? ([...pageNames][0] ?? null) : null;
   return {
     pagesScriptName,
     markerCount: markers.length,
