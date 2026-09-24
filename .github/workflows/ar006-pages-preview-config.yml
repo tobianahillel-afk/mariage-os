@@ -15,8 +15,9 @@ concurrency:
 jobs:
   configure-preview:
     name: Configure isolated Pages Preview bindings
-    if: >-
-      contains(github.event.head_commit.message, '[AR006-PAGES-PREVIEW-CONFIG]')
+    # Historical standalone configurator. ADR 0012 provider mutation is gated
+    # inside ci.yml after full-verify.
+    if: ${{ false }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: ar006-isolated
