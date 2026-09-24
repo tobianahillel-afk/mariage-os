@@ -25,6 +25,8 @@ describe("ADR 0012 exact-size harness contract", () => {
     expect(harnessSource).toContain('requiredEnv("AR006_EXPECTED_SHA")');
     expect(harnessSource).toContain('requiredEnv("AR006_DEPLOYMENT_ID")');
     expect(harnessSource).toContain('requiredEnv("AR006_DEPLOYMENT_BRANCH")');
+    expect(harnessSource).toContain('requiredEnv("AR006_WORKER_DEPLOYMENT_ID")');
+    expect(harnessSource).toContain('requiredEnv("AR006_WORKER_VERSION_ID")');
     expect(harnessSource).toContain(
       "paidCpuEntitlementAttestedAbsent: true",
     );
@@ -43,6 +45,9 @@ describe("ADR 0012 provider evidence job gating", () => {
   it("deploys the exact candidate without restoring the legacy Pages trust path", () => {
     const job = evidenceJobSource();
     expect(job).toContain("AR006_CLOUDFLARE_WORKER_DEPLOY_TOKEN");
+    expect(job).toContain("/workers/scripts/$AR006_PRIVATE_DOCUMENT_WORKER/deployments");
+    expect(job).toContain("/versions/$VERSION_ID");
+    expect(job).toContain("PrivateDocumentLifecycle");
     expect(job).toContain("wrangler@4.131.2 deploy");
     expect(job).toContain("npm run preflight:ar006");
     expect(job).toContain("wrangler@4.131.2 pages deploy dist");
@@ -64,6 +69,7 @@ describe("ADR 0012 provider evidence job fail-closed capture", () => {
 
   it("retains only the sanitized deployment/evidence files", () => {
     const job = evidenceJobSource();
+    expect(job).toContain("ar006-do-worker-deployment.json");
     expect(job).toContain("ar006-do-evidence-deployment.json");
     expect(job).toContain("ar006-adr0012-two-surface-evidence.json");
     expect(job).toContain("if: always()");

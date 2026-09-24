@@ -193,9 +193,15 @@ function evidenceContext() {
   if (bytes.byteLength !== MAX_BYTES) {
     throw new Error("Synthetic PDF size drifted.");
   }
+  const workerDeploymentId = requiredEnv("AR006_WORKER_DEPLOYMENT_ID");
+  const workerVersionId = requiredEnv("AR006_WORKER_VERSION_ID");
+  assertUuid("AR006_WORKER_DEPLOYMENT_ID", workerDeploymentId);
+  assertUuid("AR006_WORKER_VERSION_ID", workerVersionId);
   return {
     accountId: requiredEnv("CLOUDFLARE_ACCOUNT_ID"),
     durableObjectScriptName: requiredEnv("AR006_PRIVATE_DOCUMENT_WORKER"),
+    workerDeploymentId,
+    workerVersionId,
     projectId,
     deploymentUrl: httpsOrigin("AR006_DEPLOYMENT_URL"),
     bytes,
@@ -348,7 +354,11 @@ function evidenceRecord({
       url: context.deploymentUrl,
       branch: requiredEnv("AR006_DEPLOYMENT_BRANCH"),
     },
-    worker: { name: context.durableObjectScriptName },
+    worker: {
+      name: context.durableObjectScriptName,
+      deploymentId: context.workerDeploymentId,
+      versionId: context.workerVersionId,
+    },
     workersPlanAttestation: "Workers Free / isolated non-production",
     exactBytes: MAX_BYTES,
     sha256: context.sha256,

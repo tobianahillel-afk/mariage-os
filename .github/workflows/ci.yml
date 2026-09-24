@@ -355,6 +355,19 @@ jobs:
           test -n "$AR006_SUPABASE_PUBLISHABLE_KEY"
           test -n "$AR006_TEST_USER_EMAIL"
           test -n "$AR006_PROJECT_ID"
+      - name: Snapshot current private Worker deployment
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.AR006_CLOUDFLARE_WORKER_DEPLOY_TOKEN }}
+        run: |
+          set -eu
+          test -n "$CLOUDFLARE_API_TOKEN"
+          WORKER_URL="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/scripts/$AR006_PRIVATE_DOCUMENT_WORKER"
+          BEFORE_JSON="$(curl --fail --silent --show-error \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            "$WORKER_URL/deployments")"
+          printf '%s' "$BEFORE_JSON" | jq -e '.success == true' >/dev/null
+          PREVIOUS_ID="$(printf '%s' "$BEFORE_JSON" | jq -r '(.result.deployments // []) | sort_by(.created_on) | last | .id // empty')"
+          echo "AR006_WORKER_PREVIOUS_DEPLOYMENT_ID=$PREVIOUS_ID" >> "$GITHUB_ENV"
       - name: Deploy exact private Durable Object host
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.AR006_CLOUDFLARE_WORKER_DEPLOY_TOKEN }}
@@ -364,6 +377,50 @@ jobs:
           npx --yes wrangler@4.131.2 deploy \
             --config workers/private-document-promotion/wrangler.jsonc \
             --keep-vars
+      - name: Capture exact Worker deployment and version identity
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.AR006_CLOUDFLARE_WORKER_DEPLOY_TOKEN }}
+        run: |
+          set -eu
+          WORKER_URL="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/scripts/$AR006_PRIVATE_DOCUMENT_WORKER"
+          AFTER_JSON="$(curl --fail --silent --show-error \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            "$WORKER_URL/deployments")"
+          printf '%s' "$AFTER_JSON" | jq -e '.success == true' >/dev/null
+          DEPLOYMENT="$(printf '%s' "$AFTER_JSON" | jq -c '(.result.deployments // []) | sort_by(.created_on) | last')"
+          test "$DEPLOYMENT" != "null"
+          DEPLOYMENT_ID="$(printf '%s' "$DEPLOYMENT" | jq -r '.id // empty')"
+          test -n "$DEPLOYMENT_ID"
+          test "$DEPLOYMENT_ID" != "$AR006_WORKER_PREVIOUS_DEPLOYMENT_ID"
+          test "$(printf '%s' "$DEPLOYMENT" | jq '.versions | length')" -eq 1
+          test "$(printf '%s' "$DEPLOYMENT" | jq -r '.versions[0].percentage')" = "100"
+          VERSION_ID="$(printf '%s' "$DEPLOYMENT" | jq -r '.versions[0].version_id // empty')"
+          test -n "$VERSION_ID"
+          VERSION_JSON="$(curl --fail --silent --show-error \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            "$WORKER_URL/versions/$VERSION_ID")"
+          printf '%s' "$VERSION_JSON" | jq -e '.success == true' >/dev/null
+          printf '%s' "$VERSION_JSON" | jq -e --arg id "$VERSION_ID" '.result.id == $id' >/dev/null
+          printf '%s' "$VERSION_JSON" | jq -e \
+            '(.result.resources.script.named_handlers // []) | any(.name == "PrivateDocumentLifecycle")' >/dev/null
+          echo "AR006_WORKER_DEPLOYMENT_ID=$DEPLOYMENT_ID" >> "$GITHUB_ENV"
+          echo "AR006_WORKER_VERSION_ID=$VERSION_ID" >> "$GITHUB_ENV"
+          jq -n \
+            --arg script "$AR006_PRIVATE_DOCUMENT_WORKER" \
+            --arg deploymentId "$DEPLOYMENT_ID" \
+            --arg versionId "$VERSION_ID" \
+            --arg createdOn "$(printf '%s' "$DEPLOYMENT" | jq -r '.created_on // empty')" \
+            --arg source "$(printf '%s' "$DEPLOYMENT" | jq -r '.source // empty')" \
+            --arg versionSource "$(printf '%s' "$VERSION_JSON" | jq -r '.result.metadata.source // empty')" \
+            '{schema:"mariage-os.wp29c.ar006.worker-deployment.v1",script:$script,deploymentId:$deploymentId,versionId:$versionId,percentage:100,createdOn:$createdOn,source:$source,versionSource:$versionSource,namedHandler:"PrivateDocumentLifecycle"}' \
+            > ar006-do-worker-deployment.json
+      - name: Retain sanitized exact Worker deployment receipt
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: wp-2.9c-ar006-do-worker-deployment-${{ github.sha }}
+          path: ar006-do-worker-deployment.json
+          if-no-files-found: error
+          retention-days: 30
       - name: Re-verify ADR 0012 binding, Worker secret and synthetic authority
         env:
           AR006_CLOUDFLARE_DEPLOY_TOKEN: ${{ secrets.AR006_CLOUDFLARE_DEPLOY_TOKEN }}
