@@ -5,23 +5,22 @@ function invocationsPassed(invocations, expectedCount) {
   );
 }
 
+function queryPassed(query) {
+  if (query === null || query === undefined) return false;
+  return query.apiSuccess === true && query.eventPageComplete === true;
+}
+
 function discoveryPassed(discovery) {
-  return (
-    discovery?.apiSuccess === true &&
-    discovery?.eventPageComplete === true &&
-    discovery?.discovery.pass === true
-  );
+  if (discovery === null || discovery === undefined) return false;
+  return queryPassed(discovery) && discovery.discovery.pass === true;
 }
 
 function observationPassed(observation) {
-  const pages = observation?.pages;
-  const durableObject = observation?.durableObject;
+  if (observation === null || observation === undefined) return false;
   return (
-    pages?.apiSuccess === true &&
-    pages?.eventPageComplete === true &&
-    durableObject?.apiSuccess === true &&
-    durableObject?.eventPageComplete === true &&
-    observation?.evaluation.pass === true
+    queryPassed(observation.pages) &&
+    queryPassed(observation.durableObject) &&
+    observation.evaluation.pass === true
   );
 }
 
