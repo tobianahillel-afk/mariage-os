@@ -1,6 +1,6 @@
 # WP-2.9C ADR 0012 — Adversarial implementation review
 
-Status: **BOUNDED PROPAGATION REMEDIATION REVIEW PASSED; ONE NON-MUTATING EXISTING-DEPLOYMENT CONTINUATION AUTHORIZED AFTER STATUS COMMIT IS GREEN**
+Status: **EXISTING-DEPLOYMENT PREFLIGHT COMPLETE / GREEN; TWO-SURFACE CPU EVALUATOR IMPLEMENTATION + REVIEW NEXT**
 
 Review date: 2026-09-24  
 Reviewed implementation head: `99ff618781f46073964b14d49b7969c9c132bc92`  
@@ -407,3 +407,47 @@ A green continuation does not close AR-006 and does not authorize a 25 MB
 campaign. It authorizes only implementation and adversarial review of the ADR
 0012 two-surface CPU evaluator. Workers Paid and file-limit reduction remain
 forbidden.
+
+
+## Existing-deployment preflight completion — 2026-09-24
+
+Status: **PASS — ADR 0012 PROVIDER BOUNDARY READY FOR CPU-EVALUATOR WORK**
+
+Review/status parent: `646dcee71389fc72c87ce505fe5508e5b3912d1e` / CI
+`36053609332` — **5/5 SUCCESS**, including clean checkout.
+
+Same-tree read-only trigger:
+`ce2738a22d421fafd446695d9595a378a0413865`.
+
+CI run: `36054731788`.  
+Provider job: `107821508056` — **SUCCESS**.  
+Sanitized receipt artifact: `10832062202`.  
+Artifact ZIP SHA-256:
+`4fdc8a890bb0a23f59fa0055dd208dcee7e018c08a8437b118475bacb5af6f7e`.
+
+The job:
+
+- re-verified the exact ADR 0012 Pages Durable Object binding;
+- re-verified the Worker-held privileged-secret metadata without reading its
+  value;
+- re-authenticated the synthetic user and required live
+  `documents.write`;
+- resolved exactly one successful Pages Preview deployment for pinned candidate
+  `eca478937fad40632dc378f0408c1c8ec4bd5c8c`;
+- passed the bounded deny-oriented Pages readiness smoke;
+- used a fresh random unreserved document UUID and received the required generic
+  HTTP 409 from the lifecycle path, proving Pages reached the Durable Object;
+- performed no Worker deploy, Pages PATCH, reservation, upload, promotion or
+  finalization.
+
+The legacy deploy/requery/diagnostic jobs were skipped and the exact-size
+provider-evidence job remained hard-disabled/skipped.
+
+This closes the ADR 0012 **provider-preflight** gate only. It does not close
+AR-006 and does not authorize exact-size evidence yet.
+
+Next authorized work is repository-only: implement, test and adversarially
+review a two-surface Workers Observability evaluator that separately proves the
+stateless Pages ingress CPU envelope and the Durable Object execution CPU
+envelope. Only a clean evaluator review may authorize a later
+`[AR006-DO-EVIDENCE]` campaign.
