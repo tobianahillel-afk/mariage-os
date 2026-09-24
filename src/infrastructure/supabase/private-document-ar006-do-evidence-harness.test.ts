@@ -44,6 +44,7 @@ describe("ADR 0012 exact-size harness contract", () => {
     expect(harnessSource).toContain("queryAr006MarkerObservability");
     expect(harnessSource).toContain("queryWorkersObservability");
     expect(harnessSource).toContain("runAr006Promotions");
+    expect(flowSource).toContain("invocations.push(await runPromotion");
   });
 
   it("requires each successful promotion to be verified ready before acceptance", () => {

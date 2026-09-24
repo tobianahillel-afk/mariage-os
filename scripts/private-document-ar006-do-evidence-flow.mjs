@@ -150,11 +150,14 @@ async function runPromotion(context, identity, index) {
   };
 }
 
-export async function runAr006Promotions(context, identity, count) {
-  const invocations = [];
+export async function runAr006Promotions(
+  context,
+  identity,
+  invocations,
+  count,
+) {
   for (let index = 0; index < count; index += 1) {
     invocations.push(await runPromotion(context, identity, index));
     if (index + 1 < count) await delay(PROMOTION_DELAY_MS);
   }
-  return invocations;
 }

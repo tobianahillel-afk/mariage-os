@@ -254,9 +254,10 @@ async function executeCampaign(state) {
   );
   await delay(20_000);
   state.failureStage = "exact_size_flows";
-  state.invocations = await runAr006Promotions(
+  await runAr006Promotions(
     state.context,
     identity,
+    state.invocations,
     AR006_EVIDENCE_COUNT,
   );
   state.failureStage = "provider_observability";

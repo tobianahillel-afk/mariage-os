@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { campaignPassed } from "../../../scripts/private-document-ar006-do-evidence-verdict.mjs";
 
-const successfulInvocations = Array.from({ length: 10 }, () => ({
+const EXPECTED_COUNT = 10;
+const successfulInvocations = Array.from({ length: EXPECTED_COUNT }, () => ({
   success: true,
   status: 200,
   finalized: true,
@@ -34,7 +35,7 @@ function verdict(
     markerPreflight,
     discovery: campaignDiscovery,
     observation: campaignObservation,
-    expectedCount: invocations.length,
+    expectedCount: EXPECTED_COUNT,
   });
 }
 
@@ -86,5 +87,11 @@ describe("ADR 0012 exact-size campaign verdict flow failures", () => {
     const notFinalized = [...successfulInvocations];
     notFinalized[0] = { success: true, status: 200, finalized: false };
     expect(verdict(notFinalized)).toBe(false);
+  });
+
+  it("rejects an incomplete ten-flow campaign", () => {
+    expect(verdict(successfulInvocations.slice(0, EXPECTED_COUNT - 1))).toBe(
+      false,
+    );
   });
 });
