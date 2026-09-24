@@ -12,10 +12,9 @@ afterEach(() => vi.unstubAllGlobals());
 
 describe("AR-006 Cloudflare account token precheck", () => {
   it("recognizes an active account token without retaining its value or id", async () => {
-    const fetch = vi.fn(
-      async (..._args: Parameters<typeof globalThis.fetch>) =>
-        Response.json({
-          success: true,
+    const fetch = vi.fn(async () =>
+      Response.json({
+        success: true,
         errors: [],
         result: { id: "opaque-provider-token-id", status: "active" },
       }),
