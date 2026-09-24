@@ -105,14 +105,16 @@ describe("AR-006 Cloudflare user token precheck", () => {
 
 describe("AR-006 Observability event pagination", () => {
   it("uses the provider maximum page and reports a complete event set", async () => {
-    const fetch = vi.fn(async () =>
-      Response.json({
-        success: true,
-        errors: [],
-        result: {
-          events: {
-            count: 1,
-            events: [{ $metadata: { id: "event-1" } }],
+    const fetch = vi.fn(
+      async (..._args: Parameters<typeof globalThis.fetch>) =>
+        Response.json({
+          success: true,
+          errors: [],
+          result: {
+            events: {
+              count: 1,
+              events: [{ $metadata: { id: "event-1" } }],
+            },
           },
         }),
     );
