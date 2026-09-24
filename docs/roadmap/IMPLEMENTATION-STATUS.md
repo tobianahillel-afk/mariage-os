@@ -38,7 +38,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.8B | Venue private archived media lifecycle                                 | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.8C | recoverable Venue remote-media metadata lifecycle                      | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.9A | Venue-linked private PDF/document foundation                           | **BLOCKED — waits for WP-2.9C ACCEPTED**                                   |
-| WP-2.9C | trusted private-document ingestion hardening                           | **IN_PROGRESS — ADR 0012 provider preflight gate; AR-006 OPEN**            |
+| WP-2.9C | trusted private-document ingestion hardening                           | **IN_PROGRESS — ADR 0012 provider preflight retry gate; AR-006 OPEN**      |
 | WP-2.9B | generic project tags and Venue entity-tag links                        | **PLANNED / AFTER A**                                                      |
 | WP-2.10 | repositories, local cache, pending/offline mutations                   | PLANNED                                                                    |
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace                       | PLANNED                                                                    |
@@ -59,7 +59,7 @@ WP-2.1..WP-2.8C are accepted and complete. Durable evidence remains in their pac
 
 ## WP-2.9C — current packet
 
-State: **IN_PROGRESS — ADR 0012 PROVIDER PREFLIGHT GATE; WP29C-AR-006 OPEN / BLOCKING**.
+State: **IN_PROGRESS — ADR 0012 PROVIDER PREFLIGHT RETRY GATE; WP29C-AR-006 OPEN / BLOCKING**.
 
 Pass-A exact evidence:
 
@@ -192,7 +192,7 @@ Provider-observation exploration is now governed by the open architecture review
 - Workers Observability telemetry REST API: provider capability is proven and remains the selected CPU evidence channel; the future ADR 0012 evaluator must distinguish the stateless Pages ingress from `executionModel=durableObject` and fail closed on missing/ambiguous CPU;
 - wall time, HTTP 200, application timing, Paid-only shortcuts and file-limit reduction remain invalid substitutes.
 
-The 2026-09-24 ADR-0011 provider CPU result remains decisive adverse evidence for the stateless Worker design. ADR 0012 is the replacement execution architecture: the same-origin/bodyless Pages ingress binds directly to one private SQLite-backed Durable Object per project/document lifecycle. The ADR 0012 implementation/provider remediation is exact-head green at `7492dd06677f6d5c5ae7627a1c0129bf841c6175` / CI `36038873857`, and the fresh remediation review closes ADR12-IR-001..004 for preflight scope. WP-2.9C is therefore **IN_PROGRESS — ADR 0012 provider preflight gate**. AR-006 remains OPEN; exact-size evidence is still disabled pending a reviewed two-surface CPU evaluator.
+The 2026-09-24 ADR-0011 provider CPU result remains decisive adverse evidence for the stateless Worker design. ADR 0012 is the replacement execution architecture: the same-origin/bodyless Pages ingress binds directly to one private SQLite-backed Durable Object per project/document lifecycle. The first ADR 0012 provider preflight at `b0c8782517f726a0b71f33ca52e940f31c3e138c` / CI `36044939346` failed contained at the Pages Preview PATCH after the private Durable Object host deployed successfully; no Pages candidate or document mutation followed. The bounded minimal-PATCH remediation is exact-head green at `2f3a9eb657bfb8b151d9b70d64371961b519cd53` / CI `36047159395` (**5/5 SUCCESS**, clean-checkout included), and the fresh retry-scope review is PASS. WP-2.9C is therefore **IN_PROGRESS — ADR 0012 provider preflight retry gate**. AR-006 remains OPEN; exact-size evidence is still disabled pending a reviewed two-surface CPU evaluator.
 
 ### AR-007 operations gate retained
 
@@ -200,13 +200,14 @@ Normative release/deployment/secret contracts require Pages Functions to deploy 
 
 ## Current next-action gate
 
-1. ADR 0012 implementation/provider remediation is exact-head green and the fresh remediation review is PASS for preflight scope.
-2. After this review/status reconciliation commit itself passes exact-head ordinary CI + clean-checkout verification, trigger exactly one bounded isolated `[AR006-DO-PREFLIGHT]`.
-3. That preflight may deploy the non-public Durable Object host, configure only the isolated Pages Preview direct `PRIVATE_DOCUMENT_LIFECYCLE` binding, verify Worker-held secret metadata/Supabase synthetic authority, deploy the exact Pages candidate, run deny smoke and prove a non-mutating route reaches the lifecycle DO.
-4. If any provider/deployment/binding/route check fails, remain IN_PROGRESS and diagnose/remediate fail-closed. Do not run an exact-size campaign.
-5. If the preflight is green, implement and adversarially review the new **two-surface CPU evaluator** before enabling any `[AR006-DO-EVIDENCE]` path. The exact-size job remains hard-disabled until that review is clean.
-6. Do not substitute wall time, dashboard aggregate, Paid entitlement or a lower file limit. AR-006 remains OPEN until ten exact-size flows have attributable provider CPU evidence for both the stateless Pages ingress and Durable Object execution with no CPU-limit outcome.
-7. Only after valid AR-006 evidence, run exact-head verification, a complete fresh independent Pass B and then Pass C before acceptance. WP-2.9A remains **BLOCKED** until C is accepted; WP-2.9B and later Lots remain inactive.
+1. Provider preflight attempt 1 (`b0c8782517f726a0b71f33ca52e940f31c3e138c` / CI `36044939346` / job `107788836160`) failed contained at the Pages Preview PATCH after successful Durable Object host deployment. No Pages candidate, document mutation or exact-size evidence followed.
+2. The minimal-PATCH/sanitized-diagnostic remediation is exact-head green at `2f3a9eb657bfb8b151d9b70d64371961b519cd53` / CI `36047159395`, and the fresh retry-scope review is PASS.
+3. After the retry-review/status reconciliation commit itself passes exact-head ordinary CI + clean-checkout verification, trigger exactly one bounded isolated `[AR006-DO-PREFLIGHT]` retry.
+4. The retry may redeploy/reconcile the non-public Durable Object host, apply only the isolated Pages Preview direct `PRIVATE_DOCUMENT_LIFECYCLE` delta, verify Worker-held secret metadata/Supabase synthetic authority, deploy the exact Pages candidate, run deny smoke and prove a non-mutating route reaches the lifecycle DO.
+5. If any provider/deployment/binding/route check fails, remain IN_PROGRESS and diagnose/remediate fail-closed. Do not run an exact-size campaign.
+6. If the retry is green, implement and adversarially review the new **two-surface CPU evaluator** before enabling any `[AR006-DO-EVIDENCE]` path. The exact-size job remains hard-disabled until that review is clean.
+7. Do not substitute wall time, dashboard aggregate, Paid entitlement or a lower file limit. AR-006 remains OPEN until ten exact-size flows have attributable provider CPU evidence for both the stateless Pages ingress and Durable Object execution with no CPU-limit outcome.
+8. Only after valid AR-006 evidence, run exact-head verification, a complete fresh independent Pass B and then Pass C before acceptance. WP-2.9A remains **BLOCKED** until C is accepted; WP-2.9B and later Lots remain inactive.
 
 ## Durable handoff
 
@@ -218,7 +219,7 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.8C
 WP-2.9A: BLOCKED — waits for WP-2.9C ACCEPTED
-Current packet: WP-2.9C — IN_PROGRESS — ADR 0012 PROVIDER PREFLIGHT GATE; AR-006 remains OPEN
+Current packet: WP-2.9C — IN_PROGRESS — ADR 0012 PROVIDER PREFLIGHT RETRY GATE; AR-006 remains OPEN
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
@@ -242,7 +243,10 @@ CPU feasibility follow-up: `docs/roadmap/lot-2/WP-2.9C-AR-006-FEASIBILITY-2026-0
 ADR 0012 decision commit: `889433938e721e8cbd9a01c9d6caff6436b198f4` — direct Pages → Durable Object architecture accepted; no production implementation or provider campaign in that commit.
 ADR 0012 implementation/provider-remediation candidate: `7492dd06677f6d5c5ae7627a1c0129bf841c6175` / CI `36038873857` — **5/5 SUCCESS**, clean-checkout included; ordinary push kept provider jobs SKIPPED.
 ADR 0012 remediation review: **PASS FOR PREFLIGHT SCOPE** — ADR12-IR-001..004 CLOSED / VERIFIED; exact-size evidence remains separately gated.
-Current permitted action: after this documentation reconciliation itself is exact-head green, trigger one bounded `[AR006-DO-PREFLIGHT]`. No exact-size provider campaign, Paid entitlement or file-limit reduction is authorized; the future `[AR006-DO-EVIDENCE]` path remains disabled pending a reviewed two-surface CPU evaluator. WP-2.9C is IN_PROGRESS; AR-006 remains open.
+ADR 0012 provider preflight attempt 1: `b0c8782517f726a0b71f33ca52e940f31c3e138c` / CI `36044939346` / job `107788836160` — ordinary + clean-checkout gates green; private Durable Object host deployment SUCCESS; Pages Preview PATCH FAILED; no binding receipt, Pages candidate, route mutation or exact-size evidence; failure contained.
+ADR 0012 Pages PATCH remediation: `2f3a9eb657bfb8b151d9b70d64371961b519cd53` / CI `36047159395` — **5/5 SUCCESS**, clean checkout included; configurator now uses a minimal partial PATCH and sanitized status/code/field diagnostics; all provider workflows skipped on remediation commits.
+ADR 0012 retry review: **PASS FOR BOUNDED PREFLIGHT RETRY SCOPE** — one new `[AR006-DO-PREFLIGHT]` retry only after this review/status state is exact-head green; exact-size remains disabled.
+Current permitted action: after this retry-review/status reconciliation itself is exact-head green, trigger exactly one bounded `[AR006-DO-PREFLIGHT]` retry. No exact-size provider campaign, Paid entitlement or file-limit reduction is authorized; the future `[AR006-DO-EVIDENCE]` path remains disabled pending a reviewed two-surface CPU evaluator. WP-2.9C is IN_PROGRESS; AR-006 remains open.
 Tail support green tree: d04edd0ed0d3daa3b9bfe20d954003bb13545200 / parent 82e05a8dab9f61377f045b74005fd6582da0afe3 / CI 35152382433 — 5/5 SUCCESS
 Tail capability trigger: 7645a9e769c641640f52fdba535deb6140401fc6 / workflow 35153132971 / job 104986087784 / artifact 10469354745 — deny smoke SUCCESS; parsedJsonEventCount=0; providerCpuTimeMs=[]; pass=false
 Workers Observability configured capability preflight: bd3fdb4baab6ef59983e40f77b5b2f44ba6dc8b7 / workflow 35213157767 / job 105175271234 / artifact 10494251279 (ZIP SHA-256 02438aadb3e377f6c8e6ed66b3b00c0c0d3e473008c3bb710acbfb805f2dde7c) — deny smoke passed; no attributable numeric provider CPU; pass=false
@@ -251,5 +255,5 @@ AR-005 and AR-007: implementation-remediated / exact-head-green — formal closu
 FTR-089 FIR: #17 — BLOCKED
 WP-2.9B: PLANNED / AFTER A
 Lots 3–12: NOT_STARTED
-Next permitted action: exact-head-green documentation review → one bounded `[AR006-DO-PREFLIGHT]`; if green, implement/review the two-surface CPU evaluator before any exact-size campaign
+Next permitted action: exact-head-green retry review/status → one bounded `[AR006-DO-PREFLIGHT]` retry; if green, implement/review the two-surface CPU evaluator before any exact-size campaign
 ```
