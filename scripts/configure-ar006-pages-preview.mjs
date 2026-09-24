@@ -111,9 +111,7 @@ function previewPatch(project, input, namespaceId) {
 
 function legacyServicePresent(services) {
   if (Array.isArray(services)) {
-    return services.some(
-      (entry) => entry?.binding === LEGACY_SERVICE_BINDING,
-    );
+    return services.some((entry) => entry?.binding === LEGACY_SERVICE_BINDING);
   }
   return services?.[LEGACY_SERVICE_BINDING] !== undefined;
 }
