@@ -35,6 +35,9 @@ for (const script of orderedChecks) {
   if (status !== 0) process.exit(status);
 }
 
+const cleanupStatus = runScript("db:stop");
+if (cleanupStatus !== 0) process.exit(cleanupStatus);
+
 const startStatus = runScript("db:start");
 if (startStatus !== 0) process.exit(startStatus);
 
