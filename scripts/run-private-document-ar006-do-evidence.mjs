@@ -20,6 +20,7 @@ import {
 } from "./private-document-ar006-two-surface-metrics.mjs";
 import {
   buildEvidenceRecord,
+  buildFailureEvidenceRecord,
   writeEvidence,
 } from "./private-document-ar006-do-evidence-record.mjs";
 import { campaignPassed } from "./private-document-ar006-do-evidence-verdict.mjs";
@@ -389,39 +390,75 @@ async function observeCampaign(context, invocations) {
   return { discovery, observation };
 }
 
-async function main() {
-  const context = evidenceContext();
+async function executeCampaign(state) {
+  state.failureStage = "authentication";
   const identity = await signIn();
-  const markerPreflight = await verifyMarkerObservability(context, identity);
+  state.failureStage = "marker_preflight";
+  state.markerPreflight = await verifyMarkerObservability(
+    state.context,
+    identity,
+  );
   await delay(20_000);
-  const invocations = await runPromotions(context, identity);
-  const { discovery, observation } = await observeCampaign(
+  state.failureStage = "exact_size_flows";
+  state.invocations = await runPromotions(state.context, identity);
+  state.failureStage = "provider_observability";
+  const observed = await observeCampaign(state.context, state.invocations);
+  state.discovery = observed.discovery;
+  state.observation = observed.observation;
+}
+
+function evidenceState(context) {
+  return {
     context,
-    invocations,
-  );
-  const pass = campaignPassed(
-    invocations,
-    markerPreflight,
-    discovery,
-    observation,
-    AR006_EVIDENCE_COUNT,
-  );
+    invocations: [],
+    markerPreflight: null,
+    discovery: null,
+    observation: null,
+    failureStage: "campaign_setup",
+  };
+}
+
+async function writeFailedCampaign(state) {
   await writeEvidence(
-    buildEvidenceRecord({
-      context,
-      invocations,
-      markerPreflight,
-      discovery,
-      observation,
-      pass,
+    buildFailureEvidenceRecord({
+      ...state,
       exactBytes: MAX_BYTES,
       invocationCount: AR006_EVIDENCE_COUNT,
     }),
   );
-  if (!pass) {
-    throw new Error(
-      "ADR 0012 provider evidence did not satisfy both CPU gates.",
+}
+
+async function main() {
+  const state = evidenceState(evidenceContext());
+  try {
+    await executeCampaign(state);
+    const pass = campaignPassed(
+      state.invocations,
+      state.markerPreflight,
+      state.discovery,
+      state.observation,
+      AR006_EVIDENCE_COUNT,
     );
+    await writeEvidence(
+      buildEvidenceRecord({
+        context: state.context,
+        invocations: state.invocations,
+        markerPreflight: state.markerPreflight,
+        discovery: state.discovery,
+        observation: state.observation,
+        pass,
+        exactBytes: MAX_BYTES,
+        invocationCount: AR006_EVIDENCE_COUNT,
+      }),
+    );
+    if (!pass) {
+      throw new Error(
+        "ADR 0012 provider evidence did not satisfy both CPU gates.",
+      );
+    }
+  } catch (error) {
+    await writeFailedCampaign(state);
+    throw error;
   }
 }
 

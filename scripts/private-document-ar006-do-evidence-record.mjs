@@ -78,6 +78,47 @@ export function buildEvidenceRecord({
   };
 }
 
+export function buildFailureEvidenceRecord({
+  context,
+  invocations,
+  markerPreflight,
+  discovery,
+  observation,
+  failureStage,
+  exactBytes,
+  invocationCount,
+}) {
+  return {
+    schema: "mariage-os.wp29c.ar006.adr0012-two-surface-failure.v1",
+    generatedAt: new Date().toISOString(),
+    gitCommit: requiredEnv("AR006_EXPECTED_SHA"),
+    pagesProject: requiredEnv("AR006_PAGES_PROJECT"),
+    deployment: {
+      id: requiredEnv("AR006_DEPLOYMENT_ID"),
+      url: context.deploymentUrl,
+      branch: requiredEnv("AR006_DEPLOYMENT_BRANCH"),
+    },
+    worker: {
+      name: context.durableObjectScriptName,
+      deploymentId: context.workerDeploymentId,
+      versionId: context.workerVersionId,
+    },
+    workersPlanAttestation: "Workers Free / isolated non-production",
+    exactBytes,
+    sha256: context.sha256,
+    projectId: context.projectId,
+    invocationCount,
+    completedInvocationCount: invocations.length,
+    invocations,
+    markerPreflight: sanitizedDiscovery(markerPreflight),
+    discovery: sanitizedDiscovery(discovery),
+    provider: sanitizedEvaluation(observation),
+    failureStage,
+    paidCpuEntitlementAttestedAbsent: true,
+    pass: false,
+  };
+}
+
 export async function writeEvidence(record) {
   await writeFile(
     EVIDENCE_PATH,

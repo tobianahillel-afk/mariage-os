@@ -489,7 +489,7 @@ jobs:
         with:
           name: wp-2.9c-ar006-adr0012-evidence-${{ github.sha }}
           path: ar006-adr0012-two-surface-evidence.json
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 30
 
   ar006-token-diagnostic:

@@ -11,6 +11,19 @@ function evidenceJobSource(): string {
   return ciSource.slice(start, end);
 }
 
+describe("ADR 0012 failed-campaign receipt contract", () => {
+  it("retains a sanitized pass-false receipt for bounded campaign failures", () => {
+    expect(harnessSource).toContain("buildFailureEvidenceRecord");
+    expect(harnessSource).toContain("failureStage");
+    expect(recordSource).toContain(
+      "mariage-os.wp29c.ar006.adr0012-two-surface-failure.v1",
+    );
+    expect(recordSource).toContain("completedInvocationCount");
+    expect(recordSource).toContain("pass: false");
+    expect(recordSource).not.toContain("error.message");
+  });
+});
+
 describe("ADR 0012 two-surface marker preflight contract", () => {
   it("proves both marker surfaces before any exact-size mutation", () => {
     expect(harnessSource).toContain("verifyMarkerObservability");
