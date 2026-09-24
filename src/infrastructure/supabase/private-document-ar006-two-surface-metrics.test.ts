@@ -106,7 +106,10 @@ function evaluate(data = fixture()) {
   });
 }
 
-function workerFields(events: unknown[], index: number): Record<string, unknown> {
+function workerFields(
+  events: unknown[],
+  index: number,
+): Record<string, unknown> {
   const event = events[index];
   if (typeof event !== "object" || event === null || !("$workers" in event)) {
     throw new Error("Synthetic event is missing worker fields.");
@@ -125,7 +128,9 @@ describe("ADR 0012 two-surface CPU evaluator success", () => {
     expect(result.exactEvidenceCount).toBe(true);
     expect(result.uniqueDurableObjects).toBe(true);
     expect(result.pages.measurements).toHaveLength(AR006_EVIDENCE_COUNT);
-    expect(result.durableObject.measurements).toHaveLength(AR006_EVIDENCE_COUNT);
+    expect(result.durableObject.measurements).toHaveLength(
+      AR006_EVIDENCE_COUNT,
+    );
     expect(result.pages.measurements[0]).toEqual(
       expect.objectContaining({
         executionModel: "stateless",
