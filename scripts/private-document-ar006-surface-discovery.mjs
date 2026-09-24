@@ -143,11 +143,7 @@ export function discoverAr006SurfaceScripts({
     ...pages.failures,
     ...durable.failures,
     ...campaignShapeFailures(events, markers, expectedEvidenceIds),
-    ...scriptIdentityFailures(
-      pageNames,
-      durableNames,
-      durableObjectScriptName,
-    ),
+    ...scriptIdentityFailures(pageNames, durableNames, durableObjectScriptName),
   ];
   const pagesScriptName =
     failures.length === 0 ? ([...pageNames][0] ?? null) : null;
