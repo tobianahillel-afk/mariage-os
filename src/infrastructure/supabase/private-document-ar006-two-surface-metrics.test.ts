@@ -66,7 +66,9 @@ function invocation({
 }
 
 function fixture(count: number = AR006_EVIDENCE_COUNT) {
-  const ids = Array.from({ length: count }, (_, index) => evidenceId(index + 1));
+  const ids = Array.from({ length: count }, (_, index) =>
+    evidenceId(index + 1),
+  );
   const pagesEvents: unknown[] = [];
   const durableObjectEvents: unknown[] = [];
   ids.forEach((id, index) => {
