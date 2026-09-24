@@ -3,7 +3,7 @@ export const LIFECYCLE_CLASS = "PrivateDocumentLifecycle";
 export const LEGACY_SERVICE_BINDING = "PRIVATE_DOCUMENT_PROMOTION_WORKER";
 
 const API_ROOT = "https://api.cloudflare.com/client/v4/accounts";
-const PAGE_SIZE = 100;
+const PAGE_SIZE = 1000;
 
 function isRecord(value) {
   return typeof value === "object" && value !== null;
