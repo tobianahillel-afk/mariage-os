@@ -135,7 +135,6 @@ describe("AR-006 Observability pagination", () => {
     expect(result.totalEventCount).toBe(1);
     expect(result.eventPageComplete).toBe(true);
   });
-
 });
 
 describe("AR-006 Observability pagination fail closed", () => {
