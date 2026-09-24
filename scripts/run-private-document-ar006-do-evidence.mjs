@@ -19,6 +19,7 @@ import {
   AR006_EVIDENCE_COUNT,
   evaluateAr006TwoSurfaceEvents,
 } from "./private-document-ar006-two-surface-metrics.mjs";
+import { campaignPassed } from "./private-document-ar006-do-evidence-verdict.mjs";
 
 const MAX_BYTES = 25_000_000;
 const EVIDENCE_PATH = "ar006-adr0012-two-surface-evidence.json";
@@ -390,21 +391,6 @@ async function observeCampaign(context, invocations) {
   return { discovery, observation };
 }
 
-function campaignPassed(invocations, discovery, observation) {
-  return [
-    invocations.length === AR006_EVIDENCE_COUNT,
-    invocations.every((item) => item.success && item.status === 200),
-    discovery?.apiSuccess === true,
-    discovery?.eventPageComplete === true,
-    discovery?.discovery.pass === true,
-    observation?.pages.apiSuccess === true,
-    observation?.pages.eventPageComplete === true,
-    observation?.durableObject.apiSuccess === true,
-    observation?.durableObject.eventPageComplete === true,
-    observation?.evaluation.pass === true,
-  ].every(Boolean);
-}
-
 async function main() {
   const context = evidenceContext();
   const identity = await signIn();
@@ -414,7 +400,12 @@ async function main() {
     context,
     invocations,
   );
-  const pass = campaignPassed(invocations, discovery, observation);
+  const pass = campaignPassed(
+    invocations,
+    discovery,
+    observation,
+    AR006_EVIDENCE_COUNT,
+  );
   await writeEvidence(
     evidenceRecord({ context, invocations, discovery, observation, pass }),
   );
