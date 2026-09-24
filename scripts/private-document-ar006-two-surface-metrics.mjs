@@ -34,8 +34,15 @@ function metadata(event) {
 
 function eventRequestId(event) {
   const workerId = stringOrNull(property(workers(event), "requestId"));
-  if (workerId !== null) return workerId;
-  return stringOrNull(property(metadata(event), "requestId"));
+  const metadataId = stringOrNull(property(metadata(event), "requestId"));
+  if (
+    workerId !== null &&
+    metadataId !== null &&
+    workerId !== metadataId
+  ) {
+    return null;
+  }
+  return workerId ?? metadataId;
 }
 
 function markerPayload(event) {
@@ -85,10 +92,17 @@ function parsedMarker(event, scriptName, surface) {
 
 function providerStatus(event) {
   const direct = finiteNumber(property(metadata(event), "statusCode"));
-  if (direct !== null) return direct;
   const invocation = property(workers(event), "event");
   const response = property(invocation, "response");
-  return finiteNumber(property(response, "status"));
+  const responseStatus = finiteNumber(property(response, "status"));
+  if (
+    direct !== null &&
+    responseStatus !== null &&
+    direct !== responseStatus
+  ) {
+    return null;
+  }
+  return direct ?? responseStatus;
 }
 
 function scriptVersionId(event) {
@@ -113,6 +127,7 @@ function invocationMeasurement(event, contract) {
     scriptVersionId: scriptVersionId(event),
     statusCode: providerStatus(event),
     traceId: stringOrNull(worker.traceId),
+    truncated: worker.truncated === true,
   };
 }
 
@@ -147,6 +162,7 @@ function validInvocation(marker, invocation, contract) {
     providerStatusAccepted(invocation.statusCode),
     durableObjectIdentityAccepted(invocation, contract),
     scriptVersionAccepted(invocation, contract),
+    invocation.truncated === false,
   ];
   return checks.every(Boolean);
 }

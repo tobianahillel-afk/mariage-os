@@ -195,6 +195,33 @@ describe("ADR 0012 two-surface correlation failures", () => {
 
 describe("ADR 0012 two-surface CPU failures", () => {
 
+  it("rejects conflicting provider request identity", () => {
+    const data = fixture();
+    const event = data.pagesEvents[1];
+    if (
+      typeof event !== "object" ||
+      event === null ||
+      !("$metadata" in event) ||
+      typeof event.$metadata !== "object" ||
+      event.$metadata === null
+    ) {
+      throw new Error("Synthetic event is missing metadata.");
+    }
+    (event.$metadata as Record<string, unknown>).requestId = "conflicting-id";
+    expect(evaluate(data).pass).toBe(false);
+  });
+
+  it("rejects conflicting provider status and truncated invocations", () => {
+    const conflicting = fixture();
+    const worker = workerFields(conflicting.pagesEvents, 1);
+    worker.event = { response: { status: 503 } };
+    expect(evaluate(conflicting).pass).toBe(false);
+
+    const truncated = fixture();
+    workerFields(truncated.durableObjectEvents, 1).truncated = true;
+    expect(evaluate(truncated).pass).toBe(false);
+  });
+
   it("rejects a provider invocation with missing HTTP status", () => {
     const data = fixture();
     const event = data.pagesEvents[1];
