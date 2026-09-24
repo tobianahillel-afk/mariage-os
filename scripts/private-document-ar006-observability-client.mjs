@@ -89,11 +89,7 @@ export function nextObservabilityDelayMs(result, fallbackMs) {
   return result.retryAfterMs;
 }
 
-async function runObservabilityQuery({
-  accountId,
-  token,
-  query,
-}) {
+async function runObservabilityQuery({ accountId, token, query }) {
   const response = await globalThis.fetch(
     `${API_ROOT}/${encodeURIComponent(accountId)}/workers/observability/telemetry/query`,
     {

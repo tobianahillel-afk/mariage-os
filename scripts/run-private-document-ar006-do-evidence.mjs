@@ -146,12 +146,7 @@ async function runPromotion(context, identity, index) {
     sha256: context.sha256,
     index,
   });
-  await stage(
-    identity.client,
-    context.projectId,
-    documentId,
-    context.bytes,
-  );
+  await stage(identity.client, context.projectId, documentId, context.bytes);
   const startedAt = new Date().toISOString();
   const result = await promote({
     baseUrl: context.deploymentUrl,
@@ -181,7 +176,9 @@ function evidenceContext() {
     requiredEnv("AR006_WORKERS_FREE_ATTESTATION") !==
     "YES-WORKERS-FREE-ISOLATED"
   ) {
-    throw new Error("Workers Free isolated-environment attestation is required.");
+    throw new Error(
+      "Workers Free isolated-environment attestation is required.",
+    );
   }
   const projectId = requiredEnv("AR006_PROJECT_ID");
   assertUuid("AR006_PROJECT_ID", projectId);
@@ -274,7 +271,13 @@ async function collectTwoSurfaceEvidence(context, invocations, pagesScriptName) 
       pagesScriptName,
       durableObjectScriptName: context.durableObjectScriptName,
     });
-    latest = { pages, durableObject, evaluation, window: timeframe.record, attempt };
+    latest = {
+      pages,
+      durableObject,
+      evaluation,
+      window: timeframe.record,
+      attempt,
+    };
     if (pages.apiSuccess && durableObject.apiSuccess && evaluation.pass) break;
     if (attempt < OBSERVABILITY_ATTEMPTS) {
       await delay(maxDelay(pages, durableObject));
@@ -357,11 +360,7 @@ async function main() {
   const observation =
     pagesScriptName === null
       ? null
-      : await collectTwoSurfaceEvidence(
-          context,
-          invocations,
-          pagesScriptName,
-        );
+      : await collectTwoSurfaceEvidence(context, invocations, pagesScriptName);
   const pass =
     invocations.length === AR006_EVIDENCE_COUNT &&
     invocations.every((item) => item.success && item.status === 200) &&
