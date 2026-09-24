@@ -136,6 +136,9 @@ describe("AR-006 Observability pagination", () => {
     expect(result.eventPageComplete).toBe(true);
   });
 
+});
+
+describe("AR-006 Observability pagination fail closed", () => {
   it("fails closed when the provider omits the total event count", async () => {
     vi.stubGlobal(
       "fetch",
