@@ -201,7 +201,7 @@ Normative release/deployment/secret contracts require Pages Functions to deploy 
 ## Current next-action gate
 
 1. The 2026-09-23 bounded diagnostic verified the existing GitHub Environment secret against both documented token-owner endpoints. Both returned HTTP `401` / code `1000`, so the secret is not currently usable. The Cloudflare connector cannot manage tokens (`9109`). No telemetry query ran and zero CPU measurements exist.
-2. Follow the conditional credential recovery in that decision using a new, narrowly scoped account token. The old 2026-09-17 Worker logs exceeded Workers Free retention. No new exact-size promotion is authorized by the credential diagnostic.
+2. The narrowly scoped replacement account token was created on 2026-09-24 and the GitHub Environment secret was updated. Run the marker-gated isolated token-capability preflight and inspect its sanitized artifact before any new exact-size promotion. The old 2026-09-17 Worker logs exceeded Workers Free retention.
 3. Do not substitute wall time, dashboard aggregate, Paid entitlement or a lower file limit.
 4. Only after valid AR-006 exact-size CPU evidence, run a complete fresh independent Pass B and then Pass C before acceptance.
 5. WP-2.9A remains **BLOCKED** until C is accepted; WP-2.9B and later Lots remain inactive.
@@ -229,7 +229,8 @@ Final bounded Worker requery: a937d6e1484640afba52848e895f5480ab4ea8a8 / CI 3533
 Local evidence parser repair: architecture decision 202f149; implementation 18cf24cebb545b67fd2fe6791a7a3ece13e60f94 / CI 35364734978 — normal CI 5/5 SUCCESS including clean-checkout; no provider query or promotion; AR-006 remains open
 Bounded parser-repair live retest: 8dd0da2b948e4bdad3edaba274ef658fc850b4ef / CI 35366867329 — normal CI 5/5 SUCCESS including clean-checkout; isolated job 105673740056 FAILURE at account-token verification 401/1000; artifact 10557066610 (ZIP SHA-256 414ba6803b1a75d65ae2ed9930c0fbb4a49b784c06538966847c19962b9ae990) has no provider query, no CPU measurement, pass=false
 Owner-type credential diagnostic: e5c9c93ae23a1350511c986629f78f58db308e61 / CI 35912545590 — normal CI 5/5 SUCCESS including clean-checkout; isolated job 107358251456 failed closed; artifact 10774515322 (ZIP SHA-256 8ce43d8acba16bb4c5d7ee97c49d40b4057b5c3e54059d4a9022da579dedfa60) records account 401/1000 and user 401/1000, no telemetry query, pass=false
-Current permitted action: replace the unusable Observability token under the 2026-09-23 decision, verify its isolated GitHub secret from CI, then decide on a fresh exact-size evidence campaign; AR-006 remains open.
+Replacement Observability token: created in the authenticated Cloudflare account on 2026-09-24 with only `Workers Observability Write` for the account, all IPs allowed, expiration 2027-09-25; GitHub `ar006-isolated` secret updated at 2026-09-24T08:17:32Z (REST 204, confirmed by refreshed GitHub UI). The token is also stored outside the repository in a Windows DPAPI user-protected local file. Normal CI for preflight preparation commit 4ea938b37321c77c24d359e6e13c69e5ea71693f / run 35915263712 succeeded. No provider query or promotion has yet run with the replacement.
+Current permitted action: run the marker-gated isolated token-capability CI preflight, inspect its sanitized artifact, then decide whether a fresh exact-size evidence campaign is authorized; AR-006 remains open.
 Tail support green tree: d04edd0ed0d3daa3b9bfe20d954003bb13545200 / parent 82e05a8dab9f61377f045b74005fd6582da0afe3 / CI 35152382433 — 5/5 SUCCESS
 Tail capability trigger: 7645a9e769c641640f52fdba535deb6140401fc6 / workflow 35153132971 / job 104986087784 / artifact 10469354745 — deny smoke SUCCESS; parsedJsonEventCount=0; providerCpuTimeMs=[]; pass=false
 Workers Observability configured capability preflight: bd3fdb4baab6ef59983e40f77b5b2f44ba6dc8b7 / workflow 35213157767 / job 105175271234 / artifact 10494251279 (ZIP SHA-256 02438aadb3e377f6c8e6ed66b3b00c0c0d3e473008c3bb710acbfb805f2dde7c) — deny smoke passed; no attributable numeric provider CPU; pass=false
@@ -238,5 +239,5 @@ AR-005 and AR-007: implementation-remediated / exact-head-green — formal closu
 FTR-089 FIR: #17 — BLOCKED
 WP-2.9B: PLANNED / AFTER A
 Lots 3–12: NOT_STARTED
-Next permitted action: create and install a one-year, Workers-Observability-only account token for `ar006-isolated`, verify it from CI; no old-log requery or new exact-size promotion yet
+Next permitted action: verify the installed one-year, Workers-Observability-only account token in isolated CI; no old-log requery or new exact-size promotion yet
 ```

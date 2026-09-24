@@ -283,12 +283,27 @@ identify whether the value was revoked, expired, copied incorrectly or belongs
 to another credential type. No telemetry query, deployment or PDF promotion
 ran. The Cloudflare connector cannot list or create account tokens with its
 current authorization (`9109` on token and permission-group reads). Credential
-recovery therefore awaits a newly created, narrowly scoped account token from
+recovery therefore required a newly created, narrowly scoped account token from
 the authenticated Cloudflare account. A marker-gated CI preflight is prepared
 to verify the replacement token and its read-only telemetry-query capability
 without recording event contents; it does not close AR-006. The separate web
-automation session did not inherit the signed-in in-app browser session and
-reached the Cloudflare login page. AR-006 remains open.
+automation session did not inherit the signed-in in-app browser session, so
+token creation was completed in the connected in-app browser instead.
+
+On 2026-09-24 the replacement account token
+`mariage-os-ar006-observability-20260923` was created with exactly one policy:
+`Workers Observability Write` on account
+`e33a5fde02b4ecbc0a36f4ad47ad0597`, all IPs allowed, expiring
+2027-09-25. Its value was copied only into memory, stored outside the repository
+as a Windows DPAPI file restricted to the current Windows user, and installed as
+GitHub Environment secret `AR006_CLOUDFLARE_OBSERVABILITY_TOKEN` in
+`ar006-isolated`. The GitHub UI update appeared to close successfully but left
+the old 2026-09-17 timestamp after reload; the official environment-secrets API
+then returned HTTP 204 and metadata `updated_at=2026-09-24T08:17:32Z`, which a
+fresh GitHub UI load also confirmed. No token value entered the repository or
+CI logs. Preparation commit `4ea938b37321c77c24d359e6e13c69e5ea71693f`
+passed normal CI `35915263712`. The new credential has not yet passed the
+isolated capability preflight; AR-006 remains open.
 
 ## Provider references
 

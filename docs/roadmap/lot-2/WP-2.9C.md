@@ -255,6 +255,14 @@ verification endpoints. Artifact `10774515322` (ZIP SHA-256
 contains no telemetry query or CPU measurement. A replacement credential and
 fresh provider evidence remain required under the architecture decision.
 
+On 2026-09-24 a one-year account token with only `Workers Observability Write`
+was created and installed as the `ar006-isolated` GitHub Environment secret;
+GitHub metadata updated at `2026-09-24T08:17:32Z`. The value is also stored in
+a Windows DPAPI file outside the repository. The preparation commit
+`4ea938b37321c77c24d359e6e13c69e5ea71693f` passed normal CI
+`35915263712`. The next permitted step is the isolated credential/capability
+preflight, not acceptance or a new exact-size promotion.
+
 Current gate:
 
 1. retain AR-005 and AR-007 remediations without weakening their security contracts;
