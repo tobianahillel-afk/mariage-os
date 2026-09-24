@@ -3,6 +3,8 @@ export interface Ar006ObservabilityResult {
   apiSuccess: boolean;
   providerErrorCodes: number[];
   events: unknown[];
+  totalEventCount: number | null;
+  eventPageComplete: boolean;
   retryAfterMs: number | null;
 }
 
@@ -32,6 +34,13 @@ export function nextObservabilityDelayMs(
 export function queryWorkersObservability(input: {
   accountId: string;
   workerName: string;
+  token: string;
+  timeframe: { from: number; to: number };
+  queryId: string;
+}): Promise<Ar006ObservabilityResult>;
+
+export function queryAr006MarkerObservability(input: {
+  accountId: string;
   token: string;
   timeframe: { from: number; to: number };
   queryId: string;

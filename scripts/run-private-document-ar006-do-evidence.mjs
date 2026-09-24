@@ -215,7 +215,9 @@ async function discoverPagesScript(context, invocations) {
       durableObjectScriptName: context.durableObjectScriptName,
     });
     latest = { ...result, discovery };
-    if (result.apiSuccess && discovery.pass) return latest;
+    if (result.apiSuccess && result.eventPageComplete && discovery.pass) {
+      return latest;
+    }
     if (attempt < OBSERVABILITY_ATTEMPTS) {
       await delay(nextObservabilityDelayMs(result, OBSERVABILITY_DELAY_MS));
     }
@@ -278,7 +280,15 @@ async function collectTwoSurfaceEvidence(
       window: timeframe.record,
       attempt,
     };
-    if (pages.apiSuccess && durableObject.apiSuccess && evaluation.pass) break;
+    if (
+      pages.apiSuccess &&
+      pages.eventPageComplete &&
+      durableObject.apiSuccess &&
+      durableObject.eventPageComplete &&
+      evaluation.pass
+    ) {
+      break;
+    }
     if (attempt < OBSERVABILITY_ATTEMPTS) {
       await delay(maxDelay(pages, durableObject));
     }
@@ -292,6 +302,8 @@ function sanitizedQuery(result) {
     httpStatus: result.httpStatus,
     apiSuccess: result.apiSuccess,
     providerErrorCodes: result.providerErrorCodes,
+    totalEventCount: result.totalEventCount,
+    eventPageComplete: result.eventPageComplete,
     retryAfterMs: result.retryAfterMs,
   };
 }
@@ -383,9 +395,12 @@ function campaignPassed(invocations, discovery, observation) {
     invocations.length === AR006_EVIDENCE_COUNT,
     invocations.every((item) => item.success && item.status === 200),
     discovery?.apiSuccess === true,
+    discovery?.eventPageComplete === true,
     discovery?.discovery.pass === true,
     observation?.pages.apiSuccess === true,
+    observation?.pages.eventPageComplete === true,
     observation?.durableObject.apiSuccess === true,
+    observation?.durableObject.eventPageComplete === true,
     observation?.evaluation.pass === true,
   ].every(Boolean);
 }

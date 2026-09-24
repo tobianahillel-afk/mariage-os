@@ -4,7 +4,7 @@ import {
 } from "./private-document-ar006-worker-metrics.mjs";
 
 const API_ROOT = "https://api.cloudflare.com/client/v4/accounts";
-const DEFAULT_LIMIT = 100;
+const DEFAULT_LIMIT = 2_000;
 
 async function verifyToken(url, token) {
   const response = await globalThis.fetch(url, {
@@ -89,6 +89,18 @@ export function nextObservabilityDelayMs(result, fallbackMs) {
   return result.retryAfterMs;
 }
 
+function eventCount(payload) {
+  const count = payload?.result?.events?.count;
+  return typeof count === "number" && Number.isFinite(count) && count >= 0
+    ? count
+    : null;
+}
+
+function eventPageComplete(events, totalEventCount) {
+  if (totalEventCount !== null) return totalEventCount === events.length;
+  return events.length < DEFAULT_LIMIT;
+}
+
 async function runObservabilityQuery({ accountId, token, query }) {
   const response = await globalThis.fetch(
     `${API_ROOT}/${encodeURIComponent(accountId)}/workers/observability/telemetry/query`,
@@ -102,6 +114,8 @@ async function runObservabilityQuery({ accountId, token, query }) {
     },
   );
   const payload = await response.json().catch(() => null);
+  const events = observabilityEvents(payload);
+  const totalEventCount = eventCount(payload);
   return {
     httpStatus: response.status,
     apiSuccess:
@@ -110,7 +124,9 @@ async function runObservabilityQuery({ accountId, token, query }) {
       payload !== null &&
       payload.success === true,
     providerErrorCodes: observabilityErrorCodes(payload),
-    events: observabilityEvents(payload),
+    events,
+    totalEventCount,
+    eventPageComplete: eventPageComplete(events, totalEventCount),
     retryAfterMs: retryAfterDelayMs(response.headers),
   };
 }
