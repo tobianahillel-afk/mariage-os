@@ -136,6 +136,35 @@ describe("AR-006 Observability pagination", () => {
     expect(result.eventPageComplete).toBe(true);
   });
 
+
+  it("fails closed when the provider omits the total event count", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        Response.json({
+          success: true,
+          errors: [],
+          result: {
+            events: {
+              events: [{ $metadata: { id: "event-1" } }],
+            },
+          },
+        }),
+      ),
+    );
+
+    const result = await queryWorkersObservability({
+      accountId,
+      workerName: "mariage-os-private-document-promotion",
+      token,
+      timeframe: { from: 1, to: 2 },
+      queryId: "synthetic-missing-count-query",
+    });
+
+    expect(result.totalEventCount).toBeNull();
+    expect(result.eventPageComplete).toBe(false);
+  });
+
   it("rejects a truncated event page", async () => {
     vi.stubGlobal(
       "fetch",

@@ -97,8 +97,7 @@ function eventCount(payload) {
 }
 
 function eventPageComplete(events, totalEventCount) {
-  if (totalEventCount !== null) return totalEventCount === events.length;
-  return events.length < DEFAULT_LIMIT;
+  return totalEventCount !== null && totalEventCount === events.length;
 }
 
 async function runObservabilityQuery({ accountId, token, query }) {

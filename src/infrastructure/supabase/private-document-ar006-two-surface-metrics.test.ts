@@ -194,6 +194,23 @@ describe("ADR 0012 two-surface correlation failures", () => {
 });
 
 describe("ADR 0012 two-surface CPU failures", () => {
+
+  it("rejects a provider invocation with missing HTTP status", () => {
+    const data = fixture();
+    const event = data.pagesEvents[1];
+    if (
+      typeof event !== "object" ||
+      event === null ||
+      !("$metadata" in event) ||
+      typeof event.$metadata !== "object" ||
+      event.$metadata === null
+    ) {
+      throw new Error("Synthetic event is missing metadata.");
+    }
+    delete (event.$metadata as Record<string, unknown>).statusCode;
+    expect(evaluate(data).pass).toBe(false);
+  });
+
   it("rejects CPU above either provider budget", () => {
     const pages = fixture();
     workerFields(pages.pagesEvents, 1).cpuTimeMs = PAGES_CPU_BUDGET_MS + 0.001;

@@ -124,7 +124,7 @@ function cpuWithinBudget(invocation, contract) {
 }
 
 function providerStatusAccepted(statusCode) {
-  return statusCode === null || statusCode === 200;
+  return statusCode === 200;
 }
 
 function durableObjectIdentityAccepted(invocation, contract) {
