@@ -4,8 +4,8 @@
 
 - Work Packet ID: `WP-2.9C`
 - Lot: `2`
-- State: `IN_PROGRESS`
-- Current pass: `A — ADR 0011 PRIVATE WORKER IMPLEMENTATION / PROVIDER VERIFICATION`
+- State: `BLOCKED`
+- Current pass: `BLOCKED — WP29C-AR-006 WORKERS FREE CPU BUDGET FAILURE / ARCHITECTURE REVIEW`
 - Primary bounded context: Documents — trusted binary promotion for the existing WP-2.9A private PDF lifecycle
 - Branch: `lot-2/venues-core`
 - FIR: `#17 / FTR-089`
@@ -20,7 +20,7 @@
 
 Pass A completed successfully. The required fresh Pass B then found three unresolved MAJOR findings. Remediation implemented the AR-005 trusted cleanup/race controls and AR-007 deployment/secret/release controls, and the complete exact implementation head `68a4f6bdb7b55acc80c4c6fbb8c0afc0295bfde5` passed CI `35025384594` **5/5 SUCCESS**, including `Full verify from clean checkout`.
 
-AR-006 still requires provider Cloudflare Workers Free CPU telemetry for the exact `25,000,000`-byte trusted promotion. The 2026-09-16 isolated deployment passed ten functional promotions, but its provider CPU dataset returned no rows. The later correctly configured Workers Observability capability preflight `bd3fdb4baab6ef59983e40f77b5b2f44ba6dc8b7` / workflow `35213157767` / job `105175271234` also found no attributable numeric provider CPU for the existing Pages script. Its deny-only smoke passed; it performed no application mutation. Sanitized artifact `10494251279` (ZIP SHA-256 `02438aadb3e377f6c8e6ed66b3b00c0c0d3e473008c3bb710acbfb805f2dde7c`) failed closed and the dedicated token was revoked. ADR 0011 now records the governed private-Worker successor path. The packet is **IN_PROGRESS** for that implementation only; AR-006 remains open.
+AR-006 now has direct adverse provider evidence for the ADR 0011 private-Worker path. The 2026-09-24 isolated campaign on `26da10e5aabd7d2a9b6105caef49dd87d6ee58b9` passed deployment and deny smoke but returned eight successful exact-size promotions and two HTTP `503` failures. A bounded read-only Cloudflare query found ten corresponding private-Worker invocation events: eight successful invocations used 237–273 ms CPU and two ended `exceededCpu`. The normal Workers Free budget is 10 ms/request. The sanitized CI artifact did not capture UUID-correlated measurements because the expected marker was absent; that telemetry-parser issue cannot cure the observed CPU overrun. See `WP-2.9C-AR-006-PROVIDER-ATTEMPT-2026-09-24.md`. The packet is **BLOCKED** for a new architecture review, and AR-006 remains open.
 
 WP-2.9C is not accepted and must not enter `REVIEW_PENDING` until AR-006 is evidenced and the resulting evidence-bound exact HEAD passes the complete verification gate again.
 
@@ -228,7 +228,7 @@ Fresh Pass B specifically invalidates treating any local 25 MB success as suffic
 
 ## State / sequencing
 
-Current state: **IN_PROGRESS — WP29C-AR-006 ADR 0011 PRIVATE WORKER IMPLEMENTATION**.
+Current state: **BLOCKED — WP29C-AR-006 DEPLOYED WORKERS FREE CPU FAILURE / ARCHITECTURE REVIEW**.
 
 The local AR-006 provider-event evaluator was corrected at
 `18cf24cebb545b67fd2fe6791a7a3ece13e60f94` / CI `35364734978` (**5/5**
@@ -260,8 +260,8 @@ was created and installed as the `ar006-isolated` GitHub Environment secret;
 GitHub metadata updated at `2026-09-24T08:17:32Z`. The value is also stored in
 a Windows DPAPI file outside the repository. The preparation commit
 `4ea938b37321c77c24d359e6e13c69e5ea71693f` passed normal CI
-`35915263712`. The next permitted step is the isolated credential/capability
-preflight, not acceptance or a new exact-size promotion.
+`35915263712`. At that checkpoint, the permitted step was the isolated
+credential/capability preflight, not acceptance or a new exact-size promotion.
 
 The credential-capability run at `2187a137663a02a01e3868cfd3690f8d6f45f05e`
 / CI `35974594865` passed all ordinary jobs and isolated job `107554277941`.
@@ -272,14 +272,15 @@ confirms account-token verification `200/active` and Observability query
 wrong-scope Observability tokens were deleted after that proof. The
 2026-09-24 architecture decision authorizes recovery of expired/expiring
 isolated deployment credentials and one fresh exact-size evidence campaign
-only after a green `[AR006-PREFLIGHT]`; WP-2.9C remains `IN_PROGRESS`.
+only after a green `[AR006-PREFLIGHT]`; WP-2.9C remained `IN_PROGRESS` at that
+historical checkpoint.
 
 The isolated Pages and private-Worker deployment tokens were replaced on
 2026-09-24 with one-year account tokens scoped respectively to `Pages Write`
 and `Workers Scripts Write`. Their encrypted GitHub Environment secrets were
 updated and visually confirmed at `08:36:53Z` and `08:38:15Z`; values are
 stored only in GitHub and user-bound DPAPI files outside the repository. The
-The preflight was the next required proof before a single permitted evidence
+preflight was the next required proof before a single permitted evidence
 campaign, contingent on preflight and normal CI passing.
 
 That preflight passed at `6b4a1da36e3dd32bde36adfb7f6d75e204324902`
@@ -287,13 +288,25 @@ That preflight passed at `6b4a1da36e3dd32bde36adfb7f6d75e204324902`
 secret. The expired old Pages token was removed after the new credential's
 proof; the old Worker token remains pending new-token deployment proof. The
 same exact-commit run passed all five ordinary CI jobs, including clean
-checkout. The one authorized `[AR006-EVIDENCE]` campaign is now the next gate.
+checkout. This was the final prerequisite before the bounded campaign
+described below.
+
+That campaign ran once on `26da10e5aabd7d2a9b6105caef49dd87d6ee58b9`
+/ CI `35977875774`: all five ordinary jobs passed, as did the isolated
+preflight, private-Worker deployment, Pages preview deployment, binding checks
+and deny smoke. Evidence job `107565190064` then failed. Sanitized artifact
+`10799077529` (ZIP SHA-256
+`b11e62221fa82f1697133e51f19eeeb546ff562a5615327da14882924025003e`)
+records eight HTTP-200 exact-size successes, two HTTP-503 failures, no accepted
+UUID-correlated CPU measurement and `pass: false`. Read-only provider event
+diagnosis found ten invocation rows, eight at 237–273 ms CPU and two
+`exceededCpu` (10 and 27 ms). No repeat is authorized by that decision.
 
 Current gate:
 
 1. retain AR-005 and AR-007 remediations without weakening their security contracts;
-2. deploy/configure the ADR 0011 private Worker and obtain the Worker-correlated deployed Workers Free exact-25-MB CPU proof defined in `WP-2.9C-AR-006-RUNBOOK.md`;
-3. the earlier bounded requery failed with HTTP `401` and no CPU measurement; the later 2026-09-24 architecture decision explicitly permits the replacement-token preflight and one fresh evidence campaign, in that order;
+2. keep WP-2.9C `BLOCKED` and review a new architecture for exact-25-MB trusted promotion inside the frozen Free CPU budget; the ADR 0011 private-Worker campaign failed this gate;
+3. do not rerun the exhausted campaign or requery old logs as an acceptance workaround;
 4. keep AR-006 open — do not enable Paid or lower the file contract silently;
 5. after valid AR-006 evidence, run exact-head full CI + clean-checkout verification again over the evidence-bound candidate;
 6. transition back to `REVIEW_PENDING` only after all remediation evidence is green;

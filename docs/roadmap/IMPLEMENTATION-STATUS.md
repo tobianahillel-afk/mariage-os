@@ -22,27 +22,27 @@ Detailed historical packet evidence remains in packet records, acceptance record
 
 Required current-lot responsibilities minus assigned packet responsibilities: **∅**.
 
-| Packet  | Responsibility                                                         | State                                                                          |
-| ------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| WP-2.1  | venue identity, authorized persistence, lifecycle history              | **ACCEPTED / COMPLETE**                                                        |
-| WP-2.2  | spaces, capacity, member ratings/preferences                           | **ACCEPTED / COMPLETE**                                                        |
-| WP-2.3  | fact definitions, typed retained facts, value validation               | **ACCEPTED / COMPLETE**                                                        |
-| WP-2.4  | observations, sources, evidence/confidence/freshness, conflicts        | **ACCEPTED / COMPLETE**                                                        |
-| WP-2.5  | deterministic criteria, blockers, score/readiness, missing information | **ACCEPTED / COMPLETE**                                                        |
-| WP-2.6A | Venue offers and offer components                                      | **ACCEPTED / COMPLETE**                                                        |
-| WP-2.6B | Venue availability observations                                        | **ACCEPTED / COMPLETE**                                                        |
-| WP-2.6C | Venue contacts                                                         | **ACCEPTED / COMPLETE**                                                        |
-| WP-2.6D | Venue interaction history                                              | **ACCEPTED / COMPLETE**                                                        |
-| WP-2.7  | contextual venue access-route observations                             | **ACCEPTED / COMPLETE**                                                        |
-| WP-2.8A | Venue remote-image metadata and Venue links                            | **ACCEPTED / COMPLETE**                                                        |
-| WP-2.8B | Venue private archived media lifecycle                                 | **ACCEPTED / COMPLETE**                                                        |
-| WP-2.8C | recoverable Venue remote-media metadata lifecycle                      | **ACCEPTED / COMPLETE**                                                        |
-| WP-2.9A | Venue-linked private PDF/document foundation                           | **BLOCKED — waits for WP-2.9C ACCEPTED**                                       |
-| WP-2.9C | trusted private-document ingestion hardening                           | **IN_PROGRESS — AR-006 private Worker implementation / provider verification** |
-| WP-2.9B | generic project tags and Venue entity-tag links                        | **PLANNED / AFTER A**                                                          |
-| WP-2.10 | repositories, local cache, pending/offline mutations                   | PLANNED                                                                        |
-| WP-2.11 | gallery/table/detail/compare/deep-link workspace                       | PLANNED                                                                        |
-| WP-2.12 | mobile/offline venue-visit workflow and packet E2E completion          | PLANNED                                                                        |
+| Packet  | Responsibility                                                         | State                                                                      |
+| ------- | ---------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| WP-2.1  | venue identity, authorized persistence, lifecycle history              | **ACCEPTED / COMPLETE**                                                    |
+| WP-2.2  | spaces, capacity, member ratings/preferences                           | **ACCEPTED / COMPLETE**                                                    |
+| WP-2.3  | fact definitions, typed retained facts, value validation               | **ACCEPTED / COMPLETE**                                                    |
+| WP-2.4  | observations, sources, evidence/confidence/freshness, conflicts        | **ACCEPTED / COMPLETE**                                                    |
+| WP-2.5  | deterministic criteria, blockers, score/readiness, missing information | **ACCEPTED / COMPLETE**                                                    |
+| WP-2.6A | Venue offers and offer components                                      | **ACCEPTED / COMPLETE**                                                    |
+| WP-2.6B | Venue availability observations                                        | **ACCEPTED / COMPLETE**                                                    |
+| WP-2.6C | Venue contacts                                                         | **ACCEPTED / COMPLETE**                                                    |
+| WP-2.6D | Venue interaction history                                              | **ACCEPTED / COMPLETE**                                                    |
+| WP-2.7  | contextual venue access-route observations                             | **ACCEPTED / COMPLETE**                                                    |
+| WP-2.8A | Venue remote-image metadata and Venue links                            | **ACCEPTED / COMPLETE**                                                    |
+| WP-2.8B | Venue private archived media lifecycle                                 | **ACCEPTED / COMPLETE**                                                    |
+| WP-2.8C | recoverable Venue remote-media metadata lifecycle                      | **ACCEPTED / COMPLETE**                                                    |
+| WP-2.9A | Venue-linked private PDF/document foundation                           | **BLOCKED — waits for WP-2.9C ACCEPTED**                                   |
+| WP-2.9C | trusted private-document ingestion hardening                           | **BLOCKED — AR-006 Workers Free CPU budget failure / architecture review** |
+| WP-2.9B | generic project tags and Venue entity-tag links                        | **PLANNED / AFTER A**                                                      |
+| WP-2.10 | repositories, local cache, pending/offline mutations                   | PLANNED                                                                    |
+| WP-2.11 | gallery/table/detail/compare/deep-link workspace                       | PLANNED                                                                    |
+| WP-2.12 | mobile/offline venue-visit workflow and packet E2E completion          | PLANNED                                                                    |
 
 ## Accepted packet evidence summary
 
@@ -59,7 +59,7 @@ WP-2.1..WP-2.8C are accepted and complete. Durable evidence remains in their pac
 
 ## WP-2.9C — current packet
 
-State: **IN_PROGRESS — WP29C-AR-006 ADR 0011 PRIVATE WORKER IMPLEMENTATION**.
+State: **BLOCKED — WP29C-AR-006 DEPLOYED WORKERS FREE CPU FAILURE / ARCHITECTURE REVIEW**.
 
 Pass-A exact evidence:
 
@@ -157,7 +157,7 @@ AR-006 evidence-channel follow-up and architecture review:
 Current remediation status:
 
 - `WP29C-AR-005` — **MAJOR / IMPLEMENTATION-REMEDIATED / EXACT-HEAD-GREEN** — trusted clean-abandon path, DB orphan backstop, immediate pre-copy reservation revalidation, safe post-copy compensation and race/retry coverage implemented. Formal closure waits for the later complete fresh Pass B after AR-006 is unblocked.
-- `WP29C-AR-006` — **MAJOR / OPEN / IN_PROGRESS** — GraphQL, Pages tail and unchanged-Pages Observability did not yield numeric CPU. ADR 0011 now authorizes a private Worker Service Binding with persisted Worker invocation logs. Exact-size evidence remains absent; implementation, isolated binding configuration and final provider verification are required before review.
+- `WP29C-AR-006` — **MAJOR / OPEN / BLOCKING** — the bounded ADR 0011 private-Worker campaign produced eight HTTP-200 exact-size successes, two HTTP-503 failures, eight provider CPU values of 237–273 ms and two `exceededCpu` outcomes on Workers Free. The 10 ms normal budget failed. Architecture review is required before any new campaign.
 - `WP29C-AR-007` — **MAJOR / IMPLEMENTATION-REMEDIATED / EXACT-HEAD-GREEN** — ADR/release/CI-CD/secret contracts reconciled to Pages Functions and `PRIVATE_DOCUMENT_ADMIN_KEY`; fail-closed non-destructive deployment smoke added. Formal closure waits for the later complete fresh Pass B after AR-006 is unblocked.
 
 Historical `WP29C-AR-001..004` remain implementation-green but await a later complete clean fresh Pass B for formal closure.
@@ -192,7 +192,7 @@ Provider-observation exploration is now governed by the open architecture review
 - Workers Observability telemetry REST API: next bounded capability candidate because its provider model defines `$workers.cpuTimeMs`; capability against the existing Pages script must be proven before any exact-size rerun;
 - wall time, HTTP 200, application timing, Paid-only shortcuts and file-limit reduction remain invalid substitutes.
 
-Until provider CPU evidence exists, WP-2.9C remains **IN_PROGRESS** only for ADR 0011 implementation and configuration; it cannot enter `REVIEW_PENDING`.
+The 2026-09-24 provider CPU result fails the Free budget. WP-2.9C is **BLOCKED** for architecture review and cannot enter `REVIEW_PENDING`.
 
 ### AR-007 operations gate retained
 
@@ -200,8 +200,8 @@ Normative release/deployment/secret contracts require Pages Functions to deploy 
 
 ## Current next-action gate
 
-1. The 2026-09-23 bounded diagnostic found that the then-current GitHub Observability secret failed both token-owner endpoints with HTTP `401` / code `1000`. It was replaced; the replacement subsequently passed account verification and a read-only telemetry query. The connector still cannot manage account tokens (`9109`). No attributable numeric provider CPU evidence exists yet.
-2. The replacement account token passed isolated CI verification and an Observability telemetry query at HTTP `200`; the two wrong-scope older Observability tokens were removed. The isolated Pages and private-Worker deployment tokens have been replaced with one-year, single-permission account tokens and stored as encrypted GitHub Environment secrets. The `[AR006-PREFLIGHT]` passed on the rotated Pages secret and synthetic user; the 2026-09-24 architecture decision permits one fresh exact-size evidence campaign only after exact-commit normal CI also passes. The old 2026-09-17 Worker logs exceeded Workers Free retention.
+1. The 2026-09-24 single authorized campaign completed on exact commit `26da10e5aabd7d2a9b6105caef49dd87d6ee58b9` after green preflight and normal CI. It failed the frozen Free CPU gate: two `exceededCpu` outcomes and eight successful provider invocations using 237–273 ms CPU, versus 10 ms allowed.
+2. The exhausted decision does not authorize another campaign. The separate UUID-marker/parser gap does not repair the CPU failure. Return to an explicit architecture review before any further provider mutation or implementation of a new trust boundary.
 3. Do not substitute wall time, dashboard aggregate, Paid entitlement or a lower file limit.
 4. Only after valid AR-006 exact-size CPU evidence, run a complete fresh independent Pass B and then Pass C before acceptance.
 5. WP-2.9A remains **BLOCKED** until C is accepted; WP-2.9B and later Lots remain inactive.
@@ -216,7 +216,7 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.8C
 WP-2.9A: BLOCKED — waits for WP-2.9C ACCEPTED
-Current packet: WP-2.9C — IN_PROGRESS; AR-006 evidence blocked in architecture review after bounded authentication recovery
+Current packet: WP-2.9C — BLOCKED; AR-006 deployed Workers Free CPU budget failure requires architecture review
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
@@ -233,14 +233,15 @@ Replacement Observability token: created in the authenticated Cloudflare account
 Observability credential capability: 2187a137663a02a01e3868cfd3690f8d6f45f05e / CI 35974594865 — normal CI 5/5 SUCCESS including clean-checkout; isolated job 107554277941 SUCCESS; artifact 10796864297 (ZIP SHA-256 394d5c3497b0adb81a8ba3a888a1f3461c77df85a4abd85a718cf9ca11b8ade4) records account verification 200/active and telemetry query 200/success, no provider errors, pass=true; no CPU measurement or promotion. Both superseded wrong-scope Observability tokens were deleted after the replacement passed.
 Deployment-token rotation: on 2026-09-24 the Cloudflare dashboard created `mariage-os-ar006-pages-deploy-20260924` (account `Pages Write`) and `mariage-os-ar006-worker-deploy-20260924` (account `Workers Scripts Write`), each expiring 2027-09-25 with all IPs allowed. GitHub `ar006-isolated` encrypted secrets `AR006_CLOUDFLARE_DEPLOY_TOKEN` and `AR006_CLOUDFLARE_WORKER_DEPLOY_TOKEN` show update timestamps `2026-09-24T08:36:53Z` and `2026-09-24T08:38:15Z` respectively. Their values are also in current-user DPAPI files outside the repository. No deployment or promotion has used the replacements yet.
 Isolated Pages/synthetic-user preflight: `6b4a1da36e3dd32bde36adfb7f6d75e204324902` / CI `35976858406` / job `107559568930` — SUCCESS, with `AR-006 isolated provider preflight passed.` in the job log. The same exact commit passed all five ordinary CI jobs, including full verification from a clean checkout; the exact-size evidence job was correctly skipped. The expired old Pages token was deleted after preflight proof; the old Worker token remains until deployment proof.
-Current permitted action: run one fresh exact-size `[AR006-EVIDENCE]` campaign under the 2026-09-24 decision. AR-006 remains open until sanitized provider CPU evidence and fresh independent Pass B/C.
+Single permitted exact-size campaign: `26da10e5aabd7d2a9b6105caef49dd87d6ee58b9` / CI `35977875774` — all five ordinary jobs SUCCESS, including clean checkout. Isolated job `107565190064` passed preflight, Worker/Pages deployments, binding checks and deny smoke, then FAILED at evidence collection. Artifact `10799077529` (ZIP SHA-256 `b11e62221fa82f1697133e51f19eeeb546ff562a5615327da14882924025003e`) records eight exact-size HTTP-200 successes, two HTTP-503 failures, no accepted UUID-correlated CPU measurements and `pass: false`. A bounded read-only Cloudflare query returned ten private-Worker invocation rows: eight `ok` at 237–273 ms CPU and two `exceededCpu` at 10 and 27 ms. See `WP-2.9C-AR-006-PROVIDER-ATTEMPT-2026-09-24.md`.
+Current permitted action: architecture review of the 25 MB trusted promotion/Workers Free CPU boundary; no further evidence campaign, Paid entitlement or file-limit reduction is authorized. WP-2.9C and FTR-089 are BLOCKED; AR-006 remains open.
 Tail support green tree: d04edd0ed0d3daa3b9bfe20d954003bb13545200 / parent 82e05a8dab9f61377f045b74005fd6582da0afe3 / CI 35152382433 — 5/5 SUCCESS
 Tail capability trigger: 7645a9e769c641640f52fdba535deb6140401fc6 / workflow 35153132971 / job 104986087784 / artifact 10469354745 — deny smoke SUCCESS; parsedJsonEventCount=0; providerCpuTimeMs=[]; pass=false
 Workers Observability configured capability preflight: bd3fdb4baab6ef59983e40f77b5b2f44ba6dc8b7 / workflow 35213157767 / job 105175271234 / artifact 10494251279 (ZIP SHA-256 02438aadb3e377f6c8e6ed66b3b00c0c0d3e473008c3bb710acbfb805f2dde7c) — deny smoke passed; no attributable numeric provider CPU; pass=false
-AR-006 architecture review: ADR 0011 accepted after the three Pages channels were insufficient; private Worker evidence path in implementation
+AR-006 architecture review: ADR 0011 private Worker was tested and failed the deployed Free CPU gate; new architecture review required
 AR-005 and AR-007: implementation-remediated / exact-head-green — formal closure waits fresh Pass B after AR-006 unblock
 FTR-089 FIR: #17 — BLOCKED
 WP-2.9B: PLANNED / AFTER A
 Lots 3–12: NOT_STARTED
-Next permitted action: run one exact-size `[AR006-EVIDENCE]` campaign after green 6b4a1da preflight/CI; no old-log requery
+Next permitted action: review a new architecture for trusted exact-25-MB promotion within the frozen Workers Free CPU budget; no repeat of the exhausted campaign
 ```

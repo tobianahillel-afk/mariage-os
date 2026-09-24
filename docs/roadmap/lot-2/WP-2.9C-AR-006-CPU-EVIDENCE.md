@@ -112,7 +112,7 @@ The approved response is architecture review, not automatic Workers Paid activat
 
 ## Current verdict
 
-**BLOCKED ON EXTERNAL RUNTIME EVIDENCE.**
+**BLOCKED — DEPLOYED WORKERS FREE CPU BUDGET FAILED.**
 
 Repository remediation, exact-head CI and the isolated exact-size functional path are green, but the provider-evidence artifact failed closed without acceptable CPU telemetry. The repository can prepare and validate the implementation, harness, unit conversion, release contract and fail-closed smoke locally, but it cannot manufacture Cloudflare provider CPU telemetry.
 
@@ -142,4 +142,22 @@ evidence and returns to architecture review. No token change, telemetry requery,
 deployment or new ten-document campaign is authorized without an explicit
 architecture decision.
 
-The deployment identity is recorded, but provider CPU measurements are absent (`providerCpuMeasurements: []`). Re-query after Cloudflare's possible aggregation delay; if telemetry remains unavailable or unattributable, reopen architecture review under the runbook. AR-006 is not closed, WP-2.9C must not transition to `REVIEW_PENDING`, and WP-2.9A remains blocked.
+The historical deployment identity is recorded, but its provider CPU measurements were absent (`providerCpuMeasurements: []`). The 2026-09-24 bounded private-Worker campaign has since produced direct adverse provider CPU evidence. See the newer result below; AR-006 is not closed, WP-2.9C must not transition to `REVIEW_PENDING`, and WP-2.9A remains blocked.
+
+### 2026-09-24 decisive provider result
+
+Exact commit `26da10e5aabd7d2a9b6105caef49dd87d6ee58b9` / CI
+`35977875774` passed all five ordinary jobs and deployed the isolated private
+Worker and Pages preview. Its evidence job `107565190064` failed after eight
+successful exact `25,000,000`-byte promotions and two HTTP `503` failures.
+Sanitized artifact `10799077529` has ZIP SHA-256
+`b11e62221fa82f1697133e51f19eeeb546ff562a5615327da14882924025003e`.
+A read-only, script-filtered Cloudflare Observability query of the controlled
+window returned ten invocation rows: eight `ok` with provider-native CPU
+times of 237–273 ms and two `exceededCpu` at 10 and 27 ms. The artifact's
+UUID marker join failed separately, so its empty accepted-measurement array
+must not be read as zero CPU. The provider rows are in milliseconds, unlike
+the older GraphQL quantiles in microseconds. The direct CPU overrun and
+`exceededCpu` outcomes satisfy the blocker condition above; no repeat or
+acceptance transition is permitted without a new architecture review. Full
+sanitized provenance: `WP-2.9C-AR-006-PROVIDER-ATTEMPT-2026-09-24.md`.

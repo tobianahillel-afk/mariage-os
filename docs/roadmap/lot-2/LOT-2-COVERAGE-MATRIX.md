@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1..WP-2.8C ACCEPTED; WP-2.9A BLOCKED; WP-2.9C IN_PROGRESS / ADR 0011 WORKER EVIDENCE; WP-2.9B PLANNED / AFTER A**
+Status: **IN_PROGRESS — WP-2.1..WP-2.8C ACCEPTED; WP-2.9A BLOCKED; WP-2.9C BLOCKED / AR-006 WORKERS FREE CPU FAILURE; WP-2.9B PLANNED / AFTER A**
 
 Purpose: durable current responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`. Detailed historical evidence remains in packet records, acceptance records, FIRs and Git history.
 
@@ -29,7 +29,7 @@ Integration prerequisite is accepted Lot 0 + Lot 1 on `main` through PR #7; `mai
 | remote image references | FTR-024, VEN-013, MED-007/008/013 | WP-2.8A, WP-2.11 | WP-2.8A **ACCEPTED** |
 | private archived Venue image lifecycle | FTR-024 private slice, FTR-092 Lot-2, VEN-013, MED-004/005/006/009/010, ACC-055/056/058 | WP-2.8B | **ACCEPTED / COMPLETE** |
 | recoverable remote-media metadata lifecycle | FTR-024/FTR-092 Lot-2 continuation, MED-007/010/013 | WP-2.8C | **ACCEPTED / COMPLETE** |
-| Venue-linked ordinary private PDFs, provenance and document links | FTR-089 Lot-2; MED-001/002/003/008/010; PRD-008 link slice; file-security/deletion-retention | WP-2.9A + WP-2.9C remediation + WP-2.11 | **WP-2.9A BLOCKED**; **WP-2.9C IN_PROGRESS / ADR 0011 WORKER EVIDENCE**; FIR #17 |
+| Venue-linked ordinary private PDFs, provenance and document links | FTR-089 Lot-2; MED-001/002/003/008/010; PRD-008 link slice; file-security/deletion-retention | WP-2.9A + WP-2.9C remediation + WP-2.11 | **WP-2.9A BLOCKED**; **WP-2.9C BLOCKED / AR-006 FREE CPU FAILURE**; FIR #17 |
 | generic project Tags and Venue entity-tag assignments | FTR-093 Lot-2 | WP-2.9B, WP-2.11 | **PLANNED / AFTER A** |
 | repository/read-model/provider ports and Supabase adapters | architecture, AUTHZ-006/020 | WP-2.1..WP-2.10 + WP-2.9C | accepted packets green; C repository remediation green, provider evidence blocked |
 | local cache/pending Venue edits | FTR-028 Lot-2, SYN-001..003/007..011, PWA-003/004/006 | WP-2.10, WP-2.12 | PLANNED |
@@ -49,7 +49,7 @@ Accepted/evidenced packets: **WP-2.1..WP-2.8C**.
 The former monolithic WP-2.9 was split before code because it scored 12 points. Fresh review of WP-2.9A later required a separate remediation/control packet rather than silently expanding A.
 
 - **WP-2.9A** — FTR-089 private Document foundation/product responsibility; currently **BLOCKED** until C is accepted.
-- **WP-2.9C** — trusted Document ingress/lifecycle hardening; currently **IN_PROGRESS — WP29C-AR-006 ADR 0011 WORKER EVIDENCE**.
+- **WP-2.9C** — trusted Document ingress/lifecycle hardening; currently **BLOCKED — WP29C-AR-006 deployed Workers Free CPU failure / architecture review**.
 - **WP-2.9B** — generic Tags/entity-tags; remains **PLANNED / AFTER A**.
 
 C adds no new product Feature ID or permission key.
@@ -113,7 +113,7 @@ Repository-side AR-006 execution support and exact-head CI are green. An isolate
 | WP-2.8B | **ACCEPTED / COMPLETE** | private archive lifecycle |
 | WP-2.8C | **ACCEPTED / COMPLETE** | recoverable remote metadata lifecycle |
 | WP-2.9A | **BLOCKED** | FTR-089 foundation; waits for C acceptance |
-| WP-2.9C | **IN_PROGRESS — AR-006 WORKER EVIDENCE** | trusted private-Document ingress/lifecycle hardening; AR-005/007 implementation-remediated, AR-006 open |
+| WP-2.9C | **BLOCKED — AR-006 FREE CPU FAILURE** | trusted private-Document ingress/lifecycle hardening; AR-005/007 implementation-remediated, AR-006 open |
 | WP-2.9B | **PLANNED / AFTER A** | generic project Tags + Venue entity-tags |
 | WP-2.10 | PLANNED | repositories/local cache/pending offline mutations |
 | WP-2.11 | PLANNED | gallery/table/detail/compare/deep-link workspace |
@@ -124,21 +124,14 @@ Repository-side AR-006 execution support and exact-head CI are green. An isolate
 ```text
 WP-2.1..WP-2.8C [ACCEPTED]
   → WP-2.9A [BLOCKED until WP-2.9C ACCEPTED]
-    → WP-2.9C [IN_PROGRESS — ADR 0011 WORKER EVIDENCE]
-      → isolated provider + [AR006-PREFLIGHT] GREEN
-        → exact [AR006-EVIDENCE] candidate: 10 promotions SUCCESS, CPU rows MISSING
-          → re-query telemetry after aggregation delay / architecture review if unavailable
-            → valid Workers Free exact-25-MB CPU evidence
-            → exact-head full verification
-              → REVIEW_PENDING
-                → complete fresh Pass B
-                  → BLOCKING/MAJOR ? REVIEW_FAILED
-                  → clean ? ACCEPTANCE_PENDING
-                    → Pass C
-                      → WP-2.9C ACCEPTED
-                        → WP-2.9A IN_PROGRESS → reverification/fresh B/C
-                          → WP-2.9B → WP-2.10 → WP-2.11 → WP-2.12
-                            → Lot reconciliation → Integration Pass
+    → WP-2.9C [BLOCKED — ADR 0011 exact-size Free CPU gate failed]
+      → new architecture review / ADR before any implementation or provider rerun
+        → valid Workers Free exact-25-MB CPU evidence under an approved design
+          → exact-head full verification → REVIEW_PENDING → fresh Pass B
+            → clean ? ACCEPTANCE_PENDING → Pass C → WP-2.9C ACCEPTED
+              → WP-2.9A reverification/fresh B/C
+                → WP-2.9B → WP-2.10 → WP-2.11 → WP-2.12
+                  → Lot reconciliation → Integration Pass
 ```
 
 Only one packet may be implementing at a time. WP-2.9A is blocked, not concurrently implementing. Pass C, A resumption and WP-2.9B are forbidden until the canonical transitions permit them.
@@ -159,7 +152,7 @@ Only one packet may be implementing at a time. WP-2.9A is blocked, not concurren
 required current-Lot-2 responsibilities - assigned product packet responsibilities = ∅
 accepted/evidenced packets = WP-2.1..WP-2.8C
 WP-2.9A = BLOCKED until WP-2.9C ACCEPTED
-WP-2.9C = IN_PROGRESS — WP29C-AR-006 ADR 0011 PRIVATE WORKER IMPLEMENTATION
+WP-2.9C = BLOCKED — WP29C-AR-006 DEPLOYED WORKERS FREE CPU FAILURE
 fresh Pass-B record = docs/roadmap/lot-2/WP-2.9C-PASS-B-REVIEW.md
 implementation-remediated = WP29C-AR-005 MAJOR — cleanup/abandon-promotion race
 open/blocking = WP29C-AR-006 MAJOR — Free-plan exact-25-MB CPU evidence gap
@@ -167,7 +160,8 @@ implementation-remediated = WP29C-AR-007 MAJOR — Pages Function deployment/sec
 WP-2.9B = PLANNED / AFTER A
 latest exact-size provider attempt = 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 10 exact-size promotions successful, providerCpuMeasurements=[]
 latest Observability capability attempt = bd3fdb4baab6ef59983e40f77b5b2f44ba6dc8b7 / 35213157767 / job 105175271234 / artifact 10494251279 — deny smoke passed, configured provider query found no attributable numeric CPU, pass=false; dedicated token revoked and GitHub Environment secret deleted
-next permitted action = explicit governed architecture decision; GraphQL, Pages tail and Workers Observability are insufficient under the unchanged isolated Pages configuration
+latest private-Worker campaign = 26da10e5aabd7d2a9b6105caef49dd87d6ee58b9 / CI 35977875774 / artifact 10799077529 — eight HTTP-200 exact-size successes, two HTTP-503 failures; read-only provider query: eight 237–273 ms CPU and two exceededCpu
+next permitted action = explicit new architecture review of trusted exact-25-MB promotion within Workers Free; no rerun, Paid entitlement or file-limit reduction authorized
 Pass C forbidden until valid AR-006 evidence, exact-head verification and a later clean Pass B yield ACCEPTANCE_PENDING
 ```
 

@@ -155,7 +155,7 @@ Before implementation gate opens, every V1 row remains `SPECIFIED`.
 
 | ID | Capability | Lot | Primary contracts | Status |
 |---|---|---:|---|---|
-| FTR-089 | Private document upload/download/link/provenance | 2/7/11 | DOCUMENTS, STORAGE | IN_PROGRESS |
+| FTR-089 | Private document upload/download/link/provenance | 2/7/11 | DOCUMENTS, STORAGE | BLOCKED |
 | FTR-090 | Document version/supersession history | 7/11 | CONTRACT-READINESS, SCHEMA ADDENDUM | SPECIFIED |
 | FTR-091 | Quote/contract readiness checklist and follow-up | 7/8 | CONTRACT-READINESS | SPECIFIED |
 | FTR-092 | Original media/derivative/orphan lifecycle | 2/10/11 | STORAGE | SPECIFIED |

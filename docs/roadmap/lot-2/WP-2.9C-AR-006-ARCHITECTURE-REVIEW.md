@@ -1,6 +1,6 @@
 # WP-2.9C / WP29C-AR-006 — CPU evidence architecture review
 
-Status: **IN_PROGRESS — ADR 0011 ACCEPTED; PRIVATE-WORKER IMPLEMENTATION AND PROVIDER VERIFICATION REQUIRED**
+Status: **BLOCKED — ADR 0011 PRIVATE-WORKER PATH FAILED THE DEPLOYED WORKERS FREE CPU GATE**
 
 Date reopened: 2026-09-16
 
@@ -120,7 +120,7 @@ browser -> same-origin bodyless Pages route -> private Worker Service Binding ->
 
 The Worker must have no public route, `workers_dev: false`, persisted invocation logs and full head sampling. It repeats the security-critical promotion checks; Pages remains the public origin/method/body gate and retains DELETE abandon. The final harness sends a UUID-only marker, joins it to exactly one persisted `cf-worker-event` by provider request ID, and accepts only ten HTTP-200, numeric `cpuTimeMs <= 10` measurements from the private Worker.
 
-This replaces neither the exact-size contract nor the requirement for fresh review. It moves WP-2.9C to `IN_PROGRESS` for Pass A only. The current permitted action is to finish and verify the Worker, the isolated bindings and the governed evidence workflow. A missing secret, missing binding, missing provider event, non-numeric CPU, CPU above budget or CPU-limit outcome remains a fail-closed AR-006 result.
+This replaces neither the exact-size contract nor the requirement for fresh review. At this historical decision it moved WP-2.9C to `IN_PROGRESS` for Pass A only. The permitted action then was to finish and verify the Worker, the isolated bindings and the governed evidence workflow. A missing secret, missing binding, missing provider event, non-numeric CPU, CPU above budget or CPU-limit outcome remained a fail-closed AR-006 result. The later 2026-09-24 result below supersedes that work permission.
 
 ### ADR 0011 Worker attempt — rate-limited final query
 
@@ -391,6 +391,39 @@ from a clean checkout; the exact-size evidence job was correctly skipped on
 the preflight marker. This satisfies the pre-campaign gate, so the next exact
 commit may carry `[AR006-EVIDENCE]` once to execute the authorized campaign.
 
+### 2026-09-24 result and stop decision
+
+The single authorized campaign ran at
+`26da10e5aabd7d2a9b6105caef49dd87d6ee58b9` / CI `35977875774`.
+Ordinary CI was 5/5 green, including clean checkout. Isolated job
+`107565190064` passed preflight, private-Worker and Pages preview deployments,
+binding checks and deny smoke, then failed at provider evidence collection.
+Artifact `10799077529` (ZIP SHA-256
+`b11e62221fa82f1697133e51f19eeeb546ff562a5615327da14882924025003e`)
+records eight successful exact `25,000,000`-byte promotions, two HTTP `503`
+failures and no accepted UUID-correlated CPU measurements.
+
+A bounded read-only Cloudflare Observability query of that exact private
+Worker and controlled window returned ten provider invocation events: eight
+`ok` with `cpuTimeMs` from 237 to 273, and two `exceededCpu` with CPU values
+10 and 27 ms. Cloudflare's published Workers Free CPU budget is 10 ms per
+request. The provider's occasional flexibility explains why HTTP `200` can
+coexist with much higher CPU, but cannot satisfy the normal-budget acceptance
+condition. The missing UUID marker and a provider-field mismatch in the
+evaluator are separate defects; correcting them cannot make this CPU profile
+pass. Full sanitized record:
+`WP-2.9C-AR-006-PROVIDER-ATTEMPT-2026-09-24.md`.
+
+Decision: the ADR 0011 private-Worker implementation is **not accepted** as
+the V1 exact-25-MB Workers Free promotion solution. WP-2.9C returns to
+`BLOCKED`, AR-006 stays open, and the single-campaign authorization is
+exhausted. No repeat, Workers Paid activation or 25 MB reduction follows
+automatically. A different trusted execution architecture would change the
+security/deployment boundary and requires a new explicit ADR and review of
+authorization, actual-byte integrity, cleanup, failure recovery and the
+unchanged file contract before implementation. No such alternative is yet
+specified or proven. WP-2.9A, Pass B, Pass C and later packets remain gated.
+
 ## Provider references
 
 - <https://developers.cloudflare.com/pages/functions/debugging-and-logging/>
@@ -403,4 +436,4 @@ commit may carry `[AR006-EVIDENCE]` once to execute the authorized campaign.
 
 ## Governance
 
-WP-2.9C is **IN_PROGRESS** only for ADR 0011 implementation. No `REVIEW_PENDING`, fresh Pass B, Pass C, WP-2.9A resumption, Workers Paid activation or 25 MB reduction is authorized until valid AR-006 evidence exists on the exact candidate.
+WP-2.9C is **BLOCKED** after ADR 0011's deployed Workers Free CPU failure. No `REVIEW_PENDING`, fresh Pass B, Pass C, WP-2.9A resumption, campaign repeat, Workers Paid activation or 25 MB reduction is authorized until a new architecture review and valid AR-006 evidence exist.
