@@ -46,8 +46,9 @@ describe("ADR 0012 provider evidence job gating", () => {
     const job = evidenceJobSource();
     expect(job).toContain("AR006_CLOUDFLARE_WORKER_DEPLOY_TOKEN");
     expect(job).toContain(
-      "/workers/scripts/$AR006_PRIVATE_DOCUMENT_WORKER/deployments",
+      "/workers/scripts/$AR006_PRIVATE_DOCUMENT_WORKER",
     );
+    expect(job).toContain('"$WORKER_URL/deployments"');
     expect(job).toContain("/versions/$VERSION_ID");
     expect(job).toContain("PrivateDocumentLifecycle");
     expect(job).toContain("wrangler@4.131.2 deploy");
