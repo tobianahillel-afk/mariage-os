@@ -103,7 +103,9 @@ describe("AR-006 Cloudflare user token precheck", () => {
 });
 
 describe("AR-006 Observability event pagination", () => {
-  it("uses the provider maximum page and reports a complete event set", async () => {
+  it(
+    "uses the provider maximum page and reports a complete event set",
+    async () => {
     const fetch = vi.fn(
       async (..._args: Parameters<typeof globalThis.fetch>) =>
         Response.json({
@@ -132,10 +134,13 @@ describe("AR-006 Observability event pagination", () => {
       request?.body === undefined ? null : JSON.parse(String(request.body));
     expect(body?.limit).toBe(2_000);
     expect(result.totalEventCount).toBe(1);
-    expect(result.eventPageComplete).toBe(true);
-  });
+      expect(result.eventPageComplete).toBe(true);
+    },
+  );
 
-  it("fails the completeness signal when provider count exceeds returned events", async () => {
+  it(
+    "fails the completeness signal when provider count exceeds returned events",
+    async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(async () =>
@@ -160,7 +165,8 @@ describe("AR-006 Observability event pagination", () => {
       queryId: "synthetic-truncated-query",
     });
 
-    expect(result.totalEventCount).toBe(2);
-    expect(result.eventPageComplete).toBe(false);
-  });
+      expect(result.totalEventCount).toBe(2);
+      expect(result.eventPageComplete).toBe(false);
+    },
+  );
 });
