@@ -39,9 +39,9 @@ describe("private-document Pages readiness smoke", () => {
   });
 
   it("fails closed when transient 404 never clears", async () => {
-    const fetcher = vi.fn<typeof fetch>(async () =>
-      new Response("not found", { status: 404 }),
-    );
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(new Response("not found", { status: 404 }));
     const waiter = vi.fn(async () => undefined);
 
     await expect(
@@ -63,7 +63,7 @@ describe("private-document Pages readiness smoke", () => {
 
 describe("private-document Pages smoke fail-closed behavior", () => {
   it("does not retry an unexpected non-404 response", async () => {
-    const fetcher = vi.fn<typeof fetch>(async () =>
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
       new Response("<html>fallback</html>", {
         status: 200,
         headers: { "content-type": "text/html" },
@@ -86,7 +86,7 @@ describe("private-document Pages smoke fail-closed behavior", () => {
   });
 
   it("still requires JSON and the generic unavailable payload", async () => {
-    const fetcher = vi.fn<typeof fetch>(async () =>
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
       new Response("method not allowed", {
         status: 405,
         headers: { "content-type": "text/plain" },
