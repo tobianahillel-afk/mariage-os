@@ -1,7 +1,11 @@
 import { writeFile } from "node:fs/promises";
 import { URL } from "node:url";
-
-const BINDING_NAME = "PRIVATE_DOCUMENT_PROMOTION_WORKER";
+import {
+  LEGACY_SERVICE_BINDING,
+  LIFECYCLE_BINDING,
+  LIFECYCLE_CLASS,
+  resolvePrivateDocumentLifecycleNamespace,
+} from "./private-document-ar006-durable-object.mjs";
 
 function requiredEnv(name) {
   const value = process.env[name]?.trim();
@@ -20,8 +24,8 @@ function configuration() {
     accountId: requiredEnv("CLOUDFLARE_ACCOUNT_ID"),
     projectName: requiredEnv("AR006_PAGES_PROJECT"),
     workerName: requiredEnv("AR006_PRIVATE_DOCUMENT_WORKER"),
-    token: requiredEnv("CLOUDFLARE_API_TOKEN"),
-    adminKey: requiredEnv("PRIVATE_DOCUMENT_ADMIN_KEY"),
+    pagesToken: requiredEnv("CLOUDFLARE_API_TOKEN"),
+    workerToken: requiredEnv("CLOUDFLARE_WORKER_API_TOKEN"),
     supabaseUrl: httpsOrigin("AR006_SUPABASE_URL"),
     publishableKey: requiredEnv("AR006_SUPABASE_PUBLISHABLE_KEY"),
   };
@@ -47,74 +51,67 @@ async function requestJson(url, options, message) {
   const response = await globalThis.fetch(url, options);
   const payload = await response.json().catch(() => null);
   if (!response.ok || payload?.success !== true) {
-    const details = Array.isArray(payload?.errors)
-      ? payload.errors
-          .map((error) =>
-            typeof error?.code === "number" &&
-            typeof error?.message === "string"
-              ? "[" + error.code + "] " + error.message
-              : null,
-          )
-          .filter((detail) => detail !== null)
-          .join("; ")
-      : "";
-    throw new Error(details === "" ? message : message + " " + details);
+    throw new Error(message);
   }
   return payload.result;
 }
 
-function serviceMatches(services, workerName) {
+function withoutLegacyService(services) {
   if (Array.isArray(services)) {
-    return services.some(
-      (service) =>
-        service?.binding === BINDING_NAME && service?.service === workerName,
+    return services.filter(
+      (entry) => entry?.binding !== LEGACY_SERVICE_BINDING,
     );
   }
-  return services?.[BINDING_NAME]?.service === workerName;
+  if (typeof services !== "object" || services === null) return {};
+  return Object.fromEntries(
+    Object.entries(services).filter(([name]) => name !== LEGACY_SERVICE_BINDING),
+  );
 }
 
-function withPromotionService(services, workerName) {
-  const service = { service: workerName, environment: "production" };
-  if (Array.isArray(services)) {
-    return [
-      ...services.filter((entry) => entry?.binding !== BINDING_NAME),
-      { binding: BINDING_NAME, ...service },
-    ];
-  }
+function withLifecycleNamespace(namespaces, namespaceId) {
+  const current =
+    typeof namespaces === "object" && namespaces !== null ? namespaces : {};
   return {
-    ...(services && typeof services === "object" ? services : {}),
-    [BINDING_NAME]: service,
+    ...current,
+    [LIFECYCLE_BINDING]: { namespace_id: namespaceId },
   };
 }
 
-function configuredPreview(project, input) {
+function previewPatch(project, input, namespaceId) {
   const preview = project.deployment_configs?.preview ?? {};
   const production = project.deployment_configs?.production ?? {};
-  if (typeof production.fail_open !== "boolean") {
-    throw new Error("Cloudflare Pages Production fail_open is unavailable.");
+  const failOpen =
+    typeof preview.fail_open === "boolean"
+      ? preview.fail_open
+      : production.fail_open;
+  if (typeof failOpen !== "boolean") {
+    throw new Error("Cloudflare Pages fail_open configuration is unavailable.");
   }
   return {
-    ...preview,
-    fail_open: production.fail_open,
+    fail_open: failOpen,
     env_vars: {
-      PRIVATE_DOCUMENT_ADMIN_KEY: {
-        type: "secret_text",
-        value: input.adminKey,
-      },
+      PRIVATE_DOCUMENT_ADMIN_KEY: null,
       SUPABASE_URL: { type: "plain_text", value: input.supabaseUrl },
       SUPABASE_PUBLISHABLE_KEY: {
         type: "plain_text",
         value: input.publishableKey,
       },
     },
-    services: withPromotionService(preview.services, input.workerName),
+    services: withoutLegacyService(preview.services),
+    durable_object_namespaces: withLifecycleNamespace(
+      preview.durable_object_namespaces,
+      namespaceId,
+    ),
   };
 }
 
-function requireSecret(preview) {
-  if (preview.env_vars?.PRIVATE_DOCUMENT_ADMIN_KEY?.type !== "secret_text") {
-    throw new Error("AR-006 Preview secret is missing.");
+function legacyServicePresent(services) {
+  if (Array.isArray(services)) {
+    return services.some(
+      (entry) => entry?.binding === LEGACY_SERVICE_BINDING,
+    );
   }
+  return services?.[LEGACY_SERVICE_BINDING] !== undefined;
 }
 
 function requireText(preview, name, expected) {
@@ -123,32 +120,37 @@ function requireText(preview, name, expected) {
   }
 }
 
-function requirePreview(project, input) {
+function requirePreview(project, input, namespaceId) {
   const preview = project.deployment_configs?.preview;
   if (preview === undefined) throw new Error("AR-006 Preview is unavailable.");
-  requireSecret(preview);
+  if (preview.env_vars?.PRIVATE_DOCUMENT_ADMIN_KEY != null) {
+    throw new Error("Pages Preview admin secret must be absent.");
+  }
   requireText(preview, "SUPABASE_URL", input.supabaseUrl);
   requireText(preview, "SUPABASE_PUBLISHABLE_KEY", input.publishableKey);
-  if (!serviceMatches(preview.services, input.workerName)) {
-    throw new Error("AR-006 Preview Worker binding is missing.");
+  if (legacyServicePresent(preview.services)) {
+    throw new Error("Legacy promotion Service Binding must be absent.");
+  }
+  const binding = preview.durable_object_namespaces?.[LIFECYCLE_BINDING];
+  if (binding?.namespace_id !== namespaceId) {
+    throw new Error("Pages Preview Durable Object namespace does not match.");
   }
   return preview;
 }
 
-async function writeReceipt(input, preview) {
+async function writeReceipt(input, namespace) {
   const receipt = {
     project: input.projectName,
     environment: "preview",
     verified_at: new Date().toISOString(),
-    env_vars: {
-      PRIVATE_DOCUMENT_ADMIN_KEY: "secret_text",
-      SUPABASE_URL: input.supabaseUrl,
-      SUPABASE_PUBLISHABLE_KEY: input.publishableKey,
-    },
-    promotion_service_binding: {
-      binding: BINDING_NAME,
-      service: input.workerName,
-      configured_shape: Array.isArray(preview.services) ? "array" : "record",
+    pages_admin_secret_absent: true,
+    legacy_service_binding_absent: true,
+    durable_object_binding: {
+      binding: LIFECYCLE_BINDING,
+      namespace_id: namespace.id,
+      class_name: LIFECYCLE_CLASS,
+      worker: input.workerName,
+      sqlite: true,
     },
   };
   await writeFile(
@@ -161,31 +163,32 @@ async function writeReceipt(input, preview) {
 async function main() {
   const input = configuration();
   const url = projectUrl(input);
-  const headers = authorizationHeaders(input.token);
+  const namespace = await resolvePrivateDocumentLifecycleNamespace({
+    accountId: input.accountId,
+    workerName: input.workerName,
+    token: input.workerToken,
+  });
   const project = await requestJson(
     url,
-    { headers },
+    { headers: authorizationHeaders(input.pagesToken) },
     "Cloudflare Pages project read failed.",
   );
-  const preview = configuredPreview(project, input);
   const updated = await requestJson(
     url,
     {
       method: "PATCH",
-      headers,
+      headers: authorizationHeaders(input.pagesToken),
       body: JSON.stringify({
         deployment_configs: {
-          production: {
-            fail_open: project.deployment_configs.production.fail_open,
-          },
-          preview,
+          preview: previewPatch(project, input, namespace.id),
         },
       }),
     },
     "Cloudflare Pages Preview configuration update failed.",
   );
-  await writeReceipt(input, requirePreview(updated, input));
-  console.log("AR-006 Pages Preview configuration applied and verified.");
+  requirePreview(updated, input, namespace.id);
+  await writeReceipt(input, namespace);
+  console.log("AR-006 Pages Preview Durable Object binding applied.");
 }
 
 main().catch((error) => {
