@@ -12,19 +12,66 @@ Related FIR: `#17 / FTR-089`
 
 Read-only readiness job: `.github/workflows/ci.yml` → `ar006-provider-preflight`
 
-Current exact-size evidence job: `.github/workflows/ci.yml` → `ar006-provider-evidence`
+Current exact-size evidence job: `.github/workflows/ci.yml` → `ar006-do-provider-evidence`
 
 Workers Observability capability job: `.github/workflows/ar006-observability-preflight.yml`
 
 Provider preflight: `npm run preflight:ar006`
 
-Current exact-size evidence harness: `scripts/run-private-document-ar006-worker-evidence.mjs`
+Current exact-size evidence harness: `scripts/run-private-document-ar006-do-evidence.mjs`
 
 Workers Observability capability harness: `scripts/run-private-document-ar006-observability-preflight.mjs`
 
-Worker correlation helper: `scripts/private-document-ar006-worker-metrics.mjs`
+Current two-surface correlation: `scripts/private-document-ar006-surface-discovery.mjs` + `scripts/private-document-ar006-two-surface-metrics.mjs`
 
 CPU regression control: `npm run test:ar006:metrics`
+
+## ADR 0012 current final-evidence protocol
+
+This section is the current AR-006 execution protocol. Older `[AR006-EVIDENCE]`, GraphQL, Pages-tail and ADR 0011 Service-Binding sections later in this file are historical/reproducibility records only.
+
+Current topology:
+
+```text
+browser
+→ same-origin/bodyless Pages Function
+→ PRIVATE_DOCUMENT_LIFECYCLE Durable Object
+→ isolated Supabase Auth/RLS/Storage/PostgreSQL
+```
+
+The final evidence marker is `[AR006-DO-EVIDENCE]`. It is allowed only on `lot-2/venues-core` after the exact candidate has passed ordinary CI, full verification from a clean checkout, ADR 0012 provider topology preflight and fresh adversarial review of the two-surface evaluator.
+
+The evidence job must, in order:
+
+1. verify the isolated Workers Free attestation and required narrow credentials;
+2. snapshot the current private Worker deployment;
+3. deploy the exact candidate Worker and capture the new deployment ID plus its single 100%-traffic version ID;
+4. verify that version exports `PrivateDocumentLifecycle` and retains reviewed Worker-only Supabase bindings/secrets;
+5. build and deploy the exact Pages preview candidate for the same Git SHA;
+6. resolve exactly one successful commit-bound Pages preview and verify direct `PRIVATE_DOCUMENT_LIFECYCLE` binding with no obsolete ADR 0011 promotion Service Binding;
+7. pass fail-closed deny smoke and a non-mutating random-unreserved-document route probe;
+8. only then perform ten distinct exact-`25,000,000`-byte synthetic reserve → stage → promote → finalize flows;
+9. discover both controlled execution surfaces from UUID-only markers;
+10. query Workers Observability with a maximum page of 2,000 events and retain provider event count;
+11. reject incomplete/truncated event pages, provider errors, ambiguous scripts, missing/duplicate markers or invocations;
+12. enforce Pages `executionModel=stateless`, provider-native `cpuTimeMs <= 10`, event type `fetch`, outcome `ok` and no CPU-limit outcome;
+13. enforce lifecycle `executionModel=durableObject`, provider-native `cpuTimeMs <= 30,000`, event type `fetch`, outcome `ok`, non-null Durable Object ID and no CPU-limit outcome;
+14. require ten distinct Durable Object IDs for ten distinct controlled documents;
+15. require every Durable Object event `$workers.scriptVersion.id` to equal the exact Worker version captured immediately after deployment;
+16. upload only sanitized metadata/evidence; never raw provider events, PDF bytes, bearer/session tokens, passwords or server secrets.
+
+The ADR 0012 CPU source is provider-native `$workers.cpuTimeMs` in milliseconds. Historical GraphQL microsecond quantiles and `/1000` normalization do not apply.
+
+After accepted evidence capture, reset or destroy dedicated synthetic test data under the non-production procedure. Do not introduce a production credential or application bypass merely for cleanup.
+
+Provider contracts rechecked for this protocol:
+
+- Workers Free stateless limit: <https://developers.cloudflare.com/workers/platform/limits/>;
+- Workers/Pages Free inclusion: <https://developers.cloudflare.com/workers/platform/pricing/>;
+- Durable Object Free availability and request CPU: <https://developers.cloudflare.com/durable-objects/platform/limits/>;
+- Durable Object Free usage: <https://developers.cloudflare.com/durable-objects/platform/pricing/>;
+- Observability event fields: <https://developers.cloudflare.com/api/resources/workers/subresources/observability/>;
+- telemetry query API: <https://developers.cloudflare.com/api/resources/workers/subresources/observability/subresources/telemetry/methods/query/>.
 
 ## Purpose
 
@@ -328,11 +375,11 @@ If exact-size promotions fail, provider CPU exceeds `10 ms`, attribution is cont
 
 Do not silently enable Workers Paid and do not reduce the `25,000,000`-byte PDF contract.
 
-## ADR 0011 Worker evidence protocol (current)
+## ADR 0011 Worker evidence protocol (historical — superseded by ADR 0012)
 
 The earlier GraphQL, Pages-tail and unchanged-Pages Observability experiments are
 historical failure evidence. They must not be retried as the final acceptance
-channel. ADR 0011 is the current approved execution path.
+channel. ADR 0011 was the approved execution path for that historical attempt and was superseded after deployed provider CPU evidence failed its stateless Workers Free budget.
 
 ### Isolated provider topology
 
