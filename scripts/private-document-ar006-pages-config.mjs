@@ -38,7 +38,10 @@ export function cloudflareFailureSummary(status, payload) {
   return parts.join(" ");
 }
 
-export function pagesPreviewMutation({ supabaseUrl, publishableKey }, namespaceId) {
+export function pagesPreviewMutation(
+  { supabaseUrl, publishableKey },
+  namespaceId,
+) {
   return {
     env_vars: {
       PRIVATE_DOCUMENT_ADMIN_KEY: null,
