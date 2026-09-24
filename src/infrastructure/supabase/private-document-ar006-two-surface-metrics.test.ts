@@ -178,7 +178,9 @@ describe("ADR 0012 two-surface CPU evaluator failures", () => {
 
   it("rejects duplicate expected evidence ids", () => {
     const data = fixture(1);
-    data.ids.push(data.ids[0]);
+    const [firstId] = data.ids;
+    if (firstId === undefined) throw new Error("Fixture must contain one id.");
+    data.ids.push(firstId);
     expect(evaluate(data).pass).toBe(false);
   });
 });
