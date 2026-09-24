@@ -12,7 +12,7 @@ Related FIR: `#17 / FTR-089`
 
 Read-only readiness job: `.github/workflows/ci.yml` → `ar006-provider-preflight`
 
-Current exact-size evidence job: `.github/workflows/ci.yml` → `ar006-do-provider-evidence`
+Current exact-size evidence job: `.github/workflows/ci.yml` → `ar006-provider-evidence`
 
 Workers Observability capability job: `.github/workflows/ar006-observability-preflight.yml`
 
@@ -128,7 +128,7 @@ The normal Workers Free CPU limit was rechecked on 2026-09-16 as `10 ms` per HTT
 
 The historical GraphQL `cpuTimeP50` / `cpuTimeP99` values consumed by the original exact-size harness are treated as **microseconds**. The harness records the raw values as `cpuTimeP50Us` / `cpuTimeP99Us`, divides by exactly `1000`, and records the normalized values as `cpuTimeP50Ms` / `cpuTimeP99Ms` before comparing them with the `10 ms` Free budget. `npm run test:ar006:metrics` locks this unit conversion and the 10 ms boundary into repository CI.
 
-The open architecture review now treats Workers Observability as a **capability candidate**, not an accepted replacement yet. Cloudflare's Observability API schema allows `pages` as a `cloudService`, while Pages Functions documentation says its standard streamed logs are not stored and the Query Builder documentation says it searches Workers Logs stored by Cloudflare. The repository must therefore test the exact existing Pages deployment through the provider API rather than infer support or non-support from documentation alone.
+Workers Observability provider capability is proven and is the selected ADR 0012 CPU evidence channel. The final harness must still prove the exact deployed Pages and Durable Object surfaces empirically and fails closed on unavailable, ambiguous or incomplete provider telemetry.
 
 ## Isolated environment prerequisites
 
@@ -144,17 +144,13 @@ Do not use:
 
 The isolated Supabase project must contain the current migrations and one synthetic member with live `documents.write` on one synthetic project.
 
-The historical exact-size harness signs in as that ordinary synthetic user, reserves each pending document through `manage_private_document`, uploads through the authenticated staging policy, invokes the deployed trusted Pages route, and finalizes successful promotions through the ordinary RPC.
+The current ADR 0012 exact-size harness signs in as that ordinary synthetic user, reserves each pending document through `manage_private_document`, uploads through the authenticated staging policy, invokes the deployed same-origin/bodyless Pages route, and independently finalizes each successful promotion through the ordinary RPC.
 
-The isolated Pages **preview** environment must already expose:
+The isolated Pages **preview** environment may retain the public-client `SUPABASE_URL` / `SUPABASE_PUBLISHABLE_KEY` metadata used by the wider project configuration, but it must **not** expose `PRIVATE_DOCUMENT_ADMIN_KEY`. Pages must expose the direct `PRIVATE_DOCUMENT_LIFECYCLE` Durable Object binding and must not expose the obsolete ADR 0011 promotion Service Binding.
 
-- `SUPABASE_URL` for the isolated Supabase project;
-- `SUPABASE_PUBLISHABLE_KEY` for that project;
-- `PRIVATE_DOCUMENT_ADMIN_KEY` as an encrypted Pages secret for that same isolated Supabase project.
+The private Worker/Durable Object host owns the isolated `SUPABASE_URL`, publishable key and encrypted `PRIVATE_DOCUMENT_ADMIN_KEY`. The provider preflight verifies the privileged Worker secret by metadata only; its value is never read, printed or copied into GitHub Actions.
 
-`PRIVATE_DOCUMENT_ADMIN_KEY` must not be copied into GitHub Actions secrets. The readiness/evidence jobs verify only that the Pages preview binding exists as `secret_text`; they never read or print its value.
-
-Before any candidate build or deployment, `npm run preflight:ar006` performs only read-only readiness checks: it verifies access to the isolated Pages project and expected preview bindings, verifies the Analytics token can query the intended Cloudflare account, signs in as the synthetic Supabase user, and requires live `documents.write` through `has_project_permission`. The preflight does not deploy, reserve a document, upload bytes, call the trusted promotion route, or mutate application data.
+Before any exact-size mutation, `npm run preflight:ar006` re-verifies the Pages Durable Object binding, absence of the Pages admin secret/legacy Service Binding, Worker admin-secret metadata, synthetic-user authentication and live `documents.write`. The final evidence harness then performs an additional marker-only Observability preflight on both execution surfaces before reserving/uploading any 25 MB document.
 
 ## GitHub Environment contract
 
@@ -177,11 +173,11 @@ Configure these **environment secrets**:
 | Secret | Minimum scope | Rotation / revocation |
 |---|---|---|
 | `AR006_CLOUDFLARE_DEPLOY_TOKEN` | isolated Pages deployment write permission only | revoke after the evidence exercise or on suspected exposure |
-| `AR006_CLOUDFLARE_ANALYTICS_TOKEN` | Account Analytics Read for the isolated Cloudflare account | revoke after evidence capture; no write permission |
+| `AR006_CLOUDFLARE_WORKER_DEPLOY_TOKEN` | isolated Worker Scripts write for the private Durable Object host only | revoke after the evidence exercise or on suspected exposure |
 | `AR006_CLOUDFLARE_OBSERVABILITY_TOKEN` | dedicated Workers Observability Write for the isolated Cloudflare account; no Pages deployment permission | short-lived; revoke after capability/evidence exercise or on suspected exposure |
 | `AR006_TEST_USER_PASSWORD` | only the synthetic non-production Supabase user | rotate/delete the synthetic user after the evidence exercise |
 
-This table is the metadata-only inventory for AR-006-specific credentials and supplements `docs/security/SECRET-MANAGEMENT.md`.
+This table is the metadata-only inventory required by the current ADR 0012 path and supplements `docs/security/SECRET-MANAGEMENT.md`. The historical Account Analytics token belongs only to superseded GraphQL workflows and is not an input to the current final-evidence job.
 
 No token value, hash, fingerprint or password belongs in Git, Actions artifacts, FIR comments or screenshots.
 
@@ -346,18 +342,21 @@ For an Observability capability success:
 4. redesign the final exact-size evidence harness around the proven provider channel;
 5. review and repository-verify that revised harness before another exact-size mutation run.
 
-For later final exact-size evidence, before changing packet state:
+For ADR 0012 final exact-size evidence, before changing packet state:
 
-1. download and inspect the artifact for the exact Actions run;
-2. verify the run SHA equals the intended evidence candidate;
-3. verify Pages deployment metadata resolves to that same SHA;
-4. verify the Cloudflare account/project really used Workers Free with no Paid CPU entitlement;
-5. verify all 10 controlled promotions succeeded and every retained provider CPU measurement is within `10 ms` under the approved channel;
-6. verify provider attribution and CPU units/semantics are explicit and arithmetically consistent where normalization is required;
-7. verify the deny smoke passed and Pages Functions were present;
-8. record sanitized evidence durably in FIR/repository records without credentials;
-9. keep complete exact-head CI/clean-checkout evidence for that candidate;
-10. only then consider transitioning C to `REVIEW_PENDING` and start a new independent Pass B over AR-001..007.
+1. download and inspect every sanitized artifact for the exact Actions run;
+2. verify the run SHA equals the intended evidence candidate and Pages deployment metadata resolves to that same SHA;
+3. verify the Worker deployment receipt contains the SHA-derived tag/full-SHA message, one 100%-traffic version ID and the `PrivateDocumentLifecycle` named handler;
+4. verify the Cloudflare account/project used Workers Free with no Paid CPU entitlement;
+5. verify all ten controlled promotions were HTTP 200 and independently finalized/verified `ready`;
+6. verify exactly one attributable provider invocation per evidence UUID on each surface, complete/non-truncated telemetry pages and provider request-identity joins;
+7. verify every Pages invocation is `executionModel=stateless`, `outcome=ok`, has finite non-negative `cpuTimeMs <= 10`, and no CPU-limit outcome;
+8. verify every lifecycle invocation is `executionModel=durableObject`, `outcome=ok`, has finite non-negative `cpuTimeMs <= 30,000`, the exact captured Worker `scriptVersion.id`, a non-null unique Durable Object ID and no CPU-limit outcome;
+9. verify ten controlled documents produced ten distinct Durable Object IDs and that the 25,000,000-byte product contract remained unchanged;
+10. verify deny smoke and the pre-mutation marker/route preflights passed;
+11. record sanitized evidence durably in FIR/repository records without credentials or raw provider events;
+12. keep complete exact-head CI/clean-checkout evidence for that candidate;
+13. only then consider transitioning C to `REVIEW_PENDING` and start a new independent Pass B over AR-001..007.
 
 After accepted evidence capture, reset or destroy dedicated synthetic test data according to the non-production test-data procedure. Do not use an application bypass or production credential merely for cleanup.
 
@@ -371,7 +370,7 @@ A correctly authorized Observability response with no attributable Pages event o
 
 A red final provider-evidence job is evidence, not permission to weaken the contract.
 
-If exact-size promotions fail, provider CPU exceeds `10 ms`, attribution is contaminated, metrics are unavailable, metric units cannot be established, or success requires Paid CPU, keep WP-2.9C `BLOCKED` and continue architecture review.
+If any exact-size promotion/finalization fails, Pages CPU exceeds `10 ms`, Durable Object CPU exceeds `30,000 ms`, either surface has a CPU-limit/non-`ok` outcome, execution model/version/DO identity is wrong, attribution is ambiguous, telemetry is missing/duplicate/truncated, metric units cannot be established, or success requires Paid CPU, keep AR-006 OPEN/BLOCKING and return to explicit architecture review.
 
 Do not silently enable Workers Paid and do not reduce the `25,000,000`-byte PDF contract.
 

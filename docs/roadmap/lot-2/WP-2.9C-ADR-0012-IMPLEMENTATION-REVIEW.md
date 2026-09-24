@@ -1,6 +1,6 @@
 # WP-2.9C ADR 0012 — Adversarial implementation review
 
-Status: **TWO-SURFACE CPU EVALUATOR REVIEW COMPLETE / GREEN; PROVIDER EVIDENCE HARNESS IMPLEMENTATION + REVIEW NEXT**
+Status: **PROVIDER HARNESS REVIEW COMPLETE / GREEN; MARKER-GATE ENABLEMENT NEXT**
 
 Review date: 2026-09-24  
 Reviewed implementation head: `99ff618781f46073964b14d49b7969c9c132bc92`  
@@ -548,3 +548,98 @@ The current `[AR006-DO-EVIDENCE]` job remains hard-disabled. **This evaluator
 review does not itself authorize the exact-size provider campaign.** Only a
 clean provider-harness review may enable one bounded campaign. AR-006 therefore
 remains OPEN / BLOCKING.
+
+
+## Exact-size provider harness review — 2026-09-25
+
+Status: **PASS — HARNESS CONTRACT CLEAN; REPOSITORY-ONLY MARKER-GATE ENABLEMENT MAY PROCEED AFTER THIS REVIEW/STATUS COMMIT IS GREEN**
+
+Reviewed implementation head: `5b0cc21bc8bb051edea5ec51841709b307ba5365`  
+Exact-head CI: `36073556382` — **SUCCESS**, including `Core quality and security`, local Supabase/Pages promotion, browser/mutation harnesses, privacy-safe preview artifact and `Full verify from clean checkout`.  
+Exact-size provider job on the reviewed head: **SKIPPED / hard-disabled**.
+
+### Findings discovered and remediated during fresh review
+
+1. **Partial failure receipt regression — CLOSED.** The first harness split could
+   lose already-completed flow records if a later exact-size flow threw before
+   the helper returned. Commit
+   `14c7449ae4289986e679e83b8b1a5c91b8e2904f` changed the flow helper to
+   append each completed invocation directly to the shared campaign state.
+   The retained failure receipt therefore preserves earlier completed flows.
+   The verdict also uses the frozen expected count of ten; a 9/10 campaign is
+   explicitly rejected.
+2. **Exact Worker candidate identity ambiguity — CLOSED.** The reviewed job now
+   assigns the exact Worker version a deterministic `ar006-<SHA12>` tag and a
+   message containing the full Git SHA, then reads Cloudflare Worker settings
+   back and requires both annotations before retaining the deployment receipt.
+   The receipt binds those annotations to the captured 100%-traffic Worker
+   version ID. The evaluator independently requires every Durable Object
+   invocation to report that exact `scriptVersion.id`, so a concurrent or
+   stale Worker version fails closed.
+3. **Runbook carried ADR-0011 success/failure wording into ADR 0012 — CLOSED IN
+   THIS REVIEW/STATUS COMMIT.** Current final evidence now distinguishes the
+   stateless Pages budget (`<=10 ms`) from the Durable Object budget
+   (`<=30,000 ms`) and records that `PRIVATE_DOCUMENT_ADMIN_KEY` belongs only
+   on the private Worker/Durable Object host, never Pages.
+
+### Harness invariants rechecked
+
+The final harness remains fail-closed unless all of these hold:
+
+- the evidence job runs only after exact-head `full-verify`;
+- the isolated environment attests Workers Free and uses only synthetic
+  project/user/document data;
+- the exact private Worker is deployed from the evidence SHA with
+  `workers_dev: false`, one 100%-traffic version, the reviewed
+  `PrivateDocumentLifecycle` export and SHA-bound tag/message;
+- Pages deploys exactly the same Git SHA and resolves to one successful preview
+  deployment;
+- Pages has the direct `PRIVATE_DOCUMENT_LIFECYCLE` binding, no legacy
+  promotion Service Binding and no privileged admin secret;
+- deny smoke plus random-unreserved route proof succeed before exact-size
+  mutation;
+- a marker-only Observability preflight proves both Pages and Durable Object
+  surfaces before any 25 MB reservation/upload;
+- ten distinct synthetic PDFs are exactly `25,000,000` bytes and every
+  accepted flow is promoted HTTP 200 and independently verified finalized
+  `ready`;
+- marker discovery and provider invocation events are joined by provider
+  `requestId`, not time proximity;
+- incomplete/truncated telemetry pages, provider errors, ambiguous scripts,
+  missing/duplicate/unexpected markers or invocations fail closed;
+- Pages is `executionModel=stateless`, numeric CPU is finite/non-negative and
+  `<=10 ms`, outcome is `ok`, event type is `fetch`;
+- lifecycle execution is `executionModel=durableObject`, numeric CPU is
+  finite/non-negative and `<=30,000 ms`, outcome is `ok`, event type is
+  `fetch`, and its script version equals the captured exact Worker version;
+- ten controlled documents resolve to ten distinct non-null Durable Object IDs;
+- only sanitized receipts/events are retained; no raw provider logs, tokens,
+  passwords, private PDF bytes, service credential or real wedding data enter
+  artifacts.
+
+Cloudflare contracts were rechecked during this review. Current Wrangler
+supports Worker-version `--tag` and `--message`; Workers Observability exposes
+`cpuTimeMs`, `executionModel`, `durableObjectId`, `requestId` and
+`scriptVersion` metadata used by the evaluator. The provider query remains
+bounded to 2,000 events and treats a provider-reported larger count as an
+incomplete page/failure.
+
+### Review conclusion
+
+No BLOCKING/MAJOR finding remains in the exact-size provider harness or its
+two-surface evaluator.
+
+This review authorizes only the **repository-only gate transition**:
+
+1. replace the hard `if: false` on `ar006-provider-evidence` with the strict
+   push/branch/`[AR006-DO-EVIDENCE]` marker predicate;
+2. update the contract test so ordinary pushes still skip the provider job;
+3. run ordinary exact-head CI and clean-checkout verification with **no marker**;
+4. only if that enablement head is fully green, record one bounded campaign
+   authorization and create one no-content same-tree
+   `[AR006-DO-EVIDENCE]` trigger.
+
+This review does **not** itself execute or accept the provider campaign.
+AR-006 remains OPEN / BLOCKING until the resulting sanitized provider evidence
+is reviewed. Workers Paid, wall-time substitution and any reduction of the
+`25,000,000`-byte contract remain forbidden.
