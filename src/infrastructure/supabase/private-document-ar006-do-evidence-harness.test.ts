@@ -1,5 +1,6 @@
 import ciSource from "../../../.github/workflows/ci.yml?raw";
 import harnessSource from "../../../scripts/run-private-document-ar006-do-evidence.mjs?raw";
+import recordSource from "../../../scripts/private-document-ar006-do-evidence-record.mjs?raw";
 import { describe, expect, it } from "vitest";
 
 function evidenceJobSource(): string {
@@ -22,9 +23,9 @@ describe("ADR 0012 exact-size harness contract", () => {
 
   it("binds evidence to Free plan and the exact provider deployment", () => {
     expect(harnessSource).toContain("YES-WORKERS-FREE-ISOLATED");
-    expect(harnessSource).toContain('requiredEnv("AR006_EXPECTED_SHA")');
-    expect(harnessSource).toContain('requiredEnv("AR006_DEPLOYMENT_ID")');
-    expect(harnessSource).toContain('requiredEnv("AR006_DEPLOYMENT_BRANCH")');
+    expect(recordSource).toContain('requiredEnv("AR006_EXPECTED_SHA")');
+    expect(recordSource).toContain('requiredEnv("AR006_DEPLOYMENT_ID")');
+    expect(recordSource).toContain('requiredEnv("AR006_DEPLOYMENT_BRANCH")');
     expect(harnessSource).toContain(
       'requiredEnv("AR006_WORKER_DEPLOYMENT_ID")',
     );
@@ -32,7 +33,7 @@ describe("ADR 0012 exact-size harness contract", () => {
     expect(harnessSource).toContain(
       "durableObjectVersionId: context.workerVersionId",
     );
-    expect(harnessSource).toContain("paidCpuEntitlementAttestedAbsent: true");
+    expect(recordSource).toContain("paidCpuEntitlementAttestedAbsent: true");
   });
 });
 
