@@ -46,6 +46,16 @@ export async function assertDenied({
   await requireDeniedResponse(label, expectedStatus, response);
 }
 
+function requirePositiveAttempts(maxAttempts) {
+  if (!Number.isSafeInteger(maxAttempts) || maxAttempts < 1) {
+    throw new Error("Smoke readiness maxAttempts must be a positive integer.");
+  }
+}
+
+function shouldRetry(response, attempt, maxAttempts, transientStatus) {
+  return response.status === transientStatus && attempt < maxAttempts;
+}
+
 export async function assertEventuallyDenied({
   routeUrl,
   label,
@@ -57,20 +67,19 @@ export async function assertEventuallyDenied({
   fetcher = globalThis.fetch,
   waiter = defaultWaiter,
 }) {
-  if (!Number.isSafeInteger(maxAttempts) || maxAttempts < 1) {
-    throw new Error("Smoke readiness maxAttempts must be a positive integer.");
-  }
+  requirePositiveAttempts(maxAttempts);
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     const response = await fetcher(routeUrl, {
       redirect: "manual",
       ...init,
     });
-    if (response.status !== transientStatus || attempt === maxAttempts) {
-      await requireDeniedResponse(label, expectedStatus, response);
-      return attempt;
+    if (shouldRetry(response, attempt, maxAttempts, transientStatus)) {
+      await waiter(delayMs);
+      continue;
     }
-    await waiter(delayMs);
+    await requireDeniedResponse(label, expectedStatus, response);
+    return attempt;
   }
 
   throw new Error(`${label}: readiness attempts exhausted.`);
