@@ -38,7 +38,7 @@ export function verifyObservabilityUserToken({ token }) {
   );
 }
 
-function queryBody(workerName, timeframe, queryId) {
+function eventQueryBody(timeframe, queryId, filters) {
   return {
     queryId,
     timeframe,
@@ -48,16 +48,28 @@ function queryBody(workerName, timeframe, queryId) {
     parameters: {
       datasets: [],
       filterCombination: "and",
-      filters: [
-        {
-          kind: "filter",
-          key: "$workers.scriptName",
-          operation: "eq",
-          type: "string",
-          value: workerName,
-        },
-      ],
+      filters,
     },
+  };
+}
+
+function scriptFilter(workerName) {
+  return {
+    kind: "filter",
+    key: "$workers.scriptName",
+    operation: "eq",
+    type: "string",
+    value: workerName,
+  };
+}
+
+function markerFilter() {
+  return {
+    kind: "filter",
+    key: "$metadata.message",
+    operation: "includes",
+    type: "string",
+    value: "mariage-os.ar006.promotion",
   };
 }
 
@@ -77,12 +89,10 @@ export function nextObservabilityDelayMs(result, fallbackMs) {
   return result.retryAfterMs;
 }
 
-export async function queryWorkersObservability({
+async function runObservabilityQuery({
   accountId,
-  workerName,
   token,
-  timeframe,
-  queryId,
+  query,
 }) {
   const response = await globalThis.fetch(
     `${API_ROOT}/${encodeURIComponent(accountId)}/workers/observability/telemetry/query`,
@@ -92,7 +102,7 @@ export async function queryWorkersObservability({
         authorization: `Bearer ${token}`,
         "content-type": "application/json",
       },
-      body: JSON.stringify(queryBody(workerName, timeframe, queryId)),
+      body: JSON.stringify(query),
     },
   );
   const payload = await response.json().catch(() => null);
@@ -107,4 +117,31 @@ export async function queryWorkersObservability({
     events: observabilityEvents(payload),
     retryAfterMs: retryAfterDelayMs(response.headers),
   };
+}
+
+export function queryWorkersObservability({
+  accountId,
+  workerName,
+  token,
+  timeframe,
+  queryId,
+}) {
+  return runObservabilityQuery({
+    accountId,
+    token,
+    query: eventQueryBody(timeframe, queryId, [scriptFilter(workerName)]),
+  });
+}
+
+export function queryAr006MarkerObservability({
+  accountId,
+  token,
+  timeframe,
+  queryId,
+}) {
+  return runObservabilityQuery({
+    accountId,
+    token,
+    query: eventQueryBody(timeframe, queryId, [markerFilter()]),
+  });
 }
