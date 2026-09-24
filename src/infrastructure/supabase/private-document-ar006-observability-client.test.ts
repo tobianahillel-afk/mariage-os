@@ -18,8 +18,8 @@ describe("AR-006 Cloudflare account token precheck", () => {
         errors: [],
         result: { id: "opaque-provider-token-id", status: "active" },
       }),
-    );
-    vi.stubGlobal("fetch", fetch);
+      );
+      vi.stubGlobal("fetch", fetch);
 
     const result = await verifyObservabilityAccountToken({ accountId, token });
 
@@ -106,7 +106,7 @@ describe("AR-006 Observability event pagination", () => {
   it(
     "uses the provider maximum page and reports a complete event set",
     async () => {
-    const fetch = vi.fn(
+      const fetch = vi.fn(
       async (..._args: Parameters<typeof globalThis.fetch>) =>
         Response.json({
           success: true,
@@ -121,19 +121,19 @@ describe("AR-006 Observability event pagination", () => {
     );
     vi.stubGlobal("fetch", fetch);
 
-    const result = await queryWorkersObservability({
+      const result = await queryWorkersObservability({
       accountId,
       workerName: "mariage-os-private-document-promotion",
       token,
       timeframe: { from: 1, to: 2 },
       queryId: "synthetic-query",
-    });
+      });
 
-    const request = fetch.mock.calls[0]?.[1];
-    const body =
-      request?.body === undefined ? null : JSON.parse(String(request.body));
-    expect(body?.limit).toBe(2_000);
-    expect(result.totalEventCount).toBe(1);
+      const request = fetch.mock.calls[0]?.[1];
+      const body =
+        request?.body === undefined ? null : JSON.parse(String(request.body));
+      expect(body?.limit).toBe(2_000);
+      expect(result.totalEventCount).toBe(1);
       expect(result.eventPageComplete).toBe(true);
     },
   );
@@ -141,7 +141,7 @@ describe("AR-006 Observability event pagination", () => {
   it(
     "fails the completeness signal when provider count exceeds returned events",
     async () => {
-    vi.stubGlobal(
+      vi.stubGlobal(
       "fetch",
       vi.fn(async () =>
         Response.json({
