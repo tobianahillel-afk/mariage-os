@@ -2,8 +2,7 @@ function invocationsPassed(invocations, expectedCount) {
   return (
     invocations.length === expectedCount &&
     invocations.every(
-      (item) =>
-        item.success && item.status === 200 && item.finalized === true,
+      (item) => item.success && item.status === 200 && item.finalized === true,
     )
   );
 }

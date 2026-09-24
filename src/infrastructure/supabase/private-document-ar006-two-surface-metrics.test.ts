@@ -194,7 +194,6 @@ describe("ADR 0012 two-surface correlation failures", () => {
 });
 
 describe("ADR 0012 two-surface CPU failures", () => {
-
   it("rejects conflicting provider request identity", () => {
     const data = fixture();
     const event = data.pagesEvents[1];

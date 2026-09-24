@@ -35,11 +35,7 @@ function metadata(event) {
 function eventRequestId(event) {
   const workerId = stringOrNull(property(workers(event), "requestId"));
   const metadataId = stringOrNull(property(metadata(event), "requestId"));
-  if (
-    workerId !== null &&
-    metadataId !== null &&
-    workerId !== metadataId
-  ) {
+  if (workerId !== null && metadataId !== null && workerId !== metadataId) {
     return null;
   }
   return workerId ?? metadataId;
@@ -95,11 +91,7 @@ function providerStatus(event) {
   const invocation = property(workers(event), "event");
   const response = property(invocation, "response");
   const responseStatus = finiteNumber(property(response, "status"));
-  if (
-    direct !== null &&
-    responseStatus !== null &&
-    direct !== responseStatus
-  ) {
+  if (direct !== null && responseStatus !== null && direct !== responseStatus) {
     return null;
   }
   return direct ?? responseStatus;
