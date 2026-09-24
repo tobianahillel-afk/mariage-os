@@ -21,6 +21,12 @@ describe("ADR 0012 exact-size harness contract", () => {
     expect(harnessSource).toContain("queryWorkersObservability");
   });
 
+  it("requires each successful promotion to be verified ready before acceptance", () => {
+    expect(harnessSource).toContain('.select("upload_status")');
+    expect(harnessSource).toContain('verified.data?.upload_status !== "ready"');
+    expect(harnessSource).toContain("finalized = true");
+  });
+
   it("binds evidence to Free plan and the exact provider deployment", () => {
     expect(harnessSource).toContain("YES-WORKERS-FREE-ISOLATED");
     expect(recordSource).toContain('requiredEnv("AR006_EXPECTED_SHA")');
