@@ -305,6 +305,55 @@ CI logs. Preparation commit `4ea938b37321c77c24d359e6e13c69e5ea71693f`
 passed normal CI `35915263712`. The new credential has not yet passed the
 isolated capability preflight; AR-006 remains open.
 
+The bounded capability preflight ran at
+`2187a137663a02a01e3868cfd3690f8d6f45f05e` / CI `35974594865`.
+Ordinary verification and clean-checkout succeeded; isolated job
+`107554277941` succeeded. Sanitized artifact `10796864297` (ZIP SHA-256
+`394d5c3497b0adb81a8ba3a888a1f3461c77df85a4abd85a718cf9ca11b8ade4`)
+records account-token verification HTTP `200`, `tokenActive: true`, a narrow
+Workers Observability telemetry query HTTP `200` / `apiSuccess: true`, no
+provider error codes and `pass: true`. It contains no provider CPU value and
+performed no deployment or document promotion. The Cloudflare account list
+subsequently showed this replacement token active and recently used. After
+this proof, the two older, unused `Workers Observability Telemetry Write`
+tokens (`mariage-os-ar006-observability` and
+`mariage-os-ar006-observability-requery-2027`) were deleted from the account;
+the replacement remained active. This closes the credential authorization
+subproblem, not AR-006.
+
+### 2026-09-24 decision — prepare one fresh exact-size Workers Free campaign
+
+The 2026-09-17 promotion logs are outside Workers Free retention. The valid
+replacement credential can query current Observability data, but cannot
+reconstruct ten attributable numeric CPU measurements from expired logs.
+The existing Cloudflare Pages deployment token is displayed as **Expired**,
+and the private Worker deployment token as **Expires soon**. Those are
+independent from the proven Observability token. The historical Account
+Analytics token is also expired and is not used by the current final harness.
+
+Authorize a bounded recovery of the two deployment credentials needed by the
+isolated evidence workflow: one account-scoped `Pages Write` token for the
+isolated Pages project and one account-scoped `Workers Scripts Write` token for
+the existing private Worker. Each must expire no later than one year, have no
+unrelated permission, be stored only in the approved encrypted GitHub
+Environment secret (`AR006_CLOUDFLARE_DEPLOY_TOKEN` or
+`AR006_CLOUDFLARE_WORKER_DEPLOY_TOKEN`) and the user's encrypted local vault,
+and be verified before the old token is deleted. Do not change the production
+project, add a public Worker route, enable Workers Paid, or widen the
+Observability token.
+
+After credential rotation, run the existing isolated `[AR006-PREFLIGHT]` path
+on an exact commit after normal CI; it must verify the Pages preview bindings
+and synthetic user. If it passes, authorize **one** exact-commit
+`[AR006-EVIDENCE]` campaign under the existing runbook: deploy only the private
+Worker and isolated Pages preview, run deny smoke, perform ten distinct
+synthetic `25,000,000`-byte promotions, and immediately collect attributable
+provider CPU events. Any missing secret, failed preflight, provider query
+error, missing event, nonnumeric CPU, or CPU over `10 ms` stops for a new
+architecture review; do not silently repeat or weaken the acceptance gate.
+A passing artifact is evidence for fresh independent Pass B and Pass C, not
+automatic acceptance.
+
 ## Provider references
 
 - <https://developers.cloudflare.com/pages/functions/debugging-and-logging/>

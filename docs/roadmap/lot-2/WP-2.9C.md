@@ -263,6 +263,17 @@ a Windows DPAPI file outside the repository. The preparation commit
 `35915263712`. The next permitted step is the isolated credential/capability
 preflight, not acceptance or a new exact-size promotion.
 
+The credential-capability run at `2187a137663a02a01e3868cfd3690f8d6f45f05e`
+/ CI `35974594865` passed all ordinary jobs and isolated job `107554277941`.
+Artifact `10796864297` (ZIP SHA-256
+`394d5c3497b0adb81a8ba3a888a1f3461c77df85a4abd85a718cf9ca11b8ade4`)
+confirms account-token verification `200/active` and Observability query
+`200/success`, with no CPU measurement or promotion. The two superseded,
+wrong-scope Observability tokens were deleted after that proof. The
+2026-09-24 architecture decision authorizes recovery of expired/expiring
+isolated deployment credentials and one fresh exact-size evidence campaign
+only after a green `[AR006-PREFLIGHT]`; WP-2.9C remains `IN_PROGRESS`.
+
 Current gate:
 
 1. retain AR-005 and AR-007 remediations without weakening their security contracts;
