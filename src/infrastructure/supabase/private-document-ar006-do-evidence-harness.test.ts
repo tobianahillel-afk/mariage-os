@@ -29,6 +29,9 @@ describe("ADR 0012 exact-size harness contract", () => {
       'requiredEnv("AR006_WORKER_DEPLOYMENT_ID")',
     );
     expect(harnessSource).toContain('requiredEnv("AR006_WORKER_VERSION_ID")');
+    expect(harnessSource).toContain(
+      "durableObjectVersionId: context.workerVersionId",
+    );
     expect(harnessSource).toContain("paidCpuEntitlementAttestedAbsent: true");
   });
 });

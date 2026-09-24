@@ -8,6 +8,7 @@ export interface Ar006SurfaceContract {
   readonly executionModel: "stateless" | "durableObject";
   readonly cpuBudgetMs: number;
   readonly requireDurableObjectId: boolean;
+  readonly expectedScriptVersionId: string | null;
 }
 
 export interface Ar006SurfaceMeasurement {
@@ -20,6 +21,7 @@ export interface Ar006SurfaceMeasurement {
   readonly executionModel: string | null;
   readonly eventType: string | null;
   readonly durableObjectId: string | null;
+  readonly scriptVersionId: string | null;
   readonly traceId: string | null;
   readonly cpuTimeMs: number | null;
   readonly cpuBudgetMs: number;
@@ -58,4 +60,5 @@ export function evaluateAr006TwoSurfaceEvents(input: {
   readonly expectedEvidenceIds: ReadonlyArray<string>;
   readonly pagesScriptName: string;
   readonly durableObjectScriptName: string;
+  readonly durableObjectVersionId: string;
 }): Ar006TwoSurfaceEvaluation;

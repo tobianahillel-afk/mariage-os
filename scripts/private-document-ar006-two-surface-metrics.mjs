@@ -91,6 +91,11 @@ function providerStatus(event) {
   return finiteNumber(property(response, "status"));
 }
 
+function scriptVersionId(event) {
+  const version = property(workers(event), "scriptVersion");
+  return stringOrNull(property(version, "id"));
+}
+
 function invocationMeasurement(event, contract) {
   const worker = workers(event);
   const meta = metadata(event);
@@ -105,6 +110,7 @@ function invocationMeasurement(event, contract) {
     executionModel: stringOrNull(worker.executionModel),
     eventType: stringOrNull(worker.eventType),
     durableObjectId: stringOrNull(worker.durableObjectId),
+    scriptVersionId: scriptVersionId(event),
     statusCode: providerStatus(event),
     traceId: stringOrNull(worker.traceId),
   };
@@ -126,6 +132,11 @@ function durableObjectIdentityAccepted(invocation, contract) {
   return invocation.durableObjectId !== null;
 }
 
+function scriptVersionAccepted(invocation, contract) {
+  if (contract.expectedScriptVersionId === null) return true;
+  return invocation.scriptVersionId === contract.expectedScriptVersionId;
+}
+
 function validInvocation(marker, invocation, contract) {
   const checks = [
     marker.status === 200,
@@ -135,6 +146,7 @@ function validInvocation(marker, invocation, contract) {
     invocation.eventType === "fetch",
     providerStatusAccepted(invocation.statusCode),
     durableObjectIdentityAccepted(invocation, contract),
+    scriptVersionAccepted(invocation, contract),
   ];
   return checks.every(Boolean);
 }
@@ -190,6 +202,7 @@ function evaluateEvidence(events, markers, contract, evidenceId) {
       executionModel: invocation.executionModel,
       eventType: invocation.eventType,
       durableObjectId: invocation.durableObjectId,
+      scriptVersionId: invocation.scriptVersionId,
       traceId: invocation.traceId,
       cpuTimeMs: invocation.cpuTimeMs,
       cpuBudgetMs: contract.cpuBudgetMs,
@@ -248,6 +261,7 @@ export function evaluateAr006TwoSurfaceEvents({
   expectedEvidenceIds,
   pagesScriptName,
   durableObjectScriptName,
+  durableObjectVersionId,
 }) {
   const pages = evaluateAr006Surface(pagesEvents, expectedEvidenceIds, {
     surface: "pages-ingress",
@@ -255,6 +269,7 @@ export function evaluateAr006TwoSurfaceEvents({
     executionModel: "stateless",
     cpuBudgetMs: PAGES_CPU_BUDGET_MS,
     requireDurableObjectId: false,
+    expectedScriptVersionId: null,
   });
   const durableObject = evaluateAr006Surface(
     durableObjectEvents,
@@ -265,6 +280,7 @@ export function evaluateAr006TwoSurfaceEvents({
       executionModel: "durableObject",
       cpuBudgetMs: DURABLE_OBJECT_CPU_BUDGET_MS,
       requireDurableObjectId: true,
+      expectedScriptVersionId: durableObjectVersionId,
     },
   );
   const exactEvidenceCount =

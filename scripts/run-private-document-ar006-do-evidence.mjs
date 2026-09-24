@@ -269,6 +269,7 @@ async function collectTwoSurfaceEvidence(
       expectedEvidenceIds,
       pagesScriptName,
       durableObjectScriptName: context.durableObjectScriptName,
+      durableObjectVersionId: context.workerVersionId,
     });
     latest = {
       pages,

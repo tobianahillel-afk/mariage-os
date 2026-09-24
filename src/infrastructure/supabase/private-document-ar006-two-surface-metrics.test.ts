@@ -8,6 +8,7 @@ import {
 
 const pagesScript = "pages-worker--isolated-preview";
 const workerScript = "mariage-os-private-document-promotion";
+const workerVersion = "11111111-2222-4333-8444-555555555555";
 
 function evidenceId(index: number): string {
   return `00000000-0000-4000-8000-${String(index).padStart(12, "0")}`;
@@ -38,6 +39,7 @@ function invocation({
   executionModel,
   cpuTimeMs,
   durableObjectId = null,
+  scriptVersionId = null,
   metadataRequestId = false,
 }: {
   requestId: string;
@@ -45,6 +47,7 @@ function invocation({
   executionModel: "stateless" | "durableObject";
   cpuTimeMs: number | null | string;
   durableObjectId?: string | null;
+  scriptVersionId?: string | null;
   metadataRequestId?: boolean;
 }) {
   return {
@@ -61,6 +64,9 @@ function invocation({
       outcome: "ok",
       cpuTimeMs,
       durableObjectId,
+      ...(scriptVersionId === null
+        ? {}
+        : { scriptVersion: { id: scriptVersionId } }),
     },
   };
 }
@@ -92,6 +98,7 @@ function fixture(count: number = AR006_EVIDENCE_COUNT) {
         executionModel: "durableObject",
         cpuTimeMs: 250,
         durableObjectId: `do-object-${index + 1}`,
+        scriptVersionId: workerVersion,
       }),
     );
   });
@@ -105,6 +112,7 @@ function evaluate(data = fixture()) {
     expectedEvidenceIds: data.ids,
     pagesScriptName: pagesScript,
     durableObjectScriptName: workerScript,
+    durableObjectVersionId: workerVersion,
   });
 }
 
@@ -143,6 +151,7 @@ describe("ADR 0012 two-surface CPU evaluator success", () => {
       expect.objectContaining({
         executionModel: "durableObject",
         cpuBudgetMs: DURABLE_OBJECT_CPU_BUDGET_MS,
+        scriptVersionId: workerVersion,
       }),
     );
   });
@@ -169,6 +178,18 @@ describe("ADR 0012 two-surface correlation failures", () => {
     const second = workerFields(data.durableObjectEvents, 3);
     second.durableObjectId = first.durableObjectId;
     expect(evaluate(data).pass).toBe(false);
+  });
+
+  it("rejects a different or missing Durable Object script version", () => {
+    const mismatched = fixture();
+    workerFields(mismatched.durableObjectEvents, 1).scriptVersion = {
+      id: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+    };
+    expect(evaluate(mismatched).pass).toBe(false);
+
+    const missing = fixture();
+    delete workerFields(missing.durableObjectEvents, 1).scriptVersion;
+    expect(evaluate(missing).pass).toBe(false);
   });
 });
 
