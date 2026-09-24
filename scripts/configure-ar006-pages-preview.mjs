@@ -131,11 +131,6 @@ async function main() {
     workerName: input.workerName,
     token: input.workerToken,
   });
-  const project = await requestJson(
-    url,
-    { headers: authorizationHeaders(input.pagesToken) },
-    "Cloudflare Pages project read failed.",
-  );
   const updated = await requestJson(
     url,
     {
