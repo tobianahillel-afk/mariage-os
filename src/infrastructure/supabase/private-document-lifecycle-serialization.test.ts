@@ -16,7 +16,7 @@ async function flushMicrotasks(): Promise<void> {
   await Promise.resolve();
 }
 
-describe("PrivateDocumentLifecycleSerialGate", () => {
+describe("PrivateDocumentLifecycleSerialGate ordering", () => {
   it("serializes overlapping operations for one lifecycle instance", async () => {
     const gate = new PrivateDocumentLifecycleSerialGate();
     const firstRelease = deferred<void>();
@@ -65,7 +65,9 @@ describe("PrivateDocumentLifecycleSerialGate", () => {
     await expect(second).resolves.toBe("recovered");
     expect(events).toEqual(["first:start", "second:start"]);
   });
+});
 
+describe("PrivateDocumentLifecycleSerialGate isolation", () => {
   it("does not globally serialize different lifecycle instances", async () => {
     const firstGate = new PrivateDocumentLifecycleSerialGate();
     const secondGate = new PrivateDocumentLifecycleSerialGate();
