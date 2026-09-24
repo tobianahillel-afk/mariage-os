@@ -49,18 +49,37 @@ function markerPayload(event) {
   }
 }
 
-function parsedMarker(event, scriptName, surface) {
+function scriptMatches(event, scriptName) {
   const worker = workers(event);
-  if (worker === null || worker.scriptName !== scriptName) return null;
+  return worker !== null && worker.scriptName === scriptName;
+}
+
+function markerMatches(payload, surface) {
+  return (
+    payload !== null &&
+    payload.event === MARKER_EVENT &&
+    payload.surface === surface
+  );
+}
+
+function markerValuesValid(evidenceId, status, requestId) {
+  return (
+    evidenceId !== null &&
+    UUID_PATTERN.test(evidenceId) &&
+    status !== null &&
+    Number.isInteger(status) &&
+    requestId !== null
+  );
+}
+
+function parsedMarker(event, scriptName, surface) {
+  if (!scriptMatches(event, scriptName)) return null;
   const payload = markerPayload(event);
-  if (payload === null || payload.event !== MARKER_EVENT) return null;
-  if (payload.surface !== surface) return null;
+  if (!markerMatches(payload, surface)) return null;
   const evidenceId = stringOrNull(payload.evidenceId);
   const status = finiteNumber(payload.status);
   const requestId = eventRequestId(event);
-  if (evidenceId === null || !UUID_PATTERN.test(evidenceId)) return null;
-  if (status === null || !Number.isInteger(status)) return null;
-  if (requestId === null) return null;
+  if (!markerValuesValid(evidenceId, status, requestId)) return null;
   return { evidenceId, requestId, status };
 }
 
@@ -91,20 +110,31 @@ function invocationMeasurement(event, contract) {
   };
 }
 
+function cpuWithinBudget(invocation, contract) {
+  if (invocation.cpuTimeMs === null) return false;
+  return invocation.cpuTimeMs >= 0 && invocation.cpuTimeMs <= contract.cpuBudgetMs;
+}
+
+function providerStatusAccepted(statusCode) {
+  return statusCode === null || statusCode === 200;
+}
+
+function durableObjectIdentityAccepted(invocation, contract) {
+  if (!contract.requireDurableObjectId) return true;
+  return invocation.durableObjectId !== null;
+}
+
 function validInvocation(marker, invocation, contract) {
-  if (marker.status !== 200) return false;
-  if (invocation.cpuTimeMs === null || invocation.cpuTimeMs < 0) return false;
-  if (invocation.cpuTimeMs > contract.cpuBudgetMs) return false;
-  if (invocation.outcome !== "ok") return false;
-  if (invocation.executionModel !== contract.executionModel) return false;
-  if (invocation.eventType !== "fetch") return false;
-  if (invocation.statusCode !== null && invocation.statusCode !== 200) {
-    return false;
-  }
-  if (contract.requireDurableObjectId && invocation.durableObjectId === null) {
-    return false;
-  }
-  return true;
+  const checks = [
+    marker.status === 200,
+    cpuWithinBudget(invocation, contract),
+    invocation.outcome === "ok",
+    invocation.executionModel === contract.executionModel,
+    invocation.eventType === "fetch",
+    providerStatusAccepted(invocation.statusCode),
+    durableObjectIdentityAccepted(invocation, contract),
+  ];
+  return checks.every(Boolean);
 }
 
 function failure(code, evidenceId, surface) {
