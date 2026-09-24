@@ -100,6 +100,16 @@ async function finalize(client, projectId, documentId) {
     target_source_id: null,
   });
   if (result.error) throw new Error("Synthetic finalization failed.");
+
+  const verified = await client
+    .from("documents")
+    .select("upload_status")
+    .eq("project_id", projectId)
+    .eq("id", documentId)
+    .maybeSingle();
+  if (verified.error || verified.data?.upload_status !== "ready") {
+    throw new Error("Synthetic finalization state verification failed.");
+  }
 }
 
 async function promote({ baseUrl, token, projectId, documentId, evidenceId }) {
@@ -148,10 +158,19 @@ async function runPromotion(context, identity, index) {
     evidenceId,
   });
   const completedAt = new Date().toISOString();
+  let finalized = false;
   if (result.success) {
     await finalize(identity.client, context.projectId, documentId);
+    finalized = true;
   }
-  return { documentId, evidenceId, startedAt, completedAt, ...result };
+  return {
+    documentId,
+    evidenceId,
+    startedAt,
+    completedAt,
+    finalized,
+    ...result,
+  };
 }
 
 async function runPromotions(context, identity) {
@@ -174,6 +193,7 @@ function evidenceContext() {
   }
   const projectId = requiredEnv("AR006_PROJECT_ID");
   assertUuid("AR006_PROJECT_ID", projectId);
+  httpsOrigin("AR006_SUPABASE_URL");
   const bytes = createExactPdf(MAX_BYTES);
   if (bytes.byteLength !== MAX_BYTES) {
     throw new Error("Synthetic PDF size drifted.");

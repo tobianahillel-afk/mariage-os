@@ -4,6 +4,7 @@ import { campaignPassed } from "../../../scripts/private-document-ar006-do-evide
 const successfulInvocations = Array.from({ length: 10 }, () => ({
   success: true,
   status: 200,
+  finalized: true,
 }));
 
 function discovery(eventPageComplete = true) {
@@ -55,9 +56,20 @@ describe("ADR 0012 exact-size campaign verdict", () => {
 
   it("rejects failed promotion or provider evaluation", () => {
     const failed = [...successfulInvocations];
-    failed[0] = { success: false, status: 503 };
+    failed[0] = { success: false, status: 503, finalized: false };
     expect(
       campaignPassed(failed, discovery(), observation(), failed.length),
+    ).toBe(false);
+
+    const notFinalized = [...successfulInvocations];
+    notFinalized[0] = { success: true, status: 200, finalized: false };
+    expect(
+      campaignPassed(
+        notFinalized,
+        discovery(),
+        observation(),
+        notFinalized.length,
+      ),
     ).toBe(false);
     expect(
       campaignPassed(
