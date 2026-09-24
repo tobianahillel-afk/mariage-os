@@ -22,6 +22,6 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - name: Print exact Prettier diff
         run: |
-          file=src/infrastructure/supabase/private-document-ar006-two-surface-metrics.test.ts
+          file=scripts/private-document-ar006-two-surface-metrics.mjs
           npx prettier "$file" > /tmp/formatted.ts
           diff -u "$file" /tmp/formatted.ts || true
