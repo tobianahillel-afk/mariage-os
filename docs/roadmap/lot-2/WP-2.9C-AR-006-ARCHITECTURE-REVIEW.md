@@ -376,6 +376,21 @@ promotion has run with these replacements at this checkpoint. The next action
 is the marker-gated `[AR006-PREFLIGHT]` on an exact commit, followed by review
 of its sanitized result and the normal exact-commit CI.
 
+The read-only preflight at `6b4a1da36e3dd32bde36adfb7f6d75e204324902`
+/ CI `35976858406`, job `107559568930`, succeeded and logged
+`AR-006 isolated provider preflight passed.` It verified the encrypted Pages
+credential against the isolated project configuration, the expected preview
+secret and bindings, and the synthetic user's live `documents.write` permission;
+it made no deployment or promotion. After that proof the expired superseded
+`mariage-os-ar006-pages-deploy` token was deleted in the Cloudflare dashboard;
+the new Pages token remained active. The prior Worker token remains until the
+new one proves it can deploy. The exact-commit clean-checkout CI result must
+also be green before the one permitted evidence campaign. The same CI run
+finished with all five ordinary jobs successful, including full verification
+from a clean checkout; the exact-size evidence job was correctly skipped on
+the preflight marker. This satisfies the pre-campaign gate, so the next exact
+commit may carry `[AR006-EVIDENCE]` once to execute the authorized campaign.
+
 ## Provider references
 
 - <https://developers.cloudflare.com/pages/functions/debugging-and-logging/>

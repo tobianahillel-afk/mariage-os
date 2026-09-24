@@ -279,9 +279,15 @@ The isolated Pages and private-Worker deployment tokens were replaced on
 and `Workers Scripts Write`. Their encrypted GitHub Environment secrets were
 updated and visually confirmed at `08:36:53Z` and `08:38:15Z`; values are
 stored only in GitHub and user-bound DPAPI files outside the repository. The
-old tokens await proof of the replacements. The next action is a read-only
-`[AR006-PREFLIGHT]` on the exact committed candidate, then a single permitted
-evidence campaign only if both preflight and normal CI pass.
+The preflight was the next required proof before a single permitted evidence
+campaign, contingent on preflight and normal CI passing.
+
+That preflight passed at `6b4a1da36e3dd32bde36adfb7f6d75e204324902`
+/ CI `35976858406`, job `107559568930`. It logged no document content or
+secret. The expired old Pages token was removed after the new credential's
+proof; the old Worker token remains pending new-token deployment proof. The
+same exact-commit run passed all five ordinary CI jobs, including clean
+checkout. The one authorized `[AR006-EVIDENCE]` campaign is now the next gate.
 
 Current gate:
 
