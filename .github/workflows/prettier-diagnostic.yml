@@ -1,0 +1,27 @@
+name: Temporary Prettier diagnostic
+
+on:
+  push:
+    branches:
+      - lot-2/wp29c-prettier-diagnostic
+
+permissions:
+  contents: read
+
+jobs:
+  diff:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Print exact Prettier diff
+        run: |
+          file=src/infrastructure/supabase/private-document-ar006-two-surface-metrics.test.ts
+          npx prettier "$file" > /tmp/formatted.ts
+          diff -u "$file" /tmp/formatted.ts || true
