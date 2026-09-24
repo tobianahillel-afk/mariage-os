@@ -18,8 +18,8 @@ describe("AR-006 Cloudflare account token precheck", () => {
         errors: [],
         result: { id: "opaque-provider-token-id", status: "active" },
       }),
-      );
-      vi.stubGlobal("fetch", fetch);
+    );
+    vi.stubGlobal("fetch", fetch);
 
     const result = await verifyObservabilityAccountToken({ accountId, token });
 
@@ -102,13 +102,14 @@ describe("AR-006 Cloudflare user token precheck", () => {
   });
 });
 
-describe("AR-006 Observability event pagination", () => {
-  it(
-    "uses the provider maximum page and reports a complete event set",
-    async () => {
-      const fetch = vi.fn(
-      async (..._args: Parameters<typeof globalThis.fetch>) =>
-        Response.json({
+describe("AR-006 Observability pagination", () => {
+  it("reports a complete event page", async () => {
+    let requestBody: string | null = null;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+        requestBody = typeof init?.body === "string" ? init.body : null;
+        return Response.json({
           success: true,
           errors: [],
           result: {
@@ -117,31 +118,26 @@ describe("AR-006 Observability event pagination", () => {
               events: [{ $metadata: { id: "event-1" } }],
             },
           },
-        }),
+        });
+      }),
     );
-    vi.stubGlobal("fetch", fetch);
 
-      const result = await queryWorkersObservability({
+    const result = await queryWorkersObservability({
       accountId,
       workerName: "mariage-os-private-document-promotion",
       token,
       timeframe: { from: 1, to: 2 },
       queryId: "synthetic-query",
-      });
+    });
 
-      const request = fetch.mock.calls[0]?.[1];
-      const body =
-        request?.body === undefined ? null : JSON.parse(String(request.body));
-      expect(body?.limit).toBe(2_000);
-      expect(result.totalEventCount).toBe(1);
-      expect(result.eventPageComplete).toBe(true);
-    },
-  );
+    const body = requestBody === null ? null : JSON.parse(requestBody);
+    expect(body?.limit).toBe(2_000);
+    expect(result.totalEventCount).toBe(1);
+    expect(result.eventPageComplete).toBe(true);
+  });
 
-  it(
-    "fails the completeness signal when provider count exceeds returned events",
-    async () => {
-      vi.stubGlobal(
+  it("rejects a truncated event page", async () => {
+    vi.stubGlobal(
       "fetch",
       vi.fn(async () =>
         Response.json({
@@ -165,8 +161,7 @@ describe("AR-006 Observability event pagination", () => {
       queryId: "synthetic-truncated-query",
     });
 
-      expect(result.totalEventCount).toBe(2);
-      expect(result.eventPageComplete).toBe(false);
-    },
-  );
+    expect(result.totalEventCount).toBe(2);
+    expect(result.eventPageComplete).toBe(false);
+  });
 });
