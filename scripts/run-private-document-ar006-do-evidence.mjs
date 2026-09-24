@@ -174,13 +174,11 @@ async function runPromotion(context, identity, index) {
   };
 }
 
-async function runPromotions(context, identity) {
-  const invocations = [];
+async function runPromotions(context, identity, invocations) {
   for (let index = 0; index < AR006_EVIDENCE_COUNT; index += 1) {
     invocations.push(await runPromotion(context, identity, index));
     if (index + 1 < AR006_EVIDENCE_COUNT) await delay(1_500);
   }
-  return invocations;
 }
 
 function evidenceContext() {
@@ -400,7 +398,7 @@ async function executeCampaign(state) {
   );
   await delay(20_000);
   state.failureStage = "exact_size_flows";
-  state.invocations = await runPromotions(state.context, identity);
+  await runPromotions(state.context, identity, state.invocations);
   state.failureStage = "provider_observability";
   const observed = await observeCampaign(state.context, state.invocations);
   state.discovery = observed.discovery;
