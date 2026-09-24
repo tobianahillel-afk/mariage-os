@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import configureSource from "../../../scripts/configure-ar006-pages-preview.mjs?raw";
-import preflightSource from "../../../scripts/run-private-document-ar006-preflight.mjs?raw";
 import ciSource from "../../../.github/workflows/ci.yml?raw";
 import ciCdSource from "../../../docs/engineering/CI-CD.md?raw";
 import secretSource from "../../../docs/security/SECRET-MANAGEMENT.md?raw";
+import configureSource from "../../../scripts/configure-ar006-pages-preview.mjs?raw";
+import preflightSource from "../../../scripts/run-private-document-ar006-preflight.mjs?raw";
 
 describe("ADR 0012 provider deployment contract RED", () => {
   it("configures Pages with the Durable Object namespace and removes ADR 0011 bindings", () => {
@@ -27,7 +27,9 @@ describe("ADR 0012 provider deployment contract RED", () => {
   });
 
   it("disables the stale ADR 0011 exact-size evidence marker", () => {
-    expect(ciSource).not.toContain("contains(github.event.head_commit.message, '[AR006-EVIDENCE]')");
+    expect(ciSource).not.toContain(
+      "contains(github.event.head_commit.message, '[AR006-EVIDENCE]')",
+    );
     expect(ciSource).toContain("[AR006-DO-EVIDENCE]");
   });
 
