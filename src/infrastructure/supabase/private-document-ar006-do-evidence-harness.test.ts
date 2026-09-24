@@ -48,9 +48,7 @@ describe("ADR 0012 provider evidence job gating", () => {
   it("deploys the exact candidate without restoring the legacy Pages trust path", () => {
     const job = evidenceJobSource();
     expect(job).toContain("AR006_CLOUDFLARE_WORKER_DEPLOY_TOKEN");
-    expect(job).toContain(
-      "/workers/scripts/$AR006_PRIVATE_DOCUMENT_WORKER",
-    );
+    expect(job).toContain("/workers/scripts/$AR006_PRIVATE_DOCUMENT_WORKER");
     expect(job).toContain('"$WORKER_URL/deployments"');
     expect(job).toContain("/versions/$VERSION_ID");
     expect(job).toContain("PrivateDocumentLifecycle");
