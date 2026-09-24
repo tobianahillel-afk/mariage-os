@@ -68,19 +68,27 @@ function requireMatchingText(preview, bindingName, expectedValue) {
   }
 }
 
-function requirePreview(project, namespaceId) {
-  const preview = project.deployment_configs?.preview;
-  if (preview === undefined) throw new Error("Pages Preview is unavailable.");
+function requireUnprivilegedPages(preview) {
   if (preview.env_vars?.PRIVATE_DOCUMENT_ADMIN_KEY != null) {
     throw new Error("Pages Preview admin secret must be absent.");
   }
   if (legacyServicePresent(preview.services)) {
     throw new Error("Legacy promotion Service Binding must be absent.");
   }
+}
+
+function requireLifecycleBinding(preview, namespaceId) {
   const binding = preview.durable_object_namespaces?.[LIFECYCLE_BINDING];
   if (binding?.namespace_id !== namespaceId) {
     throw new Error("Pages Preview Durable Object binding is incorrect.");
   }
+}
+
+function requirePreview(project, namespaceId) {
+  const preview = project.deployment_configs?.preview;
+  if (preview === undefined) throw new Error("Pages Preview is unavailable.");
+  requireUnprivilegedPages(preview);
+  requireLifecycleBinding(preview, namespaceId);
   requireMatchingText(
     preview,
     "SUPABASE_URL",
