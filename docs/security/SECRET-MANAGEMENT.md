@@ -14,7 +14,7 @@ These are **not** authorization secrets. Security must remain correct if an Inte
 
 Examples:
 
-- Supabase service-role/server secret key, including the value bound to Pages as `PRIVATE_DOCUMENT_ADMIN_KEY`;
+- Supabase service-role/server secret key, including the value bound only to the private Worker/Durable Object host as `PRIVATE_DOCUMENT_ADMIN_KEY`;
 - database password/owner credentials;
 - Cloudflare/GitHub deployment tokens where write/admin scope exists;
 - SMTP/API secret if public email service is later added;
@@ -44,7 +44,7 @@ Never uploaded/stored by Mariage OS merely for recovery convenience.
 
 Privileged secrets live only in approved platform secret stores/environment configuration with minimum necessary scope.
 
-For Cloudflare Pages Functions, privileged values are stored as encrypted secrets for the exact Pages environment. Plain-text `vars`, static asset environment substitution and committed Wrangler values are not approved locations for privileged credentials.
+Privileged Cloudflare runtime values are stored as encrypted secrets only on the runtime that needs them. Under ADR 0012, Pages holds no `PRIVATE_DOCUMENT_ADMIN_KEY`; that credential is encrypted only on the private Worker/Durable Object host. Plain-text `vars`, static asset environment substitution and committed Wrangler values are not approved locations for privileged credentials.
 
 Never in:
 
@@ -79,7 +79,7 @@ Each secret:
 
 GitHub Actions/job tokens use minimum workflow permissions. Untrusted PR code must not receive production secrets.
 
-`PRIVATE_DOCUMENT_ADMIN_KEY` is additionally constrained by application architecture: it may be consumed only inside the narrow same-origin Pages private-document abandon boundary or the ADR 0011 private Worker promotion executor, only after current-user authentication plus live project/document authorization and authoritative target-state validation. Possession of the binding is not itself a user authorization decision.
+`PRIVATE_DOCUMENT_ADMIN_KEY` is additionally constrained by application architecture: it may be consumed only inside the private Worker/Durable Object host reached through the same-origin Pages `PRIVATE_DOCUMENT_LIFECYCLE` binding, and only after current-user authentication plus live project/document authorization and authoritative target-state validation. Pages never receives this key. Possession of the Worker secret is not itself a user authorization decision.
 
 ## 5. Rotation/revocation
 
@@ -98,7 +98,7 @@ Rotate immediately after known/suspected exposure. Do not wait for periodic rota
 
 Periodic rotation follows provider/risk needs; arbitrary frequent rotation is not a substitute for proper scoping/storage.
 
-For `PRIVATE_DOCUMENT_ADMIN_KEY`, planned rotation is provider-first and environment-specific: create/activate the replacement Supabase server/service credential, replace the Cloudflare Pages and private Worker encrypted secrets in the intended environment, deploy the exact approved application candidate, run the private-document route smoke and synthetic/non-production success proof where permitted, then revoke the previous credential. For an exposure incident, revoke/disable the exposed provider credential immediately, accept temporary fail-closed document promotion if necessary, install the replacement secret in both runtimes, redeploy and verify recovery. In both cases, verify the previous credential is rejected before declaring rotation complete.
+For `PRIVATE_DOCUMENT_ADMIN_KEY`, planned rotation is provider-first and environment-specific: create/activate the replacement Supabase server/service credential, replace only the private Worker/Durable Object host encrypted secret in the intended environment, deploy the exact approved Worker and Pages candidate, run the private-document route smoke and synthetic/non-production success proof where permitted, then revoke the previous credential. For an exposure incident, revoke/disable the exposed provider credential immediately, accept temporary fail-closed document promotion if necessary, install the replacement secret on the Worker/Durable Object host, redeploy and verify recovery. In both cases, verify the previous credential is rejected before declaring rotation complete.
 
 ## 6. Exposure response
 
@@ -134,7 +134,7 @@ Source maps are deployed only according to the chosen debugging/privacy policy; 
 - GitHub Actions from forks/untrusted contexts cannot access production secrets;
 - artifacts are reviewed for sensitive content.
 
-For the Pages private-document boundary, production smoke may assert secret presence indirectly through fail-closed/success behavior but must never echo, hash, fingerprint or otherwise publish `PRIVATE_DOCUMENT_ADMIN_KEY` itself.
+For the Pages private-document boundary, production smoke proves the `PRIVATE_DOCUMENT_LIFECYCLE` binding and trusted route behavior while Worker-side checks may assert only the metadata presence of `PRIVATE_DOCUMENT_ADMIN_KEY`; no smoke, log or artifact may echo, hash, fingerprint or otherwise publish the secret value.
 
 ## 9. Key/token generation
 
@@ -152,7 +152,7 @@ Production/security review maintains a secret inventory containing **metadata on
 
 | Secret ID | Owner / system | Environment | Purpose | Scope | Storage | Rotation / revocation | Verification | Last reviewed |
 |---|---|---|---|---|---|---|---|---|
-| `PRIVATE_DOCUMENT_ADMIN_KEY` | Mariage OS production operator / Supabase | isolated value per preview/staging/production environment where the trusted route is enabled | privileged Storage copy/remove plus service-only private-document attestation after user authz | Supabase server/service credential scoped to exactly one Supabase project; server-only; usable only through the narrow Pages ingress/Worker executor by application contract | a Cloudflare Pages encrypted secret and a separate private Worker encrypted secret; never browser, Git, static artifact or plain-text variable | rotate/revoke at Supabase, replace both runtime secrets, deploy and smoke; revoke immediately on suspected exposure | route deny checks plus synthetic/non-production trusted-flow proof where allowed; verify the previous credential is rejected; review logs/artifacts for value absence | 2026-09-17 |
+| `PRIVATE_DOCUMENT_ADMIN_KEY` | Mariage OS production operator / Supabase | isolated value per preview/staging/production environment where the trusted route is enabled | privileged Storage copy/remove plus service-only private-document attestation after user authz | Supabase server/service credential scoped to exactly one Supabase project; server-only; usable only on the private Worker/Durable Object host behind the Pages `PRIVATE_DOCUMENT_LIFECYCLE` binding | one encrypted private Worker/Durable Object host secret; never Pages, browser, Git, static artifact or plain-text variable | rotate/revoke at Supabase, replace the Worker host secret, deploy and smoke; revoke immediately on suspected exposure | Worker secret-metadata check plus route deny and synthetic/non-production trusted-flow proof where allowed; verify the previous credential is rejected; review logs/artifacts for value absence | 2026-09-24 |
 
 `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY`/anon-equivalent are configuration/public-client values, not privileged inventory entries, unless a future provider contract changes their secrecy classification.
 
@@ -167,4 +167,4 @@ No new privileged secret is introduced without inventory/rotation documentation.
 - workflow-permission review;
 - rotation drill for critical provider secret before public launch when feasible;
 - revoked secret/session negative test where provider supports it;
-- Pages private-document production smoke proves missing/invalid privileged configuration fails closed rather than falling through to static content or a legacy origin.
+- Pages private-document production smoke proves a missing/invalid `PRIVATE_DOCUMENT_LIFECYCLE` binding fails closed, and Worker-side trusted-flow checks prove missing/invalid privileged configuration fails closed rather than falling through to static content or a legacy origin.
