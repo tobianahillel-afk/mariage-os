@@ -318,10 +318,7 @@ jobs:
     name: ADR 0012 exact-size two-surface provider evidence
     needs:
       - full-verify
-    if: >-
-      github.event_name == 'push' &&
-      github.ref == 'refs/heads/lot-2/venues-core' &&
-      contains(github.event.head_commit.message, '[AR006-DO-EVIDENCE]')
+    if: ${{ false }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     environment: ar006-isolated

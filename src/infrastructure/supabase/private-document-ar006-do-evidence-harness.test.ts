@@ -44,12 +44,12 @@ describe("ADR 0012 exact-size harness contract", () => {
 });
 
 describe("ADR 0012 provider evidence job gating", () => {
-  it("runs only after full verify and an explicit evidence marker", () => {
+  it("stays hard-disabled while the provider harness review is open", () => {
     const job = evidenceJobSource();
     expect(job).toContain("- full-verify");
-    expect(job).toContain("[AR006-DO-EVIDENCE]");
+    expect(ciSource).toContain("[AR006-DO-EVIDENCE]");
     expect(job).toContain("environment: ar006-isolated");
-    expect(job).not.toContain("if: ${{ false }}");
+    expect(job).toContain("if: ${{ false }}");
   });
 
   it("deploys the exact candidate without restoring the legacy Pages trust path", () => {
