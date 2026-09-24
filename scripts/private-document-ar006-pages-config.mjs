@@ -4,7 +4,7 @@ import {
 } from "./private-document-ar006-durable-object.mjs";
 
 const MAX_PROVIDER_ERRORS = 5;
-const SAFE_POINTER = /^[A-Za-z0-9_./~\\-\\[\\]]{1,240}$/u;
+const SAFE_POINTER = /^[A-Za-z0-9_./~:-]{1,240}$/u;
 
 function providerErrorCodes(payload) {
   if (!Array.isArray(payload?.errors)) return [];
