@@ -58,8 +58,8 @@ production smoke + observation
 
 - Cloudflare preview application including static assets and Pages Functions when the candidate contains `functions/` routes;
 - synthetic/demo backend mode or explicitly isolated nonproduction backend;
-- Pages Function privileged bindings use isolated non-production values only when the preview requires a trusted-flow test;
-- arbitrary/untrusted PR code never receives production `PRIVATE_DOCUMENT_ADMIN_KEY` or other privileged credentials;
+- Pages binds `PRIVATE_DOCUMENT_LIFECYCLE` only to the isolated non-production Durable Object namespace when the preview requires a trusted-flow test; the privileged Supabase admin credential is not a Pages binding;
+- arbitrary/untrusted PR code never receives `PRIVATE_DOCUMENT_ADMIN_KEY` or other privileged credentials; that key exists only on the private Worker/Durable Object host;
 - preview deployment linked to exact commit.
 
 ### Staging / release candidate
@@ -77,7 +77,7 @@ production smoke + observation
 - Cloudflare Pages production deployment including both static assets and repository `functions/` routes;
 - real Supabase project;
 - production migration credentials held only by protected CI environment;
-- Pages encrypted `PRIVATE_DOCUMENT_ADMIN_KEY` configured only in the production Pages environment when `/api/private-document-promote` is enabled;
+- Pages `PRIVATE_DOCUMENT_LIFECYCLE` is bound only to the intended private Durable Object namespace when `/api/private-document-promote` is enabled; `PRIVATE_DOCUMENT_ADMIN_KEY` is encrypted only on the private Worker/Durable Object host;
 - public client configuration only in frontend;
 - exact release manifest/version exposed for diagnostics.
 
@@ -158,10 +158,10 @@ For WP-2.9C and any later release that retains this boundary, `/api/private-docu
 Deployment/release automation must ensure:
 
 - the route is built and deployed from the same exact commit as the frontend;
-- `SUPABASE_URL` and the configured non-secret publishable/anon-equivalent key point to the intended environment;
-- `PRIVATE_DOCUMENT_ADMIN_KEY` is supplied only as a Cloudflare encrypted secret for that environment;
-- when ADR 0011 is enabled, Pages declares the private `PRIVATE_DOCUMENT_PROMOTION_WORKER` Service Binding and the Worker has its own encrypted `PRIVATE_DOCUMENT_ADMIN_KEY`; deployment publishes the Worker before the Pages caller and retains dashboard-held bindings with `--keep-vars`;
-- missing/invalid server configuration makes the route fail closed and never fall through to a static asset, SPA fallback or unprotected upstream origin;
+- Pages declares the `PRIVATE_DOCUMENT_LIFECYCLE` Durable Object namespace binding for the exact private Worker class and carries no `PRIVATE_DOCUMENT_ADMIN_KEY`;
+- the private Worker/Durable Object host holds the environment's encrypted `PRIVATE_DOCUMENT_ADMIN_KEY` plus its Supabase configuration; deployment publishes the Worker/namespace before the Pages caller and retains Worker-held secrets with `--keep-vars`;
+- the superseded `PRIVATE_DOCUMENT_PROMOTION_WORKER` Service Binding is absent after ADR 0012 cutover;
+- missing/invalid server configuration or Durable Object binding makes the route fail closed and never fall through to a static asset, SPA fallback or unprotected upstream origin;
 - the removed Supabase `private-document-ingest` Edge Function is absent from deployable source/configuration and is not invoked or redeployed by a legacy script;
 - production evidence records route outcome, deployment identity and configuration presence only, never secret values.
 
@@ -194,7 +194,7 @@ GitHub Actions permissions follow least privilege.
 
 Preview URLs aid UX review and are automatically associated with PR/branch commits. They use synthetic fixtures or isolated environment and never production private data.
 
-If a preview deploys `/api/private-document-promote`, it uses an isolated non-production Supabase project/credential and the Pages Function is deployed with the preview. An untrusted/fork PR without approved isolated secrets must not receive a privileged working route; it may build/test locally and remain fail-closed in hosted preview.
+If a preview deploys `/api/private-document-promote`, Pages uses the isolated `PRIVATE_DOCUMENT_LIFECYCLE` namespace binding and the private Worker/Durable Object host uses the isolated non-production Supabase credential. An untrusted/fork PR does not receive that privileged Worker secret or a working trusted route; it may build/test locally and remain fail-closed in hosted preview.
 
 ## Production deployment
 
