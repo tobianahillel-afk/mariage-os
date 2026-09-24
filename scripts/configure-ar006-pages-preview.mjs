@@ -122,21 +122,29 @@ function requireText(preview, name, expected) {
   }
 }
 
-function requirePreview(project, input, namespaceId) {
-  const preview = project.deployment_configs?.preview;
-  if (preview === undefined) throw new Error("AR-006 Preview is unavailable.");
+function requireUnprivilegedPages(preview) {
   if (preview.env_vars?.PRIVATE_DOCUMENT_ADMIN_KEY != null) {
     throw new Error("Pages Preview admin secret must be absent.");
   }
-  requireText(preview, "SUPABASE_URL", input.supabaseUrl);
-  requireText(preview, "SUPABASE_PUBLISHABLE_KEY", input.publishableKey);
   if (legacyServicePresent(preview.services)) {
     throw new Error("Legacy promotion Service Binding must be absent.");
   }
+}
+
+function requireLifecycleBinding(preview, namespaceId) {
   const binding = preview.durable_object_namespaces?.[LIFECYCLE_BINDING];
   if (binding?.namespace_id !== namespaceId) {
     throw new Error("Pages Preview Durable Object namespace does not match.");
   }
+}
+
+function requirePreview(project, input, namespaceId) {
+  const preview = project.deployment_configs?.preview;
+  if (preview === undefined) throw new Error("AR-006 Preview is unavailable.");
+  requireUnprivilegedPages(preview);
+  requireText(preview, "SUPABASE_URL", input.supabaseUrl);
+  requireText(preview, "SUPABASE_PUBLISHABLE_KEY", input.publishableKey);
+  requireLifecycleBinding(preview, namespaceId);
   return preview;
 }
 
