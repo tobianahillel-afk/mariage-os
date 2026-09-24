@@ -249,7 +249,9 @@ async function invokeMarkerPreflight(context, identity, evidenceId) {
     response.status !== 409 ||
     payload?.error !== "private_document_unavailable"
   ) {
-    throw new Error("ADR 0012 marker preflight did not reach the lifecycle DO.");
+    throw new Error(
+      "ADR 0012 marker preflight did not reach the lifecycle DO.",
+    );
   }
 }
 

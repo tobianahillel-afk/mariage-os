@@ -50,9 +50,9 @@ describe("ADR 0012 exact-size campaign verdict success", () => {
 
 describe("ADR 0012 exact-size campaign verdict provider failures", () => {
   it("rejects incomplete provider event pages", () => {
-    expect(
-      verdict(successfulInvocations, discovery(), discovery(false)),
-    ).toBe(false);
+    expect(verdict(successfulInvocations, discovery(), discovery(false))).toBe(
+      false,
+    );
     expect(
       verdict(
         successfulInvocations,
