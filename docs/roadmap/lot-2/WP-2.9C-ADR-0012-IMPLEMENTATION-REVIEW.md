@@ -1,6 +1,6 @@
 # WP-2.9C ADR 0012 — Adversarial implementation review
 
-Status: **PREFLIGHT ATTEMPT 1 FAILED CONTAINED; PATCH REMEDIATION REVIEW PASSED; ONE BOUNDED RETRY GATED ON EXACT-HEAD CI**
+Status: **PREFLIGHT RETRY FAILED CONTAINED AT IMMEDIATE DENY-SMOKE; BOUNDED PROPAGATION REMEDIATION PENDING EXACT-HEAD CI + FRESH REVIEW**
 
 Review date: 2026-09-24  
 Reviewed implementation head: `99ff618781f46073964b14d49b7969c9c132bc92`  
@@ -301,3 +301,61 @@ exact-head CI and clean-checkout verification.
 The retry remains a preflight only. The 10 × 25 MB evidence campaign stays
 hard-disabled. A green retry authorizes only implementation and adversarial
 review of the two-surface CPU evaluator required by ADR 0012.
+
+
+## Provider preflight retry — 2026-09-24
+
+Status: **FAILED CONTAINED AT IMMEDIATE DENY-SMOKE — PROVIDER CONFIGURATION/DEPLOYMENT PROVED; NO DOCUMENT MUTATION**
+
+Trigger: `eca478937fad40632dc378f0408c1c8ec4bd5c8c`  
+CI run: `36049934080`  
+Provider job: `107805560963`
+
+The trigger reused the exact reviewed tree. Core quality/security, local
+Supabase/Pages runtime, browser/mutation, privacy-safe preview and full clean
+checkout all passed before provider work.
+
+The provider job then proved, in order:
+
+- private SQLite Durable Object host deploy/reconcile: SUCCESS;
+- minimal Pages Preview `PRIVATE_DOCUMENT_LIFECYCLE` PATCH: SUCCESS;
+- sanitized binding receipt retained: SUCCESS;
+- provider binding, Worker-held admin-secret metadata and synthetic
+  `documents.write` authority: SUCCESS;
+- exact candidate Pages preview deployment: SUCCESS;
+- exact deployment URL resolution: SUCCESS.
+
+The first deny-smoke request then expected the unsupported-method route to
+return generic JSON HTTP 405 but received HTTP 404. The job failed immediately,
+so the random-unreserved-document lifecycle route probe did not run. The
+exact-size evidence job remained hard-disabled/skipped. No reservation, upload,
+promotion, finalization or other document mutation occurred.
+
+A subsequent diagnostic HTTPS fetch against the same exact preview observed
+`GET /api/private-document-promote` returning HTTP 405. That supports a Pages
+Functions propagation race as the narrow remediation hypothesis, but it is not
+durable acceptance evidence and does not turn the failed job green.
+
+## Bounded readiness remediation — pending review
+
+The permitted repository remediation is intentionally narrow:
+
+- retry **only** HTTP 404 on the first unsupported-method readiness assertion;
+- bound attempts and delay;
+- eventually require the original exact HTTP 405, JSON content type and generic
+  `private_document_unavailable` body;
+- fail immediately for any unexpected non-404 status;
+- fail closed if 404 persists through the bound;
+- keep all subsequent 401/413/403 deny assertions single-shot and exact.
+
+A separate marker-gated `[AR006-DO-PREFLIGHT-READONLY]` CI continuation is
+pinned to the existing `eca478...` deployment. It contains no Worker deploy,
+Pages PATCH or exact-size/document mutation step. It re-verifies provider
+configuration and synthetic authority, resolves exactly one successful preview
+deployment for the pinned SHA, runs the bounded deny smoke and then the
+non-mutating random-unreserved-document route probe.
+
+This section records the remediation design only. It does **not** authorize the
+continuation yet. Ordinary exact-head CI + clean-checkout verification and a
+fresh adversarial review of this remediation are required first. The
+`[AR006-DO-EVIDENCE]` path remains disabled.

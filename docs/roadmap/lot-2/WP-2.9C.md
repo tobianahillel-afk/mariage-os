@@ -228,7 +228,7 @@ Fresh Pass B specifically invalidates treating any local 25 MB success as suffic
 
 ## State / sequencing
 
-Current state: **IN_PROGRESS — ADR 0012 PROVIDER PREFLIGHT RETRY GATE**.
+Current state: **IN_PROGRESS — ADR 0012 EXISTING-DEPLOYMENT PREFLIGHT COMPLETION REMEDIATION/REVIEW**.
 
 The ADR-0011 stateless private-Worker design remains rejected by deployed evidence: eight successful exact-size invocations consumed 237–273 ms CPU and two additional invocations ended `exceededCpu`. ADR 0012 is now accepted and moves the trusted promotion/abandon executor to one private SQLite-backed Durable Object per `(project_id, document_id)`, bound directly from the same-origin/bodyless Pages ingress. AR-006 remains OPEN until the replacement architecture is implemented, reviewed and proven on Workers Free.
 
@@ -259,6 +259,26 @@ SUCCESS**, clean-checkout included, with provider jobs skipped. The fresh
 retry-scope review passes; one retry is authorized only after the
 review/status reconciliation state containing that conclusion is itself
 exact-head green.
+
+The single authorized retry ran at
+`eca478937fad40632dc378f0408c1c8ec4bd5c8c` / CI `36049934080`.
+All repository gates and clean-checkout verification were green. Provider job
+`107805560963` successfully deployed/reconciled the private Durable Object,
+applied the minimal Pages Preview binding patch, retained the sanitized binding
+receipt, re-verified provider bindings/Worker secret metadata/synthetic
+authority and deployed the exact Pages preview. The immediate deny smoke then
+received HTTP `404` for unsupported-method GET where the route contract
+requires `405`, so the job stopped fail-closed before the non-mutating route
+probe. Exact-size evidence remained skipped and no document was mutated.
+
+A later diagnostic fetch of that same exact preview observed the route returning
+`405`, which is consistent with a short Pages Functions propagation interval;
+that observation is diagnostic only and is not accepted as durable evidence.
+The remediation may therefore retry only transient `404` for a short bounded
+readiness window. It may not accept `404`, retry arbitrary statuses or weaken
+the JSON/generic-unavailable assertions. After exact-head CI and fresh review,
+one non-mutating continuation may re-use the existing `eca478...` deployment;
+no third deploy/PATCH is authorized merely to repeat the smoke.
 
 The local AR-006 provider-event evaluator was corrected at
 `18cf24cebb545b67fd2fe6791a7a3ece13e60f94` / CI `35364734978` (**5/5**
@@ -336,11 +356,11 @@ Current gate:
 
 1. retain AR-005 and AR-007 remediations without weakening their security contracts;
 2. keep the exact-head-green ADR 0012 direct Pages → per-document Durable Object implementation and explicit same-document lifecycle serialization intact;
-3. record provider preflight attempt 1 as failed-contained at the Pages PATCH after successful Durable Object deployment; do not treat the created namespace as a green preflight;
-4. keep the exact-head-green minimal-PATCH/sanitized-diagnostic remediation intact;
-5. after this retry-review/status reconciliation state is exact-head green, run exactly one bounded isolated `[AR006-DO-PREFLIGHT]` retry;
-6. the retry may deploy/reconcile the isolated Durable Object + Pages Preview and prove binding/secret metadata/synthetic authority/deny smoke/non-mutating route behavior; any failure returns to bounded remediation;
-7. even after a green retry, keep the exact-size evidence job disabled until the new two-surface CPU evaluator is implemented, tested and adversarially reviewed;
+3. record preflight retry `eca478...` as failed-contained only at the immediate deny-smoke; all provider configuration/deployment checks before it passed and must not be repeated without a new reason;
+4. remediate the readiness smoke with bounded 404-only retry while retaining exact 405/JSON/generic-unavailable acceptance;
+5. add the hard-pinned `[AR006-DO-PREFLIGHT-READONLY]` continuation that reuses the existing exact deployment and performs no deploy/PATCH/document mutation;
+6. run exact-head CI + clean-checkout verification and fresh review before triggering that one continuation;
+7. even after a green continuation, keep the exact-size evidence job disabled until the new two-surface CPU evaluator is implemented, tested and adversarially reviewed;
 8. keep AR-006 open — do not enable Paid or lower the file contract silently;
 9. only a reviewed `[AR006-DO-EVIDENCE]` path may later run ten exact `25,000,000`-byte flows and prove provider CPU for both Pages and `executionModel=durableObject`;
 10. after valid AR-006 evidence, run exact-head full CI + clean-checkout verification again over the evidence-bound candidate;

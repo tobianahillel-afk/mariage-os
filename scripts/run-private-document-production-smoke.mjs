@@ -1,4 +1,8 @@
 import { URL } from "node:url";
+import {
+  assertDenied,
+  assertEventuallyDenied,
+} from "./private-document-production-smoke.mjs";
 
 const baseUrlValue = process.env.PRIVATE_DOCUMENT_SMOKE_BASE_URL;
 
@@ -21,37 +25,6 @@ const targetHeaders = {
   "x-document-id": documentId,
 };
 
-function unavailablePayload(value) {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    value.error === "private_document_unavailable"
-  );
-}
-
-async function assertDenied(label, expectedStatus, init) {
-  const response = await globalThis.fetch(routeUrl, {
-    redirect: "manual",
-    ...init,
-  });
-  if (response.status !== expectedStatus) {
-    throw new Error(
-      `${label}: expected HTTP ${expectedStatus}, received ${response.status}.`,
-    );
-  }
-  if (response.headers.get("access-control-allow-origin") === "*") {
-    throw new Error(`${label}: wildcard CORS must not be emitted.`);
-  }
-  const contentType = response.headers.get("content-type") ?? "";
-  if (!contentType.includes("application/json")) {
-    throw new Error(`${label}: route resolved to non-JSON content/fallback.`);
-  }
-  const payload = await response.json();
-  if (!unavailablePayload(payload)) {
-    throw new Error(`${label}: route returned an unexpected response shape.`);
-  }
-}
-
 async function run() {
   const staticResponse = await globalThis.fetch(baseUrl, {
     redirect: "manual",
@@ -62,21 +35,34 @@ async function run() {
     );
   }
 
-  await assertDenied("unsupported method", 405, { method: "GET" });
-  await assertDenied("missing bearer token", 401, {
-    method: "POST",
-    headers: targetHeaders,
+  await assertEventuallyDenied({
+    routeUrl,
+    label: "unsupported method",
+    expectedStatus: 405,
+    init: { method: "GET" },
   });
-  await assertDenied("framed request body", 413, {
-    method: "POST",
-    headers: targetHeaders,
-    body: "x",
+  await assertDenied({
+    routeUrl,
+    label: "missing bearer token",
+    expectedStatus: 401,
+    init: { method: "POST", headers: targetHeaders },
   });
-  await assertDenied("cross-origin request", 403, {
-    method: "POST",
-    headers: {
-      ...targetHeaders,
-      origin: "https://invalid.example",
+  await assertDenied({
+    routeUrl,
+    label: "framed request body",
+    expectedStatus: 413,
+    init: { method: "POST", headers: targetHeaders, body: "x" },
+  });
+  await assertDenied({
+    routeUrl,
+    label: "cross-origin request",
+    expectedStatus: 403,
+    init: {
+      method: "POST",
+      headers: {
+        ...targetHeaders,
+        origin: "https://invalid.example",
+      },
     },
   });
 
