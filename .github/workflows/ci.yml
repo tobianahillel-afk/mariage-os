@@ -37,6 +37,12 @@ jobs:
       - run: npm run security:env:negative
       - run: npm run security:secrets
       - run: npm run typecheck
+      - name: Print AR-006 Prettier diagnostic
+        run: |
+          echo '=== VERDICT TEST ==='
+          npx prettier src/infrastructure/supabase/private-document-ar006-do-evidence-verdict.test.ts
+          echo '=== HARNESS ==='
+          npx prettier scripts/run-private-document-ar006-do-evidence.mjs
       - run: npm run static
       - run: npm run quality:negative
       - run: npm run security:negative
