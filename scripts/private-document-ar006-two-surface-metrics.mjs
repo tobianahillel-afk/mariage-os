@@ -112,7 +112,9 @@ function invocationMeasurement(event, contract) {
 
 function cpuWithinBudget(invocation, contract) {
   if (invocation.cpuTimeMs === null) return false;
-  return invocation.cpuTimeMs >= 0 && invocation.cpuTimeMs <= contract.cpuBudgetMs;
+  return (
+    invocation.cpuTimeMs >= 0 && invocation.cpuTimeMs <= contract.cpuBudgetMs
+  );
 }
 
 function providerStatusAccepted(statusCode) {
