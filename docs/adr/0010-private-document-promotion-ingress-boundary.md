@@ -32,7 +32,7 @@ Replace the browser-reachable Supabase Edge promotion endpoint with **one narrow
 POST /api/private-document-promote
 ```
 
-The Pages Function is the trusted browser ingress. It is **not** a proxy in front of the removed Supabase Edge Function. ADR 0011 later moves only the expensive trusted promotion execution to a non-public Cloudflare Worker reached through a Service Binding; Pages remains the same-origin, method, target, bearer and bodyless-frame gate.
+The Pages Function is the trusted browser ingress. It is **not** a proxy in front of the removed Supabase Edge Function. ADR 0012 supersedes ADR 0011's Service-Bound stateless Worker execution and binds Pages directly to a private per-document Durable Object; Pages remains the same-origin, method, target, bearer and bodyless-frame gate.
 
 The Supabase `private-document-ingest` Edge Function must be removed from the deployable repository/configuration. There must be no alternate browser-reachable Supabase promotion route that can bypass the Cloudflare ingress boundary.
 
@@ -117,13 +117,14 @@ A later revocation must never create `ready` truth without the independently aut
 
 ## Trusted server credentials
 
-The private Worker promotion executor may use a Supabase server/service credential only after caller authentication and authoritative target-state validation. Pages retains its own encrypted binding only for the trusted DELETE abandon route.
+The private Durable Object lifecycle executor may use a Supabase server/service credential only after caller authentication and authoritative target-state validation. ADR 0012 moves trusted DELETE abandon behind the same object, so Pages retains no privileged Supabase credential.
 
 Required Cloudflare bindings/secrets:
 
-- `SUPABASE_URL` — server configuration;
-- `SUPABASE_PUBLISHABLE_KEY` or the current non-secret anon-equivalent browser key — server configuration used with the caller's user token;
-- `PRIVATE_DOCUMENT_ADMIN_KEY` — separate encrypted Cloudflare Pages and private-Worker secrets containing the isolated Supabase server/service credential used only by the narrow trusted private-document boundary after user authentication and authorization. It is never a static asset, Git value, response field or log field.
+- `PRIVATE_DOCUMENT_LIFECYCLE` — Pages binding to the exact private SQLite-backed Durable Object namespace;
+- `SUPABASE_URL` — private Worker/Durable Object host server configuration;
+- `SUPABASE_PUBLISHABLE_KEY` or the current non-secret anon-equivalent browser key — Worker-side server configuration used with the caller's user token;
+- `PRIVATE_DOCUMENT_ADMIN_KEY` — encrypted private Worker/Durable Object host secret containing the isolated Supabase server/service credential used only by the narrow trusted private-document lifecycle after user authentication and authorization. It is never a Pages secret, static asset, Git value, response field or log field.
 
 `PRIVATE_DOCUMENT_ADMIN_KEY` is the application binding name for the required privileged Supabase credential; it is not a second independently generated authorization scheme. Its metadata-only owner/storage/scope/rotation/revocation/verification lifecycle is normative in `docs/security/SECRET-MANAGEMENT.md`.
 
@@ -203,8 +204,8 @@ Cloudflare deployment is no longer purely static: the Pages project contains one
 Release/deployment documentation must therefore ensure:
 
 - Pages Functions are deployed with the static application from the same exact candidate;
-- `SUPABASE_URL`, the non-secret publishable/anon-equivalent key and encrypted `PRIVATE_DOCUMENT_ADMIN_KEY` binding are configured for the correct environment outside Git;
-- ADR 0011 deploys the non-public Worker before Pages, keeps the Pages `PRIVATE_DOCUMENT_PROMOTION_WORKER` Service Binding and Worker secret outside Git, and retains dashboard-held bindings on Worker redeploy;
+- Pages binds `PRIVATE_DOCUMENT_LIFECYCLE` to the exact intended Durable Object namespace and has no `PRIVATE_DOCUMENT_ADMIN_KEY`;
+- ADR 0012 deploys the non-public Worker/Durable Object namespace before Pages, keeps the Worker secret outside Git, removes the superseded `PRIVATE_DOCUMENT_PROMOTION_WORKER` Service Binding, and retains Worker-held secrets on redeploy;
 - `/api/private-document-promote` is security-critical and must fail closed rather than bypassing to an unprotected origin or static asset fallback;
 - static asset behavior remains unchanged;
 - preview artifacts/configuration contain only synthetic/non-production values;
@@ -256,7 +257,7 @@ Tradeoffs:
 - ADR 0008 remains authoritative for trusted byte integrity, authorization, attestation and finalization intent.
 - ADR 0009 remains authoritative for bounded staging and bodyless promotion semantics.
 - ADR 0010 supersedes the **Supabase Edge Function compute location** for promotion and moves that trusted compute to Cloudflare Pages Functions.
-- ADR 0011 narrows the preceding sentence: Pages owns the browser ingress, while its private Service-Bound Worker owns promotion execution and provider CPU evidence.
+- ADR 0012 supersedes ADR 0011's compute location: Pages owns the browser ingress, while its private per-document Durable Object owns promotion/abandon execution, lifecycle coordination and provider CPU evidence.
 - ADR 0001 is amended narrowly: Cloudflare Pages remains the application host, with one approved Pages Function security boundary; the rejection of a general custom Cloudflare backend remains in force.
 
 ## Unblock condition
