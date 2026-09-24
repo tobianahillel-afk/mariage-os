@@ -1,7 +1,12 @@
-import { createHash, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import { writeFile } from "node:fs/promises";
-import { URL } from "node:url";
 import { createClient } from "@supabase/supabase-js";
+import {
+  assertUuid,
+  httpsOrigin,
+  requiredEnv,
+  sha256Hex,
+} from "./private-document-ar006-do-evidence-env.mjs";
 import {
   nextObservabilityDelayMs,
   queryAr006MarkerObservability,
@@ -19,29 +24,6 @@ const MAX_BYTES = 25_000_000;
 const EVIDENCE_PATH = "ar006-adr0012-two-surface-evidence.json";
 const OBSERVABILITY_ATTEMPTS = 6;
 const OBSERVABILITY_DELAY_MS = 10_000;
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
-
-function requiredEnv(name) {
-  const value = process.env[name]?.trim();
-  if (!value) throw new Error(`${name} is required.`);
-  return value;
-}
-
-function httpsOrigin(name) {
-  const value = new URL(requiredEnv(name));
-  if (value.protocol !== "https:") throw new Error(`${name} must use HTTPS.`);
-  return value.origin;
-}
-
-function assertUuid(name, value) {
-  if (!UUID_PATTERN.test(value)) throw new Error(`${name} must be a UUID.`);
-}
-
-function digest(bytes) {
-  return createHash("sha256").update(bytes).digest("hex");
-}
-
 function delay(ms) {
   return new Promise((resolve) => globalThis.setTimeout(resolve, ms));
 }
@@ -205,7 +187,7 @@ function evidenceContext() {
     projectId,
     deploymentUrl: httpsOrigin("AR006_DEPLOYMENT_URL"),
     bytes,
-    sha256: digest(bytes),
+    sha256: sha256Hex(bytes),
     token: requiredEnv("CLOUDFLARE_OBSERVABILITY_API_TOKEN"),
   };
 }
