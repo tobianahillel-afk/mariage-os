@@ -37,6 +37,13 @@ describe("ADR 0012 provider deployment contract", () => {
     expect(preflightSource).toContain("/secrets/PRIVATE_DOCUMENT_ADMIN_KEY");
   });
 
+  it("retains only the sanitized Pages Durable Object binding receipt", () => {
+    expect(configureSource).toContain("ar006-pages-preview-config.json");
+    expect(ciSource).toContain("wp-2.9c-ar006-do-binding-${{ github.sha }}");
+    expect(ciSource).toContain("path: ar006-pages-preview-config.json");
+    expect(ciSource).toContain("if-no-files-found: error");
+  });
+
   it("gates provider mutation behind full verify and disables stale evidence", () => {
     expect(ciSource).toContain("[AR006-DO-PREFLIGHT]");
     expect(ciSource).toContain("[AR006-DO-EVIDENCE]");
