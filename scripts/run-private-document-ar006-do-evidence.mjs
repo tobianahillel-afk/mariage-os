@@ -432,6 +432,7 @@ async function main() {
   const state = evidenceState(evidenceContext());
   try {
     await executeCampaign(state);
+    state.failureStage = "campaign_verdict";
     const pass = campaignPassed(
       state.invocations,
       state.markerPreflight,
@@ -439,6 +440,7 @@ async function main() {
       state.observation,
       AR006_EVIDENCE_COUNT,
     );
+    state.failureStage = "evidence_write";
     await writeEvidence(
       buildEvidenceRecord({
         context: state.context,
@@ -452,6 +454,7 @@ async function main() {
       }),
     );
     if (!pass) {
+      state.failureStage = "campaign_verdict";
       throw new Error(
         "ADR 0012 provider evidence did not satisfy both CPU gates.",
       );
