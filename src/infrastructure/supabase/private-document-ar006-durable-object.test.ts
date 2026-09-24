@@ -48,7 +48,7 @@ const input = {
   token: "synthetic-token",
 };
 
-describe("AR-006 Durable Object namespace resolver", () => {
+describe("AR-006 Durable Object namespace resolver success", () => {
   it("returns the single exact SQLite lifecycle namespace", async () => {
     const resolved = await resolvePrivateDocumentLifecycleNamespace({
       ...input,
@@ -87,7 +87,9 @@ describe("AR-006 Durable Object namespace resolver", () => {
       "Durable Object namespace inventory exceeded bounded page.",
     );
   });
+});
 
+describe("AR-006 Durable Object namespace resolver failures", () => {
   it("rejects malformed or unsuccessful provider inventory", async () => {
     await expect(
       resolvePrivateDocumentLifecycleNamespace({
