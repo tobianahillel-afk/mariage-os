@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  AR006_EVIDENCE_COUNT,
   DURABLE_OBJECT_CPU_BUDGET_MS,
   PAGES_CPU_BUDGET_MS,
   evaluateAr006TwoSurfaceEvents,
@@ -64,7 +65,7 @@ function invocation({
   };
 }
 
-function fixture(count = 10) {
+function fixture(count = AR006_EVIDENCE_COUNT) {
   const ids = Array.from({ length: count }, (_, index) => evidenceId(index + 1));
   const pagesEvents: unknown[] = [];
   const durableObjectEvents: unknown[] = [];
@@ -105,12 +106,26 @@ function evaluate(data = fixture()) {
   });
 }
 
+function workerFields(events: unknown[], index: number): Record<string, unknown> {
+  const event = events[index];
+  if (typeof event !== "object" || event === null || !("$workers" in event)) {
+    throw new Error("Synthetic event is missing worker fields.");
+  }
+  const value = event.$workers;
+  if (typeof value !== "object" || value === null) {
+    throw new Error("Synthetic worker fields are malformed.");
+  }
+  return value as Record<string, unknown>;
+}
+
 describe("ADR 0012 two-surface CPU evaluator success", () => {
   it("requires ten complete stateless Pages and Durable Object measurements", () => {
     const result = evaluate();
     expect(result.pass).toBe(true);
-    expect(result.pages.measurements).toHaveLength(10);
-    expect(result.durableObject.measurements).toHaveLength(10);
+    expect(result.exactEvidenceCount).toBe(true);
+    expect(result.uniqueDurableObjects).toBe(true);
+    expect(result.pages.measurements).toHaveLength(AR006_EVIDENCE_COUNT);
+    expect(result.durableObject.measurements).toHaveLength(AR006_EVIDENCE_COUNT);
     expect(result.pages.measurements[0]).toEqual(
       expect.objectContaining({
         executionModel: "stateless",
@@ -126,61 +141,71 @@ describe("ADR 0012 two-surface CPU evaluator success", () => {
   });
 });
 
-describe("ADR 0012 two-surface CPU evaluator failures", () => {
+describe("ADR 0012 two-surface correlation failures", () => {
   it("rejects a missing Durable Object invocation", () => {
     const data = fixture();
     data.durableObjectEvents.pop();
     expect(evaluate(data).pass).toBe(false);
   });
 
-  it("rejects wrong execution models and missing Durable Object identity", () => {
-    const data = fixture(1);
-    const invocationEvent = data.durableObjectEvents[1] as {
-      $workers: Record<string, unknown>;
-    };
-    invocationEvent.$workers.executionModel = "stateless";
-    invocationEvent.$workers.durableObjectId = null;
+  it("rejects wrong execution model and missing Durable Object identity", () => {
+    const data = fixture();
+    const worker = workerFields(data.durableObjectEvents, 1);
+    worker.executionModel = "stateless";
+    worker.durableObjectId = null;
     expect(evaluate(data).pass).toBe(false);
   });
 
+  it("rejects reused Durable Object identity across distinct documents", () => {
+    const data = fixture();
+    const first = workerFields(data.durableObjectEvents, 1);
+    const second = workerFields(data.durableObjectEvents, 3);
+    second.durableObjectId = first.durableObjectId;
+    expect(evaluate(data).pass).toBe(false);
+  });
+});
+
+describe("ADR 0012 two-surface CPU failures", () => {
   it("rejects CPU above either provider budget", () => {
-    const pages = fixture(1);
-    (pages.pagesEvents[1] as { $workers: Record<string, unknown> }).$workers.cpuTimeMs =
-      PAGES_CPU_BUDGET_MS + 0.001;
+    const pages = fixture();
+    workerFields(pages.pagesEvents, 1).cpuTimeMs = PAGES_CPU_BUDGET_MS + 0.001;
     expect(evaluate(pages).pass).toBe(false);
 
-    const durable = fixture(1);
-    (
-      durable.durableObjectEvents[1] as { $workers: Record<string, unknown> }
-    ).$workers.cpuTimeMs = DURABLE_OBJECT_CPU_BUDGET_MS + 0.001;
+    const durable = fixture();
+    workerFields(durable.durableObjectEvents, 1).cpuTimeMs =
+      DURABLE_OBJECT_CPU_BUDGET_MS + 0.001;
     expect(evaluate(durable).pass).toBe(false);
   });
 
-  it("rejects exceeded CPU, nonnumeric CPU and unexpected markers", () => {
-    const exceeded = fixture(1);
-    (
-      exceeded.durableObjectEvents[1] as { $workers: Record<string, unknown> }
-    ).$workers.outcome = "exceededCpu";
+  it("rejects exceeded CPU and nonnumeric CPU", () => {
+    const exceeded = fixture();
+    workerFields(exceeded.durableObjectEvents, 1).outcome = "exceededCpu";
     expect(evaluate(exceeded).pass).toBe(false);
 
-    const nonnumeric = fixture(1);
-    (
-      nonnumeric.pagesEvents[1] as { $workers: Record<string, unknown> }
-    ).$workers.cpuTimeMs = "5";
+    const nonnumeric = fixture();
+    workerFields(nonnumeric.pagesEvents, 1).cpuTimeMs = "5";
     expect(evaluate(nonnumeric).pass).toBe(false);
+  });
+});
 
-    const contaminated = fixture(1);
-    contaminated.pagesEvents.push(
+describe("ADR 0012 two-surface campaign-shape failures", () => {
+  it("rejects unexpected evidence markers", () => {
+    const data = fixture();
+    data.pagesEvents.push(
       marker(evidenceId(99), "pages-extra", pagesScript, "pages-ingress"),
     );
-    expect(evaluate(contaminated).pass).toBe(false);
+    expect(evaluate(data).pass).toBe(false);
+  });
+
+  it("rejects fewer than ten expected promotions", () => {
+    expect(evaluate(fixture(AR006_EVIDENCE_COUNT - 1)).pass).toBe(false);
   });
 
   it("rejects duplicate expected evidence ids", () => {
-    const data = fixture(1);
+    const data = fixture();
     const [firstId] = data.ids;
-    if (firstId === undefined) throw new Error("Fixture must contain one id.");
-    data.ids.push(firstId);
+    if (firstId === undefined) throw new Error("Fixture must contain an id.");
+    data.ids[AR006_EVIDENCE_COUNT - 1] = firstId;
     expect(evaluate(data).pass).toBe(false);
   });
 });

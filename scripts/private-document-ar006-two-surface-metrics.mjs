@@ -1,5 +1,6 @@
 export const PAGES_CPU_BUDGET_MS = 10;
 export const DURABLE_OBJECT_CPU_BUDGET_MS = 30_000;
+export const AR006_EVIDENCE_COUNT = 10;
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
@@ -42,8 +43,7 @@ function markerPayload(event) {
   if (typeof message !== "string") return null;
   try {
     const parsed = JSON.parse(message);
-    if (!isRecord(parsed)) return null;
-    return parsed;
+    return isRecord(parsed) ? parsed : null;
   } catch {
     return null;
   }
@@ -80,19 +80,13 @@ function invocationMeasurement(event, contract) {
   if (meta.type !== "cf-worker-event") return null;
   if (eventRequestId(event) !== contract.requestId) return null;
 
-  const cpuTimeMs = finiteNumber(worker.cpuTimeMs);
-  const outcome = stringOrNull(worker.outcome);
-  const executionModel = stringOrNull(worker.executionModel);
-  const eventType = stringOrNull(worker.eventType);
-  const durableObjectId = stringOrNull(worker.durableObjectId);
-  const statusCode = providerStatus(event);
   return {
-    cpuTimeMs,
-    outcome,
-    executionModel,
-    eventType,
-    durableObjectId,
-    statusCode,
+    cpuTimeMs: finiteNumber(worker.cpuTimeMs),
+    outcome: stringOrNull(worker.outcome),
+    executionModel: stringOrNull(worker.executionModel),
+    eventType: stringOrNull(worker.eventType),
+    durableObjectId: stringOrNull(worker.durableObjectId),
+    statusCode: providerStatus(event),
     traceId: stringOrNull(worker.traceId),
   };
 }
@@ -127,8 +121,12 @@ function evaluateEvidence(events, markers, contract, evidenceId) {
   const matched = markers.filter((marker) => marker.evidenceId === evidenceId);
   if (matched.length !== 1) {
     const code = matched.length === 0 ? "missing_marker" : "duplicate_marker";
-    return { measurement: null, failure: failure(code, evidenceId, contract.surface) };
+    return {
+      measurement: null,
+      failure: failure(code, evidenceId, contract.surface),
+    };
   }
+
   const marker = matched[0];
   const invocations = events
     .map((event) =>
@@ -141,8 +139,12 @@ function evaluateEvidence(events, markers, contract, evidenceId) {
   if (invocations.length !== 1) {
     const code =
       invocations.length === 0 ? "missing_invocation" : "duplicate_invocation";
-    return { measurement: null, failure: failure(code, evidenceId, contract.surface) };
+    return {
+      measurement: null,
+      failure: failure(code, evidenceId, contract.surface),
+    };
   }
+
   const invocation = invocations[0];
   const valid = validInvocation(marker, invocation, contract);
   return {
@@ -198,6 +200,16 @@ export function evaluateAr006Surface(events, expectedEvidenceIds, contract) {
   return { measurements, failures, pass };
 }
 
+function distinctDurableObjects(evaluation) {
+  const ids = evaluation.measurements
+    .map((measurement) => measurement.durableObjectId)
+    .filter((value) => value !== null);
+  return (
+    ids.length === AR006_EVIDENCE_COUNT &&
+    new Set(ids).size === AR006_EVIDENCE_COUNT
+  );
+}
+
 export function evaluateAr006TwoSurfaceEvents({
   pagesEvents,
   durableObjectEvents,
@@ -223,9 +235,19 @@ export function evaluateAr006TwoSurfaceEvents({
       requireDurableObjectId: true,
     },
   );
+  const exactEvidenceCount =
+    expectedEvidenceIds.length === AR006_EVIDENCE_COUNT;
+  const uniqueDurableObjects = distinctDurableObjects(durableObject);
+
   return {
     pages,
     durableObject,
-    pass: pages.pass && durableObject.pass,
+    exactEvidenceCount,
+    uniqueDurableObjects,
+    pass:
+      exactEvidenceCount &&
+      uniqueDurableObjects &&
+      pages.pass &&
+      durableObject.pass,
   };
 }

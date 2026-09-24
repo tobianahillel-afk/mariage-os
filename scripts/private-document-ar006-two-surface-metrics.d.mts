@@ -1,5 +1,6 @@
 export const PAGES_CPU_BUDGET_MS: 10;
 export const DURABLE_OBJECT_CPU_BUDGET_MS: 30000;
+export const AR006_EVIDENCE_COUNT: 10;
 
 export interface Ar006SurfaceContract {
   readonly surface: "pages-ingress" | "durable-object";
@@ -40,6 +41,8 @@ export interface Ar006SurfaceEvaluation {
 export interface Ar006TwoSurfaceEvaluation {
   readonly pages: Ar006SurfaceEvaluation;
   readonly durableObject: Ar006SurfaceEvaluation;
+  readonly exactEvidenceCount: boolean;
+  readonly uniqueDurableObjects: boolean;
   readonly pass: boolean;
 }
 

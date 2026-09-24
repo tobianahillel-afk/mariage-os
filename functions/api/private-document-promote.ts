@@ -80,6 +80,8 @@ async function forwardLifecycle(
 
 export async function onRequest(context: PagesContext): Promise<Response> {
   const response = await forwardLifecycle(context.request, context.env);
-  recordAr006Evidence(context.request, response, "pages-ingress");
+  if (context.request.method === "POST") {
+    recordAr006Evidence(context.request, response, "pages-ingress");
+  }
   return response;
 }
