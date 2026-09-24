@@ -1,6 +1,6 @@
 # WP-2.9C ADR 0012 — Adversarial implementation review
 
-Status: **EXISTING-DEPLOYMENT PREFLIGHT COMPLETE / GREEN; TWO-SURFACE CPU EVALUATOR IMPLEMENTATION + REVIEW NEXT**
+Status: **TWO-SURFACE CPU EVALUATOR REVIEW COMPLETE / GREEN; PROVIDER EVIDENCE HARNESS IMPLEMENTATION + REVIEW NEXT**
 
 Review date: 2026-09-24  
 Reviewed implementation head: `99ff618781f46073964b14d49b7969c9c132bc92`  
@@ -451,3 +451,100 @@ review a two-surface Workers Observability evaluator that separately proves the
 stateless Pages ingress CPU envelope and the Durable Object execution CPU
 envelope. Only a clean evaluator review may authorize a later
 `[AR006-DO-EVIDENCE]` campaign.
+
+
+## Two-surface CPU evaluator review — 2026-09-24
+
+Status: **PASS — EVALUATOR CONTRACT CLEAN; EXACT-SIZE PROVIDER HARNESS IMPLEMENTATION + FRESH REVIEW NEXT**
+
+Reviewed evaluator head: `cefe862d2a8616308d2d4f0d434f105e602998c5`  
+Exact-head CI: `36060858133` — **5/5 SUCCESS**, including `Full verify from clean checkout`.  
+Provider/deployment workflows on the reviewed head: **SKIPPED**.
+
+The immediately preceding evaluator candidate had all ordinary application,
+security, browser/mutation and local Supabase/Pages jobs green, but its first
+clean-checkout rerun encountered a runner-local Supabase port collision on
+`54322`. The reviewed head adds an explicit fail-closed local-stack stop before
+the full-verification `db:start`; the complete clean-checkout run then passed.
+No application/provider security control was weakened to repair that CI
+infrastructure failure.
+
+### Provider contract rechecked
+
+Current Cloudflare documentation was rechecked during this review:
+
+- Pages Functions execute on the Workers runtime and retain the normal
+  stateless Workers CPU envelope;
+- SQLite-backed Durable Objects are available on Workers Free;
+- the documented default Durable Object CPU limit is 30 seconds per request;
+- Pages Functions support direct Durable Object namespace bindings;
+- Workers Observability exposes the invocation fields used by the evaluator,
+  including CPU time, outcome, execution model, Durable Object identity and
+  request identity.
+
+Provider references remain:
+
+- https://developers.cloudflare.com/workers/platform/limits/
+- https://developers.cloudflare.com/pages/functions/
+- https://developers.cloudflare.com/pages/functions/bindings/
+- https://developers.cloudflare.com/durable-objects/platform/limits/
+- https://developers.cloudflare.com/workers/observability/
+
+### Reviewed evaluator invariants
+
+The evaluator in
+`scripts/private-document-ar006-two-surface-metrics.mjs` now fails closed
+unless all of the following hold:
+
+- exactly ten expected evidence UUIDs are supplied and they are unique;
+- every expected UUID has exactly one sanitized marker and exactly one
+  attributable provider invocation on the Pages surface;
+- every expected UUID has exactly one sanitized marker and exactly one
+  attributable provider invocation on the Durable Object surface;
+- the marker and invocation are joined through the provider request identity,
+  not merely by time-window proximity;
+- Pages is provider-classified as `executionModel=stateless`;
+- the lifecycle executor is provider-classified as
+  `executionModel=durableObject`;
+- every retained `cpuTimeMs` is a finite non-negative number;
+- Pages CPU is at or below the frozen 10 ms stateless Free budget;
+- Durable Object CPU is at or below the documented 30,000 ms default budget;
+- every retained invocation has `outcome=ok` and the expected fetch event
+  shape;
+- every Durable Object invocation carries a Durable Object ID;
+- ten flows resolve to ten distinct Durable Object IDs, protecting the
+  per-document isolation invariant;
+- duplicate, missing, unexpected, non-numeric, over-budget, wrong-model or
+  CPU-limit events make the evaluation fail.
+
+The evidence marker is centralized in
+`functions/api/private-document-evidence.ts`. Pages emits
+`surface=pages-ingress` only after the bodyless lifecycle forwarding returns;
+the private lifecycle executor emits `surface=durable-object` after trusted
+promotion. The architecture guard now validates this shared helper rather than
+requiring a duplicated raw header literal in the Worker.
+
+The evaluator test suite covers the complete happy path and negative controls
+for missing Durable Object telemetry, wrong execution model, missing/reused DO
+identity, Pages/DO budget overruns, `exceededCpu`, non-numeric CPU,
+unexpected markers, incomplete flow count and duplicate expected IDs.
+
+### Review conclusion
+
+No BLOCKING/MAJOR finding remains in the **two-surface evaluator itself**.
+
+This conclusion authorizes the next repository-only step:
+
+1. implement an ADR-0012 exact-size provider harness that performs the ten
+   synthetic `25,000,000`-byte flows;
+2. collect Pages and Durable Object Observability separately and feed only
+   sanitized events into the reviewed evaluator;
+3. bind the result to the exact candidate commit, Worker/namespace, Pages
+   deployment and isolated Workers Free attestation;
+4. add negative/contract tests and run ordinary exact-head CI + clean checkout;
+5. perform a fresh adversarial review of that harness and its CI trigger.
+
+The current `[AR006-DO-EVIDENCE]` job remains hard-disabled. **This evaluator
+review does not itself authorize the exact-size provider campaign.** Only a
+clean provider-harness review may enable one bounded campaign. AR-006 therefore
+remains OPEN / BLOCKING.

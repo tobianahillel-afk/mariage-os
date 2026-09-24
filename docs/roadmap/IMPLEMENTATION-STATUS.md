@@ -217,7 +217,7 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.8C
 WP-2.9A: BLOCKED — waits for WP-2.9C ACCEPTED
-Current packet: WP-2.9C — IN_PROGRESS — ADR 0012 TWO-SURFACE CPU EVALUATOR IMPLEMENTATION/REVIEW; AR-006 remains OPEN
+Current packet: WP-2.9C — IN_PROGRESS / ADR 0012 PROVIDER EVIDENCE HARNESS IMPLEMENTATION + REVIEW; AR-006 remains OPEN
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
@@ -246,7 +246,7 @@ ADR 0012 Pages PATCH remediation: `2f3a9eb657bfb8b151d9b70d64371961b519cd53` / C
 ADR 0012 retry review: **PASS FOR BOUNDED PREFLIGHT RETRY SCOPE** — one new `[AR006-DO-PREFLIGHT]` retry only after this review/status state is exact-head green; exact-size remains disabled.
 ADR 0012 provider preflight retry 2: `eca478937fad40632dc378f0408c1c8ec4bd5c8c` / CI `36049934080` / job `107805560963` — Core/DB/browser/preview/clean-checkout all SUCCESS; private DO deploy SUCCESS; minimal Pages binding PATCH SUCCESS; provider binding/Worker-secret/synthetic authority SUCCESS; exact Pages preview deployment SUCCESS; immediate deny-smoke FAILED because unsupported-method GET returned transient 404 instead of required 405; route probe skipped; exact-size evidence job SKIPPED; no document mutation.
 ADR 0012 existing-deployment read-only continuation: `ce2738a22d421fafd446695d9595a378a0413865` / CI `36054731788` / job `107821508056` — **SUCCESS**; artifact `10832062202`, ZIP SHA-256 `4fdc8a890bb0a23f59fa0055dd208dcee7e018c08a8437b118475bacb5af6f7e`; no deploy/PATCH/document mutation; deny smoke and lifecycle-DO route proof green.
-Current permitted action: implement/test/review the ADR 0012 two-surface CPU evaluator. No exact-size provider campaign is authorized until that evaluator review is clean.
+Current permitted action: implement/test/review the ADR 0012 exact-size two-surface provider evidence harness. The [AR006-DO-EVIDENCE] provider campaign remains disabled until that harness receives a clean fresh review.
 Tail support green tree: d04edd0ed0d3daa3b9bfe20d954003bb13545200 / parent 82e05a8dab9f61377f045b74005fd6582da0afe3 / CI 35152382433 — 5/5 SUCCESS
 Tail capability trigger: 7645a9e769c641640f52fdba535deb6140401fc6 / workflow 35153132971 / job 104986087784 / artifact 10469354745 — deny smoke SUCCESS; parsedJsonEventCount=0; providerCpuTimeMs=[]; pass=false
 Workers Observability configured capability preflight: bd3fdb4baab6ef59983e40f77b5b2f44ba6dc8b7 / workflow 35213157767 / job 105175271234 / artifact 10494251279 (ZIP SHA-256 02438aadb3e377f6c8e6ed66b3b00c0c0d3e473008c3bb710acbfb805f2dde7c) — deny smoke passed; no attributable numeric provider CPU; pass=false

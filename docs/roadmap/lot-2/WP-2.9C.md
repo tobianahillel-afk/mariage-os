@@ -228,7 +228,7 @@ Fresh Pass B specifically invalidates treating any local 25 MB success as suffic
 
 ## State / sequencing
 
-Current state: **IN_PROGRESS — ADR 0012 TWO-SURFACE CPU EVALUATOR IMPLEMENTATION/REVIEW**.
+Current state: **IN_PROGRESS — ADR 0012 PROVIDER EVIDENCE HARNESS IMPLEMENTATION/REVIEW**.
 
 The ADR-0011 stateless private-Worker design remains rejected by deployed evidence: eight successful exact-size invocations consumed 237–273 ms CPU and two additional invocations ended `exceededCpu`. ADR 0012 is now accepted and moves the trusted promotion/abandon executor to one private SQLite-backed Durable Object per `(project_id, document_id)`, bound directly from the same-origin/bodyless Pages ingress. AR-006 remains OPEN until the replacement architecture is implemented, reviewed and proven on Workers Free.
 
@@ -357,10 +357,10 @@ Current gate:
 1. retain AR-005 and AR-007 remediations without weakening their security contracts;
 2. keep the exact-head-green ADR 0012 direct Pages → per-document Durable Object implementation and explicit same-document lifecycle serialization intact;
 3. retain preflight retry `eca478...` as historical failed-contained readiness evidence and continuation `ce2738a22d421fafd446695d9595a378a0413865` / CI `36054731788` / job `107821508056` as the provider-green non-mutating completion proof;
-4. implement the ADR 0012 two-surface CPU evaluator RED-first, with strict separation of stateless Pages and `executionModel=durableObject` provider events;
-5. require one attributable numeric provider CPU measurement for each expected surface/flow, reject ambiguous/missing/duplicate events and any CPU-limit outcome, and preserve sanitized evidence only;
-6. run exact-head CI + clean-checkout verification and a fresh adversarial evaluator review before enabling any exact-size provider path;
-7. keep the `[AR006-DO-EVIDENCE]` job hard-disabled until that fresh review is clean;
+4. retain the reviewed ADR 0012 two-surface CPU evaluator at `cefe862d2a8616308d2d4f0d434f105e602998c5` / CI `36060858133` (**5/5 SUCCESS**, clean checkout included), with strict separation of stateless Pages and `executionModel=durableObject` provider events;
+5. implement the exact-size provider harness so it produces one attributable numeric provider CPU measurement for each expected surface/flow, rejects ambiguous/missing/duplicate events and any CPU-limit outcome, and retains sanitized evidence only;
+6. run exact-head CI + clean-checkout verification and a fresh adversarial provider-harness review before enabling any exact-size provider path;
+7. keep the `[AR006-DO-EVIDENCE]` job hard-disabled until that provider-harness review is clean;
 8. keep AR-006 open — do not enable Paid or lower the file contract silently;
 9. only a reviewed `[AR006-DO-EVIDENCE]` path may later run ten exact `25,000,000`-byte flows and prove Pages ≤ normal stateless Workers Free CPU plus valid Durable Object CPU below the provider Free DO limit;
 10. after valid AR-006 evidence, run exact-head full CI + clean-checkout verification again over the evidence-bound candidate;
