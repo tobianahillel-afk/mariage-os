@@ -174,15 +174,9 @@ jobs:
         run: |
           set -eu
           test -n "$CLOUDFLARE_API_TOKEN"
-          WORKER_VERSION_TAG="ar006-$(printf '%.12s' "$GITHUB_SHA")"
-          WORKER_VERSION_MESSAGE="WP-2.9C ADR 0012 exact candidate $GITHUB_SHA"
-          echo "AR006_WORKER_VERSION_TAG=$WORKER_VERSION_TAG" >> "$GITHUB_ENV"
-          echo "AR006_WORKER_VERSION_MESSAGE=$WORKER_VERSION_MESSAGE" >> "$GITHUB_ENV"
           npx --yes wrangler@4.131.2 deploy \
             --config workers/private-document-promotion/wrangler.jsonc \
-            --keep-vars \
-            --tag "$WORKER_VERSION_TAG" \
-            --message "$WORKER_VERSION_MESSAGE"
+            --keep-vars
       - name: Configure Pages Preview direct Durable Object binding
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.AR006_CLOUDFLARE_DEPLOY_TOKEN }}
@@ -377,9 +371,15 @@ jobs:
         run: |
           set -eu
           test -n "$CLOUDFLARE_API_TOKEN"
+          WORKER_VERSION_TAG="ar006-$(printf '%.12s' "$GITHUB_SHA")"
+          WORKER_VERSION_MESSAGE="WP-2.9C ADR 0012 exact candidate $GITHUB_SHA"
+          echo "AR006_WORKER_VERSION_TAG=$WORKER_VERSION_TAG" >> "$GITHUB_ENV"
+          echo "AR006_WORKER_VERSION_MESSAGE=$WORKER_VERSION_MESSAGE" >> "$GITHUB_ENV"
           npx --yes wrangler@4.131.2 deploy \
             --config workers/private-document-promotion/wrangler.jsonc \
-            --keep-vars
+            --keep-vars \
+            --tag "$WORKER_VERSION_TAG" \
+            --message "$WORKER_VERSION_MESSAGE"
       - name: Capture exact Worker deployment and version identity
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.AR006_CLOUDFLARE_WORKER_DEPLOY_TOKEN }}
