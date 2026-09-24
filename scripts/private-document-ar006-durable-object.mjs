@@ -18,7 +18,9 @@ function namespaceInventory(payload) {
   }
   const total = Number(payload.result_info?.total_count);
   if (Number.isFinite(total) && total > payload.result.length) {
-    throw new Error("Durable Object namespace inventory exceeded bounded page.");
+    throw new Error(
+      "Durable Object namespace inventory exceeded bounded page.",
+    );
   }
   return payload.result;
 }
