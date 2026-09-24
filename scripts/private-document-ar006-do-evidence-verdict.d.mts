@@ -16,14 +16,16 @@ interface Ar006ObservationResult {
   readonly evaluation: { readonly pass: boolean };
 }
 
-export function campaignPassed(
-  invocations: ReadonlyArray<{
+interface Ar006CampaignVerdictInput {
+  readonly invocations: ReadonlyArray<{
     readonly success: boolean;
     readonly status: number;
     readonly finalized: boolean;
-  }>,
-  markerPreflight: Ar006DiscoveryResult | null,
-  discovery: Ar006DiscoveryResult | null,
-  observation: Ar006ObservationResult | null,
-  expectedCount: number,
-): boolean;
+  }>;
+  readonly markerPreflight: Ar006DiscoveryResult | null;
+  readonly discovery: Ar006DiscoveryResult | null;
+  readonly observation: Ar006ObservationResult | null;
+  readonly expectedCount: number;
+}
+
+export function campaignPassed(input: Ar006CampaignVerdictInput): boolean;
