@@ -88,8 +88,10 @@ function previewPatch(project, input, namespaceId) {
     throw new Error("Cloudflare Pages fail_open configuration is unavailable.");
   }
   return {
+    ...preview,
     fail_open: failOpen,
     env_vars: {
+      ...(preview.env_vars ?? {}),
       PRIVATE_DOCUMENT_ADMIN_KEY: null,
       SUPABASE_URL: { type: "plain_text", value: input.supabaseUrl },
       SUPABASE_PUBLISHABLE_KEY: {
