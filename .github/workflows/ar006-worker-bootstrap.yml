@@ -15,8 +15,9 @@ concurrency:
 jobs:
   deploy-private-worker:
     name: Deploy private AR-006 Worker without application mutation
-    if: >-
-      contains(github.event.head_commit.message, '[AR006-WORKER-BOOTSTRAP]')
+    # Historical ADR 0011 bootstrap path. ADR 0012 provider mutation is gated
+    # inside ci.yml after full-verify.
+    if: ${{ false }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: ar006-isolated
