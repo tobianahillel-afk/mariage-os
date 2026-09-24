@@ -1,6 +1,6 @@
 # WP-2.9C / WP29C-AR-006 — Workers Free CPU evidence
 
-State: **BLOCKING EVIDENCE GAP**
+State: **IN_PROGRESS — ADR 0012 TWO-SURFACE EVIDENCE REVIEW; AR-006 OPEN**
 
 Date opened: 2026-09-15
 
@@ -10,17 +10,50 @@ Related packet: `WP-2.9C`
 
 Related FIR: `#17 / FTR-089`
 
-Architecture: `ADR 0010 — Private-document promotion ingress termination boundary`
+Architecture: `ADR 0012 — Private-document lifecycle Durable Object` preserving the ADR 0010 ingress boundary
 
 Execution runbook: `WP-2.9C-AR-006-RUNBOOK.md`
 
-## Acceptance question
+## Current normative ADR 0012 acceptance contract
+
+This section supersedes the older ADR 0010/0011 CPU contract retained below as historical evidence.
+
+The frozen exact `25,000,000`-byte flow must be proven on both execution surfaces:
+
+- Pages ingress: provider `executionModel=stateless`, numeric `$workers.cpuTimeMs` in milliseconds, every retained invocation `<= 10 ms`, outcome `ok`, no CPU-limit outcome;
+- lifecycle executor: provider `executionModel=durableObject`, numeric `$workers.cpuTimeMs` in milliseconds, every retained invocation `<= 30,000 ms`, outcome `ok`, no CPU-limit outcome;
+- ten distinct successful exact-size flows, each independently finalized;
+- exactly one marker and one provider invocation per evidence UUID on each surface;
+- complete/non-truncated provider event pages; provider errors, missing/duplicate/ambiguous events or incomplete pages fail closed;
+- each Durable Object event has a non-null `durableObjectId`; ten distinct controlled documents require ten distinct IDs;
+- each Durable Object event has `$workers.scriptVersion.id` exactly equal to the Worker version captured immediately after the exact evidence deployment;
+- exact Git SHA, Worker deployment/version and Pages preview deployment are retained in sanitized evidence;
+- Workers Paid CPU entitlement remains absent and the 25 MB product contract remains unchanged.
+
+The final provider channel is Workers Observability. ADR 0012 consumes provider-native `cpuTimeMs` directly in milliseconds. The older GraphQL `cpuTimeUs`/quantile normalization is not used by this acceptance path.
+
+The final controlled path is triggered only by `[AR006-DO-EVIDENCE]` after exact-head ordinary CI, clean-checkout verification, provider topology preflight and fresh adversarial harness review are green.
+
+Current Cloudflare references:
+
+- <https://developers.cloudflare.com/workers/platform/limits/>
+- <https://developers.cloudflare.com/workers/platform/pricing/>
+- <https://developers.cloudflare.com/durable-objects/platform/limits/>
+- <https://developers.cloudflare.com/durable-objects/platform/pricing/>
+- <https://developers.cloudflare.com/api/resources/workers/subresources/observability/>
+- <https://developers.cloudflare.com/api/resources/workers/subresources/observability/subresources/telemetry/methods/query/>
+
+Provider contracts were rechecked on 2026-09-24: Workers Free stateless HTTP remains 10 ms CPU/request; SQLite-backed Durable Objects are available on Workers Free with a 30-second default CPU budget per incoming request; Observability exposes `cpuTimeMs`, execution model, Durable Object ID and script version identity.
+
+AR-006 becomes implementation-green only after one reviewed artifact satisfies every condition above. Formal closure still requires a complete fresh independent Pass B and Pass C.
+
+## Historical ADR 0010/0011 acceptance question
 
 Can the frozen exact `25,000,000`-byte trusted private-document promotion complete on the intended Cloudflare Pages Functions / Workers **Free** runtime without relying on paid CPU entitlement or on occasional CPU-limit flexibility?
 
 Until provider-produced CPU evidence answers that question positively, `WP29C-AR-006` remains open and blocks WP-2.9C.
 
-## Provider envelope rechecked on 2026-09-16
+## Historical ADR 0010/0011 provider envelope rechecked on 2026-09-16
 
 Cloudflare's current published Workers Free envelope includes:
 
@@ -56,7 +89,7 @@ This evidence is necessary but **not sufficient** for AR-006 because local worke
 
 An exact-commit provider deployment and ten successful controlled promotions are now recorded in the 2026-09-16 attempt, but the artifact has no provider CPU rows. See `WP-2.9C-AR-006-PROVIDER-ATTEMPT-2026-09-16.md`. Functional success does not satisfy this CPU gate.
 
-## Required deployed proof
+## Historical ADR 0010/0011 required deployed proof
 
 Use an isolated non-production Cloudflare Pages + Supabase environment. Do not use real wedding data or production secrets in repository artifacts.
 
@@ -77,7 +110,7 @@ The proof must:
 
 If provider aggregation is the only available view, the evidence must still be attributable to an isolated test window/deployment containing only the controlled exact-size invocations; otherwise it cannot establish the per-invocation acceptance condition.
 
-## Pass condition
+## Historical ADR 0010/0011 pass condition
 
 AR-006 may become implementation-green only when durable evidence demonstrates all of the following:
 
@@ -96,7 +129,7 @@ file-size contract = unchanged
 
 A later fresh Pass B still decides formal finding closure.
 
-## Fail / blocker condition
+## Historical ADR 0010/0011 fail / blocker condition
 
 WP-2.9C remains or returns `BLOCKED` if any of these is true:
 
@@ -110,7 +143,7 @@ WP-2.9C remains or returns `BLOCKED` if any of these is true:
 
 The approved response is architecture review, not automatic Workers Paid activation and not silent file-limit reduction.
 
-## Current verdict
+## Historical ADR 0011 verdict
 
 **BLOCKED — DEPLOYED WORKERS FREE CPU BUDGET FAILED.**
 
