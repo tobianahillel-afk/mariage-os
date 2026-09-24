@@ -228,7 +228,7 @@ Fresh Pass B specifically invalidates treating any local 25 MB success as suffic
 
 ## State / sequencing
 
-Current state: **IN_PROGRESS — ADR 0012 PROVIDER PREFLIGHT GATE**.
+Current state: **IN_PROGRESS — ADR 0012 PROVIDER PREFLIGHT RETRY GATE**.
 
 The ADR-0011 stateless private-Worker design remains rejected by deployed evidence: eight successful exact-size invocations consumed 237–273 ms CPU and two additional invocations ended `exceededCpu`. ADR 0012 is now accepted and moves the trusted promotion/abandon executor to one private SQLite-backed Durable Object per `(project_id, document_id)`, bound directly from the same-origin/bodyless Pages ingress. AR-006 remains OPEN until the replacement architecture is implemented, reviewed and proven on Workers Free.
 
@@ -241,6 +241,24 @@ SUCCESS**, clean-checkout included). The fresh remediation review in
 preflight scope. This authorizes only the isolated ADR 0012 provider preflight
 after the review/status documentation commit itself is green; exact-size
 evidence remains hard-disabled pending a reviewed two-surface CPU evaluator.
+
+The first authorized ADR 0012 preflight at
+`b0c8782517f726a0b71f33ca52e940f31c3e138c` / CI `36044939346` failed
+contained at the Pages Preview configuration PATCH after the private Durable
+Object host deployed and reconciled successfully. The job stopped before Pages
+candidate deployment, deny smoke or the non-mutating route probe; no document
+reservation/upload/promotion/finalization and no exact-size evidence occurred.
+Because the original configurator suppressed structured provider errors, the
+exact Cloudflare validation reason is not claimed as proven.
+
+The bounded remediation removes full Preview configuration replay and sends
+only the intended env/service/Durable Object delta. It also emits only sanitized
+HTTP status/provider code/field-pointer diagnostics. Remediation head
+`2f3a9eb657bfb8b151d9b70d64371961b519cd53` / CI `36047159395` is **5/5
+SUCCESS**, clean-checkout included, with provider jobs skipped. The fresh
+retry-scope review passes; one retry is authorized only after the
+review/status reconciliation state containing that conclusion is itself
+exact-head green.
 
 The local AR-006 provider-event evaluator was corrected at
 `18cf24cebb545b67fd2fe6791a7a3ece13e60f94` / CI `35364734978` (**5/5**
@@ -318,19 +336,21 @@ Current gate:
 
 1. retain AR-005 and AR-007 remediations without weakening their security contracts;
 2. keep the exact-head-green ADR 0012 direct Pages → per-document Durable Object implementation and explicit same-document lifecycle serialization intact;
-3. after this review/status reconciliation commit itself is exact-head green, run one bounded isolated `[AR006-DO-PREFLIGHT]` only;
-4. the preflight may deploy/configure the isolated Durable Object + Pages Preview and prove binding/secret metadata/synthetic authority/deny smoke/non-mutating route behavior; any failure returns to bounded remediation;
-5. even after a green preflight, keep the exact-size evidence job disabled until the new two-surface CPU evaluator is implemented, tested and adversarially reviewed;
-6. keep AR-006 open — do not enable Paid or lower the file contract silently;
-7. only a reviewed `[AR006-DO-EVIDENCE]` path may later run ten exact `25,000,000`-byte flows and prove provider CPU for both Pages and `executionModel=durableObject`;
-8. after valid AR-006 evidence, run exact-head full CI + clean-checkout verification again over the evidence-bound candidate;
-9. transition back to `REVIEW_PENDING` only after all remediation evidence is green;
-10. run another complete fresh independent Pass B over all WP-2.9C responsibilities and AR-001..007;
-11. any BLOCKING/MAJOR finding → `REVIEW_FAILED`;
-12. only a clean Pass B may enter `ACCEPTANCE_PENDING`;
-13. only Pass C may mark WP-2.9C `ACCEPTED`;
-14. only after C acceptance may WP-2.9A resume;
-15. WP-2.9B remains `PLANNED / AFTER A`.
+3. record provider preflight attempt 1 as failed-contained at the Pages PATCH after successful Durable Object deployment; do not treat the created namespace as a green preflight;
+4. keep the exact-head-green minimal-PATCH/sanitized-diagnostic remediation intact;
+5. after this retry-review/status reconciliation state is exact-head green, run exactly one bounded isolated `[AR006-DO-PREFLIGHT]` retry;
+6. the retry may deploy/reconcile the isolated Durable Object + Pages Preview and prove binding/secret metadata/synthetic authority/deny smoke/non-mutating route behavior; any failure returns to bounded remediation;
+7. even after a green retry, keep the exact-size evidence job disabled until the new two-surface CPU evaluator is implemented, tested and adversarially reviewed;
+8. keep AR-006 open — do not enable Paid or lower the file contract silently;
+9. only a reviewed `[AR006-DO-EVIDENCE]` path may later run ten exact `25,000,000`-byte flows and prove provider CPU for both Pages and `executionModel=durableObject`;
+10. after valid AR-006 evidence, run exact-head full CI + clean-checkout verification again over the evidence-bound candidate;
+11. transition back to `REVIEW_PENDING` only after all remediation evidence is green;
+12. run another complete fresh independent Pass B over all WP-2.9C responsibilities and AR-001..007;
+13. any BLOCKING/MAJOR finding → `REVIEW_FAILED`;
+14. only a clean Pass B may enter `ACCEPTANCE_PENDING`;
+15. only Pass C may mark WP-2.9C `ACCEPTED`;
+16. only after C acceptance may WP-2.9A resume;
+17. WP-2.9B remains `PLANNED / AFTER A`.
 
 ## Deviations
 
