@@ -407,8 +407,8 @@ A bounded read-only Cloudflare Observability query of that exact private
 Worker and controlled window returned ten provider invocation events: eight
 `ok` with `cpuTimeMs` from 237 to 273, and two `exceededCpu` with CPU values
 10 and 27 ms. Cloudflare's published Workers Free CPU budget is 10 ms per
-request. The provider's occasional flexibility explains why HTTP `200` can
-coexist with much higher CPU, but cannot satisfy the normal-budget acceptance
+request. The provider's documented occasional flexibility is consistent with
+HTTP `200` coexisting with much higher CPU, but cannot satisfy the normal-budget acceptance
 condition. The missing UUID marker and a provider-field mismatch in the
 evaluator are separate defects; correcting them cannot make this CPU profile
 pass. Full sanitized record:
@@ -424,6 +424,32 @@ authorization, actual-byte integrity, cleanup, failure recovery and the
 unchanged file contract before implementation. No such alternative is yet
 specified or proven. WP-2.9A, Pass B, Pass C and later packets remain gated.
 
+### Read-only candidate review after the failed campaign
+
+Cloudflare documents `crypto.DigestStream("SHA-256")`, which could avoid the
+current full-buffer copy and hash a Storage response as it arrives. The
+provider's measured 237–273 ms is for the complete current invocation, not a
+profile of the hash alone. No measured result shows that streaming would bring
+the complete trusted promotion under 10 ms, so this is only a candidate, not
+an approved fix or permission to repeat the evidence campaign.
+
+Cloudflare also documents processing expensive work in smaller chunks across
+multiple requests. That approach would need durable, server-owned SHA-256
+state and offset, bounded reads of immutable staged bytes, concurrency and
+retry rules, live authorization at every step, and atomic final attestation.
+The current one-request reservation and promotion contract does not specify
+those semantics. Service bindings alone are not a proven escape from the CPU
+gate: Cloudflare documents a maximum of 32 Worker invocations per originating
+request and sums bound-Worker CPU for pricing. A different execution design
+requires a new ADR, security review and provider evidence before acceptance.
+
+The replacement Worker deployment token did prove deployment in the isolated
+campaign. The superseded `mariage-os-ar006-worker-deploy` token still exists:
+the Cloudflare connector rejected its deletion with `9109 Unauthorized`, and
+the browser tool was unavailable. No further token mutation was attempted.
+This cleanup is separate from the AR-006 CPU failure and must not be reported
+as completed.
+
 ## Provider references
 
 - <https://developers.cloudflare.com/pages/functions/debugging-and-logging/>
@@ -433,6 +459,9 @@ specified or proven. WP-2.9A, Pass B, Pass C and later packets remain gated.
 - <https://developers.cloudflare.com/api/resources/workers/subresources/observability/subresources/telemetry/methods/query/>
 - <https://developers.cloudflare.com/api/resources/workers/subresources/observability/subresources/telemetry/methods/keys/>
 - <https://developers.cloudflare.com/logs/logpush/logpush-job/datasets/account/workers_trace_events/>
+- <https://developers.cloudflare.com/workers/runtime-apis/web-crypto/>
+- <https://developers.cloudflare.com/workers/platform/limits/>
+- <https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/>
 
 ## Governance
 
