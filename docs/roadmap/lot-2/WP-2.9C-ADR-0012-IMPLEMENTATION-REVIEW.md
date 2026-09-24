@@ -1,6 +1,6 @@
 # WP-2.9C ADR 0012 — Adversarial implementation review
 
-Status: **PREFLIGHT RETRY FAILED CONTAINED AT IMMEDIATE DENY-SMOKE; BOUNDED PROPAGATION REMEDIATION PENDING EXACT-HEAD CI + FRESH REVIEW**
+Status: **BOUNDED PROPAGATION REMEDIATION REVIEW PASSED; ONE NON-MUTATING EXISTING-DEPLOYMENT CONTINUATION AUTHORIZED AFTER STATUS COMMIT IS GREEN**
 
 Review date: 2026-09-24  
 Reviewed implementation head: `99ff618781f46073964b14d49b7969c9c132bc92`  
@@ -359,3 +359,51 @@ This section records the remediation design only. It does **not** authorize the
 continuation yet. Ordinary exact-head CI + clean-checkout verification and a
 fresh adversarial review of this remediation are required first. The
 `[AR006-DO-EVIDENCE]` path remains disabled.
+
+
+## Bounded readiness remediation review — 2026-09-24
+
+Status: **PASS — ONE NON-MUTATING `[AR006-DO-PREFLIGHT-READONLY]` CONTINUATION MAY BE AUTHORIZED AFTER THIS REVIEW/STATUS COMMIT IS EXACT-HEAD GREEN**
+
+Reviewed remediation head: `71a3d098e3656e71fb880796d0520e5836877364`  
+Exact-head CI: `36052418849` — **5/5 SUCCESS**, including `Full verify from clean checkout`.  
+Provider/deploy workflows on that ordinary remediation head: **SKIPPED**.
+
+The fresh review covered the bounded readiness implementation and the
+hard-pinned existing-deployment continuation. No BLOCKING/MAJOR finding remains
+in this narrow scope.
+
+Verified properties:
+
+- only HTTP `404` is retryable for readiness;
+- readiness is bounded to eight attempts with a 1.5-second delay;
+- success still requires exact HTTP `405`, JSON content type, no wildcard CORS
+  and the generic `private_document_unavailable` payload;
+- an unexpected non-404 response fails immediately;
+- persistent 404 fails closed on the final attempt;
+- the subsequent 401/413/403 deny checks remain single-shot and exact;
+- the continuation is pinned to candidate
+  `eca478937fad40632dc378f0408c1c8ec4bd5c8c`;
+- it resolves exactly one successful Pages Preview deployment for that candidate;
+- it performs no Worker deploy and no Pages PATCH;
+- it does not reserve, upload, promote or finalize a document;
+- its route probe uses a fresh random unreserved document UUID and requires the
+  generic HTTP 409 produced only after the authenticated request reaches the
+  lifecycle Durable Object;
+- the exact-size provider-evidence job remains hard-disabled with
+  `if: ${{ false }}`.
+
+The previously successful provider configuration from the failed-contained
+retry is therefore preserved rather than replayed. The continuation may only
+GET provider metadata, re-check synthetic authority, run the bounded deny smoke
+and execute the non-mutating route probe.
+
+Review conclusion: exactly one
+`[AR006-DO-PREFLIGHT-READONLY]` continuation is authorized **only after the
+documentation/status commit containing this conclusion passes ordinary exact-
+head CI and clean-checkout verification**.
+
+A green continuation does not close AR-006 and does not authorize a 25 MB
+campaign. It authorizes only implementation and adversarial review of the ADR
+0012 two-surface CPU evaluator. Workers Paid and file-limit reduction remain
+forbidden.

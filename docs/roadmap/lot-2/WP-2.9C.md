@@ -228,7 +228,7 @@ Fresh Pass B specifically invalidates treating any local 25 MB success as suffic
 
 ## State / sequencing
 
-Current state: **IN_PROGRESS — ADR 0012 EXISTING-DEPLOYMENT PREFLIGHT COMPLETION REMEDIATION/REVIEW**.
+Current state: **IN_PROGRESS — ADR 0012 EXISTING-DEPLOYMENT READ-ONLY CONTINUATION GATE**.
 
 The ADR-0011 stateless private-Worker design remains rejected by deployed evidence: eight successful exact-size invocations consumed 237–273 ms CPU and two additional invocations ended `exceededCpu`. ADR 0012 is now accepted and moves the trusted promotion/abandon executor to one private SQLite-backed Durable Object per `(project_id, document_id)`, bound directly from the same-origin/bodyless Pages ingress. AR-006 remains OPEN until the replacement architecture is implemented, reviewed and proven on Workers Free.
 
@@ -356,10 +356,10 @@ Current gate:
 
 1. retain AR-005 and AR-007 remediations without weakening their security contracts;
 2. keep the exact-head-green ADR 0012 direct Pages → per-document Durable Object implementation and explicit same-document lifecycle serialization intact;
-3. record preflight retry `eca478...` as failed-contained only at the immediate deny-smoke; all provider configuration/deployment checks before it passed and must not be repeated without a new reason;
-4. remediate the readiness smoke with bounded 404-only retry while retaining exact 405/JSON/generic-unavailable acceptance;
-5. add the hard-pinned `[AR006-DO-PREFLIGHT-READONLY]` continuation that reuses the existing exact deployment and performs no deploy/PATCH/document mutation;
-6. run exact-head CI + clean-checkout verification and fresh review before triggering that one continuation;
+3. retain preflight retry `eca478...` as failed-contained only at the transient immediate deny-smoke; do not repeat its successful deploy/PATCH work without a new reason;
+4. the bounded 404-only readiness remediation at `71a3d098e3656e71fb880796d0520e5836877364` / CI `36052418849` is 5/5 green including clean checkout and has passed fresh review for continuation scope;
+5. after the review/status reconciliation commit containing that conclusion is exact-head green, trigger exactly one hard-pinned `[AR006-DO-PREFLIGHT-READONLY]` continuation against the existing `eca478...` deployment;
+6. the continuation may not deploy, PATCH, reserve, upload, promote or finalize; it may only re-read provider metadata, re-check synthetic authority, run the bounded deny smoke and the random-unreserved-document route probe;
 7. even after a green continuation, keep the exact-size evidence job disabled until the new two-surface CPU evaluator is implemented, tested and adversarially reviewed;
 8. keep AR-006 open — do not enable Paid or lower the file contract silently;
 9. only a reviewed `[AR006-DO-EVIDENCE]` path may later run ten exact `25,000,000`-byte flows and prove provider CPU for both Pages and `executionModel=durableObject`;
