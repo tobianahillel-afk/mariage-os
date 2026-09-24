@@ -1,4 +1,5 @@
 import ciSource from "../../../.github/workflows/ci.yml?raw";
+import flowSource from "../../../scripts/private-document-ar006-do-evidence-flow.mjs?raw";
 import harnessSource from "../../../scripts/run-private-document-ar006-do-evidence.mjs?raw";
 import recordSource from "../../../scripts/private-document-ar006-do-evidence-record.mjs?raw";
 import { describe, expect, it } from "vitest";
@@ -42,12 +43,13 @@ describe("ADR 0012 exact-size harness contract", () => {
     expect(harnessSource).toContain("evaluateAr006TwoSurfaceEvents");
     expect(harnessSource).toContain("queryAr006MarkerObservability");
     expect(harnessSource).toContain("queryWorkersObservability");
+    expect(harnessSource).toContain("runAr006Promotions");
   });
 
   it("requires each successful promotion to be verified ready before acceptance", () => {
-    expect(harnessSource).toContain('.select("upload_status")');
-    expect(harnessSource).toContain('verified.data?.upload_status !== "ready"');
-    expect(harnessSource).toContain("finalized = true");
+    expect(flowSource).toContain('.select("upload_status")');
+    expect(flowSource).toContain('verified.data?.upload_status !== "ready"');
+    expect(flowSource).toContain("finalized = true");
   });
 
   it("binds evidence to Free plan and the exact provider deployment", () => {

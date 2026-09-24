@@ -29,13 +29,13 @@ function verdict(
   campaignDiscovery = discovery(),
   campaignObservation = observation(),
 ) {
-  return campaignPassed(
+  return campaignPassed({
     invocations,
     markerPreflight,
-    campaignDiscovery,
-    campaignObservation,
-    invocations.length,
-  );
+    discovery: campaignDiscovery,
+    observation: campaignObservation,
+    expectedCount: invocations.length,
+  });
 }
 
 describe("ADR 0012 exact-size campaign verdict success", () => {
