@@ -4,6 +4,7 @@ import ciCdSource from "../../../docs/engineering/CI-CD.md?raw";
 import secretSource from "../../../docs/security/SECRET-MANAGEMENT.md?raw";
 import configureSource from "../../../scripts/configure-ar006-pages-preview.mjs?raw";
 import helperSource from "../../../scripts/private-document-ar006-durable-object.mjs?raw";
+import pagesConfigSource from "../../../scripts/private-document-ar006-pages-config.mjs?raw";
 import preflightSource from "../../../scripts/run-private-document-ar006-preflight.mjs?raw";
 
 describe("ADR 0012 provider deployment contract", () => {
@@ -23,7 +24,10 @@ describe("ADR 0012 provider deployment contract", () => {
     expect(configureSource).toContain("LIFECYCLE_BINDING");
     expect(configureSource).toContain("durable_object_namespaces");
     expect(configureSource).toContain("LIFECYCLE_CLASS");
-    expect(configureSource).toContain("PRIVATE_DOCUMENT_ADMIN_KEY: null");
+    expect(pagesConfigSource).toContain("PRIVATE_DOCUMENT_ADMIN_KEY: null");
+    expect(pagesConfigSource).toContain("[LEGACY_SERVICE_BINDING]: null");
+    expect(pagesConfigSource).toContain("[LIFECYCLE_BINDING]");
+    expect(configureSource).not.toContain("...preview");
     expect(configureSource).not.toContain(
       'const BINDING_NAME = "PRIVATE_DOCUMENT_PROMOTION_WORKER"',
     );

@@ -6,6 +6,10 @@ import {
   LIFECYCLE_CLASS,
   resolvePrivateDocumentLifecycleNamespace,
 } from "./private-document-ar006-durable-object.mjs";
+import {
+  cloudflareFailureSummary,
+  pagesPreviewMutation,
+} from "./private-document-ar006-pages-config.mjs";
 
 function requiredEnv(name) {
   const value = process.env[name]?.trim();
@@ -51,62 +55,11 @@ async function requestJson(url, options, message) {
   const response = await globalThis.fetch(url, options);
   const payload = await response.json().catch(() => null);
   if (!response.ok || payload?.success !== true) {
-    throw new Error(message);
-  }
-  return payload.result;
-}
-
-function withoutLegacyService(services) {
-  if (Array.isArray(services)) {
-    return services.filter(
-      (entry) => entry?.binding !== LEGACY_SERVICE_BINDING,
+    throw new Error(
+      message + " " + cloudflareFailureSummary(response.status, payload),
     );
   }
-  if (typeof services !== "object" || services === null) return {};
-  return Object.fromEntries(
-    Object.entries(services).filter(
-      ([name]) => name !== LEGACY_SERVICE_BINDING,
-    ),
-  );
-}
-
-function withLifecycleNamespace(namespaces, namespaceId) {
-  const current =
-    typeof namespaces === "object" && namespaces !== null ? namespaces : {};
-  return {
-    ...current,
-    [LIFECYCLE_BINDING]: { namespace_id: namespaceId },
-  };
-}
-
-function previewPatch(project, input, namespaceId) {
-  const preview = project.deployment_configs?.preview ?? {};
-  const production = project.deployment_configs?.production ?? {};
-  const failOpen =
-    typeof preview.fail_open === "boolean"
-      ? preview.fail_open
-      : production.fail_open;
-  if (typeof failOpen !== "boolean") {
-    throw new Error("Cloudflare Pages fail_open configuration is unavailable.");
-  }
-  return {
-    ...preview,
-    fail_open: failOpen,
-    env_vars: {
-      ...(preview.env_vars ?? {}),
-      PRIVATE_DOCUMENT_ADMIN_KEY: null,
-      SUPABASE_URL: { type: "plain_text", value: input.supabaseUrl },
-      SUPABASE_PUBLISHABLE_KEY: {
-        type: "plain_text",
-        value: input.publishableKey,
-      },
-    },
-    services: withoutLegacyService(preview.services),
-    durable_object_namespaces: withLifecycleNamespace(
-      preview.durable_object_namespaces,
-      namespaceId,
-    ),
-  };
+  return payload.result;
 }
 
 function legacyServicePresent(services) {
@@ -190,7 +143,7 @@ async function main() {
       headers: authorizationHeaders(input.pagesToken),
       body: JSON.stringify({
         deployment_configs: {
-          preview: previewPatch(project, input, namespace.id),
+          preview: pagesPreviewMutation(input, namespace.id),
         },
       }),
     },
