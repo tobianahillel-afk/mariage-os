@@ -192,7 +192,7 @@ Provider-observation exploration is now governed by the open architecture review
 - Workers Observability telemetry REST API: next bounded capability candidate because its provider model defines `$workers.cpuTimeMs`; capability against the existing Pages script must be proven before any exact-size rerun;
 - wall time, HTTP 200, application timing, Paid-only shortcuts and file-limit reduction remain invalid substitutes.
 
-The 2026-09-24 provider CPU result fails the Free budget. WP-2.9C is **BLOCKED** for architecture review and cannot enter `REVIEW_PENDING`.
+The 2026-09-24 ADR-0011 provider CPU result remains decisive adverse evidence for the stateless Worker design. ADR 0012 is now accepted as the replacement execution architecture: the same-origin/bodyless Pages ingress binds directly to one private SQLite-backed Durable Object per project/document lifecycle. WP-2.9C has therefore resumed **IN_PROGRESS / A-IMPLEMENT — ADR 0012 RED FIRST**. AR-006 remains OPEN; no provider acceptance campaign is authorized until the new implementation, exact-head verification, adversarial implementation review and isolated binding preflight are green.
 
 ### AR-007 operations gate retained
 
@@ -200,11 +200,12 @@ Normative release/deployment/secret contracts require Pages Functions to deploy 
 
 ## Current next-action gate
 
-1. The 2026-09-24 single authorized campaign completed on exact commit `26da10e5aabd7d2a9b6105caef49dd87d6ee58b9` after green preflight and normal CI. It failed the frozen Free CPU gate: two `exceededCpu` outcomes and eight successful provider invocations using 237–273 ms CPU, versus 10 ms allowed.
-2. The exhausted decision does not authorize another campaign. The separate UUID-marker/parser gap does not repair the CPU failure. Return to an explicit architecture review before any further provider mutation or implementation of a new trust boundary.
-3. Do not substitute wall time, dashboard aggregate, Paid entitlement or a lower file limit.
-4. Only after valid AR-006 exact-size CPU evidence, run a complete fresh independent Pass B and then Pass C before acceptance.
-5. WP-2.9A remains **BLOCKED** until C is accepted; WP-2.9B and later Lots remain inactive.
+1. ADR 0012 is accepted and is the only authorized AR-006 implementation direction. Add RED-first tests for direct Pages → Durable Object routing, per-document identity, fail-closed binding behavior and same-document promotion/abandon serialization.
+2. Implement the private SQLite-backed Durable Object while preserving every existing authentication, live-permission, reservation, exact-byte, no-overwrite, attestation, cleanup, compensation and independent-finalization control. Do not rely on Durable Object single-threaded execution across external I/O; explicit per-instance serialization is required and tested.
+3. Keep Pages as the sole browser-reachable bodyless ingress. Remove the obsolete ADR-0011 service-binding path and the Pages copy of the privileged admin secret only after the Durable Object path is locally verified.
+4. Run exact-head ordinary CI + clean-checkout verification, then a fresh adversarial implementation review. Only after that review may one isolated provider **preflight** prove the Durable Object namespace/binding and credentials. No 25 MB provider evidence campaign is authorized before that preflight is reviewed green.
+5. Do not substitute wall time, dashboard aggregate, Paid entitlement or a lower file limit. AR-006 remains OPEN until ten exact-size flows have attributable provider CPU evidence for both the stateless Pages ingress and Durable Object execution with no CPU-limit outcome.
+6. Only after valid AR-006 evidence, run a complete fresh independent Pass B and then Pass C before acceptance. WP-2.9A remains **BLOCKED** until C is accepted; WP-2.9B and later Lots remain inactive.
 
 ## Durable handoff
 
@@ -216,7 +217,7 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.8C
 WP-2.9A: BLOCKED — waits for WP-2.9C ACCEPTED
-Current packet: WP-2.9C — BLOCKED; AR-006 deployed Workers Free CPU budget failure requires architecture review
+Current packet: WP-2.9C — IN_PROGRESS / A-IMPLEMENT — ADR 0012 RED FIRST; AR-006 remains OPEN
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
@@ -236,12 +237,13 @@ Isolated Pages/synthetic-user preflight: `6b4a1da36e3dd32bde36adfb7f6d75e2043249
 Single permitted exact-size campaign: `26da10e5aabd7d2a9b6105caef49dd87d6ee58b9` / CI `35977875774` — all five ordinary jobs SUCCESS, including clean checkout. Isolated job `107565190064` passed preflight, Worker/Pages deployments, binding checks and deny smoke, then FAILED at evidence collection. Artifact `10799077529` (ZIP SHA-256 `b11e62221fa82f1697133e51f19eeeb546ff562a5615327da14882924025003e`) records eight exact-size HTTP-200 successes, two HTTP-503 failures, no accepted UUID-correlated CPU measurements and `pass: false`. A bounded read-only Cloudflare query returned ten private-Worker invocation rows: eight `ok` at 237–273 ms CPU and two `exceededCpu` at 10 and 27 ms. See `WP-2.9C-AR-006-PROVIDER-ATTEMPT-2026-09-24.md`.
 Blocker handoff: `10fb35be5104ab168151dc30b3eb1bc62c530538` / CI `36005004956` — all five ordinary jobs SUCCESS, including full verification from clean checkout; isolated provider workflows correctly SKIPPED. WP-2.9C and FTR-089 remain BLOCKED.
 Post-campaign credential cleanup: the replacement Worker token deployed successfully. The superseded `mariage-os-ar006-worker-deploy` token remains because the Cloudflare connector refused deletion (`9109 Unauthorized`) and the browser tool was unavailable. Its revocation is outstanding; it is not used by the current GitHub environment secret.
-CPU feasibility follow-up: `docs/roadmap/lot-2/WP-2.9C-AR-006-FEASIBILITY-2026-09-24.md` records a read-only evaluation. Bounded multi-request hashing may be realistic on Workers Free, but it needs a new ADR, durable-state/security design and provider CPU proof; no alternative has been selected or accepted. The superseded Worker-token cleanup is deferred while this CPU blocker is addressed.
-Current permitted action: architecture review of the 25 MB trusted promotion/Workers Free CPU boundary; no further evidence campaign, Paid entitlement or file-limit reduction is authorized. WP-2.9C and FTR-089 are BLOCKED; AR-006 remains open.
+CPU feasibility follow-up: `docs/roadmap/lot-2/WP-2.9C-AR-006-FEASIBILITY-2026-09-24.md` is superseded for the selected direction by ADR 0012. Multi-request hashing remains a fallback only. The selected design uses a private SQLite-backed Durable Object per document lifecycle, directly bound to Pages, and requires explicit serialization plus deployed provider CPU proof. The superseded Worker-token cleanup remains separate and deferred while this packet is active.
+ADR 0012 decision commit: `889433938e721e8cbd9a01c9d6caff6436b198f4` — direct Pages → Durable Object architecture accepted; no production implementation or provider campaign in that commit.
+Current permitted action: ADR 0012 RED-first implementation and repository verification. No exact-size provider campaign, Paid entitlement or file-limit reduction is authorized until implementation review and isolated Durable Object preflight are green. WP-2.9C is IN_PROGRESS; AR-006 remains open.
 Tail support green tree: d04edd0ed0d3daa3b9bfe20d954003bb13545200 / parent 82e05a8dab9f61377f045b74005fd6582da0afe3 / CI 35152382433 — 5/5 SUCCESS
 Tail capability trigger: 7645a9e769c641640f52fdba535deb6140401fc6 / workflow 35153132971 / job 104986087784 / artifact 10469354745 — deny smoke SUCCESS; parsedJsonEventCount=0; providerCpuTimeMs=[]; pass=false
 Workers Observability configured capability preflight: bd3fdb4baab6ef59983e40f77b5b2f44ba6dc8b7 / workflow 35213157767 / job 105175271234 / artifact 10494251279 (ZIP SHA-256 02438aadb3e377f6c8e6ed66b3b00c0c0d3e473008c3bb710acbfb805f2dde7c) — deny smoke passed; no attributable numeric provider CPU; pass=false
-AR-006 architecture review: ADR 0011 private Worker was tested and failed the deployed Free CPU gate; new architecture review required
+AR-006 architecture review: ADR 0011 private Worker failed the deployed Free CPU gate; ADR 0012 accepted direct Pages → per-document Durable Object replacement architecture
 AR-005 and AR-007: implementation-remediated / exact-head-green — formal closure waits fresh Pass B after AR-006 unblock
 FTR-089 FIR: #17 — BLOCKED
 WP-2.9B: PLANNED / AFTER A

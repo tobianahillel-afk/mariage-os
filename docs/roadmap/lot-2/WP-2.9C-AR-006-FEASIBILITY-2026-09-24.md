@@ -1,6 +1,6 @@
 # WP-2.9C / AR-006 — Workers Free CPU feasibility after the failed campaign
 
-Status: **READ-ONLY ARCHITECTURE REVIEW — WP-2.9C REMAINS BLOCKED**
+Status: **SUPERSEDED FOR SELECTED DIRECTION BY ADR 0012 — HISTORICAL FEASIBILITY RECORD**
 
 This note evaluates whether the exact `25,000,000`-byte trusted PDF contract can
 realistically remain on Workers Free. It does not authorize a provider campaign,
@@ -47,6 +47,27 @@ This route cannot be adopted by treating Cloudflare ingress CPU alone as proof
 that the trusted 25 MB promotion runs within Workers Free. It would require a
 separate security and acceptance-contract decision.
 
+### Use a private Durable Object for the heavy trusted lifecycle
+
+This candidate was identified after the initial review and is now selected by
+ADR 0012. Cloudflare currently makes SQLite-backed Durable Objects available on
+Workers Free, allows Pages Functions to bind directly to a Durable Object
+namespace, and documents a 30-second default CPU budget per Durable Object
+request. That execution envelope is qualitatively different from the 10 ms
+stateless Worker HTTP envelope that ADR 0011 failed.
+
+The design keeps Pages as the sole bodyless browser ingress and uses one private
+Durable Object per project/document lifecycle. The object executes the existing
+trusted promotion semantics and also coordinates trusted abandon for the same
+document. Because external Supabase/Storage awaits can permit request
+interleaving, an explicit per-instance serialization gate is mandatory; Durable
+Object single-threaded JavaScript is not treated as a race proof.
+
+This direction still requires RED-first local/runtime tests, exact-head
+verification, adversarial review, isolated binding/deployment preflight and
+provider CPU evidence. It is not accepted AR-006 evidence merely because its
+published CPU ceiling is larger than the measured ADR-0011 CPU.
+
 ### Split trusted SHA-256 across independent Workers Free requests
 
 This is a **plausible but unproven** Free-plan direction. Supabase documents
@@ -90,14 +111,18 @@ insufficient.
 
 ## Feasibility verdict and next gate
 
-Preserving the 25 MB file contract on Workers Free appears technically
-**realistic only as a substantial, stateful redesign**, not as a quick
-correction of the current SHA-256 call or an Observability parser change.
-The strongest candidate is bounded multi-request hashing, but it remains
-unproven and may fail CPU, Storage-range, cost/abuse or security review.
-WP-2.9C and FTR-089 stay **BLOCKED**; AR-006 stays open. The next permitted
-action is to specify a complete ADR for that candidate and its security and
-evidence gates. No credential cleanup is part of this CPU investigation.
+Preserving the 25 MB file contract on Workers Free still requires a material
+execution redesign; a quick stateless SHA-256 optimization is not enough.
+ADR 0012 now selects the direct Pages → per-document Durable Object direction
+because it preserves the ingress/trust contract with a provider-documented Free
+CPU envelope far above the measured ADR-0011 workload. Multi-request hashing is
+retained only as fallback.
+
+WP-2.9C has resumed **IN_PROGRESS / A-IMPLEMENT — ADR 0012 RED FIRST**. AR-006
+stays open. The next permitted action is repository RED-first implementation,
+then exact-head CI, adversarial implementation review and an isolated provider
+preflight. No new 25 MB evidence campaign or credential cleanup is authorized
+by this feasibility note.
 
 ## Current provider and library references
 

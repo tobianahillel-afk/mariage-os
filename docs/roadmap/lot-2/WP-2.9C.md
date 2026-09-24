@@ -228,7 +228,11 @@ Fresh Pass B specifically invalidates treating any local 25 MB success as suffic
 
 ## State / sequencing
 
-Current state: **BLOCKED — WP29C-AR-006 DEPLOYED WORKERS FREE CPU FAILURE / ARCHITECTURE REVIEW**.
+Current state: **IN_PROGRESS / A-IMPLEMENT — ADR 0012 RED FIRST**.
+
+The ADR-0011 stateless private-Worker design remains rejected by deployed evidence: eight successful exact-size invocations consumed 237–273 ms CPU and two additional invocations ended `exceededCpu`. ADR 0012 is now accepted and moves the trusted promotion/abandon executor to one private SQLite-backed Durable Object per `(project_id, document_id)`, bound directly from the same-origin/bodyless Pages ingress. AR-006 remains OPEN until the replacement architecture is implemented, reviewed and proven on Workers Free.
+
+ADR 0012 does not weaken the frozen promotion invariant. Pages remains the only browser-reachable route; the Durable Object repeats authentication/live authorization and owns privileged lifecycle execution. POST promotion and DELETE abandon for one document must share an explicit per-instance serialization gate because external Supabase/Storage I/O may otherwise interleave. Different documents must remain independently executable.
 
 The local AR-006 provider-event evaluator was corrected at
 `18cf24cebb545b67fd2fe6791a7a3ece13e60f94` / CI `35364734978` (**5/5**
@@ -305,17 +309,19 @@ diagnosis found ten invocation rows, eight at 237–273 ms CPU and two
 Current gate:
 
 1. retain AR-005 and AR-007 remediations without weakening their security contracts;
-2. keep WP-2.9C `BLOCKED` and review a new architecture for exact-25-MB trusted promotion inside the frozen Free CPU budget; the ADR 0011 private-Worker campaign failed this gate;
-3. do not rerun the exhausted campaign or requery old logs as an acceptance workaround;
-4. keep AR-006 open — do not enable Paid or lower the file contract silently;
-5. after valid AR-006 evidence, run exact-head full CI + clean-checkout verification again over the evidence-bound candidate;
-6. transition back to `REVIEW_PENDING` only after all remediation evidence is green;
-7. run another complete fresh independent Pass B over all WP-2.9C responsibilities and AR-001..007;
-8. any BLOCKING/MAJOR finding → `REVIEW_FAILED`;
-9. only a clean Pass B may enter `ACCEPTANCE_PENDING`;
-10. only Pass C may mark WP-2.9C `ACCEPTED`;
-11. only after C acceptance may WP-2.9A resume;
-12. WP-2.9B remains `PLANNED / AFTER A`.
+2. implement ADR 0012 RED-first: direct Pages → per-document Durable Object, explicit same-document lifecycle serialization, no public Worker route and no new product datastore;
+3. preserve every existing authorization, exact-byte integrity, replay, cleanup, compensation and finalization control while removing the obsolete ADR-0011 stateless Service Binding after local cutover;
+4. run exact-head ordinary CI + clean-checkout verification and a fresh adversarial implementation review before any provider mutation;
+5. after that review, allow only an isolated Durable Object binding/deployment preflight; a new exact-size campaign requires that preflight to be reviewed green;
+6. keep AR-006 open — do not enable Paid or lower the file contract silently;
+7. after valid AR-006 evidence, run exact-head full CI + clean-checkout verification again over the evidence-bound candidate;
+8. transition back to `REVIEW_PENDING` only after all remediation evidence is green;
+9. run another complete fresh independent Pass B over all WP-2.9C responsibilities and AR-001..007;
+10. any BLOCKING/MAJOR finding → `REVIEW_FAILED`;
+11. only a clean Pass B may enter `ACCEPTANCE_PENDING`;
+12. only Pass C may mark WP-2.9C `ACCEPTED`;
+13. only after C acceptance may WP-2.9A resume;
+14. WP-2.9B remains `PLANNED / AFTER A`.
 
 ## Deviations
 

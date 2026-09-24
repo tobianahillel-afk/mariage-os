@@ -455,6 +455,41 @@ The subsequent read-only feasibility assessment is recorded in
 multi-request hashing design but does not select or authorize it. The token
 cleanup is deferred while the CPU architecture remains the priority.
 
+### 2026-09-24 decision — ADR 0012 Durable Object lifecycle executor
+
+The architecture review is now resolved by
+`docs/adr/0012-private-document-lifecycle-durable-object.md`. Current
+Cloudflare documentation establishes a materially different Free execution
+primitive from the ADR-0011 stateless Worker: SQLite-backed Durable Objects are
+available on Workers Free, Pages Functions can bind directly to a Durable
+Object namespace, and the provider documents a 30-second default CPU budget per
+Durable Object request. Durable Object access follows the implementing Worker;
+there is no separate Durable Object API-token permission.
+
+Selected replacement path:
+
+```text
+browser
+→ same-origin/bodyless Pages Function
+→ PRIVATE_DOCUMENT_LIFECYCLE Durable Object
+→ Supabase Auth/RLS/Storage/PostgreSQL
+```
+
+The object identity is deterministically server-derived from validated
+`(project_id, document_id)`. Promotion and abandon for one document share the
+same object. This does **not** permit relying on implicit single-threaded
+execution: Cloudflare documents that Durable Object requests may interleave
+while awaiting external I/O. ADR 0012 therefore requires an explicit
+per-instance serialization gate plus all existing authoritative reservation,
+permission, compensation and finalization checks.
+
+The ADR-0011 campaign remains adverse evidence and must not be rewritten as a
+pass. The old service-binding path is superseded only after the new local/runtime
+tests are green. AR-006 remains open. The next permitted action is RED-first
+repository implementation; no new exact-size provider campaign is authorized
+until exact-head CI, adversarial implementation review and an isolated Durable
+Object binding preflight are green.
+
 ## Provider references
 
 - <https://developers.cloudflare.com/pages/functions/debugging-and-logging/>
@@ -470,4 +505,4 @@ cleanup is deferred while the CPU architecture remains the priority.
 
 ## Governance
 
-WP-2.9C is **BLOCKED** after ADR 0011's deployed Workers Free CPU failure. No `REVIEW_PENDING`, fresh Pass B, Pass C, WP-2.9A resumption, campaign repeat, Workers Paid activation or 25 MB reduction is authorized until a new architecture review and valid AR-006 evidence exist.
+WP-2.9C is **IN_PROGRESS / A-IMPLEMENT — ADR 0012 RED FIRST**. AR-006 remains OPEN. No `REVIEW_PENDING`, fresh Pass B, Pass C, WP-2.9A resumption, exact-size provider campaign, Workers Paid activation or 25 MB reduction is authorized until the ADR-0012 implementation is exact-head green, adversarially reviewed, and its isolated provider preflight has passed.

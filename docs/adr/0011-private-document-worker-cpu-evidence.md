@@ -1,6 +1,6 @@
 # ADR 0011 — Private-document promotion Worker execution and CPU evidence
 
-- Status: Accepted
+- Status: Superseded for final execution by ADR 0012 after deployed Free CPU failure
 - Date: 2026-09-17
 - Owner: WP-2.9C / FTR-089
 - Related: ADR 0008, ADR 0009, ADR 0010
@@ -59,6 +59,16 @@ The evidence workflow deploys the private Worker first, verifies its private
 configuration, then deploys the same exact Pages candidate with the matching
 binding. Ordinary repository CI must be green first. Any deployment,
 configuration, correlation or telemetry failure is fail-closed.
+
+## Supersession
+
+The exact-size provider campaign on 2026-09-24 measured eight successful
+stateless private-Worker invocations at 237–273 ms CPU and two additional
+`exceededCpu` outcomes. That fails ADR 0011's own 10 ms normal Workers Free
+acceptance condition. ADR 0012 therefore supersedes this execution location
+with a direct Pages → private per-document Durable Object path. This ADR remains
+historical evidence for why the stateless Service Binding must not be restored
+as the final V1 solution.
 
 ## Consequences
 
