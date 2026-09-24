@@ -140,9 +140,7 @@ async function main() {
   assertUuid("AR006_PROJECT_ID", projectId);
   const accountId = requiredEnv("CLOUDFLARE_ACCOUNT_ID");
   const workerName = requiredEnv("AR006_PRIVATE_DOCUMENT_WORKER");
-  const workerToken = requiredEnv(
-    "AR006_CLOUDFLARE_WORKER_DEPLOY_TOKEN",
-  );
+  const workerToken = requiredEnv("AR006_CLOUDFLARE_WORKER_DEPLOY_TOKEN");
   const namespace = await resolvePrivateDocumentLifecycleNamespace({
     accountId,
     workerName,
