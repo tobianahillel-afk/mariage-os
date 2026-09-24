@@ -1,3 +1,4 @@
+import { recordAr006Evidence } from "./private-document-evidence.js";
 import {
   abandonTargets,
   bearerToken,
@@ -78,5 +79,7 @@ async function forwardLifecycle(
 }
 
 export async function onRequest(context: PagesContext): Promise<Response> {
-  return forwardLifecycle(context.request, context.env);
+  const response = await forwardLifecycle(context.request, context.env);
+  recordAr006Evidence(context.request, response, "pages-ingress");
+  return response;
 }
