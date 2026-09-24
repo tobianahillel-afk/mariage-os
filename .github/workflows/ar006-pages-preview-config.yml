@@ -37,11 +37,10 @@ jobs:
           cache: npm
       - run: npm ci --no-audit --no-fund
       - run: npm run security:secrets
-      - name: Configure and verify only the Pages Preview environment
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.AR006_CLOUDFLARE_DEPLOY_TOKEN }}
-          PRIVATE_DOCUMENT_ADMIN_KEY: ${{ secrets.AR006_PAGES_PREVIEW_ADMIN_KEY }}
-        run: node scripts/configure-ar006-pages-preview.mjs
+      - name: Historical ADR 0011 configurator is retired
+        run: |
+          echo "Retired: ADR 0012 provider configuration is gated in ci.yml after full-verify."
+          exit 1
       - name: Retain a sanitized Preview configuration receipt
         if: always()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
