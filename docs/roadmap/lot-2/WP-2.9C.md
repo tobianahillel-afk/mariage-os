@@ -274,11 +274,20 @@ wrong-scope Observability tokens were deleted after that proof. The
 isolated deployment credentials and one fresh exact-size evidence campaign
 only after a green `[AR006-PREFLIGHT]`; WP-2.9C remains `IN_PROGRESS`.
 
+The isolated Pages and private-Worker deployment tokens were replaced on
+2026-09-24 with one-year account tokens scoped respectively to `Pages Write`
+and `Workers Scripts Write`. Their encrypted GitHub Environment secrets were
+updated and visually confirmed at `08:36:53Z` and `08:38:15Z`; values are
+stored only in GitHub and user-bound DPAPI files outside the repository. The
+old tokens await proof of the replacements. The next action is a read-only
+`[AR006-PREFLIGHT]` on the exact committed candidate, then a single permitted
+evidence campaign only if both preflight and normal CI pass.
+
 Current gate:
 
 1. retain AR-005 and AR-007 remediations without weakening their security contracts;
 2. deploy/configure the ADR 0011 private Worker and obtain the Worker-correlated deployed Workers Free exact-25-MB CPU proof defined in `WP-2.9C-AR-006-RUNBOOK.md`;
-3. the one bounded credential-recovery source requery has completed with three HTTP `401` / provider code `10000` responses and no CPU measurement; AR-006 returns to architecture review, and no further query, token operation or application mutation is permitted without an explicit decision;
+3. the earlier bounded requery failed with HTTP `401` and no CPU measurement; the later 2026-09-24 architecture decision explicitly permits the replacement-token preflight and one fresh evidence campaign, in that order;
 4. keep AR-006 open — do not enable Paid or lower the file contract silently;
 5. after valid AR-006 evidence, run exact-head full CI + clean-checkout verification again over the evidence-bound candidate;
 6. transition back to `REVIEW_PENDING` only after all remediation evidence is green;

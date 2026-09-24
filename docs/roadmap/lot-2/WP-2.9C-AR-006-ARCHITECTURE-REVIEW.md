@@ -354,6 +354,28 @@ architecture review; do not silently repeat or weaken the acceptance gate.
 A passing artifact is evidence for fresh independent Pass B and Pass C, not
 automatic acceptance.
 
+Execution checkpoint before the read-only preflight: on 2026-09-24 the
+authenticated Cloudflare account showed the prior Pages token expired and the
+prior private-Worker token expiring soon. Two account-owned replacements were
+created through the Cloudflare dashboard, each with one permission on account
+`e33a5fde02b4ecbc0a36f4ad47ad0597`, all IPs allowed and expiry
+2027-09-25:
+
+- `mariage-os-ar006-pages-deploy-20260924` — `Pages Write`, stored as the
+  encrypted GitHub `ar006-isolated` secret `AR006_CLOUDFLARE_DEPLOY_TOKEN`;
+  GitHub metadata updated `2026-09-24T08:36:53Z`.
+- `mariage-os-ar006-worker-deploy-20260924` — `Workers Scripts Write`, stored
+  as `AR006_CLOUDFLARE_WORKER_DEPLOY_TOKEN` in the same environment; GitHub
+  metadata updated `2026-09-24T08:38:15Z`.
+
+Both update timestamps were confirmed in the GitHub dashboard. Values were
+also sealed to the current Windows user with DPAPI outside the repository;
+neither value is in Git, this record or CI logs. The old deploy tokens remain
+until the replacements have provider proof. No deployment or synthetic
+promotion has run with these replacements at this checkpoint. The next action
+is the marker-gated `[AR006-PREFLIGHT]` on an exact commit, followed by review
+of its sanitized result and the normal exact-commit CI.
+
 ## Provider references
 
 - <https://developers.cloudflare.com/pages/functions/debugging-and-logging/>
