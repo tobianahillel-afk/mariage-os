@@ -331,7 +331,13 @@ function sanitizedEvaluation(observation) {
   };
 }
 
-function evidenceRecord(context, invocations, discovery, observation, pass) {
+function evidenceRecord({
+  context,
+  invocations,
+  discovery,
+  observation,
+  pass,
+}) {
   return {
     schema: "mariage-os.wp29c.ar006.adr0012-two-surface.v1",
     generatedAt: new Date().toISOString(),
@@ -365,27 +371,44 @@ async function writeEvidence(record) {
   console.log(`ADR 0012 provider evidence written to ${EVIDENCE_PATH}.`);
 }
 
+async function observeCampaign(context, invocations) {
+  const discovery = await discoverPagesScript(context, invocations);
+  const pagesScriptName = discovery?.discovery.pagesScriptName ?? null;
+  if (pagesScriptName === null) {
+    return { discovery, observation: null };
+  }
+  const observation = await collectTwoSurfaceEvidence(
+    context,
+    invocations,
+    pagesScriptName,
+  );
+  return { discovery, observation };
+}
+
+function campaignPassed(invocations, discovery, observation) {
+  return [
+    invocations.length === AR006_EVIDENCE_COUNT,
+    invocations.every((item) => item.success && item.status === 200),
+    discovery?.apiSuccess === true,
+    discovery?.discovery.pass === true,
+    observation?.pages.apiSuccess === true,
+    observation?.durableObject.apiSuccess === true,
+    observation?.evaluation.pass === true,
+  ].every(Boolean);
+}
+
 async function main() {
   const context = evidenceContext();
   const identity = await signIn();
   await delay(3_000);
   const invocations = await runPromotions(context, identity);
-  const discovery = await discoverPagesScript(context, invocations);
-  const pagesScriptName = discovery?.discovery.pagesScriptName ?? null;
-  const observation =
-    pagesScriptName === null
-      ? null
-      : await collectTwoSurfaceEvidence(context, invocations, pagesScriptName);
-  const pass =
-    invocations.length === AR006_EVIDENCE_COUNT &&
-    invocations.every((item) => item.success && item.status === 200) &&
-    discovery?.apiSuccess === true &&
-    discovery.discovery.pass &&
-    observation?.pages.apiSuccess === true &&
-    observation.durableObject.apiSuccess === true &&
-    observation.evaluation.pass;
+  const { discovery, observation } = await observeCampaign(
+    context,
+    invocations,
+  );
+  const pass = campaignPassed(invocations, discovery, observation);
   await writeEvidence(
-    evidenceRecord(context, invocations, discovery, observation, pass),
+    evidenceRecord({ context, invocations, discovery, observation, pass }),
   );
   if (!pass) {
     throw new Error(

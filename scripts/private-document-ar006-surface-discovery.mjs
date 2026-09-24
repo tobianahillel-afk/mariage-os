@@ -26,25 +26,34 @@ function markerPayload(event) {
   }
 }
 
-function markerRecord(event) {
-  const payload = markerPayload(event);
-  const workers = property(event, "$workers");
-  if (!isRecord(payload) || !isRecord(workers)) return null;
-  if (payload.event !== MARKER_EVENT) return null;
+function validEvidenceId(value) {
+  if (value === null) return false;
+  return UUID_PATTERN.test(value);
+}
+
+function validSurface(value) {
+  return value === "pages-ingress" || value === "durable-object";
+}
+
+function normalizedMarker(payload, workers) {
   const evidenceId = stringOrNull(payload.evidenceId);
   const surface = stringOrNull(payload.surface);
   const scriptName = stringOrNull(workers.scriptName);
   const status = Number.isInteger(payload.status) ? payload.status : null;
-  if (
-    evidenceId === null ||
-    !UUID_PATTERN.test(evidenceId) ||
-    scriptName === null ||
-    status === null
-  ) {
-    return null;
-  }
-  if (surface !== "pages-ingress" && surface !== "durable-object") return null;
+  if (!validEvidenceId(evidenceId)) return null;
+  if (!validSurface(surface)) return null;
+  if (scriptName === null) return null;
+  if (status === null) return null;
   return { evidenceId, surface, scriptName, status };
+}
+
+function markerRecord(event) {
+  const payload = markerPayload(event);
+  if (!isRecord(payload)) return null;
+  if (payload.event !== MARKER_EVENT) return null;
+  const workers = property(event, "$workers");
+  if (!isRecord(workers)) return null;
+  return normalizedMarker(payload, workers);
 }
 
 function failure(code, evidenceId = null) {
@@ -83,46 +92,74 @@ function unexpectedMarkers(markers, expectedIds) {
     .map((marker) => failure("unexpected_marker", marker.evidenceId));
 }
 
+function campaignShapeFailures(events, markers, expectedEvidenceIds) {
+  const failures = unexpectedMarkers(markers, expectedEvidenceIds);
+  if (events.length !== markers.length) {
+    failures.push(failure("unparseable_marker_event"));
+  }
+  if (new Set(expectedEvidenceIds).size !== expectedEvidenceIds.length) {
+    failures.push(failure("duplicate_expected_id"));
+  }
+  return failures;
+}
+
+function durableScriptMatches(durableNames, expectedName) {
+  if (durableNames.size !== 1) return false;
+  return durableNames.has(expectedName);
+}
+
+function scriptIdentityFailures(pageNames, durableNames, expectedDurableName) {
+  const failures = [];
+  if (pageNames.size !== 1) failures.push(failure("ambiguous_pages_script"));
+  if (!durableScriptMatches(durableNames, expectedDurableName)) {
+    failures.push(failure("unexpected_durable_object_script"));
+  }
+  return failures;
+}
+
+function discoveryPass(failures, pagesScriptName, markerCount, expectedCount) {
+  return [
+    failures.length === 0,
+    pagesScriptName !== null,
+    markerCount === expectedCount * 2,
+  ].every(Boolean);
+}
+
 export function discoverAr006SurfaceScripts({
   events,
   expectedEvidenceIds,
   durableObjectScriptName,
 }) {
   const markers = events.map(markerRecord).filter((marker) => marker !== null);
-  const malformedCount = events.length - markers.length;
-  const uniqueIds = new Set(expectedEvidenceIds);
   const pages = surfaceScripts(markers, expectedEvidenceIds, "pages-ingress");
   const durable = surfaceScripts(
     markers,
     expectedEvidenceIds,
     "durable-object",
   );
+  const pageNames = new Set(pages.scripts);
+  const durableNames = new Set(durable.scripts);
   const failures = [
     ...pages.failures,
     ...durable.failures,
-    ...unexpectedMarkers(markers, expectedEvidenceIds),
+    ...campaignShapeFailures(events, markers, expectedEvidenceIds),
+    ...scriptIdentityFailures(
+      pageNames,
+      durableNames,
+      durableObjectScriptName,
+    ),
   ];
-  if (malformedCount > 0) failures.push(failure("unparseable_marker_event"));
-  if (uniqueIds.size !== expectedEvidenceIds.length) {
-    failures.push(failure("duplicate_expected_id"));
-  }
-
-  const pageNames = new Set(pages.scripts);
-  const durableNames = new Set(durable.scripts);
-  if (pageNames.size !== 1) failures.push(failure("ambiguous_pages_script"));
-  if (durableNames.size !== 1 || !durableNames.has(durableObjectScriptName)) {
-    failures.push(failure("unexpected_durable_object_script"));
-  }
-
   const pagesScriptName =
     failures.length === 0 ? ([...pageNames][0] ?? null) : null;
   return {
     pagesScriptName,
     markerCount: markers.length,
     failures,
-    pass:
-      failures.length === 0 &&
-      pagesScriptName !== null &&
-      markers.length === expectedEvidenceIds.length * 2,
+    pass: discoveryPass(
+      failures,
+      pagesScriptName,
+      markers.length,
+      expectedEvidenceIds.length,
+    ),
   };
 }

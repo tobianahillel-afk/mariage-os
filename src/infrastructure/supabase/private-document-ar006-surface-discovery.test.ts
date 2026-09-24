@@ -42,13 +42,23 @@ function completeEvents() {
   ]);
 }
 
-describe("AR-006 surface script discovery", () => {
+function firstEvidenceId(): string {
+  const value = ids[0];
+  if (value === undefined) throw new Error("Fixture must contain an id.");
+  return value;
+}
+
+function discover(events: unknown[]) {
+  return discoverAr006SurfaceScripts({
+    events,
+    expectedEvidenceIds: ids,
+    durableObjectScriptName: durableScript,
+  });
+}
+
+describe("AR-006 surface script discovery identity", () => {
   it("discovers one exact Pages script and verifies the DO script", () => {
-    const result = discoverAr006SurfaceScripts({
-      events: completeEvents(),
-      expectedEvidenceIds: ids,
-      durableObjectScriptName: durableScript,
-    });
+    const result = discover(completeEvents());
     expect(result.pass).toBe(true);
     expect(result.pagesScriptName).toBe(pagesScript);
     expect(result.markerCount).toBe(20);
@@ -58,22 +68,20 @@ describe("AR-006 surface script discovery", () => {
   it("fails closed on an ambiguous Pages script", () => {
     const events = completeEvents();
     events[0] = marker({
-      evidenceId: ids[0]!,
+      evidenceId: firstEvidenceId(),
       surface: "pages-ingress",
       scriptName: "different-pages-script",
     });
-    const result = discoverAr006SurfaceScripts({
-      events,
-      expectedEvidenceIds: ids,
-      durableObjectScriptName: durableScript,
-    });
+    const result = discover(events);
     expect(result.pass).toBe(false);
     expect(result.failures).toContainEqual({
       code: "ambiguous_pages_script",
       evidenceId: null,
     });
   });
+});
 
+describe("AR-006 surface script discovery contamination", () => {
   it("fails closed on unexpected or malformed marker traffic", () => {
     const events = [
       ...completeEvents(),
@@ -84,11 +92,7 @@ describe("AR-006 surface script discovery", () => {
       }),
       { $workers: { scriptName: pagesScript }, $metadata: { message: "bad" } },
     ];
-    const result = discoverAr006SurfaceScripts({
-      events,
-      expectedEvidenceIds: ids,
-      durableObjectScriptName: durableScript,
-    });
+    const result = discover(events);
     expect(result.pass).toBe(false);
     expect(result.failures.map((item) => item.code)).toContain(
       "unexpected_marker",
@@ -107,11 +111,7 @@ describe("AR-006 surface script discovery", () => {
           }
         : event,
     );
-    const result = discoverAr006SurfaceScripts({
-      events,
-      expectedEvidenceIds: ids,
-      durableObjectScriptName: durableScript,
-    });
+    const result = discover(events);
     expect(result.pass).toBe(false);
     expect(result.failures).toContainEqual({
       code: "unexpected_durable_object_script",
