@@ -56,9 +56,7 @@ function validatedTargets(request: Request): DocumentTargets | Response {
   return targets;
 }
 
-export function privateDocumentLifecycleName(
-  targets: DocumentTargets,
-): string {
+export function privateDocumentLifecycleName(targets: DocumentTargets): string {
   return `private-document:${targets.projectId}:${targets.documentId}`;
 }
 
