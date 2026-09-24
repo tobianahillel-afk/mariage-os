@@ -86,6 +86,11 @@ describe("ADR 0012 provider evidence job gating", () => {
     expect(job).toContain("/versions/$VERSION_ID");
     expect(job).toContain("PrivateDocumentLifecycle");
     expect(job).toContain("wrangler@4.131.2 deploy");
+    expect(job).toContain('--tag "$WORKER_VERSION_TAG"');
+    expect(job).toContain('--message "$WORKER_VERSION_MESSAGE"');
+    expect(job).toContain('"$WORKER_URL/settings"');
+    expect(job).toContain('annotations["workers/tag"]');
+    expect(job).toContain('annotations["workers/message"]');
     expect(job).toContain("npm run preflight:ar006");
     expect(job).toContain("wrangler@4.131.2 pages deploy dist");
     expect(job).toContain('--commit-hash "$GITHUB_SHA"');

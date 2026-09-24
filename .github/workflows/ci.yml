@@ -174,9 +174,15 @@ jobs:
         run: |
           set -eu
           test -n "$CLOUDFLARE_API_TOKEN"
+          WORKER_VERSION_TAG="ar006-$(printf '%.12s' "$GITHUB_SHA")"
+          WORKER_VERSION_MESSAGE="WP-2.9C ADR 0012 exact candidate $GITHUB_SHA"
+          echo "AR006_WORKER_VERSION_TAG=$WORKER_VERSION_TAG" >> "$GITHUB_ENV"
+          echo "AR006_WORKER_VERSION_MESSAGE=$WORKER_VERSION_MESSAGE" >> "$GITHUB_ENV"
           npx --yes wrangler@4.131.2 deploy \
             --config workers/private-document-promotion/wrangler.jsonc \
-            --keep-vars
+            --keep-vars \
+            --tag "$WORKER_VERSION_TAG" \
+            --message "$WORKER_VERSION_MESSAGE"
       - name: Configure Pages Preview direct Durable Object binding
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.AR006_CLOUDFLARE_DEPLOY_TOKEN }}
@@ -400,6 +406,16 @@ jobs:
           printf '%s' "$VERSION_JSON" | jq -e --arg id "$VERSION_ID" '.result.id == $id' >/dev/null
           printf '%s' "$VERSION_JSON" | jq -e \
             '(.result.resources.script.named_handlers // []) | any(.name == "PrivateDocumentLifecycle")' >/dev/null
+          SETTINGS_JSON="$(curl --fail --silent --show-error \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            "$WORKER_URL/settings")"
+          printf '%s' "$SETTINGS_JSON" | jq -e '.success == true' >/dev/null
+          printf '%s' "$SETTINGS_JSON" | jq -e \
+            --arg tag "$AR006_WORKER_VERSION_TAG" \
+            '.result.annotations["workers/tag"] == $tag' >/dev/null
+          printf '%s' "$SETTINGS_JSON" | jq -e \
+            --arg message "$AR006_WORKER_VERSION_MESSAGE" \
+            '.result.annotations["workers/message"] == $message' >/dev/null
           echo "AR006_WORKER_DEPLOYMENT_ID=$DEPLOYMENT_ID" >> "$GITHUB_ENV"
           echo "AR006_WORKER_VERSION_ID=$VERSION_ID" >> "$GITHUB_ENV"
           jq -n \
@@ -409,7 +425,9 @@ jobs:
             --arg createdOn "$(printf '%s' "$DEPLOYMENT" | jq -r '.created_on // empty')" \
             --arg source "$(printf '%s' "$DEPLOYMENT" | jq -r '.source // empty')" \
             --arg versionSource "$(printf '%s' "$VERSION_JSON" | jq -r '.result.metadata.source // empty')" \
-            '{schema:"mariage-os.wp29c.ar006.worker-deployment.v1",script:$script,deploymentId:$deploymentId,versionId:$versionId,percentage:100,createdOn:$createdOn,source:$source,versionSource:$versionSource,namedHandler:"PrivateDocumentLifecycle"}' \
+            --arg versionTag "$AR006_WORKER_VERSION_TAG" \
+            --arg versionMessage "$AR006_WORKER_VERSION_MESSAGE" \
+            '{schema:"mariage-os.wp29c.ar006.worker-deployment.v1",script:$script,deploymentId:$deploymentId,versionId:$versionId,percentage:100,createdOn:$createdOn,source:$source,versionSource:$versionSource,versionTag:$versionTag,versionMessage:$versionMessage,namedHandler:"PrivateDocumentLifecycle"}' \
             > ar006-do-worker-deployment.json
       - name: Retain sanitized exact Worker deployment receipt
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
