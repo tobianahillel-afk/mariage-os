@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import supabaseConfig from "../../../supabase/config.toml?raw";
 import workerConfig from "../../../workers/private-document-promotion/wrangler.jsonc?raw";
+import evidenceSource from "../../../functions/api/private-document-evidence.ts?raw";
 import workerSource from "../../../workers/private-document-promotion/src/worker.ts?raw";
 
 const pagesPromotionModules = import.meta.glob(
@@ -39,7 +40,9 @@ describe("ADR 0010/0012 promotion deployment boundary", () => {
     expect(workerSource).toContain("handleTrustedPromotion");
     expect(workerSource).toContain("handleTrustedAbandon");
     expect(workerSource).toContain("PrivateDocumentLifecycleSerialGate");
-    expect(workerSource).toContain('"x-mariage-os-ar006-evidence-id"');
-    expect(workerSource).toContain('"mariage-os.ar006.promotion"');
+    expect(workerSource).toContain("recordAr006Evidence");
+    expect(workerSource).toContain('"durable-object"');
+    expect(evidenceSource).toContain('"x-mariage-os-ar006-evidence-id"');
+    expect(evidenceSource).toContain('"mariage-os.ar006.promotion"');
   });
 });
