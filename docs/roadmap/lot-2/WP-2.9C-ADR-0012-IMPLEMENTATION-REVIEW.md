@@ -1,6 +1,6 @@
 # WP-2.9C ADR 0012 — Adversarial implementation review
 
-Status: **REMEDIATION REVIEW PASSED — ISOLATED ADR 0012 PREFLIGHT AUTHORIZED; EXACT-SIZE EVIDENCE STILL GATED**
+Status: **PREFLIGHT ATTEMPT 1 FAILED CONTAINED; PATCH REMEDIATION REVIEW PASSED; ONE BOUNDED RETRY GATED ON EXACT-HEAD CI**
 
 Review date: 2026-09-24  
 Reviewed implementation head: `99ff618781f46073964b14d49b7969c9c132bc92`  
@@ -224,3 +224,80 @@ The exact-size 25 MB campaign remains separately forbidden. A green preflight
 only authorizes implementation + adversarial review of the new two-surface CPU
 evaluator. AR-006 remains **OPEN / BLOCKING** until valid provider evidence,
 followed by exact-head verification, a complete fresh Pass B and Pass C.
+
+
+## Provider preflight attempt 1 — 2026-09-24
+
+Status: **FAILED CONTAINED — NO EXACT-SIZE EVIDENCE / NO DOCUMENT MUTATION**
+
+Trigger: `b0c8782517f726a0b71f33ca52e940f31c3e138c`  
+CI run: `36044939346`  
+Provider preflight job: `107788836160`
+
+The trigger reused the exact reviewed tree and passed Core, browser/mutation,
+local Supabase + Pages/Workers runtime, preview build and full verification from
+a clean checkout before provider work began. The exact-size job remained
+disabled/skipped.
+
+The bounded provider job then:
+
+- deployed the non-public ADR 0012 Durable Object host successfully;
+- created/reconciled the SQLite `PrivateDocumentLifecycle` export;
+- failed while applying the Pages Preview configuration PATCH;
+- stopped before the sanitized binding receipt, provider binding verification,
+  Pages candidate deployment, deny smoke or non-mutating route probe;
+- did not reserve, upload, promote, finalize or otherwise mutate a document.
+
+The first configurator discarded Cloudflare's structured error metadata, so the
+exact provider validation reason was not retained. This review does **not**
+claim an unobserved provider root cause.
+
+What is established is that the rejected request replayed the full Preview
+configuration returned by Cloudflare and then overlaid ADR 0012 changes. That
+shape was unnecessary and could replay provider-managed/redacted fields.
+Cloudflare's current Pages Project PATCH contract accepts partial Preview
+updates; its typed schema exposes nullable entries for environment variables,
+services and Durable Object namespace bindings, and documents null deletion for
+environment variables. The remediation therefore removes configuration replay
+entirely rather than guessing at a provider-managed field.
+
+## Bounded Pages PATCH remediation review — 2026-09-24
+
+Status: **PASS — ONE PREFLIGHT RETRY MAY BE AUTHORIZED AFTER THIS REVIEW/STATUS STATE IS EXACT-HEAD GREEN**
+
+Reviewed remediation range:
+`c67756341d81c133d49027b541e836a8e07e728a` through
+`2f3a9eb657bfb8b151d9b70d64371961b519cd53`.
+
+Exact-head CI: `36047159395` — **5/5 SUCCESS**, including
+`Full verify from clean checkout`. Provider workflows were skipped on the
+ordinary remediation commits.
+
+The remediated configurator now sends only the intended Preview delta:
+
+- `PRIVATE_DOCUMENT_ADMIN_KEY: null`;
+- exact `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` plaintext values;
+- `PRIVATE_DOCUMENT_PROMOTION_WORKER: null`;
+- exact `PRIVATE_DOCUMENT_LIFECYCLE.namespace_id`.
+
+It no longer GETs or replays the existing Preview object. The PATCH result is
+still checked fail-closed for admin-secret absence, legacy Service Binding
+absence, exact Supabase variables and exact Durable Object namespace.
+
+Provider failure diagnostics are bounded and sanitized: only HTTP status,
+provider error codes and a restricted field/source pointer may be emitted.
+Provider error messages and arbitrary source values are not retained.
+
+New unit/contract tests prove the minimal patch shape, reject unrelated Preview
+fields and prove the diagnostic sanitizer does not retain provider messages.
+Type declarations remain explicit. No security control, file-size limit,
+credential scope or plan requirement changed.
+
+Fresh review conclusion: no BLOCKING/MAJOR finding remains in this **retry
+scope**. Exactly one new `[AR006-DO-PREFLIGHT]` may be triggered only after
+the documentation/status state containing this review passes ordinary
+exact-head CI and clean-checkout verification.
+
+The retry remains a preflight only. The 10 × 25 MB evidence campaign stays
+hard-disabled. A green retry authorizes only implementation and adversarial
+review of the two-surface CPU evaluator required by ADR 0012.
