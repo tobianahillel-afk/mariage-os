@@ -93,7 +93,11 @@ export function discoverAr006SurfaceScripts({
   const malformedCount = events.length - markers.length;
   const uniqueIds = new Set(expectedEvidenceIds);
   const pages = surfaceScripts(markers, expectedEvidenceIds, "pages-ingress");
-  const durable = surfaceScripts(markers, expectedEvidenceIds, "durable-object");
+  const durable = surfaceScripts(
+    markers,
+    expectedEvidenceIds,
+    "durable-object",
+  );
   const failures = [
     ...pages.failures,
     ...durable.failures,
