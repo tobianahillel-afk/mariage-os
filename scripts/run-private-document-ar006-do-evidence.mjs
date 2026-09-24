@@ -7,12 +7,8 @@ import {
   queryAr006MarkerObservability,
   queryWorkersObservability,
 } from "./private-document-ar006-observability-client.mjs";
-import {
-  workerEvidenceTimeframe,
-} from "./private-document-ar006-observability-timeframe.mjs";
-import {
-  discoverAr006SurfaceScripts,
-} from "./private-document-ar006-surface-discovery.mjs";
+import { workerEvidenceTimeframe } from "./private-document-ar006-observability-timeframe.mjs";
+import { discoverAr006SurfaceScripts } from "./private-document-ar006-surface-discovery.mjs";
 import { createExactPdf } from "./private-document-ar006-synthetic-pdf.mjs";
 import {
   AR006_EVIDENCE_COUNT,
