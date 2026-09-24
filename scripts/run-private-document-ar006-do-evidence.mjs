@@ -1,5 +1,4 @@
 import { randomUUID } from "node:crypto";
-import { writeFile } from "node:fs/promises";
 import { createClient } from "@supabase/supabase-js";
 import {
   assertUuid,
@@ -19,10 +18,13 @@ import {
   AR006_EVIDENCE_COUNT,
   evaluateAr006TwoSurfaceEvents,
 } from "./private-document-ar006-two-surface-metrics.mjs";
+import {
+  buildEvidenceRecord,
+  writeEvidence,
+} from "./private-document-ar006-do-evidence-record.mjs";
 import { campaignPassed } from "./private-document-ar006-do-evidence-verdict.mjs";
 
 const MAX_BYTES = 25_000_000;
-const EVIDENCE_PATH = "ar006-adr0012-two-surface-evidence.json";
 const OBSERVABILITY_ATTEMPTS = 6;
 const OBSERVABILITY_DELAY_MS = 10_000;
 function delay(ms) {
@@ -297,86 +299,6 @@ async function collectTwoSurfaceEvidence(
   return latest;
 }
 
-function sanitizedQuery(result) {
-  if (result === null) return null;
-  return {
-    httpStatus: result.httpStatus,
-    apiSuccess: result.apiSuccess,
-    providerErrorCodes: result.providerErrorCodes,
-    totalEventCount: result.totalEventCount,
-    eventPageComplete: result.eventPageComplete,
-    retryAfterMs: result.retryAfterMs,
-  };
-}
-
-function sanitizedDiscovery(result) {
-  if (result === null) return null;
-  return {
-    attempt: result.attempt,
-    window: result.window,
-    query: sanitizedQuery(result),
-    markerCount: result.discovery.markerCount,
-    failures: result.discovery.failures,
-    pagesScriptName: result.discovery.pagesScriptName,
-    pass: result.discovery.pass,
-  };
-}
-
-function sanitizedEvaluation(observation) {
-  if (observation === null) return null;
-  return {
-    attempt: observation.attempt,
-    window: observation.window,
-    pagesQuery: sanitizedQuery(observation.pages),
-    durableObjectQuery: sanitizedQuery(observation.durableObject),
-    evaluation: observation.evaluation,
-  };
-}
-
-function evidenceRecord({
-  context,
-  invocations,
-  discovery,
-  observation,
-  pass,
-}) {
-  return {
-    schema: "mariage-os.wp29c.ar006.adr0012-two-surface.v1",
-    generatedAt: new Date().toISOString(),
-    gitCommit: requiredEnv("AR006_EXPECTED_SHA"),
-    pagesProject: requiredEnv("AR006_PAGES_PROJECT"),
-    deployment: {
-      id: requiredEnv("AR006_DEPLOYMENT_ID"),
-      url: context.deploymentUrl,
-      branch: requiredEnv("AR006_DEPLOYMENT_BRANCH"),
-    },
-    worker: {
-      name: context.durableObjectScriptName,
-      deploymentId: context.workerDeploymentId,
-      versionId: context.workerVersionId,
-    },
-    workersPlanAttestation: "Workers Free / isolated non-production",
-    exactBytes: MAX_BYTES,
-    sha256: context.sha256,
-    projectId: context.projectId,
-    invocationCount: AR006_EVIDENCE_COUNT,
-    invocations,
-    discovery: sanitizedDiscovery(discovery),
-    provider: sanitizedEvaluation(observation),
-    paidCpuEntitlementAttestedAbsent: true,
-    pass,
-  };
-}
-
-async function writeEvidence(record) {
-  await writeFile(
-    EVIDENCE_PATH,
-    `${JSON.stringify(record, null, 2)}\n`,
-    "utf8",
-  );
-  console.log(`ADR 0012 provider evidence written to ${EVIDENCE_PATH}.`);
-}
-
 async function observeCampaign(context, invocations) {
   const discovery = await discoverPagesScript(context, invocations);
   const pagesScriptName = discovery?.discovery.pagesScriptName ?? null;
@@ -407,7 +329,15 @@ async function main() {
     AR006_EVIDENCE_COUNT,
   );
   await writeEvidence(
-    evidenceRecord({ context, invocations, discovery, observation, pass }),
+    buildEvidenceRecord({
+      context,
+      invocations,
+      discovery,
+      observation,
+      pass,
+      exactBytes: MAX_BYTES,
+      invocationCount: AR006_EVIDENCE_COUNT,
+    }),
   );
   if (!pass) {
     throw new Error(
