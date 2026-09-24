@@ -9,10 +9,7 @@ const routeUrl = new URL(
 );
 
 function denied(status: number) {
-  return Response.json(
-    { error: "private_document_unavailable" },
-    { status },
-  );
+  return Response.json({ error: "private_document_unavailable" }, { status });
 }
 
 describe("private-document Pages readiness smoke", () => {
