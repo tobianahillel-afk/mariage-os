@@ -450,6 +450,11 @@ the browser tool was unavailable. No further token mutation was attempted.
 This cleanup is separate from the AR-006 CPU failure and must not be reported
 as completed.
 
+The subsequent read-only feasibility assessment is recorded in
+`WP-2.9C-AR-006-FEASIBILITY-2026-09-24.md`. It identifies a possible bounded
+multi-request hashing design but does not select or authorize it. The token
+cleanup is deferred while the CPU architecture remains the priority.
+
 ## Provider references
 
 - <https://developers.cloudflare.com/pages/functions/debugging-and-logging/>
