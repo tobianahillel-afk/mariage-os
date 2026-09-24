@@ -57,7 +57,7 @@ describe("AR-006 surface script discovery", () => {
   it("fails closed on an ambiguous Pages script", () => {
     const events = completeEvents();
     events[0] = marker({
-      evidenceId: ids[0],
+      evidenceId: ids[0]!,
       surface: "pages-ingress",
       scriptName: "different-pages-script",
     });
