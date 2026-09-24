@@ -122,6 +122,12 @@ async function main() {
               SUPABASE_PUBLISHABLE_KEY: environment.anonKey,
               PRIVATE_DOCUMENT_ADMIN_KEY: environment.serviceRoleKey,
             },
+            durableObjects: {
+              PrivateDocumentLifecycle: {
+                className: "PrivateDocumentLifecycle",
+                useSQLite: true,
+              },
+            },
           },
         ],
       }),
