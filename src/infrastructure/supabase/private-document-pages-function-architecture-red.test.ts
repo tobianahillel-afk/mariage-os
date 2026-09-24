@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import supabaseConfig from "../../../supabase/config.toml?raw";
 import workerConfig from "../../../workers/private-document-promotion/wrangler.jsonc?raw";
 import workerSource from "../../../workers/private-document-promotion/src/worker.ts?raw";
-import preflightSource from "../../../scripts/run-private-document-ar006-preflight.mjs?raw";
 
 const pagesPromotionModules = import.meta.glob(
   "../../../functions/api/private-document-promote.ts",
@@ -13,7 +12,7 @@ const supabasePromotionModules = import.meta.glob(
   { eager: true, import: "default", query: "?raw" },
 );
 
-describe("ADR 0010/0011 promotion deployment boundary", () => {
+describe("ADR 0010/0012 promotion deployment boundary", () => {
   it("provides the same-origin Cloudflare Pages Function", () => {
     expect(Object.keys(pagesPromotionModules)).toHaveLength(1);
   });
@@ -29,16 +28,18 @@ describe("ADR 0010/0011 promotion deployment boundary", () => {
     );
   });
 
-  it("delegates trusted promotion work to an internal observed Worker", () => {
+  it("hosts the trusted lifecycle in a private observed Durable Object", () => {
     expect(workerConfig).toContain('"workers_dev": false');
     expect(workerConfig).toContain('"enabled": true');
     expect(workerConfig).toContain('"invocation_logs": true');
     expect(workerConfig).toContain('"head_sampling_rate": 1');
+    expect(workerConfig).toContain('"PrivateDocumentLifecycle"');
+    expect(workerConfig).toContain('"type": "durable-object"');
+    expect(workerConfig).toContain('"storage": "sqlite"');
     expect(workerSource).toContain("handleTrustedPromotion");
+    expect(workerSource).toContain("handleTrustedAbandon");
+    expect(workerSource).toContain("PrivateDocumentLifecycleSerialGate");
     expect(workerSource).toContain('"x-mariage-os-ar006-evidence-id"');
     expect(workerSource).toContain('"mariage-os.ar006.promotion"');
-    expect(workerSource).toContain("UUID_PATTERN.test(value)");
-    expect(preflightSource).toContain("requirePromotionWorkerBinding");
-    expect(preflightSource).toContain("PRIVATE_DOCUMENT_PROMOTION_WORKER");
   });
 });

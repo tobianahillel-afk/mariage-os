@@ -11,4 +11,10 @@
       "head_sampling_rate": 1,
     },
   },
+  "exports": {
+    "PrivateDocumentLifecycle": {
+      "type": "durable-object",
+      "storage": "sqlite",
+    },
+  },
 }

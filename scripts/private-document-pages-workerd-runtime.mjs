@@ -66,6 +66,9 @@ async function buildPromotionWorker(outputDirectory) {
       },
       outDir: outputDirectory,
       target: "es2022",
+      rollupOptions: {
+        external: ["cloudflare:workers"],
+      },
     },
   });
   return join(outputDirectory, "private-document-promotion.js");
@@ -96,15 +99,16 @@ async function main() {
             scriptPath: bundleFilename,
             modules: true,
             compatibilityDate: "2026-09-17",
-            bindings: {
-              SUPABASE_URL: environment.apiUrl,
-              SUPABASE_PUBLISHABLE_KEY: environment.anonKey,
-              PRIVATE_DOCUMENT_ADMIN_KEY: environment.serviceRoleKey,
-            },
             serviceBindings: {
               ASSETS: () =>
                 new globalThis.Response("Not found", { status: 404 }),
-              PRIVATE_DOCUMENT_PROMOTION_WORKER: "private-document-promotion",
+            },
+            durableObjects: {
+              PRIVATE_DOCUMENT_LIFECYCLE: {
+                className: "PrivateDocumentLifecycle",
+                scriptName: "private-document-promotion",
+                useSQLite: true,
+              },
             },
           },
           {
