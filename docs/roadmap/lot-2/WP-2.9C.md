@@ -5,7 +5,7 @@
 - Work Packet ID: `WP-2.9C`
 - Lot: `2`
 - State: `IN_PROGRESS`
-- Current pass: `ADR 0013 FINAL CAMPAIGN FAILED-CONTAINED AT MARKER PREFLIGHT / ADR13-EV-001 INGRESS VERSION MISMATCH REMEDIATION`
+- Current pass: `ADR13-EV-001 INGRESS VERSION READINESS TARGETED REVIEW PASS / REVIEW-SEAL CI NEXT`
 - Primary bounded context: Documents — trusted binary promotion for the existing WP-2.9A private PDF lifecycle
 - Branch: `lot-2/venues-core`
 - FIR: `#17 / FTR-089`
@@ -444,8 +444,11 @@ That read-only trigger completed at `561aa6e` / CI `36167031612`. The sole
 rejected field was the ingress script version, not CPU. Repository-only
 remediation now issues a new random-unreserved marker only after a complete
 observation has no failure except that version mismatch, at most three marker
-rounds. It must pass local tests, exact-head CI and fresh adversarial review
-before any provider run is considered. AR-006 and WP-2.9C remain open.
+rounds. Implementation `6c5560e` / CI `36169216121` passed 5/5 ordinary jobs,
+including clean checkout. Targeted fresh review
+`WP-2.9C-ADR-0013-VERSION-READINESS-REVIEW.md` is PASS. Only after its
+review/status seal is itself exact-head green may one new, bounded
+`[AR006-INGRESS-EVIDENCE]` campaign run. AR-006 and WP-2.9C remain open.
 
 ## Deviations
 

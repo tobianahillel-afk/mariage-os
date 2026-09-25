@@ -91,6 +91,13 @@ behind a final valid marker, separate exact-head CI, fresh review and explicit
 new provider-campaign authorization. Do not run a provider marker or document
 campaign merely because this code exists.
 
+Implementation `6c5560e` passed ordinary CI `36169216121` (5/5, clean checkout
+included). Targeted review
+`WP-2.9C-ADR-0013-VERSION-READINESS-REVIEW.md` is PASS. One new exact-size
+trigger is conditionally authorized only after the review/status seal itself
+passes the same exact-head gate. If the campaign fails, stop and review its
+sanitized artifact; there is no automatic repeat.
+
 ## ADR 0012 historical final-evidence protocol — superseded by ADR 0013 ingress
 
 This section is the current AR-006 execution protocol. Older `[AR006-EVIDENCE]`, GraphQL, Pages-tail and ADR 0011 Service-Binding sections later in this file are historical/reproducibility records only.

@@ -636,10 +636,13 @@ provider-status/outcome/model/event, Durable Object identity/version or other
 error fails closed. The ten exact-size flows remain disabled until a fresh
 marker proves the exact versions on both surfaces.
 
-This review authorizes only repository implementation, tests, exact-head CI
-and a fresh adversarial implementation review. It does not authorize a new
-provider preflight or exact-size campaign. The diagnostic result and its
-provenance are in `WP-2.9C-ADR-0013-DIAGNOSTIC-RESULT-2026-09-25.md`.
+The correction is exact-head green at `6c5560e` / CI `36169216121`. Targeted
+fresh adversarial review is **PASS** in
+`WP-2.9C-ADR-0013-VERSION-READINESS-REVIEW.md`. One new exact-size campaign is
+authorized **only after the review/status seal itself passes ordinary exact-head
+CI and clean checkout**; a red result returns to review. The diagnostic result
+and its provenance are in
+`WP-2.9C-ADR-0013-DIAGNOSTIC-RESULT-2026-09-25.md`.
 
 ## Provider references
 
@@ -658,4 +661,4 @@ provenance are in `WP-2.9C-ADR-0013-DIAGNOSTIC-RESULT-2026-09-25.md`.
 
 ## Governance
 
-WP-2.9C is **IN_PROGRESS — ADR13-EV-001 VERSION READINESS REMEDIATION**. AR-006 remains OPEN. No `REVIEW_PENDING`, fresh Pass B, Pass C, WP-2.9A resumption, provider preflight, exact-size campaign, Workers Paid activation or 25 MB reduction is authorized by the diagnostic result. The repository correction must pass exact-head CI and fresh review first.
+WP-2.9C is **IN_PROGRESS — ADR13-EV-001 VERSION READINESS REVIEW PASS / REVIEW-SEAL CI NEXT**. AR-006 remains OPEN. No `REVIEW_PENDING`, complete fresh Pass B, Pass C, WP-2.9A resumption, Workers Paid activation or 25 MB reduction is authorized. One exact-size campaign may run only after the review/status seal is exact-head green.
