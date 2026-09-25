@@ -31,7 +31,9 @@ describe("ADR 0013 public Worker ingress", () => {
   });
 
   it("invokes only the server-derived lifecycle binding after validation", async () => {
-    const fetch = vi.fn(async () => Response.json({ ok: true }, { status: 200 }));
+    const fetch = vi.fn(async () =>
+      Response.json({ ok: true }, { status: 200 }),
+    );
     const get = vi.fn(() => ({ fetch }));
     const idFromName = vi.fn(() => "synthetic-id");
     const response = await ingress.fetch(
