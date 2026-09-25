@@ -16,10 +16,18 @@ describe("ADR 0013 public Worker ingress", () => {
 
   it("fails the lifecycle route closed when its DO binding is absent", async () => {
     const response = await ingress.fetch(
-      request("/api/private-document-promote", "POST"),
+      new Request("https://ingress.example/api/private-document-promote", {
+        method: "POST",
+        headers: {
+          authorization: "Bearer synthetic",
+          origin: "https://ingress.example",
+          "x-project-id": "00000000-0000-4000-8000-000000000001",
+          "x-document-id": "00000000-0000-4000-8000-000000000002",
+        },
+      }),
       {},
     );
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(503);
   });
 
   it("invokes only the server-derived lifecycle binding after validation", async () => {
