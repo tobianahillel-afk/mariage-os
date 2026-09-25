@@ -1,6 +1,6 @@
 # WP-2.9C ADR 0012 — Adversarial implementation review
 
-Status: **PROVIDER HARNESS REVIEW COMPLETE / GREEN; MARKER-GATE ENABLEMENT NEXT**
+Status: **ROUTE-READINESS REMEDIATION REVIEW GREEN; EXISTING-DEPLOYMENT READ-ONLY RECHECK HARNESS NEXT**
 
 Review date: 2026-09-24  
 Reviewed implementation head: `99ff618781f46073964b14d49b7969c9c132bc92`  
@@ -643,3 +643,62 @@ This review does **not** itself execute or accept the provider campaign.
 AR-006 remains OPEN / BLOCKING until the resulting sanitized provider evidence
 is reviewed. Workers Paid, wall-time substitution and any reduction of the
 `25,000,000`-byte contract remain forbidden.
+
+## Evidence attempt 1 route-readiness remediation review — 2026-09-25
+
+Status: **PASS — NO BLOCKING/MAJOR FINDING; READ-ONLY RECHECK HARNESS MAY BE ADDED**
+
+Reviewed remediation range:
+`f3d8504404c551d54fe550d9558d63baa853335b` through
+`f6a272bd04640c52a3ff0c98330605f158474148`.
+
+Exact-head CI: `36124432936` — **5/5 SUCCESS**, including
+`Full verify from clean checkout`. Provider/deployment/evidence jobs on the
+reviewed head were **SKIPPED**.
+
+Fresh review verifies:
+
+- only HTTP `404` and `503` are transient/retryable;
+- the window is bounded to eight attempts with a 1.5-second delay;
+- neither transient status is accepted as success;
+- success still requires exact HTTP `409`, JSON content type, no wildcard
+  CORS and the generic `private_document_unavailable` body;
+- authorization-shaped `401` and every other unexpected status fail
+  immediately;
+- malformed `409` responses fail closed;
+- the helper is shared by standalone route proof and marker-only preflight;
+- the probe uses a fresh random unreserved document ID after synthetic
+  authentication, so it does not reserve, upload, promote or finalize a
+  document;
+- exact-size flows remain strictly after the route proof;
+- a pre-mutation route failure writes the canonical sanitized pass-false
+  receipt with zero completed invocations and no PDF hash/bytes, bearer token,
+  password, service credential or raw exception;
+- the receipt remains retained through the always-run evidence artifact step;
+- the helper satisfies repository complexity/lint rules, imports Node `URL`
+  explicitly and preserves caught-error cause when enriching diagnostics.
+
+The 25,000,000-byte contract, Workers Free attestation, two-surface evaluator,
+provider request-identity join, Pages <=10 ms gate, Durable Object <=30,000 ms
+gate and exact Worker-version binding are unchanged.
+
+### Review conclusion
+
+No BLOCKING/MAJOR finding remains in this remediation scope.
+
+This does **not** authorize a second exact-size campaign. The next permitted
+action is repository-only: add a dedicated marker-gated read-only recheck job
+pinned to the already-created exact
+`6bdf445e7f56e38caa0d807232bcfde573103117` preview. It may only resolve/read
+provider metadata, authenticate the synthetic user, run deny smoke and execute
+the bounded random-unreserved lifecycle route probe. It must not deploy a
+Worker, PATCH Pages, reserve/upload/promote/finalize a document or run an
+exact-size flow.
+
+That job must first pass ordinary exact-head CI + clean checkout with its marker
+absent and receive a focused adversarial contract review. Only then may one
+same-tree read-only recheck trigger run.
+
+AR-006 remains OPEN / BLOCKING. Workers Paid, wall-time substitution and
+file-limit reduction remain forbidden.
+
