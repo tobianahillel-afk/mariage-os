@@ -24,6 +24,7 @@ function sanitizedDiscovery(result) {
     markerCount: result.discovery.markerCount,
     failures: result.discovery.failures,
     pagesScriptName: result.discovery.pagesScriptName,
+    routeReadiness: result.routeReadiness ?? null,
     pass: result.discovery.pass,
   };
 }
@@ -113,6 +114,42 @@ export function buildFailureEvidenceRecord({
     markerPreflight: sanitizedDiscovery(markerPreflight),
     discovery: sanitizedDiscovery(discovery),
     provider: sanitizedEvaluation(observation),
+    failureStage,
+    paidCpuEntitlementAttestedAbsent: true,
+    pass: false,
+  };
+}
+
+export function buildPreMutationFailureEvidenceRecord({
+  failureStage,
+  exactBytes,
+  invocationCount,
+}) {
+  return {
+    schema: "mariage-os.wp29c.ar006.adr0012-two-surface-failure.v1",
+    generatedAt: new Date().toISOString(),
+    gitCommit: requiredEnv("AR006_EXPECTED_SHA"),
+    pagesProject: requiredEnv("AR006_PAGES_PROJECT"),
+    deployment: {
+      id: requiredEnv("AR006_DEPLOYMENT_ID"),
+      url: requiredEnv("AR006_DEPLOYMENT_URL"),
+      branch: requiredEnv("AR006_DEPLOYMENT_BRANCH"),
+    },
+    worker: {
+      name: requiredEnv("AR006_PRIVATE_DOCUMENT_WORKER"),
+      deploymentId: requiredEnv("AR006_WORKER_DEPLOYMENT_ID"),
+      versionId: requiredEnv("AR006_WORKER_VERSION_ID"),
+    },
+    workersPlanAttestation: "Workers Free / isolated non-production",
+    exactBytes,
+    sha256: null,
+    projectId: requiredEnv("AR006_PROJECT_ID"),
+    invocationCount,
+    completedInvocationCount: 0,
+    invocations: [],
+    markerPreflight: null,
+    discovery: null,
+    provider: null,
     failureStage,
     paidCpuEntitlementAttestedAbsent: true,
     pass: false,
