@@ -1,3 +1,5 @@
+import { URL } from "node:url";
+
 const DEFAULT_ATTEMPTS = 8;
 const DEFAULT_DELAY_MS = 1_500;
 const TRANSIENT_STATUSES = new Set([404, 503]);
@@ -39,6 +41,17 @@ async function requireReadyResponse(response) {
   }
 }
 
+async function requireReadyWithHistory(response, statuses) {
+  try {
+    await requireReadyResponse(response);
+  } catch (error) {
+    throw new Error(
+      `Lifecycle route readiness failed after statuses [${statuses.join(",")}]: ${error instanceof Error ? error.message : String(error)}.`,
+      { cause: error },
+    );
+  }
+}
+
 function lifecycleHeaders({
   token,
   origin,
@@ -58,6 +71,38 @@ function lifecycleHeaders({
   return headers;
 }
 
+function canRetry(status, attempt, maxAttempts) {
+  return TRANSIENT_STATUSES.has(status) && attempt < maxAttempts;
+}
+
+function readinessFailure(statuses, status) {
+  return new Error(
+    `Lifecycle route readiness failed after statuses [${statuses.join(",")}]: expected HTTP 409, received ${status}.`,
+  );
+}
+
+async function fetchLifecycle({
+  routeUrl,
+  token,
+  origin,
+  projectId,
+  documentId,
+  evidenceId,
+  fetcher,
+}) {
+  return fetcher(routeUrl, {
+    method: "POST",
+    redirect: "manual",
+    headers: lifecycleHeaders({
+      token,
+      origin,
+      projectId,
+      documentId,
+      evidenceId,
+    }),
+  });
+}
+
 export async function probePrivateDocumentLifecycle({
   routeUrl,
   token,
@@ -74,36 +119,25 @@ export async function probePrivateDocumentLifecycle({
   const statuses = [];
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-    const response = await fetcher(routeUrl, {
-      method: "POST",
-      redirect: "manual",
-      headers: lifecycleHeaders({
-        token,
-        origin,
-        projectId,
-        documentId,
-        evidenceId,
-      }),
+    const response = await fetchLifecycle({
+      routeUrl,
+      token,
+      origin,
+      projectId,
+      documentId,
+      evidenceId,
+      fetcher,
     });
     statuses.push(response.status);
 
     if (response.status === 409) {
-      try {
-        await requireReadyResponse(response);
-      } catch (error) {
-        throw new Error(
-          `Lifecycle route readiness failed after statuses [${statuses.join(",")}]: ${error instanceof Error ? error.message : String(error)}.`,
-        );
-      }
+      await requireReadyWithHistory(response, statuses);
       return { attempts: attempt, statuses };
     }
-    if (TRANSIENT_STATUSES.has(response.status) && attempt < maxAttempts) {
-      await waiter(delayMs);
-      continue;
+    if (!canRetry(response.status, attempt, maxAttempts)) {
+      throw readinessFailure(statuses, response.status);
     }
-    throw new Error(
-      `Lifecycle route readiness failed after statuses [${statuses.join(",")}]: expected HTTP 409, received ${response.status}.`,
-    );
+    await waiter(delayMs);
   }
   throw new Error(
     `Lifecycle route readiness exhausted after statuses [${statuses.join(",")}].`,
