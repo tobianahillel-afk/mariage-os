@@ -496,9 +496,13 @@ jobs:
       - name: Deny-oriented Pages Function smoke before mutation
         run: PRIVATE_DOCUMENT_SMOKE_BASE_URL="$AR006_DEPLOYMENT_URL" npm run smoke:private-document-production
       - name: Prove exact candidate reaches lifecycle DO without document mutation
+        id: route_preflight
         env:
           AR006_TEST_USER_PASSWORD: ${{ secrets.AR006_TEST_USER_PASSWORD }}
         run: node scripts/run-private-document-ar006-do-route-preflight.mjs
+      - name: Write sanitized pre-mutation route failure receipt
+        if: ${{ always() && steps.route_preflight.outcome == 'failure' }}
+        run: node scripts/write-private-document-ar006-do-pre-mutation-failure.mjs
       - name: Execute ten exact-size synthetic flows and collect two-surface CPU evidence
         env:
           AR006_TEST_USER_PASSWORD: ${{ secrets.AR006_TEST_USER_PASSWORD }}
