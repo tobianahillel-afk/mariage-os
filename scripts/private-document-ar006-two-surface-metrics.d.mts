@@ -1,5 +1,4 @@
 export const INGRESS_CPU_BUDGET_MS: 10;
-export const PAGES_CPU_BUDGET_MS: 10;
 export const DURABLE_OBJECT_CPU_BUDGET_MS: 30000;
 export const AR006_EVIDENCE_COUNT: 10;
 
