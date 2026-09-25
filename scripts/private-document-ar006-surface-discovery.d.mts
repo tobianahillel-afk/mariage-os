@@ -6,6 +6,7 @@ export interface Ar006ScriptDiscoveryFailure {
 export interface Ar006ScriptDiscovery {
   readonly ingressScriptName: string | null;
   readonly markerCount: number;
+  readonly attributedInvocationCount: number;
   readonly failures: ReadonlyArray<Ar006ScriptDiscoveryFailure>;
   readonly pass: boolean;
 }

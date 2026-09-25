@@ -92,6 +92,7 @@ async function observeMarker(state, evidenceId, startedAt) {
       ingress: sanitizedQuery(ingress),
       durableObject: sanitizedQuery(durableObject),
       markerCount: discovery.markerCount,
+      attributedInvocationCount: discovery.attributedInvocationCount,
       failures: discovery.failures,
       pass:
         ingress.apiSuccess === true &&
