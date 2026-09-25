@@ -16,11 +16,15 @@ describe("ADR 0012 exact-preview route recheck gate", () => {
     expect(job).toContain("github.event_name == 'push'");
     expect(job).toContain("github.ref == 'refs/heads/lot-2/venues-core'");
     expect(job).toContain("[AR006-DO-ROUTE-RECHECK]");
-    expect(job).toContain("6bdf445e7f56e38caa0d807232bcfde573103117");
+    expect(job).toContain(
+      "6bdf445e7f56e38caa0d807232bcfde573103117",
+    );
     expect(job).toContain("environment: ar006-isolated");
     expect(job).toContain("npm run preflight:ar006");
     expect(job).toContain("smoke:private-document-production");
-    expect(job).toContain("run-private-document-ar006-do-route-preflight.mjs");
+    expect(job).toContain(
+      "run-private-document-ar006-do-route-preflight.mjs",
+    );
   });
 
   it("cannot deploy, patch Pages or enter exact-size evidence work", () => {
@@ -29,7 +33,9 @@ describe("ADR 0012 exact-preview route recheck gate", () => {
     expect(job).not.toContain("configure-ar006-pages-preview");
     expect(job).not.toContain("AR006_CLOUDFLARE_OBSERVABILITY_TOKEN");
     expect(job).not.toContain("run-private-document-ar006-do-evidence.mjs");
-    expect(job).not.toContain("write-private-document-ar006-do-pre-mutation-failure");
+    expect(job).not.toContain(
+      "write-private-document-ar006-do-pre-mutation-failure",
+    );
     expect(job).not.toContain("AR006_EVIDENCE_COUNT");
     expect(job).not.toContain("25_000_000");
   });
