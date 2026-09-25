@@ -578,6 +578,43 @@ This result proves the revised evidence channel is operational and attributable.
 
 Exactly one `[AR006-INGRESS-EVIDENCE]` campaign is authorized only after the commit recording this result/review becomes ordinary exact-head green. A red campaign exhausts that authorization and returns to review; no automatic repeat, Paid fallback, timing substitute or file-limit reduction is permitted.
 
+## 2026-09-25 ADR 0013 exact-size trigger — contained marker-preflight failure
+
+Status: **RETURN TO REVIEW — ZERO EXACT-SIZE FLOWS / ADR13-EV-001 OPEN**
+
+Same-tree trigger `f7951e99eb31bcc63d9cbd93f67db80548340ed6`
+ran CI `36157672647`. All five ordinary repository jobs passed. Provider job
+`108149068138` successfully redeployed the private Durable Object host and
+Static Assets ingress, verified the exact binding/secret boundary and passed
+deny smoke.
+
+The final harness stopped at its mandatory safe marker preflight before
+exact-size setup. Sanitized artifact `10874337441`
+(`sha256:b286b9361df2ca8780f054c60a957ac0edfbcfded71e1d67e6525f9087e324b7`)
+records exact failed UUID
+`a5848756-d76c-4848-9312-eab1b883a063`, window
+`2026-09-25T16:06:26.252Z` → `2026-09-25T16:07:53.815Z`, complete
+ingress/DO pages, two expected markers, expected HTTP `409`, one
+`invalid_provider_invocation`, zero exact-size invocations and no provider
+ten-flow observation.
+
+This is neither CPU acceptance nor CPU rejection of the 25 MB contract.
+
+### Review decision
+
+The next problem is diagnosability, not permission to retry. The aggregate
+rejection collapses multiple fail-closed provider checks, while raw provider
+events are intentionally not retained.
+
+`ADR13-EV-001` is opened as **MAJOR / OPEN**.
+
+Authorized sequence: repository-only field-specific sanitized diagnostics and
+tests → exact-window read-only requery harness → exact-head CI/clean checkout →
+adversarial review → at most one separately triggered diagnostic requery of the
+already-produced events. The diagnostic may not deploy, authenticate to
+Supabase, emit a new marker, create a PDF or mutate application data. Its result
+returns to review and does not authorize a second exact-size campaign.
+
 ## Provider references
 
 - <https://developers.cloudflare.com/pages/functions/debugging-and-logging/>

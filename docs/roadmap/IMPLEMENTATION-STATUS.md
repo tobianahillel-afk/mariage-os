@@ -38,7 +38,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.8B | Venue private archived media lifecycle                                 | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.8C | recoverable Venue remote-media metadata lifecycle                      | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.9A | Venue-linked private PDF/document foundation                           | **BLOCKED — waits for WP-2.9C ACCEPTED**                                   |
-| WP-2.9C | trusted private-document ingestion hardening                           | **IN_PROGRESS — ADR 0013 PREFLIGHT GREEN; ONE EXACT-SIZE CAMPAIGN AFTER SEAL CI; AR-006 OPEN** |
+| WP-2.9C | trusted private-document ingestion hardening                           | **IN_PROGRESS — ADR 0013 CAMPAIGN FAILED-CONTAINED AT MARKER PREFLIGHT; ADR13-EV-001 DIAGNOSTIC REVIEW; AR-006 OPEN** |
 | WP-2.9B | generic project tags and Venue entity-tag links                        | **PLANNED / AFTER A**                                                      |
 | WP-2.10 | repositories, local cache, pending/offline mutations                   | PLANNED                                                                    |
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace                       | PLANNED                                                                    |
@@ -59,7 +59,7 @@ WP-2.1..WP-2.8C are accepted and complete. Durable evidence remains in their pac
 
 ## WP-2.9C — current packet
 
-State: **IN_PROGRESS — ADR 0013 STRUCTURED INGRESS/DO PREFLIGHT GREEN / ONE EXACT-SIZE CAMPAIGN AUTHORIZED AFTER THIS RESULT SEAL IS EXACT-HEAD GREEN / WP29C-AR-006 OPEN / BLOCKING**.
+State: **IN_PROGRESS — ADR 0013 FINAL CAMPAIGN FAILED-CONTAINED AT MARKER PREFLIGHT / ZERO EXACT-SIZE FLOWS / ADR13-EV-001 DIAGNOSTIC REVIEW / WP29C-AR-006 OPEN / BLOCKING**.
 
 Pass-A exact evidence:
 
@@ -213,16 +213,16 @@ Normative release/deployment/secret contracts require Pages Functions to deploy 
 
 ## Current next-action gate
 
-1. ADR 0013 implementation review seal `b8e076399fc6e35a31c9a4c7aa3397c90fa17656` passed ordinary CI `36153863929` **5/5 SUCCESS**, including `Full verify from clean checkout`.
-2. Same-tree trigger `a83d76ec5b824096cfe1435e20613b813a6892c7` ran the single authorized `[AR006-INGRESS-PREFLIGHT]` in CI `36154744823`; provider job `108139347246` completed **SUCCESS**. The exact-size evidence job remained **SKIPPED**.
-3. Provider deployment/identity checks passed: private DO host version `794000b1-9b1b-43ad-a12c-01bbd47875eb`; ingress deployment `c4346f61-ad43-4a58-8b90-91e2a25bc5f7`; ingress version `11eb9e2f-9056-48ad-93ee-2ed0095d699a`; ingress admin secret absent; external DO binding present; Static Assets active; deny smoke green.
-4. Sanitized artifact `10873203218` (digest `sha256:81b74ac40f270be773fc8f2f83cfd970f6783decb63e684bbe6513c1cf2167ed`) records schema `mariage-os.wp29c.ar006.adr0013-ingress-preflight.v1`, route readiness `[409]` on attempt 1, and Observability convergence on query attempt 3 with ingress event count 6, DO event count 2, marker count 2, attributed invocation count 2, failures `[]`, `documentMutation:false`, `exactSizeMutation:false`, `pass:true`.
-5. The provider result has been adversarially reviewed in `WP-2.9C-ADR-0013-PREFLIGHT-REVIEW.md`: no BLOCKING/MAJOR finding remains in the preflight result. It proves persisted exact-script attribution capability only; it is not 25 MB CPU acceptance evidence.
-6. **Exactly one** `[AR006-INGRESS-EVIDENCE]` ten-flow exact-`25,000,000`-byte campaign is authorized only after the commit containing this provider-result review/status seal passes ordinary exact-head CI + clean checkout.
-7. That campaign must use the current reviewed harness unchanged, deploy the exact candidate, rerun its marker/route preflight before document mutation, and fail closed on any incomplete/ambiguous provider evidence. No immediate repeat is authorized if red.
-8. Valid AR-006 evidence requires ten successful/finalized exact-size flows, ingress `executionModel=stateless` with provider CPU `<= 10 ms`, exact ingress version and no CPU-limit outcome, plus DO `executionModel=durableObject` with unique non-null DO identity, exact private-host version, numeric CPU `<= 30,000 ms` and no CPU-limit outcome.
-9. Workers Paid, wall-time substitution, dashboard aggregates and a lower file contract remain prohibited.
-10. After valid evidence: exact-head verification -> complete fresh independent Pass B over WP29C-AR-001..007 -> Pass C -> only then WP-2.9C acceptance and WP-2.9A resumption.
+1. The reviewed ADR 0013 preflight/result seal remained exact-head green.
+2. Same-tree trigger `f7951e99eb31bcc63d9cbd93f67db80548340ed6` ran the single authorized `[AR006-INGRESS-EVIDENCE]` in CI `36157672647`; all five ordinary repository jobs, including clean checkout, were **SUCCESS**.
+3. Provider job `108149068138` redeployed the exact private DO host and Static Assets ingress, verified the binding/secret boundary and passed deny smoke.
+4. The mandatory safe marker preflight reached generic HTTP `409` and complete Observability pages but failed with one aggregate `invalid_provider_invocation` after eight bounded attempts.
+5. Artifact `10874337441` (digest `sha256:b286b9361df2ca8780f054c60a957ac0edfbcfded71e1d67e6525f9087e324b7`) records `completedInvocationCount:0`, `invocations:[]`, `provider:null` and `failureStage:"marker_preflight"`. No exact-size document was reserved/staged/promoted/finalized and no ten-flow CPU verdict exists.
+6. The campaign authorization is exhausted. **Do not rerun `[AR006-INGRESS-EVIDENCE]`.**
+7. `ADR13-EV-001` is **MAJOR / OPEN**: the retained aggregate provider-invocation rejection is not sufficiently diagnosable.
+8. Next permitted work is repository-only diagnostic hardening: field-specific privacy-safe rejection reasons + focused tests + a read-only exact-window requery harness.
+9. Only after that implementation is exact-head green and adversarially reviewed may one separately triggered read-only diagnostic query the already-produced failed-window events. It must not deploy, authenticate to Supabase, emit a new marker, create a PDF or mutate application data.
+10. The diagnostic returns to review. Workers Paid, wall-time substitution, dashboard aggregates, lower file limit and automatic exact-size retry remain prohibited.
 
 ## Durable handoff
 

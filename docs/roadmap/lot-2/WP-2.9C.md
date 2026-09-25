@@ -4,8 +4,8 @@
 
 - Work Packet ID: `WP-2.9C`
 - Lot: `2`
-- State: `BLOCKED`
-- Current pass: `BLOCKED — WP29C-AR-006 WORKERS FREE CPU BUDGET FAILURE / ARCHITECTURE REVIEW`
+- State: `IN_PROGRESS`
+- Current pass: `ADR 0013 FINAL CAMPAIGN FAILED-CONTAINED AT MARKER PREFLIGHT / ADR13-EV-001 DIAGNOSTIC REVIEW`
 - Primary bounded context: Documents — trusted binary promotion for the existing WP-2.9A private PDF lifecycle
 - Branch: `lot-2/venues-core`
 - FIR: `#17 / FTR-089`
@@ -85,6 +85,27 @@ Required unblock evidence is an isolated non-production Pages deployment on Work
 The 2026-09-16 isolated deployment of `4f40613060b4c9de41a32d99ed43fcf6e12c9791` completed ten exact-size promotions, but Cloudflare returned zero provider CPU rows. Deployment and functional evidence are recorded in `WP-2.9C-AR-006-PROVIDER-ATTEMPT-2026-09-16.md`; CPU feasibility remains unevidenced.
 
 Therefore this finding is **OPEN / IN_PROGRESS**. ADR 0011 implementation must produce the missing Worker-correlated provider evidence before review.
+
+### ADR13-EV-001 — MAJOR — final campaign marker-preflight rejection is not diagnosable
+
+The single reviewed ADR 0013 exact-size trigger
+`f7951e99eb31bcc63d9cbd93f67db80548340ed6` passed all five ordinary
+repository gates and deployed the exact private Durable Object host plus Static
+Assets ingress. The mandatory safe marker preflight reached the lifecycle with
+HTTP `409` and complete Observability pages, but one provider invocation was
+rejected as `invalid_provider_invocation`.
+
+The harness stopped before exact-size setup. Artifact `10874337441` records
+zero completed invocations and no provider ten-flow result. The retained
+aggregate code cannot distinguish CPU, provider outcome/model/event/status,
+Durable Object identity, exact version or truncation failure.
+
+AR-006 remains OPEN. No campaign repeat is authorized. Repository-only
+remediation may add deterministic privacy-safe reason codes and a dedicated
+exact-window read-only requery harness. One provider diagnostic may run only
+after that remediation is exact-head green and reviewed; it must reuse the
+failed UUID/window and perform no deployment, authentication, new marker or
+application-data mutation.
 
 ### WP29C-AR-007 — MAJOR — deployment/secret operations not reconciled
 

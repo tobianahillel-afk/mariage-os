@@ -50,6 +50,25 @@ Exact provider identities: DO host version `794000b1-9b1b-43ad-a12c-01bbd47875eb
 The next trigger is **not automatic**. One `[AR006-INGRESS-EVIDENCE]` campaign is permitted only after the repository commit sealing this preflight review is ordinary exact-head green.
 
 
+## ADR 0013 failed-marker diagnostic protocol
+
+The first authorized ADR 0013 final trigger
+`f7951e99eb31bcc63d9cbd93f67db80548340ed6` failed closed at the mandatory
+marker preflight before exact-size setup. Do not rerun
+`[AR006-INGRESS-EVIDENCE]`.
+
+The retained artifact exposes only aggregate
+`invalid_provider_invocation`. Repository remediation may introduce a
+diagnostic-only trigger after exact-head verification and review. That trigger
+must requery only the already-produced exact timeframe and must not deploy,
+authenticate to Supabase, emit a new marker or mutate application data.
+
+A diagnostic receipt may retain only exact failed Git SHA/evidence UUID/script
+versions/timeframe, query HTTP/API/completeness metadata, marker/attribution
+counts, and privacy-safe provider-validation reason codes plus the non-secret
+provider fields necessary to interpret those reasons. Raw events, source
+payloads, credentials and bearer data remain forbidden.
+
 ## ADR 0012 historical final-evidence protocol — superseded by ADR 0013 ingress
 
 This section is the current AR-006 execution protocol. Older `[AR006-EVIDENCE]`, GraphQL, Pages-tail and ADR 0011 Service-Binding sections later in this file are historical/reproducibility records only.
