@@ -38,7 +38,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.8B | Venue private archived media lifecycle                                 | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.8C | recoverable Venue remote-media metadata lifecycle                      | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.9A | Venue-linked private PDF/document foundation                           | **BLOCKED — waits for WP-2.9C ACCEPTED**                                   |
-| WP-2.9C | trusted private-document ingestion hardening                           | **IN_PROGRESS — ADR13-EV-001 INGRESS VERSION READINESS REVIEW PASS; REVIEW-SEAL CI NEXT; AR-006 OPEN** |
+| WP-2.9C | trusted private-document ingestion hardening                           | **IN_PROGRESS — EMPTY-LOG CLASSIFIER REMEDIATION; TARGETED CI NEXT; AR-006 OPEN** |
 | WP-2.9B | generic project tags and Venue entity-tag links                        | **PLANNED / AFTER A**                                                      |
 | WP-2.10 | repositories, local cache, pending/offline mutations                   | PLANNED                                                                    |
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace                       | PLANNED                                                                    |
@@ -59,7 +59,7 @@ WP-2.1..WP-2.8C are accepted and complete. Durable evidence remains in their pac
 
 ## WP-2.9C — current packet
 
-State: **IN_PROGRESS — ADR 0013 FINAL CAMPAIGN FAILED-CONTAINED AT MARKER PREFLIGHT / ZERO EXACT-SIZE FLOWS / ADR13-EV-001 INGRESS VERSION MISMATCH DIAGNOSED / WP29C-AR-006 OPEN / BLOCKING**.
+State: **IN_PROGRESS — ADR 0013 CAMPAIGN FAILED-CONTAINED AT EMPTY-LOG MARKER PREFLIGHT / ZERO EXACT-SIZE FLOWS / WP29C-AR-006 OPEN / BLOCKING**.
 
 Pass-A exact evidence:
 
@@ -229,6 +229,10 @@ Normative release/deployment/secret contracts require Pages Functions to deploy 
 14. The bounded safe-marker exact-version readiness correction is committed at `6c5560ed6d1ef89e617adc77dace28790adf30f7` / CI `36169216121`: **5/5 SUCCESS**, including clean checkout; provider jobs skipped. Focused RED-first tests cover exclusive version-skew retry and fail-closed adverse conditions.
 15. Fresh targeted review `WP-2.9C-ADR-0013-VERSION-READINESS-REVIEW.md` is **PASS** with no BLOCKING/MAJOR finding in this scope. It is not the complete WP-2.9C Pass B. The historical ADR 0013 provider topology preflight was green, and no ingress/DO runtime or privilege boundary changed.
 16. Only after the commit containing this review/status seal itself passes ordinary exact-head CI and clean checkout is **one** no-content same-tree `[AR006-INGRESS-EVIDENCE]` trigger authorized. It must use the reviewed safe exact-version marker gate before any 25 MB mutation. A red result exhausts the authorization and returns to review.
+17. Review/status seal `d3fc84be4dccee7812076a53c414aa1ab3826bd0` / CI `36170334350` passed all five jobs, including clean checkout. Its one authorized same-tree trigger `baa119ea77be3769ca9c66b9a62904bfe7b3a2b7` / CI `36171181043` also passed the five ordinary jobs but provider job `108193266069` stopped at the safe marker before any exact-size flow.
+18. Sanitized artifact `10880811417` / ZIP SHA-256 `63e839d0e3cfd4f9563bb5dfbcdb10df396e0a174db9e183b3abb5d475eceba3` records complete HTTP-200 Observability queries with zero events on both surfaces, a 409 route response, `completedInvocationCount:0`, no provider verdict and `pass:false`. A later read-only query of that same window found six ingress/two DO events and exact-version, request-correlated marker invocations at 1 ms and 17 ms CPU respectively. This is safe-marker evidence only, not 25 MB CPU evidence.
+19. `WP-2.9C-ADR-0013-EMPTY-LOG-RESULT-2026-09-25.md` records the classification defect and precise bounded correction. A RED-first test reproduced it. The classifier now treats only the exact no-marker/no-attribution/two-missing-marker plus two derived script-identity failures as delayed logs under the existing eight-query bound. Wrong-script observations, invalid invocations, CPU, status and version failures remain blocking.
+20. Next: exact-head implementation CI and clean checkout, fresh targeted adversarial review, review-seal exact-head CI; only a new review may authorize one further campaign. The previous authorization is exhausted. No automatic retry or AR-006 closure.
 
 ## Durable handoff
 
@@ -240,7 +244,7 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.8C
 WP-2.9A: BLOCKED — waits for WP-2.9C ACCEPTED
-Current packet: WP-2.9C — IN_PROGRESS / ADR13-EV-001 READINESS REMEDIATION EXACT-HEAD GREEN; TARGETED REVIEW PASS; ONE CAMPAIGN AFTER REVIEW-SEAL CI; AR-006 remains OPEN
+Current packet: WP-2.9C — IN_PROGRESS / EMPTY-LOG MARKER CLASSIFIER CORRECTION IMPLEMENTED; EXACT-HEAD CI AND FRESH TARGETED REVIEW NEXT; AR-006 OPEN
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
@@ -278,5 +282,5 @@ AR-005 and AR-007: implementation-remediated / exact-head-green — formal closu
 FTR-089 FIR: #17 — BLOCKED
 WP-2.9B: PLANNED / AFTER A
 Lots 3–12: NOT_STARTED
-Next permitted action: pass ordinary exact-head CI + clean checkout for the ADR 0013 version-readiness review/status seal, then execute exactly one no-content same-tree `[AR006-INGRESS-EVIDENCE]` trigger. Inspect its sanitized artifact before any AR-006 finding closure or packet-state transition. No automatic repeat on failure.
+Next permitted action: run exact-head CI + clean checkout for the narrow empty-log classifier correction; perform fresh targeted adversarial review of the failed result and correction. No `[AR006-INGRESS-EVIDENCE]` rerun until a separate reviewed authorization and its exact-head CI.
 ```

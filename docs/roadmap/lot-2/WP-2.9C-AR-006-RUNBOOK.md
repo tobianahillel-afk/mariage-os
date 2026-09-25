@@ -98,6 +98,16 @@ trigger is conditionally authorized only after the review/status seal itself
 passes the same exact-head gate. If the campaign fails, stop and review its
 sanitized artifact; there is no automatic repeat.
 
+That seal passed CI `36170334350` 5/5. The one trigger `baa119e` / CI
+`36171181043` failed contained at its first marker query, before all 25 MB
+flows. Both complete query pages were empty; a later read-only query of the
+same window found both exact-version marker/invocation pairs. See
+`WP-2.9C-ADR-0013-EMPTY-LOG-RESULT-2026-09-25.md` for the artifact digest,
+exact evidence and RED-first classifier correction. The correction may wait
+for this **precise empty-page shape** only within the existing eight-query
+bound. It does not authorize a new provider run. First obtain exact-head CI,
+fresh targeted adversarial review and a separately sealed authorization.
+
 ## ADR 0012 historical final-evidence protocol — superseded by ADR 0013 ingress
 
 This section is the current AR-006 execution protocol. Older `[AR006-EVIDENCE]`, GraphQL, Pages-tail and ADR 0011 Service-Binding sections later in this file are historical/reproducibility records only.

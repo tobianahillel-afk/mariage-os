@@ -450,6 +450,21 @@ including clean checkout. Targeted fresh review
 review/status seal is itself exact-head green may one new, bounded
 `[AR006-INGRESS-EVIDENCE]` campaign run. AR-006 and WP-2.9C remain open.
 
+The review/status seal `d3fc84b` passed CI `36170334350` **5/5**, and its
+single authorized same-tree campaign `baa119e` / CI `36171181043` passed all
+five ordinary jobs. Provider job `108193266069` nevertheless stopped at its
+safe marker before any exact-size flow because the first complete Observability
+queries returned zero events. The sanitized artifact is `10880811417` / ZIP
+SHA-256 `63e839d0e3cfd4f9563bb5dfbcdb10df396e0a174db9e183b3abb5d475eceba3`.
+A later read-only query of the same window found both exact-version markers and
+their request-correlated invocations. The failure is the harness's early
+classification of empty pages as wrong script identity; it does not establish
+the 25 MB CPU budget. `WP-2.9C-ADR-0013-EMPTY-LOG-RESULT-2026-09-25.md`
+records the result and narrow RED-first correction. The campaign authorization
+is exhausted. Next are exact-head CI, fresh targeted review, and a separate
+reviewed authorization before any further provider campaign. AR-006 remains
+OPEN; WP-2.9A remains BLOCKED.
+
 ## Deviations
 
 No security-contract deviation is authorized.

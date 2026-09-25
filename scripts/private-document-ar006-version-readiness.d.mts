@@ -5,10 +5,10 @@ export type MarkerDiscovery = {
   pass: boolean;
   markerCount: number;
   attributedInvocationCount: number;
-  failures: Array<{
+  failures: ReadonlyArray<{
     code: string;
     surface?: string;
-    reasons?: string[];
+    reasons?: ReadonlyArray<string>;
   }>;
 };
 
