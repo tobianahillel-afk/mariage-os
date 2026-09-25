@@ -155,8 +155,6 @@ describe("AR-006 structured surface attribution failures", () => {
       "missing_marker_request_id",
     );
   });
-
-
 });
 
 describe("AR-006 structured surface identity failures", () => {
@@ -211,7 +209,9 @@ describe("AR-006 provider invocation diagnostic reasons", () => {
   it("distinguishes model, CPU, DO identity and version failures", () => {
     const wrongModel = completeEvents();
     providerWorker(wrongModel, 3).executionModel = "stateless";
-    expect(invalidReasons(wrongModel)).toContain("unexpected_execution_model");
+    expect(invalidReasons(wrongModel)).toContain(
+      "unexpected_execution_model",
+    );
 
     const overBudget = completeEvents();
     providerWorker(overBudget, 1).cpuTimeMs = 10.001;
@@ -219,13 +219,17 @@ describe("AR-006 provider invocation diagnostic reasons", () => {
 
     const missingDoId = completeEvents();
     providerWorker(missingDoId, 3).durableObjectId = null;
-    expect(invalidReasons(missingDoId)).toContain("missing_durable_object_id");
+    expect(invalidReasons(missingDoId)).toContain(
+      "missing_durable_object_id",
+    );
 
     const wrongVersion = completeEvents();
     providerWorker(wrongVersion, 1).scriptVersion = {
       id: "ffffffff-eeee-4ddd-8ccc-bbbbbbbbbbbb",
     };
-    expect(invalidReasons(wrongVersion)).toContain("script_version_mismatch");
+    expect(invalidReasons(wrongVersion)).toContain(
+      "script_version_mismatch",
+    );
   });
 
   it("distinguishes CPU presence/sign and provider outcome failures", () => {
@@ -251,15 +255,21 @@ describe("AR-006 provider invocation diagnostic protocol reasons", () => {
 
     const missingStatus = completeEvents();
     delete providerMetadata(missingStatus, 1).statusCode;
-    expect(invalidReasons(missingStatus)).toContain("missing_provider_status");
+    expect(invalidReasons(missingStatus)).toContain(
+      "missing_provider_status",
+    );
 
     const mismatch = completeEvents();
     providerMetadata(mismatch, 1).statusCode = 500;
-    expect(invalidReasons(mismatch)).toContain("provider_status_mismatch");
+    expect(invalidReasons(mismatch)).toContain(
+      "provider_status_mismatch",
+    );
 
     const truncated = completeEvents();
     providerWorker(truncated, 1).truncated = true;
-    expect(invalidReasons(truncated)).toContain("truncated_provider_event");
+    expect(invalidReasons(truncated)).toContain(
+      "truncated_provider_event",
+    );
   });
 
   it("distinguishes a missing script version", () => {
