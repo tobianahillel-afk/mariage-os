@@ -3,9 +3,7 @@ const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
 
 export type Ar006EvidenceSurface =
-  | "pages-ingress"
-  | "worker-ingress"
-  | "durable-object";
+  "pages-ingress" | "worker-ingress" | "durable-object";
 
 export function ar006EvidenceId(request: Request): string | null {
   const value = request.headers.get(EVIDENCE_HEADER);
