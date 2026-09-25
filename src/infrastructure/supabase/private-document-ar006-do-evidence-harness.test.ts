@@ -2,6 +2,9 @@ import ciSource from "../../../.github/workflows/ci.yml?raw";
 import flowSource from "../../../scripts/private-document-ar006-do-evidence-flow.mjs?raw";
 import harnessSource from "../../../scripts/run-private-document-ar006-do-evidence.mjs?raw";
 import recordSource from "../../../scripts/private-document-ar006-do-evidence-record.mjs?raw";
+import routeSource from "../../../scripts/run-private-document-ar006-do-route-preflight.mjs?raw";
+import readinessSource from "../../../scripts/private-document-ar006-do-route-readiness.mjs?raw";
+import preMutationReceiptSource from "../../../scripts/write-private-document-ar006-do-pre-mutation-failure.mjs?raw";
 import { describe, expect, it } from "vitest";
 
 function evidenceJobSource(): string {
@@ -21,6 +24,8 @@ describe("ADR 0012 failed-campaign receipt contract", () => {
     );
     expect(recordSource).toContain("completedInvocationCount");
     expect(recordSource).toContain("pass: false");
+    expect(recordSource).toContain("buildPreMutationFailureEvidenceRecord");
+    expect(preMutationReceiptSource).toContain('failureStage: "route_preflight"');
     expect(recordSource).not.toContain("error.message");
   });
 });
@@ -28,6 +33,9 @@ describe("ADR 0012 failed-campaign receipt contract", () => {
 describe("ADR 0012 two-surface marker preflight contract", () => {
   it("proves both marker surfaces before any exact-size mutation", () => {
     expect(harnessSource).toContain("verifyMarkerObservability");
+    expect(harnessSource).toContain("probePrivateDocumentLifecycle");
+    expect(routeSource).toContain("probePrivateDocumentLifecycle");
+    expect(readinessSource).toContain("TRANSIENT_STATUSES");
     expect(harnessSource).toContain('"marker-preflight"');
     expect(harnessSource).toContain("expectedEvidenceIds: [evidenceId]");
     expect(harnessSource).toContain("await delay(20_000)");
@@ -108,6 +116,11 @@ describe("ADR 0012 provider evidence job fail-closed capture", () => {
     const job = evidenceJobSource();
     expect(job).toContain("smoke:private-document-production");
     expect(job).toContain("run-private-document-ar006-do-route-preflight.mjs");
+    expect(job).toContain("id: route_preflight");
+    expect(job).toContain("steps.route_preflight.outcome == 'failure'");
+    expect(job).toContain(
+      "write-private-document-ar006-do-pre-mutation-failure.mjs",
+    );
     expect(job).toContain("AR006_TEST_USER_PASSWORD");
     expect(job).toContain("AR006_CLOUDFLARE_OBSERVABILITY_TOKEN");
     expect(job).toContain("run-private-document-ar006-do-evidence.mjs");
