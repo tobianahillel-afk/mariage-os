@@ -26,10 +26,6 @@ export default {
     if (new URL(request.url).pathname !== PRIVATE_DOCUMENT_PATH) {
       return unavailable();
     }
-    return handlePrivateDocumentIngress(
-      request,
-      environment,
-      "worker-ingress",
-    );
+    return handlePrivateDocumentIngress(request, environment, "worker-ingress");
   },
 };
