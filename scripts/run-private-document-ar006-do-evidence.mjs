@@ -41,7 +41,9 @@ function evidenceContext() {
     requiredEnv("AR006_WORKERS_FREE_ATTESTATION") !==
     "YES-WORKERS-FREE-ISOLATED"
   ) {
-    throw new Error("Workers Free isolated-environment attestation is required.");
+    throw new Error(
+      "Workers Free isolated-environment attestation is required.",
+    );
   }
   const projectId = requiredEnv("AR006_PROJECT_ID");
   assertUuid("AR006_PROJECT_ID", projectId);
@@ -120,7 +122,8 @@ async function markerPreflight(context, identity) {
       discovery,
       routeReadiness,
     };
-    if (queriesComplete(ingress, durableObject) && discovery.pass) return latest;
+    if (queriesComplete(ingress, durableObject) && discovery.pass)
+      return latest;
     if (attempt < OBSERVABILITY_ATTEMPTS) {
       await delay(
         Math.max(
@@ -167,7 +170,8 @@ async function collectEvidence(context, invocations) {
       durableObject,
       evaluation,
     };
-    if (queriesComplete(ingress, durableObject) && evaluation.pass) return latest;
+    if (queriesComplete(ingress, durableObject) && evaluation.pass)
+      return latest;
     if (attempt < OBSERVABILITY_ATTEMPTS) {
       await delay(
         Math.max(
@@ -210,7 +214,8 @@ async function main() {
 
     current.failureStage = "exact_size_setup";
     const bytes = createExactPdf(MAX_BYTES);
-    if (bytes.byteLength !== MAX_BYTES) throw new Error("Synthetic PDF size drifted.");
+    if (bytes.byteLength !== MAX_BYTES)
+      throw new Error("Synthetic PDF size drifted.");
     current.context.bytes = bytes;
     current.context.sha256 = sha256Hex(bytes);
 
