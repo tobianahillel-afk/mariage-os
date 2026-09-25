@@ -63,7 +63,9 @@ function invocation({
 }
 
 function fixture(count: number = AR006_EVIDENCE_COUNT) {
-  const ids = Array.from({ length: count }, (_, index) => evidenceId(index + 1));
+  const ids = Array.from({ length: count }, (_, index) =>
+    evidenceId(index + 1),
+  );
   const ingressEvents: unknown[] = [];
   const durableObjectEvents: unknown[] = [];
   ids.forEach((id, index) => {
@@ -106,7 +108,10 @@ function evaluate(data = fixture()) {
   });
 }
 
-function workerFields(events: unknown[], index: number): Record<string, unknown> {
+function workerFields(
+  events: unknown[],
+  index: number,
+): Record<string, unknown> {
   const event = events[index];
   if (typeof event !== "object" || event === null || !("$workers" in event)) {
     throw new Error("Synthetic event is missing worker fields.");
@@ -167,7 +172,8 @@ describe("ADR 0013 two-surface fail-closed checks", () => {
     expect(evaluate(nonnumeric).pass).toBe(false);
 
     const wrongModel = fixture();
-    workerFields(wrongModel.durableObjectEvents, 1).executionModel = "stateless";
+    workerFields(wrongModel.durableObjectEvents, 1).executionModel =
+      "stateless";
     expect(evaluate(wrongModel).pass).toBe(false);
   });
 
