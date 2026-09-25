@@ -1,4 +1,5 @@
-export const PAGES_CPU_BUDGET_MS = 10;
+export const INGRESS_CPU_BUDGET_MS = 10;
+export const PAGES_CPU_BUDGET_MS = INGRESS_CPU_BUDGET_MS;
 export const DURABLE_OBJECT_CPU_BUDGET_MS = 30_000;
 export const AR006_EVIDENCE_COUNT = 10;
 
@@ -41,15 +42,22 @@ function eventRequestId(event) {
   return workerId ?? metadataId;
 }
 
-function markerPayload(event) {
-  const message = property(metadata(event), "message");
-  if (typeof message !== "string") return null;
+function jsonRecord(value) {
+  if (typeof value !== "string") return null;
   try {
-    const parsed = JSON.parse(message);
+    const parsed = JSON.parse(value);
     return isRecord(parsed) ? parsed : null;
   } catch {
     return null;
   }
+}
+
+function markerPayload(event) {
+  const source = property(event, "source");
+  if (isRecord(source)) return source;
+  const parsedSource = jsonRecord(source);
+  if (parsedSource !== null) return parsedSource;
+  return jsonRecord(property(metadata(event), "message"));
 }
 
 function scriptMatches(event, scriptName) {
@@ -123,40 +131,25 @@ function invocationMeasurement(event, contract) {
   };
 }
 
-function cpuWithinBudget(invocation, contract) {
-  if (invocation.cpuTimeMs === null) return false;
-  return (
-    invocation.cpuTimeMs >= 0 && invocation.cpuTimeMs <= contract.cpuBudgetMs
-  );
-}
-
-function providerStatusAccepted(statusCode) {
-  return statusCode === 200;
-}
-
-function durableObjectIdentityAccepted(invocation, contract) {
-  if (!contract.requireDurableObjectId) return true;
-  return invocation.durableObjectId !== null;
-}
-
-function scriptVersionAccepted(invocation, contract) {
-  if (contract.expectedScriptVersionId === null) return true;
-  return invocation.scriptVersionId === contract.expectedScriptVersionId;
-}
-
 function validInvocation(marker, invocation, contract) {
-  const checks = [
+  const scriptVersionAccepted =
+    contract.expectedScriptVersionId === null ||
+    invocation.scriptVersionId === contract.expectedScriptVersionId;
+  const durableIdentityAccepted =
+    !contract.requireDurableObjectId || invocation.durableObjectId !== null;
+  return [
     marker.status === 200,
-    cpuWithinBudget(invocation, contract),
+    invocation.cpuTimeMs !== null,
+    invocation.cpuTimeMs >= 0,
+    invocation.cpuTimeMs <= contract.cpuBudgetMs,
     invocation.outcome === "ok",
     invocation.executionModel === contract.executionModel,
     invocation.eventType === "fetch",
-    providerStatusAccepted(invocation.statusCode),
-    durableObjectIdentityAccepted(invocation, contract),
-    scriptVersionAccepted(invocation, contract),
+    invocation.statusCode === 200,
+    durableIdentityAccepted,
+    scriptVersionAccepted,
     invocation.truncated === false,
-  ];
-  return checks.every(Boolean);
+  ].every(Boolean);
 }
 
 function failure(code, evidenceId, surface) {
@@ -172,31 +165,31 @@ function markersFor(events, contract) {
 function evaluateEvidence(events, markers, contract, evidenceId) {
   const matched = markers.filter((marker) => marker.evidenceId === evidenceId);
   if (matched.length !== 1) {
-    const code = matched.length === 0 ? "missing_marker" : "duplicate_marker";
     return {
       measurement: null,
-      failure: failure(code, evidenceId, contract.surface),
+      failure: failure(
+        matched.length === 0 ? "missing_marker" : "duplicate_marker",
+        evidenceId,
+        contract.surface,
+      ),
     };
   }
-
   const marker = matched[0];
   const invocations = events
     .map((event) =>
-      invocationMeasurement(event, {
-        ...contract,
-        requestId: marker.requestId,
-      }),
+      invocationMeasurement(event, { ...contract, requestId: marker.requestId }),
     )
     .filter((invocation) => invocation !== null);
   if (invocations.length !== 1) {
-    const code =
-      invocations.length === 0 ? "missing_invocation" : "duplicate_invocation";
     return {
       measurement: null,
-      failure: failure(code, evidenceId, contract.surface),
+      failure: failure(
+        invocations.length === 0 ? "missing_invocation" : "duplicate_invocation",
+        evidenceId,
+        contract.surface,
+      ),
     };
   }
-
   const invocation = invocations[0];
   const valid = validInvocation(marker, invocation, contract);
   return {
@@ -243,9 +236,8 @@ export function evaluateAr006Surface(events, expectedEvidenceIds, contract) {
     ),
     ...unexpectedMarkers(markers, expectedIds, contract.surface),
   ];
-  const uniqueIds = expectedIds.size === expectedEvidenceIds.length;
   const pass =
-    uniqueIds &&
+    expectedIds.size === expectedEvidenceIds.length &&
     expectedIds.size > 0 &&
     measurements.length === expectedIds.size &&
     failures.length === 0 &&
@@ -264,20 +256,21 @@ function distinctDurableObjects(evaluation) {
 }
 
 export function evaluateAr006TwoSurfaceEvents({
-  pagesEvents,
+  ingressEvents,
   durableObjectEvents,
   expectedEvidenceIds,
-  pagesScriptName,
+  ingressScriptName,
   durableObjectScriptName,
+  ingressVersionId = null,
   durableObjectVersionId,
 }) {
-  const pages = evaluateAr006Surface(pagesEvents, expectedEvidenceIds, {
-    surface: "pages-ingress",
-    scriptName: pagesScriptName,
+  const ingress = evaluateAr006Surface(ingressEvents, expectedEvidenceIds, {
+    surface: "worker-ingress",
+    scriptName: ingressScriptName,
     executionModel: "stateless",
-    cpuBudgetMs: PAGES_CPU_BUDGET_MS,
+    cpuBudgetMs: INGRESS_CPU_BUDGET_MS,
     requireDurableObjectId: false,
-    expectedScriptVersionId: null,
+    expectedScriptVersionId: ingressVersionId,
   });
   const durableObject = evaluateAr006Surface(
     durableObjectEvents,
@@ -294,16 +287,15 @@ export function evaluateAr006TwoSurfaceEvents({
   const exactEvidenceCount =
     expectedEvidenceIds.length === AR006_EVIDENCE_COUNT;
   const uniqueDurableObjects = distinctDurableObjects(durableObject);
-
   return {
-    pages,
+    ingress,
     durableObject,
     exactEvidenceCount,
     uniqueDurableObjects,
     pass:
       exactEvidenceCount &&
       uniqueDurableObjects &&
-      pages.pass &&
+      ingress.pass &&
       durableObject.pass,
   };
 }

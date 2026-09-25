@@ -1,4 +1,7 @@
-import { recordAr006Evidence } from "./private-document-evidence.js";
+import {
+  recordAr006Evidence,
+  type Ar006EvidenceSurface,
+} from "./private-document-evidence.js";
 import {
   abandonTargets,
   bearerToken,
@@ -17,13 +20,13 @@ interface LifecycleNamespace {
   get(id: unknown): LifecycleExecutor;
 }
 
-interface PagesEnvironment {
+export interface PrivateDocumentIngressEnvironment {
   readonly PRIVATE_DOCUMENT_LIFECYCLE?: LifecycleNamespace;
 }
 
 interface PagesContext {
   readonly request: Request;
-  readonly env: PagesEnvironment;
+  readonly env: PrivateDocumentIngressEnvironment;
 }
 
 function unavailable(status = 404): Response {
@@ -63,7 +66,7 @@ export function privateDocumentLifecycleName(targets: DocumentTargets): string {
 
 async function forwardLifecycle(
   request: Request,
-  env: PagesEnvironment,
+  env: PrivateDocumentIngressEnvironment,
 ): Promise<Response> {
   const targets = validatedTargets(request);
   if (targets instanceof Response) return targets;
@@ -78,10 +81,22 @@ async function forwardLifecycle(
   }
 }
 
-export async function onRequest(context: PagesContext): Promise<Response> {
-  const response = await forwardLifecycle(context.request, context.env);
-  if (context.request.method === "POST") {
-    recordAr006Evidence(context.request, response, "pages-ingress");
+export async function handlePrivateDocumentIngress(
+  request: Request,
+  env: PrivateDocumentIngressEnvironment,
+  surface: Ar006EvidenceSurface,
+): Promise<Response> {
+  const response = await forwardLifecycle(request, env);
+  if (request.method === "POST") {
+    recordAr006Evidence(request, response, surface);
   }
   return response;
+}
+
+export async function onRequest(context: PagesContext): Promise<Response> {
+  return handlePrivateDocumentIngress(
+    context.request,
+    context.env,
+    "pages-ingress",
+  );
 }

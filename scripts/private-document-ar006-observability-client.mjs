@@ -63,16 +63,6 @@ function scriptFilter(workerName) {
   };
 }
 
-function markerFilter() {
-  return {
-    kind: "filter",
-    key: "$metadata.message",
-    operation: "includes",
-    type: "string",
-    value: "mariage-os.ar006.promotion",
-  };
-}
-
 export function retryAfterDelayMs(headers) {
   const value = headers.get("retry-after")?.trim();
   if (value === undefined || !/^\d+$/u.test(value)) return null;
@@ -144,6 +134,8 @@ export function queryWorkersObservability({
   });
 }
 
+// Historical callers may still request an account-wide diagnostic. The final
+// ADR 0013 evidence path never uses this function to discover a surface.
 export function queryAr006MarkerObservability({
   accountId,
   token,
@@ -153,6 +145,6 @@ export function queryAr006MarkerObservability({
   return runObservabilityQuery({
     accountId,
     token,
-    query: eventQueryBody(timeframe, queryId, [markerFilter()]),
+    query: eventQueryBody(timeframe, queryId, []),
   });
 }

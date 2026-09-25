@@ -14,25 +14,35 @@ function stringOrNull(value) {
   return typeof value === "string" && value.length > 0 ? value : null;
 }
 
-function markerPayload(event) {
-  const metadata = property(event, "$metadata");
-  const message = property(metadata, "message");
-  if (typeof message !== "string") return null;
+function jsonRecord(value) {
+  if (typeof value !== "string") return null;
   try {
-    const parsed = JSON.parse(message);
+    const parsed = JSON.parse(value);
     return isRecord(parsed) ? parsed : null;
   } catch {
     return null;
   }
 }
 
+function markerPayload(event) {
+  const source = property(event, "source");
+  if (isRecord(source)) return source;
+  const parsedSource = jsonRecord(source);
+  if (parsedSource !== null) return parsedSource;
+  const metadata = property(event, "$metadata");
+  return jsonRecord(property(metadata, "message"));
+}
+
 function validEvidenceId(value) {
-  if (value === null) return false;
-  return UUID_PATTERN.test(value);
+  return value !== null && UUID_PATTERN.test(value);
 }
 
 function validSurface(value) {
-  return value === "pages-ingress" || value === "durable-object";
+  return (
+    value === "worker-ingress" ||
+    value === "pages-ingress" ||
+    value === "durable-object"
+  );
 }
 
 function normalizedMarker(payload, workers) {
@@ -42,18 +52,21 @@ function normalizedMarker(payload, workers) {
   const status = Number.isInteger(payload.status) ? payload.status : null;
   if (!validEvidenceId(evidenceId)) return null;
   if (!validSurface(surface)) return null;
-  if (scriptName === null) return null;
-  if (status === null) return null;
+  if (scriptName === null || status === null) return null;
   return { evidenceId, surface, scriptName, status };
 }
 
 function markerRecord(event) {
   const payload = markerPayload(event);
-  if (!isRecord(payload)) return null;
-  if (payload.event !== MARKER_EVENT) return null;
+  if (!isRecord(payload) || payload.event !== MARKER_EVENT) return null;
   const workers = property(event, "$workers");
   if (!isRecord(workers)) return null;
   return normalizedMarker(payload, workers);
+}
+
+function isMarkerCandidate(event) {
+  const payload = markerPayload(event);
+  return isRecord(payload) && payload.event === MARKER_EVENT;
 }
 
 function failure(code, evidenceId = null) {
@@ -94,8 +107,9 @@ function unexpectedMarkers(markers, expectedIds) {
 
 function campaignShapeFailures(events, markers, expectedEvidenceIds) {
   const failures = unexpectedMarkers(markers, expectedEvidenceIds);
-  if (events.length !== markers.length) {
-    failures.push(failure("unparseable_marker_event"));
+  const candidateCount = events.filter(isMarkerCandidate).length;
+  if (candidateCount !== markers.length) {
+    failures.push(failure("malformed_marker_event"));
   }
   if (new Set(expectedEvidenceIds).size !== expectedEvidenceIds.length) {
     failures.push(failure("duplicate_expected_id"));
@@ -104,58 +118,52 @@ function campaignShapeFailures(events, markers, expectedEvidenceIds) {
 }
 
 function durableScriptMatches(durableNames, expectedName) {
-  if (durableNames.size !== 1) return false;
-  return durableNames.has(expectedName);
+  return durableNames.size === 1 && durableNames.has(expectedName);
 }
 
-function scriptIdentityFailures(pageNames, durableNames, expectedDurableName) {
+function scriptIdentityFailures(ingressNames, durableNames, expectedIngress, expectedDurable) {
   const failures = [];
-  if (pageNames.size !== 1) failures.push(failure("ambiguous_pages_script"));
-  if (!durableScriptMatches(durableNames, expectedDurableName)) {
+  if (ingressNames.size !== 1 || !ingressNames.has(expectedIngress)) {
+    failures.push(failure("unexpected_ingress_script"));
+  }
+  if (!durableScriptMatches(durableNames, expectedDurable)) {
     failures.push(failure("unexpected_durable_object_script"));
   }
   return failures;
 }
 
-function discoveryPass(failures, pagesScriptName, markerCount, expectedCount) {
-  return [
-    failures.length === 0,
-    pagesScriptName !== null,
-    markerCount === expectedCount * 2,
-  ].every(Boolean);
-}
-
 export function discoverAr006SurfaceScripts({
   events,
   expectedEvidenceIds,
+  ingressScriptName,
   durableObjectScriptName,
 }) {
   const markers = events.map(markerRecord).filter((marker) => marker !== null);
-  const pages = surfaceScripts(markers, expectedEvidenceIds, "pages-ingress");
+  const ingress = surfaceScripts(markers, expectedEvidenceIds, "worker-ingress");
   const durable = surfaceScripts(
     markers,
     expectedEvidenceIds,
     "durable-object",
   );
-  const pageNames = new Set(pages.scripts);
+  const ingressNames = new Set(ingress.scripts);
   const durableNames = new Set(durable.scripts);
   const failures = [
-    ...pages.failures,
+    ...ingress.failures,
     ...durable.failures,
     ...campaignShapeFailures(events, markers, expectedEvidenceIds),
-    ...scriptIdentityFailures(pageNames, durableNames, durableObjectScriptName),
+    ...scriptIdentityFailures(
+      ingressNames,
+      durableNames,
+      ingressScriptName,
+      durableObjectScriptName,
+    ),
   ];
-  const pagesScriptName =
-    failures.length === 0 ? ([...pageNames][0] ?? null) : null;
   return {
-    pagesScriptName,
+    ingressScriptName: failures.length === 0 ? ingressScriptName : null,
     markerCount: markers.length,
     failures,
-    pass: discoveryPass(
-      failures,
-      pagesScriptName,
-      markers.length,
-      expectedEvidenceIds.length,
-    ),
+    pass:
+      failures.length === 0 &&
+      markers.length === expectedEvidenceIds.length * 2,
   };
 }
