@@ -25,7 +25,9 @@ describe("ADR 0012 failed-campaign receipt contract", () => {
     expect(recordSource).toContain("completedInvocationCount");
     expect(recordSource).toContain("pass: false");
     expect(recordSource).toContain("buildPreMutationFailureEvidenceRecord");
-    expect(preMutationReceiptSource).toContain('failureStage: "route_preflight"');
+    expect(preMutationReceiptSource).toContain(
+      'failureStage: "route_preflight"',
+    );
     expect(recordSource).not.toContain("error.message");
   });
 });
