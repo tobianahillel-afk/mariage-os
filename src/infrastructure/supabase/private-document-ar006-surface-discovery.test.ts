@@ -111,7 +111,6 @@ describe("AR-006 structured surface discovery success", () => {
     expect(result.attributedInvocationCount).toBe(20);
     expect(result.failures).toEqual([]);
   });
-
 });
 
 describe("AR-006 structured surface discovery marker failures", () => {
@@ -135,7 +134,6 @@ describe("AR-006 structured surface discovery marker failures", () => {
       "malformed_marker_event",
     );
   });
-
 });
 
 describe("AR-006 structured surface attribution failures", () => {
@@ -189,7 +187,6 @@ describe("AR-006 structured surface attribution failures", () => {
     };
     expect(discover(wrongVersion).pass).toBe(false);
   });
-
 });
 
 describe("AR-006 structured surface identity failures", () => {
