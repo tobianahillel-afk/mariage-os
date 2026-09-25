@@ -228,7 +228,7 @@ Fresh Pass B specifically invalidates treating any local 25 MB success as suffic
 
 ## State / sequencing
 
-Current state: **IN_PROGRESS — ADR 0012 EVIDENCE ATTEMPT 1 FAILED-CONTAINED AT PRE-MUTATION ROUTE PROBE / REMEDIATION**.
+Current state: **IN_PROGRESS — ADR 0012 ROUTE-READINESS REMEDIATION EXACT-HEAD GREEN / TARGETED REVIEW PASS; READ-ONLY RECHECK HARNESS NEXT**.
 
 The ADR-0011 stateless private-Worker design remains rejected by deployed evidence: eight successful exact-size invocations consumed 237–273 ms CPU and two additional invocations ended `exceededCpu`. ADR 0012 is now accepted and moves the trusted promotion/abandon executor to one private SQLite-backed Durable Object per `(project_id, document_id)`, bound directly from the same-origin/bodyless Pages ingress. AR-006 remains OPEN until the replacement architecture is implemented, reviewed and proven on Workers Free.
 
@@ -360,11 +360,12 @@ Current gate:
 4. retain the reviewed two-surface evaluator and exact-size harness review at `5b0cc21bc8bb051edea5ec51841709b307ba5365` / CI `36073556382`;
 5. retain marker-gate enablement `f913940d7d1c777a75448eebe2231844bf8be875` / CI `36075138372` as 5/5 green with provider job skipped;
 6. record same-tree trigger `6bdf445e7f56e38caa0d807232bcfde573103117` / CI `36075800700` as failed-contained at the authenticated non-mutating route probe after exact Worker/DO + Pages deployment and deny smoke; the ten exact-size flows were skipped and no 25 MB document mutation occurred;
-7. remediate route readiness only with bounded 404/503 retry and final exact HTTP 409 + generic-unavailable JSON; 401/403/other unexpected statuses fail immediately;
-8. ensure a standalone route-probe failure writes the canonical sanitized pass-false receipt even before the main evidence harness starts;
-9. run exact-head ordinary CI + clean-checkout verification and fresh targeted adversarial review;
-10. only after that review may one read-only recheck of the already-created exact `6bdf...` preview test readiness; no deploy/PATCH/document mutation and no automatic exact-size rerun;
-11. keep AR-006 open — do not enable Paid or lower the file contract silently;
+7. route-readiness remediation now retries only bounded HTTP 404/503 and still requires final exact HTTP 409 + generic-unavailable JSON; 401/403/other unexpected statuses fail immediately;
+8. a standalone route-probe failure writes the canonical sanitized pass-false receipt before the main evidence harness starts;
+9. remediation head `f6a272bd04640c52a3ff0c98330605f158474148` / CI `36124432936` is **5/5 SUCCESS**, clean checkout included; fresh targeted review is **PASS** with no BLOCKING/MAJOR finding;
+10. next, add and adversarially review a dedicated marker-gated read-only recheck job pinned to exact `6bdf445e7f56e38caa0d807232bcfde573103117`; it may resolve/read provider metadata, authenticate the synthetic user, run deny smoke and the bounded random-unreserved route probe only;
+11. no Worker deploy, Pages PATCH, reservation, upload, promotion, finalization or exact-size flow is permitted in that read-only job; ordinary exact-head CI + clean checkout and focused review must pass before one same-tree read-only trigger;
+12. a second exact-size campaign is not automatic; keep AR-006 open — do not enable Paid or lower the file contract silently;
 12. after valid AR-006 evidence, run exact-head full CI + clean-checkout verification again over the evidence-bound candidate;
 13. transition back to `REVIEW_PENDING` only after all remediation evidence is green;
 14. run another complete fresh independent Pass B over all WP-2.9C responsibilities and AR-001..007;
