@@ -1,0 +1,27 @@
+name: ADR 0013 formatting oracle
+
+on:
+  push:
+    branches:
+      - lot-2/wp29c-adr0013-format-staging
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Format ADR 0013 changed files
+        run: |
+          npx prettier --write             functions/api/private-document-evidence.ts             workers/private-document-ingress/src/worker.ts             scripts/private-document-ar006-surface-discovery.mjs             scripts/private-document-ar006-two-surface-metrics.mjs             scripts/run-private-document-ar006-do-evidence.mjs             scripts/run-private-document-ar006-ingress-observability-preflight.mjs             src/infrastructure/supabase/private-document-ar006-do-evidence-harness.test.ts             src/infrastructure/supabase/private-document-ar006-surface-discovery.test.ts             src/infrastructure/supabase/private-document-ar006-two-surface-metrics.test.ts             src/infrastructure/supabase/private-document-worker-ingress.test.ts
+      - name: Emit exact formatting patch
+        run: git diff --no-ext-diff --no-color
