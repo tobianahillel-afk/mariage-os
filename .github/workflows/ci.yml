@@ -468,10 +468,11 @@ jobs:
           WORKER_URL="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/scripts/$AR006_PRIVATE_DOCUMENT_WORKER"
           DEPLOYMENTS_JSON="$(curl --fail --silent --show-error -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "$WORKER_URL/deployments")"
           printf '%s' "$DEPLOYMENTS_JSON" | jq -e '.success == true' >/dev/null
-          MATCH="$(printf '%s' "$DEPLOYMENTS_JSON" | jq -c --arg id "$AR006_MARKER_RECHECK_WORKER_DEPLOYMENT_ID" '(.result.deployments // []) | map(select(.id == $id))')"
-          test "$(printf '%s' "$MATCH" | jq 'length')" -eq 1
-          test "$(printf '%s' "$MATCH" | jq -r '.[0].versions[0].percentage')" = "100"
-          test "$(printf '%s' "$MATCH" | jq -r '.[0].versions[0].version_id')" = "$AR006_MARKER_RECHECK_WORKER_VERSION_ID"
+          LATEST="$(printf '%s' "$DEPLOYMENTS_JSON" | jq -c '(.result.deployments // []) | sort_by(.created_on) | last')"
+          test "$LATEST" != "null"
+          test "$(printf '%s' "$LATEST" | jq -r '.id // empty')" = "$AR006_MARKER_RECHECK_WORKER_DEPLOYMENT_ID"
+          test "$(printf '%s' "$LATEST" | jq -r '.versions[0].percentage')" = "100"
+          test "$(printf '%s' "$LATEST" | jq -r '.versions[0].version_id')" = "$AR006_MARKER_RECHECK_WORKER_VERSION_ID"
       - name: Bounded deny-oriented smoke on exact contained preview
         run: PRIVATE_DOCUMENT_SMOKE_BASE_URL="$AR006_DEPLOYMENT_URL" npm run smoke:private-document-production
       - name: Emit one safe marker and recheck persisted Observability only
