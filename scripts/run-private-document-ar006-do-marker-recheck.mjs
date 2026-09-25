@@ -5,15 +5,23 @@ import {
   httpsOrigin,
   requiredEnv,
 } from "./private-document-ar006-do-evidence-env.mjs";
-import { signInAr006SyntheticUser } from "./private-document-ar006-do-evidence-flow.mjs";
-import { probePrivateDocumentLifecycle } from "./private-document-ar006-do-route-readiness.mjs";
+import {
+  signInAr006SyntheticUser,
+} from "./private-document-ar006-do-evidence-flow.mjs";
+import {
+  probePrivateDocumentLifecycle,
+} from "./private-document-ar006-do-route-readiness.mjs";
 import {
   nextObservabilityDelayMs,
   queryAr006MarkerObservability,
   queryWorkersObservability,
 } from "./private-document-ar006-observability-client.mjs";
-import { workerEvidenceTimeframe } from "./private-document-ar006-observability-timeframe.mjs";
-import { discoverAr006SurfaceScripts } from "./private-document-ar006-surface-discovery.mjs";
+import {
+  workerEvidenceTimeframe,
+} from "./private-document-ar006-observability-timeframe.mjs";
+import {
+  discoverAr006SurfaceScripts,
+} from "./private-document-ar006-surface-discovery.mjs";
 
 const RECEIPT_PATH = "ar006-do-marker-recheck.json";
 const ATTEMPTS = 12;
