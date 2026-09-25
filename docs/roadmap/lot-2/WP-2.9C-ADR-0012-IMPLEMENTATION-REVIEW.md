@@ -702,3 +702,74 @@ same-tree read-only recheck trigger run.
 AR-006 remains OPEN / BLOCKING. Workers Paid, wall-time substitution and
 file-limit reduction remain forbidden.
 
+
+
+## Exact-preview read-only route-recheck harness review — 2026-09-25
+
+Status: **PASS — ONE SAME-TREE READ-ONLY RECHECK MAY BE AUTHORIZED AFTER THIS REVIEW/STATUS SEAL IS EXACT-HEAD GREEN**
+
+Reviewed implementation range:
+`353b4f12c38c722fd006ed9b2e68fc4fd69843ad` through
+`f11020e81c0991c8e6401d9d2f4a1ed05f2f95f4`.
+
+Exact-head CI: `36130022819` — **5/5 SUCCESS**, including
+`Full verify from clean checkout`.
+
+The marker-gated job
+`AR-006 ADR 0012 exact-preview read-only route recheck` was **SKIPPED** on
+the reviewed ordinary head, as required. All separate provider/deployment
+workflows were also skipped.
+
+Two intermediate implementation heads failed only the repository Prettier
+guard on the new contract test. No provider job ran on either failed head. An
+isolated diagnostic branch printed the exact pinned Prettier 3.9.6 diff; the
+final reviewed head applies only that formatting correction.
+
+### Contract findings
+
+No BLOCKING/MAJOR finding remains in the read-only recheck harness.
+
+The review verifies that:
+
+- execution requires a push to exactly `lot-2/venues-core`, successful
+  `full-verify`, and the dedicated
+  `[AR006-DO-ROUTE-RECHECK]` head-commit marker;
+- the provider target is hard-pinned to existing preview candidate
+  `6bdf445e7f56e38caa0d807232bcfde573103117`;
+- the job performs no Worker deploy, no Wrangler command and no Pages PATCH;
+- the Cloudflare credentials are used only for bounded provider metadata GETs
+  already required by the reviewed read-only preflight;
+- the provider lookup requires exactly one successful preview deployment for
+  the pinned commit and requires `uses_functions=true`;
+- synthetic Supabase authentication and live `documents.write` are
+  re-checked, but no document is reserved;
+- deny-oriented smoke runs against the exact resolved preview;
+- the lifecycle probe uses a fresh random unreserved document UUID and must
+  terminate with the reviewed generic HTTP 409 semantics after reaching the
+  Durable Object;
+- the job contains no Workers Observability collection, no exact-size evidence
+  harness, no evidence-count control and no `25_000_000` mutation path;
+- the only retained job-specific artifact is a sanitized deployment receipt
+  explicitly carrying `documentMutation:false`; it contains no token,
+  password, service credential, PDF bytes/hash or real wedding data;
+- repository contract tests mechanically guard the marker, candidate SHA,
+  permitted operations and forbidden deployment/evidence surfaces.
+
+### Documentation finding
+
+The living status body already required the read-only recheck, but the final
+durable-handoff line still carried an older
+`marker-gate enablement -> [AR006-DO-EVIDENCE]` next action. This review/status
+seal corrects that stale wording so a future agent cannot skip the required
+recheck. The WP-2.9C gate numbering is also normalized.
+
+### Review conclusion
+
+Exactly one no-content same-tree
+`[AR006-DO-ROUTE-RECHECK]` trigger may run **only after the commit containing
+this review/status seal passes ordinary exact-head CI + clean checkout**.
+
+A green read-only recheck does not itself close AR-006 and does not
+automatically authorize a second exact-size campaign. Its result must first be
+captured and reviewed. Workers Paid, wall-time substitution and reduction of
+the exact `25,000,000`-byte contract remain forbidden.
