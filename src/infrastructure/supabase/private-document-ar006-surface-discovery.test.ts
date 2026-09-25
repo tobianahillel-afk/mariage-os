@@ -156,37 +156,7 @@ describe("AR-006 structured surface attribution failures", () => {
     );
   });
 
-  it("fails on wrong model, CPU, Durable Object identity or version", () => {
-    const wrongModel = completeEvents();
-    const doInvocation = wrongModel[3] as {
-      $workers: Record<string, unknown>;
-    };
-    doInvocation.$workers.executionModel = "stateless";
-    expect(discover(wrongModel).pass).toBe(false);
 
-    const overBudget = completeEvents();
-    const ingressInvocation = overBudget[1] as {
-      $workers: Record<string, unknown>;
-    };
-    ingressInvocation.$workers.cpuTimeMs = 10.001;
-    expect(discover(overBudget).pass).toBe(false);
-
-    const missingDoId = completeEvents();
-    const durableInvocation = missingDoId[3] as {
-      $workers: Record<string, unknown>;
-    };
-    durableInvocation.$workers.durableObjectId = null;
-    expect(discover(missingDoId).pass).toBe(false);
-
-    const wrongVersion = completeEvents();
-    const ingressVersionEvent = wrongVersion[1] as {
-      $workers: Record<string, unknown>;
-    };
-    ingressVersionEvent.$workers.scriptVersion = {
-      id: "ffffffff-eeee-4ddd-8ccc-bbbbbbbbbbbb",
-    };
-    expect(discover(wrongVersion).pass).toBe(false);
-  });
 });
 
 describe("AR-006 structured surface identity failures", () => {
@@ -211,5 +181,90 @@ describe("AR-006 structured surface identity failures", () => {
     expect(discover(durableEvents).failures.map((item) => item.code)).toContain(
       "unexpected_durable_object_script",
     );
+  });
+});
+
+function invalidReasons(events: unknown[]): ReadonlyArray<string> {
+  const invalid = discover(events).failures.find(
+    (item) => item.code === "invalid_provider_invocation",
+  );
+  return invalid?.reasons ?? [];
+}
+
+function providerWorker(
+  events: unknown[],
+  index: number,
+): Record<string, unknown> {
+  const event = events[index] as { $workers: Record<string, unknown> };
+  return event.$workers;
+}
+
+function providerMetadata(
+  events: unknown[],
+  index: number,
+): Record<string, unknown> {
+  const event = events[index] as { $metadata: Record<string, unknown> };
+  return event.$metadata;
+}
+
+describe("AR-006 provider invocation diagnostic reasons", () => {
+  it("distinguishes model, CPU, DO identity and version failures", () => {
+    const wrongModel = completeEvents();
+    providerWorker(wrongModel, 3).executionModel = "stateless";
+    expect(invalidReasons(wrongModel)).toContain("unexpected_execution_model");
+
+    const overBudget = completeEvents();
+    providerWorker(overBudget, 1).cpuTimeMs = 10.001;
+    expect(invalidReasons(overBudget)).toContain("cpu_over_budget");
+
+    const missingDoId = completeEvents();
+    providerWorker(missingDoId, 3).durableObjectId = null;
+    expect(invalidReasons(missingDoId)).toContain("missing_durable_object_id");
+
+    const wrongVersion = completeEvents();
+    providerWorker(wrongVersion, 1).scriptVersion = {
+      id: "ffffffff-eeee-4ddd-8ccc-bbbbbbbbbbbb",
+    };
+    expect(invalidReasons(wrongVersion)).toContain("script_version_mismatch");
+  });
+
+  it("distinguishes CPU presence/sign and provider outcome failures", () => {
+    const missingCpu = completeEvents();
+    providerWorker(missingCpu, 1).cpuTimeMs = null;
+    expect(invalidReasons(missingCpu)).toContain("missing_cpu_time");
+
+    const negativeCpu = completeEvents();
+    providerWorker(negativeCpu, 1).cpuTimeMs = -1;
+    expect(invalidReasons(negativeCpu)).toContain("negative_cpu_time");
+
+    const outcome = completeEvents();
+    providerWorker(outcome, 1).outcome = "exception";
+    expect(invalidReasons(outcome)).toContain("unexpected_outcome");
+  });
+});
+
+describe("AR-006 provider invocation diagnostic protocol reasons", () => {
+  it("distinguishes event type, status and truncation failures", () => {
+    const eventType = completeEvents();
+    providerWorker(eventType, 1).eventType = "scheduled";
+    expect(invalidReasons(eventType)).toContain("unexpected_event_type");
+
+    const missingStatus = completeEvents();
+    delete providerMetadata(missingStatus, 1).statusCode;
+    expect(invalidReasons(missingStatus)).toContain("missing_provider_status");
+
+    const mismatch = completeEvents();
+    providerMetadata(mismatch, 1).statusCode = 500;
+    expect(invalidReasons(mismatch)).toContain("provider_status_mismatch");
+
+    const truncated = completeEvents();
+    providerWorker(truncated, 1).truncated = true;
+    expect(invalidReasons(truncated)).toContain("truncated_provider_event");
+  });
+
+  it("distinguishes a missing script version", () => {
+    const events = completeEvents();
+    delete providerWorker(events, 1).scriptVersion;
+    expect(invalidReasons(events)).toContain("missing_script_version");
   });
 });

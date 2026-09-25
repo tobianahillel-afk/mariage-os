@@ -98,8 +98,10 @@ function isMarkerCandidate(event) {
   return isRecord(payload) && payload.event === MARKER_EVENT;
 }
 
-function failure(code, evidenceId = null) {
-  return { code, evidenceId };
+function failure(code, evidenceId = null, details = null) {
+  return details === null
+    ? { code, evidenceId }
+    : { code, evidenceId, ...details };
 }
 
 function expectedMarker(markers, evidenceId, surface) {
@@ -180,27 +182,69 @@ function invocationRecord(event, scriptName, requestId) {
   };
 }
 
-function invocationValid(invocation, marker, contract) {
-  const durableIdentityAccepted =
-    !contract.requireDurableObjectId || invocation.durableObjectId !== null;
+function cpuValidationReasons(invocation, contract) {
+  if (invocation.cpuTimeMs === null) return ["missing_cpu_time"];
+  const reasons = [];
+  if (invocation.cpuTimeMs < 0) reasons.push("negative_cpu_time");
+  if (invocation.cpuTimeMs > contract.cpuBudgetMs) {
+    reasons.push("cpu_over_budget");
+  }
+  return reasons;
+}
+
+function providerValidationReasons(invocation, marker, contract) {
+  const reasons = [];
+  if (invocation.outcome !== "ok") reasons.push("unexpected_outcome");
+  if (invocation.executionModel !== contract.executionModel) {
+    reasons.push("unexpected_execution_model");
+  }
+  if (invocation.eventType !== "fetch") reasons.push("unexpected_event_type");
+  if (invocation.statusCode === null) {
+    reasons.push("missing_provider_status");
+  } else if (invocation.statusCode !== marker.status) {
+    reasons.push("provider_status_mismatch");
+  }
+  if (contract.requireDurableObjectId && invocation.durableObjectId === null) {
+    reasons.push("missing_durable_object_id");
+  }
+  if (invocation.scriptVersionId === null) {
+    reasons.push("missing_script_version");
+  } else if (invocation.scriptVersionId !== contract.expectedScriptVersionId) {
+    reasons.push("script_version_mismatch");
+  }
+  if (invocation.truncated) reasons.push("truncated_provider_event");
+  return reasons;
+}
+
+function invocationValidationReasons(invocation, marker, contract) {
   return [
-    invocation.cpuTimeMs !== null,
-    invocation.cpuTimeMs !== null && invocation.cpuTimeMs >= 0,
-    invocation.cpuTimeMs !== null &&
-      invocation.cpuTimeMs <= contract.cpuBudgetMs,
-    invocation.outcome === "ok",
-    invocation.executionModel === contract.executionModel,
-    invocation.eventType === "fetch",
-    invocation.statusCode === marker.status,
-    durableIdentityAccepted,
-    invocation.scriptVersionId === contract.expectedScriptVersionId,
-    invocation.truncated === false,
-  ].every(Boolean);
+    ...cpuValidationReasons(invocation, contract),
+    ...providerValidationReasons(invocation, marker, contract),
+  ];
+}
+
+function safeInvocationDiagnostic(invocation, contract) {
+  return {
+    cpuTimeMs: invocation.cpuTimeMs,
+    cpuBudgetMs: contract.cpuBudgetMs,
+    outcome: invocation.outcome,
+    executionModel: invocation.executionModel,
+    eventType: invocation.eventType,
+    statusCode: invocation.statusCode,
+    durableObjectIdPresent: invocation.durableObjectId !== null,
+    scriptVersionId: invocation.scriptVersionId,
+    truncated: invocation.truncated,
+  };
 }
 
 function attributionForMarker(events, marker, contract) {
   if (marker.requestId === null) {
-    return { attributed: false, failure: "missing_marker_request_id" };
+    return {
+      attributed: false,
+      failure: "missing_marker_request_id",
+      reasons: [],
+      diagnostic: null,
+    };
   }
   const invocations = events
     .map((event) =>
@@ -214,11 +258,21 @@ function attributionForMarker(events, marker, contract) {
         invocations.length === 0
           ? "missing_provider_invocation"
           : "duplicate_provider_invocation",
+      reasons: [],
+      diagnostic: null,
     };
   }
-  return invocationValid(invocations[0], marker, contract)
-    ? { attributed: true, failure: null }
-    : { attributed: false, failure: "invalid_provider_invocation" };
+  const invocation = invocations[0];
+  const reasons = invocationValidationReasons(invocation, marker, contract);
+  if (reasons.length === 0) {
+    return { attributed: true, failure: null, reasons, diagnostic: null };
+  }
+  return {
+    attributed: false,
+    failure: "invalid_provider_invocation",
+    reasons,
+    diagnostic: safeInvocationDiagnostic(invocation, contract),
+  };
 }
 
 function attributionFailures(events, markers, expectedIds, contract) {
@@ -231,7 +285,13 @@ function attributionFailures(events, markers, expectedIds, contract) {
     if (result.attributed) {
       attributedInvocationCount += 1;
     } else {
-      failures.push(failure(result.failure, evidenceId));
+      failures.push(
+        failure(result.failure, evidenceId, {
+          surface: contract.surface,
+          reasons: result.reasons,
+          diagnostic: result.diagnostic,
+        }),
+      );
     }
   }
   return { failures, attributedInvocationCount };

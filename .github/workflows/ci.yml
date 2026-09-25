@@ -607,6 +607,47 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+  ar006-ingress-diagnostic-requery:
+    name: AR-006 ADR 0013 failed-window diagnostic requery
+    needs:
+      - full-verify
+    if: >-
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/lot-2/venues-core' &&
+      contains(github.event.head_commit.message, '[AR006-INGRESS-DIAGNOSTIC]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: ar006-isolated
+    env:
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      AR006_WORKERS_FREE_ATTESTATION: ${{ vars.AR006_WORKERS_FREE_ATTESTATION }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run security:secrets
+      - name: Guard exact failed-window diagnostic scope
+        run: |
+          set -eu
+          test "$AR006_WORKERS_FREE_ATTESTATION" = "YES-WORKERS-FREE-ISOLATED"
+      - name: Query only the retained ADR 0013 failed window
+        env:
+          CLOUDFLARE_OBSERVABILITY_API_TOKEN: ${{ secrets.AR006_CLOUDFLARE_OBSERVABILITY_TOKEN }}
+        run: node scripts/run-private-document-ar006-ingress-diagnostic-requery.mjs
+      - name: Retain sanitized failed-window diagnostic
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: wp-2.9c-ar006-adr0013-diagnostic-${{ github.sha }}
+          path: ar006-adr0013-diagnostic-requery.json
+          if-no-files-found: error
+          retention-days: 30
+
   ar006-provider-evidence:
     name: ADR 0013 exact-size ingress plus Durable Object provider evidence
     needs:
