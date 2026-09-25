@@ -1,0 +1,39 @@
+name: WP29C diagnostic prettier probe
+
+on:
+  push:
+    branches:
+      - lot-2/wp29c-diagnostic-format-probe
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Produce exact repository Prettier patch
+        run: |
+          npx prettier --write \
+            src/infrastructure/supabase/private-document-ar006-ingress-diagnostic-contract.test.ts \
+            src/infrastructure/supabase/private-document-ar006-surface-discovery.test.ts \
+            scripts/run-private-document-ar006-ingress-diagnostic-requery.mjs
+          git diff -- \
+            src/infrastructure/supabase/private-document-ar006-ingress-diagnostic-contract.test.ts \
+            src/infrastructure/supabase/private-document-ar006-surface-discovery.test.ts \
+            scripts/run-private-document-ar006-ingress-diagnostic-requery.mjs \
+            > prettier.patch
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: wp29c-diagnostic-prettier-patch
+          path: prettier.patch
+          if-no-files-found: error
+          retention-days: 1
