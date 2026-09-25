@@ -20,8 +20,10 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci --no-audit --no-fund
-      - name: Format ADR 0013 changed files
+      - name: Format exact remaining file
+        run: npx prettier --write scripts/run-private-document-ar006-ingress-observability-preflight.mjs
+      - name: Emit formatted file as base64
         run: |
-          npx prettier --write             functions/api/private-document-evidence.ts             workers/private-document-ingress/src/worker.ts             scripts/private-document-ar006-surface-discovery.mjs             scripts/private-document-ar006-two-surface-metrics.mjs             scripts/run-private-document-ar006-do-evidence.mjs             scripts/run-private-document-ar006-ingress-observability-preflight.mjs             src/infrastructure/supabase/private-document-ar006-do-evidence-harness.test.ts             src/infrastructure/supabase/private-document-ar006-surface-discovery.test.ts             src/infrastructure/supabase/private-document-ar006-two-surface-metrics.test.ts             src/infrastructure/supabase/private-document-worker-ingress.test.ts
-      - name: Emit exact formatting patch
-        run: git diff --no-ext-diff --no-color
+          printf 'FORMATTED_BASE64='
+          base64 -w0 scripts/run-private-document-ar006-ingress-observability-preflight.mjs
+          printf '\n'
