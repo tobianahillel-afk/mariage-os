@@ -1,0 +1,26 @@
+name: AR-006 formatting diagnostic 2
+
+on:
+  push:
+    branches:
+      - lot-2/ar006-format-diagnostic-2
+
+permissions:
+  contents: read
+
+jobs:
+  prettier-diff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Print exact Prettier diff
+        run: |
+          npx prettier --write scripts/run-private-document-ar006-ingress-diagnostic-requery.mjs
+          git diff -- scripts/run-private-document-ar006-ingress-diagnostic-requery.mjs
