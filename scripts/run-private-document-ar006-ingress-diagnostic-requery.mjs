@@ -1,8 +1,6 @@
 import { writeFile } from "node:fs/promises";
 import { requiredEnv } from "./private-document-ar006-do-evidence-env.mjs";
-import {
-  queryWorkersObservability,
-} from "./private-document-ar006-observability-client.mjs";
+import { queryWorkersObservability } from "./private-document-ar006-observability-client.mjs";
 import { discoverAr006SurfaceScripts } from "./private-document-ar006-surface-discovery.mjs";
 
 const RECEIPT_PATH = "ar006-adr0013-diagnostic-requery.json";

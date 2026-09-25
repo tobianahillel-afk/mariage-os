@@ -2,8 +2,7 @@ import ciSource from "../../../.github/workflows/ci.yml?raw";
 import diagnosticSource from "../../../scripts/run-private-document-ar006-ingress-diagnostic-requery.mjs?raw";
 import { describe, expect, it } from "vitest";
 
-const FAILED_SOURCE_FIXTURE =
-  "f7951e99eb31bcc63d9cbd93f67db80548340ed6";
+const FAILED_SOURCE_FIXTURE = "f7951e99eb31bcc63d9cbd93f67db80548340ed6";
 
 function diagnosticJobSource(): string {
   const start = ciSource.indexOf("  ar006-ingress-diagnostic-requery:");
@@ -35,17 +34,11 @@ describe("ADR13-EV-001 diagnostic workflow scope", () => {
 describe("ADR13-EV-001 exact failed-window diagnostic source", () => {
   it("pins the failed identity, window and exact script versions", () => {
     expect(diagnosticSource).toContain(FAILED_SOURCE_FIXTURE);
-    expect(diagnosticSource).toContain(
-      "a5848756-d76c-4848-9312-eab1b883a063",
-    );
+    expect(diagnosticSource).toContain("a5848756-d76c-4848-9312-eab1b883a063");
     expect(diagnosticSource).toContain("2026-09-25T16:06:26.252Z");
     expect(diagnosticSource).toContain("2026-09-25T16:07:53.815Z");
-    expect(diagnosticSource).toContain(
-      "8c48646c-c9a3-410b-98c4-b42a98e75244",
-    );
-    expect(diagnosticSource).toContain(
-      "683829d6-abb8-4340-8bf1-2a5c78d527a1",
-    );
+    expect(diagnosticSource).toContain("8c48646c-c9a3-410b-98c4-b42a98e75244");
+    expect(diagnosticSource).toContain("683829d6-abb8-4340-8bf1-2a5c78d527a1");
   });
 
   it("cannot deploy, authenticate to Supabase or create application traffic", () => {
