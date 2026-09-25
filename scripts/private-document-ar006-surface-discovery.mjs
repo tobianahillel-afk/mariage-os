@@ -250,8 +250,16 @@ export function discoverAr006SurfaceScripts({
   durableObjectScriptName,
 }) {
   const markers = events.map(markerRecord).filter((marker) => marker !== null);
-  const ingress = surfaceScripts(markers, expectedEvidenceIds, "worker-ingress");
-  const durable = surfaceScripts(markers, expectedEvidenceIds, "durable-object");
+  const ingress = surfaceScripts(
+    markers,
+    expectedEvidenceIds,
+    "worker-ingress",
+  );
+  const durable = surfaceScripts(
+    markers,
+    expectedEvidenceIds,
+    "durable-object",
+  );
   const ingressAttribution = attributionFailures(
     events,
     markers,
