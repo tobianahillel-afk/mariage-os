@@ -9,6 +9,7 @@ import {
   signInAr006SyntheticUser,
   runAr006Promotions,
 } from "./private-document-ar006-do-evidence-flow.mjs";
+import { probePrivateDocumentLifecycle } from "./private-document-ar006-do-route-readiness.mjs";
 import {
   nextObservabilityDelayMs,
   queryAr006MarkerObservability,
@@ -86,34 +87,23 @@ async function queryMarkers(
 }
 
 async function invokeMarkerPreflight(context, identity, evidenceId) {
-  const response = await globalThis.fetch(
-    `${context.deploymentUrl}/api/private-document-promote`,
-    {
-      method: "POST",
-      headers: {
-        authorization: `Bearer ${identity.token}`,
-        origin: context.deploymentUrl,
-        "x-project-id": context.projectId,
-        "x-document-id": randomUUID(),
-        "x-mariage-os-ar006-evidence-id": evidenceId,
-      },
-    },
-  );
-  const payload = await response.json().catch(() => null);
-  if (
-    response.status !== 409 ||
-    payload?.error !== "private_document_unavailable"
-  ) {
-    throw new Error(
-      "ADR 0012 marker preflight did not reach the lifecycle DO.",
-    );
-  }
+  return probePrivateDocumentLifecycle({
+    routeUrl: `${context.deploymentUrl}/api/private-document-promote`,
+    token: identity.token,
+    projectId: context.projectId,
+    documentId: randomUUID(),
+    evidenceId,
+  });
 }
 
 async function verifyMarkerObservability(context, identity) {
   const evidenceId = randomUUID();
   const startedAt = new Date().toISOString();
-  await invokeMarkerPreflight(context, identity, evidenceId);
+  const routeReadiness = await invokeMarkerPreflight(
+    context,
+    identity,
+    evidenceId,
+  );
   for (let attempt = 1; attempt <= OBSERVABILITY_ATTEMPTS; attempt += 1) {
     const result = await queryMarkers(
       context,
@@ -128,7 +118,7 @@ async function verifyMarkerObservability(context, identity) {
     });
     const candidate = { ...result, discovery };
     if (result.apiSuccess && result.eventPageComplete && discovery.pass) {
-      return candidate;
+      return { ...candidate, routeReadiness };
     }
     if (attempt < OBSERVABILITY_ATTEMPTS) {
       await delay(nextObservabilityDelayMs(result, OBSERVABILITY_DELAY_MS));
