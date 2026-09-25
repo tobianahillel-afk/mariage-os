@@ -110,3 +110,18 @@ automatic exact-size campaign.
 No Workers Paid entitlement, wall-time substitute, dashboard aggregate, file
 limit reduction or silent relaxation of version/model/status/CPU checks is
 authorized.
+
+## Diagnostic remediation review update
+
+The authorized repository-only remediation is complete at
+`743b885f96f734118f4c1a656183dab620eb75ac` / CI `36164117948`, with all
+five ordinary jobs **SUCCESS**, including clean checkout.
+
+`WP-2.9C-ADR-0013-DIAGNOSTIC-REVIEW.md` records a fresh **PASS** review. No
+BLOCKING/MAJOR finding remains in the diagnostic implementation. One exact
+failed-window read-only requery is authorized only after the review/status seal
+commit is itself exact-head green.
+
+This does not reopen the exhausted exact-size campaign authorization and does
+not close `ADR13-EV-001`. The diagnostic result must be reviewed before any
+further provider mutation.

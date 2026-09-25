@@ -220,9 +220,10 @@ Normative release/deployment/secret contracts require Pages Functions to deploy 
 5. Artifact `10874337441` (digest `sha256:b286b9361df2ca8780f054c60a957ac0edfbcfded71e1d67e6525f9087e324b7`) records `completedInvocationCount:0`, `invocations:[]`, `provider:null` and `failureStage:"marker_preflight"`. No exact-size document was reserved/staged/promoted/finalized and no ten-flow CPU verdict exists.
 6. The campaign authorization is exhausted. **Do not rerun `[AR006-INGRESS-EVIDENCE]`.**
 7. `ADR13-EV-001` is **MAJOR / OPEN**: the retained aggregate provider-invocation rejection is not sufficiently diagnosable.
-8. Next permitted work is repository-only diagnostic hardening: field-specific privacy-safe rejection reasons + focused tests + a read-only exact-window requery harness.
-9. Only after that implementation is exact-head green and adversarially reviewed may one separately triggered read-only diagnostic query the already-produced failed-window events. It must not deploy, authenticate to Supabase, emit a new marker, create a PDF or mutate application data.
-10. The diagnostic returns to review. Workers Paid, wall-time substitution, dashboard aggregates, lower file limit and automatic exact-size retry remain prohibited.
+8. Diagnostic hardening is exact-head green at `743b885f96f734118f4c1a656183dab620eb75ac` / CI `36164117948`: all five ordinary jobs are **SUCCESS**, including clean checkout. Field-specific privacy-safe rejection reasons, focused tests and the exact-window read-only requery harness are implemented.
+9. Fresh adversarial diagnostic review is **PASS** with no BLOCKING/MAJOR finding. The review is recorded in `WP-2.9C-ADR-0013-DIAGNOSTIC-REVIEW.md`.
+10. After the commit containing that review/status seal is itself exact-head green, exactly one no-content same-tree `[AR006-INGRESS-DIAGNOSTIC]` trigger may query the already-produced failed-window events. The job has no deploy credential, no Supabase authentication, no new marker, no PDF construction and no application mutation capability.
+11. The diagnostic result must return to review. It is not provider acceptance and does not authorize an automatic `[AR006-INGRESS-EVIDENCE]` retry. Workers Paid, wall-time substitution, dashboard aggregates, lower file limit and silent relaxation of version/model/status/CPU checks remain prohibited.
 
 ## Durable handoff
 
@@ -234,7 +235,7 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.8C
 WP-2.9A: BLOCKED — waits for WP-2.9C ACCEPTED
-Current packet: WP-2.9C — IN_PROGRESS / ADR 0013 PREFLIGHT GREEN; ONE EXACT-SIZE CAMPAIGN AFTER SEAL CI; AR-006 remains OPEN
+Current packet: WP-2.9C — IN_PROGRESS / ADR13-EV-001 DIAGNOSTIC REVIEW PASS; ONE READ-ONLY FAILED-WINDOW REQUERY AFTER SEAL CI; AR-006 remains OPEN
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
@@ -272,5 +273,5 @@ AR-005 and AR-007: implementation-remediated / exact-head-green — formal closu
 FTR-089 FIR: #17 — BLOCKED
 WP-2.9B: PLANNED / AFTER A
 Lots 3–12: NOT_STARTED
-Next permitted action: ADR 0013 repository-only RED-first implementation and exact-head review. The old Pages `[AR006-DO-EVIDENCE]` path is no longer authorized.
+Next permitted action: pass exact-head CI + clean checkout for the ADR13-EV-001 diagnostic review seal, then execute exactly one no-content same-tree `[AR006-INGRESS-DIAGNOSTIC]` read-only failed-window requery. No exact-size campaign is authorized by that diagnostic.
 ```

@@ -408,6 +408,30 @@ Current gate:
 21. only after C acceptance may WP-2.9A resume;
 22. WP-2.9B remains `PLANNED / AFTER A`.
 
+### ADR 0013 current diagnostic gate — 2026-09-25
+
+The later ADR 0013 evidence attempt supersedes the historical ADR-0012
+second-campaign gate above for current execution. Trigger
+`f7951e99eb31bcc63d9cbd93f67db80548340ed6` was contained at its safe
+marker preflight before any exact-size document mutation. Its aggregate
+`invalid_provider_invocation` opened `ADR13-EV-001`.
+
+Repository diagnostic remediation is now exact-head green at
+`743b885f96f734118f4c1a656183dab620eb75ac` / CI `36164117948`:
+all five ordinary jobs passed, including clean-checkout verification.
+
+Fresh review
+`WP-2.9C-ADR-0013-DIAGNOSTIC-REVIEW.md` is **PASS**. The diagnostic is
+pinned to the exact failed UUID/window/script versions, uses only the
+Observability credential, cannot deploy or authenticate to Supabase, cannot
+emit a new marker or construct/mutate a document, and retains only sanitized
+reason codes/metadata.
+
+The commit containing that review/status seal must itself pass ordinary CI and
+clean checkout. Only then is one no-content same-tree
+`[AR006-INGRESS-DIAGNOSTIC]` trigger authorized. Its output returns to review
+and does not automatically authorize another exact-size campaign.
+
 ## Deviations
 
 No security-contract deviation is authorized.
