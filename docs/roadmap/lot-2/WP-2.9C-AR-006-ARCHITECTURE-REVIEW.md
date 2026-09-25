@@ -490,6 +490,31 @@ repository implementation; no new exact-size provider campaign is authorized
 until exact-head CI, adversarial implementation review and an isolated Durable
 Object binding preflight are green.
 
+
+
+## Exact-preview route recheck result review — 2026-09-25
+
+Status: **PASS — ONE BOUNDED SECOND ADR 0012 EXACT-SIZE CAMPAIGN MAY BE AUTHORIZED AFTER THIS RESULT/REVIEW SEAL IS EXACT-HEAD GREEN**
+
+Reviewed execution:
+
+- same-tree trigger: `1a4deb3ffb8980e32b887a2244f8d9fb947699e3`;
+- CI: `36133903894` — SUCCESS;
+- read-only provider job: `108069830452` — SUCCESS;
+- pinned existing preview candidate: `6bdf445e7f56e38caa0d807232bcfde573103117`;
+- sanitized artifact: `10863225626`;
+- artifact ZIP SHA-256: `8168ceac820923b4bf63a96e7a2240b0d49c02abf8ca51f048b8cc992c22e00a`.
+
+The ordinary repository gates, including clean-checkout full verification, passed before the provider job. All unrelated provider jobs and the exact-size evidence job were skipped. The read-only job re-ran provider metadata and synthetic-authority preflight, resolved exactly one successful Pages Functions preview for the pinned candidate, retained a sanitized no-mutation receipt, passed deny smoke and reached the lifecycle Durable Object with a fresh random unreserved document in one bounded attempt, status sequence `[409]`.
+
+Artifact review confirms schema `mariage-os.wp29c.ar006.do-route-recheck.v1`, the exact pinned candidate, preview/Functions identity and `documentMutation:false`. No token, password, service credential, PDF bytes/hash or real wedding data is retained.
+
+### Adversarial conclusion
+
+No BLOCKING/MAJOR finding remains in the route-readiness continuation. The failure that contained the first ADR-0012 evidence campaign happened before any exact-size mutation because the newly deployed candidate route was not yet ready. The current evidence harness now uses the reviewed bounded readiness helper: only transient 404/503 are retried for a bounded interval, while the final state must be exact generic 409 before the ten-flow step can start. The successful exact-preview recheck demonstrates the deployed topology itself is stable and reachable; it is not CPU acceptance evidence.
+
+Therefore authorize exactly one second `[AR006-DO-EVIDENCE]` campaign, conditional on this result/review seal first passing ordinary exact-head CI + clean checkout. The campaign must use the current reviewed harness unchanged, deploy the exact same-tree candidate, stop before mutation on any failed route/marker preflight, and retain only sanitized two-surface evidence. A red result exhausts this authorization and returns to review; no automatic repeat, Workers Paid fallback, wall-time substitute or reduction of the exact `25,000,000`-byte contract is authorized.
+
 ## Provider references
 
 - <https://developers.cloudflare.com/pages/functions/debugging-and-logging/>

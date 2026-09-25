@@ -38,7 +38,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.8B | Venue private archived media lifecycle                                 | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.8C | recoverable Venue remote-media metadata lifecycle                      | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.9A | Venue-linked private PDF/document foundation                           | **BLOCKED — waits for WP-2.9C ACCEPTED**                                   |
-| WP-2.9C | trusted private-document ingestion hardening                           | **IN_PROGRESS — ADR 0012 provider preflight retry gate; AR-006 OPEN**      |
+| WP-2.9C | trusted private-document ingestion hardening                           | **IN_PROGRESS — ADR 0012 route recheck GREEN; AR-006 OPEN**                |
 | WP-2.9B | generic project tags and Venue entity-tag links                        | **PLANNED / AFTER A**                                                      |
 | WP-2.10 | repositories, local cache, pending/offline mutations                   | PLANNED                                                                    |
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace                       | PLANNED                                                                    |
@@ -59,7 +59,7 @@ WP-2.1..WP-2.8C are accepted and complete. Durable evidence remains in their pac
 
 ## WP-2.9C — current packet
 
-State: **IN_PROGRESS — ADR 0012 PROVIDER PREFLIGHT RETRY GATE; WP29C-AR-006 OPEN / BLOCKING**.
+State: **IN_PROGRESS — ADR 0012 ROUTE-RECHECK GREEN / SECOND EXACT-SIZE CAMPAIGN REVIEW PASS; SEAL VERIFICATION NEXT; WP29C-AR-006 OPEN / BLOCKING**.
 
 Pass-A exact evidence:
 
@@ -194,6 +194,19 @@ Provider-observation exploration is now governed by the open architecture review
 
 The 2026-09-24 ADR-0011 provider CPU result remains decisive adverse evidence for the stateless Worker design. ADR 0012 is the replacement execution architecture: the same-origin/bodyless Pages ingress binds directly to one private SQLite-backed Durable Object per project/document lifecycle. Preflight attempt 1 failed contained at the Pages Preview PATCH and was remediated. The single authorized retry at `eca478937fad40632dc378f0408c1c8ec4bd5c8c` / CI `36049934080` proved the private Durable Object deploy, minimal Pages binding PATCH, binding receipt, Worker-secret/Supabase authority checks and exact Pages preview deployment, but failed at the immediate deny-smoke because GET `/api/private-document-promote` returned transient HTTP 404 instead of the required 405. The job stopped before the non-mutating route probe; exact-size evidence stayed disabled and no document was reserved/uploaded/promoted/finalized. A subsequent diagnostic fetch observed the same exact preview route returning 405, consistent with deployment propagation, but that observation is not acceptance evidence. WP-2.9C remains **IN_PROGRESS — ADR 0012 ROUTE-READINESS REMEDIATION EXACT-HEAD GREEN / TARGETED REVIEW PASS; READ-ONLY RECHECK HARNESS NEXT**. AR-006 remains OPEN. The bounded existing-deployment continuation is now provider-green: trigger `ce2738a22d421fafd446695d9595a378a0413865`, CI `36054731788`, read-only job `107821508056`, artifact `10832062202` (ZIP SHA-256 `4fdc8a890bb0a23f59fa0055dd208dcee7e018c08a8437b118475bacb5af6f7e`). It re-verified the ADR 0012 provider binding/Worker secret metadata/synthetic authority, resolved the unique exact `eca478...` Pages preview, passed the bounded deny smoke and reached the lifecycle Durable Object using a random unreserved document UUID, without deploy/PATCH or document mutation.
 
+
+### ADR 0012 exact-preview route recheck result — 2026-09-25
+
+The single reviewed read-only recheck ran on same-tree trigger `1a4deb3ffb8980e32b887a2244f8d9fb947699e3` / CI `36133903894`. All five repository jobs passed, including `Full verify from clean checkout`. All unrelated provider jobs and the exact-size evidence job were skipped.
+
+Read-only provider job `108069830452` succeeded. It re-verified the isolated provider metadata and synthetic `documents.write` authority, resolved exactly one successful Functions preview for pinned candidate `6bdf445e7f56e38caa0d807232bcfde573103117`, passed the deny-oriented production smoke, and reached the lifecycle Durable Object on the first bounded random-unreserved probe with safe status sequence `[409]`.
+
+Sanitized artifact `10863225626` / ZIP SHA-256 `8168ceac820923b4bf63a96e7a2240b0d49c02abf8ca51f048b8cc992c22e00a` uses schema `mariage-os.wp29c.ar006.do-route-recheck.v1`, is bound to the expected preview, records `usesFunctions:true` and `documentMutation:false`, and contains no credential or document content.
+
+Post-recheck adversarial review: **PASS FOR ONE BOUNDED SECOND EXACT-SIZE CAMPAIGN**. The route-readiness defect that contained the first ADR-0012 evidence attempt is no longer present on the pinned preview, and the current exact-size job uses the reviewed bounded 404/503 route-readiness helper before any document mutation. No BLOCKING/MAJOR finding remains in this recheck result. This does not close AR-006 and does not itself prove CPU compliance.
+
+Authorization is conditional: the commit containing this result/review seal must first pass ordinary exact-head CI + clean checkout. Only then may one no-content same-tree `[AR006-DO-EVIDENCE]` trigger execute the current reviewed ten-flow/two-surface harness. Any failure remains fail-closed; no immediate repeat, Paid entitlement, wall-time substitution or file-limit reduction is authorized.
+
 ### AR-007 operations gate retained
 
 Normative release/deployment/secret contracts require Pages Functions to deploy with the exact static candidate, `PRIVATE_DOCUMENT_ADMIN_KEY` to live only as an environment-specific encrypted secret on the private Worker/Durable Object host (never Pages), `/api/private-document-promote` to fail closed without static/origin fallback, and the removed Supabase promotion route to remain absent. `npm run smoke:private-document-production` provides deny-oriented deployment smoke without privileged credentials or real wedding data.
@@ -259,5 +272,5 @@ AR-005 and AR-007: implementation-remediated / exact-head-green — formal closu
 FTR-089 FIR: #17 — BLOCKED
 WP-2.9B: PLANNED / AFTER A
 Lots 3–12: NOT_STARTED
-Next permitted action: exact-head green verification of the focused route-recheck review/status seal → one no-content same-tree `[AR006-DO-ROUTE-RECHECK]` trigger against pinned preview candidate `6bdf445e7f56e38caa0d807232bcfde573103117`. No second `[AR006-DO-EVIDENCE]` campaign is authorized by this review.
+Next permitted action: exact-head green verification of the post-recheck review/status seal → one no-content same-tree `[AR006-DO-EVIDENCE]` trigger. This is a single bounded second campaign only; no automatic repeat is authorized.
 ```

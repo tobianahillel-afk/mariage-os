@@ -228,7 +228,7 @@ Fresh Pass B specifically invalidates treating any local 25 MB success as suffic
 
 ## State / sequencing
 
-Current state: **IN_PROGRESS — ADR 0012 READ-ONLY ROUTE-RECHECK HARNESS EXACT-HEAD GREEN / FOCUSED REVIEW PASS; REVIEW-SEAL VERIFICATION NEXT**.
+Current state: **IN_PROGRESS — ADR 0012 ROUTE-RECHECK GREEN / SECOND EXACT-SIZE CAMPAIGN REVIEW PASS; POST-RECHECK SEAL VERIFICATION NEXT**.
 
 The ADR-0011 stateless private-Worker design remains rejected by deployed evidence: eight successful exact-size invocations consumed 237–273 ms CPU and two additional invocations ended `exceededCpu`. ADR 0012 is now accepted and moves the trusted promotion/abandon executor to one private SQLite-backed Durable Object per `(project_id, document_id)`, bound directly from the same-origin/bodyless Pages ingress. AR-006 remains OPEN until the replacement architecture is implemented, reviewed and proven on Workers Free.
 
@@ -365,16 +365,17 @@ Current gate:
 9. remediation head `f6a272bd04640c52a3ff0c98330605f158474148` / CI `36124432936` is **5/5 SUCCESS**, clean checkout included; fresh targeted review is **PASS** with no BLOCKING/MAJOR finding;
 10. dedicated marker-gated read-only recheck harness is exact-head green at `f11020e81c0991c8e6401d9d2f4a1ed05f2f95f4` / CI `36130022819`; all five ordinary jobs passed including clean checkout and the marker-gated recheck stayed skipped;
 11. focused adversarial contract review is PASS: the job is pinned to exact `6bdf445e7f56e38caa0d807232bcfde573103117`, is metadata/auth/smoke/random-unreserved-probe only, retains a sanitized no-mutation receipt, and contains no Worker deploy, Pages PATCH, Observability or exact-size flow;
-12. run ordinary exact-head CI + clean checkout over this review/status seal, then and only then permit one no-content same-tree `[AR006-DO-ROUTE-RECHECK]` trigger;
-13. a second exact-size campaign is not automatic; keep AR-006 open — do not enable Paid or lower the file contract silently;
-14. after valid AR-006 evidence, run exact-head full CI + clean-checkout verification again over the evidence-bound candidate;
-15. transition back to `REVIEW_PENDING` only after all remediation evidence is green;
-16. run another complete fresh independent Pass B over all WP-2.9C responsibilities and AR-001..007;
-17. any BLOCKING/MAJOR finding → `REVIEW_FAILED`;
-18. only a clean Pass B may enter `ACCEPTANCE_PENDING`;
-19. only Pass C may mark WP-2.9C `ACCEPTED`;
-20. only after C acceptance may WP-2.9A resume;
-21. WP-2.9B remains `PLANNED / AFTER A`.
+12. read-only recheck trigger `1a4deb3ffb8980e32b887a2244f8d9fb947699e3` / CI `36133903894` is GREEN: all five repository jobs passed, exact-size evidence stayed skipped, provider job `108069830452` passed, and the pinned preview reached the lifecycle Durable Object on the first bounded probe with status `[409]`; artifact `10863225626` / ZIP SHA-256 `8168ceac820923b4bf63a96e7a2240b0d49c02abf8ca51f048b8cc992c22e00a` records `documentMutation:false`;
+13. post-recheck adversarial review is PASS for one bounded second exact-size campaign; first run ordinary exact-head CI + clean checkout over the commit containing this result/review seal, then and only then permit one no-content same-tree `[AR006-DO-EVIDENCE]` trigger;
+14. the second exact-size campaign is single-use and not automatically repeatable; keep AR-006 open — do not enable Paid or lower the file contract silently;
+15. after valid AR-006 evidence, run exact-head full CI + clean-checkout verification again over the evidence-bound candidate;
+16. transition back to `REVIEW_PENDING` only after all remediation evidence is green;
+17. run another complete fresh independent Pass B over all WP-2.9C responsibilities and AR-001..007;
+18. any BLOCKING/MAJOR finding → `REVIEW_FAILED`;
+19. only a clean Pass B may enter `ACCEPTANCE_PENDING`;
+20. only Pass C may mark WP-2.9C `ACCEPTED`;
+21. only after C acceptance may WP-2.9A resume;
+22. WP-2.9B remains `PLANNED / AFTER A`.
 
 ## Deviations
 
