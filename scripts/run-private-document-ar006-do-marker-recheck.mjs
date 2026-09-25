@@ -5,7 +5,9 @@ import {
   httpsOrigin,
   requiredEnv,
 } from "./private-document-ar006-do-evidence-env.mjs";
-import { signInAr006SyntheticUser } from "./private-document-ar006-do-evidence-flow.mjs";
+import {
+  signInAr006SyntheticUser,
+} from "./private-document-ar006-do-evidence-flow.mjs";
 import { probePrivateDocumentLifecycle } from "./private-document-ar006-do-route-readiness.mjs";
 import {
   nextObservabilityDelayMs,
@@ -54,7 +56,9 @@ function context() {
     requiredEnv("AR006_WORKERS_FREE_ATTESTATION") !==
     "YES-WORKERS-FREE-ISOLATED"
   ) {
-    throw new Error("Workers Free isolated-environment attestation is required.");
+    throw new Error(
+      "Workers Free isolated-environment attestation is required.",
+    );
   }
   const projectId = requiredEnv("AR006_PROJECT_ID");
   assertUuid("AR006_PROJECT_ID", projectId);
@@ -115,7 +119,11 @@ async function writeReceipt(data) {
     exactSizeMutation: false,
     pass: data.pass,
   };
-  await writeFile(RECEIPT_PATH, `${JSON.stringify(record, null, 2)}\n`, "utf8");
+  await writeFile(
+    RECEIPT_PATH,
+    `${JSON.stringify(record, null, 2)}\n`,
+    "utf8",
+  );
 }
 
 async function run() {
@@ -168,7 +176,9 @@ async function run() {
     pass,
   });
   if (!pass) {
-    throw new Error("ADR 0012 marker-only Observability recheck failed closed.");
+    throw new Error(
+      "ADR 0012 marker-only Observability recheck failed closed.",
+    );
   }
 }
 
