@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 function recheckJobSource(): string {
   const start = ciSource.indexOf("  ar006-do-route-recheck:");
   if (start < 0) throw new Error("Route recheck job must exist.");
-  const end = ciSource.indexOf("\n  # [AR006-DO-EVIDENCE]", start);
+  const end = ciSource.indexOf("\n  ar006-do-marker-recheck:", start);
   if (end < 0) throw new Error("Route recheck job boundary must exist.");
   return ciSource.slice(start, end);
 }
