@@ -5,23 +5,15 @@ import {
   httpsOrigin,
   requiredEnv,
 } from "./private-document-ar006-do-evidence-env.mjs";
-import {
-  signInAr006SyntheticUser,
-} from "./private-document-ar006-do-evidence-flow.mjs";
-import {
-  probePrivateDocumentLifecycle,
-} from "./private-document-ar006-do-route-readiness.mjs";
+import { signInAr006SyntheticUser } from "./private-document-ar006-do-evidence-flow.mjs";
+import { probePrivateDocumentLifecycle } from "./private-document-ar006-do-route-readiness.mjs";
 import {
   nextObservabilityDelayMs,
   queryAr006MarkerObservability,
   queryWorkersObservability,
 } from "./private-document-ar006-observability-client.mjs";
-import {
-  workerEvidenceTimeframe,
-} from "./private-document-ar006-observability-timeframe.mjs";
-import {
-  discoverAr006SurfaceScripts,
-} from "./private-document-ar006-surface-discovery.mjs";
+import { workerEvidenceTimeframe } from "./private-document-ar006-observability-timeframe.mjs";
+import { discoverAr006SurfaceScripts } from "./private-document-ar006-surface-discovery.mjs";
 
 const RECEIPT_PATH = "ar006-do-marker-recheck.json";
 const ATTEMPTS = 12;
@@ -125,11 +117,7 @@ async function writeReceipt(data) {
     exactSizeMutation: false,
     pass: data.pass,
   };
-  await writeFile(
-    RECEIPT_PATH,
-    `${JSON.stringify(record, null, 2)}\n`,
-    "utf8",
-  );
+  await writeFile(RECEIPT_PATH, `${JSON.stringify(record, null, 2)}\n`, "utf8");
 }
 
 async function run() {
