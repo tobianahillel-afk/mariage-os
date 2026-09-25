@@ -26,7 +26,22 @@ Current two-surface correlation: `scripts/private-document-ar006-surface-discove
 
 CPU regression control: `npm run test:ar006:metrics`
 
-## ADR 0012 current final-evidence protocol
+## ADR 0013 current execution protocol
+
+ADR 0013 is the current AR-006 path. Historical Pages, GraphQL, Pages-tail, ADR 0011 Service-Binding and ADR 0012 Pages-ingress protocols later in this file are retained only for reproducibility.
+
+Current topology: browser -> `mariage-os-ar006-ingress` Workers Static Assets ingress (Worker-first `/api/*`, no admin secret, persisted Workers Logs) -> external `PRIVATE_DOCUMENT_LIFECYCLE` binding -> private `mariage-os-private-document-promotion` SQLite Durable Object host -> isolated Supabase.
+
+Strict sequence: ordinary exact-head CI + clean checkout -> fresh ADR 0013 implementation review -> one reviewed `[AR006-INGRESS-PREFLIGHT]` -> inspect/review sanitized preflight receipt -> only a separately reviewed green preflight may authorize one `[AR006-INGRESS-EVIDENCE]` ten-flow exact-size campaign -> exact-head verification -> fresh Pass B -> Pass C.
+
+The preflight may deploy the two isolated Worker scripts but performs no application-document mutation: no reservation, exact PDF generation/upload, promotion or finalization. It emits one UUID-only safe random-unreserved probe and requires attributable persisted structured markers from both exact deployed script versions.
+
+Final campaign ingress acceptance: `executionModel=stateless`, provider-native `cpuTimeMs <= 10`, HTTP 200, `outcome=ok`, exact version, no truncation. Lifecycle acceptance: `executionModel=durableObject`, unique non-null `durableObjectId`, provider-native `cpuTimeMs <= 30,000`, HTTP 200, `outcome=ok`, exact private-host version, no truncation. Missing/duplicate/malformed markers, request-ID ambiguity, incomplete pages or provider errors fail closed.
+
+No raw provider event, credential, PDF bytes or real wedding data may be retained. Workers Paid, wall time, dashboard aggregates and a lower PDF limit are prohibited substitutes.
+
+
+## ADR 0012 historical final-evidence protocol — superseded by ADR 0013 ingress
 
 This section is the current AR-006 execution protocol. Older `[AR006-EVIDENCE]`, GraphQL, Pages-tail and ADR 0011 Service-Binding sections later in this file are historical/reproducibility records only.
 

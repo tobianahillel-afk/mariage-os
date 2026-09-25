@@ -540,6 +540,25 @@ The new ingress will emit native structured logs and the collector will query th
 
 No exact-size mutation is authorized until ADR 0013 implementation is exact-head green, adversarially reviewed and one isolated structured-log ingress/DO preflight is green.
 
+## 2026-09-25 ADR 0013 implementation review
+
+Status: **PASS — ONE ISOLATED NO-DOCUMENT-MUTATION INGRESS/DO OBSERVABILITY PREFLIGHT MAY FOLLOW AFTER THIS REVIEW SEAL IS EXACT-HEAD GREEN**
+
+Reviewed head: `b06a823e1d6e3b1a4693c683afe11e1771449365`  
+Ordinary CI: `36150541994` — **5/5 SUCCESS**, including `Full verify from clean checkout`; all provider jobs skipped.
+
+The fresh review covered the dedicated `mariage-os-ar006-ingress` Workers Static Assets Worker, Worker-first `/api/*` routing, the external `PRIVATE_DOCUMENT_LIFECYCLE` binding, private SQLite Durable Object host, native structured evidence logs, exact-script Observability queries, marker-to-provider request attribution, exact script-version checks and the fail-closed two-surface CPU evaluator.
+
+No BLOCKING/MAJOR finding was identified. The ingress has no `PRIVATE_DOCUMENT_ADMIN_KEY`; unknown API paths fail closed; the host stays `workers_dev:false`; promotion/abandon retain the existing per-document serial gate and authoritative Supabase checks. The evaluator rejects missing/duplicate/malformed markers, request-ID mismatch, incomplete provider pages, wrong script/version/model/status, missing/nonnumeric/over-budget CPU, missing DO identity and truncation.
+
+Cloudflare contracts used by ADR 0013 were rechecked during review: selective Worker-first Static Assets routing, persisted structured Workers Logs, provider request/script/version/execution-model/DO/CPU telemetry, the normal Workers Free stateless `10 ms` CPU budget and the Durable Object `30,000 ms` request CPU ceiling.
+
+### Authorization boundary
+
+This review does **not** authorize a 25 MB campaign. After this review/status commit itself is ordinary exact-head green, exactly one `[AR006-INGRESS-PREFLIGHT]` may deploy the isolated DO host and isolated Static Assets ingress and issue only deny/safe random-unreserved probes. It must retain `documentMutation:false` and `exactSizeMutation:false`.
+
+A red preflight exhausts this authorization and returns to review/remediation. A green preflight is only evidence input and requires a separate durable result/review seal before one `[AR006-INGRESS-EVIDENCE]` ten-flow exact-size campaign can be authorized.
+
 ## Provider references
 
 - <https://developers.cloudflare.com/pages/functions/debugging-and-logging/>
@@ -555,4 +574,4 @@ No exact-size mutation is authorized until ADR 0013 implementation is exact-head
 
 ## Governance
 
-WP-2.9C is **IN_PROGRESS / A-IMPLEMENT — ADR 0012 RED FIRST**. AR-006 remains OPEN. No `REVIEW_PENDING`, fresh Pass B, Pass C, WP-2.9A resumption, exact-size provider campaign, Workers Paid activation or 25 MB reduction is authorized until the ADR-0012 implementation is exact-head green, adversarially reviewed, and its isolated provider preflight has passed.
+WP-2.9C is **IN_PROGRESS — ADR 0013 IMPLEMENTATION REVIEW PASS / ONE INGRESS PREFLIGHT NEXT**. AR-006 remains OPEN. No `REVIEW_PENDING`, fresh Pass B, Pass C, WP-2.9A resumption, exact-size provider campaign, Workers Paid activation or 25 MB reduction is authorized. One isolated `[AR006-INGRESS-PREFLIGHT]` is permitted only after this review/status seal is exact-head green; exact-size evidence requires a separately reviewed green preflight.

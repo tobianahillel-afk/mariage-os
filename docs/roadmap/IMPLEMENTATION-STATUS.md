@@ -38,7 +38,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.8B | Venue private archived media lifecycle                                 | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.8C | recoverable Venue remote-media metadata lifecycle                      | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.9A | Venue-linked private PDF/document foundation                           | **BLOCKED — waits for WP-2.9C ACCEPTED**                                   |
-| WP-2.9C | trusted private-document ingestion hardening                           | **IN_PROGRESS — ADR 0012 route recheck GREEN; AR-006 OPEN**                |
+| WP-2.9C | trusted private-document ingestion hardening                           | **IN_PROGRESS — ADR 0013 IMPLEMENTATION REVIEW PASS; INGRESS PREFLIGHT NEXT; AR-006 OPEN** |
 | WP-2.9B | generic project tags and Venue entity-tag links                        | **PLANNED / AFTER A**                                                      |
 | WP-2.10 | repositories, local cache, pending/offline mutations                   | PLANNED                                                                    |
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace                       | PLANNED                                                                    |
@@ -59,7 +59,7 @@ WP-2.1..WP-2.8C are accepted and complete. Durable evidence remains in their pac
 
 ## WP-2.9C — current packet
 
-State: **IN_PROGRESS — ADR 0012 ROUTE-RECHECK GREEN / SECOND EXACT-SIZE CAMPAIGN REVIEW PASS; SEAL VERIFICATION NEXT; WP29C-AR-006 OPEN / BLOCKING**.
+State: **IN_PROGRESS — ADR 0013 IMPLEMENTATION REVIEW PASS / ONE ISOLATED NO-DOCUMENT-MUTATION INGRESS PREFLIGHT NEXT / WP29C-AR-006 OPEN / BLOCKING**.
 
 Pass-A exact evidence:
 
@@ -213,16 +213,16 @@ Normative release/deployment/secret contracts require Pages Functions to deploy 
 
 ## Current next-action gate
 
-1. The 2026-09-25 marker recheck at `11a3cdc6d0d501b616906c6a1e5ccf583b892411` passed all ordinary repository jobs and clean checkout but failed the marker-only provider job exactly as expected by the new diagnosis: persisted Workers Observability did not return the Pages Function custom marker, while broad private-Worker queries returned persisted events. No exact-size flow ran.
-2. ADR 0013 is accepted. It retains ADR 0012's private per-document Durable Object and replaces only the browser ingress with a public Workers Static Assets Worker using Worker-first `/api/*` routing, no privileged Supabase secret and persisted Workers Logs.
-3. Current permitted action is repository-only RED-first implementation of ADR 0013: native structured logging, structured-source parsing, exact-script Observability collection and the new Static Assets ingress/deployment harness.
-4. The old Pages evidence campaign authorization is withdrawn. Do not run `[AR006-DO-EVIDENCE]` against Pages.
-5. After implementation, require exact-head normal CI + clean checkout and a fresh adversarial implementation review.
-6. Only after that review may one isolated no-document-mutation Static Assets ingress/DO Observability preflight run. It must prove both scripts persist attributable structured markers and that the ingress has no admin credential.
-7. Only a reviewed green preflight may authorize one ten-flow exact-`25,000,000`-byte campaign. Workers Paid, wall-time substitution, dashboard aggregate evidence and a lower file limit remain prohibited.
-8. Valid AR-006 evidence still requires per-flow ingress CPU <= 10 ms and valid Durable Object provider CPU with no CPU-limit outcome.
-9. After valid AR-006 evidence, run exact-head verification, a complete fresh independent Pass B and then Pass C before acceptance.
-10. WP-2.9A remains BLOCKED until WP-2.9C is ACCEPTED; WP-2.9B and later Lots remain inactive.
+1. ADR 0013 is implemented on exact head `b06a823e1d6e3b1a4693c683afe11e1771449365`. Ordinary CI `36150541994` is **5/5 SUCCESS**, including `Full verify from clean checkout`; every provider-specific job was **SKIPPED** on that ordinary commit.
+2. Fresh adversarial implementation review is recorded in `docs/roadmap/lot-2/WP-2.9C-ADR-0013-IMPLEMENTATION-REVIEW.md` and is **PASS** with no BLOCKING/MAJOR finding for the Workers Static Assets ingress, structured logging, exact-script Observability attribution or isolated preflight path.
+3. The public ingress has no Supabase admin/service credential, uses Worker-first `/api/*` routing, fails closed on unknown API paths, binds only to the exact private `PrivateDocumentLifecycle`, and emits native structured evidence logs. The evaluator fails closed on missing/duplicate/malformed markers, request-ID ambiguity, wrong script/version/model/status, missing/nonnumeric/over-budget CPU, missing Durable Object identity, truncation or incomplete provider pages.
+4. **Exactly one** no-document-mutation `[AR006-INGRESS-PREFLIGHT]` is authorized after the commit containing this review/status seal itself passes ordinary exact-head CI + clean checkout. The preflight may deploy the isolated private Durable Object host and isolated Workers Static Assets ingress, but it may not reserve a document, upload a PDF, promote/finalize a document or perform the ten-flow campaign.
+5. The preflight must prove both exact deployed script versions persist attributable structured markers through Workers Observability, the ingress has no `PRIVATE_DOCUMENT_ADMIN_KEY`, the external Durable Object binding targets the expected host/class, deny smoke passes, and the safe random-unreserved probe remains non-mutating.
+6. A red preflight exhausts this authorization and returns WP-2.9C to review/remediation. Do not auto-repeat it and do not trigger exact-size evidence.
+7. Only a separately reviewed green preflight may authorize one `[AR006-INGRESS-EVIDENCE]` ten-flow exact-`25,000,000`-byte campaign. Workers Paid, wall-time substitution, dashboard aggregate evidence and a lower file limit remain prohibited.
+8. Valid AR-006 evidence still requires, per flow, exact ingress script/version attribution with `executionModel=stateless`, numeric provider CPU `<= 10 ms`, HTTP 200 and `outcome=ok`; and exact private-host version attribution with `executionModel=durableObject`, unique non-null Durable Object identity, numeric CPU `<= 30,000 ms`, HTTP 200 and `outcome=ok`.
+9. After valid AR-006 evidence, run exact-head verification, a complete fresh independent Pass B over WP29C-AR-001..007, then Pass C. Only Pass C may accept WP-2.9C and unblock WP-2.9A.
+10. Historical Pages/ADR-0011/ADR-0012 evidence paths remain evidence history only and are not authorized acceptance triggers.
 
 ## Durable handoff
 
@@ -234,7 +234,7 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.8C
 WP-2.9A: BLOCKED — waits for WP-2.9C ACCEPTED
-Current packet: WP-2.9C — IN_PROGRESS / ADR 0013 WORKERS STATIC ASSETS INGRESS RED-FIRST; AR-006 remains OPEN
+Current packet: WP-2.9C — IN_PROGRESS / ADR 0013 IMPLEMENTATION REVIEW PASS; ONE INGRESS PREFLIGHT NEXT; AR-006 remains OPEN
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
