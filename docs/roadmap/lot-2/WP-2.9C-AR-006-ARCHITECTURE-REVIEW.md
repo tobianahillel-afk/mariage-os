@@ -615,6 +615,32 @@ already-produced events. The diagnostic may not deploy, authenticate to
 Supabase, emit a new marker, create a PDF or mutate application data. Its result
 returns to review and does not authorize a second exact-size campaign.
 
+## 2026-09-25 failed-window diagnostic review — ingress version skew
+
+Status: **CLASSIFIED / REPOSITORY-ONLY READINESS CORRECTION PERMITTED**
+
+The one reviewed read-only trigger `561aa6e` / CI `36167031612` returned a
+complete sanitized result (artifact `10879110764`). The failed campaign's
+marker reached the prior ingress version `11eb9e2f...`, not the newly deployed
+`8c48646c...`; its provider CPU was `3 ms`, with correct stateless/fetch/409/ok
+fields. Durable Object attribution was valid. The Cloudflare deployment list
+shows a 100% target version and a prior 100% version; the discrepancy is
+consistent with propagation, without proving Cloudflare's internal cause.
+
+The existing harness queried the same old-version marker eight times. Once
+that historical invocation was complete, more queries could not turn it into
+an exact-version proof. ADR 0013 now permits up to three **non-document** marker
+rounds, each with a new UUID and random unreserved document, only when the
+sole complete-observation failure is an ingress version mismatch. Any CPU,
+provider-status/outcome/model/event, Durable Object identity/version or other
+error fails closed. The ten exact-size flows remain disabled until a fresh
+marker proves the exact versions on both surfaces.
+
+This review authorizes only repository implementation, tests, exact-head CI
+and a fresh adversarial implementation review. It does not authorize a new
+provider preflight or exact-size campaign. The diagnostic result and its
+provenance are in `WP-2.9C-ADR-0013-DIAGNOSTIC-RESULT-2026-09-25.md`.
+
 ## Provider references
 
 - <https://developers.cloudflare.com/pages/functions/debugging-and-logging/>
@@ -627,7 +653,9 @@ returns to review and does not authorize a second exact-size campaign.
 - <https://developers.cloudflare.com/workers/runtime-apis/web-crypto/>
 - <https://developers.cloudflare.com/workers/platform/limits/>
 - <https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/>
+- <https://developers.cloudflare.com/workers/versions-and-deployments/>
+- <https://developers.cloudflare.com/workers/versions-and-deployments/version-overrides/>
 
 ## Governance
 
-WP-2.9C is **IN_PROGRESS — ADR 0013 IMPLEMENTATION REVIEW PASS / ONE INGRESS PREFLIGHT NEXT**. AR-006 remains OPEN. No `REVIEW_PENDING`, fresh Pass B, Pass C, WP-2.9A resumption, exact-size provider campaign, Workers Paid activation or 25 MB reduction is authorized. One isolated `[AR006-INGRESS-PREFLIGHT]` is permitted only after this review/status seal is exact-head green; exact-size evidence requires a separately reviewed green preflight.
+WP-2.9C is **IN_PROGRESS — ADR13-EV-001 VERSION READINESS REMEDIATION**. AR-006 remains OPEN. No `REVIEW_PENDING`, fresh Pass B, Pass C, WP-2.9A resumption, provider preflight, exact-size campaign, Workers Paid activation or 25 MB reduction is authorized by the diagnostic result. The repository correction must pass exact-head CI and fresh review first.

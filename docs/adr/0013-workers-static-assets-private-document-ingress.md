@@ -139,6 +139,28 @@ The Observability API keys/values endpoints may be used read-only to discover
 provider-indexed structured fields. No raw credential, authorization header,
 PDF bytes, wedding data or unrestricted raw log body may be retained.
 
+### Exact-version readiness after deployment
+
+The provider deployment record identifies the intended version, but a safe
+request may still reach the prior version during deployment propagation. The
+exact-size harness must prove that a fresh, random-unreserved marker request
+actually ran on the intended ingress **and** Durable Object versions before it
+constructs or reserves a 25 MB document. Re-reading the old-version marker
+cannot establish new-version readiness.
+
+Only a complete two-surface observation whose sole failure is an ingress
+`script_version_mismatch` may cause another safe marker request. The new marker
+must use a fresh evidence UUID and random unreserved document ID, remain
+bounded to at most three rounds total, and retain sanitized mismatch metadata.
+Wait at least 20 seconds between rounds so the previous marker falls outside
+the collector's 10-second pre-request timestamp margin; an unexpected marker
+still fails closed rather than being ignored.
+Any CPU-budget failure, provider outcome/model/event/status/identity/truncation
+failure, Durable Object version mismatch, ambiguity or incomplete telemetry
+must fail closed. Each exact-size promotion is still checked independently
+against the exact deployed versions; this readiness gate does not relax the
+final ten-flow acceptance test.
+
 ## Revised AR-006 CPU acceptance
 
 A new exact-size campaign is authorized only after the Workers ingress

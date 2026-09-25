@@ -19,13 +19,16 @@ function sanitizedPreflight(result) {
   if (result === null) return null;
   return {
     attempt: result.attempt,
+    round: result.round,
     window: result.window,
     ingressQuery: sanitizedQuery(result.ingress),
     durableObjectQuery: sanitizedQuery(result.durableObject),
     markerCount: result.discovery.markerCount,
     failures: result.discovery.failures,
     routeReadiness: result.routeReadiness,
-    pass: result.discovery.pass,
+    priorVersionSkews: result.priorVersionSkews,
+    readiness: result.readiness,
+    pass: result.readiness === "ready" && result.discovery.pass,
   };
 }
 

@@ -38,7 +38,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.8B | Venue private archived media lifecycle                                 | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.8C | recoverable Venue remote-media metadata lifecycle                      | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.9A | Venue-linked private PDF/document foundation                           | **BLOCKED — waits for WP-2.9C ACCEPTED**                                   |
-| WP-2.9C | trusted private-document ingestion hardening                           | **IN_PROGRESS — ADR 0013 CAMPAIGN FAILED-CONTAINED AT MARKER PREFLIGHT; ADR13-EV-001 DIAGNOSTIC REVIEW; AR-006 OPEN** |
+| WP-2.9C | trusted private-document ingestion hardening                           | **IN_PROGRESS — ADR13-EV-001 DIAGNOSED AS INGRESS VERSION MISMATCH; BOUNDED READINESS REMEDIATION; AR-006 OPEN** |
 | WP-2.9B | generic project tags and Venue entity-tag links                        | **PLANNED / AFTER A**                                                      |
 | WP-2.10 | repositories, local cache, pending/offline mutations                   | PLANNED                                                                    |
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace                       | PLANNED                                                                    |
@@ -59,7 +59,7 @@ WP-2.1..WP-2.8C are accepted and complete. Durable evidence remains in their pac
 
 ## WP-2.9C — current packet
 
-State: **IN_PROGRESS — ADR 0013 FINAL CAMPAIGN FAILED-CONTAINED AT MARKER PREFLIGHT / ZERO EXACT-SIZE FLOWS / ADR13-EV-001 DIAGNOSTIC REVIEW / WP29C-AR-006 OPEN / BLOCKING**.
+State: **IN_PROGRESS — ADR 0013 FINAL CAMPAIGN FAILED-CONTAINED AT MARKER PREFLIGHT / ZERO EXACT-SIZE FLOWS / ADR13-EV-001 INGRESS VERSION MISMATCH DIAGNOSED / WP29C-AR-006 OPEN / BLOCKING**.
 
 Pass-A exact evidence:
 
@@ -224,6 +224,9 @@ Normative release/deployment/secret contracts require Pages Functions to deploy 
 9. Fresh adversarial diagnostic review is **PASS** with no BLOCKING/MAJOR finding. The review is recorded in `WP-2.9C-ADR-0013-DIAGNOSTIC-REVIEW.md`.
 10. After the commit containing that review/status seal is itself exact-head green, exactly one no-content same-tree `[AR006-INGRESS-DIAGNOSTIC]` trigger may query the already-produced failed-window events. The job has no deploy credential, no Supabase authentication, no new marker, no PDF construction and no application mutation capability.
 11. The diagnostic result must return to review. It is not provider acceptance and does not authorize an automatic `[AR006-INGRESS-EVIDENCE]` retry. Workers Paid, wall-time substitution, dashboard aggregates, lower file limit and silent relaxation of version/model/status/CPU checks remain prohibited.
+12. The one read-only diagnostic trigger `561aa6efa4e5f3d3e1ee5bfe5962bd84cf50060a` / CI `36167031612` passed all five ordinary jobs and provider job `108179616464`. Sanitized artifact `10879110764` (ZIP SHA-256 `397734aeaf183c01463a8077ea0b19bae8eab9f87619eb3cd6a1e21a55218556`) classified the sole rejection as ingress `script_version_mismatch`: observed previous version `11eb9e2f...` at `3 ms` CPU rather than the newly deployed `8c48646c...`. Durable Object attribution passed. No exact-size flow ran.
+13. Cloudflare deployment inventory shows the new ingress version configured at 100%, with the observed version belonging to the prior 100% deployment. This is consistent with propagation but not a proven internal root cause. `WP-2.9C-ADR-0013-DIAGNOSTIC-RESULT-2026-09-25.md` records the exact evidence and bounded repository-only correction.
+14. The next permitted work is to finish/test the bounded safe-marker exact-version readiness correction, pass exact-head CI including clean checkout, then adversarially review it. **No provider preflight or exact-size campaign is yet authorized.**
 
 ## Durable handoff
 
@@ -235,7 +238,7 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.8C
 WP-2.9A: BLOCKED — waits for WP-2.9C ACCEPTED
-Current packet: WP-2.9C — IN_PROGRESS / ADR13-EV-001 DIAGNOSTIC REVIEW PASS; ONE READ-ONLY FAILED-WINDOW REQUERY AFTER SEAL CI; AR-006 remains OPEN
+Current packet: WP-2.9C — IN_PROGRESS / ADR13-EV-001 VERSION MISMATCH DIAGNOSED; BOUNDED REPOSITORY READINESS REMEDIATION; AR-006 remains OPEN
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
@@ -273,5 +276,5 @@ AR-005 and AR-007: implementation-remediated / exact-head-green — formal closu
 FTR-089 FIR: #17 — BLOCKED
 WP-2.9B: PLANNED / AFTER A
 Lots 3–12: NOT_STARTED
-Next permitted action: pass exact-head CI + clean checkout for the ADR13-EV-001 diagnostic review seal, then execute exactly one no-content same-tree `[AR006-INGRESS-DIAGNOSTIC]` read-only failed-window requery. No exact-size campaign is authorized by that diagnostic.
+Next permitted action: complete the bounded exact-version safe-marker readiness implementation, run exact-head CI + clean checkout, then adversarially review the correction and its sanitized evidence contract. Do not run another provider preflight or exact-size campaign without a separate reviewed authorization.
 ```

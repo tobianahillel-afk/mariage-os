@@ -16,6 +16,7 @@ import {
 } from "./private-document-ar006-observability-client.mjs";
 import { workerEvidenceTimeframe } from "./private-document-ar006-observability-timeframe.mjs";
 import { discoverAr006SurfaceScripts } from "./private-document-ar006-surface-discovery.mjs";
+import { markerReadiness } from "./private-document-ar006-version-readiness.mjs";
 import { createExactPdf } from "./private-document-ar006-synthetic-pdf.mjs";
 import {
   AR006_EVIDENCE_COUNT,
@@ -31,6 +32,8 @@ import { campaignPassed } from "./private-document-ar006-do-evidence-verdict.mjs
 const MAX_BYTES = 25_000_000;
 const OBSERVABILITY_ATTEMPTS = 8;
 const OBSERVABILITY_DELAY_MS = 10_000;
+const MAX_VERSION_READINESS_PROBES = 3;
+const VERSION_READINESS_DELAY_MS = 20_000;
 
 function delay(ms) {
   return new Promise((resolve) => globalThis.setTimeout(resolve, ms));
@@ -83,7 +86,7 @@ function queriesComplete(ingress, durableObject) {
   );
 }
 
-async function markerPreflight(context, identity) {
+async function markerProbe(context, identity, round) {
   const evidenceId = randomUUID();
   const startedAt = new Date().toISOString();
   const routeReadiness = await probePrivateDocumentLifecycle({
@@ -116,16 +119,21 @@ async function markerPreflight(context, identity) {
       ingressVersionId: context.ingressVersionId,
       durableObjectVersionId: context.workerVersionId,
     });
+    const readiness = markerReadiness(
+      queriesComplete(ingress, durableObject),
+      discovery,
+    );
     latest = {
       attempt,
+      round,
       window: timeframe.record,
       ingress,
       durableObject,
       discovery,
+      readiness,
       routeReadiness,
     };
-    if (queriesComplete(ingress, durableObject) && discovery.pass)
-      return latest;
+    if (readiness !== "await_logs") return latest;
     if (attempt < OBSERVABILITY_ATTEMPTS) {
       await delay(
         Math.max(
@@ -136,6 +144,26 @@ async function markerPreflight(context, identity) {
     }
   }
   return latest;
+}
+
+async function markerPreflight(context, identity) {
+  const priorVersionSkews = [];
+  for (let round = 1; round <= MAX_VERSION_READINESS_PROBES; round += 1) {
+    const result = await markerProbe(context, identity, round);
+    if (
+      result.readiness !== "retry_marker" ||
+      round === MAX_VERSION_READINESS_PROBES
+    ) {
+      return { ...result, priorVersionSkews };
+    }
+    priorVersionSkews.push({
+      round,
+      observedIngressVersionId:
+        result.discovery.failures[0]?.diagnostic?.scriptVersionId ?? null,
+    });
+    await delay(VERSION_READINESS_DELAY_MS);
+  }
+  throw new Error("Marker version readiness probe exhausted unexpectedly.");
 }
 
 async function collectEvidence(context, invocations) {
@@ -199,8 +227,9 @@ function state(context) {
 function markerPreflightPassed(result) {
   return (
     result !== null &&
+    result.readiness === "ready" &&
     queriesComplete(result.ingress, result.durableObject) &&
-    result.discovery.pass
+    result.discovery.pass === true
   );
 }
 

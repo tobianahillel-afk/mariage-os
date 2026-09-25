@@ -5,7 +5,7 @@
 - Work Packet ID: `WP-2.9C`
 - Lot: `2`
 - State: `IN_PROGRESS`
-- Current pass: `ADR 0013 FINAL CAMPAIGN FAILED-CONTAINED AT MARKER PREFLIGHT / ADR13-EV-001 DIAGNOSTIC REVIEW`
+- Current pass: `ADR 0013 FINAL CAMPAIGN FAILED-CONTAINED AT MARKER PREFLIGHT / ADR13-EV-001 INGRESS VERSION MISMATCH REMEDIATION`
 - Primary bounded context: Documents — trusted binary promotion for the existing WP-2.9A private PDF lifecycle
 - Branch: `lot-2/venues-core`
 - FIR: `#17 / FTR-089`
@@ -20,7 +20,7 @@
 
 Pass A completed successfully. The required fresh Pass B then found three unresolved MAJOR findings. Remediation implemented the AR-005 trusted cleanup/race controls and AR-007 deployment/secret/release controls, and the complete exact implementation head `68a4f6bdb7b55acc80c4c6fbb8c0afc0295bfde5` passed CI `35025384594` **5/5 SUCCESS**, including `Full verify from clean checkout`.
 
-AR-006 now has direct adverse provider evidence for the ADR 0011 private-Worker path. The 2026-09-24 isolated campaign on `26da10e5aabd7d2a9b6105caef49dd87d6ee58b9` passed deployment and deny smoke but returned eight successful exact-size promotions and two HTTP `503` failures. A bounded read-only Cloudflare query found ten corresponding private-Worker invocation events: eight successful invocations used 237–273 ms CPU and two ended `exceededCpu`. The normal Workers Free budget is 10 ms/request. The sanitized CI artifact did not capture UUID-correlated measurements because the expected marker was absent; that telemetry-parser issue cannot cure the observed CPU overrun. See `WP-2.9C-AR-006-PROVIDER-ATTEMPT-2026-09-24.md`. The packet is **BLOCKED** for a new architecture review, and AR-006 remains open.
+AR-006 has direct adverse provider evidence for the historical ADR 0011 private-Worker path. The 2026-09-24 isolated campaign on `26da10e5aabd7d2a9b6105caef49dd87d6ee58b9` passed deployment and deny smoke but returned eight successful exact-size promotions and two HTTP `503` failures. A bounded read-only Cloudflare query found ten corresponding private-Worker invocation events: eight successful invocations used 237–273 ms CPU and two ended `exceededCpu`. The normal Workers Free budget is 10 ms/request. The sanitized CI artifact did not capture UUID-correlated measurements because the expected marker was absent; that telemetry-parser issue cannot cure the observed CPU overrun. See `WP-2.9C-AR-006-PROVIDER-ATTEMPT-2026-09-24.md`. That design was **BLOCKED** pending architecture review; accepted ADR 0012/0013 now govern the IN_PROGRESS replacement path. AR-006 remains open.
 
 WP-2.9C is not accepted and must not enter `REVIEW_PENDING` until AR-006 is evidenced and the resulting evidence-bound exact HEAD passes the complete verification gate again.
 
@@ -86,7 +86,7 @@ The 2026-09-16 isolated deployment of `4f40613060b4c9de41a32d99ed43fcf6e12c9791`
 
 Therefore this finding is **OPEN / IN_PROGRESS**. ADR 0011 implementation must produce the missing Worker-correlated provider evidence before review.
 
-### ADR13-EV-001 — MAJOR — final campaign marker-preflight rejection is not diagnosable
+### ADR13-EV-001 — MAJOR / OPEN — ingress version mismatch diagnosed
 
 The single reviewed ADR 0013 exact-size trigger
 `f7951e99eb31bcc63d9cbd93f67db80548340ed6` passed all five ordinary
@@ -106,6 +106,14 @@ exact-window read-only requery harness. One provider diagnostic may run only
 after that remediation is exact-head green and reviewed; it must reuse the
 failed UUID/window and perform no deployment, authentication, new marker or
 application-data mutation.
+
+The authorized diagnostic has since classified this finding: CI
+`36167031612` / artifact `10879110764` found **only** an ingress script-version
+mismatch. The request used the prior version `11eb9e2f...` at `3 ms` CPU while
+the newly deployed exact version was `8c48646c...`; the Durable Object was
+fully attributed. `WP-2.9C-ADR-0013-DIAGNOSTIC-RESULT-2026-09-25.md` records
+the full sanitized result. The finding remains **MAJOR / OPEN** until a bounded
+exact-version readiness correction and fresh provider proof pass review.
 
 ### WP29C-AR-007 — MAJOR — deployment/secret operations not reconciled
 
@@ -431,6 +439,13 @@ The commit containing that review/status seal must itself pass ordinary CI and
 clean checkout. Only then is one no-content same-tree
 `[AR006-INGRESS-DIAGNOSTIC]` trigger authorized. Its output returns to review
 and does not automatically authorize another exact-size campaign.
+
+That read-only trigger completed at `561aa6e` / CI `36167031612`. The sole
+rejected field was the ingress script version, not CPU. Repository-only
+remediation now issues a new random-unreserved marker only after a complete
+observation has no failure except that version mismatch, at most three marker
+rounds. It must pass local tests, exact-head CI and fresh adversarial review
+before any provider run is considered. AR-006 and WP-2.9C remain open.
 
 ## Deviations
 

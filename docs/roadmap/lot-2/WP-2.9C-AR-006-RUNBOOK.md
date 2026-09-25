@@ -47,7 +47,9 @@ Single authorized trigger `a83d76ec5b824096cfe1435e20613b813a6892c7` / CI `36154
 
 Exact provider identities: DO host version `794000b1-9b1b-43ad-a12c-01bbd47875eb`; ingress deployment `c4346f61-ad43-4a58-8b90-91e2a25bc5f7`; ingress version `11eb9e2f-9056-48ad-93ee-2ed0095d699a`. Safe route readiness was HTTP 409 on attempt 1. Observability passed on attempt 3 with two markers/two attributed invocations and no failures.
 
-The next trigger is **not automatic**. One `[AR006-INGRESS-EVIDENCE]` campaign is permitted only after the repository commit sealing this preflight review is ordinary exact-head green.
+At that historical checkpoint, one `[AR006-INGRESS-EVIDENCE]` campaign was
+permitted only after the repository commit sealing the preflight review became
+ordinary exact-head green. That authorization was consumed by `f7951e9`.
 
 
 ## ADR 0013 failed-marker diagnostic protocol
@@ -68,6 +70,26 @@ versions/timeframe, query HTTP/API/completeness metadata, marker/attribution
 counts, and privacy-safe provider-validation reason codes plus the non-secret
 provider fields necessary to interpret those reasons. Raw events, source
 payloads, credentials and bearer data remain forbidden.
+
+### Current diagnostic result and repository gate
+
+The one read-only diagnostic `561aa6e` / CI `36167031612` completed. Artifact
+`10879110764` (ZIP SHA-256
+`397734aeaf183c01463a8077ea0b19bae8eab9f87619eb3cd6a1e21a55218556`)
+found only `script_version_mismatch` on ingress: the safe marker ran on previous
+version `11eb9e2f...` at `3 ms` CPU while the new deployment required
+`8c48646c...`. The Durable Object was fully attributable. No exact-size flow
+ran. The result is in `WP-2.9C-ADR-0013-DIAGNOSTIC-RESULT-2026-09-25.md`.
+
+The current repository correction may issue a fresh random-unreserved marker
+only after complete two-surface telemetry shows **sole** ingress version
+mismatch. At most three marker rounds are allowed. Every other complete
+rejection stops immediately; delayed/incomplete logs are re-read only within
+the bounded query window. The sanitized receipt retains prior observed
+version IDs and the final exact-version result. Ten 25 MB flows remain gated
+behind a final valid marker, separate exact-head CI, fresh review and explicit
+new provider-campaign authorization. Do not run a provider marker or document
+campaign merely because this code exists.
 
 ## ADR 0012 historical final-evidence protocol — superseded by ADR 0013 ingress
 
