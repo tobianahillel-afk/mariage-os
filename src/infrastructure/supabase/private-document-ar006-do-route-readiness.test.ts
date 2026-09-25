@@ -70,7 +70,9 @@ describe("ADR 0012 lifecycle route readiness fail-closed", () => {
   it("rejects malformed 409 payloads", async () => {
     const fetcher = vi
       .fn<typeof fetch>()
-      .mockResolvedValue(Response.json({ error: "different" }, { status: 409 }));
+      .mockResolvedValue(
+        Response.json({ error: "different" }, { status: 409 }),
+      );
 
     await expect(
       probePrivateDocumentLifecycle(baseInput(fetcher)),

@@ -25,9 +25,7 @@ describe("ADR 0012 failed-campaign receipt contract", () => {
     expect(recordSource).toContain("completedInvocationCount");
     expect(recordSource).toContain("pass: false");
     expect(recordSource).toContain("buildPreMutationFailureEvidenceRecord");
-    expect(preMutationReceiptSource).toContain(
-      'failureStage: "route_preflight"',
-    );
+    expect(preMutationReceiptSource).toContain('failureStage: "route_preflight"');
     expect(recordSource).not.toContain("error.message");
   });
 });
@@ -117,9 +115,7 @@ describe("ADR 0012 provider evidence job fail-closed capture", () => {
   it("smokes the exact route before mutation and uses dedicated secrets", () => {
     const job = evidenceJobSource();
     expect(job).toContain("smoke:private-document-production");
-    expect(job).toContain(
-      "run-private-document-ar006-do-route-preflight.mjs",
-    );
+    expect(job).toContain("run-private-document-ar006-do-route-preflight.mjs");
     expect(job).toContain("id: route_preflight");
     expect(job).toContain("steps.route_preflight.outcome == 'failure'");
     expect(job).toContain(
