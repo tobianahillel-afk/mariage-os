@@ -31,13 +31,17 @@ function sanitizedQuery(result) {
   };
 }
 
-function queriesComplete(ingress, durableObject) {
-  return (
-    ingress.apiSuccess === true &&
-    ingress.eventPageComplete === true &&
-    durableObject.apiSuccess === true &&
-    durableObject.eventPageComplete === true
-  );
+function diagnosticContext() {
+  if (
+    requiredEnv("AR006_WORKERS_FREE_ATTESTATION") !==
+    "YES-WORKERS-FREE-ISOLATED"
+  ) {
+    throw new Error("Workers Free isolated attestation is required.");
+  }
+  return {
+    accountId: requiredEnv("CLOUDFLARE_ACCOUNT_ID"),
+    token: requiredEnv("CLOUDFLARE_OBSERVABILITY_API_TOKEN"),
+  };
 }
 
 async function queryExactSurface(accountId, token, workerName, queryId) {
@@ -50,28 +54,33 @@ async function queryExactSurface(accountId, token, workerName, queryId) {
   });
 }
 
-async function main() {
-  if (
-    requiredEnv("AR006_WORKERS_FREE_ATTESTATION") !==
-    "YES-WORKERS-FREE-ISOLATED"
-  ) {
-    throw new Error("Workers Free isolated attestation is required.");
-  }
-  const accountId = requiredEnv("CLOUDFLARE_ACCOUNT_ID");
-  const token = requiredEnv("CLOUDFLARE_OBSERVABILITY_API_TOKEN");
+async function queryFailedWindow(context) {
   const ingress = await queryExactSurface(
-    accountId,
-    token,
+    context.accountId,
+    context.token,
     INGRESS_SCRIPT,
     "mariage-os-ar006-ingress-failed-window-diagnostic",
   );
   const durableObject = await queryExactSurface(
-    accountId,
-    token,
+    context.accountId,
+    context.token,
     DURABLE_OBJECT_SCRIPT,
     "mariage-os-ar006-do-failed-window-diagnostic",
   );
-  const discovery = discoverAr006SurfaceScripts({
+  return { ingress, durableObject };
+}
+
+function queriesComplete(ingress, durableObject) {
+  return (
+    ingress.apiSuccess === true &&
+    ingress.eventPageComplete === true &&
+    durableObject.apiSuccess === true &&
+    durableObject.eventPageComplete === true
+  );
+}
+
+function discoverFailedInvocation(ingress, durableObject) {
+  return discoverAr006SurfaceScripts({
     events: [...ingress.events, ...durableObject.events],
     expectedEvidenceIds: [EVIDENCE_ID],
     ingressScriptName: INGRESS_SCRIPT,
@@ -79,9 +88,12 @@ async function main() {
     ingressVersionId: INGRESS_VERSION,
     durableObjectVersionId: DURABLE_OBJECT_VERSION,
   });
+}
+
+function diagnosticReceipt(ingress, durableObject, discovery) {
   const diagnosticComplete =
     queriesComplete(ingress, durableObject) && discovery.markerCount === 2;
-  const receipt = {
+  return {
     schema: "mariage-os.wp29c.ar006.adr0013-diagnostic-requery.v1",
     generatedAt: new Date().toISOString(),
     diagnosticCommit: process.env.GITHUB_SHA ?? null,
@@ -110,12 +122,22 @@ async function main() {
     providerAcceptance: false,
     diagnosticComplete,
   };
+}
+
+async function writeReceipt(receipt) {
   await writeFile(
     RECEIPT_PATH,
     `${JSON.stringify(receipt, null, 2)}\n`,
     "utf8",
   );
-  if (!diagnosticComplete) {
+}
+
+async function main() {
+  const { ingress, durableObject } = await queryFailedWindow(diagnosticContext());
+  const discovery = discoverFailedInvocation(ingress, durableObject);
+  const receipt = diagnosticReceipt(ingress, durableObject, discovery);
+  await writeReceipt(receipt);
+  if (!receipt.diagnosticComplete) {
     throw new Error("ADR 0013 exact-window diagnostic was incomplete.");
   }
 }

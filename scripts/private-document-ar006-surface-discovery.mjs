@@ -192,18 +192,25 @@ function cpuValidationReasons(invocation, contract) {
   return reasons;
 }
 
-function providerValidationReasons(invocation, marker, contract) {
+function eventValidationReasons(invocation, contract) {
   const reasons = [];
   if (invocation.outcome !== "ok") reasons.push("unexpected_outcome");
   if (invocation.executionModel !== contract.executionModel) {
     reasons.push("unexpected_execution_model");
   }
   if (invocation.eventType !== "fetch") reasons.push("unexpected_event_type");
-  if (invocation.statusCode === null) {
-    reasons.push("missing_provider_status");
-  } else if (invocation.statusCode !== marker.status) {
-    reasons.push("provider_status_mismatch");
-  }
+  return reasons;
+}
+
+function statusValidationReasons(invocation, marker) {
+  if (invocation.statusCode === null) return ["missing_provider_status"];
+  return invocation.statusCode === marker.status
+    ? []
+    : ["provider_status_mismatch"];
+}
+
+function identityValidationReasons(invocation, contract) {
+  const reasons = [];
   if (contract.requireDurableObjectId && invocation.durableObjectId === null) {
     reasons.push("missing_durable_object_id");
   }
@@ -212,8 +219,16 @@ function providerValidationReasons(invocation, marker, contract) {
   } else if (invocation.scriptVersionId !== contract.expectedScriptVersionId) {
     reasons.push("script_version_mismatch");
   }
-  if (invocation.truncated) reasons.push("truncated_provider_event");
   return reasons;
+}
+
+function providerValidationReasons(invocation, marker, contract) {
+  return [
+    ...eventValidationReasons(invocation, contract),
+    ...statusValidationReasons(invocation, marker),
+    ...identityValidationReasons(invocation, contract),
+    ...(invocation.truncated ? ["truncated_provider_event"] : []),
+  ];
 }
 
 function invocationValidationReasons(invocation, marker, contract) {
