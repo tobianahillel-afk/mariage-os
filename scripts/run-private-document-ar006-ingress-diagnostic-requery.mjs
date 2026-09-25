@@ -133,7 +133,8 @@ async function writeReceipt(receipt) {
 }
 
 async function main() {
-  const { ingress, durableObject } = await queryFailedWindow(diagnosticContext());
+  const { ingress, durableObject } =
+    await queryFailedWindow(diagnosticContext());
   const discovery = discoverFailedInvocation(ingress, durableObject);
   const receipt = diagnosticReceipt(ingress, durableObject, discovery);
   await writeReceipt(receipt);
