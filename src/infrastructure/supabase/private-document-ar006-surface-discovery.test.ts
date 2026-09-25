@@ -9,6 +9,12 @@ const ids = Array.from(
     `00000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`,
 );
 
+function firstEvidenceId(): string {
+  const value = ids[0];
+  if (value === undefined) throw new Error("Fixture must contain an id.");
+  return value;
+}
+
 function marker({
   evidenceId,
   surface,
@@ -86,7 +92,7 @@ describe("AR-006 structured surface discovery", () => {
   it("fails closed on unexpected ingress or DO script identity", () => {
     const ingressEvents = completeEvents();
     ingressEvents[0] = marker({
-      evidenceId: ids[0]!,
+      evidenceId: firstEvidenceId(),
       surface: "worker-ingress",
       scriptName: "unexpected-ingress",
     });
