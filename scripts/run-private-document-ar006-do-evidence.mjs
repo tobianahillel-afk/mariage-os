@@ -96,6 +96,15 @@ async function invokeMarkerPreflight(context, identity, evidenceId) {
   });
 }
 
+function markerPreflightPassed(result) {
+  return (
+    result !== null &&
+    result.apiSuccess === true &&
+    result.eventPageComplete === true &&
+    result.discovery.pass === true
+  );
+}
+
 async function verifyMarkerObservability(context, identity) {
   const evidenceId = randomUUID();
   const startedAt = new Date().toISOString();
@@ -104,6 +113,7 @@ async function verifyMarkerObservability(context, identity) {
     identity,
     evidenceId,
   );
+  let latest = null;
   for (let attempt = 1; attempt <= OBSERVABILITY_ATTEMPTS; attempt += 1) {
     const result = await queryMarkers(
       context,
@@ -116,15 +126,13 @@ async function verifyMarkerObservability(context, identity) {
       expectedEvidenceIds: [evidenceId],
       durableObjectScriptName: context.durableObjectScriptName,
     });
-    const candidate = { ...result, discovery };
-    if (result.apiSuccess && result.eventPageComplete && discovery.pass) {
-      return { ...candidate, routeReadiness };
-    }
+    latest = { ...result, discovery, routeReadiness };
+    if (markerPreflightPassed(latest)) return latest;
     if (attempt < OBSERVABILITY_ATTEMPTS) {
       await delay(nextObservabilityDelayMs(result, OBSERVABILITY_DELAY_MS));
     }
   }
-  throw new Error("ADR 0012 two-surface marker preflight failed.");
+  return latest;
 }
 
 async function discoverPagesScript(context, invocations) {
@@ -242,6 +250,9 @@ async function executeCampaign(state) {
     state.context,
     identity,
   );
+  if (!markerPreflightPassed(state.markerPreflight)) {
+    throw new Error("ADR 0012 two-surface marker preflight failed.");
+  }
   await delay(20_000);
   state.failureStage = "exact_size_flows";
   await runAr006Promotions(

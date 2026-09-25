@@ -29,6 +29,11 @@ describe("ADR 0012 failed-campaign receipt contract", () => {
       'failureStage: "route_preflight"',
     );
     expect(recordSource).not.toContain("error.message");
+    expect(harnessSource).toContain("markerPreflightPassed");
+    expect(harnessSource).toContain("return latest");
+    expect(harnessSource).toContain(
+      "state.markerPreflight = await verifyMarkerObservability",
+    );
   });
 });
 
