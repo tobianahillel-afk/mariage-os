@@ -281,6 +281,15 @@ Before production cutover:
 - Pages no longer carries the privileged admin secret after cutover;
 - deployed provider evidence proves the revised CPU contract.
 
+## 2026-09-25 ingress supersession
+
+ADR 0013 supersedes the Pages-specific ingress and evidence portions of this
+ADR after Cloudflare's persistent-log contract was revalidated. The private
+Durable Object class, one-object-per-document identity, explicit serialization,
+authorization, integrity, compensation and CPU model defined here remain
+accepted and unchanged. References below to a direct Pages ingress are
+historical; the active ingress is Workers Static Assets.
+
 ## State transition
 
 This ADR resolves the post-campaign architecture decision only. It does not

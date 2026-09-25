@@ -515,6 +515,31 @@ No BLOCKING/MAJOR finding remains in the route-readiness continuation. The failu
 
 Therefore authorize exactly one second `[AR006-DO-EVIDENCE]` campaign, conditional on this result/review seal first passing ordinary exact-head CI + clean checkout. The campaign must use the current reviewed harness unchanged, deploy the exact same-tree candidate, stop before mutation on any failed route/marker preflight, and retain only sanitized two-surface evidence. A red result exhausts this authorization and returns to review; no automatic repeat, Workers Paid fallback, wall-time substitute or reduction of the exact `25,000,000`-byte contract is authorized.
 
+## 2026-09-25 Observability architecture correction — ADR 0013
+
+Status: **DECISION ACCEPTED — WORKERS STATIC ASSETS INGRESS RED-FIRST; OLD PAGES EXACT-SIZE AUTHORIZATION WITHDRAWN**
+
+The marker-only recheck at `11a3cdc6d0d501b616906c6a1e5ccf583b892411` / CI `36142087537` is the final diagnostic for the Pages evidence assumption. All ordinary repository jobs and clean checkout succeeded. Provider job `108096474591` failed only at the marker recheck; artifact `10868151368` records accepted Observability queries with no persisted Pages marker. The exact-size evidence job was skipped.
+
+Official Cloudflare documentation resolves the ambiguity: Pages Functions logs are live-only and are not stored, while Workers Observability Query Builder / REST searches logs stored by Workers Logs. Therefore the current requirement for a persisted, per-invocation Pages CPU proof is structurally mismatched to Pages Functions.
+
+ADR 0013 keeps the ADR 0012 Durable Object unchanged and replaces only the ingress:
+
+```text
+browser
+→ Workers Static Assets public ingress
+  → Worker-first /api/*
+  → no admin/service credential
+  → persisted Workers Logs
+→ PRIVATE_DOCUMENT_LIFECYCLE
+→ private SQLite Durable Object host
+→ Supabase
+```
+
+The new ingress will emit native structured logs and the collector will query the two exact script names independently. The hard-coded global `$metadata.message includes ...` marker discovery path is retired for the new campaign. A read-only keys/values diagnostic may be used during preflight, but acceptance remains based on exact-script events plus provider invocation identity/CPU.
+
+No exact-size mutation is authorized until ADR 0013 implementation is exact-head green, adversarially reviewed and one isolated structured-log ingress/DO preflight is green.
+
 ## Provider references
 
 - <https://developers.cloudflare.com/pages/functions/debugging-and-logging/>

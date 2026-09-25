@@ -228,7 +228,9 @@ Fresh Pass B specifically invalidates treating any local 25 MB success as suffic
 
 ## State / sequencing
 
-Current state: **IN_PROGRESS — ADR 0012 ROUTE-RECHECK GREEN / SECOND EXACT-SIZE CAMPAIGN REVIEW PASS; POST-RECHECK SEAL VERIFICATION NEXT**.
+Current state: **IN_PROGRESS — ADR 0013 WORKERS STATIC ASSETS INGRESS RED-FIRST / AR-006 OPEN**.
+
+ADR 0013 now supersedes only the Pages-specific ingress/evidence portion of ADR 0012. Cloudflare documents Pages Function logs as non-persistent, while Workers Observability queries persisted Workers Logs. The final browser boundary therefore moves to a dedicated Workers Static Assets ingress Worker with Worker-first `/api/*` routing, no Supabase admin credential and an external binding to the unchanged private lifecycle Durable Object. The historical Pages exact-size campaign authorization is withdrawn; no 25 MB provider mutation is permitted until the new ingress implementation, review and structured-log preflight are green.
 
 The ADR-0011 stateless private-Worker design remains rejected by deployed evidence: eight successful exact-size invocations consumed 237–273 ms CPU and two additional invocations ended `exceededCpu`. ADR 0012 is now accepted and moves the trusted promotion/abandon executor to one private SQLite-backed Durable Object per `(project_id, document_id)`, bound directly from the same-origin/bodyless Pages ingress. AR-006 remains OPEN until the replacement architecture is implemented, reviewed and proven on Workers Free.
 

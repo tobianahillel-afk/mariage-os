@@ -213,16 +213,16 @@ Normative release/deployment/secret contracts require Pages Functions to deploy 
 
 ## Current next-action gate
 
-1. Preserve the provider-green ADR 0012 topology/preflight state and the reviewed two-surface evaluator.
-2. Marker-gate enablement `f913940d7d1c777a75448eebe2231844bf8be875` / CI `36075138372` is **5/5 SUCCESS**, including clean checkout; the provider job was correctly skipped.
-3. Same-tree trigger `6bdf445e7f56e38caa0d807232bcfde573103117` / CI `36075800700` passed all five repository jobs. The provider job deployed/captured the exact Worker/DO and exact Pages preview and passed deny smoke, but failed at the authenticated random-unreserved route probe **before any 25 MB flow**; the ten-flow step was SKIPPED.
-4. Route-readiness remediation is exact-head green at `f6a272bd04640c52a3ff0c98330605f158474148` / CI `36124432936` — **5/5 SUCCESS**, clean checkout included; all provider jobs were skipped.
-5. Fresh targeted adversarial review is **PASS** for the bounded 404/503 readiness and canonical pre-mutation failure-receipt scope; no BLOCKING/MAJOR finding remains.
-6. Dedicated read-only recheck harness implementation is exact-head green at `f11020e81c0991c8e6401d9d2f4a1ed05f2f95f4` / CI `36130022819` — all five ordinary jobs **SUCCESS**, including clean checkout; `AR-006 ADR 0012 exact-preview read-only route recheck` was correctly **SKIPPED** because the marker was absent.
-7. Focused adversarial contract review is **PASS**: the job is push/branch/`full-verify` gated, hard-pinned to exact preview candidate `6bdf445e7f56e38caa0d807232bcfde573103117`, reads provider metadata only, authenticates only the synthetic user, retains a sanitized `documentMutation:false` receipt, runs deny smoke plus the bounded random-unreserved route probe, and contains no Worker deploy, Pages PATCH, Observability collection, exact-size harness or 25 MB mutation path.
-8. This review/status seal must itself pass ordinary exact-head CI + clean checkout. Only then may one no-content same-tree `[AR006-DO-ROUTE-RECHECK]` trigger run. A second exact-size campaign is **not** automatic.
-9. Do not substitute wall time, dashboard aggregate, Paid entitlement or a lower file limit. AR-006 remains OPEN until valid provider evidence exists.
-10. Only after valid AR-006 evidence, run exact-head verification, a complete fresh independent Pass B and then Pass C before acceptance. WP-2.9A remains **BLOCKED** until C is accepted; WP-2.9B and later Lots remain inactive.
+1. The 2026-09-25 marker recheck at `11a3cdc6d0d501b616906c6a1e5ccf583b892411` passed all ordinary repository jobs and clean checkout but failed the marker-only provider job exactly as expected by the new diagnosis: persisted Workers Observability did not return the Pages Function custom marker, while broad private-Worker queries returned persisted events. No exact-size flow ran.
+2. ADR 0013 is accepted. It retains ADR 0012's private per-document Durable Object and replaces only the browser ingress with a public Workers Static Assets Worker using Worker-first `/api/*` routing, no privileged Supabase secret and persisted Workers Logs.
+3. Current permitted action is repository-only RED-first implementation of ADR 0013: native structured logging, structured-source parsing, exact-script Observability collection and the new Static Assets ingress/deployment harness.
+4. The old Pages evidence campaign authorization is withdrawn. Do not run `[AR006-DO-EVIDENCE]` against Pages.
+5. After implementation, require exact-head normal CI + clean checkout and a fresh adversarial implementation review.
+6. Only after that review may one isolated no-document-mutation Static Assets ingress/DO Observability preflight run. It must prove both scripts persist attributable structured markers and that the ingress has no admin credential.
+7. Only a reviewed green preflight may authorize one ten-flow exact-`25,000,000`-byte campaign. Workers Paid, wall-time substitution, dashboard aggregate evidence and a lower file limit remain prohibited.
+8. Valid AR-006 evidence still requires per-flow ingress CPU <= 10 ms and valid Durable Object provider CPU with no CPU-limit outcome.
+9. After valid AR-006 evidence, run exact-head verification, a complete fresh independent Pass B and then Pass C before acceptance.
+10. WP-2.9A remains BLOCKED until WP-2.9C is ACCEPTED; WP-2.9B and later Lots remain inactive.
 
 ## Durable handoff
 
@@ -234,7 +234,7 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.8C
 WP-2.9A: BLOCKED — waits for WP-2.9C ACCEPTED
-Current packet: WP-2.9C — IN_PROGRESS / ADR 0012 READ-ONLY ROUTE-RECHECK HARNESS EXACT-HEAD GREEN / FOCUSED REVIEW PASS; REVIEW-SEAL VERIFICATION NEXT; AR-006 remains OPEN
+Current packet: WP-2.9C — IN_PROGRESS / ADR 0013 WORKERS STATIC ASSETS INGRESS RED-FIRST; AR-006 remains OPEN
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
@@ -272,5 +272,5 @@ AR-005 and AR-007: implementation-remediated / exact-head-green — formal closu
 FTR-089 FIR: #17 — BLOCKED
 WP-2.9B: PLANNED / AFTER A
 Lots 3–12: NOT_STARTED
-Next permitted action: exact-head green verification of the post-recheck review/status seal → one no-content same-tree `[AR006-DO-EVIDENCE]` trigger. This is a single bounded second campaign only; no automatic repeat is authorized.
+Next permitted action: ADR 0013 repository-only RED-first implementation and exact-head review. The old Pages `[AR006-DO-EVIDENCE]` path is no longer authorized.
 ```
