@@ -1,6 +1,8 @@
 import { writeFile } from "node:fs/promises";
 import { requiredEnv } from "./private-document-ar006-do-evidence-env.mjs";
-import { queryWorkersObservability } from "./private-document-ar006-observability-client.mjs";
+import {
+  queryWorkersObservability,
+} from "./private-document-ar006-observability-client.mjs";
 import { discoverAr006SurfaceScripts } from "./private-document-ar006-surface-discovery.mjs";
 
 const RECEIPT_PATH = "ar006-adr0013-diagnostic-requery.json";
@@ -110,7 +112,11 @@ async function main() {
     providerAcceptance: false,
     diagnosticComplete,
   };
-  await writeFile(RECEIPT_PATH, `${JSON.stringify(receipt, null, 2)}\n`, "utf8");
+  await writeFile(
+    RECEIPT_PATH,
+    `${JSON.stringify(receipt, null, 2)}\n`,
+    "utf8",
+  );
   if (!diagnosticComplete) {
     throw new Error("ADR 0013 exact-window diagnostic was incomplete.");
   }
