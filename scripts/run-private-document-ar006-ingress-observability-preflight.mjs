@@ -139,11 +139,7 @@ async function main() {
     exactSizeMutation: false,
     pass: observation.pass,
   };
-  await writeFile(
-    RECEIPT_PATH,
-    `${JSON.stringify(record, null, 2)}\n`,
-    "utf8",
-  );
+  await writeFile(RECEIPT_PATH, `${JSON.stringify(record, null, 2)}\n`, "utf8");
   if (!observation.pass) {
     throw new Error(
       "ADR 0013 structured Observability preflight failed closed.",
