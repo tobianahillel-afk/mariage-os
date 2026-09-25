@@ -1,18 +1,17 @@
-interface Ar006DiscoveryResult {
+interface Ar006QueryResult {
   readonly apiSuccess: boolean;
   readonly eventPageComplete: boolean;
+}
+
+interface Ar006MarkerPreflight {
+  readonly ingress: Ar006QueryResult;
+  readonly durableObject: Ar006QueryResult;
   readonly discovery: { readonly pass: boolean };
 }
 
 interface Ar006ObservationResult {
-  readonly pages: {
-    readonly apiSuccess: boolean;
-    readonly eventPageComplete: boolean;
-  };
-  readonly durableObject: {
-    readonly apiSuccess: boolean;
-    readonly eventPageComplete: boolean;
-  };
+  readonly ingress: Ar006QueryResult;
+  readonly durableObject: Ar006QueryResult;
   readonly evaluation: { readonly pass: boolean };
 }
 
@@ -22,8 +21,7 @@ interface Ar006CampaignVerdictInput {
     readonly status: number;
     readonly finalized: boolean;
   }>;
-  readonly markerPreflight: Ar006DiscoveryResult | null;
-  readonly discovery: Ar006DiscoveryResult | null;
+  readonly markerPreflight: Ar006MarkerPreflight | null;
   readonly observation: Ar006ObservationResult | null;
   readonly expectedCount: number;
 }

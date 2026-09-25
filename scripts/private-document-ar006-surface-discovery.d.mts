@@ -4,7 +4,7 @@ export interface Ar006ScriptDiscoveryFailure {
 }
 
 export interface Ar006ScriptDiscovery {
-  readonly pagesScriptName: string | null;
+  readonly ingressScriptName: string | null;
   readonly markerCount: number;
   readonly failures: ReadonlyArray<Ar006ScriptDiscoveryFailure>;
   readonly pass: boolean;
@@ -13,5 +13,6 @@ export interface Ar006ScriptDiscovery {
 export function discoverAr006SurfaceScripts(input: {
   readonly events: ReadonlyArray<unknown>;
   readonly expectedEvidenceIds: ReadonlyArray<string>;
+  readonly ingressScriptName: string;
   readonly durableObjectScriptName: string;
 }): Ar006ScriptDiscovery;

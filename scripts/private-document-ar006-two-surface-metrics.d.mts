@@ -1,9 +1,12 @@
+export const INGRESS_CPU_BUDGET_MS: 10;
 export const PAGES_CPU_BUDGET_MS: 10;
 export const DURABLE_OBJECT_CPU_BUDGET_MS: 30000;
 export const AR006_EVIDENCE_COUNT: 10;
 
+export type Ar006EvidenceSurface = "worker-ingress" | "durable-object";
+
 export interface Ar006SurfaceContract {
-  readonly surface: "pages-ingress" | "durable-object";
+  readonly surface: Ar006EvidenceSurface;
   readonly scriptName: string;
   readonly executionModel: "stateless" | "durableObject";
   readonly cpuBudgetMs: number;
@@ -12,7 +15,7 @@ export interface Ar006SurfaceContract {
 }
 
 export interface Ar006SurfaceMeasurement {
-  readonly surface: "pages-ingress" | "durable-object";
+  readonly surface: Ar006EvidenceSurface;
   readonly evidenceId: string;
   readonly requestId: string;
   readonly applicationStatus: number;
@@ -31,7 +34,7 @@ export interface Ar006SurfaceMeasurement {
 export interface Ar006SurfaceFailure {
   readonly code: string;
   readonly evidenceId: string | null;
-  readonly surface: "pages-ingress" | "durable-object";
+  readonly surface: Ar006EvidenceSurface;
 }
 
 export interface Ar006SurfaceEvaluation {
@@ -41,7 +44,7 @@ export interface Ar006SurfaceEvaluation {
 }
 
 export interface Ar006TwoSurfaceEvaluation {
-  readonly pages: Ar006SurfaceEvaluation;
+  readonly ingress: Ar006SurfaceEvaluation;
   readonly durableObject: Ar006SurfaceEvaluation;
   readonly exactEvidenceCount: boolean;
   readonly uniqueDurableObjects: boolean;
@@ -55,10 +58,11 @@ export function evaluateAr006Surface(
 ): Ar006SurfaceEvaluation;
 
 export function evaluateAr006TwoSurfaceEvents(input: {
-  readonly pagesEvents: ReadonlyArray<unknown>;
+  readonly ingressEvents: ReadonlyArray<unknown>;
   readonly durableObjectEvents: ReadonlyArray<unknown>;
   readonly expectedEvidenceIds: ReadonlyArray<string>;
-  readonly pagesScriptName: string;
+  readonly ingressScriptName: string;
   readonly durableObjectScriptName: string;
+  readonly ingressVersionId?: string | null;
   readonly durableObjectVersionId: string;
 }): Ar006TwoSurfaceEvaluation;

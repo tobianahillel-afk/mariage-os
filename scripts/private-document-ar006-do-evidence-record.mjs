@@ -1,7 +1,7 @@
 import { writeFile } from "node:fs/promises";
 import { requiredEnv } from "./private-document-ar006-do-evidence-env.mjs";
 
-const EVIDENCE_PATH = "ar006-adr0012-two-surface-evidence.json";
+const EVIDENCE_PATH = "ar006-adr0013-two-surface-evidence.json";
 
 function sanitizedQuery(result) {
   if (result === null) return null;
@@ -15,16 +15,16 @@ function sanitizedQuery(result) {
   };
 }
 
-function sanitizedDiscovery(result) {
+function sanitizedPreflight(result) {
   if (result === null) return null;
   return {
     attempt: result.attempt,
     window: result.window,
-    query: sanitizedQuery(result),
+    ingressQuery: sanitizedQuery(result.ingress),
+    durableObjectQuery: sanitizedQuery(result.durableObject),
     markerCount: result.discovery.markerCount,
     failures: result.discovery.failures,
-    pagesScriptName: result.discovery.pagesScriptName,
-    routeReadiness: result.routeReadiness ?? null,
+    routeReadiness: result.routeReadiness,
     pass: result.discovery.pass,
   };
 }
@@ -34,9 +34,38 @@ function sanitizedEvaluation(observation) {
   return {
     attempt: observation.attempt,
     window: observation.window,
-    pagesQuery: sanitizedQuery(observation.pages),
+    ingressQuery: sanitizedQuery(observation.ingress),
     durableObjectQuery: sanitizedQuery(observation.durableObject),
     evaluation: observation.evaluation,
+  };
+}
+
+function providerIdentity(context) {
+  return {
+    ingress: {
+      name: context.ingressScriptName,
+      deploymentId: context.ingressDeploymentId,
+      versionId: context.ingressVersionId,
+    },
+    durableObjectHost: {
+      name: context.durableObjectScriptName,
+      deploymentId: context.workerDeploymentId,
+      versionId: context.workerVersionId,
+    },
+  };
+}
+
+function baseRecord(context, exactBytes, invocationCount) {
+  return {
+    generatedAt: new Date().toISOString(),
+    gitCommit: requiredEnv("AR006_EXPECTED_SHA"),
+    deploymentUrl: context.deploymentUrl,
+    providerIdentity: providerIdentity(context),
+    workersPlanAttestation: "Workers Free / isolated non-production",
+    exactBytes,
+    projectId: context.projectId,
+    invocationCount,
+    paidCpuEntitlementAttestedAbsent: true,
   };
 }
 
@@ -44,37 +73,18 @@ export function buildEvidenceRecord({
   context,
   invocations,
   markerPreflight,
-  discovery,
   observation,
   pass,
   exactBytes,
   invocationCount,
 }) {
   return {
-    schema: "mariage-os.wp29c.ar006.adr0012-two-surface.v1",
-    generatedAt: new Date().toISOString(),
-    gitCommit: requiredEnv("AR006_EXPECTED_SHA"),
-    pagesProject: requiredEnv("AR006_PAGES_PROJECT"),
-    deployment: {
-      id: requiredEnv("AR006_DEPLOYMENT_ID"),
-      url: context.deploymentUrl,
-      branch: requiredEnv("AR006_DEPLOYMENT_BRANCH"),
-    },
-    worker: {
-      name: context.durableObjectScriptName,
-      deploymentId: context.workerDeploymentId,
-      versionId: context.workerVersionId,
-    },
-    workersPlanAttestation: "Workers Free / isolated non-production",
-    exactBytes,
+    schema: "mariage-os.wp29c.ar006.adr0013-two-surface.v1",
+    ...baseRecord(context, exactBytes, invocationCount),
     sha256: context.sha256,
-    projectId: context.projectId,
-    invocationCount,
     invocations,
-    markerPreflight: sanitizedDiscovery(markerPreflight),
-    discovery: sanitizedDiscovery(discovery),
+    markerPreflight: sanitizedPreflight(markerPreflight),
     provider: sanitizedEvaluation(observation),
-    paidCpuEntitlementAttestedAbsent: true,
     pass,
   };
 }
@@ -83,75 +93,20 @@ export function buildFailureEvidenceRecord({
   context,
   invocations,
   markerPreflight,
-  discovery,
   observation,
   failureStage,
   exactBytes,
   invocationCount,
 }) {
   return {
-    schema: "mariage-os.wp29c.ar006.adr0012-two-surface-failure.v1",
-    generatedAt: new Date().toISOString(),
-    gitCommit: requiredEnv("AR006_EXPECTED_SHA"),
-    pagesProject: requiredEnv("AR006_PAGES_PROJECT"),
-    deployment: {
-      id: requiredEnv("AR006_DEPLOYMENT_ID"),
-      url: context.deploymentUrl,
-      branch: requiredEnv("AR006_DEPLOYMENT_BRANCH"),
-    },
-    worker: {
-      name: context.durableObjectScriptName,
-      deploymentId: context.workerDeploymentId,
-      versionId: context.workerVersionId,
-    },
-    workersPlanAttestation: "Workers Free / isolated non-production",
-    exactBytes,
-    sha256: context.sha256,
-    projectId: context.projectId,
-    invocationCount,
+    schema: "mariage-os.wp29c.ar006.adr0013-two-surface-failure.v1",
+    ...baseRecord(context, exactBytes, invocationCount),
+    sha256: context.sha256 ?? null,
     completedInvocationCount: invocations.length,
     invocations,
-    markerPreflight: sanitizedDiscovery(markerPreflight),
-    discovery: sanitizedDiscovery(discovery),
+    markerPreflight: sanitizedPreflight(markerPreflight),
     provider: sanitizedEvaluation(observation),
     failureStage,
-    paidCpuEntitlementAttestedAbsent: true,
-    pass: false,
-  };
-}
-
-export function buildPreMutationFailureEvidenceRecord({
-  failureStage,
-  exactBytes,
-  invocationCount,
-}) {
-  return {
-    schema: "mariage-os.wp29c.ar006.adr0012-two-surface-failure.v1",
-    generatedAt: new Date().toISOString(),
-    gitCommit: requiredEnv("AR006_EXPECTED_SHA"),
-    pagesProject: requiredEnv("AR006_PAGES_PROJECT"),
-    deployment: {
-      id: requiredEnv("AR006_DEPLOYMENT_ID"),
-      url: requiredEnv("AR006_DEPLOYMENT_URL"),
-      branch: requiredEnv("AR006_DEPLOYMENT_BRANCH"),
-    },
-    worker: {
-      name: requiredEnv("AR006_PRIVATE_DOCUMENT_WORKER"),
-      deploymentId: requiredEnv("AR006_WORKER_DEPLOYMENT_ID"),
-      versionId: requiredEnv("AR006_WORKER_VERSION_ID"),
-    },
-    workersPlanAttestation: "Workers Free / isolated non-production",
-    exactBytes,
-    sha256: null,
-    projectId: requiredEnv("AR006_PROJECT_ID"),
-    invocationCount,
-    completedInvocationCount: 0,
-    invocations: [],
-    markerPreflight: null,
-    discovery: null,
-    provider: null,
-    failureStage,
-    paidCpuEntitlementAttestedAbsent: true,
     pass: false,
   };
 }
@@ -162,5 +117,5 @@ export async function writeEvidence(record) {
     `${JSON.stringify(record, null, 2)}\n`,
     "utf8",
   );
-  console.log(`ADR 0012 provider evidence written to ${EVIDENCE_PATH}.`);
+  console.log(`ADR 0013 provider evidence written to ${EVIDENCE_PATH}.`);
 }

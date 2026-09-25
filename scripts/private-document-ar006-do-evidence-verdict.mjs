@@ -8,19 +8,29 @@ function invocationsPassed(invocations, expectedCount) {
 }
 
 function queryPassed(query) {
-  if (query === null || query === undefined) return false;
-  return query.apiSuccess === true && query.eventPageComplete === true;
+  return (
+    query !== null &&
+    query !== undefined &&
+    query.apiSuccess === true &&
+    query.eventPageComplete === true
+  );
 }
 
-function discoveryPassed(discovery) {
-  if (discovery === null || discovery === undefined) return false;
-  return queryPassed(discovery) && discovery.discovery.pass === true;
+function markerPreflightPassed(preflight) {
+  return (
+    preflight !== null &&
+    preflight !== undefined &&
+    queryPassed(preflight.ingress) &&
+    queryPassed(preflight.durableObject) &&
+    preflight.discovery.pass === true
+  );
 }
 
 function observationPassed(observation) {
-  if (observation === null || observation === undefined) return false;
   return (
-    queryPassed(observation.pages) &&
+    observation !== null &&
+    observation !== undefined &&
+    queryPassed(observation.ingress) &&
     queryPassed(observation.durableObject) &&
     observation.evaluation.pass === true
   );
@@ -29,14 +39,12 @@ function observationPassed(observation) {
 export function campaignPassed({
   invocations,
   markerPreflight,
-  discovery,
   observation,
   expectedCount,
 }) {
   return (
     invocationsPassed(invocations, expectedCount) &&
-    discoveryPassed(markerPreflight) &&
-    discoveryPassed(discovery) &&
+    markerPreflightPassed(markerPreflight) &&
     observationPassed(observation)
   );
 }

@@ -1,70 +1,37 @@
 import { describe, expect, it } from "vitest";
 import ciSource from "../../../.github/workflows/ci.yml?raw";
-import ciCdSource from "../../../docs/engineering/CI-CD.md?raw";
-import secretSource from "../../../docs/security/SECRET-MANAGEMENT.md?raw";
-import configureSource from "../../../scripts/configure-ar006-pages-preview.mjs?raw";
 import helperSource from "../../../scripts/private-document-ar006-durable-object.mjs?raw";
-import pagesConfigSource from "../../../scripts/private-document-ar006-pages-config.mjs?raw";
-import preflightSource from "../../../scripts/run-private-document-ar006-preflight.mjs?raw";
+import ingressConfig from "../../../workers/private-document-ingress/wrangler.jsonc?raw";
+import hostConfig from "../../../workers/private-document-promotion/wrangler.jsonc?raw";
 
-describe("ADR 0012 provider deployment contract", () => {
-  it("centralizes the exact Durable Object binding and class contract", () => {
+describe("ADR 0012 host retained under ADR 0013 ingress", () => {
+  it("retains the exact private SQLite Durable Object contract", () => {
     expect(helperSource).toContain(
       'LIFECYCLE_BINDING = "PRIVATE_DOCUMENT_LIFECYCLE"',
     );
     expect(helperSource).toContain(
       'LIFECYCLE_CLASS = "PrivateDocumentLifecycle"',
     );
-    expect(helperSource).toContain(
-      'LEGACY_SERVICE_BINDING = "PRIVATE_DOCUMENT_PROMOTION_WORKER"',
+    expect(hostConfig).toContain('"workers_dev": false');
+    expect(hostConfig).toContain('"type": "durable-object"');
+    expect(hostConfig).toContain('"storage": "sqlite"');
+  });
+
+  it("binds the public Static Assets ingress to the private host without admin secret", () => {
+    expect(ingressConfig).toContain('"name": "PRIVATE_DOCUMENT_LIFECYCLE"');
+    expect(ingressConfig).toContain('"class_name": "PrivateDocumentLifecycle"');
+    expect(ingressConfig).toContain(
+      '"script_name": "mariage-os-private-document-promotion"',
     );
+    expect(ingressConfig).not.toContain("PRIVATE_DOCUMENT_ADMIN_KEY");
   });
 
-  it("configures Pages with the Durable Object namespace and removes ADR 0011 bindings", () => {
-    expect(configureSource).toContain("LIFECYCLE_BINDING");
-    expect(configureSource).toContain("durable_object_namespaces");
-    expect(configureSource).toContain("LIFECYCLE_CLASS");
-    expect(pagesConfigSource).toContain("PRIVATE_DOCUMENT_ADMIN_KEY: null");
-    expect(pagesConfigSource).toContain("[LEGACY_SERVICE_BINDING]: null");
-    expect(pagesConfigSource).toContain("[LIFECYCLE_BINDING]");
-    expect(configureSource).not.toContain("...preview");
-    expect(configureSource).not.toContain(
-      'const BINDING_NAME = "PRIVATE_DOCUMENT_PROMOTION_WORKER"',
-    );
-  });
-
-  it("preflights the exact Durable Object namespace rather than the old Service Binding", () => {
-    expect(preflightSource).toContain("LIFECYCLE_BINDING");
-    expect(preflightSource).toContain("LIFECYCLE_CLASS");
-    expect(preflightSource).toContain("durable_object_namespaces");
-    expect(preflightSource).not.toContain("requirePromotionWorkerBinding");
-    expect(preflightSource).toContain("/secrets/PRIVATE_DOCUMENT_ADMIN_KEY");
-  });
-
-  it("retains only the sanitized Pages Durable Object binding receipt", () => {
-    expect(configureSource).toContain("ar006-pages-preview-config.json");
-    expect(ciSource).toContain("wp-2.9c-ar006-do-binding-${{ github.sha }}");
-    expect(ciSource).toContain("path: ar006-pages-preview-config.json");
-    expect(ciSource).toContain("if-no-files-found: error");
-  });
-
-  it("gates provider mutation behind full verify and disables stale evidence", () => {
-    expect(ciSource).toContain("[AR006-DO-PREFLIGHT]");
-    expect(ciSource).toContain("[AR006-DO-EVIDENCE]");
+  it("gates the new provider path behind explicit ADR 0013 markers", () => {
+    expect(ciSource).toContain("[AR006-INGRESS-PREFLIGHT]");
+    expect(ciSource).toContain("[AR006-INGRESS-EVIDENCE]");
+    expect(ciSource).toContain("needs:\n      - full-verify");
     expect(ciSource).not.toContain(
       "contains(github.event.head_commit.message, '[AR006-EVIDENCE]')",
-    );
-    expect(ciSource).toContain("needs:\n      - full-verify");
-  });
-
-  it("documents Pages as unprivileged and the Worker/DO host as the admin-key runtime", () => {
-    expect(ciCdSource).toContain("PRIVATE_DOCUMENT_LIFECYCLE");
-    expect(ciCdSource).not.toContain(
-      "Pages encrypted `PRIVATE_DOCUMENT_ADMIN_KEY`",
-    );
-    expect(secretSource).toContain("Durable Object host");
-    expect(secretSource).not.toContain(
-      "a Cloudflare Pages encrypted secret and a separate private Worker encrypted secret",
     );
   });
 });

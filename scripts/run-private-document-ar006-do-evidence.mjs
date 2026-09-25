@@ -12,7 +12,6 @@ import {
 import { probePrivateDocumentLifecycle } from "./private-document-ar006-do-route-readiness.mjs";
 import {
   nextObservabilityDelayMs,
-  queryAr006MarkerObservability,
   queryWorkersObservability,
 } from "./private-document-ar006-observability-client.mjs";
 import { workerEvidenceTimeframe } from "./private-document-ar006-observability-timeframe.mjs";
@@ -30,7 +29,7 @@ import {
 import { campaignPassed } from "./private-document-ar006-do-evidence-verdict.mjs";
 
 const MAX_BYTES = 25_000_000;
-const OBSERVABILITY_ATTEMPTS = 6;
+const OBSERVABILITY_ATTEMPTS = 8;
 const OBSERVABILITY_DELAY_MS = 10_000;
 
 function delay(ms) {
@@ -42,119 +41,25 @@ function evidenceContext() {
     requiredEnv("AR006_WORKERS_FREE_ATTESTATION") !==
     "YES-WORKERS-FREE-ISOLATED"
   ) {
-    throw new Error(
-      "Workers Free isolated-environment attestation is required.",
-    );
+    throw new Error("Workers Free isolated-environment attestation is required.");
   }
   const projectId = requiredEnv("AR006_PROJECT_ID");
   assertUuid("AR006_PROJECT_ID", projectId);
   httpsOrigin("AR006_SUPABASE_URL");
-  const bytes = createExactPdf(MAX_BYTES);
-  if (bytes.byteLength !== MAX_BYTES) {
-    throw new Error("Synthetic PDF size drifted.");
-  }
-  const workerDeploymentId = requiredEnv("AR006_WORKER_DEPLOYMENT_ID");
-  const workerVersionId = requiredEnv("AR006_WORKER_VERSION_ID");
-  assertUuid("AR006_WORKER_DEPLOYMENT_ID", workerDeploymentId);
-  assertUuid("AR006_WORKER_VERSION_ID", workerVersionId);
   return {
     accountId: requiredEnv("CLOUDFLARE_ACCOUNT_ID"),
+    ingressScriptName: requiredEnv("AR006_PRIVATE_DOCUMENT_INGRESS"),
     durableObjectScriptName: requiredEnv("AR006_PRIVATE_DOCUMENT_WORKER"),
-    workerDeploymentId,
-    workerVersionId,
+    ingressDeploymentId: requiredEnv("AR006_INGRESS_DEPLOYMENT_ID"),
+    ingressVersionId: requiredEnv("AR006_INGRESS_VERSION_ID"),
+    workerDeploymentId: requiredEnv("AR006_WORKER_DEPLOYMENT_ID"),
+    workerVersionId: requiredEnv("AR006_WORKER_VERSION_ID"),
     projectId,
     deploymentUrl: httpsOrigin("AR006_DEPLOYMENT_URL"),
-    bytes,
-    sha256: sha256Hex(bytes),
     token: requiredEnv("CLOUDFLARE_OBSERVABILITY_API_TOKEN"),
+    bytes: null,
+    sha256: null,
   };
-}
-
-async function queryMarkers(
-  context,
-  startedAt,
-  attempt,
-  label = "marker-discovery",
-) {
-  const timeframe = workerEvidenceTimeframe(startedAt);
-  const result = await queryAr006MarkerObservability({
-    accountId: context.accountId,
-    token: context.token,
-    timeframe: timeframe.request,
-    queryId: `mariage-os-ar006-do-${label}-${attempt}`,
-  });
-  return { ...result, window: timeframe.record, attempt };
-}
-
-async function invokeMarkerPreflight(context, identity, evidenceId) {
-  return probePrivateDocumentLifecycle({
-    routeUrl: `${context.deploymentUrl}/api/private-document-promote`,
-    token: identity.token,
-    projectId: context.projectId,
-    documentId: randomUUID(),
-    evidenceId,
-  });
-}
-
-function markerPreflightPassed(result) {
-  return (
-    result !== null &&
-    result.apiSuccess === true &&
-    result.eventPageComplete === true &&
-    result.discovery.pass === true
-  );
-}
-
-async function verifyMarkerObservability(context, identity) {
-  const evidenceId = randomUUID();
-  const startedAt = new Date().toISOString();
-  const routeReadiness = await invokeMarkerPreflight(
-    context,
-    identity,
-    evidenceId,
-  );
-  let latest = null;
-  for (let attempt = 1; attempt <= OBSERVABILITY_ATTEMPTS; attempt += 1) {
-    const result = await queryMarkers(
-      context,
-      startedAt,
-      attempt,
-      "marker-preflight",
-    );
-    const discovery = discoverAr006SurfaceScripts({
-      events: result.events,
-      expectedEvidenceIds: [evidenceId],
-      durableObjectScriptName: context.durableObjectScriptName,
-    });
-    latest = { ...result, discovery, routeReadiness };
-    if (markerPreflightPassed(latest)) return latest;
-    if (attempt < OBSERVABILITY_ATTEMPTS) {
-      await delay(nextObservabilityDelayMs(result, OBSERVABILITY_DELAY_MS));
-    }
-  }
-  return latest;
-}
-
-async function discoverPagesScript(context, invocations) {
-  const expectedEvidenceIds = invocations.map((item) => item.evidenceId);
-  const startedAt = invocations[0].startedAt;
-  let latest = null;
-  for (let attempt = 1; attempt <= OBSERVABILITY_ATTEMPTS; attempt += 1) {
-    const result = await queryMarkers(context, startedAt, attempt);
-    const discovery = discoverAr006SurfaceScripts({
-      events: result.events,
-      expectedEvidenceIds,
-      durableObjectScriptName: context.durableObjectScriptName,
-    });
-    latest = { ...result, discovery };
-    if (result.apiSuccess && result.eventPageComplete && discovery.pass) {
-      return latest;
-    }
-    if (attempt < OBSERVABILITY_ATTEMPTS) {
-      await delay(nextObservabilityDelayMs(result, OBSERVABILITY_DELAY_MS));
-    }
-  }
-  return latest;
 }
 
 async function querySurface(context, scriptName, timeframe, queryId) {
@@ -167,29 +72,78 @@ async function querySurface(context, scriptName, timeframe, queryId) {
   });
 }
 
-function maxDelay(...results) {
-  return Math.max(
-    ...results.map((result) =>
-      nextObservabilityDelayMs(result, OBSERVABILITY_DELAY_MS),
-    ),
+function queriesComplete(ingress, durableObject) {
+  return (
+    ingress.apiSuccess &&
+    ingress.eventPageComplete &&
+    durableObject.apiSuccess &&
+    durableObject.eventPageComplete
   );
 }
 
-async function collectTwoSurfaceEvidence(
-  context,
-  invocations,
-  pagesScriptName,
-) {
-  const expectedEvidenceIds = invocations.map((item) => item.evidenceId);
+async function markerPreflight(context, identity) {
+  const evidenceId = randomUUID();
+  const startedAt = new Date().toISOString();
+  const routeReadiness = await probePrivateDocumentLifecycle({
+    routeUrl: `${context.deploymentUrl}/api/private-document-promote`,
+    token: identity.token,
+    projectId: context.projectId,
+    documentId: randomUUID(),
+    evidenceId,
+  });
+  let latest = null;
+  for (let attempt = 1; attempt <= OBSERVABILITY_ATTEMPTS; attempt += 1) {
+    const timeframe = workerEvidenceTimeframe(startedAt);
+    const ingress = await querySurface(
+      context,
+      context.ingressScriptName,
+      timeframe.request,
+      `mariage-os-ar006-ingress-marker-${attempt}`,
+    );
+    const durableObject = await querySurface(
+      context,
+      context.durableObjectScriptName,
+      timeframe.request,
+      `mariage-os-ar006-do-marker-${attempt}`,
+    );
+    const discovery = discoverAr006SurfaceScripts({
+      events: [...ingress.events, ...durableObject.events],
+      expectedEvidenceIds: [evidenceId],
+      ingressScriptName: context.ingressScriptName,
+      durableObjectScriptName: context.durableObjectScriptName,
+    });
+    latest = {
+      attempt,
+      window: timeframe.record,
+      ingress,
+      durableObject,
+      discovery,
+      routeReadiness,
+    };
+    if (queriesComplete(ingress, durableObject) && discovery.pass) return latest;
+    if (attempt < OBSERVABILITY_ATTEMPTS) {
+      await delay(
+        Math.max(
+          nextObservabilityDelayMs(ingress, OBSERVABILITY_DELAY_MS),
+          nextObservabilityDelayMs(durableObject, OBSERVABILITY_DELAY_MS),
+        ),
+      );
+    }
+  }
+  return latest;
+}
+
+async function collectEvidence(context, invocations) {
+  const ids = invocations.map((item) => item.evidenceId);
   const startedAt = invocations[0].startedAt;
   let latest = null;
   for (let attempt = 1; attempt <= OBSERVABILITY_ATTEMPTS; attempt += 1) {
     const timeframe = workerEvidenceTimeframe(startedAt);
-    const pages = await querySurface(
+    const ingress = await querySurface(
       context,
-      pagesScriptName,
+      context.ingressScriptName,
       timeframe.request,
-      `mariage-os-ar006-pages-evidence-${attempt}`,
+      `mariage-os-ar006-ingress-evidence-${attempt}`,
     );
     const durableObject = await querySurface(
       context,
@@ -198,129 +152,105 @@ async function collectTwoSurfaceEvidence(
       `mariage-os-ar006-do-evidence-${attempt}`,
     );
     const evaluation = evaluateAr006TwoSurfaceEvents({
-      pagesEvents: pages.events,
+      ingressEvents: ingress.events,
       durableObjectEvents: durableObject.events,
-      expectedEvidenceIds,
-      pagesScriptName,
+      expectedEvidenceIds: ids,
+      ingressScriptName: context.ingressScriptName,
       durableObjectScriptName: context.durableObjectScriptName,
+      ingressVersionId: context.ingressVersionId,
       durableObjectVersionId: context.workerVersionId,
     });
     latest = {
-      pages,
+      attempt,
+      window: timeframe.record,
+      ingress,
       durableObject,
       evaluation,
-      window: timeframe.record,
-      attempt,
     };
-    if (
-      pages.apiSuccess &&
-      pages.eventPageComplete &&
-      durableObject.apiSuccess &&
-      durableObject.eventPageComplete &&
-      evaluation.pass
-    ) {
-      break;
-    }
+    if (queriesComplete(ingress, durableObject) && evaluation.pass) return latest;
     if (attempt < OBSERVABILITY_ATTEMPTS) {
-      await delay(maxDelay(pages, durableObject));
+      await delay(
+        Math.max(
+          nextObservabilityDelayMs(ingress, OBSERVABILITY_DELAY_MS),
+          nextObservabilityDelayMs(durableObject, OBSERVABILITY_DELAY_MS),
+        ),
+      );
     }
   }
   return latest;
 }
 
-async function observeCampaign(context, invocations) {
-  const discovery = await discoverPagesScript(context, invocations);
-  const pagesScriptName = discovery?.discovery.pagesScriptName ?? null;
-  if (pagesScriptName === null) {
-    return { discovery, observation: null };
-  }
-  const observation = await collectTwoSurfaceEvidence(
-    context,
-    invocations,
-    pagesScriptName,
-  );
-  return { discovery, observation };
-}
-
-async function executeCampaign(state) {
-  state.failureStage = "authentication";
-  const identity = await signInAr006SyntheticUser();
-  state.failureStage = "marker_preflight";
-  state.markerPreflight = await verifyMarkerObservability(
-    state.context,
-    identity,
-  );
-  if (!markerPreflightPassed(state.markerPreflight)) {
-    throw new Error("ADR 0012 two-surface marker preflight failed.");
-  }
-  await delay(20_000);
-  state.failureStage = "exact_size_flows";
-  await runAr006Promotions(
-    state.context,
-    identity,
-    state.invocations,
-    AR006_EVIDENCE_COUNT,
-  );
-  state.failureStage = "provider_observability";
-  const observed = await observeCampaign(state.context, state.invocations);
-  state.discovery = observed.discovery;
-  state.observation = observed.observation;
-}
-
-function evidenceState(context) {
+function state(context) {
   return {
     context,
     invocations: [],
     markerPreflight: null,
-    discovery: null,
     observation: null,
     failureStage: "campaign_setup",
   };
 }
 
-async function writeFailedCampaign(state) {
-  await writeEvidence(
-    buildFailureEvidenceRecord({
-      ...state,
-      exactBytes: MAX_BYTES,
-      invocationCount: AR006_EVIDENCE_COUNT,
-    }),
-  );
-}
-
 async function main() {
-  const state = evidenceState(evidenceContext());
+  const current = state(evidenceContext());
   try {
-    await executeCampaign(state);
-    state.failureStage = "campaign_verdict";
+    current.failureStage = "authentication";
+    const identity = await signInAr006SyntheticUser();
+    current.failureStage = "marker_preflight";
+    current.markerPreflight = await markerPreflight(current.context, identity);
+    if (
+      current.markerPreflight === null ||
+      !queriesComplete(
+        current.markerPreflight.ingress,
+        current.markerPreflight.durableObject,
+      ) ||
+      !current.markerPreflight.discovery.pass
+    ) {
+      throw new Error("ADR 0013 structured marker preflight failed.");
+    }
+
+    current.failureStage = "exact_size_setup";
+    const bytes = createExactPdf(MAX_BYTES);
+    if (bytes.byteLength !== MAX_BYTES) throw new Error("Synthetic PDF size drifted.");
+    current.context.bytes = bytes;
+    current.context.sha256 = sha256Hex(bytes);
+
+    current.failureStage = "exact_size_flows";
+    await runAr006Promotions(
+      current.context,
+      identity,
+      current.invocations,
+      AR006_EVIDENCE_COUNT,
+    );
+
+    current.failureStage = "provider_observability";
+    current.observation = await collectEvidence(
+      current.context,
+      current.invocations,
+    );
     const pass = campaignPassed({
-      invocations: state.invocations,
-      markerPreflight: state.markerPreflight,
-      discovery: state.discovery,
-      observation: state.observation,
+      invocations: current.invocations,
+      markerPreflight: current.markerPreflight,
+      observation: current.observation,
       expectedCount: AR006_EVIDENCE_COUNT,
     });
-    state.failureStage = "evidence_write";
+    current.failureStage = "evidence_write";
     await writeEvidence(
       buildEvidenceRecord({
-        context: state.context,
-        invocations: state.invocations,
-        markerPreflight: state.markerPreflight,
-        discovery: state.discovery,
-        observation: state.observation,
+        ...current,
         pass,
         exactBytes: MAX_BYTES,
         invocationCount: AR006_EVIDENCE_COUNT,
       }),
     );
-    if (!pass) {
-      state.failureStage = "campaign_verdict";
-      throw new Error(
-        "ADR 0012 provider evidence did not satisfy both CPU gates.",
-      );
-    }
+    if (!pass) throw new Error("ADR 0013 provider CPU evidence failed closed.");
   } catch (error) {
-    await writeFailedCampaign(state);
+    await writeEvidence(
+      buildFailureEvidenceRecord({
+        ...current,
+        exactBytes: MAX_BYTES,
+        invocationCount: AR006_EVIDENCE_COUNT,
+      }),
+    );
     throw error;
   }
 }
