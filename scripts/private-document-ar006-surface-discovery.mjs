@@ -283,19 +283,23 @@ function surfaceAttributions(input, markers) {
   return { ingress, durableObject };
 }
 
-function discoveryFailures(input, markers, ingress, durable, attribution) {
+function discoveryFailures(input, state) {
   return [
-    ...ingress.failures,
-    ...durable.failures,
-    ...campaignShapeFailures(input.events, markers, input.expectedEvidenceIds),
+    ...state.ingress.failures,
+    ...state.durable.failures,
+    ...campaignShapeFailures(
+      input.events,
+      state.markers,
+      input.expectedEvidenceIds,
+    ),
     ...scriptIdentityFailures(
-      new Set(ingress.scripts),
-      new Set(durable.scripts),
+      new Set(state.ingress.scripts),
+      new Set(state.durable.scripts),
       input.ingressScriptName,
       input.durableObjectScriptName,
     ),
-    ...attribution.ingress.failures,
-    ...attribution.durableObject.failures,
+    ...state.attribution.ingress.failures,
+    ...state.attribution.durableObject.failures,
   ];
 }
 
@@ -314,13 +318,12 @@ export function discoverAr006SurfaceScripts(input) {
     "durable-object",
   );
   const attribution = surfaceAttributions(input, markers);
-  const failures = discoveryFailures(
-    input,
+  const failures = discoveryFailures(input, {
     markers,
     ingress,
     durable,
     attribution,
-  );
+  });
   const attributedInvocationCount =
     attribution.ingress.attributedInvocationCount +
     attribution.durableObject.attributedInvocationCount;
