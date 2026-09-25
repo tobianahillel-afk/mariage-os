@@ -16,7 +16,9 @@ function unavailablePayload(value) {
 
 function requireAttempts(value) {
   if (!Number.isSafeInteger(value) || value < 1) {
-    throw new Error("Lifecycle readiness maxAttempts must be a positive integer.");
+    throw new Error(
+      "Lifecycle readiness maxAttempts must be a positive integer.",
+    );
   }
 }
 
@@ -69,7 +71,13 @@ export async function probePrivateDocumentLifecycle({
     const response = await fetcher(routeUrl, {
       method: "POST",
       redirect: "manual",
-      headers: lifecycleHeaders({ token, origin, projectId, documentId, evidenceId }),
+      headers: lifecycleHeaders({
+        token,
+        origin,
+        projectId,
+        documentId,
+        evidenceId,
+      }),
     });
     statuses.push(response.status);
 
