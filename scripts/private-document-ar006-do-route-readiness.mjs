@@ -39,7 +39,13 @@ async function requireReadyResponse(response) {
   }
 }
 
-function lifecycleHeaders({ token, origin, projectId, documentId, evidenceId }) {
+function lifecycleHeaders({
+  token,
+  origin,
+  projectId,
+  documentId,
+  evidenceId,
+}) {
   const headers = {
     authorization: `Bearer ${token}`,
     origin,

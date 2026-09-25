@@ -1,14 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
 import { probePrivateDocumentLifecycle } from "../../../scripts/private-document-ar006-do-route-readiness.mjs";
 
-const routeUrl =
-  "https://synthetic.pages.dev/api/private-document-promote";
+const routeUrl = "https://synthetic.pages.dev/api/private-document-promote";
 
 function unavailable(status = 409) {
   return Response.json({ error: "private_document_unavailable" }, { status });
 }
 
-function baseInput(fetcher: typeof fetch, waiter = vi.fn(async () => undefined)) {
+function baseInput(
+  fetcher: typeof fetch,
+  waiter = vi.fn(async () => undefined),
+) {
   return {
     routeUrl,
     token: "synthetic-token",
