@@ -312,6 +312,88 @@ jobs:
           AR006_TEST_USER_PASSWORD: ${{ secrets.AR006_TEST_USER_PASSWORD }}
         run: node scripts/run-private-document-ar006-do-route-preflight.mjs
 
+  ar006-do-route-recheck:
+    name: AR-006 ADR 0012 exact-preview read-only route recheck
+    needs:
+      - full-verify
+    if: >-
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/lot-2/venues-core' &&
+      contains(github.event.head_commit.message, '[AR006-DO-ROUTE-RECHECK]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: ar006-isolated
+    env:
+      AR006_PAGES_PROJECT: ${{ vars.AR006_PAGES_PROJECT }}
+      AR006_PRIVATE_DOCUMENT_WORKER: ${{ vars.AR006_PRIVATE_DOCUMENT_WORKER }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      AR006_SUPABASE_URL: ${{ vars.AR006_SUPABASE_URL }}
+      AR006_SUPABASE_PUBLISHABLE_KEY: ${{ vars.AR006_SUPABASE_PUBLISHABLE_KEY }}
+      AR006_TEST_USER_EMAIL: ${{ vars.AR006_TEST_USER_EMAIL }}
+      AR006_PROJECT_ID: ${{ vars.AR006_PROJECT_ID }}
+      AR006_WORKERS_FREE_ATTESTATION: ${{ vars.AR006_WORKERS_FREE_ATTESTATION }}
+      AR006_ROUTE_RECHECK_CANDIDATE_SHA: 6bdf445e7f56e38caa0d807232bcfde573103117
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run security:secrets
+      - name: Guard exact-preview read-only recheck
+        run: |
+          set -eu
+          test "$AR006_WORKERS_FREE_ATTESTATION" = "YES-WORKERS-FREE-ISOLATED"
+          test "$AR006_PRIVATE_DOCUMENT_WORKER" = "mariage-os-private-document-promotion"
+          test "$AR006_ROUTE_RECHECK_CANDIDATE_SHA" = "6bdf445e7f56e38caa0d807232bcfde573103117"
+          test -n "$AR006_PAGES_PROJECT"
+          test -n "$CLOUDFLARE_ACCOUNT_ID"
+          test -n "$AR006_SUPABASE_URL"
+          test -n "$AR006_SUPABASE_PUBLISHABLE_KEY"
+          test -n "$AR006_TEST_USER_EMAIL"
+          test -n "$AR006_PROJECT_ID"
+      - name: Re-verify provider metadata and synthetic authority without mutation
+        env:
+          AR006_CLOUDFLARE_DEPLOY_TOKEN: ${{ secrets.AR006_CLOUDFLARE_DEPLOY_TOKEN }}
+          AR006_CLOUDFLARE_WORKER_DEPLOY_TOKEN: ${{ secrets.AR006_CLOUDFLARE_WORKER_DEPLOY_TOKEN }}
+          AR006_TEST_USER_PASSWORD: ${{ secrets.AR006_TEST_USER_PASSWORD }}
+        run: npm run preflight:ar006
+      - name: Resolve the exact failed-contained evidence preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.AR006_CLOUDFLARE_DEPLOY_TOKEN }}
+        run: |
+          set -eu
+          PROJECT_URL="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$AR006_PAGES_PROJECT"
+          DEPLOYMENTS_JSON="$(curl --fail --silent --show-error -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "$PROJECT_URL/deployments")"
+          printf '%s' "$DEPLOYMENTS_JSON" | jq -e '.success == true' >/dev/null
+          MATCHES="$(printf '%s' "$DEPLOYMENTS_JSON" | jq -c --arg sha "$AR006_ROUTE_RECHECK_CANDIDATE_SHA" '[.result[] | select(.environment == "preview" and .deployment_trigger.metadata.commit_hash == $sha and .latest_stage.status == "success" and .uses_functions == true)]')"
+          test "$(printf '%s' "$MATCHES" | jq 'length')" -eq 1
+          DEPLOYMENT="$(printf '%s' "$MATCHES" | jq -c '.[0]')"
+          DEPLOYMENT_URL="$(printf '%s' "$DEPLOYMENT" | jq -r '.url // empty')"
+          DEPLOYMENT_ID="$(printf '%s' "$DEPLOYMENT" | jq -r '.id // empty')"
+          DEPLOYMENT_BRANCH="$(printf '%s' "$DEPLOYMENT" | jq -r '.deployment_trigger.metadata.branch // empty')"
+          test -n "$DEPLOYMENT_URL"
+          test -n "$DEPLOYMENT_ID"
+          test -n "$DEPLOYMENT_BRANCH"
+          echo "AR006_DEPLOYMENT_URL=$DEPLOYMENT_URL" >> "$GITHUB_ENV"
+          jq -n --arg sha "$AR006_ROUTE_RECHECK_CANDIDATE_SHA" --arg id "$DEPLOYMENT_ID" --arg url "$DEPLOYMENT_URL" --arg branch "$DEPLOYMENT_BRANCH" '{schema:"mariage-os.wp29c.ar006.do-route-recheck.v1",candidateSha:$sha,deploymentId:$id,deploymentUrl:$url,deploymentBranch:$branch,environment:"preview",usesFunctions:true,documentMutation:false}' > ar006-do-route-recheck.json
+      - name: Retain sanitized exact-preview recheck receipt
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: wp-2.9c-ar006-do-route-recheck-${{ github.sha }}
+          path: ar006-do-route-recheck.json
+          if-no-files-found: error
+          retention-days: 30
+      - name: Bounded deny-oriented smoke on exact existing preview
+        run: PRIVATE_DOCUMENT_SMOKE_BASE_URL="$AR006_DEPLOYMENT_URL" npm run smoke:private-document-production
+      - name: Prove exact existing preview reaches lifecycle DO without document mutation
+        env:
+          AR006_TEST_USER_PASSWORD: ${{ secrets.AR006_TEST_USER_PASSWORD }}
+        run: node scripts/run-private-document-ar006-do-route-preflight.mjs
+
   # [AR006-DO-EVIDENCE] remains inert on ordinary commits. A bounded campaign
   # requires an explicit reviewed marker commit after this job itself is green.
   ar006-provider-evidence:
