@@ -177,14 +177,19 @@ function evaluateEvidence(events, markers, contract, evidenceId) {
   const marker = matched[0];
   const invocations = events
     .map((event) =>
-      invocationMeasurement(event, { ...contract, requestId: marker.requestId }),
+      invocationMeasurement(event, {
+        ...contract,
+        requestId: marker.requestId,
+      }),
     )
     .filter((invocation) => invocation !== null);
   if (invocations.length !== 1) {
     return {
       measurement: null,
       failure: failure(
-        invocations.length === 0 ? "missing_invocation" : "duplicate_invocation",
+        invocations.length === 0
+          ? "missing_invocation"
+          : "duplicate_invocation",
         evidenceId,
         contract.surface,
       ),
