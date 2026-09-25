@@ -38,7 +38,9 @@ describe("ADR 0013 exact-size harness contract", () => {
   it("binds evidence to exact ingress and DO versions", () => {
     expect(harnessSource).toContain('requiredEnv("AR006_INGRESS_VERSION_ID")');
     expect(harnessSource).toContain('requiredEnv("AR006_WORKER_VERSION_ID")');
-    expect(harnessSource).toContain("ingressVersionId: context.ingressVersionId");
+    expect(harnessSource).toContain(
+      "ingressVersionId: context.ingressVersionId",
+    );
     expect(harnessSource).toContain(
       "durableObjectVersionId: context.workerVersionId",
     );
