@@ -181,18 +181,21 @@ function invocationRecord(event, scriptName, requestId) {
 }
 
 function invocationValid(invocation, marker, contract) {
-  return (
+  const durableIdentityAccepted =
+    !contract.requireDurableObjectId || invocation.durableObjectId !== null;
+  return [
+    invocation.cpuTimeMs !== null,
+    invocation.cpuTimeMs !== null && invocation.cpuTimeMs >= 0,
     invocation.cpuTimeMs !== null &&
-    invocation.cpuTimeMs >= 0 &&
-    invocation.cpuTimeMs <= contract.cpuBudgetMs &&
-    invocation.outcome === "ok" &&
-    invocation.executionModel === contract.executionModel &&
-    invocation.eventType === "fetch" &&
-    invocation.statusCode === marker.status &&
-    (!contract.requireDurableObjectId || invocation.durableObjectId !== null) &&
-    invocation.scriptVersionId === contract.expectedScriptVersionId &&
-    invocation.truncated === false
-  );
+      invocation.cpuTimeMs <= contract.cpuBudgetMs,
+    invocation.outcome === "ok",
+    invocation.executionModel === contract.executionModel,
+    invocation.eventType === "fetch",
+    invocation.statusCode === marker.status,
+    durableIdentityAccepted,
+    invocation.scriptVersionId === contract.expectedScriptVersionId,
+    invocation.truncated === false,
+  ].every(Boolean);
 }
 
 function attributionForMarker(events, marker, contract) {
@@ -250,75 +253,86 @@ function scriptIdentityFailures(
   return failures;
 }
 
-export function discoverAr006SurfaceScripts({
-  events,
-  expectedEvidenceIds,
-  ingressScriptName,
-  durableObjectScriptName,
-  ingressVersionId,
-  durableObjectVersionId,
-}) {
-  const markers = events.map(markerRecord).filter((marker) => marker !== null);
+function surfaceAttributions(input, markers) {
+  const ingress = attributionFailures(
+    input.events,
+    markers,
+    input.expectedEvidenceIds,
+    {
+      surface: "worker-ingress",
+      scriptName: input.ingressScriptName,
+      executionModel: "stateless",
+      cpuBudgetMs: INGRESS_CPU_BUDGET_MS,
+      requireDurableObjectId: false,
+      expectedScriptVersionId: input.ingressVersionId,
+    },
+  );
+  const durableObject = attributionFailures(
+    input.events,
+    markers,
+    input.expectedEvidenceIds,
+    {
+      surface: "durable-object",
+      scriptName: input.durableObjectScriptName,
+      executionModel: "durableObject",
+      cpuBudgetMs: DURABLE_OBJECT_CPU_BUDGET_MS,
+      requireDurableObjectId: true,
+      expectedScriptVersionId: input.durableObjectVersionId,
+    },
+  );
+  return { ingress, durableObject };
+}
+
+function discoveryFailures(input, markers, ingress, durable, attribution) {
+  return [
+    ...ingress.failures,
+    ...durable.failures,
+    ...campaignShapeFailures(input.events, markers, input.expectedEvidenceIds),
+    ...scriptIdentityFailures(
+      new Set(ingress.scripts),
+      new Set(durable.scripts),
+      input.ingressScriptName,
+      input.durableObjectScriptName,
+    ),
+    ...attribution.ingress.failures,
+    ...attribution.durableObject.failures,
+  ];
+}
+
+export function discoverAr006SurfaceScripts(input) {
+  const markers = input.events
+    .map(markerRecord)
+    .filter((marker) => marker !== null);
   const ingress = surfaceScripts(
     markers,
-    expectedEvidenceIds,
+    input.expectedEvidenceIds,
     "worker-ingress",
   );
   const durable = surfaceScripts(
     markers,
-    expectedEvidenceIds,
+    input.expectedEvidenceIds,
     "durable-object",
   );
-  const ingressAttribution = attributionFailures(
-    events,
+  const attribution = surfaceAttributions(input, markers);
+  const failures = discoveryFailures(
+    input,
     markers,
-    expectedEvidenceIds,
-    {
-      surface: "worker-ingress",
-      scriptName: ingressScriptName,
-      executionModel: "stateless",
-      cpuBudgetMs: INGRESS_CPU_BUDGET_MS,
-      requireDurableObjectId: false,
-      expectedScriptVersionId: ingressVersionId,
-    },
+    ingress,
+    durable,
+    attribution,
   );
-  const durableAttribution = attributionFailures(
-    events,
-    markers,
-    expectedEvidenceIds,
-    {
-      surface: "durable-object",
-      scriptName: durableObjectScriptName,
-      executionModel: "durableObject",
-      cpuBudgetMs: DURABLE_OBJECT_CPU_BUDGET_MS,
-      requireDurableObjectId: true,
-      expectedScriptVersionId: durableObjectVersionId,
-    },
-  );
-  const failures = [
-    ...ingress.failures,
-    ...durable.failures,
-    ...campaignShapeFailures(events, markers, expectedEvidenceIds),
-    ...scriptIdentityFailures(
-      new Set(ingress.scripts),
-      new Set(durable.scripts),
-      ingressScriptName,
-      durableObjectScriptName,
-    ),
-    ...ingressAttribution.failures,
-    ...durableAttribution.failures,
-  ];
   const attributedInvocationCount =
-    ingressAttribution.attributedInvocationCount +
-    durableAttribution.attributedInvocationCount;
+    attribution.ingress.attributedInvocationCount +
+    attribution.durableObject.attributedInvocationCount;
+  const expectedCount = input.expectedEvidenceIds.length * 2;
   return {
-    ingressScriptName: failures.length === 0 ? ingressScriptName : null,
+    ingressScriptName: failures.length === 0 ? input.ingressScriptName : null,
     markerCount: markers.length,
     attributedInvocationCount,
     failures,
     pass:
       failures.length === 0 &&
-      markers.length === expectedEvidenceIds.length * 2 &&
-      attributedInvocationCount === expectedEvidenceIds.length * 2,
+      markers.length === expectedCount &&
+      attributedInvocationCount === expectedCount,
   };
 }

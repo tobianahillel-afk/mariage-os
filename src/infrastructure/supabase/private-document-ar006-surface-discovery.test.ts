@@ -102,7 +102,7 @@ function discover(events: unknown[]) {
   });
 }
 
-describe("AR-006 structured surface discovery", () => {
+describe("AR-006 structured surface discovery success", () => {
   it("proves exact scripts plus marker-to-provider attribution", () => {
     const result = discover(completeEvents());
     expect(result.pass).toBe(true);
@@ -112,6 +112,9 @@ describe("AR-006 structured surface discovery", () => {
     expect(result.failures).toEqual([]);
   });
 
+});
+
+describe("AR-006 structured surface discovery marker failures", () => {
   it("fails malformed marker logs but ignores unrelated invocation events", () => {
     const ordinary = {
       $metadata: { type: "cf-worker-event" },
@@ -133,6 +136,9 @@ describe("AR-006 structured surface discovery", () => {
     );
   });
 
+});
+
+describe("AR-006 structured surface attribution failures", () => {
   it("fails closed when a persisted marker cannot reach one provider event", () => {
     const missing = completeEvents();
     missing.splice(1, 1);
@@ -184,6 +190,9 @@ describe("AR-006 structured surface discovery", () => {
     expect(discover(wrongVersion).pass).toBe(false);
   });
 
+});
+
+describe("AR-006 structured surface identity failures", () => {
   it("fails closed on unexpected ingress or DO script identity", () => {
     const ingressEvents = completeEvents();
     const first = ingressEvents[0] as {
