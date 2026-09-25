@@ -194,6 +194,14 @@ function state(context) {
   };
 }
 
+function markerPreflightPassed(result) {
+  return (
+    result !== null &&
+    queriesComplete(result.ingress, result.durableObject) &&
+    result.discovery.pass
+  );
+}
+
 async function main() {
   const current = state(evidenceContext());
   try {
@@ -201,14 +209,7 @@ async function main() {
     const identity = await signInAr006SyntheticUser();
     current.failureStage = "marker_preflight";
     current.markerPreflight = await markerPreflight(current.context, identity);
-    if (
-      current.markerPreflight === null ||
-      !queriesComplete(
-        current.markerPreflight.ingress,
-        current.markerPreflight.durableObject,
-      ) ||
-      !current.markerPreflight.discovery.pass
-    ) {
+    if (!markerPreflightPassed(current.markerPreflight)) {
       throw new Error("ADR 0013 structured marker preflight failed.");
     }
 
