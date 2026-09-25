@@ -121,7 +121,12 @@ function durableScriptMatches(durableNames, expectedName) {
   return durableNames.size === 1 && durableNames.has(expectedName);
 }
 
-function scriptIdentityFailures(ingressNames, durableNames, expectedIngress, expectedDurable) {
+function scriptIdentityFailures(
+  ingressNames,
+  durableNames,
+  expectedIngress,
+  expectedDurable,
+) {
   const failures = [];
   if (ingressNames.size !== 1 || !ingressNames.has(expectedIngress)) {
     failures.push(failure("unexpected_ingress_script"));
@@ -139,7 +144,11 @@ export function discoverAr006SurfaceScripts({
   durableObjectScriptName,
 }) {
   const markers = events.map(markerRecord).filter((marker) => marker !== null);
-  const ingress = surfaceScripts(markers, expectedEvidenceIds, "worker-ingress");
+  const ingress = surfaceScripts(
+    markers,
+    expectedEvidenceIds,
+    "worker-ingress",
+  );
   const durable = surfaceScripts(
     markers,
     expectedEvidenceIds,
