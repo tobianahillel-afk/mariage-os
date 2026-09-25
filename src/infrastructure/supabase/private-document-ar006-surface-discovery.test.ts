@@ -3,6 +3,8 @@ import { discoverAr006SurfaceScripts } from "../../../scripts/private-document-a
 
 const ingressScript = "mariage-os-ar006-ingress";
 const durableScript = "mariage-os-private-document-promotion";
+const ingressVersion = "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee";
+const durableVersion = "11111111-2222-4333-8444-555555555555";
 const ids = Array.from(
   { length: 10 },
   (_, index) =>
@@ -53,6 +55,9 @@ function invocation(
       outcome: "ok",
       cpuTimeMs: executionModel === "stateless" ? 3 : 25,
       durableObjectId,
+      scriptVersion: {
+        id: executionModel === "stateless" ? ingressVersion : durableVersion,
+      },
       truncated: false,
     },
   };
@@ -92,6 +97,8 @@ function discover(events: unknown[]) {
     expectedEvidenceIds: ids,
     ingressScriptName: ingressScript,
     durableObjectScriptName: durableScript,
+    ingressVersionId: ingressVersion,
+    durableObjectVersionId: durableVersion,
   });
 }
 
@@ -145,7 +152,7 @@ describe("AR-006 structured surface discovery", () => {
     );
   });
 
-  it("fails on wrong execution model, CPU budget or Durable Object identity", () => {
+  it("fails on wrong model, CPU, Durable Object identity or version", () => {
     const wrongModel = completeEvents();
     const doInvocation = wrongModel[3] as {
       $workers: Record<string, unknown>;
@@ -166,6 +173,15 @@ describe("AR-006 structured surface discovery", () => {
     };
     durableInvocation.$workers.durableObjectId = null;
     expect(discover(missingDoId).pass).toBe(false);
+
+    const wrongVersion = completeEvents();
+    const ingressVersionEvent = wrongVersion[1] as {
+      $workers: Record<string, unknown>;
+    };
+    ingressVersionEvent.$workers.scriptVersion = {
+      id: "ffffffff-eeee-4ddd-8ccc-bbbbbbbbbbbb",
+    };
+    expect(discover(wrongVersion).pass).toBe(false);
   });
 
   it("fails closed on unexpected ingress or DO script identity", () => {

@@ -37,6 +37,8 @@ function context() {
     accountId: requiredEnv("CLOUDFLARE_ACCOUNT_ID"),
     ingressScriptName: requiredEnv("AR006_PRIVATE_DOCUMENT_INGRESS"),
     durableObjectScriptName: requiredEnv("AR006_PRIVATE_DOCUMENT_WORKER"),
+    ingressVersionId: requiredEnv("AR006_INGRESS_VERSION_ID"),
+    durableObjectVersionId: requiredEnv("AR006_WORKER_VERSION_ID"),
     deploymentUrl: httpsOrigin("AR006_DEPLOYMENT_URL"),
     projectId,
     token: requiredEnv("CLOUDFLARE_OBSERVABILITY_API_TOKEN"),
@@ -85,6 +87,8 @@ async function observeMarker(state, evidenceId, startedAt) {
       expectedEvidenceIds: [evidenceId],
       ingressScriptName: state.ingressScriptName,
       durableObjectScriptName: state.durableObjectScriptName,
+      ingressVersionId: state.ingressVersionId,
+      durableObjectVersionId: state.durableObjectVersionId,
     });
     const receipt = {
       attempt,

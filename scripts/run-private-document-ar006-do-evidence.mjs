@@ -113,6 +113,8 @@ async function markerPreflight(context, identity) {
       expectedEvidenceIds: [evidenceId],
       ingressScriptName: context.ingressScriptName,
       durableObjectScriptName: context.durableObjectScriptName,
+      ingressVersionId: context.ingressVersionId,
+      durableObjectVersionId: context.workerVersionId,
     });
     latest = {
       attempt,

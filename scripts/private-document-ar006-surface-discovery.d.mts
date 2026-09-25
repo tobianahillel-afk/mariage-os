@@ -16,4 +16,6 @@ export function discoverAr006SurfaceScripts(input: {
   readonly expectedEvidenceIds: ReadonlyArray<string>;
   readonly ingressScriptName: string;
   readonly durableObjectScriptName: string;
+  readonly ingressVersionId: string;
+  readonly durableObjectVersionId: string;
 }): Ar006ScriptDiscovery;

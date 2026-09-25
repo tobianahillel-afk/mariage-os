@@ -146,6 +146,11 @@ function campaignShapeFailures(events, markers, expectedEvidenceIds) {
   return failures;
 }
 
+function scriptVersionId(event) {
+  const version = property(workers(event), "scriptVersion");
+  return stringOrNull(property(version, "id"));
+}
+
 function providerStatus(event) {
   const direct = finiteNumber(property(metadata(event), "statusCode"));
   const response = property(property(workers(event), "event"), "response");
@@ -169,6 +174,7 @@ function invocationRecord(event, scriptName, requestId) {
     executionModel: stringOrNull(worker.executionModel),
     eventType: stringOrNull(worker.eventType),
     durableObjectId: stringOrNull(worker.durableObjectId),
+    scriptVersionId: scriptVersionId(event),
     statusCode: providerStatus(event),
     truncated: worker.truncated === true,
   };
@@ -184,6 +190,7 @@ function invocationValid(invocation, marker, contract) {
     invocation.eventType === "fetch" &&
     invocation.statusCode === marker.status &&
     (!contract.requireDurableObjectId || invocation.durableObjectId !== null) &&
+    invocation.scriptVersionId === contract.expectedScriptVersionId &&
     invocation.truncated === false
   );
 }
@@ -248,6 +255,8 @@ export function discoverAr006SurfaceScripts({
   expectedEvidenceIds,
   ingressScriptName,
   durableObjectScriptName,
+  ingressVersionId,
+  durableObjectVersionId,
 }) {
   const markers = events.map(markerRecord).filter((marker) => marker !== null);
   const ingress = surfaceScripts(
@@ -270,6 +279,7 @@ export function discoverAr006SurfaceScripts({
       executionModel: "stateless",
       cpuBudgetMs: INGRESS_CPU_BUDGET_MS,
       requireDurableObjectId: false,
+      expectedScriptVersionId: ingressVersionId,
     },
   );
   const durableAttribution = attributionFailures(
@@ -282,6 +292,7 @@ export function discoverAr006SurfaceScripts({
       executionModel: "durableObject",
       cpuBudgetMs: DURABLE_OBJECT_CPU_BUDGET_MS,
       requireDurableObjectId: true,
+      expectedScriptVersionId: durableObjectVersionId,
     },
   );
   const failures = [
