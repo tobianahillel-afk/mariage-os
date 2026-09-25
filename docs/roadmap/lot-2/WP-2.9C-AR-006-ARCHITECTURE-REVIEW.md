@@ -559,6 +559,25 @@ This review does **not** authorize a 25 MB campaign. After this review/status co
 
 A red preflight exhausts this authorization and returns to review/remediation. A green preflight is only evidence input and requires a separate durable result/review seal before one `[AR006-INGRESS-EVIDENCE]` ten-flow exact-size campaign can be authorized.
 
+## 2026-09-25 ADR 0013 structured ingress preflight result
+
+Status: **GREEN / REVIEW PASS — ONE EXACT-SIZE CAMPAIGN MAY FOLLOW AFTER RESULT-SEAL CI**
+
+Trigger: `a83d76ec5b824096cfe1435e20613b813a6892c7`  
+CI: `36154744823` — repository jobs and clean checkout SUCCESS  
+Provider job: `108139347246` — **SUCCESS**  
+Artifact: `10873203218`, digest `sha256:81b74ac40f270be773fc8f2f83cfd970f6783decb63e684bbe6513c1cf2167ed`
+
+The provider job deployed private DO version `794000b1-9b1b-43ad-a12c-01bbd47875eb` and ingress version `11eb9e2f-9056-48ad-93ee-2ed0095d699a` (deployment `c4346f61-ad43-4a58-8b90-91e2a25bc5f7`). It verified `PrivateDocumentLifecycle` SQLite export, Worker-held admin-secret metadata, exact ingress DO binding, absence of the admin secret from ingress, Static Assets, workers.dev isolated endpoint and deny smoke.
+
+The safe marker probe returned generic `409` on its first route-readiness attempt. Observability attempts 1–2 returned complete empty pages; attempt 3 returned complete pages with ingress event count 6 and DO event count 2. The strict discovery retained exactly two expected markers and two attributed provider invocations, with no failures. The receipt records `documentMutation:false`, `exactSizeMutation:false`, `pass:true`.
+
+Fresh review found no BLOCKING/MAJOR defect in this result. The initial empty Observability pages are treated as persistence delay, not as success; the preflight passed only after both exact scripts were attributable under the exact captured versions.
+
+This result proves the revised evidence channel is operational and attributable. It does not prove exact-25-MB CPU compliance.
+
+Exactly one `[AR006-INGRESS-EVIDENCE]` campaign is authorized only after the commit recording this result/review becomes ordinary exact-head green. A red campaign exhausts that authorization and returns to review; no automatic repeat, Paid fallback, timing substitute or file-limit reduction is permitted.
+
 ## Provider references
 
 - <https://developers.cloudflare.com/pages/functions/debugging-and-logging/>

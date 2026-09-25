@@ -41,6 +41,15 @@ Final campaign ingress acceptance: `executionModel=stateless`, provider-native `
 No raw provider event, credential, PDF bytes or real wedding data may be retained. Workers Paid, wall time, dashboard aggregates and a lower PDF limit are prohibited substitutes.
 
 
+### ADR 0013 preflight result — 2026-09-25
+
+Single authorized trigger `a83d76ec5b824096cfe1435e20613b813a6892c7` / CI `36154744823` / provider job `108139347246` is **GREEN**. Sanitized artifact `10873203218` (digest `sha256:81b74ac40f270be773fc8f2f83cfd970f6783decb63e684bbe6513c1cf2167ed`) records exact ingress/DO structured attribution with no application-document mutation.
+
+Exact provider identities: DO host version `794000b1-9b1b-43ad-a12c-01bbd47875eb`; ingress deployment `c4346f61-ad43-4a58-8b90-91e2a25bc5f7`; ingress version `11eb9e2f-9056-48ad-93ee-2ed0095d699a`. Safe route readiness was HTTP 409 on attempt 1. Observability passed on attempt 3 with two markers/two attributed invocations and no failures.
+
+The next trigger is **not automatic**. One `[AR006-INGRESS-EVIDENCE]` campaign is permitted only after the repository commit sealing this preflight review is ordinary exact-head green.
+
+
 ## ADR 0012 historical final-evidence protocol — superseded by ADR 0013 ingress
 
 This section is the current AR-006 execution protocol. Older `[AR006-EVIDENCE]`, GraphQL, Pages-tail and ADR 0011 Service-Binding sections later in this file are historical/reproducibility records only.

@@ -38,7 +38,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.8B | Venue private archived media lifecycle                                 | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.8C | recoverable Venue remote-media metadata lifecycle                      | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.9A | Venue-linked private PDF/document foundation                           | **BLOCKED — waits for WP-2.9C ACCEPTED**                                   |
-| WP-2.9C | trusted private-document ingestion hardening                           | **IN_PROGRESS — ADR 0013 IMPLEMENTATION REVIEW PASS; INGRESS PREFLIGHT NEXT; AR-006 OPEN** |
+| WP-2.9C | trusted private-document ingestion hardening                           | **IN_PROGRESS — ADR 0013 PREFLIGHT GREEN; ONE EXACT-SIZE CAMPAIGN AFTER SEAL CI; AR-006 OPEN** |
 | WP-2.9B | generic project tags and Venue entity-tag links                        | **PLANNED / AFTER A**                                                      |
 | WP-2.10 | repositories, local cache, pending/offline mutations                   | PLANNED                                                                    |
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace                       | PLANNED                                                                    |
@@ -59,7 +59,7 @@ WP-2.1..WP-2.8C are accepted and complete. Durable evidence remains in their pac
 
 ## WP-2.9C — current packet
 
-State: **IN_PROGRESS — ADR 0013 IMPLEMENTATION REVIEW PASS / ONE ISOLATED NO-DOCUMENT-MUTATION INGRESS PREFLIGHT NEXT / WP29C-AR-006 OPEN / BLOCKING**.
+State: **IN_PROGRESS — ADR 0013 STRUCTURED INGRESS/DO PREFLIGHT GREEN / ONE EXACT-SIZE CAMPAIGN AUTHORIZED AFTER THIS RESULT SEAL IS EXACT-HEAD GREEN / WP29C-AR-006 OPEN / BLOCKING**.
 
 Pass-A exact evidence:
 
@@ -213,16 +213,16 @@ Normative release/deployment/secret contracts require Pages Functions to deploy 
 
 ## Current next-action gate
 
-1. ADR 0013 is implemented on exact head `b06a823e1d6e3b1a4693c683afe11e1771449365`. Ordinary CI `36150541994` is **5/5 SUCCESS**, including `Full verify from clean checkout`; every provider-specific job was **SKIPPED** on that ordinary commit.
-2. Fresh adversarial implementation review is recorded in `docs/roadmap/lot-2/WP-2.9C-ADR-0013-IMPLEMENTATION-REVIEW.md` and is **PASS** with no BLOCKING/MAJOR finding for the Workers Static Assets ingress, structured logging, exact-script Observability attribution or isolated preflight path.
-3. The public ingress has no Supabase admin/service credential, uses Worker-first `/api/*` routing, fails closed on unknown API paths, binds only to the exact private `PrivateDocumentLifecycle`, and emits native structured evidence logs. The evaluator fails closed on missing/duplicate/malformed markers, request-ID ambiguity, wrong script/version/model/status, missing/nonnumeric/over-budget CPU, missing Durable Object identity, truncation or incomplete provider pages.
-4. **Exactly one** no-document-mutation `[AR006-INGRESS-PREFLIGHT]` is authorized after the commit containing this review/status seal itself passes ordinary exact-head CI + clean checkout. The preflight may deploy the isolated private Durable Object host and isolated Workers Static Assets ingress, but it may not reserve a document, upload a PDF, promote/finalize a document or perform the ten-flow campaign.
-5. The preflight must prove both exact deployed script versions persist attributable structured markers through Workers Observability, the ingress has no `PRIVATE_DOCUMENT_ADMIN_KEY`, the external Durable Object binding targets the expected host/class, deny smoke passes, and the safe random-unreserved probe remains non-mutating.
-6. A red preflight exhausts this authorization and returns WP-2.9C to review/remediation. Do not auto-repeat it and do not trigger exact-size evidence.
-7. Only a separately reviewed green preflight may authorize one `[AR006-INGRESS-EVIDENCE]` ten-flow exact-`25,000,000`-byte campaign. Workers Paid, wall-time substitution, dashboard aggregate evidence and a lower file limit remain prohibited.
-8. Valid AR-006 evidence still requires, per flow, exact ingress script/version attribution with `executionModel=stateless`, numeric provider CPU `<= 10 ms`, HTTP 200 and `outcome=ok`; and exact private-host version attribution with `executionModel=durableObject`, unique non-null Durable Object identity, numeric CPU `<= 30,000 ms`, HTTP 200 and `outcome=ok`.
-9. After valid AR-006 evidence, run exact-head verification, a complete fresh independent Pass B over WP29C-AR-001..007, then Pass C. Only Pass C may accept WP-2.9C and unblock WP-2.9A.
-10. Historical Pages/ADR-0011/ADR-0012 evidence paths remain evidence history only and are not authorized acceptance triggers.
+1. ADR 0013 implementation review seal `b8e076399fc6e35a31c9a4c7aa3397c90fa17656` passed ordinary CI `36153863929` **5/5 SUCCESS**, including `Full verify from clean checkout`.
+2. Same-tree trigger `a83d76ec5b824096cfe1435e20613b813a6892c7` ran the single authorized `[AR006-INGRESS-PREFLIGHT]` in CI `36154744823`; provider job `108139347246` completed **SUCCESS**. The exact-size evidence job remained **SKIPPED**.
+3. Provider deployment/identity checks passed: private DO host version `794000b1-9b1b-43ad-a12c-01bbd47875eb`; ingress deployment `c4346f61-ad43-4a58-8b90-91e2a25bc5f7`; ingress version `11eb9e2f-9056-48ad-93ee-2ed0095d699a`; ingress admin secret absent; external DO binding present; Static Assets active; deny smoke green.
+4. Sanitized artifact `10873203218` (digest `sha256:81b74ac40f270be773fc8f2f83cfd970f6783decb63e684bbe6513c1cf2167ed`) records schema `mariage-os.wp29c.ar006.adr0013-ingress-preflight.v1`, route readiness `[409]` on attempt 1, and Observability convergence on query attempt 3 with ingress event count 6, DO event count 2, marker count 2, attributed invocation count 2, failures `[]`, `documentMutation:false`, `exactSizeMutation:false`, `pass:true`.
+5. The provider result has been adversarially reviewed in `WP-2.9C-ADR-0013-PREFLIGHT-REVIEW.md`: no BLOCKING/MAJOR finding remains in the preflight result. It proves persisted exact-script attribution capability only; it is not 25 MB CPU acceptance evidence.
+6. **Exactly one** `[AR006-INGRESS-EVIDENCE]` ten-flow exact-`25,000,000`-byte campaign is authorized only after the commit containing this provider-result review/status seal passes ordinary exact-head CI + clean checkout.
+7. That campaign must use the current reviewed harness unchanged, deploy the exact candidate, rerun its marker/route preflight before document mutation, and fail closed on any incomplete/ambiguous provider evidence. No immediate repeat is authorized if red.
+8. Valid AR-006 evidence requires ten successful/finalized exact-size flows, ingress `executionModel=stateless` with provider CPU `<= 10 ms`, exact ingress version and no CPU-limit outcome, plus DO `executionModel=durableObject` with unique non-null DO identity, exact private-host version, numeric CPU `<= 30,000 ms` and no CPU-limit outcome.
+9. Workers Paid, wall-time substitution, dashboard aggregates and a lower file contract remain prohibited.
+10. After valid evidence: exact-head verification -> complete fresh independent Pass B over WP29C-AR-001..007 -> Pass C -> only then WP-2.9C acceptance and WP-2.9A resumption.
 
 ## Durable handoff
 
@@ -234,7 +234,7 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.8C
 WP-2.9A: BLOCKED — waits for WP-2.9C ACCEPTED
-Current packet: WP-2.9C — IN_PROGRESS / ADR 0013 IMPLEMENTATION REVIEW PASS; ONE INGRESS PREFLIGHT NEXT; AR-006 remains OPEN
+Current packet: WP-2.9C — IN_PROGRESS / ADR 0013 PREFLIGHT GREEN; ONE EXACT-SIZE CAMPAIGN AFTER SEAL CI; AR-006 remains OPEN
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview

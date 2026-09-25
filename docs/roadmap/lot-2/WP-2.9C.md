@@ -228,11 +228,15 @@ Fresh Pass B specifically invalidates treating any local 25 MB success as suffic
 
 ## State / sequencing
 
-Current state: **IN_PROGRESS — ADR 0013 IMPLEMENTATION REVIEW PASS / ONE ISOLATED NO-DOCUMENT-MUTATION INGRESS PREFLIGHT NEXT / AR-006 OPEN**.
+Current state: **IN_PROGRESS — ADR 0013 PREFLIGHT GREEN / ONE EXACT-SIZE CAMPAIGN AFTER RESULT-SEAL CI / AR-006 OPEN**.
 
 ADR 0013 implementation is exact-head green at `b06a823e1d6e3b1a4693c683afe11e1771449365` / CI `36150541994` (**5/5 SUCCESS**, clean-checkout included; provider jobs skipped). Fresh adversarial implementation review is recorded in `WP-2.9C-ADR-0013-IMPLEMENTATION-REVIEW.md` and finds no BLOCKING/MAJOR defect in the Static Assets ingress, external Durable Object binding, native structured evidence logging, exact-script/version Observability collection or fail-closed two-surface evaluator.
 
 That review authorizes **one** isolated `[AR006-INGRESS-PREFLIGHT]` only after the review/status seal commit itself is exact-head green. The preflight is application-document non-mutating: no 25 MB PDF, reservation, upload, promotion or finalization. A green result still does not close AR-006 and must be separately reviewed before any `[AR006-INGRESS-EVIDENCE]` campaign. A red result returns to review without automatic repeat.
+
+The single reviewed ADR 0013 no-document-mutation provider preflight is now green: trigger `a83d76ec5b824096cfe1435e20613b813a6892c7` / CI `36154744823` / provider job `108139347246`. It deployed the exact private DO host and Static Assets ingress, verified the ingress has no admin secret and the exact external DO binding, passed deny smoke, reached the lifecycle executor with a safe random-unreserved `409`, and proved persisted structured marker attribution for both exact deployed script versions. Artifact `10873203218` has digest `sha256:81b74ac40f270be773fc8f2f83cfd970f6783decb63e684bbe6513c1cf2167ed`, `markerCount:2`, `attributedInvocationCount:2`, `failures:[]`, `documentMutation:false`, `exactSizeMutation:false`, `pass:true`.
+
+Fresh provider-result review is `WP-2.9C-ADR-0013-PREFLIGHT-REVIEW.md` and is PASS for authorizing **one** `[AR006-INGRESS-EVIDENCE]` campaign only after the result-seal commit itself is exact-head green. This preflight does not close AR-006.
 
 ADR 0013 now supersedes only the Pages-specific ingress/evidence portion of ADR 0012. Cloudflare documents Pages Function logs as non-persistent, while Workers Observability queries persisted Workers Logs. The final browser boundary therefore moves to a dedicated Workers Static Assets ingress Worker with Worker-first `/api/*` routing, no Supabase admin credential and an external binding to the unchanged private lifecycle Durable Object. The historical Pages exact-size campaign authorization is withdrawn; no 25 MB provider mutation is permitted until the new ingress implementation, review and structured-log preflight are green.
 
