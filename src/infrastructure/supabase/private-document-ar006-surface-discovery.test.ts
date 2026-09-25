@@ -31,7 +31,11 @@ function marker({
 
 function completeEvents() {
   return ids.flatMap((evidenceId) => [
-    marker({ evidenceId, surface: "worker-ingress", scriptName: ingressScript }),
+    marker({
+      evidenceId,
+      surface: "worker-ingress",
+      scriptName: ingressScript,
+    }),
     marker({
       evidenceId,
       surface: "durable-object",
