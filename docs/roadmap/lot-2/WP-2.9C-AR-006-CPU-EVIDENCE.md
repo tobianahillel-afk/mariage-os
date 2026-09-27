@@ -194,3 +194,23 @@ the older GraphQL quantiles in microseconds. The direct CPU overrun and
 `exceededCpu` outcomes satisfy the blocker condition above; no repeat or
 acceptance transition is permitted without a new architecture review. Full
 sanitized provenance: `WP-2.9C-AR-006-PROVIDER-ATTEMPT-2026-09-24.md`.
+
+## Current approved ADR 0013 result — 2026-09-27
+
+The historical ADR 0011 Worker CPU failure above remains adverse for that old
+topology. The approved ADR 0013 ingress plus Durable Object topology now has
+separate positive deployed Workers Free evidence: trigger `da19c6c` / CI
+`36343818988` / provider job `108690065987`, sanitized artifact `10940276677`
+(ZIP SHA-256
+`d94f668d2b04329720555a9b144b89be61b5c5347c137b0430dc24680e9c2aa3`).
+Ten distinct synthetic exact-25,000,000-byte promotions all returned HTTP 200
+and finalized. Provider-native, request-correlated, exact-version ingress CPU
+was **0–3 ms** for ten `stateless` invocations (10 ms Workers Free limit); ten
+distinct Durable Object invocations used **142–329 ms** (30,000 ms limit).
+Both complete telemetry pages passed the fail-closed evaluator. Workers Free
+and absence of Paid CPU entitlement were attested. See
+`WP-2.9C-ADR-0013-PROVIDER-RESULT-2026-09-27.md` for full provenance.
+
+AR-006 is implementation-evidenced for ADR 0013, pending evidence-bound
+exact-head verification and formal full Pass B/Pass C. No second provider
+campaign, Workers Paid activation or smaller PDF limit is authorized.

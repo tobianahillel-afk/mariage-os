@@ -5,14 +5,14 @@
 - Work Packet ID: `WP-2.9C`
 - Lot: `2`
 - State: `IN_PROGRESS`
-- Current pass: `ADR13-EV-001 INGRESS VERSION READINESS TARGETED REVIEW PASS / REVIEW-SEAL CI NEXT`
+- Current pass: `ADR 0013 PROVIDER EVIDENCE GREEN / EVIDENCE-BOUND CI THEN FRESH PASS B`
 - Primary bounded context: Documents — trusted binary promotion for the existing WP-2.9A private PDF lifecycle
 - Branch: `lot-2/venues-core`
 - FIR: `#17 / FTR-089`
 - Parent review findings: `WP29A-AR-004 + WP29A-AR-005`
 - Architecture chain: ADR 0008 trust/integrity → ADR 0009 bounded staging/bodyless promotion → ADR 0010 Cloudflare Pages Function ingress → ADR 0011 private Worker execution / CPU evidence
 - Historical architecture blocker: `docs/roadmap/lot-2/WP-2.9C-BLOCKER.md` — resolved by ADR 0010
-- Current runtime-evidence blocker: `docs/roadmap/lot-2/WP-2.9C-AR-006-CPU-EVIDENCE.md`
+- Runtime-evidence history and current result: `docs/roadmap/lot-2/WP-2.9C-AR-006-CPU-EVIDENCE.md`; `WP-2.9C-ADR-0013-PROVIDER-RESULT-2026-09-27.md`
 - Fresh Pass-B review: `docs/roadmap/lot-2/WP-2.9C-PASS-B-REVIEW.md`
 - Size: **10 points**; cohesion review **PASS**
 
@@ -22,7 +22,18 @@ Pass A completed successfully. The required fresh Pass B then found three unreso
 
 AR-006 has direct adverse provider evidence for the historical ADR 0011 private-Worker path. The 2026-09-24 isolated campaign on `26da10e5aabd7d2a9b6105caef49dd87d6ee58b9` passed deployment and deny smoke but returned eight successful exact-size promotions and two HTTP `503` failures. A bounded read-only Cloudflare query found ten corresponding private-Worker invocation events: eight successful invocations used 237–273 ms CPU and two ended `exceededCpu`. The normal Workers Free budget is 10 ms/request. The sanitized CI artifact did not capture UUID-correlated measurements because the expected marker was absent; that telemetry-parser issue cannot cure the observed CPU overrun. See `WP-2.9C-AR-006-PROVIDER-ATTEMPT-2026-09-24.md`. That design was **BLOCKED** pending architecture review; accepted ADR 0012/0013 now govern the IN_PROGRESS replacement path. AR-006 remains open.
 
-WP-2.9C is not accepted and must not enter `REVIEW_PENDING` until AR-006 is evidenced and the resulting evidence-bound exact HEAD passes the complete verification gate again.
+The later ADR 0013 isolated Workers Free campaign `da19c6c` / CI
+`36343818988` produced ten successful exact-size synthetic promotions and
+provider-native CPU observations on both exact deployed script versions:
+ingress **0–3 ms** against 10 ms, Durable Object **142–329 ms** against
+30,000 ms. The sanitized artifact `10940276677` and provenance are recorded in
+`WP-2.9C-ADR-0013-PROVIDER-RESULT-2026-09-27.md`. This supersedes the
+historical runtime-evidence blocker for the approved ADR 0013 topology.
+AR-006 is implementation-evidenced, pending formal review closure.
+
+WP-2.9C is not accepted. The commit binding this result into the repository
+must pass exact-head CI and clean checkout before `REVIEW_PENDING`, then a
+complete fresh Pass B and separate Pass C are required.
 
 Pass-A implementation evidence:
 
@@ -471,6 +482,24 @@ clean checkout. Fresh targeted review
 review/status seal must itself pass the same five ordinary jobs before one
 new no-content same-tree `[AR006-INGRESS-EVIDENCE]` trigger is authorized.
 No provider acceptance or WP-2.9C Pass B/C conclusion is inferred.
+
+### ADR 0013 deployed provider result — 2026-09-27
+
+The empty-log review/status seal `890f5bc` passed CI `36343323166` 5/5,
+including clean checkout. Its single authorized same-tree trigger `da19c6c` /
+CI `36343818988` passed all five ordinary jobs and provider job
+`108690065987`. Artifact `10940276677` (ZIP SHA-256
+`d94f668d2b04329720555a9b144b89be61b5c5347c137b0430dc24680e9c2aa3`)
+records ten distinct exact-25,000,000-byte synthetic finalized promotions,
+ten request-correlated ingress CPU measurements within 10 ms, and ten
+request-correlated Durable Object CPU measurements within 30,000 ms on the
+exact deployed versions. The evaluator returned `pass:true` with complete
+provider pages and no failures; Workers Free was attested, with no Paid CPU
+entitlement. No additional campaign is needed or authorized by this result.
+
+Next: evidence-bound exact-head CI/clean checkout, `REVIEW_PENDING`, fresh
+complete Pass B over AR-001..007, then Pass C only if no major finding remains.
+WP-2.9A remains BLOCKED until C is ACCEPTED.
 
 ## Deviations
 

@@ -24,6 +24,13 @@ Workers Observability capability harness: `scripts/run-private-document-ar006-ob
 
 Current two-surface correlation: `scripts/private-document-ar006-surface-discovery.mjs` + `scripts/private-document-ar006-two-surface-metrics.mjs`
 
+Current completed campaign: `da19c6c` / CI `36343818988` / provider job
+`108690065987` **SUCCESS**. Artifact `10940276677` proves ten distinct exact-size
+promotions with ingress CPU 0–3 ms and Durable Object CPU 142–329 ms on
+Workers Free. Full provenance: `WP-2.9C-ADR-0013-PROVIDER-RESULT-2026-09-27.md`.
+No second campaign is authorized or needed. The next gate is evidence-bound
+exact-head CI, then the fresh complete WP-2.9C Pass B and Pass C.
+
 CPU regression control: `npm run test:ar006:metrics`
 
 ## ADR 0013 current execution protocol

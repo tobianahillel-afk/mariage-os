@@ -661,4 +661,18 @@ and its provenance are in
 
 ## Governance
 
-WP-2.9C is **IN_PROGRESS — ADR13-EV-001 VERSION READINESS REVIEW PASS / REVIEW-SEAL CI NEXT**. AR-006 remains OPEN. No `REVIEW_PENDING`, complete fresh Pass B, Pass C, WP-2.9A resumption, Workers Paid activation or 25 MB reduction is authorized. One exact-size campaign may run only after the review/status seal is exact-head green.
+The ADR 0013 campaign `da19c6c` / CI `36343818988` now has ten successful
+exact-size synthetic promotions and valid provider CPU observations on both
+exact deployed versions: ingress 0–3 ms against 10 ms, Durable Object
+142–329 ms against 30,000 ms. Provider job `108690065987` succeeded; the
+sanitized artifact and digest are retained in
+`WP-2.9C-ADR-0013-PROVIDER-RESULT-2026-09-27.md`. This evidence satisfies
+the runtime feasibility requirement for the reviewed ADR 0013 topology; it
+does not retroactively validate the rejected ADR 0011 topology.
+
+WP-2.9C is **IN_PROGRESS — PROVIDER EVIDENCE GREEN / EVIDENCE-BOUND EXACT-HEAD
+CI THEN FRESH PASS B**. AR-006 is implementation-evidenced, pending formal
+closure in the full Pass B. No `REVIEW_PENDING` before evidence-bound CI and
+clean checkout, no Pass C before a clean full Pass B, and no WP-2.9A resumption
+before C acceptance. No second provider campaign, Workers Paid activation or
+25 MB reduction is authorized.

@@ -38,7 +38,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.8B | Venue private archived media lifecycle                                 | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.8C | recoverable Venue remote-media metadata lifecycle                      | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.9A | Venue-linked private PDF/document foundation                           | **BLOCKED — waits for WP-2.9C ACCEPTED**                                   |
-| WP-2.9C | trusted private-document ingestion hardening                           | **IN_PROGRESS — EMPTY-LOG REVIEW PASS; REVIEW-SEAL CI NEXT; AR-006 OPEN** |
+| WP-2.9C | trusted private-document ingestion hardening                           | **IN_PROGRESS — AR-006 PROVIDER EVIDENCE GREEN; EVIDENCE-BOUND CI / FRESH PASS B NEXT** |
 | WP-2.9B | generic project tags and Venue entity-tag links                        | **PLANNED / AFTER A**                                                      |
 | WP-2.10 | repositories, local cache, pending/offline mutations                   | PLANNED                                                                    |
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace                       | PLANNED                                                                    |
@@ -59,7 +59,7 @@ WP-2.1..WP-2.8C are accepted and complete. Durable evidence remains in their pac
 
 ## WP-2.9C — current packet
 
-State: **IN_PROGRESS — ADR 0013 CAMPAIGN FAILED-CONTAINED AT EMPTY-LOG MARKER PREFLIGHT / ZERO EXACT-SIZE FLOWS / WP29C-AR-006 OPEN / BLOCKING**.
+State: **IN_PROGRESS — ADR 0013 DEPLOYED EXACT-SIZE CPU EVIDENCE GREEN / WP29C-AR-006 IMPLEMENTATION-EVIDENCED; FORMAL FRESH PASS B AND PASS C PENDING**.
 
 Pass-A exact evidence:
 
@@ -234,6 +234,9 @@ Normative release/deployment/secret contracts require Pages Functions to deploy 
 19. `WP-2.9C-ADR-0013-EMPTY-LOG-RESULT-2026-09-25.md` records the classification defect and precise bounded correction. A RED-first test reproduced it. The classifier now treats only the exact no-marker/no-attribution/two-missing-marker plus two derived script-identity failures as delayed logs under the existing eight-query bound. Wrong-script observations, invalid invocations, CPU, status and version failures remain blocking.
 20. Next: exact-head implementation CI and clean checkout, fresh targeted adversarial review, review-seal exact-head CI; only a new review may authorize one further campaign. The previous authorization is exhausted. No automatic retry or AR-006 closure.
 21. Empty-log correction `5ef42c3` / CI `36173041841` passed **5/5 SUCCESS**, including clean checkout. No provider job ran on this ordinary push. Fresh targeted review `WP-2.9C-ADR-0013-EMPTY-LOG-REVIEW.md` is PASS with no BLOCKING/MAJOR finding in its narrow scope. Exactly one new no-content same-tree `[AR006-INGRESS-EVIDENCE]` trigger is permitted **only after this review/status seal itself passes exact-head 5/5 CI**. A red provider result returns to review without retry.
+22. Review/status seal `890f5bc942974d874a2b2cbd604f683412bf488b` / CI `36343323166` passed **5/5 SUCCESS**, clean checkout included. Its single authorized same-tree trigger `da19c6cbe339f060955cf2b852e4cfeb1c576023` / CI `36343818988` passed all five ordinary jobs and provider job `108690065987`.
+23. Sanitized artifact `10940276677` (ZIP SHA-256 `d94f668d2b04329720555a9b144b89be61b5c5347c137b0430dc24680e9c2aa3`) records **10** distinct exact-`25,000,000`-byte synthetic PDFs, all HTTP 200/success/finalized; ten exact-version ingress CPU readings **0–3 ms** within 10 ms; ten exact-version Durable Object readings **142–329 ms** within 30,000 ms and ten distinct DO IDs. Two-surface evaluation and campaign `pass:true`, no provider failures, Workers Free attested, Paid entitlement attested absent. See `WP-2.9C-ADR-0013-PROVIDER-RESULT-2026-09-27.md`.
+24. AR-006 is **IMPLEMENTATION-EVIDENCED**, not yet formally closed. Next: pass ordinary exact-head CI + clean checkout over the commit retaining this provider result, then transition WP-2.9C to `REVIEW_PENDING` and perform a complete fresh Pass B over AR-001..007. Only a clean Pass B may enter `ACCEPTANCE_PENDING`; Pass C alone may accept C and unblock A. No second provider campaign is authorized or needed.
 
 ## Durable handoff
 
@@ -245,7 +248,7 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.8C
 WP-2.9A: BLOCKED — waits for WP-2.9C ACCEPTED
-Current packet: WP-2.9C — IN_PROGRESS / EMPTY-LOG CLASSIFIER EXACT-HEAD GREEN; TARGETED REVIEW PASS; REVIEW-SEAL CI NEXT; AR-006 OPEN
+Current packet: WP-2.9C — IN_PROGRESS / ADR 0013 TEN-FLOW PROVIDER CPU EVIDENCE GREEN; EVIDENCE-BOUND EXACT-HEAD CI THEN FRESH PASS B; AR-006 FORMAL CLOSURE PENDING
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
@@ -283,5 +286,5 @@ AR-005 and AR-007: implementation-remediated / exact-head-green — formal closu
 FTR-089 FIR: #17 — BLOCKED
 WP-2.9B: PLANNED / AFTER A
 Lots 3–12: NOT_STARTED
-Next permitted action: pass ordinary exact-head CI + clean checkout for the empty-log targeted review/status seal, then execute exactly one no-content same-tree `[AR006-INGRESS-EVIDENCE]` trigger. Inspect its sanitized artifact before AR-006 closure or packet-state transition. No automatic repeat on failure.
+Next permitted action: commit the inspected green provider result, pass ordinary exact-head CI + clean checkout on that evidence-bound commit, then transition WP-2.9C to REVIEW_PENDING and perform a complete fresh Pass B over every C responsibility and AR-001..007. Do not mark C accepted or resume A before Pass C.
 ```
