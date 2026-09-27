@@ -38,7 +38,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.8B | Venue private archived media lifecycle                                 | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.8C | recoverable Venue remote-media metadata lifecycle                      | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.9A | Venue-linked private PDF/document foundation                           | **BLOCKED — waits for WP-2.9C ACCEPTED**                                   |
-| WP-2.9C | trusted private-document ingestion hardening                           | **IN_PROGRESS — AR-006 PROVIDER EVIDENCE GREEN; EVIDENCE-BOUND CI / FRESH PASS B NEXT** |
+| WP-2.9C | trusted private-document ingestion hardening                           | **IN_PROGRESS — FRESH PASS B REVIEW_FAILED / AR-008 RELEASE-CONTRACT REMEDIATION** |
 | WP-2.9B | generic project tags and Venue entity-tag links                        | **PLANNED / AFTER A**                                                      |
 | WP-2.10 | repositories, local cache, pending/offline mutations                   | PLANNED                                                                    |
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace                       | PLANNED                                                                    |
@@ -59,7 +59,7 @@ WP-2.1..WP-2.8C are accepted and complete. Durable evidence remains in their pac
 
 ## WP-2.9C — current packet
 
-State: **IN_PROGRESS — ADR 0013 DEPLOYED EXACT-SIZE CPU EVIDENCE GREEN / WP29C-AR-006 IMPLEMENTATION-EVIDENCED; FORMAL FRESH PASS B AND PASS C PENDING**.
+State: **IN_PROGRESS — EVIDENCE-BOUND CI GREEN; FRESH PASS B REVIEW_FAILED ON WP29C-AR-008; RELEASE-CONTRACT REMEDIATION STARTED**. AR-006 remains implementation-evidenced, pending formal closure in a clean future Pass B.
 
 Pass-A exact evidence:
 
@@ -237,6 +237,9 @@ Normative release/deployment/secret contracts require Pages Functions to deploy 
 22. Review/status seal `890f5bc942974d874a2b2cbd604f683412bf488b` / CI `36343323166` passed **5/5 SUCCESS**, clean checkout included. Its single authorized same-tree trigger `da19c6cbe339f060955cf2b852e4cfeb1c576023` / CI `36343818988` passed all five ordinary jobs and provider job `108690065987`.
 23. Sanitized artifact `10940276677` (ZIP SHA-256 `d94f668d2b04329720555a9b144b89be61b5c5347c137b0430dc24680e9c2aa3`) records **10** distinct exact-`25,000,000`-byte synthetic PDFs, all HTTP 200/success/finalized; ten exact-version ingress CPU readings **0–3 ms** within 10 ms; ten exact-version Durable Object readings **142–329 ms** within 30,000 ms and ten distinct DO IDs. Two-surface evaluation and campaign `pass:true`, no provider failures, Workers Free attested, Paid entitlement attested absent. See `WP-2.9C-ADR-0013-PROVIDER-RESULT-2026-09-27.md`.
 24. AR-006 is **IMPLEMENTATION-EVIDENCED**, not yet formally closed. Next: pass ordinary exact-head CI + clean checkout over the commit retaining this provider result, then transition WP-2.9C to `REVIEW_PENDING` and perform a complete fresh Pass B over AR-001..007. Only a clean Pass B may enter `ACCEPTANCE_PENDING`; Pass C alone may accept C and unblock A. No second provider campaign is authorized or needed.
+25. Evidence-bound commit `bd5ca22` / CI `36344835905` passed **5/5 SUCCESS**, including clean checkout. This permitted `IN_PROGRESS -> REVIEW_PENDING` and the full fresh Pass B over all seven C responsibilities and AR-001..007.
+26. That fresh Pass B is `REVIEW_FAILED`: `WP-2.9C-FRESH-PASS-B-2026-09-27.md` records new MAJOR `WP29C-AR-008`. ADR 0013 requires Workers Static Assets for the production private-document ingress, but CI/release/secret/Free-tier contracts still prescribe the superseded Pages route. Formal AR-007 closure is therefore reopened. State moved `REVIEW_PENDING -> REVIEW_FAILED -> IN_PROGRESS` as remediation began. No Pass C or A resumption.
+27. A new ADR 0013 production-operations regression test was RED against the old contracts. Next: reconcile those normative contracts and release-plan metadata to the current Worker ingress plus private DO host, run focused tests and complete exact-head CI/clean checkout, then a fresh review and full Pass B. The successful CPU campaign is retained; no rerun is authorized or needed.
 
 ## Durable handoff
 
@@ -248,7 +251,7 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.8C
 WP-2.9A: BLOCKED — waits for WP-2.9C ACCEPTED
-Current packet: WP-2.9C — IN_PROGRESS / ADR 0013 TEN-FLOW PROVIDER CPU EVIDENCE GREEN; EVIDENCE-BOUND EXACT-HEAD CI THEN FRESH PASS B; AR-006 FORMAL CLOSURE PENDING
+Current packet: WP-2.9C — IN_PROGRESS / ADR 0013 TEN-FLOW CPU EVIDENCE AND EVIDENCE-BOUND CI GREEN; FRESH PASS B REVIEW_FAILED ON AR-008; RELEASE-CONTRACT REMEDIATION ACTIVE
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
@@ -282,9 +285,9 @@ Tail support green tree: d04edd0ed0d3daa3b9bfe20d954003bb13545200 / parent 82e05
 Tail capability trigger: 7645a9e769c641640f52fdba535deb6140401fc6 / workflow 35153132971 / job 104986087784 / artifact 10469354745 — deny smoke SUCCESS; parsedJsonEventCount=0; providerCpuTimeMs=[]; pass=false
 Workers Observability configured capability preflight: bd3fdb4baab6ef59983e40f77b5b2f44ba6dc8b7 / workflow 35213157767 / job 105175271234 / artifact 10494251279 (ZIP SHA-256 02438aadb3e377f6c8e6ed66b3b00c0c0d3e473008c3bb710acbfb805f2dde7c) — deny smoke passed; no attributable numeric provider CPU; pass=false
 AR-006 architecture review: ADR 0011 private Worker failed the deployed Free CPU gate; ADR 0012 accepted direct Pages → per-document Durable Object replacement architecture
-AR-005 and AR-007: implementation-remediated / exact-head-green — formal closure waits fresh Pass B after AR-006 unblock
+AR-005 and AR-006: implementation-evidenced — formal closure waits clean full Pass B; AR-007 release contract reopened by ADR 0013 / AR-008
 FTR-089 FIR: #17 — BLOCKED
 WP-2.9B: PLANNED / AFTER A
 Lots 3–12: NOT_STARTED
-Next permitted action: commit the inspected green provider result, pass ordinary exact-head CI + clean checkout on that evidence-bound commit, then transition WP-2.9C to REVIEW_PENDING and perform a complete fresh Pass B over every C responsibility and AR-001..007. Do not mark C accepted or resume A before Pass C.
+Next permitted action: complete AR-008 RED-first production contract remediation, run exact-head CI + clean checkout, review the remediation, repeat complete fresh WP-2.9C Pass B, and only after a clean B perform Pass C. Do not rerun the green provider campaign, mark C accepted, or resume A early.
 ```

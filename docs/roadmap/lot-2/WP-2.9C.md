@@ -5,15 +5,15 @@
 - Work Packet ID: `WP-2.9C`
 - Lot: `2`
 - State: `IN_PROGRESS`
-- Current pass: `ADR 0013 PROVIDER EVIDENCE GREEN / EVIDENCE-BOUND CI THEN FRESH PASS B`
+- Current pass: `FRESH PASS B REVIEW_FAILED / WP29C-AR-008 RELEASE-CONTRACT REMEDIATION`
 - Primary bounded context: Documents — trusted binary promotion for the existing WP-2.9A private PDF lifecycle
 - Branch: `lot-2/venues-core`
 - FIR: `#17 / FTR-089`
 - Parent review findings: `WP29A-AR-004 + WP29A-AR-005`
-- Architecture chain: ADR 0008 trust/integrity → ADR 0009 bounded staging/bodyless promotion → ADR 0010 Cloudflare Pages Function ingress → ADR 0011 private Worker execution / CPU evidence
+- Architecture chain: ADR 0008 trust/integrity → ADR 0009 bounded staging/bodyless promotion → ADR 0010 same-origin boundary → ADR 0011 rejected stateless CPU path → ADR 0012 private Durable Object lifecycle → ADR 0013 Workers Static Assets ingress
 - Historical architecture blocker: `docs/roadmap/lot-2/WP-2.9C-BLOCKER.md` — resolved by ADR 0010
 - Runtime-evidence history and current result: `docs/roadmap/lot-2/WP-2.9C-AR-006-CPU-EVIDENCE.md`; `WP-2.9C-ADR-0013-PROVIDER-RESULT-2026-09-27.md`
-- Fresh Pass-B review: `docs/roadmap/lot-2/WP-2.9C-PASS-B-REVIEW.md`
+- Fresh Pass-B reviews: `docs/roadmap/lot-2/WP-2.9C-PASS-B-REVIEW.md`; `WP-2.9C-FRESH-PASS-B-2026-09-27.md`
 - Size: **10 points**; cohesion review **PASS**
 
 ## Current verdict
@@ -32,8 +32,13 @@ historical runtime-evidence blocker for the approved ADR 0013 topology.
 AR-006 is implementation-evidenced, pending formal review closure.
 
 WP-2.9C is not accepted. The commit binding this result into the repository
-must pass exact-head CI and clean checkout before `REVIEW_PENDING`, then a
-complete fresh Pass B and separate Pass C are required.
+passed exact-head CI `36344835905` **5/5**, including clean checkout. The
+subsequent full fresh Pass B found MAJOR `WP29C-AR-008`: release contracts still
+describe the superseded Pages ingress rather than ADR 0013 Workers Static
+Assets. The packet transitioned through `REVIEW_PENDING` and `REVIEW_FAILED`
+back to `IN_PROGRESS` for RED-first release-contract remediation. See
+`WP-2.9C-FRESH-PASS-B-2026-09-27.md`. A new clean full Pass B and separate
+Pass C are required after remediation verification.
 
 Pass-A implementation evidence:
 
@@ -268,7 +273,7 @@ Fresh Pass B specifically invalidates treating any local 25 MB success as suffic
 
 ## State / sequencing
 
-Current state: **IN_PROGRESS — ADR 0013 PREFLIGHT GREEN / ONE EXACT-SIZE CAMPAIGN AFTER RESULT-SEAL CI / AR-006 OPEN**.
+Current state: **IN_PROGRESS — ADR 0013 PROVIDER CPU EVIDENCE AND EVIDENCE-BOUND CI GREEN; FRESH PASS B REVIEW_FAILED ON AR-008 / RED-FIRST RELEASE-CONTRACT REMEDIATION**. Historical states and gates below are retained as dated evidence; the current next action is in the status board and the latest Pass B record.
 
 ADR 0013 implementation is exact-head green at `b06a823e1d6e3b1a4693c683afe11e1771449365` / CI `36150541994` (**5/5 SUCCESS**, clean-checkout included; provider jobs skipped). Fresh adversarial implementation review is recorded in `WP-2.9C-ADR-0013-IMPLEMENTATION-REVIEW.md` and finds no BLOCKING/MAJOR defect in the Static Assets ingress, external Durable Object binding, native structured evidence logging, exact-script/version Observability collection or fail-closed two-surface evaluator.
 
