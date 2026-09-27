@@ -18,6 +18,7 @@ if (baseUrl.protocol !== "https:") {
 }
 
 const routeUrl = new URL("/api/private-document-promote", baseUrl);
+const unknownApiUrl = new URL("/api/private-document-unknown", baseUrl);
 const projectId = "11111111-1111-4111-8111-111111111111";
 const documentId = "22222222-2222-4222-8222-222222222222";
 const targetHeaders = {
@@ -29,11 +30,21 @@ async function run() {
   const staticResponse = await globalThis.fetch(baseUrl, {
     redirect: "manual",
   });
-  if (staticResponse.status >= 500) {
+  if (
+    staticResponse.status !== 200 ||
+    !(staticResponse.headers.get("content-type") ?? "").includes("text/html")
+  ) {
     throw new Error(
-      `Static application smoke failed with ${staticResponse.status}.`,
+      `Static application smoke failed with ${staticResponse.status} or non-HTML content.`,
     );
   }
+
+  await assertDenied({
+    routeUrl: unknownApiUrl,
+    label: "unknown API path",
+    expectedStatus: 404,
+    init: { method: "GET" },
+  });
 
   await assertEventuallyDenied({
     routeUrl,

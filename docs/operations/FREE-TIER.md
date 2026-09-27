@@ -8,16 +8,17 @@ This is a product constraint for the application stack, not a promise that every
 
 ## Chosen core services
 
-- Cloudflare Pages Free for static hosting plus the narrowly approved Pages Functions security boundary;
+- Cloudflare Workers Free with Workers Static Assets ingress for the app and a private Durable Object host for the private-document lifecycle (ADR 0013); independently approved Pages uses remain separately scoped;
 - Supabase Free for database, Auth, Storage and Realtime.
 
 Current provider limits must be rechecked at implementation/release time because free-tier terms can change.
 
-## Cloudflare Pages Functions envelope
+## Cloudflare Workers Static Assets ingress and Durable Object envelope
 
 Provider limits rechecked on **2026-09-15** for WP-2.9C:
 
-- Pages Functions use the Cloudflare Workers runtime and Workers billing/limits;
+- the Workers Static Assets ingress uses the stateless Workers Free CPU envelope;
+- the private-document lifecycle Durable Object has its own Workers Free CPU envelope and request/duration/storage quotas;
 - Workers Free permits `100,000` requests/day;
 - Workers Free CPU time is `10 ms` per HTTP request;
 - Worker memory is `128 MB`;
@@ -27,13 +28,14 @@ Provider references:
 
 - <https://developers.cloudflare.com/workers/platform/limits/>
 - <https://developers.cloudflare.com/workers/platform/pricing/>
-- <https://developers.cloudflare.com/pages/functions/>
+- <https://developers.cloudflare.com/durable-objects/platform/limits/>
+- <https://developers.cloudflare.com/workers/static-assets/routing/single-page-application/>
 
-The private-document contract remains exact `25,000,000` bytes. Local Wrangler/workerd success proves functional compatibility but does not prove deployed Free CPU enforcement. WP-2.9C therefore requires provider-produced CPU evidence for an exact-size deployed promotion before acceptance. Cloudflare exposes `CPU Time per execution` in Pages Functions metrics and per-invocation CPU time in Workers observability; wall/network duration must not be substituted for CPU time.
+The private-document contract remains exact `25,000,000` bytes. Local Wrangler/workerd success proves functional compatibility but does not prove deployed Free CPU enforcement. WP-2.9C therefore requires provider-produced, per-invocation CPU evidence for both exact deployed script versions. The accepted isolated Workers Free campaign `da19c6c` / CI `36343818988` / artifact `10940276677` recorded ten exact-size finalized synthetic flows: ingress CPU 0–3 ms against 10 ms and Durable Object CPU 142–329 ms against the documented 30,000 ms limit, with no Paid entitlement. See `../roadmap/lot-2/WP-2.9C-ADR-0013-PROVIDER-RESULT-2026-09-27.md`. Wall/network duration and dashboard aggregates are not substitutes for provider-native CPU time.
 
 Evidence references:
 
-- <https://developers.cloudflare.com/pages/functions/metrics/>
+- <https://developers.cloudflare.com/workers/observability/logs/workers-logs/>
 - <https://developers.cloudflare.com/changelog/post/2025-04-09-workers-timing/>
 
 Mariage OS must not rely on the runtime's documented flexibility for occasional CPU-limit excursions as its normal operating budget. If exact-size promotion cannot be demonstrated within the intended Free CPU envelope, the packet is blocked and architecture must be revisited; the application must not silently enable Workers Paid or lower the PDF limit.
@@ -132,7 +134,7 @@ If a provider changes materially:
 - preserve manual link/QR fallback for guest RSVP;
 - use provider abstractions/exports to migrate or deliberately degrade the affected channel.
 
-For security-critical Pages Functions, a provider limit change invalidates stale runtime-feasibility evidence until the affected boundary is rechecked.
+For security-critical Workers ingress and Durable Object execution, a provider limit change invalidates stale runtime-feasibility evidence until the affected boundary is rechecked. The same applies to independently approved Pages Functions.
 
 ## No automatic upgrade
 

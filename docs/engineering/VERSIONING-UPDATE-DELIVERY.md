@@ -180,7 +180,7 @@ Recommended branch/environment responsibilities:
 
 - protected deployment branch or equivalent immutable production ref;
 - updated only by release automation after production migration/preconditions pass;
-- Cloudflare Pages production branch points here (or an equivalent explicitly controlled release ref).
+- Cloudflare Workers Static Assets production deployment for the private-document application boundary is sourced from this exact controlled ref; independently approved Pages deployments may also use it.
 
 This separates automatic web deployment from database migration ordering. A merge to `main` cannot race an incompatible frontend ahead of its required production schema.
 

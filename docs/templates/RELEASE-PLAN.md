@@ -13,6 +13,10 @@ Status: `PLANNED | CANDIDATE_BUILDING | CANDIDATE_VERIFYING | READY_FOR_PRODUCTI
 - Reviewer/approver:
 - Planned release date:
 - Production deployment ID/ref:
+- Private-document ingress Worker deployment ID/version (when enabled):
+- Private-document Durable Object host deployment ID/version (when enabled):
+- Private-document external binding/Worker-first `/api/*` verification:
+- Private-document Workers Free two-surface CPU evidence ID:
 
 ## Included scope
 

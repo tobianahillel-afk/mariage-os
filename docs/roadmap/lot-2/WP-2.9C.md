@@ -506,6 +506,18 @@ Next: evidence-bound exact-head CI/clean checkout, `REVIEW_PENDING`, fresh
 complete Pass B over AR-001..007, then Pass C only if no major finding remains.
 WP-2.9A remains BLOCKED until C is ACCEPTED.
 
+### WP29C-AR-008 release-contract remediation — 2026-09-27
+
+The evidence-bound result commit `bd5ca22` / CI `36344835905` passed all five
+ordinary jobs, clean checkout included. Fresh full Pass B
+`WP-2.9C-FRESH-PASS-B-2026-09-27.md` found MAJOR AR-008: production contracts
+still described the superseded Pages ingress despite ADR 0013 Workers Static
+Assets being the proven route. A RED-first contract test reproduced the drift.
+`WP-2.9C-AR-008-REMEDIATION-2026-09-27.md` records the locally green
+CI/release/secret/Free-tier/plan and deny/static smoke correction. This remains
+`IN_PROGRESS` until exact-head CI, review and a new clean full Pass B; the
+successful provider CPU evidence is retained without another campaign.
+
 ## Deviations
 
 No security-contract deviation is authorized.

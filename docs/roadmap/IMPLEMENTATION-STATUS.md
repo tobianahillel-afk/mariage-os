@@ -240,6 +240,7 @@ Normative release/deployment/secret contracts require Pages Functions to deploy 
 25. Evidence-bound commit `bd5ca22` / CI `36344835905` passed **5/5 SUCCESS**, including clean checkout. This permitted `IN_PROGRESS -> REVIEW_PENDING` and the full fresh Pass B over all seven C responsibilities and AR-001..007.
 26. That fresh Pass B is `REVIEW_FAILED`: `WP-2.9C-FRESH-PASS-B-2026-09-27.md` records new MAJOR `WP29C-AR-008`. ADR 0013 requires Workers Static Assets for the production private-document ingress, but CI/release/secret/Free-tier contracts still prescribe the superseded Pages route. Formal AR-007 closure is therefore reopened. State moved `REVIEW_PENDING -> REVIEW_FAILED -> IN_PROGRESS` as remediation began. No Pass C or A resumption.
 27. A new ADR 0013 production-operations regression test was RED against the old contracts. Next: reconcile those normative contracts and release-plan metadata to the current Worker ingress plus private DO host, run focused tests and complete exact-head CI/clean checkout, then a fresh review and full Pass B. The successful CPU campaign is retained; no rerun is authorized or needed.
+28. AR-008 remediation is implemented locally: `WP-2.9C-AR-008-REMEDIATION-2026-09-27.md` records normative CI/release/secret/Free-tier/plan reconciliation and Worker-first deny/static production smoke. The RED-first contract control and AR-007 regression now pass 9/9 targeted tests. Next: local static checks, commit/push, exact-head CI including clean checkout, fresh remediation review, then complete fresh Pass B. No provider action is authorized by this docs/smoke correction.
 
 ## Durable handoff
 
@@ -289,5 +290,5 @@ AR-005 and AR-006: implementation-evidenced — formal closure waits clean full 
 FTR-089 FIR: #17 — BLOCKED
 WP-2.9B: PLANNED / AFTER A
 Lots 3–12: NOT_STARTED
-Next permitted action: complete AR-008 RED-first production contract remediation, run exact-head CI + clean checkout, review the remediation, repeat complete fresh WP-2.9C Pass B, and only after a clean B perform Pass C. Do not rerun the green provider campaign, mark C accepted, or resume A early.
+Next permitted action: verify/commit/push the implemented AR-008 production contract and smoke remediation, run exact-head CI + clean checkout, review the remediation, repeat complete fresh WP-2.9C Pass B, and only after a clean B perform Pass C. Do not rerun the green provider campaign, mark C accepted, or resume A early.
 ```

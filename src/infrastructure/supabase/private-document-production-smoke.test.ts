@@ -5,14 +5,14 @@ import {
 } from "../../../scripts/private-document-production-smoke.mjs";
 
 const routeUrl = new URL(
-  "https://synthetic.pages.dev/api/private-document-promote",
+  "https://synthetic.workers.dev/api/private-document-promote",
 );
 
 function denied(status: number) {
   return Response.json({ error: "private_document_unavailable" }, { status });
 }
 
-describe("private-document Pages readiness smoke", () => {
+describe("private-document Worker ingress readiness smoke", () => {
   it("retries only transient 404 until the exact deny route is ready", async () => {
     const fetcher = vi
       .fn<typeof fetch>()
@@ -61,7 +61,7 @@ describe("private-document Pages readiness smoke", () => {
   });
 });
 
-describe("private-document Pages smoke fail-closed behavior", () => {
+describe("private-document Worker ingress smoke fail-closed behavior", () => {
   it("does not retry an unexpected non-404 response", async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
       new Response("<html>fallback</html>", {
