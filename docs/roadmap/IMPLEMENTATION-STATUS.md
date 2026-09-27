@@ -38,7 +38,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.8B | Venue private archived media lifecycle                                 | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.8C | recoverable Venue remote-media metadata lifecycle                      | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.9A | Venue-linked private PDF/document foundation                           | **BLOCKED — waits for WP-2.9C ACCEPTED**                                   |
-| WP-2.9C | trusted private-document ingestion hardening                           | **IN_PROGRESS — EMPTY-LOG CLASSIFIER REMEDIATION; TARGETED CI NEXT; AR-006 OPEN** |
+| WP-2.9C | trusted private-document ingestion hardening                           | **IN_PROGRESS — EMPTY-LOG REVIEW PASS; REVIEW-SEAL CI NEXT; AR-006 OPEN** |
 | WP-2.9B | generic project tags and Venue entity-tag links                        | **PLANNED / AFTER A**                                                      |
 | WP-2.10 | repositories, local cache, pending/offline mutations                   | PLANNED                                                                    |
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace                       | PLANNED                                                                    |
@@ -233,6 +233,7 @@ Normative release/deployment/secret contracts require Pages Functions to deploy 
 18. Sanitized artifact `10880811417` / ZIP SHA-256 `63e839d0e3cfd4f9563bb5dfbcdb10df396e0a174db9e183b3abb5d475eceba3` records complete HTTP-200 Observability queries with zero events on both surfaces, a 409 route response, `completedInvocationCount:0`, no provider verdict and `pass:false`. A later read-only query of that same window found six ingress/two DO events and exact-version, request-correlated marker invocations at 1 ms and 17 ms CPU respectively. This is safe-marker evidence only, not 25 MB CPU evidence.
 19. `WP-2.9C-ADR-0013-EMPTY-LOG-RESULT-2026-09-25.md` records the classification defect and precise bounded correction. A RED-first test reproduced it. The classifier now treats only the exact no-marker/no-attribution/two-missing-marker plus two derived script-identity failures as delayed logs under the existing eight-query bound. Wrong-script observations, invalid invocations, CPU, status and version failures remain blocking.
 20. Next: exact-head implementation CI and clean checkout, fresh targeted adversarial review, review-seal exact-head CI; only a new review may authorize one further campaign. The previous authorization is exhausted. No automatic retry or AR-006 closure.
+21. Empty-log correction `5ef42c3` / CI `36173041841` passed **5/5 SUCCESS**, including clean checkout. No provider job ran on this ordinary push. Fresh targeted review `WP-2.9C-ADR-0013-EMPTY-LOG-REVIEW.md` is PASS with no BLOCKING/MAJOR finding in its narrow scope. Exactly one new no-content same-tree `[AR006-INGRESS-EVIDENCE]` trigger is permitted **only after this review/status seal itself passes exact-head 5/5 CI**. A red provider result returns to review without retry.
 
 ## Durable handoff
 
@@ -244,7 +245,7 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.8C
 WP-2.9A: BLOCKED — waits for WP-2.9C ACCEPTED
-Current packet: WP-2.9C — IN_PROGRESS / EMPTY-LOG MARKER CLASSIFIER CORRECTION IMPLEMENTED; EXACT-HEAD CI AND FRESH TARGETED REVIEW NEXT; AR-006 OPEN
+Current packet: WP-2.9C — IN_PROGRESS / EMPTY-LOG CLASSIFIER EXACT-HEAD GREEN; TARGETED REVIEW PASS; REVIEW-SEAL CI NEXT; AR-006 OPEN
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
@@ -282,5 +283,5 @@ AR-005 and AR-007: implementation-remediated / exact-head-green — formal closu
 FTR-089 FIR: #17 — BLOCKED
 WP-2.9B: PLANNED / AFTER A
 Lots 3–12: NOT_STARTED
-Next permitted action: run exact-head CI + clean checkout for the narrow empty-log classifier correction; perform fresh targeted adversarial review of the failed result and correction. No `[AR006-INGRESS-EVIDENCE]` rerun until a separate reviewed authorization and its exact-head CI.
+Next permitted action: pass ordinary exact-head CI + clean checkout for the empty-log targeted review/status seal, then execute exactly one no-content same-tree `[AR006-INGRESS-EVIDENCE]` trigger. Inspect its sanitized artifact before AR-006 closure or packet-state transition. No automatic repeat on failure.
 ```

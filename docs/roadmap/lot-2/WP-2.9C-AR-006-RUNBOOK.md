@@ -108,6 +108,12 @@ for this **precise empty-page shape** only within the existing eight-query
 bound. It does not authorize a new provider run. First obtain exact-head CI,
 fresh targeted adversarial review and a separately sealed authorization.
 
+That correction `5ef42c3` passed CI `36173041841` **5/5**, including clean
+checkout. `WP-2.9C-ADR-0013-EMPTY-LOG-REVIEW.md` is the focused PASS review.
+The review/status seal itself must now pass exact-head ordinary CI before
+exactly one new `[AR006-INGRESS-EVIDENCE]` trigger is permitted. Red returns
+to review; no automatic repeat.
+
 ## ADR 0012 historical final-evidence protocol — superseded by ADR 0013 ingress
 
 This section is the current AR-006 execution protocol. Older `[AR006-EVIDENCE]`, GraphQL, Pages-tail and ADR 0011 Service-Binding sections later in this file are historical/reproducibility records only.

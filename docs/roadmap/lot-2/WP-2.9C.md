@@ -465,6 +465,13 @@ is exhausted. Next are exact-head CI, fresh targeted review, and a separate
 reviewed authorization before any further provider campaign. AR-006 remains
 OPEN; WP-2.9A remains BLOCKED.
 
+The correction `5ef42c3` passed exact-head CI `36173041841` **5/5**, including
+clean checkout. Fresh targeted review
+`WP-2.9C-ADR-0013-EMPTY-LOG-REVIEW.md` is PASS for this narrow scope. Its
+review/status seal must itself pass the same five ordinary jobs before one
+new no-content same-tree `[AR006-INGRESS-EVIDENCE]` trigger is authorized.
+No provider acceptance or WP-2.9C Pass B/C conclusion is inferred.
+
 ## Deviations
 
 No security-contract deviation is authorized.
