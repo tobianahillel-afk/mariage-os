@@ -5,7 +5,7 @@
 - Work Packet ID: `WP-2.9C`
 - Lot: `2`
 - State: `IN_PROGRESS`
-- Current pass: `FRESH PASS B REVIEW_FAILED / WP29C-AR-008 RELEASE-CONTRACT REMEDIATION`
+- Current pass: `REMEDIATION` — WP29C-AR-008 release-contract finding from the fresh Pass B
 - Primary bounded context: Documents — trusted binary promotion for the existing WP-2.9A private PDF lifecycle
 - Branch: `lot-2/venues-core`
 - FIR: `#17 / FTR-089`
@@ -86,9 +86,9 @@ Earlier post-remediation CI `35021446818` isolated one new uncovered invalid-aba
 
 AR-005 is therefore **IMPLEMENTATION-REMEDIATED / EXACT-HEAD-GREEN**. Formal finding closure still waits for the later complete fresh Pass B after AR-006 is unblocked.
 
-### WP29C-AR-006 — MAJOR — Workers Free exact-25-MB CPU feasibility is not evidenced
+### WP29C-AR-006 — MAJOR — historical CPU gap; ADR 0013 now implementation-evidenced
 
-ADR 0010 freezes exact 25 MB promotion on the intended Workers/Pages Free operating envelope as an acceptance gate. Current exact-25-MB evidence is local Wrangler/workerd functionality only; deployed Free CPU enforcement and provider CPU consumption are not represented by that local success or by repository CI.
+ADR 0010 froze exact 25 MB promotion on the intended Workers Free operating envelope as an acceptance gate. At the earlier Pass B, exact-25-MB evidence was local Wrangler/workerd functionality only; deployed Free CPU enforcement and provider CPU consumption were not represented by that local success or repository CI. The later ADR 0013 result above supplies the missing deployed evidence for the approved replacement topology.
 
 Durable blocker/proof protocol:
 
@@ -96,11 +96,11 @@ Durable blocker/proof protocol:
 
 Provider limits rechecked on 2026-09-15 keep Workers Free at a normal `10 ms` CPU budget per HTTP request and `128 MB` memory. Cloudflare exposes CPU separately from wall time through Pages Functions/Workers telemetry.
 
-Required unblock evidence is an isolated non-production Pages deployment on Workers Free, tied to an exact commit, with synthetic exact `25,000,000`-byte promotion and provider-produced CPU measurements. The retained controlled evidence must demonstrate normal operation inside the Free CPU budget without `exceededCpu`, Paid entitlement or a lowered file contract.
+The earlier ADR 0010 evidence plan called for an isolated non-production Pages deployment on Workers Free, tied to an exact commit, with synthetic exact `25,000,000`-byte promotion and provider-produced CPU measurements. ADR 0013 superseded that Pages topology with Workers Static Assets ingress plus a private Durable Object host; its controlled evidence demonstrates both Free CPU envelopes without `exceededCpu`, Paid entitlement or a lowered file contract.
 
 The 2026-09-16 isolated deployment of `4f40613060b4c9de41a32d99ed43fcf6e12c9791` completed ten exact-size promotions, but Cloudflare returned zero provider CPU rows. Deployment and functional evidence are recorded in `WP-2.9C-AR-006-PROVIDER-ATTEMPT-2026-09-16.md`; CPU feasibility remains unevidenced.
 
-Therefore this finding is **OPEN / IN_PROGRESS**. ADR 0011 implementation must produce the missing Worker-correlated provider evidence before review.
+The earlier finding was **OPEN / IN_PROGRESS** under ADR 0011. The current ADR 0013 provider artifact makes AR-006 **IMPLEMENTATION-EVIDENCED**; formal closure still waits for the clean full Pass B after AR-008 remediation.
 
 ### ADR13-EV-001 — MAJOR / OPEN — ingress version mismatch diagnosed
 
@@ -139,12 +139,12 @@ Remediation now implemented includes:
 
 - ADR 0010 reconciled to the actual `PRIVATE_DOCUMENT_ADMIN_KEY` server binding and deployed-Free CPU evidence contract;
 - `SECRET-MANAGEMENT.md` metadata-only inventory, scope, storage, rotation, emergency revocation and old-credential rejection verification;
-- `CI-CD.md` requiring static assets and Pages Functions from the same exact candidate, environment bindings and fail-closed route checks;
-- `RELEASE-PROCESS.md` defining the private-document Pages release gate, legacy Supabase route absence and deny-oriented production smoke;
+- the initial `CI-CD.md` requiring static assets and Pages Functions from the same exact candidate, environment bindings and fail-closed route checks;
+- the initial `RELEASE-PROCESS.md` defining the private-document Pages release gate, legacy Supabase route absence and deny-oriented production smoke;
 - `scripts/run-private-document-production-smoke.mjs` plus `npm run smoke:private-document-production`, which checks the deployed route without privileged credentials or real wedding data;
 - focused AR-007 documentation assertions to prevent silent contract drift.
 
-Final implementation evidence `68a4f6bdb7b55acc80c4c6fbb8c0afc0295bfde5` / `35025384594` is **5/5 SUCCESS**, including clean-checkout full verify. AR-007 is therefore **IMPLEMENTATION-REMEDIATED / EXACT-HEAD-GREEN**. Formal finding closure still waits for the later complete fresh Pass B after AR-006 is unblocked.
+That initial implementation head `68a4f6bdb7b55acc80c4c6fbb8c0afc0295bfde5` / `35025384594` was **5/5 SUCCESS**, including clean-checkout full verify. ADR 0013 subsequently changed the ingress, and fresh Pass B reopened AR-007 as AR-008 because those Pages release contracts were stale. The current Workers Static Assets contract correction is recorded in `WP-2.9C-AR-008-REMEDIATION-2026-09-27.md`; formal closure waits for exact-head CI and a new clean full Pass B.
 
 ## Historical findings
 
@@ -186,7 +186,7 @@ Browser/application:
 local PDF validation/hash
 → reserve pending metadata
 → authenticated upload to bounded private Supabase staging
-→ bodyless same-origin Pages trusted action
+→ bodyless same-origin Workers Static Assets trusted action
 → live authorization + authoritative document/staging state
 → promotion or trusted cleanup
 → promotion: canonical proof/copy + attestation + staging cleanup
@@ -203,7 +203,7 @@ Staging remains exactly `document-ingest-staging`:
 - one narrow authenticated INSERT for exact live pending Document path;
 - `upsert:false`.
 
-The existing security boundary remains same-origin Cloudflare Pages. Promotion stays bodyless and no general Cloudflare backend is authorized. Remediation may add a narrowly typed trusted abandon/cleanup action to the same route/boundary; it must not create a second public privileged implementation.
+The current security boundary is the same-origin Workers Static Assets ingress of ADR 0013, externally bound to the private Durable Object lifecycle host of ADR 0012. Promotion stays bodyless and no general Cloudflare backend is authorized. Trusted abandon/cleanup shares this same route and per-document executor; a second public privileged implementation is not authorized.
 
 The old Supabase `private-document-ingest` Edge Function remains removed from deployable source/config/application flow.
 

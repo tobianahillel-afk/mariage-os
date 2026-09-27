@@ -30,6 +30,8 @@ Remediation:
   ten-flow provider result without substituting wall time or Paid entitlement;
 - `RELEASE-PLAN.md` captures both deployment identities, binding/routing proof
   and CPU evidence identifier;
+- the packet's frozen current architecture and current finding summary now
+  distinguish the ADR 0013 ingress from historical Pages/ADR 0011 attempts;
 - production smoke now rejects unknown `/api/*` as JSON 404 and requires the
   static app root to return HTML 200; its synthetic test URL is Workers-based.
 

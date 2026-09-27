@@ -59,7 +59,7 @@ WP-2.1..WP-2.8C are accepted and complete. Durable evidence remains in their pac
 
 ## WP-2.9C — current packet
 
-State: **IN_PROGRESS — EVIDENCE-BOUND CI GREEN; FRESH PASS B REVIEW_FAILED ON WP29C-AR-008; RELEASE-CONTRACT REMEDIATION STARTED**. AR-006 remains implementation-evidenced, pending formal closure in a clean future Pass B.
+State: **IN_PROGRESS / REMEDIATION — EVIDENCE-BOUND CI GREEN; FRESH PASS B REVIEW_FAILED ON WP29C-AR-008; RELEASE-CONTRACT REMEDIATION STARTED**. AR-006 remains implementation-evidenced, pending formal closure in a clean future Pass B.
 
 Pass-A exact evidence:
 

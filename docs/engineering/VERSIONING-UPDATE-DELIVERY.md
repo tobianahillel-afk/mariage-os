@@ -254,8 +254,8 @@ For an ordinary compatible release:
 6. execute post-migration DB integrity/RLS health checks;
 7. if checks fail, stop before frontend promotion and execute recovery/forward-fix procedure;
 8. promote the exact release commit to the protected production ref;
-9. Cloudflare deploys the exact static artifact/ref;
-10. wait for successful deployment status;
+9. Cloudflare deploys the exact approved runtime and static artifact/ref; when private documents are enabled, deploy the private Durable Object host before the Workers Static Assets ingress from the same candidate;
+10. wait for successful deployment status and verify both private-document Worker identities when applicable;
 11. run production smoke checks using privacy-safe test paths/account/project as designed;
 12. verify release manifest/version endpoint;
 13. verify Auth, read, permitted write, deny case, sync, PWA shell and critical navigation as applicable;

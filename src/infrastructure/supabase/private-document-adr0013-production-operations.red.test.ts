@@ -6,6 +6,7 @@ import versioning from "../../../docs/engineering/VERSIONING-UPDATE-DELIVERY.md?
 import freeTier from "../../../docs/operations/FREE-TIER.md?raw";
 import secrets from "../../../docs/security/SECRET-MANAGEMENT.md?raw";
 import releasePlan from "../../../docs/templates/RELEASE-PLAN.md?raw";
+import packet from "../../../docs/roadmap/lot-2/WP-2.9C.md?raw";
 import productionSmoke from "../../../scripts/run-private-document-production-smoke.mjs?raw";
 
 describe("ADR 0013 production operations contract", () => {
@@ -16,6 +17,15 @@ describe("ADR 0013 production operations contract", () => {
     expect(release).toContain("Workers Static Assets ingress");
     expect(release).toContain("Worker-first `/api/*`");
     expect(versioning).toContain("Workers Static Assets");
+    expect(versioning).toContain(
+      "private Durable Object host before the Workers Static Assets ingress",
+    );
+    expect(packet).toContain(
+      "bodyless same-origin Workers Static Assets trusted action",
+    );
+    expect(packet).not.toContain(
+      "The existing security boundary remains same-origin Cloudflare Pages.",
+    );
     expect(ci).not.toContain("security-critical Pages Functions route");
     expect(release).not.toContain(
       "Private-document Pages Function release gate",
