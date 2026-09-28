@@ -148,18 +148,36 @@ actually ran on the intended ingress **and** Durable Object versions before it
 constructs or reserves a 25 MB document. Re-reading the old-version marker
 cannot establish new-version readiness.
 
-Only a complete two-surface observation whose sole failure is an ingress
-`script_version_mismatch` may cause another safe marker request. The new marker
-must use a fresh evidence UUID and random unreserved document ID, remain
-bounded to at most three rounds total, and retain sanitized mismatch metadata.
+Only a complete two-surface observation in either of these exact shapes may
+cause another safe marker request:
+
+- two markers, one exact-version attributed Durable Object invocation and one
+  ingress `script_version_mismatch` as the sole failure; or
+- two markers, zero exact-version attributed invocations and exactly two
+  `script_version_mismatch` failures, one on ingress and one on the Durable
+  Object, with no other failure reason on either surface.
+
+The second shape is a 2026-09-28 narrow amendment based on the failed-closed
+same-tree provider attempt `9822ba7` / artifact `10960925487`. It does not
+accept an old Durable Object version as final evidence. Both surfaces must
+show the exact newly deployed version in a later marker round before any
+document construction or mutation. Each marker probe is bodyless, uses a fresh
+random unreserved document ID and must return the expected generic HTTP 409.
+The route contract forbids that probe from reserving, uploading, promoting or
+finalizing a document.
+
+Each new marker must use a fresh evidence UUID and random unreserved document
+ID, remain bounded to at most three rounds total, and retain sanitized
+mismatch metadata.
 Wait at least 20 seconds between rounds so the previous marker falls outside
 the collector's 10-second pre-request timestamp margin; an unexpected marker
 still fails closed rather than being ignored.
 Any CPU-budget failure, provider outcome/model/event/status/identity/truncation
-failure, Durable Object version mismatch, ambiguity or incomplete telemetry
-must fail closed. Each exact-size promotion is still checked independently
-against the exact deployed versions; this readiness gate does not relax the
-final ten-flow acceptance test.
+failure, isolated Durable Object version mismatch outside the exact paired
+shape above, ambiguity or incomplete telemetry must fail closed. Each
+exact-size promotion is still checked independently against the exact deployed
+versions; this readiness gate does not relax the final ten-flow acceptance
+test.
 
 ## Revised AR-006 CPU acceptance
 

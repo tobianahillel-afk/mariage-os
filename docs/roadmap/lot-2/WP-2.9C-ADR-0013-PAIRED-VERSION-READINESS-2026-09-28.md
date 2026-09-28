@@ -1,7 +1,7 @@
 # WP-2.9C / ADR 0013 — paired-version marker readiness
 
-State: **PROVIDER ATTEMPT FAILED CLOSED; TARGETED REMEDIATION IMPLEMENTED;
-EXACT-HEAD CI AND REVIEW PENDING**.
+State: **PROVIDER ATTEMPT FAILED CLOSED; TARGETED REMEDIATION EXACT-HEAD
+GREEN; CONTRACT AMENDMENT AND REVIEW PENDING**.
 
 ## Failed isolated campaign
 
@@ -40,16 +40,24 @@ provider marker remains the authoritative observation for this attempt.
 
 ## Narrow correction and safety boundary
 
-The previous reviewed readiness rule retried a new marker only when ingress
-alone had a version-only mismatch and the Durable Object was already exactly
-attributed. This newly observed **paired** shape returned `blocked`. A
-RED-first test reproduced that classification. The corrected classifier
+The previous accepted ADR 0013 and reviewed readiness rule retried a new
+marker only when ingress alone had a version-only mismatch and the Durable
+Object was already exactly attributed; an old Durable Object version had to
+block. This newly observed **paired** shape returned `blocked`. A RED-first
+test reproduced that classification. The corrected classifier
 allows `retry_marker` also when both complete queries show exactly two
 markers, zero attributed invocations and exactly two version-only failures,
 one for each named surface. A missing/incomplete query waits for persisted
 logs within the existing query bound. Any extra failure, duplicate marker,
 CPU/outcome/status mismatch, unexpected surface, or single wrong DO version
 still blocks.
+
+Because the old ADR explicitly forbade every Durable Object version mismatch,
+this correction requires a visible, dated amendment to its exact-version
+readiness clause. That amendment permits only this paired old-version marker
+diagnostic to trigger another safe marker, never final acceptance. It is part
+of the next review scope; code and local tests alone do not change the
+normative contract.
 
 The unchanged harness makes at most three distinct, bodyless, authenticated
 marker probes, 20 seconds apart; each expects HTTP 409 and never reserves or
@@ -61,8 +69,11 @@ Production ingress/DO runtime, Supabase, GitHub secrets and token permissions
 are unchanged. No provider rerun is authorized by this implementation alone.
 
 Focused tests, application/Node TypeScript, ESLint and Prettier passed locally.
-Next: commit this evidence and correction, require five ordinary exact-head
-CI jobs including clean checkout, perform a fresh targeted adversarial review
-of the paired retry boundary, then seal a single new campaign authorization
-only if that review passes. A red campaign returns to review; WP-2.9C stays
+The result/correction commit `f9bd24e9939db95b74f96399bddb23a41bbcc7d2`
+passed [CI `36423040486`](https://github.com/tobianahillel-afk/mariage-os/actions/runs/36423040486)
+**5/5**, including full verify from clean checkout; isolated provider jobs
+were skipped. The dated ADR 0013 amendment must independently pass exact-head
+CI and a fresh targeted adversarial review of the revised retry boundary.
+Only a later review/status seal can authorize a single new campaign. A red
+campaign returns to review; WP-2.9C stays
 `IN_PROGRESS / REMEDIATION`, WP-2.9A remains `BLOCKED`, and Pass C is forbidden.

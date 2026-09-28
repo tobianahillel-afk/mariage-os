@@ -557,7 +557,8 @@ records no 25 MB invocation or PDF hash. The one-campaign authorization is
 exhausted. `WP-2.9C-ADR-0013-PAIRED-VERSION-READINESS-2026-09-28.md`
 records the exact versions, artifact digest and RED-first bounded correction.
 Its implementation alone cannot authorize a rerun. Exact-head CI, fresh
-targeted review and a separate review/status seal are next; C remains
+targeted review (including the dated ADR 0013 paired-version amendment) and a
+separate review/status seal are next; C remains
 `IN_PROGRESS`, A `BLOCKED`, and AR-006/AR-009 open.
 
 ## Deviations
