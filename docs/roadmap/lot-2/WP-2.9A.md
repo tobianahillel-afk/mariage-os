@@ -5,14 +5,14 @@
 - Work Packet ID: `WP-2.9A`
 - Lot: `2`
 - Name: Venue-linked private document foundation
-- State: `IN_PROGRESS`
-- Current pass: `A-IMPLEMENT — reintegrate and reverify accepted WP-2.9C remediation before fresh Pass B`
+- State: `REVIEW_PENDING`
+- Current pass: `B-ADVERSARIAL-REVIEW` — accepted-C reintegration and Storage-RLS correction passed exact-head CI; new full A review next
 - Primary bounded context: Documents — private PDF metadata, Venue links, Storage lifecycle and recoverable metadata
 - Branch/PR: `lot-2/venues-core` / Lot-2 integration PR not opened yet
 - FIR: `#17 / FTR-089`
 - Historical size: **10 points**; explicit cohesion review **PASS**
 - Blocker resolution condition: **MET** — `WP-2.9C ACCEPTED` after `21accd7f9ab1b845275507b7941a782c5e816a56` / CI `36494697647` 5/5; A returns to `IN_PROGRESS` for integration/reverification and fresh Pass B
-- Reintegration record: `WP-2.9A-REINTEGRATION-2026-09-29.md`; transition `c8f3dfd441e7ad583613c8b94bd9197b19b829fb` / CI `36495622949` **5/5 SUCCESS**, clean checkout included; Storage-RLS contract correction/record seal pending
+- Reintegration record: `WP-2.9A-REINTEGRATION-2026-09-29.md`; transition `c8f3dfd441e7ad583613c8b94bd9197b19b829fb` / CI `36495622949` and correction/record `19d26c825bba19f5a826a6b820b6d4b027e44399` / CI `36496447413` both **5/5 SUCCESS**, clean checkout included
 
 ## Activation / governance evidence
 
@@ -244,7 +244,7 @@ WP-2.9C ACCEPTED
 
 ## Current gate
 
-WP-2.9A is **IN_PROGRESS / A-IMPLEMENT reintegration and reverification** after
-WP-2.9C acceptance. AR-004/005 remain open in A until affected verification and
-fresh full Pass B close them. WP-2.9B and later packets remain forbidden until
-A reaches ACCEPTED.
+WP-2.9A is **REVIEW_PENDING / B-ADVERSARIAL-REVIEW** after accepted-C
+reintegration and exact-head CI `36496447413` 5/5. AR-004/005 remain open in
+A until a fresh complete Pass B closes them. WP-2.9B and later packets remain
+forbidden until A reaches ACCEPTED.

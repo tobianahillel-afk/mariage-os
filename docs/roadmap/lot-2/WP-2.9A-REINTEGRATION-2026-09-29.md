@@ -1,6 +1,6 @@
 # WP-2.9A — accepted-C reintegration and Pass-A reverification
 
-Status: **IN_PROGRESS / A-IMPLEMENT — integration evidence candidate; correction/record exact-head CI pending**.
+Status: **PASS / A-IMPLEMENT reintegration complete — review transition pending**.
 
 WP-2.9C is `ACCEPTED / COMPLETE` after its separate Pass C and acceptance-record
 `21accd7f9ab1b845275507b7941a782c5e816a56` / CI `36494697647`
@@ -26,5 +26,10 @@ The earlier WP29A-AR-001/002/003 closures remain historical evidence. AR-004
 and AR-005 stay **MAJOR / OPEN IN A** until a new complete adversarial Pass B
 reconstructs A's full product/security responsibility after this integration
 seal. A may enter `REVIEW_PENDING` only after the correction/record HEAD passes
-all five ordinary CI jobs, including clean checkout. WP-2.9B remains planned
-after accepted A; this record makes no production deployment claim.
+all five ordinary CI jobs, including clean checkout. The correction/record
+head `19d26c825bba19f5a826a6b820b6d4b027e44399` / CI `36496447413`
+passed **5/5 SUCCESS**, clean checkout included, with isolated provider jobs
+correctly skipped. A may now transition to `REVIEW_PENDING`; its review-entry
+commit must itself seal green before the fresh Pass B decision. WP-2.9B
+remains planned after accepted A; this record makes no production deployment
+claim.

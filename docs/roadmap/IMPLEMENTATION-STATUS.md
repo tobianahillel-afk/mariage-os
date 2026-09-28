@@ -37,7 +37,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.8A | Venue remote-image metadata and Venue links                            | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.8B | Venue private archived media lifecycle                                 | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.8C | recoverable Venue remote-media metadata lifecycle                      | **ACCEPTED / COMPLETE**                                                    |
-| WP-2.9A | Venue-linked private PDF/document foundation                           | **IN_PROGRESS — accepted C integration/reverification; fresh B next**      |
+| WP-2.9A | Venue-linked private PDF/document foundation                           | **REVIEW_PENDING — reintegration sealed; fresh full Pass B next**          |
 | WP-2.9C | trusted private-document ingestion hardening                           | **ACCEPTED / COMPLETE**                                                      |
 | WP-2.9B | generic project tags and Venue entity-tag links                        | **PLANNED / AFTER A**                                                      |
 | WP-2.10 | repositories, local cache, pending/offline mutations                   | PLANNED                                                                    |
@@ -50,12 +50,12 @@ WP-2.1..WP-2.8C are accepted and complete. Durable evidence remains in their pac
 
 ## WP-2.9A
 
-- **IN_PROGRESS / A-IMPLEMENT reintegration**; FIR `#17 / FTR-089` remains open.
+- **REVIEW_PENDING / B-ADVERSARIAL-REVIEW**; FIR `#17 / FTR-089` remains open.
 - Pass-A `e533b5c53d1be074216ccaa92f74281b425de770` / `34826553890` — **5/5 SUCCESS**.
 - `WP29A-AR-001/002/003` — **CLOSED / VERIFIED**.
 - `WP29A-AR-004` — **MAJOR / OPEN in A**; accepted C1 remediation awaits A reverification/fresh review.
 - `WP29A-AR-005` — **MAJOR / OPEN in A**; accepted trusted-byte remediation awaits A reverification/fresh review.
-- C's acceptance resolved A's blocker; next integrate/reverify A → REVIEW_PENDING → fresh full Pass B → Pass C.
+- C's acceptance resolved A's blocker. Reintegration and Storage-RLS correction `19d26c825bba19f5a826a6b820b6d4b027e44399` / CI `36496447413` passed **5/5**, clean checkout included. Next: seal this review-entry status, then fresh full Pass B and separate Pass C.
 
 ## WP-2.9C — accepted remediation packet
 
@@ -257,6 +257,7 @@ Normative release/deployment/secret contracts require Pages Functions to deploy 
 42. Pass-B/status seal `66b9396fc06b540a0a51a1fa948933c170728d65` / CI `36465390803` passed **5/5**, including clean checkout. Separate `WP-2.9C-ACCEPTANCE.md` Pass C reconciles all seven responsibilities `EXPECTED ↔ IMPLEMENTED ↔ VERIFIED` with gap **∅**, current FIR #17, no open C finding and explicit parent-A handoff. Its decision is **PASS / eligible for ACCEPTED**, subject to this acceptance-record seal passing five exact-head ordinary CI jobs. Until then C remains `ACCEPTANCE_PENDING` and A `BLOCKED`.
 43. Acceptance-record seal `21accd7f9ab1b845275507b7941a782c5e816a56` / CI `36494697647` passed **5/5**, including clean checkout. Pass C marks WP-2.9C **ACCEPTED / COMPLETE** with gap ∅ and AR-001..009 closed for C. WP-2.9A's recorded blocker is resolved; it transitions `BLOCKED -> IN_PROGRESS` for integration/reverification and fresh full Pass B. Its AR-004/005 remain open until that review. No provider rerun is authorized or needed.
 44. C-accepted/A-resumption transition `c8f3dfd441e7ad583613c8b94bd9197b19b829fb` / CI `36495622949` passed **5/5**, including clean checkout. A reintegration inspected the domain/service/staging/trusted promotion/attestation/RLS/read/link/recovery boundaries and found no new product-code change needed. It found `docs/security/STORAGE-RLS.md` still stating the obsolete WP-1.9 UPDATE policy despite accepted WP-2.8B immutability and current three-policy pgTAP proof. `WP-2.9A-REINTEGRATION-2026-09-29.md` records the bounded documentation correction and A responsibility checks. Next: seal this correction/record with five exact-head ordinary CI jobs before A enters REVIEW_PENDING.
+45. Reintegration/Storage-RLS correction `19d26c825bba19f5a826a6b820b6d4b027e44399` / CI `36496447413` passed **5/5**, including clean checkout. WP-2.9A transitions `IN_PROGRESS -> REVIEW_PENDING` for a new complete adversarial Pass B. Parent AR-004/005 remain MAJOR / OPEN until that review verifies the accepted-C fixes in A's full product contract. The review-entry status commit must itself pass exact-head ordinary CI before a Pass-B decision.
 
 ## Durable handoff
 
@@ -268,7 +269,7 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.8C
 WP-2.9C: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 21accd7f9ab1b845275507b7941a782c5e816a56 / CI 36494697647 5/5 including clean checkout
-Current packet: WP-2.9A — IN_PROGRESS / A-IMPLEMENT integration and reverification; AR-004/005 open in A until fresh full Pass B
+Current packet: WP-2.9A — REVIEW_PENDING / B-ADVERSARIAL-REVIEW; AR-004/005 open in A until fresh full Pass B
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
@@ -307,5 +308,5 @@ FTR-089 FIR: #17 — IN_PROGRESS / parent A not yet accepted
 WP-2.9B: PLANNED / AFTER A
 Lots 3–12: NOT_STARTED
 Latest distinct-PDF campaign: 2303df0c9e8d6f72561ec0ce42514663801229d8 / CI 36459949861 / provider job 109058754517 / artifact 10987866873 — 10 distinct exact-size PDFs, 10 finalized flows, 20 valid exact-version CPU readings within Workers Free; provider verdict PASS
-Next permitted action: commit A's reintegration record and Storage-RLS correction, require 5/5 exact-head CI including clean checkout, then transition A to REVIEW_PENDING for a fresh full Pass B. No provider rerun is authorized.
+Next permitted action: seal the WP-2.9A REVIEW_PENDING status on exact-head CI 5/5 including clean checkout, then perform a fresh full adversarial Pass B. No provider rerun is authorized.
 ```
