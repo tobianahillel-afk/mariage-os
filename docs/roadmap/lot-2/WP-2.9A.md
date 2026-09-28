@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.9A`
 - Lot: `2`
 - Name: Venue-linked private document foundation
-- State: `REVIEW_PENDING`
-- Current pass: `B-ADVERSARIAL-REVIEW` — accepted-C reintegration and Storage-RLS correction passed exact-head CI; new full A review next
+- State: `ACCEPTANCE_PENDING`
+- Current pass: `C-ACCEPTANCE` — fresh full Pass B passed; separate expected/implemented/verified reconciliation next
 - Primary bounded context: Documents — private PDF metadata, Venue links, Storage lifecycle and recoverable metadata
 - Branch/PR: `lot-2/venues-core` / Lot-2 integration PR not opened yet
 - FIR: `#17 / FTR-089`
@@ -205,21 +205,21 @@ Focused RED `79afff6c87f7033af008de3fb3b86c3ff833b15c` / CI `34846914610` demons
 
 Fresh Pass B on `6a4e8087e3b6f3b1d3501c0ef2f0378defc119e4` / CI `34850247706` independently verified the original defects are gone. **Verdict: CLOSED / VERIFIED.**
 
-### WP29A-AR-004 — MAJOR / OPEN — C1 control-character parity is incomplete
+### WP29A-AR-004 — MAJOR / CLOSED / VERIFIED — C1 control-character parity
 
 The shared TypeScript scalar validator rejects U+0000..U+001F and U+007F but accepts C1 controls U+0080..U+009F. PostgreSQL 17 hard-wires `[[:cntrl:]]` to U+0000..U+001F plus U+007F..U+009F. `document_type`, `title` and `original_filename` can therefore pass TypeScript service/provider validation while failing the authoritative server/schema boundary.
 
 Required remediation is assigned to WP-2.9C: extend the single canonical scalar-control rule to U+007F..U+009F and add focused RED coverage without changing trim/scalar/surrogate semantics.
 
-**Classification: MAJOR / OPEN IN A.** WP-2.9C remediation is accepted; A's integrated reverification and fresh review must still verify the defect closed.
+**Classification: MAJOR / CLOSED / VERIFIED IN A.** Accepted-C remediation, A reintegration and the complete fresh A Pass B `WP-2.9A-FRESH-PASS-B-2026-09-29.md` verified TypeScript/PostgreSQL C1 parity on the review-entry `30922eb6f348369022edb2a8d1d4cb948757fe29` / CI `36497398006` 5/5.
 
-### WP29A-AR-005 — MAJOR / OPEN — ready commit is not bound to actual uploaded-object integrity
+### WP29A-AR-005 — MAJOR / CLOSED / VERIFIED — ready commit bound to actual uploaded-object integrity
 
 The existing `finalize_upload` checks exact object presence but the authenticated Document Storage INSERT path does not prove actual object size/MIME/SHA-256 matches the reservation. A modified authenticated client can reserve PDF A, upload different PDF B at the same canonical path and finalize ready metadata for A. Same-size valid-PDF substitution can survive ordinary download because the current download boundary validates type/signature/size but intentionally does not recompute SHA on every read.
 
 The frozen contract requires SHA-256 over exact uploaded bytes and critical file validation at a trusted boundary. PostgreSQL cannot recompute SHA-256 from private Storage bytes, and caller-supplied Storage metadata cannot attest itself. This requires the new trusted server boundary frozen in ADR 0008 and implemented by WP-2.9C.
 
-**Classification: MAJOR / OPEN IN A.** WP-2.9C is ACCEPTED and resolves the architecture dependency; A's integrated fresh review must still confirm no direct authenticated binary-integrity bypass remains.
+**Classification: MAJOR / CLOSED / VERIFIED IN A.** Accepted-C trusted actual-byte ingress, A reintegration and the complete fresh A Pass B `WP-2.9A-FRESH-PASS-B-2026-09-29.md` verified the direct INSERT/forged-attestation denials and ready-transition guard on `30922eb6f348369022edb2a8d1d4cb948757fe29` / CI `36497398006` 5/5.
 
 ## Reviewed non-findings
 
@@ -244,7 +244,9 @@ WP-2.9C ACCEPTED
 
 ## Current gate
 
-WP-2.9A is **REVIEW_PENDING / B-ADVERSARIAL-REVIEW** after accepted-C
-reintegration and exact-head CI `36496447413` 5/5. AR-004/005 remain open in
-A until a fresh complete Pass B closes them. WP-2.9B and later packets remain
-forbidden until A reaches ACCEPTED.
+WP-2.9A is **ACCEPTANCE_PENDING / C-ACCEPTANCE** after accepted-C reintegration,
+review-entry `30922eb6f348369022edb2a8d1d4cb948757fe29` / CI
+`36497398006` 5/5 including clean checkout, and a fresh complete Pass B with
+no unresolved BLOCKING/MAJOR/MINOR finding. AR-001..005 are CLOSED / VERIFIED
+in A. The review/status seal must pass exact-head CI before the separate Pass C
+decision. WP-2.9B and later packets remain forbidden until A reaches ACCEPTED.
