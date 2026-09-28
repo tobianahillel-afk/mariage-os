@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1..WP-2.8C ACCEPTED; WP-2.9A BLOCKED; WP-2.9C DISTINCT-PDF PROVIDER/EVIDENCE CI PASS, FREE-TIER RECONCILIATION CI AND FRESH PASS B PENDING; WP-2.9B PLANNED / AFTER A**
+Status: **IN_PROGRESS — WP-2.1..WP-2.8C ACCEPTED; WP-2.9A BLOCKED; WP-2.9C REVIEW_PENDING AFTER DISTINCT-PDF PROVIDER AND EXACT-HEAD CI PASS; WP-2.9B PLANNED / AFTER A**
 
 Purpose: durable current responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`. Detailed historical evidence remains in packet records, acceptance records, FIRs and Git history.
 
@@ -122,7 +122,7 @@ ADR 0011 later produced decisive deployed CPU evidence and was rejected for fina
 | WP-2.8B | **ACCEPTED / COMPLETE** | private archive lifecycle |
 | WP-2.8C | **ACCEPTED / COMPLETE** | recoverable remote metadata lifecycle |
 | WP-2.9A | **BLOCKED** | FTR-089 foundation; waits for C acceptance |
-| WP-2.9C | **IN_PROGRESS — PROVIDER PASS / REVIEW PENDING** | trusted private-Document ingress/lifecycle hardening; AR-006/AR-009 formal closure waits full Pass B |
+| WP-2.9C | **REVIEW_PENDING — FRESH PASS B NEXT** | trusted private-Document ingress/lifecycle hardening; AR-006/AR-009 formal closure waits full Pass B |
 | WP-2.9B | **PLANNED / AFTER A** | generic project Tags + Venue entity-tags |
 | WP-2.10 | PLANNED | repositories/local cache/pending offline mutations |
 | WP-2.11 | PLANNED | gallery/table/detail/compare/deep-link workspace |
@@ -133,8 +133,8 @@ ADR 0011 later produced decisive deployed CPU evidence and was rejected for fina
 ```text
 WP-2.1..WP-2.8C [ACCEPTED]
   → WP-2.9A [BLOCKED until WP-2.9C ACCEPTED]
-    → WP-2.9C [IN_PROGRESS — DISTINCT-PDF PROVIDER PASS]
-      → evidence-bound exact-head CI/clean checkout → REVIEW_PENDING → fresh Pass B
+    → WP-2.9C [REVIEW_PENDING — DISTINCT-PDF PROVIDER AND EXACT-HEAD CI PASS]
+      → fresh Pass B
             → clean ? ACCEPTANCE_PENDING → Pass C → WP-2.9C ACCEPTED
               → WP-2.9A reverification/fresh B/C
                 → WP-2.9B → WP-2.10 → WP-2.11 → WP-2.12
@@ -159,7 +159,7 @@ Only one packet may be implementing at a time. WP-2.9A is blocked, not concurren
 required current-Lot-2 responsibilities - assigned product packet responsibilities = ∅
 accepted/evidenced packets = WP-2.1..WP-2.8C
 WP-2.9A = BLOCKED until WP-2.9C ACCEPTED
-WP-2.9C = IN_PROGRESS / REMEDIATION — WP29C-AR-009 provider proof now obtained; evidence-bound CI and fresh full Pass B pending
+WP-2.9C = REVIEW_PENDING — WP29C-AR-009 provider proof and Free-tier reconciliation exact-head CI 5/5; fresh full Pass B next
 fresh Pass-B record = docs/roadmap/lot-2/WP-2.9C-FRESH-PASS-B-2026-09-28.md
 implementation-remediated = WP29C-AR-005 cleanup/race; WP29C-AR-007/008 production release contracts
 open acceptance gap = WP29C-AR-006 + AR-009 formal finding closure in fresh full Pass B; provider-native ten-distinct-PDF proof now obtained
@@ -174,7 +174,8 @@ partial-marker correction = 039e8fdddf7003adaa3ed0f433288f13903faf4c / CI 364284
 review seal = 15d4e4eac6973de5d00798ca849568d6692e898d / CI 36458756536 — 5/5 including clean checkout
 latest distinct-PDF campaign = 2303df0c9e8d6f72561ec0ce42514663801229d8 / CI 36459949861 / artifact 10987866873 — provider PASS; 10 unique 25 MB PDF hashes, 10 finalized flows, 10 exact-version CPU readings per Workers Free surface
 evidence-bound result = 78fb24e4dcb9551b041edd9079f0ac3c5b1e973a / CI 36461954215 — 5/5 including clean checkout; provider jobs skipped
-next permitted action = Free-tier normative reference correction → 5/5 exact-head CI/clean checkout → REVIEW_PENDING → complete fresh Pass B over seven C responsibilities → if clean, separate Pass C
+Free-tier reconciliation = d3dad1623f0a878b43637200db31e7cf909f9869 / CI 36463139444 — 5/5 including clean checkout; provider jobs skipped
+next permitted action = complete fresh Pass B over seven C responsibilities and AR-001..009 → if clean, ACCEPTANCE_PENDING and separate Pass C
 Pass C forbidden until valid AR-006 evidence, exact-head verification and a later clean Pass B yield ACCEPTANCE_PENDING
 ```
 

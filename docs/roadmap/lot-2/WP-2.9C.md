@@ -4,8 +4,8 @@
 
 - Work Packet ID: `WP-2.9C`
 - Lot: `2`
-- State: `IN_PROGRESS`
-- Current pass: `REMEDIATION` — distinct-PDF provider result and evidence-bound exact-head CI PASS; Free-tier reconciliation CI and complete fresh Pass B pending
+- State: `REVIEW_PENDING`
+- Current pass: `B-ADVERSARIAL-REVIEW` — distinct-PDF provider result and Free-tier reconciliation exact-head CI PASS; complete fresh Pass B next
 - Primary bounded context: Documents — trusted binary promotion for the existing WP-2.9A private PDF lifecycle
 - Branch: `lot-2/venues-core`
 - FIR: `#17 / FTR-089`
@@ -278,7 +278,7 @@ Fresh Pass B specifically invalidates treating any local 25 MB success as suffic
 
 ## State / sequencing
 
-Current state: **IN_PROGRESS — TEN-DISTINCT-PDF PROVIDER RESULT AND EVIDENCE-BOUND CI PASS; FREE-TIER RECONCILIATION CI AND COMPLETE FRESH PASS B PENDING**. Historical states and gates below are retained as dated evidence; the current next action is in the status board and the latest provider-result record.
+Current state: **REVIEW_PENDING — TEN-DISTINCT-PDF PROVIDER RESULT AND FREE-TIER RECONCILIATION EXACT-HEAD CI PASS; COMPLETE FRESH PASS B NEXT**. Historical states and gates below are retained as dated evidence; the current next action is in the status board and the latest provider-result record.
 
 ADR 0013 implementation is exact-head green at `b06a823e1d6e3b1a4693c683afe11e1771449365` / CI `36150541994` (**5/5 SUCCESS**, clean-checkout included; provider jobs skipped). Fresh adversarial implementation review is recorded in `WP-2.9C-ADR-0013-IMPLEMENTATION-REVIEW.md` and finds no BLOCKING/MAJOR defect in the Static Assets ingress, external Durable Object binding, native structured evidence logging, exact-script/version Observability collection or fail-closed two-surface evaluator.
 
