@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1..WP-2.8C ACCEPTED; WP-2.9A BLOCKED; WP-2.9C DISTINCT-PDF PROVIDER PASS / EVIDENCE-BOUND CI AND FRESH PASS B PENDING; WP-2.9B PLANNED / AFTER A**
+Status: **IN_PROGRESS — WP-2.1..WP-2.8C ACCEPTED; WP-2.9A BLOCKED; WP-2.9C DISTINCT-PDF PROVIDER/EVIDENCE CI PASS, FREE-TIER RECONCILIATION CI AND FRESH PASS B PENDING; WP-2.9B PLANNED / AFTER A**
 
 Purpose: durable current responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`. Detailed historical evidence remains in packet records, acceptance records, FIRs and Git history.
 
@@ -173,7 +173,8 @@ latest partial-marker attempt = fe03af21c0059d6d4344002f58ec4f5b170d65ff / CI 36
 partial-marker correction = 039e8fdddf7003adaa3ed0f433288f13903faf4c / CI 36428473034 — 5/5 including clean checkout; targeted review PASS in WP-2.9C-ADR-0013-PARTIAL-MARKER-REVIEW-2026-09-28.md
 review seal = 15d4e4eac6973de5d00798ca849568d6692e898d / CI 36458756536 — 5/5 including clean checkout
 latest distinct-PDF campaign = 2303df0c9e8d6f72561ec0ce42514663801229d8 / CI 36459949861 / artifact 10987866873 — provider PASS; 10 unique 25 MB PDF hashes, 10 finalized flows, 10 exact-version CPU readings per Workers Free surface
-next permitted action = evidence-bound result → 5/5 exact-head CI/clean checkout → REVIEW_PENDING → complete fresh Pass B over seven C responsibilities → if clean, separate Pass C
+evidence-bound result = 78fb24e4dcb9551b041edd9079f0ac3c5b1e973a / CI 36461954215 — 5/5 including clean checkout; provider jobs skipped
+next permitted action = Free-tier normative reference correction → 5/5 exact-head CI/clean checkout → REVIEW_PENDING → complete fresh Pass B over seven C responsibilities → if clean, separate Pass C
 Pass C forbidden until valid AR-006 evidence, exact-head verification and a later clean Pass B yield ACCEPTANCE_PENDING
 ```
 
