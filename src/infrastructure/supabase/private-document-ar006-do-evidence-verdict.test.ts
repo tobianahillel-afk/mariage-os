@@ -10,6 +10,11 @@ const successful = Array.from({ length: COUNT }, (_, index) => ({
   sha256: index.toString(16).padStart(64, "0"),
 }));
 
+function existing<T>(item: T | undefined): T {
+  if (item === undefined) throw new Error("Missing test fixture item.");
+  return item;
+}
+
 function query(ok = true) {
   return { apiSuccess: ok, eventPageComplete: ok };
 }
@@ -53,28 +58,36 @@ describe("ADR 0013 exact-size campaign verdict", () => {
 
   it("rejects failed, unfinalized or incomplete promotions", () => {
     const failed = [...successful];
-    failed[0] = { ...failed[0], success: false, status: 503, finalized: false };
+    failed[0] = {
+      ...existing(failed[0]),
+      success: false,
+      status: 503,
+      finalized: false,
+    };
     expect(verdict(failed)).toBe(false);
 
     const unfinished = [...successful];
-    unfinished[0] = { ...unfinished[0], finalized: false };
+    unfinished[0] = { ...existing(unfinished[0]), finalized: false };
     expect(verdict(unfinished)).toBe(false);
     expect(verdict(successful.slice(0, COUNT - 1))).toBe(false);
   });
 
   it("rejects repeated or missing PDF content hashes", () => {
     const repeated = [...successful];
-    repeated[1] = { ...repeated[1], sha256: repeated[0].sha256 };
+    repeated[1] = {
+      ...existing(repeated[1]),
+      sha256: existing(repeated[0]).sha256,
+    };
     expect(verdict(repeated)).toBe(false);
 
     const missing = [...successful];
-    missing[1] = { ...missing[1], sha256: "" };
+    missing[1] = { ...existing(missing[1]), sha256: "" };
     expect(verdict(missing)).toBe(false);
   });
 
   it("rejects a flow whose staged PDF was not exactly 25 MB", () => {
     const wrongSize = [...successful];
-    wrongSize[1] = { ...wrongSize[1], sizeBytes: 24_999_999 };
+    wrongSize[1] = { ...existing(wrongSize[1]), sizeBytes: 24_999_999 };
     expect(verdict(wrongSize)).toBe(false);
   });
 });

@@ -3,7 +3,6 @@ import flowSource from "../../../scripts/private-document-ar006-do-evidence-flow
 import harnessSource from "../../../scripts/run-private-document-ar006-do-evidence.mjs?raw";
 import preflightSource from "../../../scripts/run-private-document-ar006-ingress-observability-preflight.mjs?raw";
 import recordSource from "../../../scripts/private-document-ar006-do-evidence-record.mjs?raw";
-import { createHash } from "node:crypto";
 import { createExactPdf } from "../../../scripts/private-document-ar006-synthetic-pdf.mjs";
 import { runAr006Promotions } from "../../../scripts/private-document-ar006-do-evidence-flow.mjs";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -35,9 +34,7 @@ function capturedPromotionClient() {
     storage: {
       from: () => ({
         upload: vi.fn(async (_path: string, bytes: Uint8Array) => {
-          captured.stagedHash = createHash("sha256")
-            .update(bytes)
-            .digest("hex");
+          captured.stagedHash = await sha256Hex(bytes);
           captured.stagedSize = bytes.byteLength;
           return { error: null };
         }),
@@ -57,6 +54,13 @@ function capturedPromotionClient() {
     }),
   };
   return { client, captured };
+}
+
+async function sha256Hex(bytes: Uint8Array): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", Uint8Array.from(bytes));
+  return Array.from(new Uint8Array(digest), (byte) =>
+    byte.toString(16).padStart(2, "0"),
+  ).join("");
 }
 
 async function expectPromotionReceiptMatchesStagedBytes() {
@@ -85,8 +89,8 @@ async function expectPromotionReceiptMatchesStagedBytes() {
     sizeBytes: 25_000_000,
     finalized: true,
   });
-  expect(invocations[0].sha256).toBe(captured.reservedHash);
-  expect(invocations[0].sha256).toBe(captured.stagedHash);
+  expect(invocations[0]?.sha256).toBe(captured.reservedHash);
+  expect(invocations[0]?.sha256).toBe(captured.stagedHash);
   expect(captured.stagedSize).toBe(25_000_000);
 }
 
@@ -105,13 +109,13 @@ describe("ADR 0013 exact-size harness contract", () => {
     await expectPromotionReceiptMatchesStagedBytes();
   });
 
-  it("constructs ten byte-distinct exact-size synthetic PDFs", () => {
+  it("constructs ten byte-distinct exact-size synthetic PDFs", async () => {
     const hashes = new Set<string>();
     for (let index = 0; index < 10; index += 1) {
       const pdf = createExactPdf(25_000_000, index);
       expect(pdf.byteLength).toBe(25_000_000);
-      expect(pdf.subarray(0, 5).toString("ascii")).toBe("%PDF-");
-      hashes.add(createHash("sha256").update(pdf).digest("hex"));
+      expect(new TextDecoder().decode(pdf.subarray(0, 5))).toBe("%PDF-");
+      hashes.add(await sha256Hex(pdf));
     }
     expect(hashes.size).toBe(10);
   });

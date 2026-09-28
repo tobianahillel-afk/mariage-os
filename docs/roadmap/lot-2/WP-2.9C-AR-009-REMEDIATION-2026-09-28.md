@@ -27,8 +27,13 @@ SHA-256 values and exact per-flow sizes in addition to prior ten successful
 finalizations and complete two-surface provider observations.
 
 Local focused tests pass 11/11, including ten actual exact-size generated PDF
-hashes; Node TypeScript check passes. Next: complete static/security/format
-verification and exact-head CI from a clean checkout, then fresh adversarial
+hashes; application and Node TypeScript checks pass. The first implementation
+CI `36397976054` failed its application typecheck because the test imported
+Node-only types without declarations and used unchecked array indexes. The
+follow-up correction uses browser-compatible test hashing, adjacent script
+declarations and explicit fixture indexes; this CI failure is retained as
+evidence, not represented as a green run. Next: exact-head CI from a clean
+checkout, then fresh adversarial
 review of this harness. Only a green reviewed handoff can explicitly authorize
 one replacement isolated ten-flow provider campaign. No campaign is
 authorized by implementation alone.
