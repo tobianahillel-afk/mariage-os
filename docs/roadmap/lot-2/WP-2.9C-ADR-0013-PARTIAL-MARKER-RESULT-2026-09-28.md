@@ -1,7 +1,7 @@
 # WP-2.9C / ADR 0013 — partial marker result
 
 State: **SINGLE REVIEWED CAMPAIGN FAILED CLOSED; BOUNDED RE-READ REMEDIATION
-IMPLEMENTED LOCALLY; CI/REVIEW PENDING; AR-006 / AR-009 OPEN**.
+EXACT-HEAD CI GREEN / TARGETED REVIEW PASS; REVIEW SEAL PENDING; AR-006 / AR-009 OPEN**.
 
 Review/status seal `f18f1f475a3f415d5aa115d2091a0ac85d93d5d9` passed
 [CI `36424965352`](https://github.com/tobianahillel-afk/mariage-os/actions/runs/36424965352)
@@ -66,4 +66,8 @@ threshold, and does not authorize another provider campaign. ADR 0013 now
 explicitly records the bounded partial-persistence exception rather than
 silently conflicting with its incomplete-telemetry stop rule. Focused
 readiness/route tests pass **10/10** locally after the RED reproduction;
-TypeScript, lint, format, secret guard and exact-head CI remain to be sealed.
+TypeScript, lint, format and secret guard passed locally. Correction
+`039e8fdddf7003adaa3ed0f433288f13903faf4c` / CI `36428473034` passed
+**5/5**, including clean checkout. Fresh targeted review is PASS in
+`WP-2.9C-ADR-0013-PARTIAL-MARKER-REVIEW-2026-09-28.md`; its separate
+review/status seal and CI remain pending before one new provider campaign.

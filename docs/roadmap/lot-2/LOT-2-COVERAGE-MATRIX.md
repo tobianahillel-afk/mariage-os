@@ -172,7 +172,8 @@ latest private-Worker campaign = 26da10e5aabd7d2a9b6105caef49dd87d6ee58b9 / CI 3
 latest ADR 0013 campaign = da19c6cbe339f060955cf2b852e4cfeb1c576023 / CI 36343818988 / artifact 10940276677 — 10/10 finalized and both CPU surfaces within Free limits, but identical PDF content hashes
 latest distinct-PDF campaign attempt = 9822ba73fe328839df1a76e515e399e2d20a4287 / CI 36400324210 / artifact 10960925487 — paired ingress/DO version mismatch at marker preflight; zero 25 MB mutations, no acceptance sample
 latest partial-marker attempt = fe03af21c0059d6d4344002f58ec4f5b170d65ff / CI 36425931984 / artifact 10972140652 — one valid DO marker, missing ingress marker, zero 25 MB mutations, no acceptance sample
-next permitted action = RED-first same-marker bounded partial-log requery + ADR reconciliation → exact-head CI/clean checkout → targeted review → review/status seal before another single campaign
+partial-marker correction = 039e8fdddf7003adaa3ed0f433288f13903faf4c / CI 36428473034 — 5/5 including clean checkout; targeted review PASS in WP-2.9C-ADR-0013-PARTIAL-MARKER-REVIEW-2026-09-28.md
+next permitted action = review/status seal → 5/5 exact-head CI/clean checkout → one no-content same-tree distinct-PDF provider campaign; a red result returns to review
 Pass C forbidden until valid AR-006 evidence, exact-head verification and a later clean Pass B yield ACCEPTANCE_PENDING
 ```
 

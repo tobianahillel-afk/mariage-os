@@ -578,9 +578,12 @@ CPU sample. Artifact `10972140652` and digest are recorded in
 `WP-2.9C-ADR-0013-PARTIAL-MARKER-RESULT-2026-09-28.md`. A RED-first narrow
 classifier correction now waits for the same marker within the existing
 eight-query bound; ADR 0013 documents this read-only exception. The prior
-authorization is exhausted. Exact-head CI, targeted review and review/status
-seal are required before a new single campaign. C remains `IN_PROGRESS`, A
-`BLOCKED`, AR-006/AR-009 open.
+authorization is exhausted. Correction `039e8fdd` / CI `36428473034` passed
+**5/5**, including clean checkout. The fresh targeted review
+`WP-2.9C-ADR-0013-PARTIAL-MARKER-REVIEW-2026-09-28.md` is PASS for this
+narrow scope. A separate review/status seal must pass exact-head 5/5 CI before
+one no-content same-tree campaign. C remains `IN_PROGRESS`, A `BLOCKED`,
+AR-006/AR-009 open.
 
 ## Deviations
 
