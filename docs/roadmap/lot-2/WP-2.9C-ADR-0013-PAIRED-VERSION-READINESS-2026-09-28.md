@@ -1,7 +1,7 @@
 # WP-2.9C / ADR 0013 — paired-version marker readiness
 
-State: **PROVIDER ATTEMPT FAILED CLOSED; TARGETED REMEDIATION EXACT-HEAD
-GREEN; CONTRACT AMENDMENT AND REVIEW PENDING**.
+State: **PROVIDER ATTEMPT FAILED CLOSED; TARGETED REMEDIATION AND ADR
+AMENDMENT EXACT-HEAD GREEN; TARGETED REVIEW PASS; REVIEW-SEAL CI PENDING**.
 
 ## Failed isolated campaign
 
@@ -74,6 +74,9 @@ passed [CI `36423040486`](https://github.com/tobianahillel-afk/mariage-os/action
 **5/5**, including full verify from clean checkout; isolated provider jobs
 were skipped. The dated ADR 0013 amendment must independently pass exact-head
 CI and a fresh targeted adversarial review of the revised retry boundary.
-Only a later review/status seal can authorize a single new campaign. A red
+The targeted review is
+`WP-2.9C-ADR-0013-PAIRED-VERSION-REVIEW-2026-09-28.md` and passes this
+narrow scope. Only after that review/status seal itself passes exact-head
+5/5 CI may one new campaign run. A red
 campaign returns to review; WP-2.9C stays
 `IN_PROGRESS / REMEDIATION`, WP-2.9A remains `BLOCKED`, and Pass C is forbidden.

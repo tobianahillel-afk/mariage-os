@@ -171,7 +171,7 @@ latest Observability capability attempt = bd3fdb4baab6ef59983e40f77b5b2f44ba6dc8
 latest private-Worker campaign = 26da10e5aabd7d2a9b6105caef49dd87d6ee58b9 / CI 35977875774 / artifact 10799077529 — eight HTTP-200 exact-size successes, two HTTP-503 failures; read-only provider query: eight 237–273 ms CPU and two exceededCpu
 latest ADR 0013 campaign = da19c6cbe339f060955cf2b852e4cfeb1c576023 / CI 36343818988 / artifact 10940276677 — 10/10 finalized and both CPU surfaces within Free limits, but identical PDF content hashes
 latest distinct-PDF campaign attempt = 9822ba73fe328839df1a76e515e399e2d20a4287 / CI 36400324210 / artifact 10960925487 — paired ingress/DO version mismatch at marker preflight; zero 25 MB mutations, no acceptance sample
-next permitted action = reconcile ADR 0013's explicit DO-mismatch stop rule with paired-version readiness correction → exact-head CI/clean checkout → fresh targeted review → review/status seal → one bounded replacement campaign only after explicit reviewed authorization
+next permitted action = commit paired-version targeted review/status seal → 5/5 exact-head CI/clean checkout → one bounded same-tree ten-distinct-PDF campaign if green; red result returns to review
 Pass C forbidden until valid AR-006 evidence, exact-head verification and a later clean Pass B yield ACCEPTANCE_PENDING
 ```
 

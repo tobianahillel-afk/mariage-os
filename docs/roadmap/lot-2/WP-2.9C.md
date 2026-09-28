@@ -561,6 +561,14 @@ targeted review (including the dated ADR 0013 paired-version amendment) and a
 separate review/status seal are next; C remains
 `IN_PROGRESS`, A `BLOCKED`, and AR-006/AR-009 open.
 
+The dated ADR amendment `8b8925c` / CI `36423946026` passed **5/5**,
+including clean checkout, and the fresh targeted
+`WP-2.9C-ADR-0013-PAIRED-VERSION-REVIEW-2026-09-28.md` review is PASS for
+the narrow marker boundary. Its single replacement-campaign authorization
+is conditional on this review/status seal's own five ordinary exact-head CI
+jobs. The full C Pass B and Pass C remain downstream of compliant provider
+evidence.
+
 ## Deviations
 
 No security-contract deviation is authorized.
