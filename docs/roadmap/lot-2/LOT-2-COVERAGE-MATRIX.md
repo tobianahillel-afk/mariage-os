@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1..WP-2.8C ACCEPTED; WP-2.9A BLOCKED; WP-2.9C ACCEPTANCE_PENDING AFTER FULL FRESH PASS B PASS; WP-2.9B PLANNED / AFTER A**
+Status: **IN_PROGRESS — WP-2.1..WP-2.8C ACCEPTED; WP-2.9A BLOCKED; WP-2.9C ACCEPTANCE_PENDING, PASS C PASS / SEAL CI PENDING; WP-2.9B PLANNED / AFTER A**
 
 Purpose: durable current responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`. Detailed historical evidence remains in packet records, acceptance records, FIRs and Git history.
 
@@ -120,7 +120,7 @@ ADR 0011 later produced decisive deployed CPU evidence and was rejected for fina
 | WP-2.8B | **ACCEPTED / COMPLETE** | private archive lifecycle |
 | WP-2.8C | **ACCEPTED / COMPLETE** | recoverable remote metadata lifecycle |
 | WP-2.9A | **BLOCKED** | FTR-089 foundation; waits for C acceptance |
-| WP-2.9C | **ACCEPTANCE_PENDING — PASS C NEXT** | trusted private-Document ingress/lifecycle hardening; full fresh Pass B closed AR-001..009 |
+| WP-2.9C | **ACCEPTANCE_PENDING — PASS C PASS / SEAL CI PENDING** | trusted private-Document ingress/lifecycle hardening; full fresh Pass B closed AR-001..009 |
 | WP-2.9B | **PLANNED / AFTER A** | generic project Tags + Venue entity-tags |
 | WP-2.10 | PLANNED | repositories/local cache/pending offline mutations |
 | WP-2.11 | PLANNED | gallery/table/detail/compare/deep-link workspace |
@@ -156,7 +156,7 @@ Only one packet may be implementing at a time. WP-2.9A is blocked, not concurren
 required current-Lot-2 responsibilities - assigned product packet responsibilities = ∅
 accepted/evidenced packets = WP-2.1..WP-2.8C
 WP-2.9A = BLOCKED until WP-2.9C ACCEPTED
-WP-2.9C = ACCEPTANCE_PENDING — distinct-PDF provider proof, exact-head CI and full fresh Pass B PASS; separate Pass C next
+WP-2.9C = ACCEPTANCE_PENDING — distinct-PDF provider proof, exact-head CI, full fresh Pass B and separate Pass C PASS; acceptance-seal CI pending
 fresh Pass-B record = docs/roadmap/lot-2/WP-2.9C-FRESH-PASS-B-DISTINCT-PDF-2026-09-28.md — AR-001..009 CLOSED / VERIFIED for C
 implementation-remediated = WP29C-AR-005 cleanup/race; WP29C-AR-007/008 production release contracts
 open acceptance gap = separate Pass C expected/implemented/verified reconciliation and FIR/parent-A handoff; no C review finding remains open
@@ -173,8 +173,9 @@ latest distinct-PDF campaign = 2303df0c9e8d6f72561ec0ce42514663801229d8 / CI 364
 evidence-bound result = 78fb24e4dcb9551b041edd9079f0ac3c5b1e973a / CI 36461954215 — 5/5 including clean checkout; provider jobs skipped
 Free-tier reconciliation = d3dad1623f0a878b43637200db31e7cf909f9869 / CI 36463139444 — 5/5 including clean checkout; provider jobs skipped
 review-pending seal = 44fc3e14bdc55dc6ab0b3613a82a9eea7daa6293 / CI 36464200682 — 5/5 including clean checkout; full fresh Pass B PASS
-next permitted action = separate Pass C over seven C responsibilities and FIR fields → if clean, C ACCEPTED and A may resume
-Pass C is permitted from ACCEPTANCE_PENDING; C acceptance and A resumption require its recorded decision
+Pass-B/status seal = 66b9396fc06b540a0a51a1fa948933c170728d65 / CI 36465390803 — 5/5 including clean checkout; Pass C reconciliation gap ∅ in WP-2.9C-ACCEPTANCE.md
+next permitted action = acceptance-record seal → 5/5 exact-head CI/clean checkout → C ACCEPTED and A may resume
+C acceptance and A resumption require green acceptance-governance CI; no provider rerun
 ```
 
 Lot-level reconciliation remains intentionally incomplete until WP-2.9A/C/B, WP-2.10..WP-2.12 and the separate Lot Integration Pass are accepted.

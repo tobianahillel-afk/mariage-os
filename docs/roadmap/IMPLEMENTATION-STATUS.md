@@ -59,7 +59,7 @@ WP-2.1..WP-2.8C are accepted and complete. Durable evidence remains in their pac
 
 ## WP-2.9C — current packet
 
-State: **ACCEPTANCE_PENDING — TEN-DISTINCT-PDF PROVIDER AND EXACT-HEAD CI PASS; COMPLETE FRESH PASS B PASS; PASS C NEXT**. The prior repeated-byte sample remains historical limited evidence. The new compliant ten-distinct-PDF provider result and full fresh Pass B are recorded below. C is not yet accepted; A remains blocked.
+State: **ACCEPTANCE_PENDING — PASS C RECONCILIATION PASS; ACCEPTANCE-SEAL CI PENDING**. The prior repeated-byte sample remains historical limited evidence. The compliant ten-distinct-PDF provider result, full fresh Pass B and separate Pass C are recorded below. C is not yet accepted; A remains blocked.
 
 Pass-A exact evidence:
 
@@ -254,6 +254,7 @@ Normative release/deployment/secret contracts require Pages Functions to deploy 
 39. Evidence-bound result `78fb24e4dcb9551b041edd9079f0ac3c5b1e973a` / CI `36461954215` passed **5/5**, including clean checkout; provider jobs skipped. Pre-review reconciliation found `docs/operations/FREE-TIER.md` still calling the older repeated-byte `da19c6c` sample accepted proof. That normative operational reference is being corrected to cite the ten-distinct-PDF result and label the older sample limited history. Require exact-head 5/5 CI for this correction before entering the complete fresh Pass B. No new provider campaign is authorized.
 40. Free-tier reconciliation `d3dad1623f0a878b43637200db31e7cf909f9869` / CI `36463139444` passed **5/5**, including full verification from a clean checkout. Pass A remediation evidence is now complete and the packet transitions `IN_PROGRESS -> REVIEW_PENDING`. Next: a new complete Pass B over all seven C responsibilities and AR-001..009; no provider rerun is authorized.
 41. REVIEW_PENDING seal `44fc3e14bdc55dc6ab0b3613a82a9eea7daa6293` / CI `36464200682` passed **5/5**, including full verification from a clean checkout. `WP-2.9C-FRESH-PASS-B-DISTINCT-PDF-2026-09-28.md` is the new complete Pass B: **PASS**, no unresolved BLOCKING/MAJOR/MINOR finding across all seven C responsibilities; AR-001..009 are formally CLOSED / VERIFIED for C. State transitions `REVIEW_PENDING -> ACCEPTANCE_PENDING`; next is separate Pass C expected/implemented/verified reconciliation, including FIR and parent-A dependency. No provider rerun is needed or authorized.
+42. Pass-B/status seal `66b9396fc06b540a0a51a1fa948933c170728d65` / CI `36465390803` passed **5/5**, including clean checkout. Separate `WP-2.9C-ACCEPTANCE.md` Pass C reconciles all seven responsibilities `EXPECTED ↔ IMPLEMENTED ↔ VERIFIED` with gap **∅**, current FIR #17, no open C finding and explicit parent-A handoff. Its decision is **PASS / eligible for ACCEPTED**, subject to this acceptance-record seal passing five exact-head ordinary CI jobs. Until then C remains `ACCEPTANCE_PENDING` and A `BLOCKED`.
 
 ## Durable handoff
 
@@ -265,7 +266,7 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.8C
 WP-2.9A: BLOCKED — waits for WP-2.9C ACCEPTED
-Current packet: WP-2.9C — ACCEPTANCE_PENDING / PASS C NEXT; DISTINCT-PDF PROVIDER AND COMPLETE FRESH PASS B PASS
+Current packet: WP-2.9C — ACCEPTANCE_PENDING / PASS C PASS, ACCEPTANCE-SEAL CI PENDING; DISTINCT-PDF PROVIDER AND COMPLETE FRESH PASS B PASS
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
@@ -304,5 +305,5 @@ FTR-089 FIR: #17 — BLOCKED
 WP-2.9B: PLANNED / AFTER A
 Lots 3–12: NOT_STARTED
 Latest distinct-PDF campaign: 2303df0c9e8d6f72561ec0ce42514663801229d8 / CI 36459949861 / provider job 109058754517 / artifact 10987866873 — 10 distinct exact-size PDFs, 10 finalized flows, 20 valid exact-version CPU readings within Workers Free; provider verdict PASS
-Next permitted action: separate Pass C acceptance/reconciliation for WP-2.9C, including seven responsibility rows, current FIR fields, CI, status and parent-A handoff. Only Pass C may accept C and unblock A; no provider rerun is authorized.
+Next permitted action: commit the Pass C acceptance record and require 5/5 exact-head ordinary CI including clean checkout. If green, mark C ACCEPTED and unblock A for integration/reverification; no provider rerun is authorized.
 ```
