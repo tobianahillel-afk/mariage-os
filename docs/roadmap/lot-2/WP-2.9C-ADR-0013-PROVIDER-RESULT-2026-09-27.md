@@ -17,6 +17,9 @@ The artifact's exact `gitCommit` is the trigger above, `pass: true`,
 `workersPlanAttestation: "Workers Free / isolated non-production"`.
 The generated synthetic PDF SHA-256 was
 `c0f2175bac5d6ac464a1e25948854f9bc627eceb51d7049143db41424fa823fb`.
+The harness staged that same generated PDF byte sequence at ten distinct
+document Storage paths; the ten document IDs, evidence UUIDs and Durable Object
+identities are distinct, while PDF content hashes are the same.
 No real wedding document or credential is included.
 
 | Evidence | Observed |

@@ -155,6 +155,8 @@ Destructive cleanup is a later controlled step, not bundled with the first new f
 
 For WP-2.9C and any later release that retains this boundary, `/api/private-document-promote` is a security-critical Workers Static Assets ingress route, not a static-path convenience. ADR 0013 supersedes the historical Pages-specific ADR 0010/0012 ingress while preserving their same-origin/bodyless security semantics.
 
+The repository still retains `functions/api/private-document-promote.ts` as a shared ingress module and historical Pages regression fixture. Its `onRequest` export is **not** an approved production deployment. The production candidate is built from `workers/private-document-ingress/wrangler.jsonc`; release verification must establish that no Pages deployment serves this route on the production origin.
+
 Deployment/release automation must ensure:
 
 - the route is built and deployed from the same exact commit as the frontend;

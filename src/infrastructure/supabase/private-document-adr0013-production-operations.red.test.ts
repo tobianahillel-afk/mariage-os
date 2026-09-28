@@ -27,8 +27,14 @@ describe("ADR 0013 production operations contract", () => {
       "The existing security boundary remains same-origin Cloudflare Pages.",
     );
     expect(ci).not.toContain("security-critical Pages Functions route");
+    expect(ci).toContain(
+      "no Pages deployment serves this route on the production origin",
+    );
     expect(release).not.toContain(
       "Private-document Pages Function release gate",
+    );
+    expect(release).toContain(
+      "verify the actual production routing/deployment identities",
     );
   });
 

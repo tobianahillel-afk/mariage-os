@@ -1,6 +1,6 @@
 # WP-2.9C / WP29C-AR-008 — ADR 0013 production-contract remediation
 
-State: **IMPLEMENTED LOCALLY / EXACT-HEAD CI AND REVIEW PENDING**
+State: **IMPLEMENTED / FINAL REVIEW PENDING**
 
 Source finding: `WP-2.9C-FRESH-PASS-B-2026-09-27.md` (MAJOR).
 
@@ -38,9 +38,24 @@ Remediation:
 The two ADR 0013 contract tests and existing AR-007 operations tests are GREEN
 locally; the three targeted test files pass 9/9. No production deployment,
 provider token change, Supabase mutation or repeat CPU campaign is part of
-this remediation. Next: local format/lint/typecheck, exact-head CI/clean
-checkout, fresh adversarial review, then complete fresh Pass B and Pass C only
-if review is clean.
+this remediation. The production-contract correction passed exact-head CI
+`36346460133` at `a819947` **5/5 SUCCESS**, including clean checkout.
+
+The subsequent targeted review found a source/deployment ambiguity: the
+historical Pages `onRequest` module remains in the repository because the
+Worker ingress reuses its fail-closed handler and the local Pages integration
+suite still exercises it. That source file is **not** the approved production
+entry point. CI and release contracts now explicitly require the production
+route to be owned by the Workers Static Assets ingress and verify that no
+Pages deployment serves it on the production origin. The ADR 0013 architecture
+test now checks the actual ingress Worker config and route, rather than
+presenting the historical Pages module as the current deployment. These are
+contract/test clarifications only; the deployed ingress/DO runtime and prior
+provider CPU evidence are unchanged. Their new exact-head CI is pending.
+
+Next: exact-head CI/clean checkout over these clarifications, fresh targeted
+adversarial review, then complete fresh Pass B and Pass C only if review is
+clean.
 
 Provider contracts checked on 2026-09-27:
 

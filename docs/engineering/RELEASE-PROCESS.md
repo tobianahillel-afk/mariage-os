@@ -99,6 +99,8 @@ Do not combine destructive schema removal with clients that may still depend on 
 
 ADR 0010 freezes `/api/private-document-promote` as a security-critical same-origin bodyless browser boundary. ADR 0012 moves trusted lifecycle execution into the private `PrivateDocumentLifecycle` Durable Object. ADR 0013 supersedes the Pages-specific ingress with Workers Static Assets. Any release containing this boundary must deploy the private Durable Object host first, then the exact-candidate public ingress Worker with static assets, Worker-first `/api/*` and the external `PRIVATE_DOCUMENT_LIFECYCLE` binding. The release is invalid if either runtime is absent, misbound or replaced by fallback content.
 
+The historical `functions/api/private-document-promote.ts` module remains in source for shared ingress logic and local Pages regression tests; its Pages `onRequest` route must not be published on the production origin. A source-file presence check alone is neither deployment evidence nor a release blocker: verify the actual production routing/deployment identities and the absence of a Pages owner for this route.
+
 Required configuration metadata:
 
 - `SUPABASE_URL` points to the intended Supabase environment;

@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import supabaseConfig from "../../../supabase/config.toml?raw";
 import workerConfig from "../../../workers/private-document-promotion/wrangler.jsonc?raw";
+import ingressConfig from "../../../workers/private-document-ingress/wrangler.jsonc?raw";
+import ingressSource from "../../../workers/private-document-ingress/src/worker.ts?raw";
 import evidenceSource from "../../../functions/api/private-document-evidence.ts?raw";
 import workerSource from "../../../workers/private-document-promotion/src/worker.ts?raw";
 
@@ -13,8 +15,21 @@ const supabasePromotionModules = import.meta.glob(
   { eager: true, import: "default", query: "?raw" },
 );
 
-describe("ADR 0010/0012 promotion deployment boundary", () => {
-  it("provides the same-origin Cloudflare Pages Function", () => {
+describe("ADR 0013 promotion deployment boundary", () => {
+  it("deploys the same-origin route through Workers Static Assets", () => {
+    expect(ingressConfig).toContain('"main": "src/worker.ts"');
+    expect(ingressConfig).toContain('"run_worker_first": ["/api/*"]');
+    expect(ingressConfig).toContain(
+      '"script_name": "mariage-os-private-document-promotion"',
+    );
+    expect(ingressSource).toContain(
+      'PRIVATE_DOCUMENT_PATH = "/api/private-document-promote"',
+    );
+    expect(ingressSource).toContain(
+      'handlePrivateDocumentIngress(request, environment, "worker-ingress")',
+    );
+    expect(ingressSource).toContain("return unavailable()");
+    // The historical Pages route is retained for local regression, not as the release entry point.
     expect(Object.keys(pagesPromotionModules)).toHaveLength(1);
   });
 
