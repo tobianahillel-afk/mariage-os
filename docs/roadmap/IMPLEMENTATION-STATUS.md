@@ -38,7 +38,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.8B | Venue private archived media lifecycle                                 | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.8C | recoverable Venue remote-media metadata lifecycle                      | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.9A | Venue-linked private PDF/document foundation                           | **BLOCKED — waits for WP-2.9C ACCEPTED**                                   |
-| WP-2.9C | trusted private-document ingestion hardening                           | **IN_PROGRESS — FRESH PASS B REVIEW_FAILED / AR-009 DISTINCT-PDF EVIDENCE REMEDIATION** |
+| WP-2.9C | trusted private-document ingestion hardening                           | **IN_PROGRESS — AR-009 DISTINCT-PDF EVIDENCE / PAIRED-VERSION PREFLIGHT REMEDIATION** |
 | WP-2.9B | generic project tags and Venue entity-tag links                        | **PLANNED / AFTER A**                                                      |
 | WP-2.10 | repositories, local cache, pending/offline mutations                   | PLANNED                                                                    |
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace                       | PLANNED                                                                    |
@@ -59,7 +59,7 @@ WP-2.1..WP-2.8C are accepted and complete. Durable evidence remains in their pac
 
 ## WP-2.9C — current packet
 
-State: **IN_PROGRESS / REMEDIATION — FRESH PASS B REVIEW_FAILED ON WP29C-AR-009 DISTINCT-PDF EVIDENCE**. The ten-flow CPU observations remain valid for their repeated-byte sample; AR-006 formal closure waits for a compliant distinct-PDF campaign and a clean later Pass B.
+State: **IN_PROGRESS / REMEDIATION — FRESH PASS B REVIEW_FAILED ON WP29C-AR-009 DISTINCT-PDF EVIDENCE; LATEST REPLACEMENT CAMPAIGN FAILED CLOSED AT PAIRED-VERSION MARKER PREFLIGHT**. The ten-flow CPU observations remain valid for their repeated-byte sample; AR-006 formal closure waits for a compliant distinct-PDF campaign and a clean later Pass B.
 
 Pass-A exact evidence:
 
@@ -245,6 +245,8 @@ Normative release/deployment/secret contracts require Pages Functions to deploy 
 30. Clarification `a94a7b9` / CI `36395904397` passed **5/5 SUCCESS**, clean checkout included; targeted AR-008 review is PASS in `WP-2.9C-AR-008-REVIEW-2026-09-28.md`. The complete fresh Pass B in `WP-2.9C-FRESH-PASS-B-2026-09-28.md` found MAJOR `WP29C-AR-009`: the governed ten-flow campaign used ten distinct document/DO identities but one repeated PDF byte sequence, while ADR 0013 requires ten distinct synthetic PDFs. RED tests reproduced both the repeated hash and the verdict's duplicate-hash acceptance. State moved `REVIEW_PENDING -> REVIEW_FAILED -> IN_PROGRESS` for remediation. No Pass C or A resumption; prior CPU readings must not be mislabeled as ten byte-distinct PDFs.
 31. AR-009 RED-first remediation is implemented locally in the isolated provider harness, without changing production runtime: ten generated exact-size PDFs now have ten distinct SHA-256 hashes; each flow reserves/stages its own bytes; sanitized evidence retains per-flow hashes and sizes; the verdict rejects duplicate/missing hashes or wrong sizes. Focused tests pass 11/11, TypeScript/ESLint/Prettier/secret scan pass. `WP-2.9C-AR-009-REMEDIATION-2026-09-28.md` records the scope. Next: exact-head CI/clean checkout, fresh adversarial harness review and explicit bounded replacement-campaign authorization; no campaign yet.
 32. First AR-009 implementation `a1b726f` / CI `36397976054` failed application typecheck; this was corrected in `8f04bba3bcb92e9045800e954aca31d816a84943` / CI `36398524127` **5/5 SUCCESS**, including clean checkout. Fresh targeted review `WP-2.9C-AR-009-REVIEW-2026-09-28.md` is PASS for the distinct-PDF harness, per-flow reserve/stage hash and fail-closed verdict. Exactly one replacement `[AR006-INGRESS-EVIDENCE]` campaign is authorized **only after this review/status seal itself passes 5/5 exact-head CI**. It must use a no-content same-tree trigger and stop on red; no campaign has run yet.
+33. Review/status seal `0cffaf2dbf2b351d31a4c22830ebd236d2f9b7c2` / CI `36399469688` passed **5/5**, including clean checkout. Its same-tree campaign trigger `9822ba73fe328839df1a76e515e399e2d20a4287` / CI `36400324210` passed the five ordinary jobs, but provider job `108859090242` failed at the non-mutating marker preflight. Artifact `10960925487` (ZIP SHA-256 `891667aebb9be726fa9a0a963d02772e5ff930ba67a069ed8059580c40d8bf73`) records only paired ingress/DO `script_version_mismatch` against newly deployed exact versions, complete HTTP-200 Observability queries, **zero** completed 25 MB invocations and no PDF mutation. The campaign authorization is exhausted; AR-006 and AR-009 remain open.
+34. `WP-2.9C-ADR-0013-PAIRED-VERSION-READINESS-2026-09-28.md` records the provider result and a RED-first, narrowly bounded local correction: a fresh marker may be retried only when both complete surfaces show exactly one version-only mismatch each, in addition to the already reviewed ingress-only case. Three marker rounds maximum, final exact-version attribution before any document mutation. Next: exact-head CI/clean checkout for this result and correction, fresh targeted adversarial review, then explicit review/status seal before **one** new campaign. No provider rerun is authorized yet.
 
 ## Durable handoff
 
@@ -256,7 +258,7 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.8C
 WP-2.9A: BLOCKED — waits for WP-2.9C ACCEPTED
-Current packet: WP-2.9C — IN_PROGRESS / REMEDIATION; FRESH PASS B REVIEW_FAILED ON AR-009 DISTINCT-PDF EVIDENCE
+Current packet: WP-2.9C — IN_PROGRESS / REMEDIATION; AR-009 DISTINCT-PDF EVIDENCE OPEN; LATEST PAIRED-VERSION MARKER PREFLIGHT FAILED CLOSED
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
@@ -294,5 +296,6 @@ AR-005/007/008: implementation-evidenced; AR-006 CPU feasibility shown for repea
 FTR-089 FIR: #17 — BLOCKED
 WP-2.9B: PLANNED / AFTER A
 Lots 3–12: NOT_STARTED
-Next permitted action: commit this AR-009 targeted review/status seal and wait for 5/5 exact-head CI including clean checkout. If green, make one no-content same-tree `[AR006-INGRESS-EVIDENCE]` trigger for the reviewed isolated ten-distinct-PDF Workers Free campaign. If red, return to remediation/review; do not reuse the repeated-byte artifact as distinct-PDF proof, mark C accepted, or resume A early.
+Latest distinct-PDF campaign attempt: 9822ba73fe328839df1a76e515e399e2d20a4287 / CI 36400324210 / provider job 108859090242 / artifact 10960925487 — failed closed at paired-version marker preflight; zero document mutation and no acceptance CPU sample
+Next permitted action: commit the paired-version provider result and bounded marker-readiness correction; require 5/5 exact-head CI including clean checkout, then a fresh targeted adversarial review and explicit review/status seal. No provider rerun, C acceptance or A resumption before those gates.
 ```

@@ -11,6 +11,15 @@ function isExpectedAttribution(discovery) {
   );
 }
 
+function isVersionOnlyFailure(failure, surface) {
+  return (
+    failure?.code === "invalid_provider_invocation" &&
+    failure.surface === surface &&
+    failure.reasons?.length === 1 &&
+    failure.reasons[0] === "script_version_mismatch"
+  );
+}
+
 function isIngressVersionSkew(discovery) {
   if (
     discovery.markerCount !== 2 ||
@@ -19,12 +28,21 @@ function isIngressVersionSkew(discovery) {
   ) {
     return false;
   }
-  const failure = discovery.failures[0];
-  return (
-    failure.code === "invalid_provider_invocation" &&
-    failure.surface === "worker-ingress" &&
-    failure.reasons?.length === 1 &&
-    failure.reasons[0] === "script_version_mismatch"
+  return isVersionOnlyFailure(discovery.failures[0], "worker-ingress");
+}
+
+function isPairedVersionSkew(discovery) {
+  if (
+    discovery.markerCount !== 2 ||
+    discovery.attributedInvocationCount !== 0 ||
+    discovery.failures.length !== 2
+  ) {
+    return false;
+  }
+  return ["worker-ingress", "durable-object"].every((surface) =>
+    discovery.failures.some((failure) =>
+      isVersionOnlyFailure(failure, surface),
+    ),
   );
 }
 
@@ -56,6 +74,8 @@ export function markerReadiness(queriesComplete, discovery) {
   if (discovery.pass === true) {
     return isExpectedAttribution(discovery) ? "ready" : "blocked";
   }
-  if (isIngressVersionSkew(discovery)) return "retry_marker";
+  if (isIngressVersionSkew(discovery) || isPairedVersionSkew(discovery)) {
+    return "retry_marker";
+  }
   return awaitingPersistedLogs(discovery) ? "await_logs" : "blocked";
 }

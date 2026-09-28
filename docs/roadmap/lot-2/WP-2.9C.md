@@ -5,7 +5,7 @@
 - Work Packet ID: `WP-2.9C`
 - Lot: `2`
 - State: `IN_PROGRESS`
-- Current pass: `REMEDIATION` — WP29C-AR-009 distinct-PDF evidence finding from the fresh Pass B
+- Current pass: `REMEDIATION` — WP29C-AR-009 distinct-PDF evidence finding; latest replacement campaign failed closed at paired-version marker preflight
 - Primary bounded context: Documents — trusted binary promotion for the existing WP-2.9A private PDF lifecycle
 - Branch: `lot-2/venues-core`
 - FIR: `#17 / FTR-089`
@@ -15,6 +15,7 @@
 - Runtime-evidence history and current result: `docs/roadmap/lot-2/WP-2.9C-AR-006-CPU-EVIDENCE.md`; `WP-2.9C-ADR-0013-PROVIDER-RESULT-2026-09-27.md`
 - Fresh Pass-B reviews: `docs/roadmap/lot-2/WP-2.9C-PASS-B-REVIEW.md`; `WP-2.9C-FRESH-PASS-B-2026-09-27.md`
 - Latest fresh Pass B: `WP-2.9C-FRESH-PASS-B-2026-09-28.md` — AR-009 MAJOR; ten provider CPU readings per surface remain valid for repeated PDF bytes, but ADR 0013's ten distinct PDF requirement is unmet.
+- Latest provider attempt: `WP-2.9C-ADR-0013-PAIRED-VERSION-READINESS-2026-09-28.md` — paired old-version marker responses, zero document mutation, AR-006 still open.
 - Size: **10 points**; cohesion review **PASS**
 
 ## Current verdict
@@ -547,6 +548,17 @@ authorizes exactly one no-content same-tree `[AR006-INGRESS-EVIDENCE]`
 replacement campaign **only after its own review/status seal passes exact-head
 5/5 CI**. WP-2.9C remains `IN_PROGRESS`; the campaign result, full fresh
 Pass B and Pass C are still required.
+
+The review/status seal `0cffaf2` passed CI `36399469688` **5/5**. Its single
+same-tree trigger `9822ba7` / CI `36400324210` reached the isolated provider
+job but failed closed at the bodyless marker preflight: both ingress and
+Durable Object markers came from prior versions. Artifact `10960925487`
+records no 25 MB invocation or PDF hash. The one-campaign authorization is
+exhausted. `WP-2.9C-ADR-0013-PAIRED-VERSION-READINESS-2026-09-28.md`
+records the exact versions, artifact digest and RED-first bounded correction.
+Its implementation alone cannot authorize a rerun. Exact-head CI, fresh
+targeted review and a separate review/status seal are next; C remains
+`IN_PROGRESS`, A `BLOCKED`, and AR-006/AR-009 open.
 
 ## Deviations
 

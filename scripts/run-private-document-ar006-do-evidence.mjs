@@ -143,6 +143,17 @@ async function markerProbe(context, identity, round) {
   return latest;
 }
 
+function observedVersionSkew(discovery, round) {
+  const versionFor = (surface) =>
+    discovery.failures.find((failure) => failure.surface === surface)
+      ?.diagnostic?.scriptVersionId ?? null;
+  return {
+    round,
+    observedIngressVersionId: versionFor("worker-ingress"),
+    observedDurableObjectVersionId: versionFor("durable-object"),
+  };
+}
+
 async function markerPreflight(context, identity) {
   const priorVersionSkews = [];
   for (let round = 1; round <= MAX_VERSION_READINESS_PROBES; round += 1) {
@@ -153,11 +164,7 @@ async function markerPreflight(context, identity) {
     ) {
       return { ...result, priorVersionSkews };
     }
-    priorVersionSkews.push({
-      round,
-      observedIngressVersionId:
-        result.discovery.failures[0]?.diagnostic?.scriptVersionId ?? null,
-    });
+    priorVersionSkews.push(observedVersionSkew(result.discovery, round));
     await delay(VERSION_READINESS_DELAY_MS);
   }
   throw new Error("Marker version readiness probe exhausted unexpectedly.");

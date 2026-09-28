@@ -24,13 +24,33 @@ function mismatch(reasons: string[]) {
   };
 }
 
+function pairedVersionSkew() {
+  return {
+    pass: false,
+    markerCount: 2,
+    attributedInvocationCount: 0,
+    failures: [
+      {
+        code: "invalid_provider_invocation",
+        surface: "worker-ingress",
+        reasons: ["script_version_mismatch"],
+      },
+      {
+        code: "invalid_provider_invocation",
+        surface: "durable-object",
+        reasons: ["script_version_mismatch"],
+      },
+    ],
+  } as const;
+}
+
 describe("ADR 0013 exact-version marker readiness", () => {
   it("accepts only a complete, fully attributed marker", () => {
     expect(markerReadiness(true, accepted)).toBe("ready");
     expect(markerReadiness(false, accepted)).toBe("await_logs");
   });
 
-  it("permits a new safe marker only for an isolated ingress version mismatch", () => {
+  it("permits a new safe marker for an isolated ingress version mismatch", () => {
     expect(markerReadiness(true, mismatch(["script_version_mismatch"]))).toBe(
       "retry_marker",
     );
@@ -43,6 +63,32 @@ describe("ADR 0013 exact-version marker readiness", () => {
     expect(markerReadiness(true, mismatch(["cpu_over_budget"]))).toBe(
       "blocked",
     );
+  });
+
+  it("retries a safe marker when both freshly deployed Worker versions lag", () => {
+    expect(markerReadiness(true, pairedVersionSkew())).toBe("retry_marker");
+    expect(markerReadiness(false, pairedVersionSkew())).toBe("await_logs");
+    expect(
+      markerReadiness(true, {
+        ...pairedVersionSkew(),
+        failures: [
+          ...pairedVersionSkew().failures,
+          { code: "duplicate_marker" },
+        ],
+      }),
+    ).toBe("blocked");
+    expect(
+      markerReadiness(true, {
+        ...pairedVersionSkew(),
+        failures: [
+          pairedVersionSkew().failures[0],
+          {
+            ...pairedVersionSkew().failures[1],
+            reasons: ["script_version_mismatch", "cpu_over_budget"],
+          },
+        ],
+      }),
+    ).toBe("blocked");
   });
 });
 
