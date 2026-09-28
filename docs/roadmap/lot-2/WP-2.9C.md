@@ -5,7 +5,7 @@
 - Work Packet ID: `WP-2.9C`
 - Lot: `2`
 - State: `IN_PROGRESS`
-- Current pass: `REMEDIATION` — WP29C-AR-009 distinct-PDF evidence finding; latest replacement campaign failed closed at partially persisted marker preflight
+- Current pass: `REMEDIATION` — distinct-PDF provider result PASS; evidence-bound exact-head CI and complete fresh Pass B pending
 - Primary bounded context: Documents — trusted binary promotion for the existing WP-2.9A private PDF lifecycle
 - Branch: `lot-2/venues-core`
 - FIR: `#17 / FTR-089`
@@ -584,6 +584,19 @@ authorization is exhausted. Correction `039e8fdd` / CI `36428473034` passed
 narrow scope. A separate review/status seal must pass exact-head 5/5 CI before
 one no-content same-tree campaign. C remains `IN_PROGRESS`, A `BLOCKED`,
 AR-006/AR-009 open.
+
+The review/status seal `15d4e4e` / CI `36458756536` passed **5/5**,
+including clean checkout. Its one same-tree trigger `2303df0` / CI
+`36459949861` passed all ordinary checks and isolated provider job
+`109058754517`. Sanitized artifact `10987866873` has ZIP SHA-256
+`6ec13fbc69d7ab098d46ecc8219f383a4996c2dc193ffa753ac012c81d5e9c92`.
+`WP-2.9C-ADR-0013-DISTINCT-PDF-PROVIDER-RESULT-2026-09-28.md` records
+ten distinct exact-size PDF hashes, ten finalized flows, ten valid exact-version
+ingress CPU readings at **0–2 ms** and ten DO readings at **274–360 ms**,
+all within the respective Workers Free budgets. This provider result is a
+candidate to close AR-006/AR-009, not Pass B or C acceptance. Next bind the
+result to exact-head CI, then perform the complete fresh Pass B and separate
+Pass C. A remains `BLOCKED` until C is accepted.
 
 ## Deviations
 
