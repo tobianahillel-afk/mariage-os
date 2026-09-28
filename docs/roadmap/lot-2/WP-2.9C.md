@@ -5,7 +5,7 @@
 - Work Packet ID: `WP-2.9C`
 - Lot: `2`
 - State: `IN_PROGRESS`
-- Current pass: `REMEDIATION` — WP29C-AR-009 distinct-PDF evidence finding; latest replacement campaign failed closed at paired-version marker preflight
+- Current pass: `REMEDIATION` — WP29C-AR-009 distinct-PDF evidence finding; latest replacement campaign failed closed at partially persisted marker preflight
 - Primary bounded context: Documents — trusted binary promotion for the existing WP-2.9A private PDF lifecycle
 - Branch: `lot-2/venues-core`
 - FIR: `#17 / FTR-089`
@@ -16,6 +16,7 @@
 - Fresh Pass-B reviews: `docs/roadmap/lot-2/WP-2.9C-PASS-B-REVIEW.md`; `WP-2.9C-FRESH-PASS-B-2026-09-27.md`
 - Latest fresh Pass B: `WP-2.9C-FRESH-PASS-B-2026-09-28.md` — AR-009 MAJOR; ten provider CPU readings per surface remain valid for repeated PDF bytes, but ADR 0013's ten distinct PDF requirement is unmet.
 - Latest provider attempt: `WP-2.9C-ADR-0013-PAIRED-VERSION-READINESS-2026-09-28.md` — paired old-version marker responses, zero document mutation, AR-006 still open.
+- Newer provider attempt: `WP-2.9C-ADR-0013-PARTIAL-MARKER-RESULT-2026-09-28.md` — one valid DO marker with missing ingress marker, zero document mutation, AR-006 still open.
 - Size: **10 points**; cohesion review **PASS**
 
 ## Current verdict
@@ -568,6 +569,18 @@ the narrow marker boundary. Its single replacement-campaign authorization
 is conditional on this review/status seal's own five ordinary exact-head CI
 jobs. The full C Pass B and Pass C remain downstream of compliant provider
 evidence.
+
+The review/status seal `f18f1f4` / CI `36424965352` passed **5/5**. Its
+same-tree trigger `fe03af2` / CI `36425931984` passed five ordinary jobs but
+the isolated provider job failed closed at a partially persisted marker:
+one valid DO marker, missing ingress marker, no PDF mutation or acceptance
+CPU sample. Artifact `10972140652` and digest are recorded in
+`WP-2.9C-ADR-0013-PARTIAL-MARKER-RESULT-2026-09-28.md`. A RED-first narrow
+classifier correction now waits for the same marker within the existing
+eight-query bound; ADR 0013 documents this read-only exception. The prior
+authorization is exhausted. Exact-head CI, targeted review and review/status
+seal are required before a new single campaign. C remains `IN_PROGRESS`, A
+`BLOCKED`, AR-006/AR-009 open.
 
 ## Deviations
 

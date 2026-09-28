@@ -172,9 +172,21 @@ mismatch metadata.
 Wait at least 20 seconds between rounds so the previous marker falls outside
 the collector's 10-second pre-request timestamp margin; an unexpected marker
 still fails closed rather than being ignored.
+Read-only queries for the **same** marker may be repeated within the existing
+eight-query bound when stored events have not yet completed. In addition to
+the previously reviewed exact empty-page shape, the 2026-09-28 failed-closed
+attempt `fe03af2` / artifact `10972140652` permits only one partial shape:
+one valid attributed Durable Object marker/invocation, no ingress marker,
+and exactly `missing_marker` plus synthetic `unexpected_ingress_script`.
+The latter code is emitted because the ingress script-name set is empty; it
+does not identify an observed wrong-script marker in this shape. This re-read
+does not issue another route request or create a document. Any observed
+wrong-script marker, extra failure, failed provider invocation or exhausted
+query bound still stops before exact-size work.
 Any CPU-budget failure, provider outcome/model/event/status/identity/truncation
 failure, isolated Durable Object version mismatch outside the exact paired
-shape above, ambiguity or incomplete telemetry must fail closed. Each
+shape above, ambiguity or incomplete telemetry after the bounded re-read must
+fail closed. Each
 exact-size promotion is still checked independently against the exact deployed
 versions; this readiness gate does not relax the final ten-flow acceptance
 test.

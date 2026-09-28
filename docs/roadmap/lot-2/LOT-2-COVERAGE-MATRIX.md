@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1..WP-2.8C ACCEPTED; WP-2.9A BLOCKED; WP-2.9C AR-009 DISTINCT-PDF EVIDENCE / PAIRED-VERSION PREFLIGHT REMEDIATION; WP-2.9B PLANNED / AFTER A**
+Status: **IN_PROGRESS — WP-2.1..WP-2.8C ACCEPTED; WP-2.9A BLOCKED; WP-2.9C AR-009 DISTINCT-PDF EVIDENCE / PARTIAL-MARKER PREFLIGHT REMEDIATION; WP-2.9B PLANNED / AFTER A**
 
 Purpose: durable current responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`. Detailed historical evidence remains in packet records, acceptance records, FIRs and Git history.
 
@@ -161,7 +161,7 @@ Only one packet may be implementing at a time. WP-2.9A is blocked, not concurren
 required current-Lot-2 responsibilities - assigned product packet responsibilities = ∅
 accepted/evidenced packets = WP-2.1..WP-2.8C
 WP-2.9A = BLOCKED until WP-2.9C ACCEPTED
-WP-2.9C = IN_PROGRESS / REMEDIATION — WP29C-AR-009 MAJOR; latest replacement campaign failed closed at paired-version marker preflight
+WP-2.9C = IN_PROGRESS / REMEDIATION — WP29C-AR-009 MAJOR; latest replacement campaign failed closed at partially persisted marker preflight
 fresh Pass-B record = docs/roadmap/lot-2/WP-2.9C-FRESH-PASS-B-2026-09-28.md
 implementation-remediated = WP29C-AR-005 cleanup/race; WP29C-AR-007/008 production release contracts
 open acceptance gap = WP29C-AR-006 + AR-009 — ten distinct exact-size PDF bytes and reviewed provider CPU proof required
@@ -171,7 +171,8 @@ latest Observability capability attempt = bd3fdb4baab6ef59983e40f77b5b2f44ba6dc8
 latest private-Worker campaign = 26da10e5aabd7d2a9b6105caef49dd87d6ee58b9 / CI 35977875774 / artifact 10799077529 — eight HTTP-200 exact-size successes, two HTTP-503 failures; read-only provider query: eight 237–273 ms CPU and two exceededCpu
 latest ADR 0013 campaign = da19c6cbe339f060955cf2b852e4cfeb1c576023 / CI 36343818988 / artifact 10940276677 — 10/10 finalized and both CPU surfaces within Free limits, but identical PDF content hashes
 latest distinct-PDF campaign attempt = 9822ba73fe328839df1a76e515e399e2d20a4287 / CI 36400324210 / artifact 10960925487 — paired ingress/DO version mismatch at marker preflight; zero 25 MB mutations, no acceptance sample
-next permitted action = commit paired-version targeted review/status seal → 5/5 exact-head CI/clean checkout → one bounded same-tree ten-distinct-PDF campaign if green; red result returns to review
+latest partial-marker attempt = fe03af21c0059d6d4344002f58ec4f5b170d65ff / CI 36425931984 / artifact 10972140652 — one valid DO marker, missing ingress marker, zero 25 MB mutations, no acceptance sample
+next permitted action = RED-first same-marker bounded partial-log requery + ADR reconciliation → exact-head CI/clean checkout → targeted review → review/status seal before another single campaign
 Pass C forbidden until valid AR-006 evidence, exact-head verification and a later clean Pass B yield ACCEPTANCE_PENDING
 ```
 

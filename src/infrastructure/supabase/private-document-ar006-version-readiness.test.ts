@@ -150,3 +150,27 @@ describe("ADR 0013 delayed marker logs", () => {
     ).toBe("blocked");
   });
 });
+
+describe("ADR 0013 partially persisted marker", () => {
+  it("re-reads only the same marker when DO attribution arrives before ingress", () => {
+    const partial = {
+      pass: false,
+      markerCount: 1,
+      attributedInvocationCount: 1,
+      failures: [
+        { code: "missing_marker" },
+        { code: "unexpected_ingress_script" },
+      ],
+    };
+    expect(markerReadiness(true, partial)).toBe("await_logs");
+    expect(
+      markerReadiness(true, {
+        ...partial,
+        failures: [...partial.failures, { code: "duplicate_marker" }],
+      }),
+    ).toBe("blocked");
+    expect(markerReadiness(true, { ...partial, markerCount: 2 })).toBe(
+      "blocked",
+    );
+  });
+});

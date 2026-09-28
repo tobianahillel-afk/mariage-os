@@ -46,13 +46,22 @@ function isPairedVersionSkew(discovery) {
   );
 }
 
-function awaitingPersistedLogs(discovery) {
+function awaitingIngressMarker(discovery, codes) {
+  return (
+    discovery.markerCount === 1 &&
+    discovery.attributedInvocationCount === 1 &&
+    codes.length === 2 &&
+    codes.includes("missing_marker") &&
+    codes.includes("unexpected_ingress_script")
+  );
+}
+
+function awaitingEmptyPage(discovery, codes) {
   // With no persisted marker, surface discovery cannot infer either script's
   // identity and reports these two synthetic failures alongside the two
   // missing markers. Wait only for this exact empty-page shape; any observed
   // marker with a wrong script still blocks immediately.
-  const codes = discovery.failures.map((failure) => failure.code);
-  if (
+  return (
     discovery.markerCount === 0 &&
     discovery.attributedInvocationCount === 0 &&
     codes.length === 4 &&
@@ -60,12 +69,20 @@ function awaitingPersistedLogs(discovery) {
     codes.filter((code) => code === "unexpected_ingress_script").length === 1 &&
     codes.filter((code) => code === "unexpected_durable_object_script")
       .length === 1
-  ) {
-    return true;
-  }
+  );
+}
+
+function awaitingPersistedLogs(discovery) {
+  const codes = discovery.failures.map((failure) => failure.code);
+  // The DO marker/invocation can persist before the ingress marker. This
+  // exact partial shape may only re-read the same evidence UUID.
   return (
-    discovery.failures.length > 0 &&
-    discovery.failures.every((failure) => DELAYED_LOG_CODES.has(failure.code))
+    awaitingIngressMarker(discovery, codes) ||
+    awaitingEmptyPage(discovery, codes) ||
+    (discovery.failures.length > 0 &&
+      discovery.failures.every((failure) =>
+        DELAYED_LOG_CODES.has(failure.code),
+      ))
   );
 }
 
