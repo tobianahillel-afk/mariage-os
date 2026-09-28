@@ -1,6 +1,7 @@
 # WP-2.9C / ADR 0013 — partial-marker readiness review
 
-Date: 2026-09-28  
+Date: 2026-09-28
+
 Implementation/result head: `039e8fdddf7003adaa3ed0f433288f13903faf4c` —
 [CI `36428473034`](https://github.com/tobianahillel-afk/mariage-os/actions/runs/36428473034)
 **5/5 SUCCESS**, including full verification from clean checkout. Provider jobs
