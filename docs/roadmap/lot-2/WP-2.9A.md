@@ -12,6 +12,7 @@
 - FIR: `#17 / FTR-089`
 - Historical size: **10 points**; explicit cohesion review **PASS**
 - Blocker resolution condition: **MET** — `WP-2.9C ACCEPTED` after `21accd7f9ab1b845275507b7941a782c5e816a56` / CI `36494697647` 5/5; A returns to `IN_PROGRESS` for integration/reverification and fresh Pass B
+- Reintegration record: `WP-2.9A-REINTEGRATION-2026-09-29.md`; transition `c8f3dfd441e7ad583613c8b94bd9197b19b829fb` / CI `36495622949` **5/5 SUCCESS**, clean checkout included; Storage-RLS contract correction/record seal pending
 
 ## Activation / governance evidence
 

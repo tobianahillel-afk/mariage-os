@@ -2,7 +2,7 @@
 
 Status: **Normative V1 Storage authorization contract**
 
-Purpose: define the durable authorization boundary for project-private Supabase Storage objects. This document restores the contract already implemented and accepted in WP-1.9; it does not introduce a new Storage architecture or pre-implement later Media/Documents product behavior.
+Purpose: define the durable authorization boundary for project-private Supabase Storage objects. WP-1.9 established the namespace foundation; accepted WP-2.8B and WP-2.9C narrowed the current Media/Document lifecycle to exact reserved rows, immutable bytes and trusted Document ingestion.
 
 Read together with:
 
@@ -76,8 +76,8 @@ For the accepted `project-private/.../media/...` slice:
 |---|---|
 | SELECT/read | `media.read` |
 | INSERT/upload metadata object row | `media.write` |
-| UPDATE/rename/move within authorized namespace | `media.write` |
-| DELETE | `media.write` |
+| UPDATE/rename/move | forbidden — no authenticated Storage UPDATE policy |
+| DELETE pending object for recovery | `media.write` |
 
 Built-in role mapping remains the centrally defined matrix:
 
@@ -92,23 +92,24 @@ Feature code must ask for permissions, not infer Storage authority from role nam
 
 ## 5. RLS policy semantics
 
-`storage.objects` remains protected by RLS. The accepted media policy surface consists of four authenticated policies:
+`storage.objects` remains protected by RLS. The current `project-private` bucket policy surface consists of three authenticated policies, extended by WP-2.9A/C for Documents:
 
 - `project_private_media_select`;
 - `project_private_media_insert`;
-- `project_private_media_update`;
 - `project_private_media_delete`.
 
-Each policy requires `bucket_id = 'project-private'`, validates/extracts the project namespace and delegates live authorization to `public.has_project_permission(...)` with the required stable permission key.
+Each policy requires `bucket_id = 'project-private'`, an exact server-reserved Media or Document row/path match and live `public.has_project_permission(...)` with the required stable permission key. Media SELECT permits ready readers or pending writers; INSERT and DELETE are bounded to pending objects. Document SELECT permits active-ready readers or pending/deleted recovery writers. Browser Document INSERT is denied after WP-2.9C; the trusted service ingests verified bytes. Document DELETE is bounded to pending recovery, and ready originals remain immutable.
 
-UPDATE must enforce both:
+The earlier WP-1.9 namespace foundation had an UPDATE policy, but WP-2.8B removed it for immutable private objects. There is now no authenticated Storage UPDATE policy, so overwrite/upsert/rename/move fail closed. The general RLS rule for any future UPDATE policy remains:
 
 - `USING` on the existing row; and
 - `WITH CHECK` on the resulting row.
 
-This is mandatory so an identity authorized for project A cannot rename/move an object into project B or another unauthorized namespace.
+Both checks would be mandatory before any future reviewed UPDATE policy could be introduced; the present contract grants no such operation.
 
-DELETE requires live `media.write`; stale path knowledge after membership revocation is not authority.
+Pending Media DELETE requires live `media.write`; pending canonical Document DELETE requires an exact reservation and live `documents.write`. Stale path knowledge after membership revocation is not authority. Ordinary clients have no direct Document staging read/update/delete; trusted cleanup proves exact staging and canonical absence before metadata abandonment.
+
+The separate private `document-ingest-staging` bucket permits authenticated INSERT only at an exact pending Document reservation with live `documents.write`, PDF MIME and the 25,000,000-byte bucket limit. It grants ordinary clients no staging SELECT/UPDATE/DELETE; the trusted service performs promotion and cleanup.
 
 ## 6. Multi-project and non-disclosure behavior
 

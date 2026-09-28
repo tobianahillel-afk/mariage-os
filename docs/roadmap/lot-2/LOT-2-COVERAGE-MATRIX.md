@@ -172,7 +172,10 @@ evidence-bound result = 78fb24e4dcb9551b041edd9079f0ac3c5b1e973a / CI 3646195421
 Free-tier reconciliation = d3dad1623f0a878b43637200db31e7cf909f9869 / CI 36463139444 — 5/5 including clean checkout; provider jobs skipped
 review-pending seal = 44fc3e14bdc55dc6ab0b3613a82a9eea7daa6293 / CI 36464200682 — 5/5 including clean checkout; full fresh Pass B PASS
 Pass-B/status seal = 66b9396fc06b540a0a51a1fa948933c170728d65 / CI 36465390803 — 5/5 including clean checkout; Pass C reconciliation gap ∅ in WP-2.9C-ACCEPTANCE.md
-next permitted action = A integration/reverification → exact-head CI/clean checkout → A REVIEW_PENDING and fresh full Pass B
+acceptance-record seal = 21accd7f9ab1b845275507b7941a782c5e816a56 / CI 36494697647 — 5/5 including clean checkout; C ACCEPTED
+A-resumption seal = c8f3dfd441e7ad583613c8b94bd9197b19b829fb / CI 36495622949 — 5/5 including clean checkout; A IN_PROGRESS
+A reintegration candidate = WP-2.9A-REINTEGRATION-2026-09-29.md; Storage-RLS obsolete UPDATE wording corrected; correction/record CI pending
+next permitted action = seal A integration correction/record with exact-head CI/clean checkout → A REVIEW_PENDING and fresh full Pass B
 C acceptance and A resumption are authorized by green acceptance-record CI; no provider rerun
 ```
 
