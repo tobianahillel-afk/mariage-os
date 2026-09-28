@@ -4,8 +4,8 @@
 
 - Work Packet ID: `WP-2.9C`
 - Lot: `2`
-- State: `REVIEW_PENDING`
-- Current pass: `B-ADVERSARIAL-REVIEW` — distinct-PDF provider result and Free-tier reconciliation exact-head CI PASS; complete fresh Pass B next
+- State: `ACCEPTANCE_PENDING`
+- Current pass: `C-ACCEPTANCE` — complete fresh Pass B PASS across seven responsibilities and AR-001..009; separate Pass C next
 - Primary bounded context: Documents — trusted binary promotion for the existing WP-2.9A private PDF lifecycle
 - Branch: `lot-2/venues-core`
 - FIR: `#17 / FTR-089`
@@ -15,11 +15,12 @@
 - Runtime-evidence history and current result: `docs/roadmap/lot-2/WP-2.9C-AR-006-CPU-EVIDENCE.md`; `WP-2.9C-ADR-0013-PROVIDER-RESULT-2026-09-27.md`
 - Fresh Pass-B reviews: `docs/roadmap/lot-2/WP-2.9C-PASS-B-REVIEW.md`; `WP-2.9C-FRESH-PASS-B-2026-09-27.md`
 - Latest fresh Pass B: `WP-2.9C-FRESH-PASS-B-2026-09-28.md` — AR-009 MAJOR; ten provider CPU readings per surface remain valid for repeated PDF bytes, but ADR 0013's ten distinct PDF requirement is unmet.
+- Current full fresh Pass B: `WP-2.9C-FRESH-PASS-B-DISTINCT-PDF-2026-09-28.md` — PASS; AR-001..009 CLOSED / VERIFIED for C after ten-distinct-PDF provider proof.
 - Latest provider attempt: `WP-2.9C-ADR-0013-PAIRED-VERSION-READINESS-2026-09-28.md` — paired old-version marker responses, zero document mutation, AR-006 still open.
 - Newer provider attempt: `WP-2.9C-ADR-0013-PARTIAL-MARKER-RESULT-2026-09-28.md` — one valid DO marker with missing ingress marker, zero document mutation, AR-006 still open.
 - Size: **10 points**; cohesion review **PASS**
 
-## Current verdict
+## Historical remediation verdict (superseded by current state above)
 
 Pass A completed successfully. The required fresh Pass B then found three unresolved MAJOR findings. Remediation implemented the AR-005 trusted cleanup/race controls and AR-007 deployment/secret/release controls, and the complete exact implementation head `68a4f6bdb7b55acc80c4c6fbb8c0afc0295bfde5` passed CI `35025384594` **5/5 SUCCESS**, including `Full verify from clean checkout`.
 
@@ -68,7 +69,7 @@ Remediation exact-head verification evidence:
 - CI `35025384594` — **5/5 SUCCESS**, clean-checkout included;
 - Core quality/security, Local Supabase DB/RLS/Pages Function, browser/mutation, privacy-safe preview and clean-checkout full verify all passed on the same implementation head.
 
-## Current remediation findings
+## Historical remediation findings (superseded by the current full Pass B)
 
 ### WP29C-AR-005 — MAJOR — interrupted staging/abandon cleanup and promotion race
 
@@ -278,7 +279,7 @@ Fresh Pass B specifically invalidates treating any local 25 MB success as suffic
 
 ## State / sequencing
 
-Current state: **REVIEW_PENDING — TEN-DISTINCT-PDF PROVIDER RESULT AND FREE-TIER RECONCILIATION EXACT-HEAD CI PASS; COMPLETE FRESH PASS B NEXT**. Historical states and gates below are retained as dated evidence; the current next action is in the status board and the latest provider-result record.
+Current state: **ACCEPTANCE_PENDING — TEN-DISTINCT-PDF PROVIDER RESULT AND COMPLETE FRESH PASS B PASS; SEPARATE PASS C NEXT**. Historical states and gates below are retained as dated evidence; the current next action is in the status board and the new full Pass-B record.
 
 ADR 0013 implementation is exact-head green at `b06a823e1d6e3b1a4693c683afe11e1771449365` / CI `36150541994` (**5/5 SUCCESS**, clean-checkout included; provider jobs skipped). Fresh adversarial implementation review is recorded in `WP-2.9C-ADR-0013-IMPLEMENTATION-REVIEW.md` and finds no BLOCKING/MAJOR defect in the Static Assets ingress, external Durable Object binding, native structured evidence logging, exact-script/version Observability collection or fail-closed two-surface evaluator.
 

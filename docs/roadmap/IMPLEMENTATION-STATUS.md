@@ -38,7 +38,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.8B | Venue private archived media lifecycle                                 | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.8C | recoverable Venue remote-media metadata lifecycle                      | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.9A | Venue-linked private PDF/document foundation                           | **BLOCKED — waits for WP-2.9C ACCEPTED**                                   |
-| WP-2.9C | trusted private-document ingestion hardening                           | **REVIEW_PENDING — TEN-DISTINCT-PDF PROVIDER AND EXACT-HEAD CI PASS; FRESH PASS B NEXT** |
+| WP-2.9C | trusted private-document ingestion hardening                           | **ACCEPTANCE_PENDING — COMPLETE FRESH PASS B PASS; PASS C NEXT** |
 | WP-2.9B | generic project tags and Venue entity-tag links                        | **PLANNED / AFTER A**                                                      |
 | WP-2.10 | repositories, local cache, pending/offline mutations                   | PLANNED                                                                    |
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace                       | PLANNED                                                                    |
@@ -59,7 +59,7 @@ WP-2.1..WP-2.8C are accepted and complete. Durable evidence remains in their pac
 
 ## WP-2.9C — current packet
 
-State: **REVIEW_PENDING — TEN-DISTINCT-PDF PROVIDER AND FREE-TIER RECONCILIATION EXACT-HEAD CI PASS; COMPLETE FRESH PASS B NEXT**. The prior repeated-byte sample remains historical limited evidence. The new compliant ten-distinct-PDF provider result is recorded below; AR-006/AR-009 formal closure waits for clean full Pass B.
+State: **ACCEPTANCE_PENDING — TEN-DISTINCT-PDF PROVIDER AND EXACT-HEAD CI PASS; COMPLETE FRESH PASS B PASS; PASS C NEXT**. The prior repeated-byte sample remains historical limited evidence. The new compliant ten-distinct-PDF provider result and full fresh Pass B are recorded below. C is not yet accepted; A remains blocked.
 
 Pass-A exact evidence:
 
@@ -154,7 +154,7 @@ AR-006 evidence-channel follow-up and architecture review:
 - The three tested provider channels are now insufficient for this unchanged isolated Pages deployment: GraphQL, standard Pages tail and Workers Observability. No exact-size promotion, Paid entitlement, timing substitute, contract reduction or runtime migration is authorized by this result.
 - The Observability capability probe must use a dedicated short-lived `AR006_CLOUDFLARE_OBSERVABILITY_TOKEN`; Cloudflare currently documents `Workers Observability Write` as the API permission for the telemetry query/key endpoints. This token must not replace/reuse the Pages deployment or Account Analytics tokens.
 
-Current remediation status:
+Historical ADR 0011 remediation status (superseded by item 41 above):
 
 - `WP29C-AR-005` — **MAJOR / IMPLEMENTATION-REMEDIATED / EXACT-HEAD-GREEN** — trusted clean-abandon path, DB orphan backstop, immediate pre-copy reservation revalidation, safe post-copy compensation and race/retry coverage implemented. Formal closure waits for the later complete fresh Pass B after AR-006 is unblocked.
 - `WP29C-AR-006` — **MAJOR / OPEN / BLOCKING** — the bounded ADR 0011 private-Worker campaign produced eight HTTP-200 exact-size successes, two HTTP-503 failures, eight provider CPU values of 237–273 ms and two `exceededCpu` outcomes on Workers Free. The 10 ms normal budget failed. Architecture review is required before any new campaign.
@@ -253,6 +253,7 @@ Normative release/deployment/secret contracts require Pages Functions to deploy 
 38. The review/status seal `15d4e4eac6973de5d00798ca849568d6692e898d` / CI `36458756536` passed **5/5**, including clean checkout. Its same-tree no-content trigger `2303df0c9e8d6f72561ec0ce42514663801229d8` / CI `36459949861` passed all five ordinary jobs and isolated provider job `109058754517`. Artifact `10987866873` (ZIP SHA-256 `6ec13fbc69d7ab098d46ecc8219f383a4996c2dc193ffa753ac012c81d5e9c92`) records ten byte-distinct synthetic 25,000,000-byte PDFs, ten successful finalizations and valid exact-version CPU on both Workers Free surfaces: ingress 0–2 ms / 10 ms, Durable Object 274–360 ms / 30,000 ms. `WP-2.9C-ADR-0013-DISTINCT-PDF-PROVIDER-RESULT-2026-09-28.md` records the checked receipt. This closes the provider evidence gap as a candidate only; AR-006/AR-009 formal closure and C acceptance still require evidence-bound exact-head CI, complete fresh Pass B and Pass C. The single-campaign authorization is consumed.
 39. Evidence-bound result `78fb24e4dcb9551b041edd9079f0ac3c5b1e973a` / CI `36461954215` passed **5/5**, including clean checkout; provider jobs skipped. Pre-review reconciliation found `docs/operations/FREE-TIER.md` still calling the older repeated-byte `da19c6c` sample accepted proof. That normative operational reference is being corrected to cite the ten-distinct-PDF result and label the older sample limited history. Require exact-head 5/5 CI for this correction before entering the complete fresh Pass B. No new provider campaign is authorized.
 40. Free-tier reconciliation `d3dad1623f0a878b43637200db31e7cf909f9869` / CI `36463139444` passed **5/5**, including full verification from a clean checkout. Pass A remediation evidence is now complete and the packet transitions `IN_PROGRESS -> REVIEW_PENDING`. Next: a new complete Pass B over all seven C responsibilities and AR-001..009; no provider rerun is authorized.
+41. REVIEW_PENDING seal `44fc3e14bdc55dc6ab0b3613a82a9eea7daa6293` / CI `36464200682` passed **5/5**, including full verification from a clean checkout. `WP-2.9C-FRESH-PASS-B-DISTINCT-PDF-2026-09-28.md` is the new complete Pass B: **PASS**, no unresolved BLOCKING/MAJOR/MINOR finding across all seven C responsibilities; AR-001..009 are formally CLOSED / VERIFIED for C. State transitions `REVIEW_PENDING -> ACCEPTANCE_PENDING`; next is separate Pass C expected/implemented/verified reconciliation, including FIR and parent-A dependency. No provider rerun is needed or authorized.
 
 ## Durable handoff
 
@@ -264,7 +265,7 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.8C
 WP-2.9A: BLOCKED — waits for WP-2.9C ACCEPTED
-Current packet: WP-2.9C — REVIEW_PENDING / FRESH PASS B NEXT; DISTINCT-PDF PROVIDER AND FREE-TIER RECONCILIATION EXACT-HEAD CI PASS
+Current packet: WP-2.9C — ACCEPTANCE_PENDING / PASS C NEXT; DISTINCT-PDF PROVIDER AND COMPLETE FRESH PASS B PASS
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
@@ -303,5 +304,5 @@ FTR-089 FIR: #17 — BLOCKED
 WP-2.9B: PLANNED / AFTER A
 Lots 3–12: NOT_STARTED
 Latest distinct-PDF campaign: 2303df0c9e8d6f72561ec0ce42514663801229d8 / CI 36459949861 / provider job 109058754517 / artifact 10987866873 — 10 distinct exact-size PDFs, 10 finalized flows, 20 valid exact-version CPU readings within Workers Free; provider verdict PASS
-Next permitted action: perform complete fresh adversarial Pass B over all seven WP-2.9C responsibilities and AR-001..009. Only a clean Pass B may transition C to ACCEPTANCE_PENDING for a separate Pass C; A remains BLOCKED until C is ACCEPTED.
+Next permitted action: separate Pass C acceptance/reconciliation for WP-2.9C, including seven responsibility rows, current FIR fields, CI, status and parent-A handoff. Only Pass C may accept C and unblock A; no provider rerun is authorized.
 ```
