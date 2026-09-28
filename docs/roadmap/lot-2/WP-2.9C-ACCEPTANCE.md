@@ -1,7 +1,6 @@
 # WP-2.9C — Pass C acceptance reconciliation
 
-Status: **PASS — packet responsibility gap ∅; final acceptance-governance CI
-pending**.
+Status: **ACCEPTED / COMPLETE — Pass C gap ∅; exact-head acceptance CI green**.
 
 This is the separate `EXPECTED ↔ IMPLEMENTED ↔ VERIFIED` reconciliation for
 `WP-2.9C — Trusted private-document ingestion hardening`. Entry state was
@@ -20,6 +19,9 @@ WP-2.9A or the whole FTR-089 feature.
 - Full fresh Pass-B record and `ACCEPTANCE_PENDING` entry:
   `66b9396fc06b540a0a51a1fa948933c170728d65` / CI `36465390803` —
   **5/5 SUCCESS**, clean checkout included.
+- This separate Pass-C acceptance record:
+  `21accd7f9ab1b845275507b7941a782c5e816a56` / CI `36494697647` —
+  **5/5 SUCCESS**, clean checkout included. Provider jobs correctly skipped.
 - Isolated Workers Free provider campaign: same-tree trigger
   `2303df0c9e8d6f72561ec0ce42514663801229d8` / CI `36459949861`,
   isolated job `109058754517`, artifact `10987866873`, digest
@@ -71,8 +73,8 @@ required WP-2.9C responsibilities
 = ∅
 ```
 
-Pass C therefore finds WP-2.9C eligible for `ACCEPTED / COMPLETE`, subject to
-the final acceptance-governance HEAD itself passing five ordinary exact-head
-CI jobs including the clean checkout. Only then may WP-2.9A leave `BLOCKED`
-for integration/reverification and its own fresh Pass B/Pass C. WP-2.9B
-remains planned after accepted A; Lot 2 and FTR-089 are not accepted here.
+Pass C accepts WP-2.9C as `ACCEPTED / COMPLETE` after the acceptance-record
+HEAD passed all five ordinary CI jobs, including clean checkout. This resolves
+the recorded blocker for WP-2.9A, which may resume integration/reverification
+and must complete its own fresh Pass B/Pass C. WP-2.9B remains planned after
+accepted A; Lot 2 and FTR-089 are not accepted here.

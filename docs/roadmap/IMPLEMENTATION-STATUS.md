@@ -37,8 +37,8 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.8A | Venue remote-image metadata and Venue links                            | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.8B | Venue private archived media lifecycle                                 | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.8C | recoverable Venue remote-media metadata lifecycle                      | **ACCEPTED / COMPLETE**                                                    |
-| WP-2.9A | Venue-linked private PDF/document foundation                           | **BLOCKED — waits for WP-2.9C ACCEPTED**                                   |
-| WP-2.9C | trusted private-document ingestion hardening                           | **ACCEPTANCE_PENDING — COMPLETE FRESH PASS B PASS; PASS C NEXT** |
+| WP-2.9A | Venue-linked private PDF/document foundation                           | **IN_PROGRESS — accepted C integration/reverification; fresh B next**      |
+| WP-2.9C | trusted private-document ingestion hardening                           | **ACCEPTED / COMPLETE**                                                      |
 | WP-2.9B | generic project tags and Venue entity-tag links                        | **PLANNED / AFTER A**                                                      |
 | WP-2.10 | repositories, local cache, pending/offline mutations                   | PLANNED                                                                    |
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace                       | PLANNED                                                                    |
@@ -50,16 +50,16 @@ WP-2.1..WP-2.8C are accepted and complete. Durable evidence remains in their pac
 
 ## WP-2.9A
 
-- **BLOCKED**; FIR `#17 / FTR-089`.
+- **IN_PROGRESS / A-IMPLEMENT reintegration**; FIR `#17 / FTR-089` remains open.
 - Pass-A `e533b5c53d1be074216ccaa92f74281b425de770` / `34826553890` — **5/5 SUCCESS**.
 - `WP29A-AR-001/002/003` — **CLOSED / VERIFIED**.
-- `WP29A-AR-004` — **MAJOR / OPEN in parent**; C1 remediation implemented in C; closure waits for C acceptance + A reverification.
-- `WP29A-AR-005` — **MAJOR / OPEN in parent**; trusted-byte remediation implemented in C; closure waits for C acceptance + A reverification.
-- A resumes only after **WP-2.9C ACCEPTED**, then integration/reverification → fresh Pass B → Pass C.
+- `WP29A-AR-004` — **MAJOR / OPEN in A**; accepted C1 remediation awaits A reverification/fresh review.
+- `WP29A-AR-005` — **MAJOR / OPEN in A**; accepted trusted-byte remediation awaits A reverification/fresh review.
+- C's acceptance resolved A's blocker; next integrate/reverify A → REVIEW_PENDING → fresh full Pass B → Pass C.
 
-## WP-2.9C — current packet
+## WP-2.9C — accepted remediation packet
 
-State: **ACCEPTANCE_PENDING — PASS C RECONCILIATION PASS; ACCEPTANCE-SEAL CI PENDING**. The prior repeated-byte sample remains historical limited evidence. The compliant ten-distinct-PDF provider result, full fresh Pass B and separate Pass C are recorded below. C is not yet accepted; A remains blocked.
+State: **ACCEPTED / COMPLETE**. The prior repeated-byte sample remains historical limited evidence. The compliant ten-distinct-PDF provider result, full fresh Pass B and separate Pass C are recorded below. Acceptance-record head `21accd7f9ab1b845275507b7941a782c5e816a56` / CI `36494697647` passed **5/5**, including clean checkout. A is now `IN_PROGRESS` for integration/reverification; FTR-089 remains unaccepted.
 
 Pass-A exact evidence:
 
@@ -255,6 +255,7 @@ Normative release/deployment/secret contracts require Pages Functions to deploy 
 40. Free-tier reconciliation `d3dad1623f0a878b43637200db31e7cf909f9869` / CI `36463139444` passed **5/5**, including full verification from a clean checkout. Pass A remediation evidence is now complete and the packet transitions `IN_PROGRESS -> REVIEW_PENDING`. Next: a new complete Pass B over all seven C responsibilities and AR-001..009; no provider rerun is authorized.
 41. REVIEW_PENDING seal `44fc3e14bdc55dc6ab0b3613a82a9eea7daa6293` / CI `36464200682` passed **5/5**, including full verification from a clean checkout. `WP-2.9C-FRESH-PASS-B-DISTINCT-PDF-2026-09-28.md` is the new complete Pass B: **PASS**, no unresolved BLOCKING/MAJOR/MINOR finding across all seven C responsibilities; AR-001..009 are formally CLOSED / VERIFIED for C. State transitions `REVIEW_PENDING -> ACCEPTANCE_PENDING`; next is separate Pass C expected/implemented/verified reconciliation, including FIR and parent-A dependency. No provider rerun is needed or authorized.
 42. Pass-B/status seal `66b9396fc06b540a0a51a1fa948933c170728d65` / CI `36465390803` passed **5/5**, including clean checkout. Separate `WP-2.9C-ACCEPTANCE.md` Pass C reconciles all seven responsibilities `EXPECTED ↔ IMPLEMENTED ↔ VERIFIED` with gap **∅**, current FIR #17, no open C finding and explicit parent-A handoff. Its decision is **PASS / eligible for ACCEPTED**, subject to this acceptance-record seal passing five exact-head ordinary CI jobs. Until then C remains `ACCEPTANCE_PENDING` and A `BLOCKED`.
+43. Acceptance-record seal `21accd7f9ab1b845275507b7941a782c5e816a56` / CI `36494697647` passed **5/5**, including clean checkout. Pass C marks WP-2.9C **ACCEPTED / COMPLETE** with gap ∅ and AR-001..009 closed for C. WP-2.9A's recorded blocker is resolved; it transitions `BLOCKED -> IN_PROGRESS` for integration/reverification and fresh full Pass B. Its AR-004/005 remain open until that review. No provider rerun is authorized or needed.
 
 ## Durable handoff
 
@@ -265,8 +266,8 @@ Lot 1: ACCEPTED
 Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.8C
-WP-2.9A: BLOCKED — waits for WP-2.9C ACCEPTED
-Current packet: WP-2.9C — ACCEPTANCE_PENDING / PASS C PASS, ACCEPTANCE-SEAL CI PENDING; DISTINCT-PDF PROVIDER AND COMPLETE FRESH PASS B PASS
+WP-2.9C: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 21accd7f9ab1b845275507b7941a782c5e816a56 / CI 36494697647 5/5 including clean checkout
+Current packet: WP-2.9A — IN_PROGRESS / A-IMPLEMENT integration and reverification; AR-004/005 open in A until fresh full Pass B
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
@@ -300,10 +301,10 @@ Tail support green tree: d04edd0ed0d3daa3b9bfe20d954003bb13545200 / parent 82e05
 Tail capability trigger: 7645a9e769c641640f52fdba535deb6140401fc6 / workflow 35153132971 / job 104986087784 / artifact 10469354745 — deny smoke SUCCESS; parsedJsonEventCount=0; providerCpuTimeMs=[]; pass=false
 Workers Observability configured capability preflight: bd3fdb4baab6ef59983e40f77b5b2f44ba6dc8b7 / workflow 35213157767 / job 105175271234 / artifact 10494251279 (ZIP SHA-256 02438aadb3e377f6c8e6ed66b3b00c0c0d3e473008c3bb710acbfb805f2dde7c) — deny smoke passed; no attributable numeric provider CPU; pass=false
 AR-006 architecture review: ADR 0011 private Worker failed the deployed Free CPU gate; ADR 0012 accepted direct Pages → per-document Durable Object replacement architecture
-AR-005/007/008: implementation-evidenced; AR-006 CPU feasibility shown for repeated-byte sample but ten-distinct-PDF acceptance still open under AR-009
-FTR-089 FIR: #17 — BLOCKED
+AR-005/007/008/006/009 in C: CLOSED / VERIFIED by the complete fresh C Pass B and Pass C; parent A AR-004/005 remain open pending A review
+FTR-089 FIR: #17 — IN_PROGRESS / parent A not yet accepted
 WP-2.9B: PLANNED / AFTER A
 Lots 3–12: NOT_STARTED
 Latest distinct-PDF campaign: 2303df0c9e8d6f72561ec0ce42514663801229d8 / CI 36459949861 / provider job 109058754517 / artifact 10987866873 — 10 distinct exact-size PDFs, 10 finalized flows, 20 valid exact-version CPU readings within Workers Free; provider verdict PASS
-Next permitted action: commit the Pass C acceptance record and require 5/5 exact-head ordinary CI including clean checkout. If green, mark C ACCEPTED and unblock A for integration/reverification; no provider rerun is authorized.
+Next permitted action: complete A integration/reverification of accepted C, require exact-head CI including clean checkout, then transition A to REVIEW_PENDING for a fresh full Pass B. No provider rerun is authorized.
 ```

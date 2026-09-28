@@ -5,13 +5,13 @@
 - Work Packet ID: `WP-2.9A`
 - Lot: `2`
 - Name: Venue-linked private document foundation
-- State: `BLOCKED`
-- Current pass: `BLOCKED — AR-005 requires accepted WP-2.9C trusted-ingestion remediation before A can resume`
+- State: `IN_PROGRESS`
+- Current pass: `A-IMPLEMENT — reintegrate and reverify accepted WP-2.9C remediation before fresh Pass B`
 - Primary bounded context: Documents — private PDF metadata, Venue links, Storage lifecycle and recoverable metadata
 - Branch/PR: `lot-2/venues-core` / Lot-2 integration PR not opened yet
 - FIR: `#17 / FTR-089`
 - Historical size: **10 points**; explicit cohesion review **PASS**
-- Blocker resolution condition: `WP-2.9C ACCEPTED`, then A returns to `IN_PROGRESS` for integration/reverification and fresh Pass B
+- Blocker resolution condition: **MET** — `WP-2.9C ACCEPTED` after `21accd7f9ab1b845275507b7941a782c5e816a56` / CI `36494697647` 5/5; A returns to `IN_PROGRESS` for integration/reverification and fresh Pass B
 
 ## Activation / governance evidence
 
@@ -22,11 +22,11 @@ The former monolithic WP-2.9 scored **12 points** and was split before code into
 
 Fresh Pass B later proved that the originally planned browser→Storage Document ingestion boundary could not satisfy the frozen exact-byte integrity contract against an untrusted client without an additional privileged server boundary. Under the >10-point split rule and architecture stop conditions, remediation is now isolated in **WP-2.9C — Trusted private-document ingestion hardening** under ADR 0008.
 
-Current sequencing is therefore:
+The historical remediation split was:
 
 ```text
 WP-2.9A [BLOCKED]
-  → WP-2.9C [READY → IMPLEMENT/REVIEW/ACCEPT]
+  → WP-2.9C [ACCEPTED / COMPLETE]
     → WP-2.9A [IN_PROGRESS reintegration → fresh Pass B → Pass C]
       → WP-2.9B
 ```
@@ -210,7 +210,7 @@ The shared TypeScript scalar validator rejects U+0000..U+001F and U+007F but acc
 
 Required remediation is assigned to WP-2.9C: extend the single canonical scalar-control rule to U+007F..U+009F and add focused RED coverage without changing trim/scalar/surrogate semantics.
 
-**Classification: MAJOR / OPEN.** It is resolved only after WP-2.9C remediation evidence and A's later fresh review verify the defect closed.
+**Classification: MAJOR / OPEN IN A.** WP-2.9C remediation is accepted; A's integrated reverification and fresh review must still verify the defect closed.
 
 ### WP29A-AR-005 — MAJOR / OPEN — ready commit is not bound to actual uploaded-object integrity
 
@@ -218,7 +218,7 @@ The existing `finalize_upload` checks exact object presence but the authenticate
 
 The frozen contract requires SHA-256 over exact uploaded bytes and critical file validation at a trusted boundary. PostgreSQL cannot recompute SHA-256 from private Storage bytes, and caller-supplied Storage metadata cannot attest itself. This requires the new trusted server boundary frozen in ADR 0008 and implemented by WP-2.9C.
 
-**Classification: MAJOR / OPEN / ARCHITECTURE BLOCKER.** It is resolved only after WP-2.9C is ACCEPTED and A's integrated fresh review confirms no direct authenticated binary-integrity bypass remains.
+**Classification: MAJOR / OPEN IN A.** WP-2.9C is ACCEPTED and resolves the architecture dependency; A's integrated fresh review must still confirm no direct authenticated binary-integrity bypass remains.
 
 ## Reviewed non-findings
 
@@ -243,6 +243,7 @@ WP-2.9C ACCEPTED
 
 ## Current gate
 
-WP-2.9A is **BLOCKED**. The current executable packet is WP-2.9C.
-
-No product code in A is changed while this blocker is active. WP-2.9B and later packets remain forbidden until A ultimately reaches ACCEPTED.
+WP-2.9A is **IN_PROGRESS / A-IMPLEMENT reintegration and reverification** after
+WP-2.9C acceptance. AR-004/005 remain open in A until affected verification and
+fresh full Pass B close them. WP-2.9B and later packets remain forbidden until
+A reaches ACCEPTED.
