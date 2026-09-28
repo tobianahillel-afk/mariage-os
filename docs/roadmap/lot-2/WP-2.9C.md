@@ -5,7 +5,7 @@
 - Work Packet ID: `WP-2.9C`
 - Lot: `2`
 - State: `IN_PROGRESS`
-- Current pass: `REMEDIATION` — WP29C-AR-008 release-contract finding from the fresh Pass B
+- Current pass: `REMEDIATION` — WP29C-AR-009 distinct-PDF evidence finding from the fresh Pass B
 - Primary bounded context: Documents — trusted binary promotion for the existing WP-2.9A private PDF lifecycle
 - Branch: `lot-2/venues-core`
 - FIR: `#17 / FTR-089`
@@ -14,6 +14,7 @@
 - Historical architecture blocker: `docs/roadmap/lot-2/WP-2.9C-BLOCKER.md` — resolved by ADR 0010
 - Runtime-evidence history and current result: `docs/roadmap/lot-2/WP-2.9C-AR-006-CPU-EVIDENCE.md`; `WP-2.9C-ADR-0013-PROVIDER-RESULT-2026-09-27.md`
 - Fresh Pass-B reviews: `docs/roadmap/lot-2/WP-2.9C-PASS-B-REVIEW.md`; `WP-2.9C-FRESH-PASS-B-2026-09-27.md`
+- Latest fresh Pass B: `WP-2.9C-FRESH-PASS-B-2026-09-28.md` — AR-009 MAJOR; ten provider CPU readings per surface remain valid for repeated PDF bytes, but ADR 0013's ten distinct PDF requirement is unmet.
 - Size: **10 points**; cohesion review **PASS**
 
 ## Current verdict
@@ -29,7 +30,9 @@ ingress **0–3 ms** against 10 ms, Durable Object **142–329 ms** against
 30,000 ms. The sanitized artifact `10940276677` and provenance are recorded in
 `WP-2.9C-ADR-0013-PROVIDER-RESULT-2026-09-27.md`. This supersedes the
 historical runtime-evidence blocker for the approved ADR 0013 topology.
-AR-006 is implementation-evidenced, pending formal review closure.
+Those CPU readings establish feasibility for the repeated-byte sample. The
+later fresh Pass B found AR-009: ADR 0013's ten distinct synthetic PDF
+condition is unmet, so AR-006 cannot yet close.
 
 WP-2.9C is not accepted. The commit binding this result into the repository
 passed exact-head CI `36344835905` **5/5**, including clean checkout. The
@@ -516,7 +519,21 @@ Assets being the proven route. A RED-first contract test reproduced the drift.
 `WP-2.9C-AR-008-REMEDIATION-2026-09-27.md` records the locally green
 CI/release/secret/Free-tier/plan and deny/static smoke correction. This remains
 `IN_PROGRESS` until exact-head CI, review and a new clean full Pass B; the
-successful provider CPU evidence is retained without another campaign.
+successful provider CPU evidence is retained, but the later AR-009 review
+requires a new compliant proof before acceptance.
+
+### WP29C-AR-009 distinct-PDF provider evidence — 2026-09-28
+
+Fresh full Pass B `WP-2.9C-FRESH-PASS-B-2026-09-28.md` found MAJOR AR-009.
+The provider artifact contains ten distinct document/evidence/DO identities
+and measured invocations, but the same PDF bytes were staged at all ten
+paths. ADR 0013 explicitly requires ten distinct exact-size synthetic PDFs.
+RED-first tests demonstrated one repeated SHA-256 and missing duplicate-hash
+rejection in the campaign verdict. WP-2.9C remains `IN_PROGRESS /
+REMEDIATION`; AR-006 cannot be formally closed or C accepted until a reviewed,
+exact-head-green distinct-PDF harness produces a compliant isolated provider
+result and a later complete Pass B/Pass C pass. No replacement campaign is
+authorized by the failed review alone.
 
 ## Deviations
 

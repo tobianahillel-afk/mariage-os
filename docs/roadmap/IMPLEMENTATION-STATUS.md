@@ -38,7 +38,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.8B | Venue private archived media lifecycle                                 | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.8C | recoverable Venue remote-media metadata lifecycle                      | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.9A | Venue-linked private PDF/document foundation                           | **BLOCKED — waits for WP-2.9C ACCEPTED**                                   |
-| WP-2.9C | trusted private-document ingestion hardening                           | **IN_PROGRESS — FRESH PASS B REVIEW_FAILED / AR-008 RELEASE-CONTRACT REMEDIATION** |
+| WP-2.9C | trusted private-document ingestion hardening                           | **IN_PROGRESS — FRESH PASS B REVIEW_FAILED / AR-009 DISTINCT-PDF EVIDENCE REMEDIATION** |
 | WP-2.9B | generic project tags and Venue entity-tag links                        | **PLANNED / AFTER A**                                                      |
 | WP-2.10 | repositories, local cache, pending/offline mutations                   | PLANNED                                                                    |
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace                       | PLANNED                                                                    |
@@ -59,7 +59,7 @@ WP-2.1..WP-2.8C are accepted and complete. Durable evidence remains in their pac
 
 ## WP-2.9C — current packet
 
-State: **IN_PROGRESS / REMEDIATION — EVIDENCE-BOUND CI GREEN; FRESH PASS B REVIEW_FAILED ON WP29C-AR-008; RELEASE-CONTRACT REMEDIATION STARTED**. AR-006 remains implementation-evidenced, pending formal closure in a clean future Pass B.
+State: **IN_PROGRESS / REMEDIATION — FRESH PASS B REVIEW_FAILED ON WP29C-AR-009 DISTINCT-PDF EVIDENCE**. The ten-flow CPU observations remain valid for their repeated-byte sample; AR-006 formal closure waits for a compliant distinct-PDF campaign and a clean later Pass B.
 
 Pass-A exact evidence:
 
@@ -242,6 +242,7 @@ Normative release/deployment/secret contracts require Pages Functions to deploy 
 27. A new ADR 0013 production-operations regression test was RED against the old contracts. Next: reconcile those normative contracts and release-plan metadata to the current Worker ingress plus private DO host, run focused tests and complete exact-head CI/clean checkout, then a fresh review and full Pass B. The successful CPU campaign is retained; no rerun is authorized or needed.
 28. AR-008 remediation is implemented locally: `WP-2.9C-AR-008-REMEDIATION-2026-09-27.md` records normative CI/release/secret/Free-tier/plan reconciliation and Worker-first deny/static production smoke. The RED-first contract control and AR-007 regression now pass 9/9 targeted tests. Next: local static checks, commit/push, exact-head CI including clean checkout, fresh remediation review, then complete fresh Pass B. No provider action is authorized by this docs/smoke correction.
 29. AR-008 production-contract correction passed exact-head `a819947` / CI `36346460133` **5/5 SUCCESS**, including clean checkout. Targeted review found the historical Pages `onRequest` source remains for shared logic/local regression; production must verify that the route is owned only by Workers Static Assets. A narrow contract/test clarification is in progress, without changing the deployed ingress/DO runtime or rerunning the green CPU campaign. Next: exact-head CI over that clarification, targeted review, then full fresh Pass B.
+30. Clarification `a94a7b9` / CI `36395904397` passed **5/5 SUCCESS**, clean checkout included; targeted AR-008 review is PASS in `WP-2.9C-AR-008-REVIEW-2026-09-28.md`. The complete fresh Pass B in `WP-2.9C-FRESH-PASS-B-2026-09-28.md` found MAJOR `WP29C-AR-009`: the governed ten-flow campaign used ten distinct document/DO identities but one repeated PDF byte sequence, while ADR 0013 requires ten distinct synthetic PDFs. RED tests reproduced both the repeated hash and the verdict's duplicate-hash acceptance. State moved `REVIEW_PENDING -> REVIEW_FAILED -> IN_PROGRESS` for remediation. No Pass C or A resumption; prior CPU readings must not be mislabeled as ten byte-distinct PDFs.
 
 ## Durable handoff
 
@@ -253,7 +254,7 @@ Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.8C
 WP-2.9A: BLOCKED — waits for WP-2.9C ACCEPTED
-Current packet: WP-2.9C — IN_PROGRESS / ADR 0013 TEN-FLOW CPU EVIDENCE AND EVIDENCE-BOUND CI GREEN; FRESH PASS B REVIEW_FAILED ON AR-008; RELEASE-CONTRACT REMEDIATION ACTIVE
+Current packet: WP-2.9C — IN_PROGRESS / REMEDIATION; FRESH PASS B REVIEW_FAILED ON AR-009 DISTINCT-PDF EVIDENCE
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
@@ -287,9 +288,9 @@ Tail support green tree: d04edd0ed0d3daa3b9bfe20d954003bb13545200 / parent 82e05
 Tail capability trigger: 7645a9e769c641640f52fdba535deb6140401fc6 / workflow 35153132971 / job 104986087784 / artifact 10469354745 — deny smoke SUCCESS; parsedJsonEventCount=0; providerCpuTimeMs=[]; pass=false
 Workers Observability configured capability preflight: bd3fdb4baab6ef59983e40f77b5b2f44ba6dc8b7 / workflow 35213157767 / job 105175271234 / artifact 10494251279 (ZIP SHA-256 02438aadb3e377f6c8e6ed66b3b00c0c0d3e473008c3bb710acbfb805f2dde7c) — deny smoke passed; no attributable numeric provider CPU; pass=false
 AR-006 architecture review: ADR 0011 private Worker failed the deployed Free CPU gate; ADR 0012 accepted direct Pages → per-document Durable Object replacement architecture
-AR-005 and AR-006: implementation-evidenced — formal closure waits clean full Pass B; AR-007 release contract reopened by ADR 0013 / AR-008
+AR-005/007/008: implementation-evidenced; AR-006 CPU feasibility shown for repeated-byte sample but ten-distinct-PDF acceptance still open under AR-009
 FTR-089 FIR: #17 — BLOCKED
 WP-2.9B: PLANNED / AFTER A
 Lots 3–12: NOT_STARTED
-Next permitted action: verify/commit/push the narrow AR-008 source/deployment contract clarification, run exact-head CI + clean checkout, review the remediation, repeat complete fresh WP-2.9C Pass B, and only after a clean B perform Pass C. Do not rerun the green provider campaign, mark C accepted, or resume A early.
+Next permitted action: complete exact-head CI for the AR-008 clarification; seal the targeted review and AR-009 Pass B finding; verify the RED-first distinct-PDF harness remediation with local and exact-head CI/clean checkout; review its fail-closed evidence controls; only then authorize one replacement isolated ten-flow provider campaign. Do not reuse the repeated-byte artifact as distinct-PDF proof, mark C accepted, or resume A early.
 ```

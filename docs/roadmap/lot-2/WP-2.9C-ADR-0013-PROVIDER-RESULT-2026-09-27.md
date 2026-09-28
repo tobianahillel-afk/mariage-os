@@ -1,6 +1,13 @@
 # WP-2.9C ADR 0013 — deployed Workers Free exact-size CPU result
 
-Status: **PROVIDER EVIDENCE GREEN / EVIDENCE-BOUND CI AND FRESH PASS B NEXT**
+Status: **CPU FEASIBILITY OBSERVED / AR-009 DISTINCT-PDF ACCEPTANCE DEFECT FOUND IN LATER PASS B**
+
+The 2026-09-28 fresh full Pass B found that the ten flows reused one PDF
+byte sequence despite ADR 0013's requirement for ten distinct synthetic PDFs.
+The provider CPU measurements below are genuine for the repeated-byte sample,
+but this artifact does **not** satisfy that complete acceptance condition.
+See `WP-2.9C-FRESH-PASS-B-2026-09-28.md`; the historical conclusion at the end
+of this record is superseded for formal AR-006 closure.
 
 The empty-log review/status seal `890f5bc942974d874a2b2cbd604f683412bf488b`
 passed ordinary CI `36343323166` **5/5**, including full verification from a
