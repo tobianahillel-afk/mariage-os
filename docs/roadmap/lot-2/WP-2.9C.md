@@ -540,6 +540,14 @@ RED-first generator, per-flow SHA-256/size evidence and fail-closed verdict.
 The production ingress/DO runtime is unchanged. Exact-head CI and independent
 review must pass before a replacement campaign can be authorized.
 
+The corrected implementation head `8f04bba` / CI `36398524127` is **5/5
+SUCCESS**, clean checkout included. The fresh targeted review
+`WP-2.9C-AR-009-REVIEW-2026-09-28.md` is PASS for the harness scope. It
+authorizes exactly one no-content same-tree `[AR006-INGRESS-EVIDENCE]`
+replacement campaign **only after its own review/status seal passes exact-head
+5/5 CI**. WP-2.9C remains `IN_PROGRESS`; the campaign result, full fresh
+Pass B and Pass C are still required.
+
 ## Deviations
 
 No security-contract deviation is authorized.
