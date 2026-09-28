@@ -20,10 +20,13 @@ interface Ar006CampaignVerdictInput {
     readonly success: boolean;
     readonly status: number;
     readonly finalized: boolean;
+    readonly sizeBytes: number;
+    readonly sha256: string;
   }>;
   readonly markerPreflight: Ar006MarkerPreflight | null;
   readonly observation: Ar006ObservationResult | null;
   readonly expectedCount: number;
+  readonly expectedBytes: number;
 }
 
 export function campaignPassed(input: Ar006CampaignVerdictInput): boolean;

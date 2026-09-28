@@ -1,6 +1,9 @@
 import { Buffer } from "node:buffer";
 
-export function createExactPdf(exactBytes) {
+export function createExactPdf(exactBytes, variant = 0) {
+  if (!Number.isSafeInteger(variant) || variant < 0 || variant > 9_999) {
+    throw new Error("Synthetic PDF variant must be a bounded integer.");
+  }
   const header = Buffer.from("%PDF-1.4\n", "ascii");
   const objectOne = Buffer.from(
     "1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n",
@@ -20,6 +23,16 @@ export function createExactPdf(exactBytes) {
     if (paddingBytes >= 2) {
       padding[0] = 0x25;
       padding[paddingBytes - 1] = 0x0a;
+    }
+    if (variant > 0 && paddingBytes > 0) {
+      const marker = Buffer.from(
+        `%AR006-DOCUMENT-${String(variant).padStart(4, "0")}`,
+        "ascii",
+      );
+      if (paddingBytes < marker.length) {
+        throw new Error("Synthetic PDF has insufficient comment padding.");
+      }
+      marker.copy(padding);
     }
     const offsetOne = header.length + padding.length;
     const offsetTwo = offsetOne + objectOne.length;

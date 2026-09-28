@@ -84,7 +84,7 @@ export function buildEvidenceRecord({
   return {
     schema: "mariage-os.wp29c.ar006.adr0013-two-surface.v1",
     ...baseRecord(context, exactBytes, invocationCount),
-    sha256: context.sha256,
+    pdfSha256s: invocations.map((item) => item.sha256),
     invocations,
     markerPreflight: sanitizedPreflight(markerPreflight),
     provider: sanitizedEvaluation(observation),
@@ -104,7 +104,7 @@ export function buildFailureEvidenceRecord({
   return {
     schema: "mariage-os.wp29c.ar006.adr0013-two-surface-failure.v1",
     ...baseRecord(context, exactBytes, invocationCount),
-    sha256: context.sha256 ?? null,
+    pdfSha256s: invocations.map((item) => item.sha256),
     completedInvocationCount: invocations.length,
     invocations,
     markerPreflight: sanitizedPreflight(markerPreflight),

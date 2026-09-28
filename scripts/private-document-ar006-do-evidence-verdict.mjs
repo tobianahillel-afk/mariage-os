@@ -1,8 +1,17 @@
-function invocationsPassed(invocations, expectedCount) {
+function invocationsPassed(invocations, expectedCount, expectedBytes) {
+  const hashes = invocations.map((item) => item.sha256);
   return (
     invocations.length === expectedCount &&
+    hashes.every(
+      (hash) => typeof hash === "string" && /^[0-9a-f]{64}$/.test(hash),
+    ) &&
+    new Set(hashes).size === expectedCount &&
     invocations.every(
-      (item) => item.success && item.status === 200 && item.finalized === true,
+      (item) =>
+        item.success &&
+        item.status === 200 &&
+        item.finalized === true &&
+        item.sizeBytes === expectedBytes,
     )
   );
 }
@@ -41,9 +50,10 @@ export function campaignPassed({
   markerPreflight,
   observation,
   expectedCount,
+  expectedBytes,
 }) {
   return (
-    invocationsPassed(invocations, expectedCount) &&
+    invocationsPassed(invocations, expectedCount, expectedBytes) &&
     markerPreflightPassed(markerPreflight) &&
     observationPassed(observation)
   );

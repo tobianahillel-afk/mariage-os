@@ -1,6 +1,10 @@
 import { randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
-import { requiredEnv } from "./private-document-ar006-do-evidence-env.mjs";
+import {
+  requiredEnv,
+  sha256Hex,
+} from "./private-document-ar006-do-evidence-env.mjs";
+import { createExactPdf } from "./private-document-ar006-synthetic-pdf.mjs";
 
 const PROMOTION_DELAY_MS = 1_500;
 
@@ -117,15 +121,20 @@ async function promote({ baseUrl, token, projectId, documentId, evidenceId }) {
 async function runPromotion(context, identity, index) {
   const documentId = randomUUID();
   const evidenceId = randomUUID();
+  const bytes = createExactPdf(context.exactBytes, index);
+  if (bytes.byteLength !== context.exactBytes) {
+    throw new Error("Synthetic PDF size drifted.");
+  }
+  const sha256 = sha256Hex(bytes);
   await reserve({
     client: identity.client,
     projectId: context.projectId,
     documentId,
-    bytes: context.bytes,
-    sha256: context.sha256,
+    bytes,
+    sha256,
     index,
   });
-  await stage(identity.client, context.projectId, documentId, context.bytes);
+  await stage(identity.client, context.projectId, documentId, bytes);
   const startedAt = new Date().toISOString();
   const result = await promote({
     baseUrl: context.deploymentUrl,
@@ -143,6 +152,8 @@ async function runPromotion(context, identity, index) {
   return {
     documentId,
     evidenceId,
+    sha256,
+    sizeBytes: bytes.byteLength,
     startedAt,
     completedAt,
     finalized,

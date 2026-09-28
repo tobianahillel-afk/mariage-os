@@ -535,6 +535,11 @@ exact-head-green distinct-PDF harness produces a compliant isolated provider
 result and a later complete Pass B/Pass C pass. No replacement campaign is
 authorized by the failed review alone.
 
+`WP-2.9C-AR-009-REMEDIATION-2026-09-28.md` records the locally green
+RED-first generator, per-flow SHA-256/size evidence and fail-closed verdict.
+The production ingress/DO runtime is unchanged. Exact-head CI and independent
+review must pass before a replacement campaign can be authorized.
+
 ## Deviations
 
 No security-contract deviation is authorized.

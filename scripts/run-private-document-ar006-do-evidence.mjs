@@ -3,7 +3,6 @@ import {
   assertUuid,
   httpsOrigin,
   requiredEnv,
-  sha256Hex,
 } from "./private-document-ar006-do-evidence-env.mjs";
 import {
   signInAr006SyntheticUser,
@@ -17,7 +16,6 @@ import {
 import { workerEvidenceTimeframe } from "./private-document-ar006-observability-timeframe.mjs";
 import { discoverAr006SurfaceScripts } from "./private-document-ar006-surface-discovery.mjs";
 import { markerReadiness } from "./private-document-ar006-version-readiness.mjs";
-import { createExactPdf } from "./private-document-ar006-synthetic-pdf.mjs";
 import {
   AR006_EVIDENCE_COUNT,
   evaluateAr006TwoSurfaceEvents,
@@ -62,8 +60,7 @@ function evidenceContext() {
     projectId,
     deploymentUrl: httpsOrigin("AR006_DEPLOYMENT_URL"),
     token: requiredEnv("CLOUDFLARE_OBSERVABILITY_API_TOKEN"),
-    bytes: null,
-    sha256: null,
+    exactBytes: MAX_BYTES,
   };
 }
 
@@ -245,12 +242,6 @@ async function main() {
     }
 
     current.failureStage = "exact_size_setup";
-    const bytes = createExactPdf(MAX_BYTES);
-    if (bytes.byteLength !== MAX_BYTES)
-      throw new Error("Synthetic PDF size drifted.");
-    current.context.bytes = bytes;
-    current.context.sha256 = sha256Hex(bytes);
-
     current.failureStage = "exact_size_flows";
     await runAr006Promotions(
       current.context,
@@ -269,6 +260,7 @@ async function main() {
       markerPreflight: current.markerPreflight,
       observation: current.observation,
       expectedCount: AR006_EVIDENCE_COUNT,
+      expectedBytes: MAX_BYTES,
     });
     current.failureStage = "evidence_write";
     await writeEvidence(
