@@ -356,9 +356,9 @@ describe("VenueLocalSyncCoordinator restart replay", () => {
     await coordinator.updateCore(updateInput());
 
     remote.updateError = null;
-    await expect(coordinatorFor(local, remote).replayPending()).resolves.toEqual(
-      [],
-    );
+    await expect(
+      coordinatorFor(local, remote).replayPending(),
+    ).resolves.toEqual([]);
     expect(remote.updateCalls).toHaveLength(1);
     expect(local.pending.get(operationId)?.status).toBe("conflict");
   });
