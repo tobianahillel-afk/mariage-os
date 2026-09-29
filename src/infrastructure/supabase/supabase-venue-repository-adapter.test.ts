@@ -205,6 +205,8 @@ describe("SupabaseVenueRepositoryAdapter update", () => {
       code: "P2",
       websiteUrl: "https://example.invalid",
       city: "Paris",
+      operationId: "77777777-7777-4777-8777-777777777777",
+      deviceId: "88888888-8888-4888-8888-888888888888",
     });
 
     expect(captures.rpcName).toBe("update_venue_core");
@@ -216,6 +218,8 @@ describe("SupabaseVenueRepositoryAdapter update", () => {
       target_code: "P2",
       target_website_url: "https://example.invalid",
       target_city: "Paris",
+      target_operation_id: "77777777-7777-4777-8777-777777777777",
+      target_device_id: "88888888-8888-4888-8888-888888888888",
     });
   });
 
@@ -237,7 +241,39 @@ describe("SupabaseVenueRepositoryAdapter update", () => {
         code: null,
         websiteUrl: null,
         city: null,
+        operationId: "77777777-7777-4777-8777-777777777777",
+        deviceId: "88888888-8888-4888-8888-888888888888",
       }),
     ).rejects.toThrow("Venue update failed.");
+  });
+});
+
+
+describe("SupabaseVenueRepositoryAdapter typed update failures", () => {
+  it.each([
+    ["40001", "conflict"],
+    ["42501", "denied"],
+    ["22023", "permanent"],
+    ["XX000", "unavailable"],
+  ] as const)("maps provider code %s to %s", async (code, expected) => {
+    const adapter = new SupabaseVenueRepositoryAdapter(
+      clientWith(
+        resultsWith({ update: { data: null, error: { code } } }),
+        emptyCaptures(),
+      ),
+    );
+    await expect(
+      adapter.updateVenueCore({
+        projectId,
+        venueId,
+        expectedRevision: 1,
+        name: "Venue Alpha",
+        code: null,
+        websiteUrl: null,
+        city: null,
+        operationId: "77777777-7777-4777-8777-777777777777",
+        deviceId: "88888888-8888-4888-8888-888888888888",
+      }),
+    ).rejects.toMatchObject({ code: expected });
   });
 });

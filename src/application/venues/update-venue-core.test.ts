@@ -5,6 +5,8 @@ import type {
 } from "./venue-repository-port";
 import { updateVenueCore } from "./update-venue-core";
 
+const operationId = "77777777-7777-4777-8777-777777777777";
+const deviceId = "88888888-8888-4888-8888-888888888888";
 const venue: VenueCoreRecord = {
   id: "a1000000-0000-4000-8000-000000000001",
   projectId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
@@ -32,7 +34,7 @@ function repository(
 }
 
 describe("updateVenueCore successful update", () => {
-  it("normalizes ordinary fields and carries expected revision", async () => {
+  it("normalizes ordinary fields and carries sync identity", async () => {
     const calls: unknown[] = [];
     const port = repository(async (input) => {
       calls.push(input);
@@ -43,6 +45,8 @@ describe("updateVenueCore successful update", () => {
       projectId: venue.projectId,
       venueId: venue.id,
       expectedRevision: 1,
+      operationId,
+      deviceId,
       name: "  Venue Alpha  ",
       code: " P2 ",
       websiteUrl: " https://example.invalid ",
@@ -54,6 +58,8 @@ describe("updateVenueCore successful update", () => {
       projectId: venue.projectId,
       venueId: venue.id,
       expectedRevision: 1,
+      operationId,
+      deviceId,
       name: "Venue Alpha",
       code: "P2",
       websiteUrl: "https://example.invalid",
@@ -74,6 +80,8 @@ describe("updateVenueCore validation failures", () => {
       projectId: venue.projectId,
       venueId: venue.id,
       expectedRevision: 1,
+      operationId,
+      deviceId,
       name: "   ",
     });
 
@@ -92,6 +100,8 @@ describe("updateVenueCore validation failures", () => {
       projectId: venue.projectId,
       venueId: venue.id,
       expectedRevision: 0,
+      operationId,
+      deviceId,
       name: "Venue Alpha",
     });
 
@@ -110,6 +120,8 @@ describe("updateVenueCore persistence failure", () => {
       projectId: venue.projectId,
       venueId: venue.id,
       expectedRevision: 1,
+      operationId,
+      deviceId,
       name: "Venue Alpha",
     });
 

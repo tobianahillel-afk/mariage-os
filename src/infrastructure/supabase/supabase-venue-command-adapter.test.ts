@@ -169,6 +169,8 @@ describe("SupabaseVenueCommandAdapter transition", () => {
         status: "rejected",
         rejectionReason: "Too small",
         expectedRevision: 6,
+        operationId: "77777777-7777-4777-8777-777777777777",
+        deviceId: "88888888-8888-4888-8888-888888888888",
       }),
     ).resolves.toBe(7);
     expect(captures.rpc).toEqual({
@@ -177,6 +179,8 @@ describe("SupabaseVenueCommandAdapter transition", () => {
       target_status: "rejected",
       target_rejection_reason: "Too small",
       target_expected_revision: 6,
+      target_operation_id: "77777777-7777-4777-8777-777777777777",
+      target_device_id: "88888888-8888-4888-8888-888888888888",
     });
   });
 
@@ -194,6 +198,8 @@ describe("SupabaseVenueCommandAdapter transition", () => {
         status: "shortlist",
         rejectionReason: null,
         expectedRevision: 1,
+        operationId: "77777777-7777-4777-8777-777777777777",
+        deviceId: "88888888-8888-4888-8888-888888888888",
       }),
     ).rejects.toThrow("Venue transition failed.");
   });
@@ -217,4 +223,30 @@ describe("SupabaseVenueCommandAdapter transition", () => {
       ).rejects.toThrow("Venue transition failed.");
     },
   );
+});
+
+
+describe("SupabaseVenueCommandAdapter typed transition failures", () => {
+  it.each([
+    ["40001", "conflict"],
+    ["42501", "denied"],
+    ["22023", "permanent"],
+    ["XX000", "unavailable"],
+  ] as const)("maps provider code %s to %s", async (code, expected) => {
+    const adapter = adapterWith(
+      { data: createdRow, error: null },
+      { data: null, error: { code } },
+    );
+    await expect(
+      adapter.transitionVenue({
+        projectId: PROJECT_ID,
+        venueId: VENUE_ID,
+        status: "shortlist",
+        rejectionReason: null,
+        expectedRevision: 1,
+        operationId: "77777777-7777-4777-8777-777777777777",
+        deviceId: "88888888-8888-4888-8888-888888888888",
+      }),
+    ).rejects.toMatchObject({ code: expected });
+  });
 });

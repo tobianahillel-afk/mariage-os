@@ -5,6 +5,9 @@ import type {
 } from "./venue-command-port";
 import { changeVenueStatus } from "./change-venue-status";
 
+const operationId = "77777777-7777-4777-8777-777777777777";
+const deviceId = "88888888-8888-4888-8888-888888888888";
+
 function commandPort(
   transitionVenue: VenueCommandPort["transitionVenue"],
 ): VenueCommandPort {
@@ -23,11 +26,13 @@ function transitionDraft(status: "shortlist" | "rejected") {
     status,
     rejectionReason: status === "rejected" ? "  too small  " : null,
     expectedRevision: 3,
+    operationId,
+    deviceId,
   } as const;
 }
 
 describe("changeVenueStatus successful persistence", () => {
-  it("sends a validated lifecycle transition with expected revision", async () => {
+  it("sends a validated transition with stable sync identity", async () => {
     const calls: VenueTransitionInput[] = [];
     const port = commandPort(async (input) => {
       calls.push(input);
@@ -43,6 +48,8 @@ describe("changeVenueStatus successful persistence", () => {
       status: "shortlist",
       rejectionReason: null,
       expectedRevision: 3,
+      operationId,
+      deviceId,
     });
   });
 
@@ -52,9 +59,7 @@ describe("changeVenueStatus successful persistence", () => {
       calls.push(input);
       return 5;
     });
-
     await changeVenueStatus(port, transitionDraft("rejected"));
-
     expect(calls[0]?.rejectionReason).toBe("too small");
   });
 });
@@ -66,15 +71,15 @@ describe("changeVenueStatus failure handling", () => {
       calls += 1;
       return 1;
     });
-
     const result = await changeVenueStatus(port, {
       projectId: "project-a",
       venueId: "venue-a",
       status: "rejected",
       rejectionReason: null,
       expectedRevision: 1,
+      operationId,
+      deviceId,
     });
-
     expect(result).toEqual({ ok: false, error: "rejection_reason_required" });
     expect(calls).toBe(0);
   });
@@ -85,12 +90,10 @@ describe("changeVenueStatus failure handling", () => {
       calls += 1;
       return 1;
     });
-
     const result = await changeVenueStatus(port, {
       ...transitionDraft("shortlist"),
       expectedRevision: 0,
     });
-
     expect(result).toEqual({ ok: false, error: "expected_revision_invalid" });
     expect(calls).toBe(0);
   });
@@ -99,9 +102,7 @@ describe("changeVenueStatus failure handling", () => {
     const port = commandPort(async () => {
       throw new Error("provider detail");
     });
-
     const result = await changeVenueStatus(port, transitionDraft("shortlist"));
-
     expect(result).toEqual({ ok: false, error: "persistence_failed" });
   });
 });
