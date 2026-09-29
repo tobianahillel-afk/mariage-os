@@ -103,7 +103,9 @@ describe("Venue persisted mutation scope validation", () => {
 
 describe("Venue persisted mutation payload validation", () => {
   it.each([
-    ["non-object payload", { payload: null }],
+    ["number payload", { payload: 7 }],
+    ["null payload", { payload: null }],
+    ["array payload", { payload: [] }],
     ["null revision", { baseRevision: null }],
     ["zero revision", { baseRevision: "0" }],
     ["unsafe revision", { baseRevision: "9007199254740992" }],
