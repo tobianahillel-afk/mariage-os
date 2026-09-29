@@ -39,7 +39,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.8C | recoverable Venue remote-media metadata lifecycle                      | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.9A | Venue-linked private PDF/document foundation                           | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.9C | trusted private-document ingestion hardening                           | **ACCEPTED / COMPLETE**                                                      |
-| WP-2.9B | generic project tags and Venue entity-tag links                        | **ACCEPTANCE_PENDING / C-ACCEPTANCE; review/status CI pending**            |
+| WP-2.9B | generic project tags and Venue entity-tag links                        | **ACCEPTED / COMPLETE — Pass C gap ∅**                                      |
 | WP-2.10 | repositories, local cache, pending/offline mutations                   | PLANNED                                                                    |
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace                       | PLANNED                                                                    |
 | WP-2.12 | mobile/offline venue-visit workflow and packet E2E completion          | PLANNED                                                                    |
@@ -270,6 +270,7 @@ Normative release/deployment/secret contracts require Pages Functions to deploy 
 56. B AR-001/002 remediation `bd39576c27d74482c477823e264aa54f85f8a3ed` / CI `36572652546` passed **5/5**, including 1,439/1,439 pgTAP assertions and clean checkout. B returns `IN_PROGRESS / REMEDIATION -> REVIEW_PENDING / B-ADVERSARIAL-REVIEW`. Findings have tested resolution candidates but remain OPEN until fresh Pass B. The separate review-entry status commit requires exact-head five-job CI before review verdict.
 57. B post-remediation review entry `d603f8c2bd5d53c85484c27b72297c60405cf677` / CI `36573768984` passed **5/5**, including clean checkout. Separate `WP-2.9B-FRESH-PASS-B-2026-09-29.md` rechecked the full B responsibility, closed WP29B-AR-001/002 with direct DB evidence and found no new finding. Verdict **PASS**; B transitions `REVIEW_PENDING -> ACCEPTANCE_PENDING / C-ACCEPTANCE`, subject to this review/status seal's own exact-head five-job CI. No Pass C or acceptance is claimed yet.
 58. B Pass-B/status seal `f812dc07ff855e985a7cf2993dbbb9408582154c` / CI `36575013966` passed **5/5**, including clean checkout. Separate `WP-2.9B-ACCEPTANCE.md` Pass C reconciles every assigned current-Lot responsibility as `EXPECTED ↔ IMPLEMENTED ↔ VERIFIED` with gap **∅**, current FIR #27 and explicit downstream FTR-093 scope. Verdict **PASS / eligible for ACCEPTED**, subject to the acceptance-record HEAD passing five exact-head ordinary CI jobs. Until then B remains `ACCEPTANCE_PENDING` and WP-2.10 `PLANNED / AFTER B`.
+59. B acceptance-record `df0a3f057d4d06d02312c071b3a890c0b1f14b38` / CI `36576346730` passed **5/5**, including DB/RLS and full verify from clean checkout. Pass C marks WP-2.9B **ACCEPTED / COMPLETE**, gap ∅ and AR-001/002 closed. WP-2.9A/B/C are all terminal accepted. FTR-093 remains IN_PROGRESS for WP-2.11 presentation and later targets/lots. WP-2.10 remains PLANNED pending its separate activation revalidation, READY transition and exact-head CI; no 2.10 implementation is authorized yet.
 
 ## Durable handoff
 
@@ -279,10 +280,10 @@ Lot 0: ACCEPTED
 Lot 1: ACCEPTED
 Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
-Accepted durable Lot-2 packets: WP-2.1..WP-2.8C, WP-2.9C, WP-2.9A
+Accepted durable Lot-2 packets: WP-2.1..WP-2.8C, WP-2.9C, WP-2.9A, WP-2.9B
 WP-2.9C: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 21accd7f9ab1b845275507b7941a782c5e816a56 / CI 36494697647 5/5 including clean checkout
 WP-2.9A: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 656398bcd5520cfa56d782023d150eb64317161d / CI 36542083037 5/5 including clean checkout
-Current packet: WP-2.9B — ACCEPTANCE_PENDING / C-ACCEPTANCE; Pass C gap ∅, acceptance-record exact-head CI pending
+Current packet: none — WP-2.9B ACCEPTED / COMPLETE at df0a3f0 / CI 36576346730 5/5; next WP-2.10 PLANNED / AFTER B
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
@@ -318,8 +319,8 @@ Workers Observability configured capability preflight: bd3fdb4baab6ef59983e40f77
 AR-006 architecture review: ADR 0011 private Worker failed the deployed Free CPU gate; ADR 0012 accepted direct Pages → per-document Durable Object replacement architecture
 AR-005/007/008/006/009 in C: CLOSED / VERIFIED by the complete fresh C Pass B and Pass C; parent A AR-004/005 closed by A Pass B and Pass C
 FTR-089 FIR: #17 — IN_PROGRESS / parent A accepted, later presentation and Lot responsibilities remain
-WP-2.9B: ACCEPTANCE_PENDING / C-ACCEPTANCE; FTR-093 FIR #27; WP29B-AR-001/002 CLOSED / VERIFIED; Pass C PASS candidate pending exact-head CI
+WP-2.9B: ACCEPTED / COMPLETE; FTR-093 FIR #27 remains IN_PROGRESS for downstream scope; WP29B-AR-001/002 CLOSED / VERIFIED; Pass C gap ∅
 Lots 3–12: NOT_STARTED
 Latest distinct-PDF campaign: 2303df0c9e8d6f72561ec0ce42514663801229d8 / CI 36459949861 / provider job 109058754517 / artifact 10987866873 — 10 distinct exact-size PDFs, 10 finalized flows, 20 valid exact-version CPU readings within Workers Free; provider verdict PASS
-Next permitted action: pass B's separate Pass-C acceptance-record HEAD through exact-head five-job CI. If green, mark WP-2.9B ACCEPTED / COMPLETE, keep FTR-093 IN_PROGRESS for downstream scope, and revalidate WP-2.10 before its own READY gate.
+Next permitted action: revalidate WP-2.10 against accepted A/B/C and current offline/local contracts, then use its separate PLANNED -> READY governance commit and exact-head CI before 2.10 Pass A. Lot reconciliation/integration/checkpoint are later and not yet authorized by unfinished packets.
 ```

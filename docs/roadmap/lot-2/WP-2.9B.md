@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.9B`
 - Lot: `2`
 - Name: Generic project tags and Venue entity-tag links
-- State: `ACCEPTANCE_PENDING` (fresh Pass B PASS; review/status seal CI pending)
-- Current pass: `C-ACCEPTANCE`
+- State: `ACCEPTED`
+- Current pass: `COMPLETE`
 - Primary bounded context: Generic Tags — project tag dictionary and same-project Venue assignments
 - Branch/PR: `lot-2/venues-core` / Lot-2 integration PR not opened yet
 
@@ -310,3 +310,11 @@ FIR #27 and explicit downstream responsibilities. B remains
 `ACCEPTANCE_PENDING / C-ACCEPTANCE` until its acceptance-record head passes
 five exact-head ordinary CI jobs. Only then may it become `ACCEPTED` and
 release WP-2.10 activation.
+
+Acceptance-record `df0a3f057d4d06d02312c071b3a890c0b1f14b38` /
+CI [`36576346730`](https://github.com/tobianahillel-afk/mariage-os/actions/runs/36576346730)
+passed **5/5**, including local DB/RLS and full verify from clean checkout.
+Pass C gap is **∅**. WP-2.9B is now **ACCEPTED / COMPLETE**; WP‑2.9A/C were
+already accepted. FTR-093 remains IN_PROGRESS for later presentation and
+target types. WP-2.10 is PLANNED and must undergo its own activation
+revalidation/READY gate before implementation; Lot 2 is not yet complete.

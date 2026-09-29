@@ -1,6 +1,6 @@
 # WP-2.9B — Pass C acceptance reconciliation
 
-Status: **PASS / eligible for ACCEPTED; acceptance-record exact-head CI pending**.
+Status: **ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record CI green**.
 
 This is the separate `EXPECTED ↔ IMPLEMENTED ↔ VERIFIED` reconciliation for
 the bounded FTR-093 Lot-2 project tag dictionary and Venue assignment slice.
@@ -24,6 +24,10 @@ does not accept all of FTR-093, WP-2.10, Lot 2 or V1.
 - Fresh Pass-B/status seal `f812dc07ff855e985a7cf2993dbbb9408582154c` /
   CI `36575013966` — **5/5**, including full verification from a clean
   checkout. AR-001/002 are CLOSED / VERIFIED; unresolved findings = ∅.
+- Separate Pass-C acceptance record `df0a3f057d4d06d02312c071b3a890c0b1f14b38` /
+  CI [`36576346730`](https://github.com/tobianahillel-afk/mariage-os/actions/runs/36576346730)
+  — **5/5**, including full verification from a clean checkout; isolated
+  provider campaigns correctly skipped.
 - FTR-093 FIR [#27](https://github.com/tobianahillel-afk/mariage-os/issues/27)
   records feature identity, bounded behavior, architecture, live permissions,
   test evidence, public-readiness identities and explicit downstream scope.
@@ -50,10 +54,9 @@ required WP-2.9B current-Lot responsibilities
 
 ## Decision and next boundary
 
-**Pass C verdict: PASS, gap ∅; WP-2.9B is eligible for `ACCEPTED / COMPLETE`**
-after this acceptance-record HEAD passes five exact-head ordinary CI jobs,
-including local DB/RLS and full clean-checkout verification. Until then the
-packet remains `ACCEPTANCE_PENDING / C-ACCEPTANCE`. The later FTR-093 UI,
+**Pass C verdict: PASS, gap ∅; WP-2.9B is `ACCEPTED / COMPLETE`.** The
+acceptance-record HEAD passed all five ordinary CI jobs, including local
+DB/RLS and full clean-checkout verification. The later FTR-093 UI,
 other target types and portability responsibilities remain `IN_PROGRESS`
 outside this packet. WP-2.10 is the next planned Lot-2 packet after B is
 durably accepted; no Lot-2 reconciliation or integration pass is claimed here.
