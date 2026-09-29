@@ -219,6 +219,8 @@ describe("SupabaseVenueCommandAdapter transition", () => {
           status: "shortlist",
           rejectionReason: null,
           expectedRevision: 1,
+          operationId: "77777777-7777-4777-8777-777777777777",
+          deviceId: "88888888-8888-4888-8888-888888888888",
         }),
       ).rejects.toThrow("Venue transition failed.");
     },
