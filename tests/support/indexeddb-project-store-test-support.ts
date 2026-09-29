@@ -46,10 +46,7 @@ class FakeDatabase {
   transaction(storeNames: string | string[]): IDBTransaction {
     const names = Array.isArray(storeNames) ? storeNames : [storeNames];
     const stores = new Map(
-      names.map((name) => [
-        name,
-        this.stores.get(name) ?? missingFixture(),
-      ]),
+      names.map((name) => [name, this.stores.get(name) ?? missingFixture()]),
     );
     return new FakeTransaction(stores, this.state) as unknown as IDBTransaction;
   }
