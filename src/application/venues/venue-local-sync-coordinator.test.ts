@@ -13,10 +13,7 @@ import type {
   VenueCommandPort,
   VenueTransitionInput,
 } from "@application/venues/venue-command-port";
-import {
-  VenueLocalSyncCoordinator,
-  type VenueLocalSyncResult,
-} from "@application/venues/venue-local-sync-coordinator";
+import { VenueLocalSyncCoordinator } from "@application/venues/venue-local-sync-coordinator";
 import {
   venueCachedRecord,
   venueFromCachedRecord,
