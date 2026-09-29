@@ -290,6 +290,18 @@ describe("VenueLocalSyncCoordinator retained work", () => {
     });
     expect(remote.updateCalls).toHaveLength(0);
   });
+
+  it("does not retain an orphaned queue entry when working-cache durability fails", async () => {
+    const { local, remote, coordinator } = await seededHarness();
+    local.failNextCachePut = true;
+
+    await expect(coordinator.updateCore(updateInput())).resolves.toEqual({
+      state: "durability_unavailable",
+      venue: null,
+    });
+    expect(remote.updateCalls).toHaveLength(0);
+    expect(local.pending.size).toBe(0);
+  });
 });
 
 describe("VenueLocalSyncCoordinator refresh", () => {
