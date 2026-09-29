@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.9B`
 - Lot: `2`
 - Name: Generic project tags and Venue entity-tag links
-- State: `IN_PROGRESS` (Pass-A candidate; exact-head CI pending)
-- Current pass: `A-IMPLEMENT`
+- State: `REVIEW_PENDING` (Pass A sealed; review-entry exact-head CI pending)
+- Current pass: `B-ADVERSARIAL-REVIEW`
 - Primary bounded context: Generic Tags — project tag dictionary and same-project Venue assignments
 - Branch/PR: `lot-2/venues-core` / Lot-2 integration PR not opened yet
 
@@ -260,3 +260,13 @@ table-check SQLSTATE `23514` for a non-Venue target, while PostgreSQL correctly
 applied the RLS `WITH CHECK` earlier and returned `42501`. The test expectation
 is aligned with the observed deny boundary in the next candidate. Clean
 checkout was skipped by the failed DB job; Pass A remains unaccepted.
+
+Corrected Pass-A head `eeda5cbeecd4bef299347e40252496ef8451c916` /
+CI [`36568868030`](https://github.com/tobianahillel-afk/mariage-os/actions/runs/36568868030)
+passed **5/5 ordinary jobs**, including core quality/security, local DB/RLS
+and Pages integration, browser/mutation, privacy-safe preview and full verify
+from a clean checkout. The two earlier failed heads remain recorded above.
+The complete bounded implementation now exits Pass A and enters
+`REVIEW_PENDING / B-ADVERSARIAL-REVIEW`. This separate review-entry status
+commit must pass exact-head CI before the fresh Pass B verdict; no Pass C or
+packet acceptance is claimed.
