@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.9B`
 - Lot: `2`
 - Name: Generic project tags and Venue entity-tag links
-- State: `PLANNED`
-- Current pass: `PLAN / ACTIVATION SPECIFICATION FREEZE`
+- State: `READY` (governance CI seal pending)
+- Current pass: `READY / PASS-A ENTRY GATE`
 - Primary bounded context: Generic Tags — project tag dictionary and same-project Venue assignments
 - Branch/PR: `lot-2/venues-core` / Lot-2 integration PR not opened yet
 
@@ -184,15 +184,33 @@ Target size is met. **Cohesion: PASS.** Tag dictionary and entity assignments sh
 - provider malformed/substituted project/tag/target rows fail closed;
 - accepted Venue and document/media packets remain green.
 
-## Activation gate
+## Activation gate and accepted-A revalidation
 
-WP-2.9B remains `PLANNED` after this specification freeze.
+The split/freeze commit `40f17aba802e7faed9eade6096e2f3629fc80654` /
+CI `34788217062` passed its exact-head five-job CI gate. WP-2.9A is
+`ACCEPTED / COMPLETE` at `656398bcd5520cfa56d782023d150eb64317161d` /
+CI `36542083037` (5/5, including clean checkout). Its subsequent handoff
+commit `f41bee0c5fd6cd2b696e269e54e41e5a43ec3b2d` / CI `36543034897`
+also passed 5/5 before this READY transition was pushed.
 
-It cannot transition to READY until:
+Revalidation against accepted A: A's forward-only document migration creates
+`documents` and `document_links`, with no `tags` or `entity_tags` table, grant,
+policy, permission or target-type registration. The existing `venues` same-project
+identity and `project.read` / `project.settings.update` /
+`venues.read` / `venues.write` permission mapping still match this packet.
+The base physical schema, ERD invariant 67, recoverable-tag rule and WP-2.9B
+key/label/restore and Venue-only link contracts agree. The 8-point cohesive
+slice remains below the orchestration threshold. No new behavior, authority or
+cross-packet dependency is needed; activation revalidation is **PASS**.
+
+The first three activation prerequisites are satisfied; the fourth is the
+remaining entry gate:
 
 1. the split/freeze commit is exact-head **5/5 SUCCESS**;
 2. WP-2.9A is **ACCEPTED / COMPLETE**;
 3. the B contract is revalidated against any accepted A schema changes;
-4. a separate `PLANNED → READY` governance commit passes exact-head 5/5.
+4. this separate `PLANNED → READY` governance commit must pass exact-head 5/5.
 
-No WP-2.9B product implementation is authorized before those gates.
+This record transitions WP-2.9B to `READY` as a governance candidate. **No
+WP-2.9B product implementation is authorized until this exact HEAD passes all
+five ordinary CI jobs, including full verification from a clean checkout.**
