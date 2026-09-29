@@ -15,6 +15,8 @@ describe("project tag boundaries", () => {
     expect(normalizeTagKey("gar den")).toBeNull();
     expect(normalizeTagKey("école")).toBeNull();
     expect(normalizeTagKey("a".repeat(65))).toBeNull();
+    expect(normalizeTagKey(null)).toBeNull();
+    expect(isCanonicalTagKey(null)).toBe(false);
   });
 
   it("preserves safe Unicode labels within an 80-scalar boundary", () => {
@@ -25,5 +27,7 @@ describe("project tag boundaries", () => {
     expect(normalizeTagLabel("good\nunsafe")).toBeNull();
     expect(normalizeTagLabel("good\u0085unsafe")).toBeNull();
     expect(normalizeTagLabel("\ud800")).toBeNull();
+    expect(normalizeTagLabel(null)).toBeNull();
+    expect(isCanonicalTagLabel(null)).toBe(false);
   });
 });

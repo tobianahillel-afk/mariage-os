@@ -3,11 +3,8 @@ import { hasCodePointLengthBetween } from "@domain/facts/fact-text-length";
 const TAG_KEY_PATTERN = /^[a-z0-9][a-z0-9_-]{0,63}$/;
 function hasUnsafeControl(value: string): boolean {
   for (const character of value) {
-    const point = character.codePointAt(0);
-    if (
-      point !== undefined &&
-      (point <= 31 || (point >= 127 && point <= 159))
-    ) {
+    const point = character.charCodeAt(0);
+    if (point <= 31 || (point >= 127 && point <= 159)) {
       return true;
     }
   }

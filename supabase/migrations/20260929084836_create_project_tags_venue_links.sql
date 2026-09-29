@@ -2,6 +2,7 @@ create or replace function public.project_tag_label_is_valid(target_label text)
 returns boolean
 language sql
 immutable
+security definer
 set search_path = pg_catalog
 as $$
   select target_label is not null
@@ -136,6 +137,9 @@ security definer
 set search_path = pg_catalog
 as $$
 begin
+  if not public.has_project_permission(new.project_id, 'venues.write') then
+    raise exception 'active tag unavailable' using errcode = '42501';
+  end if;
   perform 1
   from public.tags tag
   where tag.project_id = new.project_id

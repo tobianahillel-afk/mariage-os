@@ -99,11 +99,11 @@ exception when others then return sqlstate;
 end;
 $$;
 
-create function pg_temp.tag_unlink_state(target_id uuid)
+create function pg_temp.tag_unlink_state(target_link_id uuid)
 returns text language plpgsql as $$
 declare affected integer;
 begin
-  delete from public.entity_tags where id = target_id;
+  delete from public.entity_tags where id = target_link_id;
   get diagnostics affected = row_count;
   return case when affected = 1 then '00000' else '02000' end;
 exception when others then return sqlstate;

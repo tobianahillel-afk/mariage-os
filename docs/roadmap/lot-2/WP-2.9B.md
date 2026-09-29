@@ -236,3 +236,19 @@ and later-domain targets remain downstream.
   commit must pass five ordinary CI jobs including local DB/RLS and full
   clean-checkout verification. A separate REVIEW_PENDING seal and fresh
   adversarial Pass B follow; Pass C remains separate.
+
+The first implementation head `643368e319aa6d1b1e94671bdff133207cbf999f` /
+CI `36547210465` **failed** the ordinary gate. The DB/RLS job reported
+`42501` on owner tag creation because the label check called a deliberately
+non-public trim helper as the authenticated role; a pgTAP unlink helper also
+used an ambiguous parameter name (`42702`). The core job reported insufficient
+new-code coverage against the repository's 100% gate. Browser/mutation passed;
+preview/full verification were skipped. These failures do not accept Pass A.
+
+The remediation candidate executes the pure label check as a constrained
+`SECURITY DEFINER` function, checks live `venues.write` before the
+privileged active-tag lookup, disambiguates the pgTAP parameter and directly
+tests lifecycle, provider-error and malformed-receipt branches. Local Vitest
+coverage excluding two pre-existing Windows CRLF-sensitive workflow tests
+passed 188 files / 1,686 tests with every new file fully covered. Exact-head
+five-job CI, including Linux DB/RLS, remains required before review entry.

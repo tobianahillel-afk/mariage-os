@@ -113,3 +113,164 @@ it("fails closed if an assignment cannot be matched to an active project tag", a
     }),
   ).toEqual({ ok: false, error: "invalid_identity" });
 });
+
+it("validates both identifiers and the label before creating a tag", async () => {
+  const port = makePort();
+  const service = new TagService(port);
+  for (const draft of [
+    { projectId: "invalid", tagId, key: "garden", label: "Garden" },
+    { projectId, tagId: "invalid", key: "garden", label: "Garden" },
+  ]) {
+    expect(await service.createTag(draft)).toEqual({
+      ok: false,
+      error: "invalid_identity",
+    });
+  }
+  expect(
+    await service.createTag({
+      projectId,
+      tagId,
+      key: "garden",
+      label: "\u0085",
+    }),
+  ).toEqual({ ok: false, error: "invalid_label" });
+  vi.mocked(port.createTag).mockRejectedValueOnce(
+    new TagPersistenceError("conflict"),
+  );
+  expect(
+    await service.createTag({
+      projectId,
+      tagId,
+      key: "garden",
+      label: "Garden",
+    }),
+  ).toEqual({ ok: false, error: "conflict" });
+  vi.mocked(port.createTag).mockRejectedValueOnce(new Error("network"));
+  expect(
+    await service.createTag({
+      projectId,
+      tagId,
+      key: "garden",
+      label: "Garden",
+    }),
+  ).toEqual({ ok: false, error: "persistence_failed" });
+});
+
+it("validates rename and restore preconditions and propagates lifecycle errors", async () => {
+  const port = makePort();
+  const service = new TagService(port);
+  const base = { projectId, tagId, expectedRevision: 1 };
+  expect(await service.renameTag({ ...base, label: " New name " })).toEqual({
+    ok: true,
+    value: { ...tag, revision: 2 },
+  });
+  expect(port.changeTag).toHaveBeenCalledWith({
+    ...base,
+    action: "rename",
+    label: "New name",
+  });
+  expect(await service.renameTag({ ...base, label: "\u0085" })).toEqual({
+    ok: false,
+    error: "invalid_label",
+  });
+  expect(
+    await service.renameTag({ ...base, expectedRevision: 0, label: "Valid" }),
+  ).toEqual({ ok: false, error: "invalid_revision" });
+  expect(
+    await service.renameTag({ ...base, projectId: "invalid", label: "Valid" }),
+  ).toEqual({ ok: false, error: "invalid_identity" });
+  expect(await service.softDeleteTag({ ...base, tagId: "invalid" })).toEqual({
+    ok: false,
+    error: "invalid_identity",
+  });
+  expect(await service.restoreTag({ ...base, projectId: "invalid" })).toEqual({
+    ok: false,
+    error: "invalid_identity",
+  });
+  expect(await service.restoreTag(base)).toEqual({
+    ok: true,
+    value: { ...tag, revision: 2 },
+  });
+  expect(port.changeTag).toHaveBeenCalledWith({ ...base, action: "restore" });
+  vi.mocked(port.changeTag).mockRejectedValueOnce(new Error("network"));
+  expect(await service.softDeleteTag(base)).toEqual({
+    ok: false,
+    error: "persistence_failed",
+  });
+});
+
+it("validates and returns current tag definitions", async () => {
+  const port = makePort();
+  const service = new TagService(port);
+  expect(await service.listActiveTags("invalid")).toEqual({
+    ok: false,
+    error: "invalid_identity",
+  });
+  expect(await service.listActiveTags(projectId)).toEqual({
+    ok: true,
+    value: [tag],
+  });
+  vi.mocked(port.listActiveTags).mockRejectedValueOnce(
+    new TagPersistenceError("persistence_failed"),
+  );
+  expect(await service.listActiveTags(projectId)).toEqual({
+    ok: false,
+    error: "persistence_failed",
+  });
+});
+
+it("validates and returns current Venue assignments", async () => {
+  const port = makePort();
+  const service = new TagService(port);
+  const input = { projectId, venueId, tagId, linkId };
+  expect(await service.linkVenueTag(input)).toEqual({
+    ok: true,
+    value: assignment,
+  });
+  expect(await service.unlinkVenueTag(input)).toEqual({
+    ok: true,
+    value: true,
+  });
+  for (const changed of [
+    { projectId: "invalid" },
+    { venueId: "invalid" },
+    { tagId: "invalid" },
+    { linkId: "invalid" },
+  ]) {
+    expect(await service.linkVenueTag({ ...input, ...changed })).toEqual({
+      ok: false,
+      error: "invalid_identity",
+    });
+    expect(await service.unlinkVenueTag({ ...input, ...changed })).toEqual({
+      ok: false,
+      error: "invalid_identity",
+    });
+  }
+  vi.mocked(port.linkVenueTag).mockRejectedValueOnce(
+    new TagPersistenceError("conflict"),
+  );
+  expect(await service.linkVenueTag(input)).toEqual({
+    ok: false,
+    error: "conflict",
+  });
+  vi.mocked(port.unlinkVenueTag).mockRejectedValueOnce(new Error("network"));
+  expect(await service.unlinkVenueTag(input)).toEqual({
+    ok: false,
+    error: "persistence_failed",
+  });
+  expect(await service.listVenueTags("invalid", venueId)).toEqual({
+    ok: false,
+    error: "invalid_identity",
+  });
+  expect(await service.listVenueTags(projectId, "invalid")).toEqual({
+    ok: false,
+    error: "invalid_identity",
+  });
+  vi.mocked(port.listVenueAssignments).mockRejectedValueOnce(
+    new Error("network"),
+  );
+  expect(await service.listVenueTags(projectId, venueId)).toEqual({
+    ok: false,
+    error: "persistence_failed",
+  });
+});
