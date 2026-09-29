@@ -55,10 +55,11 @@ describe("Venue local cache codec", () => {
 
   it("rejects malformed cached Venue payloads", () => {
     const record = venueCachedRecord(scope, venue, "synced");
+    const payload = record.payload as Record<string, unknown>;
     expect(() =>
       venueFromCachedRecord({
         ...record,
-        payload: { ...record.payload, revision: 0 },
+        payload: { ...payload, revision: 0 },
       }),
     ).toThrow("Invalid cached Venue");
     expect(() =>
