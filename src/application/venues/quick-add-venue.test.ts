@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type {
   VenueCommandPort,
   VenueQuickAddInput,
@@ -46,6 +46,65 @@ describe("quickAddVenue", () => {
         city: "Paris",
       },
     ]);
+  });
+
+  it("caches the normalized cloud-confirmed Venue locally", async () => {
+    const cacheCloudVenue = vi.fn().mockResolvedValue(undefined);
+    const port = commandPort(async (input) => ({
+      id: "a1000000-0000-4000-8000-000000000001",
+      projectId: input.projectId,
+      status: "research",
+      revision: 1,
+    }));
+
+    // @ts-expect-error WP-2.10 RED: quick-add does not yet accept a cache port.
+    const result = await quickAddVenue(
+      port,
+      "project-a",
+      {
+        name: " Venue Alpha ",
+        code: " P2 ",
+        websiteUrl: " https://example.invalid ",
+        city: " Paris ",
+      },
+      { cacheCloudVenue },
+    );
+
+    expect(result).toMatchObject({ ok: true, localCache: "synced" });
+    expect(cacheCloudVenue).toHaveBeenCalledWith({
+      id: "a1000000-0000-4000-8000-000000000001",
+      projectId: "project-a",
+      status: "research",
+      rejectionReason: null,
+      revision: 1,
+      name: "Venue Alpha",
+      code: "P2",
+      websiteUrl: "https://example.invalid",
+      city: "Paris",
+    });
+  });
+
+  it("keeps cloud creation successful when local quick-add caching is unavailable", async () => {
+    const port = commandPort(async (input) => ({
+      id: "a1000000-0000-4000-8000-000000000001",
+      projectId: input.projectId,
+      status: "research",
+      revision: 1,
+    }));
+
+    // @ts-expect-error WP-2.10 RED: quick-add does not yet accept a cache port.
+    const result = await quickAddVenue(
+      port,
+      "project-a",
+      { name: "Venue" },
+      {
+        cacheCloudVenue: async () => {
+          throw new Error("synthetic local durability failure");
+        },
+      },
+    );
+
+    expect(result).toMatchObject({ ok: true, localCache: "unavailable" });
   });
 
   it("returns validation failure without touching persistence", async () => {
