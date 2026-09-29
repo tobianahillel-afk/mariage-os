@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.9A`
 - Lot: `2`
 - Name: Venue-linked private document foundation
-- State: `ACCEPTANCE_PENDING`
-- Current pass: `C-ACCEPTANCE` — fresh full Pass B passed; separate expected/implemented/verified reconciliation next
+- State: `ACCEPTED / COMPLETE`
+- Current pass: `C-ACCEPTANCE COMPLETE` — expected/implemented/verified gap ∅; acceptance record CI 5/5
 - Primary bounded context: Documents — private PDF metadata, Venue links, Storage lifecycle and recoverable metadata
 - Branch/PR: `lot-2/venues-core` / Lot-2 integration PR not opened yet
 - FIR: `#17 / FTR-089`
@@ -244,12 +244,14 @@ WP-2.9C ACCEPTED
 
 ## Current gate
 
-WP-2.9A is **ACCEPTANCE_PENDING / C-ACCEPTANCE** after accepted-C reintegration,
+WP-2.9A is **ACCEPTED / COMPLETE** after accepted-C reintegration,
 review-entry `30922eb6f348369022edb2a8d1d4cb948757fe29` / CI
 `36497398006` 5/5 including clean checkout, and a fresh complete Pass B with
 no unresolved BLOCKING/MAJOR/MINOR finding. AR-001..005 are CLOSED / VERIFIED
 in A. Review/status `2ed8191bf310fdc4ef395e1f294d54c543c02705` /
 CI `36498263015` passed 5/5 including clean checkout. The separate
-`WP-2.9A-ACCEPTANCE.md` Pass C has gap ∅ and is eligible for acceptance;
-its own record HEAD must pass five exact-head CI jobs before A is marked
-ACCEPTED. WP-2.9B and later packets remain forbidden until then.
+`WP-2.9A-ACCEPTANCE.md` Pass C has gap ∅; its acceptance-record head
+`656398bcd5520cfa56d782023d150eb64317161d` / CI `36542083037`
+passed 5/5, clean checkout included. WP-2.9B may now undergo its separate
+activation revalidation and `PLANNED -> READY` seal. FTR-089 remains
+`IN_PROGRESS` for downstream presentation and later-lot responsibilities.

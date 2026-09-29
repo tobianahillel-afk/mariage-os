@@ -37,9 +37,9 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.8A | Venue remote-image metadata and Venue links                            | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.8B | Venue private archived media lifecycle                                 | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.8C | recoverable Venue remote-media metadata lifecycle                      | **ACCEPTED / COMPLETE**                                                    |
-| WP-2.9A | Venue-linked private PDF/document foundation                           | **ACCEPTANCE_PENDING — full Pass B passed; separate Pass C next**          |
+| WP-2.9A | Venue-linked private PDF/document foundation                           | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.9C | trusted private-document ingestion hardening                           | **ACCEPTED / COMPLETE**                                                      |
-| WP-2.9B | generic project tags and Venue entity-tag links                        | **PLANNED / AFTER A**                                                      |
+| WP-2.9B | generic project tags and Venue entity-tag links                        | **PLANNED / activation revalidation**                                      |
 | WP-2.10 | repositories, local cache, pending/offline mutations                   | PLANNED                                                                    |
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace                       | PLANNED                                                                    |
 | WP-2.12 | mobile/offline venue-visit workflow and packet E2E completion          | PLANNED                                                                    |
@@ -50,11 +50,11 @@ WP-2.1..WP-2.8C are accepted and complete. Durable evidence remains in their pac
 
 ## WP-2.9A
 
-- **ACCEPTANCE_PENDING / C-ACCEPTANCE**; FIR `#17 / FTR-089` remains open.
+- **ACCEPTED / COMPLETE**; FIR `#17 / FTR-089` remains open for downstream feature work.
 - Pass-A `e533b5c53d1be074216ccaa92f74281b425de770` / `34826553890` — **5/5 SUCCESS**.
 - `WP29A-AR-001/002/003` — **CLOSED / VERIFIED**.
 - `WP29A-AR-004/005` — **CLOSED / VERIFIED in A** by complete fresh Pass B `WP-2.9A-FRESH-PASS-B-2026-09-29.md`.
-- C's acceptance resolved A's blocker. Reintegration/Storage-RLS correction `19d26c825bba19f5a826a6b820b6d4b027e44399` / CI `36496447413`, review entry `30922eb6f348369022edb2a8d1d4cb948757fe29` / CI `36497398006` and full Pass-B/status `2ed8191bf310fdc4ef395e1f294d54c543c02705` / CI `36498263015` passed **5/5**, clean checkout included. Separate Pass C has gap ∅; its acceptance-record seal is next.
+- C's acceptance resolved A's blocker. A's full Pass B closed AR-001..005, and separate Pass C reconciled gap ∅. Acceptance-record `656398bcd5520cfa56d782023d150eb64317161d` / CI `36542083037` passed **5/5**, clean checkout included. B activation revalidation is next; FTR-089 remains IN_PROGRESS.
 
 ## WP-2.9C — accepted remediation packet
 
@@ -259,6 +259,7 @@ Normative release/deployment/secret contracts require Pages Functions to deploy 
 45. Reintegration/Storage-RLS correction `19d26c825bba19f5a826a6b820b6d4b027e44399` / CI `36496447413` passed **5/5**, including clean checkout. WP-2.9A transitions `IN_PROGRESS -> REVIEW_PENDING` for a new complete adversarial Pass B. Parent AR-004/005 remain MAJOR / OPEN until that review verifies the accepted-C fixes in A's full product contract. The review-entry status commit must itself pass exact-head ordinary CI before a Pass-B decision.
 46. Review-entry `30922eb6f348369022edb2a8d1d4cb948757fe29` / CI `36497398006` passed **5/5**, including clean checkout; isolated provider jobs skipped. `WP-2.9A-FRESH-PASS-B-2026-09-29.md` independently reviews all A product/security responsibilities and closes AR-001..005 in A with no new BLOCKING/MAJOR/MINOR finding. WP-2.9A transitions `REVIEW_PENDING -> ACCEPTANCE_PENDING`; next is a separate Pass C expected/implemented/verified reconciliation after the review/status seal itself passes exact-head CI.
 47. Pass-B/status seal `2ed8191bf310fdc4ef395e1f294d54c543c02705` / CI `36498263015` passed **5/5**, including clean checkout. Separate `WP-2.9A-ACCEPTANCE.md` Pass C reconciles all assigned A responsibilities as `EXPECTED ↔ IMPLEMENTED ↔ VERIFIED` with gap **∅**, current FIR #17 and explicit downstream FTR-089/WP-2.9B scope. Verdict is PASS / eligible for ACCEPTED, subject to the acceptance-record HEAD passing five exact-head ordinary CI jobs. Until then A stays `ACCEPTANCE_PENDING` and B `PLANNED / AFTER A`.
+48. A acceptance-record `656398bcd5520cfa56d782023d150eb64317161d` / CI `36542083037` passed **5/5**, including clean checkout. Pass C marks WP-2.9A **ACCEPTED / COMPLETE**, gap ∅ and AR-001..005 closed in A. FTR-089 stays IN_PROGRESS because WP-2.11 presentation and later-lot document responsibilities remain. WP-2.9B remains PLANNED pending its separate activation revalidation, READY transition and exact-head CI; no B implementation is authorized yet.
 
 ## Durable handoff
 
@@ -268,9 +269,10 @@ Lot 0: ACCEPTED
 Lot 1: ACCEPTED
 Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
-Accepted durable Lot-2 packets: WP-2.1..WP-2.8C
+Accepted durable Lot-2 packets: WP-2.1..WP-2.8C, WP-2.9C, WP-2.9A
 WP-2.9C: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 21accd7f9ab1b845275507b7941a782c5e816a56 / CI 36494697647 5/5 including clean checkout
-Current packet: WP-2.9A — ACCEPTANCE_PENDING / C-ACCEPTANCE; fresh full Pass B closes AR-001..005 in A
+WP-2.9A: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 656398bcd5520cfa56d782023d150eb64317161d / CI 36542083037 5/5 including clean checkout
+Current packet: WP-2.9B — PLANNED / activation revalidation, then separate READY governance seal
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
@@ -306,8 +308,8 @@ Workers Observability configured capability preflight: bd3fdb4baab6ef59983e40f77
 AR-006 architecture review: ADR 0011 private Worker failed the deployed Free CPU gate; ADR 0012 accepted direct Pages → per-document Durable Object replacement architecture
 AR-005/007/008/006/009 in C: CLOSED / VERIFIED by the complete fresh C Pass B and Pass C; parent A AR-004/005 remain open pending A review
 FTR-089 FIR: #17 — IN_PROGRESS / parent A not yet accepted
-WP-2.9B: PLANNED / AFTER A
+WP-2.9B: PLANNED / activation revalidation
 Lots 3–12: NOT_STARTED
 Latest distinct-PDF campaign: 2303df0c9e8d6f72561ec0ce42514663801229d8 / CI 36459949861 / provider job 109058754517 / artifact 10987866873 — 10 distinct exact-size PDFs, 10 finalized flows, 20 valid exact-version CPU readings within Workers Free; provider verdict PASS
-Next permitted action: seal WP-2.9A's separate Pass-C acceptance record on exact-head CI 5/5 including clean checkout, then mark A ACCEPTED and begin WP-2.9B activation revalidation. No provider rerun is authorized.
+Next permitted action: revalidate WP-2.9B's frozen tag/schema/permission contract against accepted A, then separately transition B PLANNED -> READY and require exact-head CI 5/5 including clean checkout before B Pass A.
 ```

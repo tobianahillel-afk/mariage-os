@@ -1,6 +1,6 @@
 # WP-2.9A — Pass C acceptance reconciliation
 
-Status: **ACCEPTANCE_PENDING — Pass C PASS / eligible for acceptance after exact-head record seal**.
+Status: **ACCEPTED / COMPLETE — Pass C gap ∅; exact-head acceptance record CI green**.
 
 This is the separate `EXPECTED ↔ IMPLEMENTED ↔ VERIFIED` reconciliation for
 the bounded Lot-2 Venue-linked private PDF/document foundation. Entry state
@@ -24,6 +24,10 @@ This record does not accept the entire FTR-089 feature, WP-2.9B or Lot 2.
 - A fresh full Pass-B/status seal
   `2ed8191bf310fdc4ef395e1f294d54c543c02705` /
   CI `36498263015` — **5/5 SUCCESS**, clean checkout included; isolated
+  provider jobs correctly skipped.
+- This separate Pass-C acceptance record
+  `656398bcd5520cfa56d782023d150eb64317161d` /
+  CI `36542083037` — **5/5 SUCCESS**, clean checkout included; isolated
   provider jobs correctly skipped.
 - FIR [#17](https://github.com/tobianahillel-afk/mariage-os/issues/17)
   records current FTR-089 identity, behavior, requirement/acceptance mapping,
@@ -71,8 +75,9 @@ required WP-2.9A responsibilities
 = ∅
 ```
 
-**Pass C verdict: PASS / eligible for `ACCEPTED / COMPLETE`.** The acceptance
-record HEAD must itself pass all five ordinary CI jobs, including full
-verification from a clean checkout. Only after that seal may the status board,
-packet, matrix and FIR mark WP-2.9A accepted and activate the WP-2.9B gate.
-No provider campaign rerun is needed or authorized.
+**Pass C verdict: PASS; WP-2.9A `ACCEPTED / COMPLETE`.** The acceptance-record
+HEAD `656398bcd5520cfa56d782023d150eb64317161d` passed all five
+ordinary CI jobs, including full verification from a clean checkout. B may
+now undergo separate activation revalidation and `PLANNED -> READY`
+governance/CI before any B product code. No provider campaign rerun is needed
+or authorized.
