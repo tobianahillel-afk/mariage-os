@@ -54,7 +54,7 @@ WP-2.1..WP-2.8C are accepted and complete. Durable evidence remains in their pac
 - Pass-A `e533b5c53d1be074216ccaa92f74281b425de770` / `34826553890` — **5/5 SUCCESS**.
 - `WP29A-AR-001/002/003` — **CLOSED / VERIFIED**.
 - `WP29A-AR-004/005` — **CLOSED / VERIFIED in A** by complete fresh Pass B `WP-2.9A-FRESH-PASS-B-2026-09-29.md`.
-- C's acceptance resolved A's blocker. Reintegration/Storage-RLS correction `19d26c825bba19f5a826a6b820b6d4b027e44399` / CI `36496447413` and review entry `30922eb6f348369022edb2a8d1d4cb948757fe29` / CI `36497398006` both passed **5/5**, clean checkout included. Next: seal fresh Pass B/status, then separate Pass C.
+- C's acceptance resolved A's blocker. Reintegration/Storage-RLS correction `19d26c825bba19f5a826a6b820b6d4b027e44399` / CI `36496447413`, review entry `30922eb6f348369022edb2a8d1d4cb948757fe29` / CI `36497398006` and full Pass-B/status `2ed8191bf310fdc4ef395e1f294d54c543c02705` / CI `36498263015` passed **5/5**, clean checkout included. Separate Pass C has gap ∅; its acceptance-record seal is next.
 
 ## WP-2.9C — accepted remediation packet
 
@@ -258,6 +258,7 @@ Normative release/deployment/secret contracts require Pages Functions to deploy 
 44. C-accepted/A-resumption transition `c8f3dfd441e7ad583613c8b94bd9197b19b829fb` / CI `36495622949` passed **5/5**, including clean checkout. A reintegration inspected the domain/service/staging/trusted promotion/attestation/RLS/read/link/recovery boundaries and found no new product-code change needed. It found `docs/security/STORAGE-RLS.md` still stating the obsolete WP-1.9 UPDATE policy despite accepted WP-2.8B immutability and current three-policy pgTAP proof. `WP-2.9A-REINTEGRATION-2026-09-29.md` records the bounded documentation correction and A responsibility checks. Next: seal this correction/record with five exact-head ordinary CI jobs before A enters REVIEW_PENDING.
 45. Reintegration/Storage-RLS correction `19d26c825bba19f5a826a6b820b6d4b027e44399` / CI `36496447413` passed **5/5**, including clean checkout. WP-2.9A transitions `IN_PROGRESS -> REVIEW_PENDING` for a new complete adversarial Pass B. Parent AR-004/005 remain MAJOR / OPEN until that review verifies the accepted-C fixes in A's full product contract. The review-entry status commit must itself pass exact-head ordinary CI before a Pass-B decision.
 46. Review-entry `30922eb6f348369022edb2a8d1d4cb948757fe29` / CI `36497398006` passed **5/5**, including clean checkout; isolated provider jobs skipped. `WP-2.9A-FRESH-PASS-B-2026-09-29.md` independently reviews all A product/security responsibilities and closes AR-001..005 in A with no new BLOCKING/MAJOR/MINOR finding. WP-2.9A transitions `REVIEW_PENDING -> ACCEPTANCE_PENDING`; next is a separate Pass C expected/implemented/verified reconciliation after the review/status seal itself passes exact-head CI.
+47. Pass-B/status seal `2ed8191bf310fdc4ef395e1f294d54c543c02705` / CI `36498263015` passed **5/5**, including clean checkout. Separate `WP-2.9A-ACCEPTANCE.md` Pass C reconciles all assigned A responsibilities as `EXPECTED ↔ IMPLEMENTED ↔ VERIFIED` with gap **∅**, current FIR #17 and explicit downstream FTR-089/WP-2.9B scope. Verdict is PASS / eligible for ACCEPTED, subject to the acceptance-record HEAD passing five exact-head ordinary CI jobs. Until then A stays `ACCEPTANCE_PENDING` and B `PLANNED / AFTER A`.
 
 ## Durable handoff
 
@@ -308,5 +309,5 @@ FTR-089 FIR: #17 — IN_PROGRESS / parent A not yet accepted
 WP-2.9B: PLANNED / AFTER A
 Lots 3–12: NOT_STARTED
 Latest distinct-PDF campaign: 2303df0c9e8d6f72561ec0ce42514663801229d8 / CI 36459949861 / provider job 109058754517 / artifact 10987866873 — 10 distinct exact-size PDFs, 10 finalized flows, 20 valid exact-version CPU readings within Workers Free; provider verdict PASS
-Next permitted action: seal WP-2.9A's fresh Pass B and ACCEPTANCE_PENDING status on exact-head CI 5/5 including clean checkout, then perform separate Pass C. No provider rerun is authorized.
+Next permitted action: seal WP-2.9A's separate Pass-C acceptance record on exact-head CI 5/5 including clean checkout, then mark A ACCEPTED and begin WP-2.9B activation revalidation. No provider rerun is authorized.
 ```

@@ -248,5 +248,8 @@ WP-2.9A is **ACCEPTANCE_PENDING / C-ACCEPTANCE** after accepted-C reintegration,
 review-entry `30922eb6f348369022edb2a8d1d4cb948757fe29` / CI
 `36497398006` 5/5 including clean checkout, and a fresh complete Pass B with
 no unresolved BLOCKING/MAJOR/MINOR finding. AR-001..005 are CLOSED / VERIFIED
-in A. The review/status seal must pass exact-head CI before the separate Pass C
-decision. WP-2.9B and later packets remain forbidden until A reaches ACCEPTED.
+in A. Review/status `2ed8191bf310fdc4ef395e1f294d54c543c02705` /
+CI `36498263015` passed 5/5 including clean checkout. The separate
+`WP-2.9A-ACCEPTANCE.md` Pass C has gap ∅ and is eligible for acceptance;
+its own record HEAD must pass five exact-head CI jobs before A is marked
+ACCEPTED. WP-2.9B and later packets remain forbidden until then.

@@ -155,7 +155,7 @@ Only one packet may be active at a time. WP-2.9C is terminal; WP-2.9A is the sol
 required current-Lot-2 responsibilities - assigned product packet responsibilities = ∅
 accepted/evidenced packets = WP-2.1..WP-2.8C, WP-2.9C
 WP-2.9C = ACCEPTED / COMPLETE — acceptance-record 21accd7f9ab1b845275507b7941a782c5e816a56 / CI 36494697647 5/5 including clean checkout
-WP-2.9A = ACCEPTANCE_PENDING — review-entry 30922eb6f348369022edb2a8d1d4cb948757fe29 / CI 36497398006 5/5; fresh full Pass B closes AR-001..005 in A
+WP-2.9A = ACCEPTANCE_PENDING — review-entry 30922eb6f348369022edb2a8d1d4cb948757fe29 / CI 36497398006 and full Pass-B/status 2ed8191bf310fdc4ef395e1f294d54c543c02705 / CI 36498263015 both 5/5; fresh full Pass B closes AR-001..005 in A; separate Pass C gap ∅ awaits record seal
 fresh Pass-B record = docs/roadmap/lot-2/WP-2.9C-FRESH-PASS-B-DISTINCT-PDF-2026-09-28.md — AR-001..009 CLOSED / VERIFIED for C
 implementation-remediated = WP29C-AR-005 cleanup/race; WP29C-AR-007/008 production release contracts
 open WP-2.9C acceptance gap = ∅; parent A and FTR-089 remain unaccepted
@@ -177,7 +177,8 @@ acceptance-record seal = 21accd7f9ab1b845275507b7941a782c5e816a56 / CI 364946976
 A-resumption seal = c8f3dfd441e7ad583613c8b94bd9197b19b829fb / CI 36495622949 — 5/5 including clean checkout; A IN_PROGRESS
 A reintegration record = WP-2.9A-REINTEGRATION-2026-09-29.md; Storage-RLS obsolete UPDATE wording corrected and sealed 5/5
 A full review = WP-2.9A-FRESH-PASS-B-2026-09-29.md — PASS; no open A finding
-next permitted action = seal A full Pass B and ACCEPTANCE_PENDING status with exact-head CI/clean checkout → separate Pass C
+A Pass C = WP-2.9A-ACCEPTANCE.md — PASS / eligible for acceptance; record exact-head CI pending
+next permitted action = seal A Pass-C acceptance record with exact-head CI/clean checkout → A ACCEPTED → B activation revalidation
 C acceptance and A resumption are authorized by green acceptance-record CI; no provider rerun
 ```
 
