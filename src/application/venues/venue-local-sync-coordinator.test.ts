@@ -320,7 +320,6 @@ describe("VenueLocalSyncCoordinator refresh", () => {
   });
 });
 
-
 describe("VenueLocalSyncCoordinator restart replay", () => {
   it("replays a response-loss core update with the same operation id", async () => {
     const { local, remote, coordinator } = await seededHarness();
