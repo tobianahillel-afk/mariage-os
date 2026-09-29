@@ -204,6 +204,9 @@ describe("SupabaseVenueCommandAdapter transition", () => {
     ).rejects.toThrow("Venue transition failed.");
   });
 
+});
+
+describe("SupabaseVenueCommandAdapter transition response validation", () => {
   it.each([null, "2", 1.5, 0, Number.MAX_SAFE_INTEGER + 1])(
     "rejects malformed transition revision %#",
     async (data) => {
