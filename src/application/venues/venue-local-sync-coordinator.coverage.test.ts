@@ -87,7 +87,9 @@ class LocalHarness implements LocalProjectStore {
   async removePendingMutation(id: string): Promise<void> {
     this.pending.delete(id);
   }
-  async getPendingMutation(id: string): Promise<PendingMutationEnvelope | null> {
+  async getPendingMutation(
+    id: string,
+  ): Promise<PendingMutationEnvelope | null> {
     return this.pending.get(id) ?? null;
   }
   async listPendingMutations(): Promise<readonly PendingMutationEnvelope[]> {
@@ -299,7 +301,9 @@ describe("VenueLocalSyncCoordinator conflict refresh coverage", () => {
     await coordinator.refreshFromCloud();
 
     const record = await local.getCachedRecord("venue", venueId);
-    expect(record === null ? null : venueFromCachedRecord(record)).toMatchObject({
+    expect(
+      record === null ? null : venueFromCachedRecord(record),
+    ).toMatchObject({
       name: "Conflict Local",
     });
   });

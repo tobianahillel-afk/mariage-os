@@ -95,9 +95,9 @@ describe("Venue persisted mutation scope validation", () => {
     ["entity type", { entityType: "project_preferences" }],
     ["null entity", { entityId: null }],
   ] as const)("rejects foreign or invalid %s scope", (_label, patch) => {
-    expect(() => venueReplayCommand({ ...mutation(), ...patch }, scope)).toThrow(
-      "Invalid persisted Venue mutation",
-    );
+    expect(() =>
+      venueReplayCommand({ ...mutation(), ...patch }, scope),
+    ).toThrow("Invalid persisted Venue mutation");
   });
 });
 
@@ -128,10 +128,7 @@ describe("Venue persisted mutation payload validation", () => {
     ["non-string status", { status: 4, rejectionReason: null }],
     ["unknown status", { status: "not_a_status", rejectionReason: null }],
     ["rejected without reason", { status: "rejected", rejectionReason: null }],
-    [
-      "non-rejected with reason",
-      { status: "shortlist", rejectionReason: "x" },
-    ],
+    ["non-rejected with reason", { status: "shortlist", rejectionReason: "x" }],
     ["non-string reason", { status: "rejected", rejectionReason: 7 }],
   ] as const)("rejects %s", (_label, payload) => {
     const type =
