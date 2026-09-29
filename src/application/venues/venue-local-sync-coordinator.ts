@@ -187,7 +187,8 @@ export class VenueLocalSyncCoordinator {
       );
       if (
         existing !== null &&
-        (existing.syncMarker === "pending" || existing.syncMarker === "conflict")
+        (existing.syncMarker === "pending" ||
+          existing.syncMarker === "conflict")
       ) {
         continue;
       }
