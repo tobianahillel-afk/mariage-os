@@ -31,7 +31,12 @@ export interface LocalProjectStore {
     recordType: string,
     entityId: string,
   ): Promise<CachedRecordEnvelope | null>;
+  listCachedRecords(
+    recordType: string,
+  ): Promise<readonly CachedRecordEnvelope[]>;
   addPendingMutation(mutation: PendingMutationEnvelope): Promise<void>;
+  putPendingMutation(mutation: PendingMutationEnvelope): Promise<void>;
+  removePendingMutation(operationId: string): Promise<void>;
   getPendingMutation(
     operationId: string,
   ): Promise<PendingMutationEnvelope | null>;
