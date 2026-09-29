@@ -28,66 +28,78 @@ function cached() {
   return venueCachedRecord(scope, venue, "synced");
 }
 
+type CachedVenueEnvelope = ReturnType<typeof cached>;
+type CachedVenueMutation = (record: CachedVenueEnvelope) => unknown;
+
+const envelopeCases: readonly [
+  string,
+  CachedVenueMutation,
+][] = [
+  [
+    "wrong record type",
+    (record) => ({
+      ...record,
+      recordType: "other",
+    }),
+  ],
+  ["number payload", (record) => ({ ...record, payload: 7 })],
+  ["null payload", (record) => ({ ...record, payload: null })],
+  ["array payload", (record) => ({ ...record, payload: [] })],
+];
+
+const payloadCases: readonly [string, CachedVenueMutation][] = [
+  [
+    "non-string status",
+    (record) => ({
+      ...record,
+      payload: { ...(record.payload as object), status: 3 },
+    }),
+  ],
+  [
+    "unknown status",
+    (record) => ({
+      ...record,
+      payload: { ...(record.payload as object), status: "unknown" },
+    }),
+  ],
+  [
+    "fractional revision",
+    (record) => ({
+      ...record,
+      payload: { ...(record.payload as object), revision: 1.5 },
+    }),
+  ],
+  [
+    "non-string name",
+    (record) => ({
+      ...record,
+      payload: { ...(record.payload as object), name: 4 },
+    }),
+  ],
+  [
+    "non-string nullable value",
+    (record) => ({
+      ...record,
+      payload: { ...(record.payload as object), code: 4 },
+    }),
+  ],
+];
+
+function expectInvalid(mutate: CachedVenueMutation): void {
+  expect(() => venueFromCachedRecord(mutate(cached()) as CachedVenueEnvelope)).toThrow(
+    "Invalid cached Venue",
+  );
+}
+
 describe("Venue cache malformed envelope coverage", () => {
-  it.each([
-    [
-      "wrong record type",
-      (record: ReturnType<typeof cached>) => ({
-        ...record,
-        recordType: "other",
-      }),
-    ],
-    [
-      "number payload",
-      (record: ReturnType<typeof cached>) => ({ ...record, payload: 7 }),
-    ],
-    [
-      "null payload",
-      (record: ReturnType<typeof cached>) => ({ ...record, payload: null }),
-    ],
-    [
-      "array payload",
-      (record: ReturnType<typeof cached>) => ({ ...record, payload: [] }),
-    ],
-    [
-      "non-string status",
-      (record: ReturnType<typeof cached>) => ({
-        ...record,
-        payload: { ...(record.payload as object), status: 3 },
-      }),
-    ],
-    [
-      "unknown status",
-      (record: ReturnType<typeof cached>) => ({
-        ...record,
-        payload: { ...(record.payload as object), status: "unknown" },
-      }),
-    ],
-    [
-      "fractional revision",
-      (record: ReturnType<typeof cached>) => ({
-        ...record,
-        payload: { ...(record.payload as object), revision: 1.5 },
-      }),
-    ],
-    [
-      "non-string name",
-      (record: ReturnType<typeof cached>) => ({
-        ...record,
-        payload: { ...(record.payload as object), name: 4 },
-      }),
-    ],
-    [
-      "non-string nullable value",
-      (record: ReturnType<typeof cached>) => ({
-        ...record,
-        payload: { ...(record.payload as object), code: 4 },
-      }),
-    ],
-  ] as const)("rejects %s", (_label, mutate) => {
-    expect(() => venueFromCachedRecord(mutate(cached()))).toThrow(
-      "Invalid cached Venue",
-    );
+  it.each(envelopeCases)("rejects %s", (_label, mutate) => {
+    expectInvalid(mutate);
+  });
+});
+
+describe("Venue cache malformed payload coverage", () => {
+  it.each(payloadCases)("rejects %s", (_label, mutate) => {
+    expectInvalid(mutate);
   });
 
   it("rejects rejected status without a rejection reason", () => {
