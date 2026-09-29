@@ -60,18 +60,24 @@ select lives_ok($$select public.update_venue_core(
 1,'Receipt Venue Renamed',null,null,'Paris',
 '71000000-0000-4000-8000-000000000001','81000000-0000-4000-8000-000000000001')$$,'same core operation retry survives stale base');
 select is((select revision from public.venues where id='a1000000-0000-4000-8000-000000000001'),2::bigint,'core retry does not reapply');
+reset role;
 select is((select result_revision from public.sync_mutation_receipts where operation_id='71000000-0000-4000-8000-000000000001'),2::bigint,'core receipt stores revision');
+set local role authenticated;
+select set_config('request.jwt.claims','{"sub":"11111111-1111-4111-8111-111111111111","role":"authenticated"}',true);
 
-select lives_ok($$select public.transition_venue_status(
+select lives_ok($select public.transition_venue_status(
 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','a1000000-0000-4000-8000-000000000001',
 'shortlist',null,2,'72000000-0000-4000-8000-000000000001','81000000-0000-4000-8000-000000000001')$$,'first lifecycle transition succeeds');
 select lives_ok($$select public.transition_venue_status(
 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','a1000000-0000-4000-8000-000000000001',
 'shortlist',null,2,'72000000-0000-4000-8000-000000000001','81000000-0000-4000-8000-000000000001')$$,'same lifecycle operation retry survives response loss');
 select is((select count(*)::integer from public.activity_log where operation_id='72000000-0000-4000-8000-000000000001'),1,'lifecycle retry does not duplicate history');
+reset role;
 select is((select result_revision from public.sync_mutation_receipts where operation_id='72000000-0000-4000-8000-000000000001'),3::bigint,'lifecycle receipt stores revision');
+set local role authenticated;
+select set_config('request.jwt.claims','{"sub":"11111111-1111-4111-8111-111111111111","role":"authenticated"}',true);
 
-select throws_ok($$select public.transition_venue_status(
+select throws_ok($select public.transition_venue_status(
 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','a1000000-0000-4000-8000-000000000001',
 'contacted',null,3,'71000000-0000-4000-8000-000000000001','81000000-0000-4000-8000-000000000001')$$,
 '22023','venue transition unavailable','operation id cannot cross command classes');
