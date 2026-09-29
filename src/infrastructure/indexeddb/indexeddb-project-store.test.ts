@@ -415,6 +415,27 @@ it("persists pending operations once and exposes counters", async () => {
   ).resolves.toBeUndefined();
 });
 
+it("retains pending mutation across store close and reopen", async () => {
+  const factory = new FakeFactory();
+  const first = await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "1",
+  );
+  const mutation = createMutation();
+  await first.addPendingMutation(mutation);
+  first.close();
+
+  const reopened = await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "1",
+  );
+
+  expect(await reopened.getPendingMutation(operationId)).toEqual(mutation);
+  expect(await reopened.listPendingMutations()).toEqual([mutation]);
+});
+
 it("refuses foreign mutation scope and duplicate operation ids", async () => {
   const factory = new FakeFactory();
   const store = await IndexedDbProjectStore.open(
