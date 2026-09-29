@@ -1,12 +1,17 @@
 create or replace function public.project_tag_label_is_valid(target_label text)
 returns boolean
-language sql
+language plpgsql
 immutable
 security definer
 set search_path = pg_catalog
 as $$
-  select target_label is not null
-    and target_label = public.fact_ecmascript_trim(target_label)
+begin
+  -- An 80-scalar UTF-8 label cannot exceed 320 bytes. Guard before the
+  -- character scan, including direct authenticated function/table calls.
+  if target_label is null or octet_length(target_label) > 320 then
+    return false;
+  end if;
+  return target_label = public.fact_ecmascript_trim(target_label)
     and char_length(target_label) between 1 and 80
     and not exists (
       select 1
@@ -14,6 +19,7 @@ as $$
       where ascii(substr(target_label, point.pos, 1)) between 0 and 31
         or ascii(substr(target_label, point.pos, 1)) between 127 and 159
     );
+end;
 $$;
 
 revoke all on function public.project_tag_label_is_valid(text)

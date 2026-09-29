@@ -110,6 +110,42 @@ exception when others then return sqlstate;
 end;
 $$;
 
+create function pg_temp.tag_protected_update_state(target_change text)
+returns text language plpgsql as $$
+begin
+  case target_change
+    when 'project' then
+      update public.tags set project_id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
+      where id = 'aa200000-0000-4000-8000-000000000001';
+    when 'key' then
+      update public.tags set key = 'rewritten'
+      where id = 'aa200000-0000-4000-8000-000000000001';
+    when 'creator' then
+      update public.tags set created_by = 'a2222222-2222-4222-8222-222222222222'
+      where id = 'aa200000-0000-4000-8000-000000000001';
+    when 'updater' then
+      update public.tags set updated_by = 'a2222222-2222-4222-8222-222222222222'
+      where id = 'aa200000-0000-4000-8000-000000000001';
+    when 'revision' then
+      update public.tags set revision = 100
+      where id = 'aa200000-0000-4000-8000-000000000001';
+  end case;
+  return '00000';
+exception when others then return sqlstate;
+end;
+$$;
+
+create function pg_temp.tag_link_retarget_state()
+returns text language plpgsql as $$
+begin
+  update public.entity_tags
+  set target_id = 'aa100000-0000-4000-8000-000000000002'
+  where id = 'aa300000-0000-4000-8000-000000000001';
+  return '00000';
+exception when others then return sqlstate;
+end;
+$$;
+
 set local role anon;
 select throws_ok(
   $$select * from public.tags$$, '42501', 'permission denied for table tags',
@@ -140,10 +176,22 @@ select is(
   '23514', '81 Unicode scalars exceed the label bound'
 );
 select is(
+  public.project_tag_label_is_valid(repeat('a', 100000)),
+  false, 'direct oversized label call is rejected before character scan'
+);
+select is(public.project_tag_label_is_valid(repeat('🌿', 80)), true, '80 four-byte Unicode scalars remain valid at the 320-byte preflight boundary');
+select is(public.project_tag_label_is_valid(repeat('🌿', 81)), false, '81 four-byte Unicode scalars exceed the bounded label contract');
+select is(
   (select created_by::text from public.tags where key = 'garden'),
   'a1111111-1111-4111-8111-111111111111',
   'tag creation identity comes from live authentication'
 );
+select is(pg_temp.tag_protected_update_state('project'), '42501', 'owner cannot rewrite tag project identity directly');
+select is(pg_temp.tag_protected_update_state('key'), '42501', 'owner cannot rewrite the stable tag key directly');
+select is(pg_temp.tag_protected_update_state('creator'), '42501', 'owner cannot rewrite tag creator identity directly');
+select is(pg_temp.tag_protected_update_state('updater'), '42501', 'owner cannot forge tag updater identity directly');
+select is(pg_temp.tag_protected_update_state('revision'), '42501', 'owner cannot forge tag revision directly');
+select is((select key from public.tags where id = 'aa200000-0000-4000-8000-000000000001'), 'garden', 'denied identity writes leave tag key intact');
 
 select set_config('request.jwt.claims', '{"sub":"a2222222-2222-4222-8222-222222222222","role":"authenticated"}', true);
 select is(
@@ -154,6 +202,8 @@ select is(
   pg_temp.tag_link_state('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'aa300000-0000-4000-8000-000000000001', 'aa200000-0000-4000-8000-000000000001', 'venue', 'aa100000-0000-4000-8000-000000000001'),
   '00000', 'editor can link an existing active project tag to a Venue'
 );
+select is(pg_temp.tag_link_retarget_state(), '42501', 'editor cannot rewrite an assignment target directly');
+select is((select target_id::text from public.entity_tags where id = 'aa300000-0000-4000-8000-000000000001'), 'aa100000-0000-4000-8000-000000000001', 'denied target rewrite leaves the Venue link intact');
 select is(
   pg_temp.tag_link_state('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'aa300000-0000-4000-8000-000000000002', 'aa200000-0000-4000-8000-000000000001', 'venue', 'bb100000-0000-4000-8000-000000000001'),
   '23503', 'composite Venue FK rejects a cross-project target'

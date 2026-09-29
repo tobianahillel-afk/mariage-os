@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.9B`
 - Lot: `2`
 - Name: Generic project tags and Venue entity-tag links
-- State: `REVIEW_FAILED` (fresh Pass B found two MAJOR findings)
-- Current pass: `REMEDIATION` (next)
+- State: `IN_PROGRESS` (bounded remediation of two Pass-B MAJOR findings)
+- Current pass: `REMEDIATION`
 - Primary bounded context: Generic Tags — project tag dictionary and same-project Venue assignments
 - Branch/PR: `lot-2/venues-core` / Lot-2 integration PR not opened yet
 
@@ -277,3 +277,11 @@ CI `36569916332` passed **5/5**, including clean checkout. The fresh
 WP29B-AR-001 (unbounded direct SQL label validation work) and WP29B-AR-002
 (missing direct protected-field mutation deny attempts) are MAJOR / OPEN.
 The packet is `REVIEW_FAILED / REMEDIATION` next; no Pass C is permitted.
+
+The review-failure record `67d4fe10bd148e491a1554f9441a938ec7e492f8` /
+CI `36571052052` passed **5/5**. Bounded remediation has begun, transitioning
+`REVIEW_FAILED -> IN_PROGRESS / REMEDIATION`: an explicit UTF-8 byte guard
+precedes the SQL label scan, and direct authenticated pgTAP attempts now check
+protected tag identity/audit fields and assignment retargeting. AR-001/002
+remain OPEN until exact-head DB/RLS and clean-checkout CI pass and a fresh
+Pass B verifies them. No Pass C or acceptance is claimed.
