@@ -15,6 +15,8 @@ export interface UpdateVenueCoreDraft {
   readonly code?: string | null;
   readonly websiteUrl?: string | null;
   readonly city?: string | null;
+  readonly operationId: string;
+  readonly deviceId: string;
 }
 
 type UpdateVenueCoreError =
@@ -39,6 +41,8 @@ export async function updateVenueCore(
       projectId: draft.projectId,
       venueId: draft.venueId,
       expectedRevision: draft.expectedRevision,
+      operationId: draft.operationId,
+      deviceId: draft.deviceId,
       ...normalized.value,
     });
     return { ok: true, venue };

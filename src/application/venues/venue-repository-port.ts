@@ -20,6 +20,8 @@ export interface VenueCoreUpdateInput {
   readonly code: string | null;
   readonly websiteUrl: string | null;
   readonly city: string | null;
+  readonly operationId: string;
+  readonly deviceId: string;
 }
 
 export interface VenueRepositoryPort {

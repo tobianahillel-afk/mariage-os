@@ -12,6 +12,8 @@ export interface ChangeVenueStatusInput {
   readonly status: string;
   readonly rejectionReason: string | null;
   readonly expectedRevision: number;
+  readonly operationId: string;
+  readonly deviceId: string;
 }
 
 type ChangeVenueStatusError =
@@ -41,6 +43,8 @@ export async function changeVenueStatus(
       status: validated.status,
       rejectionReason: validated.rejectionReason,
       expectedRevision: input.expectedRevision,
+      operationId: input.operationId,
+      deviceId: input.deviceId,
     });
     return { ok: true, revision };
   } catch {

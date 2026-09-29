@@ -21,6 +21,8 @@ export interface VenueTransitionInput {
   readonly status: VenueStatus;
   readonly rejectionReason: string | null;
   readonly expectedRevision: number;
+  readonly operationId: string;
+  readonly deviceId: string;
 }
 
 export interface VenueCommandPort {
