@@ -25,7 +25,7 @@ import type {
   VenueRepositoryPort,
 } from "@application/venues/venue-repository-port";
 
-export type VenueLocalSyncState =
+type VenueLocalSyncState =
   | "synced"
   | "pending"
   | "conflict"
