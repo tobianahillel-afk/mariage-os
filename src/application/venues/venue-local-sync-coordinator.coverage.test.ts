@@ -143,7 +143,9 @@ async function harness(seed = true) {
   return { local, remote, coordinator };
 }
 
-function coreInput(patch: Partial<VenueCoreUpdateInput> = {}): VenueCoreUpdateInput {
+function coreInput(
+  patch: Partial<VenueCoreUpdateInput> = {},
+): VenueCoreUpdateInput {
   return {
     projectId: scope.projectId,
     venueId,

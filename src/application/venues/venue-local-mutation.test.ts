@@ -117,12 +117,21 @@ describe("Venue persisted mutation payload validation", () => {
   });
 
   it.each([
-    ["non-string core name", { name: 1, code: null, websiteUrl: null, city: null }],
-    ["non-string nullable core value", { name: "Venue", code: 3, websiteUrl: null, city: null }],
+    [
+      "non-string core name",
+      { name: 1, code: null, websiteUrl: null, city: null },
+    ],
+    [
+      "non-string nullable core value",
+      { name: "Venue", code: 3, websiteUrl: null, city: null },
+    ],
     ["non-string status", { status: 4, rejectionReason: null }],
     ["unknown status", { status: "not_a_status", rejectionReason: null }],
     ["rejected without reason", { status: "rejected", rejectionReason: null }],
-    ["non-rejected with reason", { status: "shortlist", rejectionReason: "x" }],
+    [
+      "non-rejected with reason",
+      { status: "shortlist", rejectionReason: "x" },
+    ],
     ["non-string reason", { status: "rejected", rejectionReason: 7 }],
   ] as const)("rejects %s", (_label, payload) => {
     const type =
