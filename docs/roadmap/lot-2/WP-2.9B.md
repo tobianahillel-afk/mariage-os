@@ -303,3 +303,10 @@ BLOCKING, MAJOR or MINOR finding remains. B enters
 `ACCEPTANCE_PENDING / C-ACCEPTANCE`; this review/status head must itself pass
 five exact-head ordinary CI jobs before separate Pass C. The packet is not
 yet ACCEPTED.
+
+The separate [Pass-C reconciliation](WP-2.9B-ACCEPTANCE.md) has
+`EXPECTED ↔ IMPLEMENTED ↔ VERIFIED` gap **∅** and a PASS verdict, including
+FIR #27 and explicit downstream responsibilities. B remains
+`ACCEPTANCE_PENDING / C-ACCEPTANCE` until its acceptance-record head passes
+five exact-head ordinary CI jobs. Only then may it become `ACCEPTED` and
+release WP-2.10 activation.

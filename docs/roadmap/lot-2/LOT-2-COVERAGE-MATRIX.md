@@ -51,7 +51,7 @@ The former monolithic WP-2.9 was split before code because it scored 12 points. 
 
 - **WP-2.9A** — FTR-089 private Document foundation/product responsibility; **ACCEPTED / COMPLETE** after complete fresh Pass B closed A AR-001..005 and separate Pass C gap ∅ / CI `36542083037` 5/5.
 - **WP-2.9C** — trusted Document ingress/lifecycle hardening; **ACCEPTED / COMPLETE** after full fresh Pass B, separate Pass C gap ∅ and exact-head CI `36494697647` 5/5. AR-001..009 are closed for C.
-- **WP-2.9B** — generic Tags/entity-tags; Pass A `eeda5cb` / CI `36568868030`, remediation `bd39576` / CI `36572652546`, and new review entry `d603f8c` / CI `36573768984` passed **5/5**. Fresh Pass B CLOSED / VERIFIED AR-001/002 with no new finding. Review/status seal CI and separate Pass C remain.
+- **WP-2.9B** — generic Tags/entity-tags; Pass A `eeda5cb` / CI `36568868030`, remediation `bd39576` / CI `36572652546`, review entry `d603f8c` / CI `36573768984` and Pass-B/status `f812dc0` / CI `36575013966` passed **5/5**. Fresh Pass B CLOSED / VERIFIED AR-001/002. Pass C gap ∅, eligible for ACCEPTED pending acceptance-record exact-head CI.
 
 C adds no new product Feature ID or permission key.
 
