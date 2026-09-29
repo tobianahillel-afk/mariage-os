@@ -32,7 +32,7 @@ type FutureQuickAdd = (
 
 const futureQuickAddVenue = quickAddVenue as unknown as FutureQuickAdd;
 
-describe("quickAddVenue", () => {
+describe("quickAddVenue canonical create", () => {
   it("normalizes input before sending the canonical create command", async () => {
     const calls: VenueQuickAddInput[] = [];
     const port = commandPort(async (input) => {
@@ -64,6 +64,33 @@ describe("quickAddVenue", () => {
     ]);
   });
 
+  it("returns validation failure without touching persistence", async () => {
+    let calls = 0;
+    const port = commandPort(async () => {
+      calls += 1;
+      throw new Error("unexpected");
+    });
+
+    expect(await quickAddVenue(port, "project-a", { name: "   " })).toEqual({
+      ok: false,
+      error: "name_required",
+    });
+    expect(calls).toBe(0);
+  });
+
+  it("converts persistence failures into a stable application error", async () => {
+    const port = commandPort(async () => {
+      throw new Error("provider details must not escape");
+    });
+
+    expect(await quickAddVenue(port, "project-a", { name: "Venue" })).toEqual({
+      ok: false,
+      error: "persistence_failed",
+    });
+  });
+});
+
+describe("quickAddVenue local cache RED", () => {
   it("caches the normalized cloud-confirmed Venue locally", async () => {
     const cacheCloudVenue = vi.fn().mockResolvedValue(undefined);
     const port = commandPort(async (input) => ({
@@ -121,28 +148,4 @@ describe("quickAddVenue", () => {
     expect(result).toMatchObject({ ok: true, localCache: "unavailable" });
   });
 
-  it("returns validation failure without touching persistence", async () => {
-    let calls = 0;
-    const port = commandPort(async () => {
-      calls += 1;
-      throw new Error("unexpected");
-    });
-
-    expect(await quickAddVenue(port, "project-a", { name: "   " })).toEqual({
-      ok: false,
-      error: "name_required",
-    });
-    expect(calls).toBe(0);
-  });
-
-  it("converts persistence failures into a stable application error", async () => {
-    const port = commandPort(async () => {
-      throw new Error("provider details must not escape");
-    });
-
-    expect(await quickAddVenue(port, "project-a", { name: "Venue" })).toEqual({
-      ok: false,
-      error: "persistence_failed",
-    });
-  });
 });
