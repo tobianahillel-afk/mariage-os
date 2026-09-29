@@ -16,6 +16,22 @@ function commandPort(
   };
 }
 
+type FutureQuickAdd = (
+  port: VenueCommandPort,
+  projectId: string,
+  draft: {
+    readonly name: string;
+    readonly code?: string;
+    readonly websiteUrl?: string;
+    readonly city?: string;
+  },
+  cache: {
+    cacheCloudVenue(venue: unknown): Promise<void>;
+  },
+) => Promise<{ readonly ok: boolean; readonly localCache?: string }>;
+
+const futureQuickAddVenue = quickAddVenue as unknown as FutureQuickAdd;
+
 describe("quickAddVenue", () => {
   it("normalizes input before sending the canonical create command", async () => {
     const calls: VenueQuickAddInput[] = [];
@@ -57,8 +73,7 @@ describe("quickAddVenue", () => {
       revision: 1,
     }));
 
-    // @ts-expect-error WP-2.10 RED: quick-add does not yet accept a cache port.
-    const result = await quickAddVenue(
+    const result = await futureQuickAddVenue(
       port,
       "project-a",
       {
@@ -92,8 +107,7 @@ describe("quickAddVenue", () => {
       revision: 1,
     }));
 
-    // @ts-expect-error WP-2.10 RED: quick-add does not yet accept a cache port.
-    const result = await quickAddVenue(
+    const result = await futureQuickAddVenue(
       port,
       "project-a",
       { name: "Venue" },
