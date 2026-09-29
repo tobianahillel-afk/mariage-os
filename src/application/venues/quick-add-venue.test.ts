@@ -147,5 +147,4 @@ describe("quickAddVenue local cache RED", () => {
 
     expect(result).toMatchObject({ ok: true, localCache: "unavailable" });
   });
-
 });
