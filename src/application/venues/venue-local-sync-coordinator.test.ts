@@ -101,6 +101,25 @@ class MemoryLocalStore implements LocalProjectStore {
     this.pending.set(mutation.operationId, mutation);
   }
 
+  async addPendingMutationWithCachedRecord(
+    mutation: PendingMutationEnvelope,
+    record: CachedRecordEnvelope,
+  ): Promise<void> {
+    if (this.failNextAdd) {
+      this.failNextAdd = false;
+      throw new Error("synthetic local failure");
+    }
+    if (this.pending.has(mutation.operationId)) {
+      throw new Error("duplicate mutation");
+    }
+    if (this.failNextCachePut) {
+      this.failNextCachePut = false;
+      throw new Error("synthetic local failure");
+    }
+    this.pending.set(mutation.operationId, mutation);
+    this.cached.set(record.key, record);
+  }
+
   async putPendingMutation(mutation: PendingMutationEnvelope): Promise<void> {
     this.pending.set(mutation.operationId, mutation);
   }
@@ -289,6 +308,18 @@ describe("VenueLocalSyncCoordinator retained work", () => {
       venue: null,
     });
     expect(remote.updateCalls).toHaveLength(0);
+  });
+
+  it("does not retain an orphaned queue entry when working-cache durability fails", async () => {
+    const { local, remote, coordinator } = await seededHarness();
+    local.failNextCachePut = true;
+
+    await expect(coordinator.updateCore(updateInput())).resolves.toEqual({
+      state: "durability_unavailable",
+      venue: null,
+    });
+    expect(remote.updateCalls).toHaveLength(0);
+    expect(local.pending.size).toBe(0);
   });
 });
 

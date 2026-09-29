@@ -97,6 +97,40 @@ function runRequest<T>(
   });
 }
 
+function runAtomicMutationWithCache(
+  database: IDBDatabase,
+  mutation: PendingMutationEnvelope,
+  record: CachedRecordEnvelope,
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(
+      [MUTATION_STORE, CACHE_STORE],
+      "readwrite",
+    );
+    let settled = false;
+    const fail = (): void => {
+      if (settled) return;
+      settled = true;
+      reject(storageError("pending/cache transaction"));
+    };
+
+    const mutationRequest = transaction
+      .objectStore(MUTATION_STORE)
+      .add(mutation);
+    const cacheRequest = transaction.objectStore(CACHE_STORE).put(record);
+
+    mutationRequest.onerror = fail;
+    cacheRequest.onerror = fail;
+    transaction.onerror = fail;
+    transaction.onabort = fail;
+    transaction.oncomplete = () => {
+      if (settled) return;
+      settled = true;
+      resolve();
+    };
+  });
+}
+
 function createMetadata(
   scope: LocalProjectScope,
   appVersion: string,
@@ -269,6 +303,21 @@ export class IndexedDbProjectStore implements LocalProjectStore {
       MUTATION_STORE,
       "readwrite",
       (store) => store.add(parsed),
+    );
+  }
+
+  async addPendingMutationWithCachedRecord(
+    mutation: PendingMutationEnvelope,
+    record: CachedRecordEnvelope,
+  ): Promise<void> {
+    const parsedMutation = parsePendingMutationEnvelope(mutation);
+    const parsedRecord = parseCachedRecordEnvelope(record);
+    assertMutationScope(parsedMutation, this.scope);
+    assertCachedRecordScope(parsedRecord, this.scope);
+    await runAtomicMutationWithCache(
+      this.database,
+      parsedMutation,
+      parsedRecord,
     );
   }
 

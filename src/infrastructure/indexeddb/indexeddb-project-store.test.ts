@@ -209,6 +209,60 @@ it("persists pending operations once and exposes counters", async () => {
   ).resolves.toBeUndefined();
 });
 
+it("atomically stores a pending mutation with its working cache", async () => {
+  const factory = new FakeFactory();
+  const store = await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "1",
+  );
+  const mutation = createMutation();
+  const record = createCachedRecordEnvelope(scope, {
+    recordType: "project_preferences",
+    entityId,
+    serverRevision: "rev-1",
+    serverUpdatedAt: null,
+    syncMarker: "pending",
+    payload: { density: "compact" },
+  });
+
+  await store.addPendingMutationWithCachedRecord(mutation, record);
+
+  expect(await store.getPendingMutation(operationId)).toEqual(mutation);
+  expect(await store.getCachedRecord("project_preferences", entityId)).toEqual(
+    record,
+  );
+});
+
+it.each(["request", "transaction_error", "transaction_abort"] as const)(
+  "rolls back atomic pending/cache durability on %s failure",
+  async (failure) => {
+    const factory = new FakeFactory();
+    const store = await IndexedDbProjectStore.open(
+      factory as unknown as IDBFactory,
+      scope,
+      "1",
+    );
+    const mutation = createMutation();
+    const record = createCachedRecordEnvelope(scope, {
+      recordType: "project_preferences",
+      entityId,
+      serverRevision: "rev-1",
+      serverUpdatedAt: null,
+      syncMarker: "pending",
+      payload: { density: "compact" },
+    });
+    factory.state.failure = failure;
+
+    await expect(
+      store.addPendingMutationWithCachedRecord(mutation, record),
+    ).rejects.toThrow();
+
+    expect(rawStore(factory, "pending_mutations").size).toBe(0);
+    expect(rawStore(factory, "cached_records").size).toBe(0);
+  },
+);
+
 it("retains pending mutation across store close and reopen", async () => {
   const factory = new FakeFactory();
   const first = await IndexedDbProjectStore.open(

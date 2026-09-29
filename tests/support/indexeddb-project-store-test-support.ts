@@ -43,9 +43,15 @@ class FakeDatabase {
     return {} as IDBObjectStore;
   }
 
-  transaction(storeName: string): IDBTransaction {
-    const store = this.stores.get(storeName) ?? missingFixture();
-    return new FakeTransaction(store, this.state) as unknown as IDBTransaction;
+  transaction(storeNames: string | string[]): IDBTransaction {
+    const names = Array.isArray(storeNames) ? storeNames : [storeNames];
+    const stores = new Map(
+      names.map((name) => [
+        name,
+        this.stores.get(name) ?? missingFixture(),
+      ]),
+    );
+    return new FakeTransaction(stores, this.state) as unknown as IDBTransaction;
   }
 
   close(): void {
@@ -58,29 +64,64 @@ class FakeTransaction {
   onerror: (() => void) | null = null;
   onabort: (() => void) | null = null;
 
+  private pendingRequests = 0;
+  private failed = false;
+  private completionScheduled = false;
+  private readonly stagedMutations: Array<() => void> = [];
+
   constructor(
-    private readonly store: { keyPath: string; rows: Map<string, Row> },
+    private readonly stores: Map<
+      string,
+      { keyPath: string; rows: Map<string, Row> }
+    >,
     private readonly state: FakeFactoryState,
   ) {}
 
-  objectStore(): IDBObjectStore {
+  objectStore(name: string): IDBObjectStore {
+    const store = this.stores.get(name) ?? missingFixture();
     return new FakeObjectStore(
-      this.store,
+      store,
       this,
       this.state,
     ) as unknown as IDBObjectStore;
   }
 
-  finish(): void {
-    const mode = this.state.consumeFailure();
+  startRequest(): void {
+    this.pendingRequests += 1;
+  }
+
+  completeRequest(mutate?: () => void): void {
+    if (mutate !== undefined) this.stagedMutations.push(mutate);
+    this.pendingRequests -= 1;
+    this.scheduleCompletion();
+  }
+
+  failRequest(): void {
+    this.failed = true;
+    this.stagedMutations.length = 0;
+    this.pendingRequests -= 1;
+    this.scheduleCompletion();
+  }
+
+  private scheduleCompletion(): void {
+    if (this.pendingRequests !== 0 || this.completionScheduled) return;
+    this.completionScheduled = true;
     queueMicrotask(() => {
+      if (this.failed) {
+        this.onabort?.();
+        return;
+      }
+      const mode = this.state.consumeFailure();
       if (mode === "transaction_error") {
         this.onerror?.();
-      } else if (mode === "transaction_abort") {
-        this.onabort?.();
-      } else {
-        this.oncomplete?.();
+        return;
       }
+      if (mode === "transaction_abort") {
+        this.onabort?.();
+        return;
+      }
+      for (const mutate of this.stagedMutations) mutate();
+      this.oncomplete?.();
     });
   }
 }
@@ -98,16 +139,17 @@ class FakeObjectStore {
 
   private request<T>(result: T, mutate?: () => void): IDBRequest<T> {
     const request = new FakeRequest<T>();
+    this.transaction.startRequest();
     queueMicrotask(() => {
       if (this.state.failure === "request") {
         this.state.consumeFailure();
         request.onerror?.();
+        this.transaction.failRequest();
         return;
       }
-      mutate?.();
       request.result = result;
       request.onsuccess?.();
-      this.transaction.finish();
+      this.transaction.completeRequest(mutate);
     });
     return request as unknown as IDBRequest<T>;
   }
@@ -147,7 +189,11 @@ class FakeObjectStore {
 
   private requestFailure<T>(): IDBRequest<T> {
     const request = new FakeRequest<T>();
-    queueMicrotask(() => request.onerror?.());
+    this.transaction.startRequest();
+    queueMicrotask(() => {
+      request.onerror?.();
+      this.transaction.failRequest();
+    });
     return request as unknown as IDBRequest<T>;
   }
 }

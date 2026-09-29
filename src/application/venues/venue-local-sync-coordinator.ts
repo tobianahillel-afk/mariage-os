@@ -304,8 +304,8 @@ export class VenueLocalSyncCoordinator {
     send: () => Promise<VenueCoreRecord>,
   ): Promise<VenueLocalSyncResult> {
     try {
-      await this.local.addPendingMutation(mutation);
-      await this.local.putCachedRecord(
+      await this.local.addPendingMutationWithCachedRecord(
+        mutation,
         venueCachedRecord(this.local.scope, working, "pending"),
       );
     } catch {
