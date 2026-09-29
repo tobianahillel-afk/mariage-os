@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.9B`
 - Lot: `2`
 - Name: Generic project tags and Venue entity-tag links
-- State: `READY` (governance CI seal pending)
-- Current pass: `READY / PASS-A ENTRY GATE`
+- State: `IN_PROGRESS` (Pass-A candidate; exact-head CI pending)
+- Current pass: `A-IMPLEMENT`
 - Primary bounded context: Generic Tags — project tag dictionary and same-project Venue assignments
 - Branch/PR: `lot-2/venues-core` / Lot-2 integration PR not opened yet
 
@@ -209,8 +209,30 @@ remaining entry gate:
 1. the split/freeze commit is exact-head **5/5 SUCCESS**;
 2. WP-2.9A is **ACCEPTED / COMPLETE**;
 3. the B contract is revalidated against any accepted A schema changes;
-4. this separate `PLANNED → READY` governance commit must pass exact-head 5/5.
+4. separate `PLANNED → READY` governance commit `605d616589d4732e9136d249302f8a64c6c29eb0` / CI `36544194589` passed **5/5**, including clean checkout.
 
-This record transitions WP-2.9B to `READY` as a governance candidate. **No
-WP-2.9B product implementation is authorized until this exact HEAD passes all
-five ordinary CI jobs, including full verification from a clean checkout.**
+The READY gate is sealed. WP-2.9B has entered `IN_PROGRESS / A-IMPLEMENT`.
+The [FTR-093 FIR](https://github.com/tobianahillel-afk/mariage-os/issues/27)
+tracks the current Lot-2 slice; the Feature stays `IN_PROGRESS` because UI
+and later-domain targets remain downstream.
+
+## Pass-A implementation candidate
+
+- CLI-created forward-only migration
+  `20260929084836_create_project_tags_venue_links.sql` adds project-owned
+  `tags`/`entity_tags`, explicit grants/RLS, live permission checks,
+  protected audit/key fields, active-key uniqueness and same-project Venue
+  and tag FKs. A trigger locks the active tag during link creation so
+  concurrent soft-delete cannot authorize a link after deletion.
+- Pure key/Unicode-label validation, typed application service/port and
+  fail-closed Supabase adapter implement tag lifecycle and active Venue
+  assignment reads/links. No UI, offline queue, new permission key or
+  privileged CRUD RPC is added.
+- Targeted unit/parser/adapter tests and PostgreSQL pgTAP allow+deny cases
+  cover canonical input, identity substitution, owner/editor/viewer,
+  anon/outsider/project-B/revoked/downgraded, active-link visibility and
+  explicit restore conflict. Local TypeScript/Vitest/ESLint are green.
+- **This is a candidate, not Pass-A acceptance.** The exact implementation
+  commit must pass five ordinary CI jobs including local DB/RLS and full
+  clean-checkout verification. A separate REVIEW_PENDING seal and fresh
+  adversarial Pass B follow; Pass C remains separate.

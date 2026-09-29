@@ -159,7 +159,7 @@ Before implementation gate opens, every V1 row remains `SPECIFIED`.
 | FTR-090 | Document version/supersession history | 7/11 | CONTRACT-READINESS, SCHEMA ADDENDUM | SPECIFIED |
 | FTR-091 | Quote/contract readiness checklist and follow-up | 7/8 | CONTRACT-READINESS | SPECIFIED |
 | FTR-092 | Original media/derivative/orphan lifecycle | 2/10/11 | STORAGE | SPECIFIED |
-| FTR-093 | Generic tags/entity links | 2/7 | PHYSICAL-SCHEMA | SPECIFIED |
+| FTR-093 | Generic tags/entity links | 2/7 | PHYSICAL-SCHEMA | IN_PROGRESS |
 
 ## Recovery / production / migration
 

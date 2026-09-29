@@ -162,7 +162,8 @@ Frozen exported timeline artifacts are generated/exported data, not writable liv
 | `document_review_items` | CRUD through review rules | document/fact/source/task links same-project; reviewer identity protected |
 | `media` | CRUD metadata | derivative/original same-project |
 | `document_links`,`media_links` | CRUD | both ends same-project |
-| `tags`,`entity_tags` | CRUD | tag/target same-project |
+| `tags` | owner definition management; project-member active read | stable key, protected audit, recoverable soft-delete and explicit restore conflict |
+| `entity_tags` Lot-2 Venue links | `venues.read` active-link read; `venues.write` link/unlink | active tag and Venue both same-project; no generic target escape |
 
 Document version/review state cannot be forged across project or silently inherited from a superseded version.
 

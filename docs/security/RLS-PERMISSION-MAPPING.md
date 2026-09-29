@@ -92,7 +92,8 @@ Financial export may additionally require `exports.sensitive`.
 | sensitive document payload | `sensitive_documents.read` | `documents.write` plus sensitive classification checks |
 | contract review | `contract_review.read` | `contract_review.write` |
 | media | `media.read` | `media.write` |
-| tags | inherited from target domain; tag definitions project-write controlled | inherited from target domain/project settings as specified |
+| `tags` project dictionary | `project.read` (active; owner may recover deleted) | `project.settings.update` for create/label/soft-delete/restore; no hard-delete grant |
+| `entity_tags` Venue links (Lot 2) | `venues.read` and active same-project tag | `venues.write` for link/unlink of an existing active tag; only same-project Venue target |
 
 A link table never grants access to a target the user could not otherwise read.
 
