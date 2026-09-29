@@ -167,17 +167,23 @@ class RemoteHarness {
   };
 }
 
-async function seededHarness() {
-  const local = new MemoryLocalStore();
-  await local.putCachedRecord(venueCachedRecord(scope, venue, "synced"));
-  const remote = new RemoteHarness();
-  const coordinator = new VenueLocalSyncCoordinator({
+function coordinatorFor(
+  local: MemoryLocalStore,
+  remote: RemoteHarness,
+): VenueLocalSyncCoordinator {
+  return new VenueLocalSyncCoordinator({
     local,
     repository: remote.repository,
     commands: remote.commands,
     now: () => now,
   });
-  return { local, remote, coordinator };
+}
+
+async function seededHarness() {
+  const local = new MemoryLocalStore();
+  await local.putCachedRecord(venueCachedRecord(scope, venue, "synced"));
+  const remote = new RemoteHarness();
+  return { local, remote, coordinator: coordinatorFor(local, remote) };
 }
 
 function updateInput(): VenueCoreUpdateInput {
@@ -310,6 +316,97 @@ describe("VenueLocalSyncCoordinator refresh", () => {
       name: "Remote New",
       revision: 2,
     });
+    expect(local.cached.get(`venue:${venueId}`)?.syncMarker).toBe("synced");
+  });
+});
+
+
+describe("VenueLocalSyncCoordinator restart replay", () => {
+  it("replays a response-loss core update with the same operation id", async () => {
+    const { local, remote, coordinator } = await seededHarness();
+    remote.updateError = new VenueMutationPersistenceError(
+      "unavailable",
+      "response lost",
+    );
+
+    await coordinator.updateCore(updateInput());
+    expect(local.pending.get(operationId)?.status).toBe("failed_retryable");
+
+    remote.updateError = null;
+    const restarted = coordinatorFor(local, remote);
+    const results = await restarted.replayPending();
+
+    expect(results).toHaveLength(1);
+    expect(results[0]?.state).toBe("synced");
+    expect(remote.updateCalls).toHaveLength(2);
+    expect(remote.updateCalls.map((call) => call.operationId)).toEqual([
+      operationId,
+      operationId,
+    ]);
+    expect(local.pending.size).toBe(0);
+    expect(await cachedVenue(local)).toMatchObject({
+      name: "Venue Local",
+      revision: 2,
+    });
+  });
+
+  it("does not automatically replay an explicit conflict", async () => {
+    const { local, remote, coordinator } = await seededHarness();
+    remote.updateError = new VenueMutationPersistenceError("conflict", "safe");
+    await coordinator.updateCore(updateInput());
+
+    remote.updateError = null;
+    await expect(coordinatorFor(local, remote).replayPending()).resolves.toEqual(
+      [],
+    );
+    expect(remote.updateCalls).toHaveLength(1);
+    expect(local.pending.get(operationId)?.status).toBe("conflict");
+  });
+});
+
+describe("VenueLocalSyncCoordinator corrupt replay", () => {
+  it("retains an invalid queued Venue command without sending it", async () => {
+    const { local, remote } = await seededHarness();
+    local.pending.set(operationId, {
+      operationId,
+      projectId: scope.projectId,
+      userId: scope.userId,
+      deviceId: scope.deviceId,
+      entityType: "venue",
+      entityId: venueId,
+      mutationType: "unknown_command",
+      baseRevision: "1",
+      payload: {},
+      createdAt: now,
+      attemptCount: 0,
+      lastAttemptAt: null,
+      status: "pending",
+      lastErrorCode: null,
+      priorityClass: "essential_structured",
+    });
+
+    const results = await coordinatorFor(local, remote).replayPending();
+
+    expect(results).toEqual([{ state: "failed_permanent", venue: null }]);
+    expect(remote.updateCalls).toHaveLength(0);
+    expect(remote.transitionCalls).toHaveLength(0);
+    expect(local.pending.get(operationId)).toMatchObject({
+      status: "failed_permanent",
+      lastErrorCode: "invalid_local_mutation",
+    });
+  });
+});
+
+describe("VenueLocalSyncCoordinator cloud cache", () => {
+  it("caches an acknowledged cloud Venue as synchronized", async () => {
+    const local = new MemoryLocalStore();
+    const remote = new RemoteHarness();
+    await coordinatorFor(local, remote).cacheCloudVenue({
+      ...venue,
+      revision: 2,
+    });
+
+    expect(await cachedVenue(local)).toMatchObject({ revision: 2 });
     expect(local.cached.get(`venue:${venueId}`)?.syncMarker).toBe("synced");
   });
 });
