@@ -51,7 +51,7 @@ The former monolithic WP-2.9 was split before code because it scored 12 points. 
 
 - **WP-2.9A** — FTR-089 private Document foundation/product responsibility; **ACCEPTED / COMPLETE** after complete fresh Pass B closed A AR-001..005 and separate Pass C gap ∅ / CI `36542083037` 5/5.
 - **WP-2.9C** — trusted Document ingress/lifecycle hardening; **ACCEPTED / COMPLETE** after full fresh Pass B, separate Pass C gap ∅ and exact-head CI `36494697647` 5/5. AR-001..009 are closed for C.
-- **WP-2.9B** — generic Tags/entity-tags; accepted-A revalidation **PASS**, separate READY governance `605d616` / CI `36544194589` **5/5**. First Pass-A implementation CI `36547210465` failed core coverage and DB/RLS; bounded remediation candidate awaits exact-head CI.
+- **WP-2.9B** — generic Tags/entity-tags; accepted-A revalidation **PASS**, separate READY governance `605d616` / CI `36544194589` **5/5**. First Pass-A CI `36547210465` failed coverage/DB; remediation CI `36548685008` passed 3/5 with one RLS SQLSTATE expectation mismatch (42/43 tag assertions). Corrected candidate awaits exact-head CI.
 
 C adds no new product Feature ID or permission key.
 

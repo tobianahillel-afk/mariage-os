@@ -160,7 +160,7 @@ select is(
 );
 select is(
   pg_temp.tag_link_state('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'aa300000-0000-4000-8000-000000000002', 'aa200000-0000-4000-8000-000000000001', 'vendor', 'aa100000-0000-4000-8000-000000000001'),
-  '23514', 'non-Venue target type is rejected'
+  '42501', 'non-Venue target type is rejected by RLS before the table check'
 );
 select is(
   pg_temp.tag_link_state('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'aa300000-0000-4000-8000-000000000002', 'aa200000-0000-4000-8000-000000000001', 'venue', 'aa100000-0000-4000-8000-000000000001'),

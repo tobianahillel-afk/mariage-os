@@ -263,6 +263,7 @@ Normative release/deployment/secret contracts require Pages Functions to deploy 
 49. A acceptance handoff `f41bee0c5fd6cd2b696e269e54e41e5a43ec3b2d` / CI `36543034897` passed **5/5**, including clean checkout; isolated provider jobs skipped. WP-2.9B's frozen 8-point tag contract was revalidated against accepted A's document schema and existing permissions with no conflict. This separate B `PLANNED -> READY` governance candidate must itself pass five exact-head CI jobs before B Pass A begins.
 50. B READY governance `605d616589d4732e9136d249302f8a64c6c29eb0` / CI `36544194589` passed **5/5**, including clean checkout; provider jobs skipped. B is now `IN_PROGRESS / A-IMPLEMENT` with new FTR-093 FIR #27. Its forward-only tag/assignment migration, RLS, typed service/adapter and direct tests are a Pass-A candidate awaiting exact-head CI; no B review or acceptance is claimed.
 51. First B implementation head `643368e319aa6d1b1e94671bdff133207cbf999f` / CI `36547210465` **FAILED**: core 100% new-code coverage and local DB/RLS (label validation helper `42501`, ambiguous pgTAP unlink parameter `42702`); browser/mutation succeeded, preview/full verification skipped. A bounded Pass-A remediation candidate fixes the SQL privilege boundary and test ambiguity, adds provider/lifecycle/deny branch tests, and passes local TypeScript/Vitest coverage (188 files, 1,686 tests; two pre-existing Windows CRLF-sensitive tests excluded). B remains IN_PROGRESS / A-IMPLEMENT until a new exact-head 5/5 CI gate.
+52. B remediation `b80f609909e4cc8aa158bce36973c9192929e623` / CI `36548685008` **FAILED 3/5**: core quality/security, browser/mutation and preview passed; DB/RLS passed 42/43 tag assertions, with the sole mismatch an expected `23514` versus observed RLS-first `42501` denial for a non-Venue target. Clean checkout skipped. The test expectation is corrected without weakening the deny rule; a new exact-head 5/5 gate remains required.
 
 ## Durable handoff
 
@@ -275,7 +276,7 @@ Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.8C, WP-2.9C, WP-2.9A
 WP-2.9C: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 21accd7f9ab1b845275507b7941a782c5e816a56 / CI 36494697647 5/5 including clean checkout
 WP-2.9A: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 656398bcd5520cfa56d782023d150eb64317161d / CI 36542083037 5/5 including clean checkout
-Current packet: WP-2.9B — IN_PROGRESS / Pass-A remediation candidate; first CI 36547210465 failed, new exact-head CI pending
+Current packet: WP-2.9B — IN_PROGRESS / Pass-A remediation candidate; CI 36547210465 and 36548685008 failed, new exact-head CI pending
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview

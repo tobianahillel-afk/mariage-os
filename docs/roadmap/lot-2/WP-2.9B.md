@@ -252,3 +252,11 @@ tests lifecycle, provider-error and malformed-receipt branches. Local Vitest
 coverage excluding two pre-existing Windows CRLF-sensitive workflow tests
 passed 188 files / 1,686 tests with every new file fully covered. Exact-head
 five-job CI, including Linux DB/RLS, remains required before review entry.
+
+Remediation head `b80f609909e4cc8aa158bce36973c9192929e623` / CI
+`36548685008` passed core quality/security, browser/mutation and preview. The
+DB/RLS job passed 42/43 direct tag assertions: its sole failure expected the
+table-check SQLSTATE `23514` for a non-Venue target, while PostgreSQL correctly
+applied the RLS `WITH CHECK` earlier and returned `42501`. The test expectation
+is aligned with the observed deny boundary in the next candidate. Clean
+checkout was skipped by the failed DB job; Pass A remains unaccepted.
