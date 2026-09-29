@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.9B`
 - Lot: `2`
 - Name: Generic project tags and Venue entity-tag links
-- State: `IN_PROGRESS` (bounded remediation of two Pass-B MAJOR findings)
-- Current pass: `REMEDIATION`
+- State: `REVIEW_PENDING` (remediation verified; fresh review-entry CI pending)
+- Current pass: `B-ADVERSARIAL-REVIEW`
 - Primary bounded context: Generic Tags — project tag dictionary and same-project Venue assignments
 - Branch/PR: `lot-2/venues-core` / Lot-2 integration PR not opened yet
 
@@ -285,3 +285,12 @@ precedes the SQL label scan, and direct authenticated pgTAP attempts now check
 protected tag identity/audit fields and assignment retargeting. AR-001/002
 remain OPEN until exact-head DB/RLS and clean-checkout CI pass and a fresh
 Pass B verifies them. No Pass C or acceptance is claimed.
+
+Remediation head `bd39576c27d74482c477823e264aa54f85f8a3ed` /
+CI [`36572652546`](https://github.com/tobianahillel-afk/mariage-os/actions/runs/36572652546)
+passed **5/5 ordinary jobs**, including 1,439/1,439 pgTAP assertions across
+82 files and full verify from a clean checkout. The packet returns
+`IN_PROGRESS / REMEDIATION -> REVIEW_PENDING / B-ADVERSARIAL-REVIEW`.
+AR-001/002 have implemented and tested resolution candidates, but only a
+fresh Pass B may close them. This separate review-entry record itself awaits
+exact-head 5/5 CI; no Pass C or acceptance is claimed.
