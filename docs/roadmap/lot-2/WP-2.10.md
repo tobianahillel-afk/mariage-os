@@ -56,7 +56,7 @@
 
 - Required prior packets: WP-2.1..WP-2.9A/B/C accepted.
 - Downstream blocked: WP-2.11, then WP-2.12, then Lot-2 reconciliation/integration.
-- Shared contracts: `LOCAL-FIRST.md`, `OFFLINE.md`, `SYNC.md`, `LOCAL-DATA-SCHEMA.md`, ADR 0003, existing `VenueRepositoryPort`, `VenueCommandPort`, `LocalProjectStore` and Supabase adapters.
+- Shared contracts: `LOCAL-FIRST.md`, `OFFLINE.md`, `SYNC.md`, `LOCAL-DATA-SCHEMA.md`, `PHYSICAL-SCHEMA-V1.md`, ADR 0003, existing `VenueRepositoryPort`, `VenueCommandPort`, `LocalProjectStore` and Supabase adapters.
 - Accepted WP-2.1 SQL explicitly deferred operation receipts to the later sync packet; WP-2.10 owns that Venue-local closure.
 
 ## Sizing review
@@ -64,10 +64,10 @@
 | Complexity source | Count | Points each | Total |
 |---|---:|---:|---:|
 | new/changed bounded domain | 0 | 3 | 0 |
-| persistent entity/table | 0 | 1 | 0 |
+| persistent entity/table | 1 (`sync_mutation_receipts`) | 1 | 1 |
 | migration family | 1 | 1 | 1 |
 | RPC/public endpoint/capability command | 1 family | 2 | 2 |
-| RLS/privileged authorization boundary | 0 | 2 | 0 |
+| RLS/privileged authorization boundary | 1 receipt boundary | 2 | 2 |
 | major UI route/workflow | 0 | 1 | 0 |
 | public/unauthenticated capability surface | 0 | 2 | 0 |
 | external provider integration | 0 | 3 | 0 |
@@ -75,7 +75,7 @@
 | security-sensitive token/crypto boundary | 0 | 2 | 0 |
 | financial/calculation critical engine | 0 | 3 | 0 |
 | backup/import/version migration semantics | 0 | 2 | 0 |
-| **Total** |  |  | **5** |
+| **Total** |  |  | **8** |
 
 Cohesion: PASS. No split required.
 
@@ -86,7 +86,7 @@ Cohesion: PASS. No split required.
 - domain: existing Venue normalization/status/revision invariants remain authoritative.
 - ports: extend only the minimum local-store and Venue mutation contracts needed for durable retry/ack/conflict state.
 - infrastructure: IndexedDB support for replacing/removing mutation state and listing cached Venue records; Supabase Venue RPC/adapters gain receipt-aware retry semantics.
-- cloud persistence: append-only migration only; no new table required unless RED/review proves the existing activity/receipt model cannot safely carry the command result.
+- cloud persistence: append-only migration creates the frozen-schema `sync_mutation_receipts` table (`operation_id` PK, project/user/device/entity/result revision), enables RLS, grants no direct browser table access, and lets the authorized Venue RPCs recognize/replay receipts. `activity_log` remains human-meaningful history and is not repurposed as the sync receipt store.
 - local/offline: local durable write precedes remote attempt; response loss does not duplicate/reapply the same operation; stale revision becomes explicit conflict and local work remains retained.
 - import/export/backup: no format change in this packet.
 - UX/QIF: no route work; expose stable application sync state for downstream UI.
@@ -109,7 +109,7 @@ The first two REDs must fail on the current server contract before receipt imple
 
 ### Planned evidence
 
-- append-only Venue sync/idempotence migration + pgTAP allow/deny/replay tests;
+- append-only canonical `sync_mutation_receipts` + Venue RPC idempotence migration with pgTAP allow/deny/replay/cross-user/cross-project tests;
 - Supabase adapter tests for exact operation-ID forwarding and typed retry/conflict behavior;
 - local-store tests for mutation replace/remove and cached Venue listing;
 - application tests for cache-first reads, durable-before-network mutation, response-loss retry, restart/session-expiry retention, conflict retention and cross-project isolation;

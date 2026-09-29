@@ -49,7 +49,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 - **READY** after revalidation against accepted WP-2.9A/B/C and current local-first/offline/sync contracts.
 - Activation base `c5cfe273468eb56592f8fe8f0de9eb764d671a58` / CI `36579954211` passed the five ordinary jobs including clean checkout; all provider-only jobs were skipped.
 - Packet record: `docs/roadmap/lot-2/WP-2.10.md`.
-- Size: **5 points / cohesion PASS**.
+- Size: **8 points / cohesion PASS** — canonical frozen-schema `sync_mutation_receipts` table + receipt-aware Venue RPC boundary + Venue-local offline semantics.
 - Scope is Venue-local only: cache essential Venue core records, durable pending Venue edits, retry-safe operation receipts for Venue core update/lifecycle transition, restart/session-expiry preservation and project/account isolation. Generic cross-domain sync remains Lot 10.
 - Current/next pass: **A-IMPLEMENT — RED first**. No implementation claim is made by this activation commit.
 
@@ -292,7 +292,7 @@ Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.8C, WP-2.9C, WP-2.9A, WP-2.9B
 WP-2.9C: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 21accd7f9ab1b845275507b7941a782c5e816a56 / CI 36494697647 5/5 including clean checkout
 WP-2.9A: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 656398bcd5520cfa56d782023d150eb64317161d / CI 36542083037 5/5 including clean checkout
-Current packet: none — WP-2.9B ACCEPTED / COMPLETE at df0a3f0 / CI 36576346730 5/5; next WP-2.10 PLANNED / AFTER B
+Current packet: WP-2.10 — READY; activation revalidation recorded in `docs/roadmap/lot-2/WP-2.10.md`; next pass A-IMPLEMENT / RED first
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
@@ -331,5 +331,5 @@ FTR-089 FIR: #17 — IN_PROGRESS / parent A accepted, later presentation and Lot
 WP-2.9B: ACCEPTED / COMPLETE; FTR-093 FIR #27 remains IN_PROGRESS for downstream scope; WP29B-AR-001/002 CLOSED / VERIFIED; Pass C gap ∅
 Lots 3–12: NOT_STARTED
 Latest distinct-PDF campaign: 2303df0c9e8d6f72561ec0ce42514663801229d8 / CI 36459949861 / provider job 109058754517 / artifact 10987866873 — 10 distinct exact-size PDFs, 10 finalized flows, 20 valid exact-version CPU readings within Workers Free; provider verdict PASS
-Next permitted action: revalidate WP-2.10 against accepted A/B/C and current offline/local contracts, then use its separate PLANNED -> READY governance commit and exact-head CI before 2.10 Pass A. Lot reconciliation/integration/checkpoint are later and not yet authorized by unfinished packets.
+Next permitted action: seal the corrected WP-2.10 READY contract with exact-head ordinary CI/clean checkout, then create isolated RED evidence for response-loss/idempotence and local durability before Pass A production implementation. Lot reconciliation/integration/checkpoint are later and not yet authorized by unfinished packets.
 ```

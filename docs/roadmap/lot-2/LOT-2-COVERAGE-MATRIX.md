@@ -178,7 +178,7 @@ A-resumption seal = c8f3dfd441e7ad583613c8b94bd9197b19b829fb / CI 36495622949 �
 A reintegration record = WP-2.9A-REINTEGRATION-2026-09-29.md; Storage-RLS obsolete UPDATE wording corrected and sealed 5/5
 A full review = WP-2.9A-FRESH-PASS-B-2026-09-29.md — PASS; no open A finding
 A Pass C = WP-2.9A-ACCEPTANCE.md — ACCEPTED / gap ∅; record 656398bcd5520cfa56d782023d150eb64317161d / CI 36542083037 5/5
-WP-2.10 = READY / next A-IMPLEMENT RED first; activation record `docs/roadmap/lot-2/WP-2.10.md`; size 5 / cohesion PASS
+WP-2.10 = READY / next A-IMPLEMENT RED first; activation record `docs/roadmap/lot-2/WP-2.10.md`; size 8 / cohesion PASS; frozen-schema `sync_mutation_receipts` is owned here
 next permitted action = seal this READY activation with exact-head ordinary CI/clean checkout, then create failing response-loss/idempotence + local durability tests before production implementation
 C acceptance and A resumption are authorized by green acceptance-record CI; no provider rerun
 ```
