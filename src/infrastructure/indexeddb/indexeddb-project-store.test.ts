@@ -334,7 +334,7 @@ it("persists and reads scoped cached records", async () => {
   expect(
     await store.getCachedRecord("project_preferences", operationId),
   ).toBeNull();
-  expect(await store.listCachedRecords("project_preferences")).toEqual([record]);
+  expect(await store.listCachedRecords("project_preferences")).toEqual([\n    record,\n  ]);
   expect(await store.listCachedRecords("venue")).toEqual([venueRecord]);
 });
 
@@ -408,7 +408,7 @@ it("persists pending operations once and exposes counters", async () => {
 
   await store.removePendingMutation(operationId);
   expect(await store.getPendingMutation(operationId)).toBeNull();
-  await expect(store.removePendingMutation(operationId)).resolves.toBeUndefined();
+  await expect(\n    store.removePendingMutation(operationId),\n  ).resolves.toBeUndefined();
 });
 
 it("refuses foreign mutation scope and duplicate operation ids", async () => {
