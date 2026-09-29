@@ -5,10 +5,10 @@ select plan(11);
 
 select ok(
   strpos(
-    lower(pg_get_functiondef('public.update_venue_core(uuid,uuid,bigint,text,text,text,text)'::regprocedure)),
+    lower(pg_get_functiondef('public.update_venue_core(uuid,uuid,bigint,text,text,text,text,uuid,uuid)'::regprocedure)),
     'has_project_permission'
   ) < strpos(
-    lower(pg_get_functiondef('public.update_venue_core(uuid,uuid,bigint,text,text,text,text)'::regprocedure)),
+    lower(pg_get_functiondef('public.update_venue_core(uuid,uuid,bigint,text,text,text,text,uuid,uuid)'::regprocedure)),
     'for update'
   ),
   'ordinary venue update authorizes before acquiring the venue row lock'
@@ -16,10 +16,10 @@ select ok(
 
 select ok(
   strpos(
-    lower(pg_get_functiondef('public.transition_venue_status(uuid,uuid,text,text,bigint)'::regprocedure)),
+    lower(pg_get_functiondef('public.transition_venue_status(uuid,uuid,text,text,bigint,uuid,uuid)'::regprocedure)),
     'has_project_permission'
   ) < strpos(
-    lower(pg_get_functiondef('public.transition_venue_status(uuid,uuid,text,text,bigint)'::regprocedure)),
+    lower(pg_get_functiondef('public.transition_venue_status(uuid,uuid,text,text,bigint,uuid,uuid)'::regprocedure)),
     'for update'
   ),
   'venue lifecycle command authorizes before acquiring the venue row lock'
@@ -107,7 +107,12 @@ begin
     target_id,
     target_status,
     target_reason,
-    current_revision
+    current_revision,
+    md5(
+      target_id::text || ':' || coalesce(target_status, '<null>') || ':' ||
+      coalesce(target_reason, '<null>')
+    )::uuid,
+    '81000000-0000-4000-8000-000000000001'
   );
   return true;
 exception
