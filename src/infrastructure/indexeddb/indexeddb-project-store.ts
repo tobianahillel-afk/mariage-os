@@ -245,6 +245,22 @@ export class IndexedDbProjectStore implements LocalProjectStore {
     return record;
   }
 
+  async listCachedRecords(
+    recordType: string,
+  ): Promise<readonly CachedRecordEnvelope[]> {
+    const raw = await runRequest<unknown[]>(
+      this.database,
+      CACHE_STORE,
+      "readonly",
+      (store) => store.getAll(),
+    );
+    return raw.flatMap((value) => {
+      const record = parseCachedRecordEnvelope(value);
+      assertCachedRecordScope(record, this.scope);
+      return record.recordType === recordType ? [record] : [];
+    });
+  }
+
   async addPendingMutation(mutation: PendingMutationEnvelope): Promise<void> {
     const parsed = parsePendingMutationEnvelope(mutation);
     assertMutationScope(parsed, this.scope);
@@ -253,6 +269,28 @@ export class IndexedDbProjectStore implements LocalProjectStore {
       MUTATION_STORE,
       "readwrite",
       (store) => store.add(parsed),
+    );
+  }
+
+  async putPendingMutation(mutation: PendingMutationEnvelope): Promise<void> {
+    const parsed = parsePendingMutationEnvelope(mutation);
+    assertMutationScope(parsed, this.scope);
+    await runRequest<IDBValidKey>(
+      this.database,
+      MUTATION_STORE,
+      "readwrite",
+      (store) => store.put(parsed),
+    );
+  }
+
+  async removePendingMutation(operationId: string): Promise<void> {
+    const existing = await this.getPendingMutation(operationId);
+    if (existing === null) return;
+    await runRequest<undefined>(
+      this.database,
+      MUTATION_STORE,
+      "readwrite",
+      (store) => store.delete(operationId),
     );
   }
 
