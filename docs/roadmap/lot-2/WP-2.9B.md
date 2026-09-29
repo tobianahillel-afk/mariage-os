@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.9B`
 - Lot: `2`
 - Name: Generic project tags and Venue entity-tag links
-- State: `REVIEW_PENDING` (remediation verified; fresh review-entry CI pending)
-- Current pass: `B-ADVERSARIAL-REVIEW`
+- State: `ACCEPTANCE_PENDING` (fresh Pass B PASS; review/status seal CI pending)
+- Current pass: `C-ACCEPTANCE`
 - Primary bounded context: Generic Tags — project tag dictionary and same-project Venue assignments
 - Branch/PR: `lot-2/venues-core` / Lot-2 integration PR not opened yet
 
@@ -294,3 +294,12 @@ passed **5/5 ordinary jobs**, including 1,439/1,439 pgTAP assertions across
 AR-001/002 have implemented and tested resolution candidates, but only a
 fresh Pass B may close them. This separate review-entry record itself awaits
 exact-head 5/5 CI; no Pass C or acceptance is claimed.
+
+The post-remediation review-entry `d603f8c2bd5d53c85484c27b72297c60405cf677` /
+CI `36573768984` passed **5/5**. The separate
+[fresh Pass-B review](WP-2.9B-FRESH-PASS-B-2026-09-29.md) is **PASS**:
+WP29B-AR-001/002 are CLOSED / VERIFIED with direct SQL evidence, and no new
+BLOCKING, MAJOR or MINOR finding remains. B enters
+`ACCEPTANCE_PENDING / C-ACCEPTANCE`; this review/status head must itself pass
+five exact-head ordinary CI jobs before separate Pass C. The packet is not
+yet ACCEPTED.

@@ -39,7 +39,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.8C | recoverable Venue remote-media metadata lifecycle                      | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.9A | Venue-linked private PDF/document foundation                           | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.9C | trusted private-document ingestion hardening                           | **ACCEPTED / COMPLETE**                                                      |
-| WP-2.9B | generic project tags and Venue entity-tag links                        | **REVIEW_PENDING / B-ADVERSARIAL-REVIEW; review-entry CI pending**          |
+| WP-2.9B | generic project tags and Venue entity-tag links                        | **ACCEPTANCE_PENDING / C-ACCEPTANCE; review/status CI pending**            |
 | WP-2.10 | repositories, local cache, pending/offline mutations                   | PLANNED                                                                    |
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace                       | PLANNED                                                                    |
 | WP-2.12 | mobile/offline venue-visit workflow and packet E2E completion          | PLANNED                                                                    |
@@ -268,6 +268,7 @@ Normative release/deployment/secret contracts require Pages Functions to deploy 
 54. B review-entry `a53bd5fcc6569fada595ad9316f10525b060de8c` / CI `36569916332` passed **5/5**, including clean checkout. Fresh `WP-2.9B-PASS-B-REVIEW-2026-09-29.md` found WP29B-AR-001 (unbounded direct SQL label scan) and WP29B-AR-002 (missing attempted protected-field deny tests), both MAJOR / OPEN. Verdict **FAIL**, transition `REVIEW_PENDING -> REVIEW_FAILED`; next is bounded remediation, new exact-head CI and a fresh review. No Pass C or acceptance.
 55. B review-failure record `67d4fe10bd148e491a1554f9441a938ec7e492f8` / CI `36571052052` passed **5/5**, including clean checkout. Bounded AR-001/002 remediation is active: explicit SQL byte preflight before the label scan and direct authenticated protected-field/retargeting deny attempts. B transitions `REVIEW_FAILED -> IN_PROGRESS / REMEDIATION`; findings remain OPEN until exact-head CI and fresh Pass B.
 56. B AR-001/002 remediation `bd39576c27d74482c477823e264aa54f85f8a3ed` / CI `36572652546` passed **5/5**, including 1,439/1,439 pgTAP assertions and clean checkout. B returns `IN_PROGRESS / REMEDIATION -> REVIEW_PENDING / B-ADVERSARIAL-REVIEW`. Findings have tested resolution candidates but remain OPEN until fresh Pass B. The separate review-entry status commit requires exact-head five-job CI before review verdict.
+57. B post-remediation review entry `d603f8c2bd5d53c85484c27b72297c60405cf677` / CI `36573768984` passed **5/5**, including clean checkout. Separate `WP-2.9B-FRESH-PASS-B-2026-09-29.md` rechecked the full B responsibility, closed WP29B-AR-001/002 with direct DB evidence and found no new finding. Verdict **PASS**; B transitions `REVIEW_PENDING -> ACCEPTANCE_PENDING / C-ACCEPTANCE`, subject to this review/status seal's own exact-head five-job CI. No Pass C or acceptance is claimed yet.
 
 ## Durable handoff
 
@@ -280,7 +281,7 @@ Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.8C, WP-2.9C, WP-2.9A
 WP-2.9C: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 21accd7f9ab1b845275507b7941a782c5e816a56 / CI 36494697647 5/5 including clean checkout
 WP-2.9A: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 656398bcd5520cfa56d782023d150eb64317161d / CI 36542083037 5/5 including clean checkout
-Current packet: WP-2.9B — REVIEW_PENDING / B-ADVERSARIAL-REVIEW; AR-001/002 open pending fresh review; remediation bd39576 / CI 36572652546 5/5; review-entry CI pending
+Current packet: WP-2.9B — ACCEPTANCE_PENDING / C-ACCEPTANCE; AR-001/002 CLOSED / VERIFIED by fresh Pass B; review/status seal CI pending
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
@@ -316,8 +317,8 @@ Workers Observability configured capability preflight: bd3fdb4baab6ef59983e40f77
 AR-006 architecture review: ADR 0011 private Worker failed the deployed Free CPU gate; ADR 0012 accepted direct Pages → per-document Durable Object replacement architecture
 AR-005/007/008/006/009 in C: CLOSED / VERIFIED by the complete fresh C Pass B and Pass C; parent A AR-004/005 closed by A Pass B and Pass C
 FTR-089 FIR: #17 — IN_PROGRESS / parent A accepted, later presentation and Lot responsibilities remain
-WP-2.9B: REVIEW_PENDING / B-ADVERSARIAL-REVIEW; FTR-093 FIR #27; WP29B-AR-001/002 pending fresh review
+WP-2.9B: ACCEPTANCE_PENDING / C-ACCEPTANCE; FTR-093 FIR #27; WP29B-AR-001/002 CLOSED / VERIFIED; Pass C pending
 Lots 3–12: NOT_STARTED
 Latest distinct-PDF campaign: 2303df0c9e8d6f72561ec0ce42514663801229d8 / CI 36459949861 / provider job 109058754517 / artifact 10987866873 — 10 distinct exact-size PDFs, 10 finalized flows, 20 valid exact-version CPU readings within Workers Free; provider verdict PASS
-Next permitted action: seal the B post-remediation REVIEW_PENDING status commit with exact-head five-job CI, then perform fresh Pass B on all packet responsibilities and AR-001/002. No B acceptance before separate Pass C.
+Next permitted action: seal the separate B Pass-B/status commit with exact-head five-job CI, then perform Pass C EXPECTED ↔ IMPLEMENTED ↔ VERIFIED reconciliation, including FIR #27 and downstream scope. No B acceptance before that separate verdict.
 ```
