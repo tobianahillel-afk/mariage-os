@@ -39,7 +39,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.8C | recoverable Venue remote-media metadata lifecycle                      | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.9A | Venue-linked private PDF/document foundation                           | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.9C | trusted private-document ingestion hardening                           | **ACCEPTED / COMPLETE**                                                      |
-| WP-2.9B | generic project tags and Venue entity-tag links                        | **REVIEW_PENDING / B-ADVERSARIAL-REVIEW; review-entry CI pending**          |
+| WP-2.9B | generic project tags and Venue entity-tag links                        | **REVIEW_FAILED / REMEDIATION next; AR-001/002 MAJOR OPEN**                 |
 | WP-2.10 | repositories, local cache, pending/offline mutations                   | PLANNED                                                                    |
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace                       | PLANNED                                                                    |
 | WP-2.12 | mobile/offline venue-visit workflow and packet E2E completion          | PLANNED                                                                    |
@@ -265,6 +265,7 @@ Normative release/deployment/secret contracts require Pages Functions to deploy 
 51. First B implementation head `643368e319aa6d1b1e94671bdff133207cbf999f` / CI `36547210465` **FAILED**: core 100% new-code coverage and local DB/RLS (label validation helper `42501`, ambiguous pgTAP unlink parameter `42702`); browser/mutation succeeded, preview/full verification skipped. A bounded Pass-A remediation candidate fixes the SQL privilege boundary and test ambiguity, adds provider/lifecycle/deny branch tests, and passes local TypeScript/Vitest coverage (188 files, 1,686 tests; two pre-existing Windows CRLF-sensitive tests excluded). B remains IN_PROGRESS / A-IMPLEMENT until a new exact-head 5/5 CI gate.
 52. B remediation `b80f609909e4cc8aa158bce36973c9192929e623` / CI `36548685008` **FAILED 3/5**: core quality/security, browser/mutation and preview passed; DB/RLS passed 42/43 tag assertions, with the sole mismatch an expected `23514` versus observed RLS-first `42501` denial for a non-Venue target. Clean checkout skipped. The test expectation is corrected without weakening the deny rule; a new exact-head 5/5 gate remains required.
 53. B corrected Pass-A head `eeda5cbeecd4bef299347e40252496ef8451c916` / CI `36568868030` passed **5/5 ordinary jobs**, including DB/RLS, Pages integration and full verify from clean checkout. B transitions `IN_PROGRESS / A-IMPLEMENT -> REVIEW_PENDING / B-ADVERSARIAL-REVIEW`. The separate review-entry status commit must itself pass exact-head 5/5 before fresh Pass B; no Pass C or acceptance is claimed.
+54. B review-entry `a53bd5fcc6569fada595ad9316f10525b060de8c` / CI `36569916332` passed **5/5**, including clean checkout. Fresh `WP-2.9B-PASS-B-REVIEW-2026-09-29.md` found WP29B-AR-001 (unbounded direct SQL label scan) and WP29B-AR-002 (missing attempted protected-field deny tests), both MAJOR / OPEN. Verdict **FAIL**, transition `REVIEW_PENDING -> REVIEW_FAILED`; next is bounded remediation, new exact-head CI and a fresh review. No Pass C or acceptance.
 
 ## Durable handoff
 
@@ -277,7 +278,7 @@ Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.8C, WP-2.9C, WP-2.9A
 WP-2.9C: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 21accd7f9ab1b845275507b7941a782c5e816a56 / CI 36494697647 5/5 including clean checkout
 WP-2.9A: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 656398bcd5520cfa56d782023d150eb64317161d / CI 36542083037 5/5 including clean checkout
-Current packet: WP-2.9B — REVIEW_PENDING / B-ADVERSARIAL-REVIEW; Pass-A eeda5cb / CI 36568868030 5/5, review-entry exact-head CI pending
+Current packet: WP-2.9B — REVIEW_FAILED / REMEDIATION next; AR-001/002 MAJOR OPEN; Pass-A eeda5cb / CI 36568868030 and review-entry a53bd5f / CI 36569916332 both 5/5
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
@@ -313,8 +314,8 @@ Workers Observability configured capability preflight: bd3fdb4baab6ef59983e40f77
 AR-006 architecture review: ADR 0011 private Worker failed the deployed Free CPU gate; ADR 0012 accepted direct Pages → per-document Durable Object replacement architecture
 AR-005/007/008/006/009 in C: CLOSED / VERIFIED by the complete fresh C Pass B and Pass C; parent A AR-004/005 closed by A Pass B and Pass C
 FTR-089 FIR: #17 — IN_PROGRESS / parent A accepted, later presentation and Lot responsibilities remain
-WP-2.9B: REVIEW_PENDING / B-ADVERSARIAL-REVIEW; FTR-093 FIR #27; review-entry CI pending
+WP-2.9B: REVIEW_FAILED / REMEDIATION next; FTR-093 FIR #27; WP29B-AR-001/002 MAJOR OPEN
 Lots 3–12: NOT_STARTED
 Latest distinct-PDF campaign: 2303df0c9e8d6f72561ec0ce42514663801229d8 / CI 36459949861 / provider job 109058754517 / artifact 10987866873 — 10 distinct exact-size PDFs, 10 finalized flows, 20 valid exact-version CPU readings within Workers Free; provider verdict PASS
-Next permitted action: seal the separate B REVIEW_PENDING status commit with exact-head five-job CI, then perform fresh adversarial Pass B. No B acceptance before separate Pass C.
+Next permitted action: begin bounded B remediation (`REVIEW_FAILED -> IN_PROGRESS / REMEDIATION`), close WP29B-AR-001/002 with direct evidence, pass exact-head five-job CI, then separately re-enter REVIEW_PENDING and repeat fresh Pass B. No B acceptance before separate Pass C.
 ```

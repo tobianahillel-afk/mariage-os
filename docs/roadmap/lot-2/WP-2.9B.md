@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.9B`
 - Lot: `2`
 - Name: Generic project tags and Venue entity-tag links
-- State: `REVIEW_PENDING` (Pass A sealed; review-entry exact-head CI pending)
-- Current pass: `B-ADVERSARIAL-REVIEW`
+- State: `REVIEW_FAILED` (fresh Pass B found two MAJOR findings)
+- Current pass: `REMEDIATION` (next)
 - Primary bounded context: Generic Tags — project tag dictionary and same-project Venue assignments
 - Branch/PR: `lot-2/venues-core` / Lot-2 integration PR not opened yet
 
@@ -270,3 +270,10 @@ The complete bounded implementation now exits Pass A and enters
 `REVIEW_PENDING / B-ADVERSARIAL-REVIEW`. This separate review-entry status
 commit must pass exact-head CI before the fresh Pass B verdict; no Pass C or
 packet acceptance is claimed.
+
+The separate review-entry head `a53bd5fcc6569fada595ad9316f10525b060de8c` /
+CI `36569916332` passed **5/5**, including clean checkout. The fresh
+[Pass-B review](WP-2.9B-PASS-B-REVIEW-2026-09-29.md) is **FAIL**:
+WP29B-AR-001 (unbounded direct SQL label validation work) and WP29B-AR-002
+(missing direct protected-field mutation deny attempts) are MAJOR / OPEN.
+The packet is `REVIEW_FAILED / REMEDIATION` next; no Pass C is permitted.
