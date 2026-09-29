@@ -123,7 +123,7 @@ ADR 0011 later produced decisive deployed CPU evidence and was rejected for fina
 | WP-2.9A | **ACCEPTED / COMPLETE** | FTR-089 foundation; fresh full Pass B and separate Pass C gap ∅ / CI `36542083037` 5/5 |
 | WP-2.9C | **ACCEPTED / COMPLETE** | trusted private-Document ingress/lifecycle hardening; full fresh Pass B and Pass C closed AR-001..009 |
 | WP-2.9B | **ACCEPTED / COMPLETE** | generic project Tags + Venue entity-tags; FIR #27 downstream; AR-001/002 closed |
-| WP-2.10 | PLANNED | repositories/local cache/pending offline mutations |
+| WP-2.10 | **READY — next A-IMPLEMENT / RED first** | repositories/local cache/pending offline mutations |
 | WP-2.11 | PLANNED | gallery/table/detail/compare/deep-link workspace |
 | WP-2.12 | PLANNED | mobile/offline Venue visit + packet E2E completion |
 
@@ -133,11 +133,11 @@ ADR 0011 later produced decisive deployed CPU evidence and was rejected for fina
 WP-2.1..WP-2.8C [ACCEPTED]
   → WP-2.9C [ACCEPTED]
     → WP-2.9A [ACCEPTED]
-                → WP-2.9B [ACCEPTED] → WP-2.10 [PLANNED / AFTER B] → WP-2.11 → WP-2.12
+                → WP-2.9B [ACCEPTED] → WP-2.10 [READY / RED first] → WP-2.11 → WP-2.12
                   → Lot reconciliation → Integration Pass
 ```
 
-Only one packet may be active at a time. WP-2.9A/B/C are terminal; WP-2.10 remains PLANNED until its separate activation revalidation and READY gate pass exact-head CI.
+Only one packet may be active at a time. WP-2.9A/B/C are terminal; WP-2.10 activation revalidation is recorded in `WP-2.10.md` and is READY. Its activation seal must pass exact-head ordinary CI/clean checkout before Pass A implementation begins.
 
 ## Explicitly outside Lot 2
 
@@ -178,7 +178,8 @@ A-resumption seal = c8f3dfd441e7ad583613c8b94bd9197b19b829fb / CI 36495622949 �
 A reintegration record = WP-2.9A-REINTEGRATION-2026-09-29.md; Storage-RLS obsolete UPDATE wording corrected and sealed 5/5
 A full review = WP-2.9A-FRESH-PASS-B-2026-09-29.md — PASS; no open A finding
 A Pass C = WP-2.9A-ACCEPTANCE.md — ACCEPTED / gap ∅; record 656398bcd5520cfa56d782023d150eb64317161d / CI 36542083037 5/5
-next permitted action = WP-2.10 activation revalidation against accepted A/B/C and current offline/local contracts → separate PLANNED -> READY governance seal exact-head CI/clean checkout
+WP-2.10 = READY / next A-IMPLEMENT RED first; activation record `docs/roadmap/lot-2/WP-2.10.md`; size 5 / cohesion PASS
+next permitted action = seal this READY activation with exact-head ordinary CI/clean checkout, then create failing response-loss/idempotence + local durability tests before production implementation
 C acceptance and A resumption are authorized by green acceptance-record CI; no provider rerun
 ```
 

@@ -40,9 +40,18 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.9A | Venue-linked private PDF/document foundation                           | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.9C | trusted private-document ingestion hardening                           | **ACCEPTED / COMPLETE**                                                      |
 | WP-2.9B | generic project tags and Venue entity-tag links                        | **ACCEPTED / COMPLETE — Pass C gap ∅**                                      |
-| WP-2.10 | repositories, local cache, pending/offline mutations                   | PLANNED                                                                    |
+| WP-2.10 | repositories, local cache, pending/offline mutations                   | **READY — next A-IMPLEMENT / RED first**                                   |
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace                       | PLANNED                                                                    |
 | WP-2.12 | mobile/offline venue-visit workflow and packet E2E completion          | PLANNED                                                                    |
+
+## WP-2.10 — activation revalidation
+
+- **READY** after revalidation against accepted WP-2.9A/B/C and current local-first/offline/sync contracts.
+- Activation base `c5cfe273468eb56592f8fe8f0de9eb764d671a58` / CI `36579954211` passed the five ordinary jobs including clean checkout; all provider-only jobs were skipped.
+- Packet record: `docs/roadmap/lot-2/WP-2.10.md`.
+- Size: **5 points / cohesion PASS**.
+- Scope is Venue-local only: cache essential Venue core records, durable pending Venue edits, retry-safe operation receipts for Venue core update/lifecycle transition, restart/session-expiry preservation and project/account isolation. Generic cross-domain sync remains Lot 10.
+- Current/next pass: **A-IMPLEMENT — RED first**. No implementation claim is made by this activation commit.
 
 ## Accepted packet evidence summary
 
