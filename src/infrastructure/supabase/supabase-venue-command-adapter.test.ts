@@ -203,7 +203,6 @@ describe("SupabaseVenueCommandAdapter transition", () => {
       }),
     ).rejects.toThrow("Venue transition failed.");
   });
-
 });
 
 describe("SupabaseVenueCommandAdapter transition response validation", () => {
