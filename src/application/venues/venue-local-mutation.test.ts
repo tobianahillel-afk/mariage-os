@@ -111,9 +111,9 @@ describe("Venue persisted mutation payload validation", () => {
     ["unsafe revision", { baseRevision: "9007199254740992" }],
     ["unknown command", { mutationType: "unknown_command" }],
   ] as const)("rejects %s", (_label, patch) => {
-    expect(() => venueReplayCommand({ ...mutation(), ...patch }, scope)).toThrow(
-      "Invalid persisted Venue mutation",
-    );
+    expect(() =>
+      venueReplayCommand({ ...mutation(), ...patch }, scope),
+    ).toThrow("Invalid persisted Venue mutation");
   });
 
   it.each([
