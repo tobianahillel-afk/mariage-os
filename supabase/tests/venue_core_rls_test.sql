@@ -8,13 +8,13 @@ select has_table('public', 'activity_log', 'activity_log table exists');
 select has_function(
   'public',
   'update_venue_core',
-  array['uuid', 'uuid', 'bigint', 'text', 'text', 'text', 'text'],
+  array['uuid', 'uuid', 'bigint', 'text', 'text', 'text', 'text', 'uuid', 'uuid'],
   'protected ordinary venue update command exists'
 );
 select has_function(
   'public',
   'transition_venue_status',
-  array['uuid', 'uuid', 'text', 'text', 'bigint'],
+  array['uuid', 'uuid', 'text', 'text', 'bigint', 'uuid', 'uuid'],
   'protected venue lifecycle command exists'
 );
 select ok(
@@ -29,13 +29,13 @@ select ok(
   'anonymous role has no venue/history read grants'
 );
 select ok(
-  not has_function_privilege('anon', 'public.update_venue_core(uuid,uuid,bigint,text,text,text,text)', 'execute')
-  and has_function_privilege('authenticated', 'public.update_venue_core(uuid,uuid,bigint,text,text,text,text)', 'execute'),
+  not has_function_privilege('anon', 'public.update_venue_core(uuid,uuid,bigint,text,text,text,text,uuid,uuid)', 'execute')
+  and has_function_privilege('authenticated', 'public.update_venue_core(uuid,uuid,bigint,text,text,text,text,uuid,uuid)', 'execute'),
   'ordinary update command is executable only by authenticated client role'
 );
 select ok(
-  not has_function_privilege('anon', 'public.transition_venue_status(uuid,uuid,text,text,bigint)', 'execute')
-  and has_function_privilege('authenticated', 'public.transition_venue_status(uuid,uuid,text,text,bigint)', 'execute'),
+  not has_function_privilege('anon', 'public.transition_venue_status(uuid,uuid,text,text,bigint,uuid,uuid)', 'execute')
+  and has_function_privilege('authenticated', 'public.transition_venue_status(uuid,uuid,text,text,bigint,uuid,uuid)', 'execute'),
   'lifecycle command is executable only by authenticated client role'
 );
 select ok(
@@ -163,7 +163,9 @@ begin
     target_name,
     current_code,
     current_website_url,
-    current_city
+    current_city,
+    gen_random_uuid(),
+    '88888888-8888-4888-8888-888888888888'
   );
   return true;
 exception
@@ -212,7 +214,9 @@ begin
     target_id,
     target_status,
     target_reason,
-    effective_revision
+    effective_revision,
+    gen_random_uuid(),
+    '88888888-8888-4888-8888-888888888888'
   );
   return true;
 exception
