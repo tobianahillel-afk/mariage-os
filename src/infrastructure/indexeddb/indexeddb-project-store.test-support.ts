@@ -218,4 +218,3 @@ export function rawStore(factory: FakeFactory, name: string): Map<string, Row> {
   const store = factory.rawDatabase(databaseName).stores.get(name);
   return (store ?? missingFixture()).rows;
 }
-
