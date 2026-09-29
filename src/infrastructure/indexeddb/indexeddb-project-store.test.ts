@@ -19,7 +19,7 @@ import {
   rawStore,
   scope,
   userId,
-} from "./indexeddb-project-store.test-support";
+} from "../../../tests/support/indexeddb-project-store-test-support";
 
 it("creates schema metadata and keeps it stable on the same app version", async () => {
   const factory = new FakeFactory();
