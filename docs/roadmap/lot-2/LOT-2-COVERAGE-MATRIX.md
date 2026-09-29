@@ -43,7 +43,7 @@ Integration prerequisite is accepted Lot 0 + Lot 1 on `main` through PR #7; `mai
 
 Required current-Lot responsibilities minus assigned packet responsibilities: **∅**.
 
-Accepted/evidenced packets: **WP-2.1..WP-2.8C, WP-2.9C, WP-2.9A**.
+Accepted/evidenced packets: **WP-2.1..WP-2.8C, WP-2.9C, WP-2.9A, WP-2.9B**.
 
 ## WP-2.9 sequencing
 
@@ -153,7 +153,7 @@ Only one packet may be active at a time. WP-2.9A/B/C are terminal; WP-2.10 remai
 
 ```text
 required current-Lot-2 responsibilities - assigned product packet responsibilities = ∅
-accepted/evidenced packets = WP-2.1..WP-2.8C, WP-2.9C, WP-2.9A
+accepted/evidenced packets = WP-2.1..WP-2.8C, WP-2.9C, WP-2.9A, WP-2.9B
 WP-2.9C = ACCEPTED / COMPLETE — acceptance-record 21accd7f9ab1b845275507b7941a782c5e816a56 / CI 36494697647 5/5 including clean checkout
 WP-2.9A = ACCEPTED / COMPLETE — acceptance-record 656398bcd5520cfa56d782023d150eb64317161d / CI 36542083037 5/5 including clean checkout; AR-001..005 closed in A; Pass C gap ∅
 fresh Pass-B record = docs/roadmap/lot-2/WP-2.9C-FRESH-PASS-B-DISTINCT-PDF-2026-09-28.md — AR-001..009 CLOSED / VERIFIED for C
@@ -178,7 +178,7 @@ A-resumption seal = c8f3dfd441e7ad583613c8b94bd9197b19b829fb / CI 36495622949 �
 A reintegration record = WP-2.9A-REINTEGRATION-2026-09-29.md; Storage-RLS obsolete UPDATE wording corrected and sealed 5/5
 A full review = WP-2.9A-FRESH-PASS-B-2026-09-29.md — PASS; no open A finding
 A Pass C = WP-2.9A-ACCEPTANCE.md — ACCEPTED / gap ∅; record 656398bcd5520cfa56d782023d150eb64317161d / CI 36542083037 5/5
-next permitted action = B contract revalidation against accepted A → separate PLANNED -> READY governance seal exact-head CI/clean checkout
+next permitted action = WP-2.10 activation revalidation against accepted A/B/C and current offline/local contracts → separate PLANNED -> READY governance seal exact-head CI/clean checkout
 C acceptance and A resumption are authorized by green acceptance-record CI; no provider rerun
 ```
 
