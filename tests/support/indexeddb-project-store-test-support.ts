@@ -46,10 +46,7 @@ class FakeDatabase {
   transaction(storeNames: string | string[]): IDBTransaction {
     const names = Array.isArray(storeNames) ? storeNames : [storeNames];
     const stores = new Map(
-      names.map((name) => [
-        name,
-        this.stores.get(name) ?? missingFixture(),
-      ]),
+      names.map((name) => [name, this.stores.get(name) ?? missingFixture()]),
     );
     return new FakeTransaction(stores, this.state) as unknown as IDBTransaction;
   }
@@ -103,26 +100,32 @@ class FakeTransaction {
     this.scheduleCompletion();
   }
 
+  private finishFailureMode(mode: FailureMode): boolean {
+    if (mode === "transaction_error") {
+      this.onerror?.();
+      return true;
+    }
+    if (mode === "transaction_abort") {
+      this.onabort?.();
+      return true;
+    }
+    return false;
+  }
+
+  private finish(): void {
+    if (this.failed) {
+      this.onabort?.();
+      return;
+    }
+    if (this.finishFailureMode(this.state.consumeFailure())) return;
+    for (const mutate of this.stagedMutations) mutate();
+    this.oncomplete?.();
+  }
+
   private scheduleCompletion(): void {
     if (this.pendingRequests !== 0 || this.completionScheduled) return;
     this.completionScheduled = true;
-    queueMicrotask(() => {
-      if (this.failed) {
-        this.onabort?.();
-        return;
-      }
-      const mode = this.state.consumeFailure();
-      if (mode === "transaction_error") {
-        this.onerror?.();
-        return;
-      }
-      if (mode === "transaction_abort") {
-        this.onabort?.();
-        return;
-      }
-      for (const mutate of this.stagedMutations) mutate();
-      this.oncomplete?.();
-    });
+    queueMicrotask(() => this.finish());
   }
 }
 
