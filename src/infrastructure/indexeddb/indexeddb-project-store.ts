@@ -107,10 +107,7 @@ function runAtomicMutationWithCache(
       [MUTATION_STORE, CACHE_STORE],
       "readwrite",
     );
-    let settled = false;
     const fail = (): void => {
-      if (settled) return;
-      settled = true;
       reject(storageError("pending/cache transaction"));
     };
 
@@ -123,11 +120,7 @@ function runAtomicMutationWithCache(
     cacheRequest.onerror = fail;
     transaction.onerror = fail;
     transaction.onabort = fail;
-    transaction.oncomplete = () => {
-      if (settled) return;
-      settled = true;
-      resolve();
-    };
+    transaction.oncomplete = () => resolve();
   });
 }
 
