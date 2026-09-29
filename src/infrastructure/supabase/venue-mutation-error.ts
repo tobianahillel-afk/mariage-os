@@ -4,11 +4,7 @@ import {
 } from "@application/venues/venue-mutation-persistence-error";
 
 function providerCode(error: unknown): string | null {
-  if (
-    typeof error !== "object" ||
-    error === null ||
-    Array.isArray(error)
-  ) {
+  if (typeof error !== "object" || error === null || Array.isArray(error)) {
     return null;
   }
   const code = (error as Record<string, unknown>).code;
