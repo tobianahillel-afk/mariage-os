@@ -13,6 +13,11 @@ export type VenueReplayCommand =
 
 type JsonRecord = Record<string, unknown>;
 
+type ScopedVenueMutation = PendingMutationEnvelope & {
+  readonly entityType: "venue";
+  readonly entityId: string;
+};
+
 function invalidMutation(): never {
   throw new Error("Invalid persisted Venue mutation.");
 }
@@ -41,7 +46,7 @@ function baseRevision(value: string | null): number {
 function assertScope(
   mutation: PendingMutationEnvelope,
   scope: LocalProjectScope,
-): void {
+): asserts mutation is ScopedVenueMutation {
   if (
     mutation.projectId !== scope.projectId ||
     mutation.userId !== scope.userId ||
@@ -54,14 +59,14 @@ function assertScope(
 }
 
 function coreCommand(
-  mutation: PendingMutationEnvelope,
+  mutation: ScopedVenueMutation,
   payload: JsonRecord,
 ): VenueReplayCommand {
   return {
     kind: "core",
     input: {
       projectId: mutation.projectId,
-      venueId: mutation.entityId ?? invalidMutation(),
+      venueId: mutation.entityId,
       expectedRevision: baseRevision(mutation.baseRevision),
       operationId: mutation.operationId,
       deviceId: mutation.deviceId,
@@ -74,7 +79,7 @@ function coreCommand(
 }
 
 function statusCommand(
-  mutation: PendingMutationEnvelope,
+  mutation: ScopedVenueMutation,
   payload: JsonRecord,
 ): VenueReplayCommand {
   const status = stringValue(payload.status);
@@ -87,7 +92,7 @@ function statusCommand(
     kind: "status",
     input: {
       projectId: mutation.projectId,
-      venueId: mutation.entityId ?? invalidMutation(),
+      venueId: mutation.entityId,
       expectedRevision: baseRevision(mutation.baseRevision),
       operationId: mutation.operationId,
       deviceId: mutation.deviceId,
