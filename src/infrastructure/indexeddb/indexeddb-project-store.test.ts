@@ -147,6 +147,12 @@ class FakeObjectStore {
     return this.request<IDBValidKey>(key, () => this.store.rows.set(key, row));
   }
 
+  delete(key: IDBValidKey): IDBRequest<undefined> {
+    return this.request<undefined>(undefined, () => {
+      this.store.rows.delete(String(key));
+    });
+  }
+
   private requestFailure<T>(): IDBRequest<T> {
     const request = new FakeRequest<T>();
     queueMicrotask(() => request.onerror?.());
@@ -311,13 +317,25 @@ it("persists and reads scoped cached records", async () => {
     payload: { density: "compact" },
   });
 
+  const venueRecord = createCachedRecordEnvelope(scope, {
+    recordType: "venue",
+    entityId,
+    serverRevision: "2",
+    serverUpdatedAt: "2026-09-04T14:00:00.000Z",
+    syncMarker: "synced",
+    payload: { name: "Venue Alpha" },
+  });
+
   await store.putCachedRecord(record);
+  await store.putCachedRecord(venueRecord);
   expect(await store.getCachedRecord("project_preferences", entityId)).toEqual(
     record,
   );
   expect(
     await store.getCachedRecord("project_preferences", operationId),
   ).toBeNull();
+  expect(await store.listCachedRecords("project_preferences")).toEqual([record]);
+  expect(await store.listCachedRecords("venue")).toEqual([venueRecord]);
 });
 
 it("rejects cached records from another project on write and read", async () => {
@@ -378,6 +396,19 @@ it("persists pending operations once and exposes counters", async () => {
   expect((await store.listPendingMutations()).length).toBe(5);
   expect(await store.getPendingMutation(operationId)).toEqual(mutation);
   expect(await store.getPendingMutation(missingOperationId)).toBeNull();
+
+  const sending = {
+    ...mutation,
+    attemptCount: 1,
+    lastAttemptAt: "2026-09-04T14:01:00.000Z",
+    status: "sending" as const,
+  };
+  await store.putPendingMutation(sending);
+  expect(await store.getPendingMutation(operationId)).toEqual(sending);
+
+  await store.removePendingMutation(operationId);
+  expect(await store.getPendingMutation(operationId)).toBeNull();
+  await expect(store.removePendingMutation(operationId)).resolves.toBeUndefined();
 });
 
 it("refuses foreign mutation scope and duplicate operation ids", async () => {
@@ -422,6 +453,9 @@ it("fails closed when persisted pending scope is corrupted", async () => {
     "another local scope",
   );
   await expect(store.listPendingMutations()).rejects.toThrow(
+    "another local scope",
+  );
+  await expect(store.removePendingMutation(operationId)).rejects.toThrow(
     "another local scope",
   );
 });
