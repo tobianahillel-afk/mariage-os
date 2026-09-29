@@ -31,10 +31,7 @@ function cached() {
 type CachedVenueEnvelope = ReturnType<typeof cached>;
 type CachedVenueMutation = (record: CachedVenueEnvelope) => unknown;
 
-const envelopeCases: readonly [
-  string,
-  CachedVenueMutation,
-][] = [
+const envelopeCases: readonly [string, CachedVenueMutation][] = [
   [
     "wrong record type",
     (record) => ({
@@ -86,9 +83,9 @@ const payloadCases: readonly [string, CachedVenueMutation][] = [
 ];
 
 function expectInvalid(mutate: CachedVenueMutation): void {
-  expect(() => venueFromCachedRecord(mutate(cached()) as CachedVenueEnvelope)).toThrow(
-    "Invalid cached Venue",
-  );
+  expect(() =>
+    venueFromCachedRecord(mutate(cached()) as CachedVenueEnvelope),
+  ).toThrow("Invalid cached Venue");
 }
 
 describe("Venue cache malformed envelope coverage", () => {
