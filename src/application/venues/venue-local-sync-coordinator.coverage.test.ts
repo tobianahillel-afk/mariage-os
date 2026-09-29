@@ -14,18 +14,12 @@ import type {
   VenueCommandPort,
   VenueTransitionInput,
 } from "@application/venues/venue-command-port";
-import {
-  VenueLocalSyncCoordinator,
-  type VenueLocalSyncResult,
-} from "@application/venues/venue-local-sync-coordinator";
+import { VenueLocalSyncCoordinator } from "@application/venues/venue-local-sync-coordinator";
 import {
   venueCachedRecord,
   venueFromCachedRecord,
 } from "@application/venues/venue-local-cache";
-import {
-  VENUE_CORE_UPDATE_MUTATION,
-  VENUE_STATUS_MUTATION,
-} from "@application/venues/venue-local-mutation";
+import { VENUE_STATUS_MUTATION } from "@application/venues/venue-local-mutation";
 import { VenueMutationPersistenceError } from "@application/venues/venue-mutation-persistence-error";
 import type {
   VenueCoreRecord,
