@@ -227,7 +227,6 @@ describe("SupabaseVenueCommandAdapter transition", () => {
   );
 });
 
-
 describe("SupabaseVenueCommandAdapter typed transition failures", () => {
   it.each([
     ["40001", "conflict"],

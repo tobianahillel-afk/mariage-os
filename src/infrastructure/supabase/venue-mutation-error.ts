@@ -4,7 +4,13 @@ import {
 } from "@application/venues/venue-mutation-persistence-error";
 
 function providerCode(error: unknown): string | null {
-  if (typeof error !== "object" || error === null || Array.isArray(error)) return null;
+  if (
+    typeof error !== "object" ||
+    error === null ||
+    Array.isArray(error)
+  ) {
+    return null;
+  }
   const code = (error as Record<string, unknown>).code;
   return typeof code === "string" ? code : null;
 }
@@ -17,6 +23,9 @@ function failureCode(error: unknown): VenueMutationFailureCode {
   return "unavailable";
 }
 
-export function venueMutationError(error: unknown, message: string): VenueMutationPersistenceError {
+export function venueMutationError(
+  error: unknown,
+  message: string,
+): VenueMutationPersistenceError {
   return new VenueMutationPersistenceError(failureCode(error), message);
 }

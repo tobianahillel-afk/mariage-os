@@ -248,7 +248,6 @@ describe("SupabaseVenueRepositoryAdapter update", () => {
   });
 });
 
-
 describe("SupabaseVenueRepositoryAdapter typed update failures", () => {
   it.each([
     ["40001", "conflict"],
