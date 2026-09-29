@@ -1,9 +1,11 @@
+import { VenueMutationPersistenceError } from "@application/venues/venue-mutation-persistence-error";
 import type {
   VenueCoreRecord,
   VenueCoreUpdateInput,
   VenueRepositoryPort,
 } from "@application/venues/venue-repository-port";
 import { parseVenueCoreRow } from "./parse-venue-core-row";
+import { venueMutationError } from "./venue-mutation-error";
 
 const VENUE_CORE_COLUMNS =
   "id,project_id,code,name,status,rejection_reason,website_url,city,revision";
@@ -39,10 +41,6 @@ export interface SupabaseVenueRepositoryClientLike {
 
 function queryFailure(): never {
   throw new Error("Venue query failed.");
-}
-
-function updateFailure(): never {
-  throw new Error("Venue update failed.");
 }
 
 export class SupabaseVenueRepositoryAdapter implements VenueRepositoryPort {
@@ -91,11 +89,16 @@ export class SupabaseVenueRepositoryAdapter implements VenueRepositoryPort {
         target_code: input.code,
         target_website_url: input.websiteUrl,
         target_city: input.city,
+        target_operation_id: input.operationId,
+        target_device_id: input.deviceId,
       });
-      if (error !== null) updateFailure();
+      if (error !== null) {
+        throw venueMutationError(error, "Venue update failed.");
+      }
       return parseVenueCoreRow(data, input.projectId);
-    } catch {
-      throw new Error("Venue update failed.");
+    } catch (error) {
+      if (error instanceof VenueMutationPersistenceError) throw error;
+      throw venueMutationError(error, "Venue update failed.");
     }
   }
 }

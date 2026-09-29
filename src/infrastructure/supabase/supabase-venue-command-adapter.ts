@@ -1,9 +1,11 @@
+import { VenueMutationPersistenceError } from "@application/venues/venue-mutation-persistence-error";
 import type {
   CreatedVenue,
   VenueCommandPort,
   VenueQuickAddInput,
   VenueTransitionInput,
 } from "@application/venues/venue-command-port";
+import { venueMutationError } from "./venue-mutation-error";
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -123,11 +125,16 @@ export class SupabaseVenueCommandAdapter implements VenueCommandPort {
         target_status: input.status,
         target_rejection_reason: input.rejectionReason,
         target_expected_revision: input.expectedRevision,
+        target_operation_id: input.operationId,
+        target_device_id: input.deviceId,
       });
-      if (error !== null) throw new Error("Venue transition failed.");
+      if (error !== null) {
+        throw venueMutationError(error, "Venue transition failed.");
+      }
       return transitionRevision(data);
-    } catch {
-      throw new Error("Venue transition failed.");
+    } catch (error) {
+      if (error instanceof VenueMutationPersistenceError) throw error;
+      throw venueMutationError(error, "Venue transition failed.");
     }
   }
 }
