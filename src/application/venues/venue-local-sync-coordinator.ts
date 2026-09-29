@@ -3,6 +3,12 @@ import {
   createPendingMutationEnvelope,
   type PendingMutationEnvelope,
 } from "@application/local-data/local-records";
+import {
+  retryableVenueMutation,
+  venueReplayCommand,
+  VENUE_CORE_UPDATE_MUTATION,
+  VENUE_STATUS_MUTATION,
+} from "@application/venues/venue-local-mutation";
 import { VenueMutationPersistenceError } from "@application/venues/venue-mutation-persistence-error";
 import type {
   VenueCommandPort,
@@ -18,9 +24,6 @@ import type {
   VenueCoreUpdateInput,
   VenueRepositoryPort,
 } from "@application/venues/venue-repository-port";
-
-const CORE_UPDATE = "update_venue_core";
-const STATUS_TRANSITION = "transition_venue_status";
 
 export type VenueLocalSyncState =
   | "synced"
@@ -201,6 +204,16 @@ export class VenueLocalSyncCoordinator {
     );
   }
 
+  async replayPending(): Promise<readonly VenueLocalSyncResult[]> {
+    const mutations = await this.local.listPendingMutations();
+    const results: VenueLocalSyncResult[] = [];
+    for (const mutation of mutations) {
+      if (!retryableVenueMutation(mutation)) continue;
+      results.push(await this.replayMutation(mutation));
+    }
+    return results;
+  }
+
   async updateCore(input: VenueCoreUpdateInput): Promise<VenueLocalSyncResult> {
     assertScope(this.local, input.projectId, input.deviceId);
     const cached = await this.cachedVenue(input.venueId);
@@ -210,7 +223,7 @@ export class VenueLocalSyncCoordinator {
       operationId: input.operationId,
       entityType: "venue",
       entityId: input.venueId,
-      mutationType: CORE_UPDATE,
+      mutationType: VENUE_CORE_UPDATE_MUTATION,
       baseRevision: String(input.expectedRevision),
       payload: corePayload(input),
       createdAt: this.now(),
@@ -232,7 +245,7 @@ export class VenueLocalSyncCoordinator {
       operationId: input.operationId,
       entityType: "venue",
       entityId: input.venueId,
-      mutationType: STATUS_TRANSITION,
+      mutationType: VENUE_STATUS_MUTATION,
       baseRevision: String(input.expectedRevision),
       payload: statusPayload(input),
       createdAt: this.now(),
@@ -250,6 +263,38 @@ export class VenueLocalSyncCoordinator {
       venueId,
     );
     return record === null ? null : venueFromCachedRecord(record);
+  }
+
+  private async replayMutation(
+    mutation: PendingMutationEnvelope,
+  ): Promise<VenueLocalSyncResult> {
+    let command;
+    try {
+      command = venueReplayCommand(mutation, this.local.scope);
+    } catch {
+      await this.local.putPendingMutation({
+        ...mutation,
+        status: "failed_permanent",
+        lastErrorCode: "invalid_local_mutation",
+      });
+      return { state: "failed_permanent", venue: null };
+    }
+
+    const cached = await this.cachedVenue(command.input.venueId);
+    if (cached === null) return { state: "cache_miss", venue: null };
+
+    if (command.kind === "core") {
+      const working = coreWorkingVenue(cached, command.input);
+      return this.sendPersistedMutation(mutation, working, () =>
+        this.repository.updateVenueCore(command.input),
+      );
+    }
+
+    const working = statusWorkingVenue(cached, command.input);
+    return this.sendPersistedMutation(mutation, working, async () => {
+      const revision = await this.commands.transitionVenue(command.input);
+      return { ...working, revision };
+    });
   }
 
   private async persistThenSend(
