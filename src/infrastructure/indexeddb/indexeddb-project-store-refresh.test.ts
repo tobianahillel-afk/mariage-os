@@ -156,3 +156,35 @@ describe("IndexedDbProjectStore atomic cloud refresh failures", () => {
     },
   );
 });
+
+describe("IndexedDbProjectStore cloud refresh current-cache validation", () => {
+  it("writes a cloud snapshot when no cached record exists yet", async () => {
+    const { store } = await openedStore();
+
+    await expect(
+      store.putCachedRecordIfRefreshSafe(venueRecord("Cloud", "synced")),
+    ).resolves.toBe(true);
+    await expect(store.getCachedRecord("venue", entityId)).resolves.toEqual(
+      venueRecord("Cloud", "synced"),
+    );
+  });
+
+  it.each([
+    ["key", { key: `other:${entityId}` }],
+    ["record type", { recordType: "other" }],
+    ["entity id", { entityId: otherEntityId }],
+  ] as const)(
+    "fails closed when the cached refresh target has a mismatched %s",
+    async (_kind, corruption) => {
+      const { factory, store } = await openedStore();
+      rawStore(factory, "cached_records").set(`venue:${entityId}`, {
+        ...venueRecord("Local", "synced"),
+        ...corruption,
+      });
+
+      await expect(
+        store.putCachedRecordIfRefreshSafe(venueRecord("Cloud", "synced")),
+      ).rejects.toThrow("Cached refresh target does not match.");
+    },
+  );
+});
