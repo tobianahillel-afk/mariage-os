@@ -134,6 +134,16 @@ function statusPayload(input: VenueTransitionInput) {
   };
 }
 
+function replayOrder(
+  left: PendingMutationEnvelope,
+  right: PendingMutationEnvelope,
+): number {
+  const createdOrder = left.createdAt.localeCompare(right.createdAt);
+  return createdOrder !== 0
+    ? createdOrder
+    : left.operationId.localeCompare(right.operationId);
+}
+
 function coreWorkingVenue(
   cached: VenueCoreRecord,
   input: VenueCoreUpdateInput,
@@ -206,10 +216,11 @@ export class VenueLocalSyncCoordinator {
   }
 
   async replayPending(): Promise<readonly VenueLocalSyncResult[]> {
-    const mutations = await this.local.listPendingMutations();
+    const mutations = (await this.local.listPendingMutations())
+      .filter(retryableVenueMutation)
+      .sort(replayOrder);
     const results: VenueLocalSyncResult[] = [];
     for (const mutation of mutations) {
-      if (!retryableVenueMutation(mutation)) continue;
       results.push(await this.replayMutation(mutation));
     }
     return results;
