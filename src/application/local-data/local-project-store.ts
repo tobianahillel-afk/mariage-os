@@ -27,6 +27,7 @@ export interface LocalProjectStore {
   readonly scope: LocalProjectScope;
   getMetadata(): Promise<LocalProjectMetadata>;
   putCachedRecord(record: CachedRecordEnvelope): Promise<void>;
+  putCachedRecordIfRefreshSafe(record: CachedRecordEnvelope): Promise<boolean>;
   getCachedRecord(
     recordType: string,
     entityId: string,

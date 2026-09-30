@@ -62,6 +62,26 @@ class LocalHarness implements LocalProjectStore {
   async putCachedRecord(record: CachedRecordEnvelope): Promise<void> {
     this.cached.set(record.key, record);
   }
+  async putCachedRecordIfRefreshSafe(
+    record: CachedRecordEnvelope,
+  ): Promise<boolean> {
+    const existing = this.cached.get(record.key);
+    if (
+      existing?.syncMarker === "pending" ||
+      existing?.syncMarker === "conflict"
+    ) {
+      return false;
+    }
+    const hasPendingTarget = [...this.pending.values()].some(
+      (mutation) =>
+        mutation.entityType === record.recordType &&
+        mutation.entityId === record.entityId,
+    );
+    if (hasPendingTarget) return false;
+    await this.putCachedRecord(record);
+    return true;
+  }
+
   async getCachedRecord(
     recordType: string,
     entityId: string,

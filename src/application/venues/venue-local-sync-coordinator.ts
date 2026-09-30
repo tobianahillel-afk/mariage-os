@@ -195,18 +195,7 @@ export class VenueLocalSyncCoordinator {
   async refreshFromCloud(): Promise<readonly VenueCoreRecord[]> {
     const remote = await this.repository.listVenues(this.local.scope.projectId);
     for (const venue of remote) {
-      const existing = await this.local.getCachedRecord(
-        VENUE_CACHE_RECORD_TYPE,
-        venue.id,
-      );
-      if (
-        existing !== null &&
-        (existing.syncMarker === "pending" ||
-          existing.syncMarker === "conflict")
-      ) {
-        continue;
-      }
-      await this.local.putCachedRecord(
+      await this.local.putCachedRecordIfRefreshSafe(
         venueCachedRecord(this.local.scope, venue, "synced"),
       );
     }

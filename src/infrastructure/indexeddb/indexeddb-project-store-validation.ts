@@ -1,4 +1,7 @@
-import { parsePendingMutationEnvelope } from "@application/local-data/persisted-local-data-parser";
+import {
+  parseCachedRecordEnvelope,
+  parsePendingMutationEnvelope,
+} from "@application/local-data/persisted-local-data-parser";
 import type { LocalProjectScope } from "@application/local-data/local-project-scope";
 import type {
   CachedRecordEnvelope,
@@ -127,6 +130,40 @@ export function shouldWriteMutationCache(
     const mutation = parsePendingMutationEnvelope(value);
     assertMutationScope(mutation, scope);
     if (mutation.operationId === operationId) continue;
+    if (
+      mutation.entityType === record.recordType &&
+      mutation.entityId === record.entityId
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
+export function shouldWriteCloudRefreshCache(
+  currentValue: unknown,
+  values: readonly unknown[],
+  record: CachedRecordEnvelope,
+  scope: LocalProjectScope,
+): boolean {
+  if (currentValue !== undefined) {
+    const current = parseCachedRecordEnvelope(currentValue);
+    assertCachedRecordScope(current, scope);
+    if (
+      current.key !== record.key ||
+      current.recordType !== record.recordType ||
+      current.entityId !== record.entityId
+    ) {
+      throw new Error("Cached refresh target does not match.");
+    }
+    if (current.syncMarker === "pending" || current.syncMarker === "conflict") {
+      return false;
+    }
+  }
+
+  for (const value of values) {
+    const mutation = parsePendingMutationEnvelope(value);
+    assertMutationScope(mutation, scope);
     if (
       mutation.entityType === record.recordType &&
       mutation.entityId === record.entityId

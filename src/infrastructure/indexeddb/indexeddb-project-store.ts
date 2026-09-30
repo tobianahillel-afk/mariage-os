@@ -23,10 +23,13 @@ import {
   assertCachedRecordScope,
   assertMutationScope,
   assertMutationTarget,
+  shouldWriteCloudRefreshCache,
   shouldWriteMutationCache,
   validatePendingMutationUpdate,
   validateSettlementMutation,
 } from "./indexeddb-project-store-validation";
+
+import { runAtomicCloudCacheRefresh } from "./indexeddb-project-store-refresh";
 
 import {
   CACHE_STORE,
@@ -35,6 +38,7 @@ import {
   MUTATION_STORE,
   openDatabase,
   purgeDatabase,
+  runAtomicCloudCacheRefresh,
   runAtomicMutationWithCache,
   runAtomicPendingMutationUpdate,
   runAtomicPendingMutationUpdateWithCache,
@@ -147,6 +151,24 @@ export class IndexedDbProjectStore implements LocalProjectStore {
       CACHE_STORE,
       "readwrite",
       (store) => store.put(parsed),
+    );
+  }
+
+  async putCachedRecordIfRefreshSafe(
+    record: CachedRecordEnvelope,
+  ): Promise<boolean> {
+    const parsed = parseCachedRecordEnvelope(record);
+    assertCachedRecordScope(parsed, this.scope);
+    return runAtomicCloudCacheRefresh(
+      this.database,
+      parsed,
+      (currentValue, queueValues) =>
+        shouldWriteCloudRefreshCache(
+          currentValue,
+          queueValues,
+          parsed,
+          this.scope,
+        ),
     );
   }
 
