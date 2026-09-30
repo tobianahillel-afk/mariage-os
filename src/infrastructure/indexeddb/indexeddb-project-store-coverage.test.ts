@@ -9,7 +9,9 @@ import {
   createMutation,
   databaseName,
   entityId,
+  missingOperationId,
   operationId,
+  rawStore,
   scope,
 } from "../../../tests/support/indexeddb-project-store-test-support";
 
@@ -38,6 +40,26 @@ it("fails closed when acknowledgement settlement has no pending mutation", async
       cachedRecord("synced"),
     ),
   ).rejects.toThrow("settlement target is missing");
+});
+
+it("rejects a corrupted persisted operation identity", async () => {
+  const factory = new FakeFactory();
+  const store = await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "1",
+  );
+  rawStore(factory, "pending_mutations").set(operationId, {
+    ...createMutation(),
+    operationId: missingOperationId,
+  });
+
+  await expect(
+    store.settlePendingMutationWithCachedRecord(
+      operationId,
+      cachedRecord("synced"),
+    ),
+  ).rejects.toThrow("target does not match");
 });
 
 it("surfaces a failure inside the atomic settlement transaction", async () => {
