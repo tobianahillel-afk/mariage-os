@@ -20,6 +20,14 @@ import type {
 } from "@application/local-data/local-records";
 
 import {
+  assertCachedRecordScope,
+  assertMutationScope,
+  assertMutationTarget,
+  validatePendingMutationUpdate,
+  validateSettlementMutation,
+} from "./indexeddb-project-store-validation";
+
+import {
   CACHE_STORE,
   LOCAL_SCHEMA_VERSION,
   METADATA_STORE,
@@ -62,118 +70,6 @@ function assertScopeMetadata(
   ) {
     throw new Error("Local IndexedDB scope metadata is inconsistent.");
   }
-}
-
-function assertCachedRecordScope(
-  record: CachedRecordEnvelope,
-  scope: LocalProjectScope,
-): void {
-  if (record.projectId !== scope.projectId) {
-    throw new Error("Cached record belongs to another project scope.");
-  }
-}
-
-function assertMutationScope(
-  mutation: PendingMutationEnvelope,
-  scope: LocalProjectScope,
-): void {
-  if (
-    mutation.projectId !== scope.projectId ||
-    mutation.userId !== scope.userId ||
-    mutation.deviceId !== scope.deviceId
-  ) {
-    throw new Error("Pending mutation belongs to another local scope.");
-  }
-}
-
-function assertMutationTarget(
-  mutation: PendingMutationEnvelope,
-  record: CachedRecordEnvelope,
-): void {
-  if (
-    mutation.entityId !== record.entityId ||
-    mutation.entityType !== record.recordType
-  ) {
-    throw new Error("Pending mutation settlement target does not match.");
-  }
-}
-
-function sameMutationScope(
-  current: PendingMutationEnvelope,
-  next: PendingMutationEnvelope,
-): boolean {
-  return (
-    current.projectId === next.projectId &&
-    current.userId === next.userId &&
-    current.deviceId === next.deviceId
-  );
-}
-
-function sameMutationTarget(
-  current: PendingMutationEnvelope,
-  next: PendingMutationEnvelope,
-): boolean {
-  return (
-    current.operationId === next.operationId &&
-    current.entityType === next.entityType &&
-    current.entityId === next.entityId
-  );
-}
-
-function sameMutationCommand(
-  current: PendingMutationEnvelope,
-  next: PendingMutationEnvelope,
-): boolean {
-  return (
-    current.mutationType === next.mutationType &&
-    current.baseRevision === next.baseRevision &&
-    current.createdAt === next.createdAt &&
-    current.priorityClass === next.priorityClass &&
-    JSON.stringify(current.payload) === JSON.stringify(next.payload)
-  );
-}
-
-function sameMutationIntent(
-  current: PendingMutationEnvelope,
-  next: PendingMutationEnvelope,
-): boolean {
-  return (
-    sameMutationScope(current, next) &&
-    sameMutationTarget(current, next) &&
-    sameMutationCommand(current, next)
-  );
-}
-
-function validatePendingMutationUpdate(
-  value: unknown,
-  next: PendingMutationEnvelope,
-  scope: LocalProjectScope,
-): void {
-  if (value === undefined) {
-    throw new Error("Pending mutation update target is missing.");
-  }
-  const current = parsePendingMutationEnvelope(value);
-  assertMutationScope(current, scope);
-  if (!sameMutationIntent(current, next)) {
-    throw new Error("Pending mutation update intent does not match.");
-  }
-}
-
-function validateSettlementMutation(
-  value: unknown,
-  operationId: string,
-  record: CachedRecordEnvelope,
-  scope: LocalProjectScope,
-): void {
-  if (value === undefined) {
-    throw new Error("Pending mutation settlement target is missing.");
-  }
-  const mutation = parsePendingMutationEnvelope(value);
-  assertMutationScope(mutation, scope);
-  if (mutation.operationId !== operationId) {
-    throw new Error("Pending mutation settlement target does not match.");
-  }
-  assertMutationTarget(mutation, record);
 }
 
 export class IndexedDbProjectStore implements LocalProjectStore {
