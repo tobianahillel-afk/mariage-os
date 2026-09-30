@@ -325,6 +325,42 @@ export class VenueLocalSyncCoordinator {
     return this.sendPersistedMutation(mutation, working, send);
   }
 
+  private async persistSendFailure(
+    sending: PendingMutationEnvelope,
+    working: VenueCoreRecord,
+    error: unknown,
+  ): Promise<VenueLocalSyncResult> {
+    const failed = failedMutation(sending, error);
+    try {
+      await this.local.putPendingMutation(failed.mutation);
+      await this.local.putCachedRecord(
+        venueCachedRecord(
+          this.local.scope,
+          working,
+          failed.state === "conflict" ? "conflict" : "pending",
+        ),
+      );
+    } catch {
+      return { state: "pending", venue: working };
+    }
+    return { state: failed.state, venue: working };
+  }
+
+  private async settleAcknowledgedMutation(
+    operationId: string,
+    acknowledged: VenueCoreRecord,
+  ): Promise<VenueLocalSyncResult> {
+    try {
+      await this.local.settlePendingMutationWithCachedRecord(
+        operationId,
+        venueCachedRecord(this.local.scope, acknowledged, "synced"),
+      );
+    } catch {
+      return { state: "pending", venue: acknowledged };
+    }
+    return { state: "synced", venue: acknowledged };
+  }
+
   private async sendPersistedMutation(
     mutation: PendingMutationEnvelope,
     working: VenueCoreRecord,
@@ -333,27 +369,20 @@ export class VenueLocalSyncCoordinator {
     const sending = sendingMutation(mutation, this.now());
     try {
       await this.local.putPendingMutation(sending);
-      const acknowledged = await send();
-      await this.local.settlePendingMutationWithCachedRecord(
-        mutation.operationId,
-        venueCachedRecord(this.local.scope, acknowledged, "synced"),
-      );
-      return { state: "synced", venue: acknowledged };
-    } catch (error) {
-      const failed = failedMutation(sending, error);
-      try {
-        await this.local.putPendingMutation(failed.mutation);
-        await this.local.putCachedRecord(
-          venueCachedRecord(
-            this.local.scope,
-            working,
-            failed.state === "conflict" ? "conflict" : "pending",
-          ),
-        );
-      } catch {
-        return { state: "pending", venue: working };
-      }
-      return { state: failed.state, venue: working };
+    } catch {
+      return { state: "pending", venue: working };
     }
+
+    let acknowledged: VenueCoreRecord;
+    try {
+      acknowledged = await send();
+    } catch (error) {
+      return this.persistSendFailure(sending, working, error);
+    }
+
+    return this.settleAcknowledgedMutation(
+      mutation.operationId,
+      acknowledged,
+    );
   }
 }
