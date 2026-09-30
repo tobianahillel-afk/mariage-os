@@ -237,6 +237,44 @@ describe("VenueLocalSyncCoordinator replay ordering", () => {
   });
 });
 
+describe("VenueLocalSyncCoordinator replay tie-break", () => {
+  it("uses operation id only when queued intents share the same timestamp", async () => {
+    const { local, remote } = await seededHarness();
+    const firstOperationId = "10000000-0000-4000-8000-000000000001";
+    const secondOperationId = "f0000000-0000-4000-8000-000000000001";
+
+    for (const [id, name] of [
+      [secondOperationId, "Second by id"],
+      [firstOperationId, "First by id"],
+    ] as const) {
+      await local.addPendingMutation(
+        createPendingMutationEnvelope(scope, {
+          operationId: id,
+          entityType: "venue",
+          entityId: venueId,
+          mutationType: "update_venue_core",
+          baseRevision: "1",
+          payload: {
+            name,
+            code: null,
+            websiteUrl: null,
+            city: "Paris",
+          },
+          createdAt: "2026-09-29T17:30:00.000Z",
+          priorityClass: "essential_structured",
+        }),
+      );
+    }
+
+    await coordinatorFor(local, remote).replayPending();
+
+    expect(remote.updateCalls.map((call) => call.operationId)).toEqual([
+      firstOperationId,
+      secondOperationId,
+    ]);
+  });
+});
+
 describe("VenueLocalSyncCoordinator corrupt replay", () => {
   it("retains an invalid queued Venue command without sending it", async () => {
     const { local, remote } = await seededHarness();

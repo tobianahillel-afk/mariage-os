@@ -1,0 +1,63 @@
+import { expect, it } from "vitest";
+
+import { createCachedRecordEnvelope } from "@application/local-data/local-records";
+
+import { IndexedDbProjectStore } from "./indexeddb-project-store";
+import { runAtomicSettlementWithCache } from "./indexeddb-project-store-io";
+import {
+  FakeFactory,
+  createMutation,
+  databaseName,
+  entityId,
+  operationId,
+  scope,
+} from "../../../tests/support/indexeddb-project-store-test-support";
+
+function cachedRecord(syncMarker: "pending" | "synced") {
+  return createCachedRecordEnvelope(scope, {
+    recordType: "project_preferences",
+    entityId,
+    serverRevision: syncMarker === "pending" ? "rev-1" : "rev-2",
+    serverUpdatedAt: null,
+    syncMarker,
+    payload: { density: "compact" },
+  });
+}
+
+it("fails closed when acknowledgement settlement has no pending mutation", async () => {
+  const factory = new FakeFactory();
+  const store = await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "1",
+  );
+
+  await expect(
+    store.settlePendingMutationWithCachedRecord(
+      operationId,
+      cachedRecord("synced"),
+    ),
+  ).rejects.toThrow("settlement target is missing");
+});
+
+it("surfaces a failure inside the atomic settlement transaction", async () => {
+  const factory = new FakeFactory();
+  const store = await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "1",
+  );
+  await store.addPendingMutationWithCachedRecord(
+    createMutation(),
+    cachedRecord("pending"),
+  );
+
+  factory.state.failure = "request";
+  await expect(
+    runAtomicSettlementWithCache(
+      factory.rawDatabase(databaseName) as unknown as IDBDatabase,
+      operationId,
+      cachedRecord("synced"),
+    ),
+  ).rejects.toThrow("settlement/cache transaction");
+});
