@@ -88,12 +88,16 @@ class LocalHarness implements LocalProjectStore {
     this.cached.set(record.key, record);
   }
 
-  async putPendingMutation(mutation: PendingMutationEnvelope): Promise<void> {
+  async putPendingMutation(
+    mutation: PendingMutationEnvelope,
+    record?: CachedRecordEnvelope,
+  ): Promise<void> {
     this.pendingPutCount += 1;
     if (this.pendingPutCount === this.failPendingPutAt) {
       throw new Error("synthetic local put failure");
     }
     this.pending.set(mutation.operationId, mutation);
+    if (record !== undefined) this.cached.set(record.key, record);
   }
   async settlePendingMutationWithCachedRecord(
     id: string,
