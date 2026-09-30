@@ -5,8 +5,8 @@
 - Work Packet ID: WP-2.10
 - Lot: 2 — Venues core
 - Name: Venue local cache and pending offline mutations
-- State: `REVIEW_PENDING`
-- Current pass: `B-ADVERSARIAL-REVIEW`
+- State: `REVIEW_FAILED`
+- Current pass: `B-ADVERSARIAL-REVIEW — FAILED / WP210-AR-001 MAJOR OPEN`
 - Primary bounded context: Venues + local-data/sync foundation
 - Branch: `lot-2/venues-core`
 - Activation base: `c5cfe273468eb56592f8fe8f0de9eb764d671a58`
@@ -159,5 +159,19 @@ No production/private wedding data or external-provider mutation was used.
 - Current/next pass: B-ADVERSARIAL-REVIEW
 - Pass-A green implementation: `eca752c145f9c59c1d0ca17d938569d8977fba92` / CI `36713679555` attempt 2, five ordinary jobs SUCCESS including clean checkout
 - FIR: #42 — FTR-028 remains IN_PROGRESS because WP-2.12 owns downstream mobile-visit/offline-package completion
-- Remaining blocker/finding: none known at Pass-A exit; Pass B must independently reconstruct the packet contract and search for defects
-- Next permitted action: run a fresh complete WP-2.10 adversarial Pass B. Any BLOCKING/MAJOR finding moves the packet to REVIEW_FAILED; only a clean Pass B may enter ACCEPTANCE_PENDING.
+- Remaining blocker/finding: `WP210-AR-001` — MAJOR / OPEN — acknowledgement of an older same-Venue operation can overwrite the cached working value/marker while a later unresolved mutation for that Venue remains queued
+- Pass-B record: `docs/roadmap/lot-2/WP-2.10-PASS-B-REVIEW-2026-09-30.md`
+- Next permitted action: bounded RED-first remediation of WP210-AR-001, exact-head verification, then a new complete fresh Pass B. No Pass C or WP-2.11 start is authorized.
+
+## Pass B result — 2026-09-30
+
+Fresh adversarial review failed on one MAJOR finding:
+`WP210-AR-001`. See
+`docs/roadmap/lot-2/WP-2.10-PASS-B-REVIEW-2026-09-30.md`.
+
+The server receipt/replay boundary, scope isolation, durable-before-network
+write, response-loss/restart behavior, pending-refresh protection and
+cloud-confirmed quick-add cache passed review. The open finding is local:
+settlement of one acknowledged mutation may overwrite the cached working value
+of a later unresolved same-Venue mutation. State is `REVIEW_FAILED`; remediation
+must preserve later local intent atomically before a new complete Pass B.
