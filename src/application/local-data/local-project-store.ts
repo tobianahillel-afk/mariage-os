@@ -39,7 +39,10 @@ export interface LocalProjectStore {
     mutation: PendingMutationEnvelope,
     record: CachedRecordEnvelope,
   ): Promise<void>;
-  putPendingMutation(mutation: PendingMutationEnvelope): Promise<void>;
+  putPendingMutation(
+    mutation: PendingMutationEnvelope,
+    record?: CachedRecordEnvelope,
+  ): Promise<void>;
   settlePendingMutationWithCachedRecord(
     operationId: string,
     record: CachedRecordEnvelope,
