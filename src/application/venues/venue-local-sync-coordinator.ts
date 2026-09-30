@@ -332,8 +332,8 @@ export class VenueLocalSyncCoordinator {
   ): Promise<VenueLocalSyncResult> {
     const failed = failedMutation(sending, error);
     try {
-      await this.local.putPendingMutation(failed.mutation);
-      await this.local.putCachedRecord(
+      await this.local.putPendingMutation(
+        failed.mutation,
         venueCachedRecord(
           this.local.scope,
           working,
