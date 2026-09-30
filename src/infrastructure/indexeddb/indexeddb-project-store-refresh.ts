@@ -2,49 +2,8 @@ import type { CachedRecordEnvelope } from "@application/local-data/local-records
 
 import { CACHE_STORE, MUTATION_STORE } from "./indexeddb-project-store-io";
 
-interface AtomicRefreshState {
-  currentValue: unknown;
-  queueValues: readonly unknown[];
-  currentReady: boolean;
-  queueReady: boolean;
-  started: boolean;
-  validationError: unknown;
-  wrote: boolean;
-}
-
-interface AtomicRefreshExecution {
-  readonly cacheStore: IDBObjectStore;
-  readonly record: CachedRecordEnvelope;
-  readonly shouldWrite: (
-    currentValue: unknown,
-    queueValues: readonly unknown[],
-  ) => boolean;
-  readonly fail: () => void;
-}
-
 function storageError(): Error {
   return new Error("Local IndexedDB cloud refresh transaction failed.");
-}
-
-function startAtomicRefresh(
-  state: AtomicRefreshState,
-  execution: AtomicRefreshExecution,
-): void {
-  if (!state.currentReady || !state.queueReady || state.started) return;
-  state.started = true;
-
-  let write: boolean;
-  try {
-    write = execution.shouldWrite(state.currentValue, state.queueValues);
-  } catch (error) {
-    state.validationError = error;
-    return;
-  }
-  if (!write) return;
-
-  state.wrote = true;
-  const request = execution.cacheStore.put(execution.record);
-  request.onerror = execution.fail;
 }
 
 export function runAtomicCloudCacheRefresh(
@@ -62,44 +21,38 @@ export function runAtomicCloudCacheRefresh(
     );
     const mutationStore = transaction.objectStore(MUTATION_STORE);
     const cacheStore = transaction.objectStore(CACHE_STORE);
-    const state: AtomicRefreshState = {
-      currentValue: undefined,
-      queueValues: [],
-      currentReady: false,
-      queueReady: false,
-      started: false,
-      validationError: null,
-      wrote: false,
-    };
-    const execution: AtomicRefreshExecution = {
-      cacheStore,
-      record,
-      shouldWrite,
-      fail: () => reject(storageError()),
-    };
-    const currentRequest = cacheStore.get(record.key);
+    let validationError: unknown = null;
+    let wrote = false;
+    const fail = (): void => reject(storageError());
     const queueRequest = mutationStore.getAll();
 
-    currentRequest.onerror = execution.fail;
-    queueRequest.onerror = execution.fail;
-    currentRequest.onsuccess = () => {
-      state.currentValue = currentRequest.result;
-      state.currentReady = true;
-      startAtomicRefresh(state, execution);
-    };
+    queueRequest.onerror = fail;
     queueRequest.onsuccess = () => {
-      state.queueValues = queueRequest.result;
-      state.queueReady = true;
-      startAtomicRefresh(state, execution);
+      const currentRequest = cacheStore.get(record.key);
+      currentRequest.onerror = fail;
+      currentRequest.onsuccess = () => {
+        let write: boolean;
+        try {
+          write = shouldWrite(currentRequest.result, queueRequest.result);
+        } catch (error) {
+          validationError = error;
+          return;
+        }
+        if (!write) return;
+        wrote = true;
+        const writeRequest = cacheStore.put(record);
+        writeRequest.onerror = fail;
+      };
     };
-    transaction.onerror = execution.fail;
-    transaction.onabort = execution.fail;
+
+    transaction.onerror = fail;
+    transaction.onabort = fail;
     transaction.oncomplete = () => {
-      if (state.validationError !== null) {
-        reject(state.validationError);
+      if (validationError !== null) {
+        reject(validationError);
         return;
       }
-      resolve(state.wrote);
+      resolve(wrote);
     };
   });
 }
