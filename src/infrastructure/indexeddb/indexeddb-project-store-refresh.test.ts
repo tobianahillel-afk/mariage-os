@@ -115,6 +115,24 @@ describe("IndexedDbProjectStore atomic cloud refresh", () => {
   });
 
   it.each([
+    "request",
+    "transaction_error",
+    "transaction_abort",
+  ] as const)("fails closed on %s storage failure", async (failure) => {
+    const { factory, store } = await openedStore();
+    const local = venueRecord("Local", "synced");
+    await store.putCachedRecord(local);
+    factory.state.failure = failure;
+
+    await expect(
+      store.putCachedRecordIfRefreshSafe(venueRecord("Cloud", "synced")),
+    ).rejects.toThrow("cloud refresh transaction");
+    await expect(store.getCachedRecord("venue", entityId)).resolves.toEqual(
+      local,
+    );
+  });
+
+  it.each([
     ["foreign", { projectId: missingOperationId }],
     ["malformed", { status: "not_a_status" }],
   ] as const)(
