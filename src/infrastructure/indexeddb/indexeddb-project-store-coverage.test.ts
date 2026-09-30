@@ -81,6 +81,7 @@ it("surfaces a failure inside the atomic settlement transaction", async () => {
       operationId,
       cachedRecord("synced"),
       () => undefined,
+      () => true,
     ),
   ).rejects.toThrow("settlement/cache transaction");
 });
