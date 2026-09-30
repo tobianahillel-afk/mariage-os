@@ -87,7 +87,6 @@ it("preserves a later unresolved Venue intent when an older mutation settles", a
   );
 });
 
-
 it("writes acknowledgement when remaining mutations target other records", async () => {
   const factory = new FakeFactory();
   const store = await IndexedDbProjectStore.open(
