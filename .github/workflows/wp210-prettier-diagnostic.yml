@@ -1,0 +1,27 @@
+name: WP210 settlement Prettier diagnostic
+
+on:
+  push:
+    branches:
+      - diagnostic/wp210-settlement-prettier
+
+permissions:
+  contents: read
+
+jobs:
+  prettier-diff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Print exact pinned Prettier diff
+        run: |
+          npx prettier --write src/infrastructure/indexeddb/indexeddb-project-store-settlement-order.test.ts
+          git diff -- src/infrastructure/indexeddb/indexeddb-project-store-settlement-order.test.ts
+          exit 1
