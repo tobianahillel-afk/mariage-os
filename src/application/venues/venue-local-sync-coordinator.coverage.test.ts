@@ -54,6 +54,7 @@ class LocalHarness implements LocalProjectStore {
   readonly pending = new Map<string, PendingMutationEnvelope>();
   pendingPutCount = 0;
   failPendingPutAt: number | null = null;
+  dropCacheOnSettlement = false;
 
   async getMetadata(): Promise<LocalProjectMetadata> {
     throw new Error("not used");
@@ -104,7 +105,11 @@ class LocalHarness implements LocalProjectStore {
     record: CachedRecordEnvelope,
   ): Promise<void> {
     if (!this.pending.has(id)) throw new Error("missing mutation");
-    this.cached.set(record.key, record);
+    if (this.dropCacheOnSettlement) {
+      this.cached.delete(record.key);
+    } else {
+      this.cached.set(record.key, record);
+    }
     this.pending.delete(id);
   }
   async removePendingMutation(id: string): Promise<void> {
@@ -286,6 +291,22 @@ describe("VenueLocalSyncCoordinator sending durability", () => {
     });
     expect(remote.updateCalls).toBe(0);
     expect(local.pending.get(operationId)?.status).toBe("pending");
+  });
+});
+
+describe("VenueLocalSyncCoordinator settlement fail-closed coverage", () => {
+  it("does not report synced when cache disappears after settlement", async () => {
+    const { local, coordinator } = await harness();
+    local.dropCacheOnSettlement = true;
+
+    const result = await coordinator.updateCore(coreInput());
+
+    expect(result).toMatchObject({
+      state: "pending",
+      venue: { name: "Venue Local", revision: 2 },
+    });
+    expect(local.pending.size).toBe(0);
+    expect(await local.getCachedRecord("venue", venueId)).toBeNull();
   });
 });
 
