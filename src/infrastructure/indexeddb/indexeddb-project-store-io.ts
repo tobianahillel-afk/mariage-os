@@ -189,6 +189,46 @@ export function runAtomicMutationWithCache(
   });
 }
 
+interface AtomicSettlementState {
+  currentValue: unknown;
+  queueValues: readonly unknown[];
+  currentReady: boolean;
+  queueReady: boolean;
+  started: boolean;
+  validationError: unknown;
+}
+
+interface AtomicSettlementExecution {
+  mutationStore: IDBObjectStore;
+  cacheStore: IDBObjectStore;
+  operationId: string;
+  record: CachedRecordEnvelope;
+  validateMutation: (value: unknown) => void;
+  shouldWriteCache: (values: readonly unknown[]) => boolean;
+  fail: () => void;
+}
+
+function startAtomicSettlement(
+  state: AtomicSettlementState,
+  execution: AtomicSettlementExecution,
+): void {
+  if (!state.currentReady || !state.queueReady || state.started) return;
+  state.started = true;
+  let writeCache = false;
+  try {
+    execution.validateMutation(state.currentValue);
+    writeCache = execution.shouldWriteCache(state.queueValues);
+  } catch (error) {
+    state.validationError = error;
+    return;
+  }
+  const mutationRequest = execution.mutationStore.delete(execution.operationId);
+  mutationRequest.onerror = execution.fail;
+  if (!writeCache) return;
+  const cacheRequest = execution.cacheStore.put(execution.record);
+  cacheRequest.onerror = execution.fail;
+}
+
 export function runAtomicSettlementWithCache(
   database: IDBDatabase,
   operationId: string,
@@ -201,55 +241,42 @@ export function runAtomicSettlementWithCache(
       [MUTATION_STORE, CACHE_STORE],
       "readwrite",
     );
-    const mutationStore = transaction.objectStore(MUTATION_STORE);
-    const cacheStore = transaction.objectStore(CACHE_STORE);
-    let validationError: unknown = null;
-    let currentValue: unknown;
-    let queueValues: readonly unknown[] = [];
-    let currentReady = false;
-    let queueReady = false;
-    let settlementStarted = false;
-    const fail = (): void =>
-      reject(storageError("settlement/cache transaction"));
-
-    const settleWhenReady = (): void => {
-      if (!currentReady || !queueReady || settlementStarted) return;
-      settlementStarted = true;
-      let writeCache = false;
-      try {
-        validateMutation(currentValue);
-        writeCache = shouldWriteCache(queueValues);
-      } catch (error) {
-        validationError = error;
-        return;
-      }
-      const mutationRequest = mutationStore.delete(operationId);
-      mutationRequest.onerror = fail;
-      if (writeCache) {
-        const cacheRequest = cacheStore.put(record);
-        cacheRequest.onerror = fail;
-      }
+    const execution: AtomicSettlementExecution = {
+      mutationStore: transaction.objectStore(MUTATION_STORE),
+      cacheStore: transaction.objectStore(CACHE_STORE),
+      operationId,
+      record,
+      validateMutation,
+      shouldWriteCache,
+      fail: () => reject(storageError("settlement/cache transaction")),
     };
-
-    const lookupRequest = mutationStore.get(operationId);
-    const queueRequest = mutationStore.getAll();
-    lookupRequest.onerror = fail;
-    queueRequest.onerror = fail;
+    const state: AtomicSettlementState = {
+      currentValue: undefined,
+      queueValues: [],
+      currentReady: false,
+      queueReady: false,
+      started: false,
+      validationError: null,
+    };
+    const lookupRequest = execution.mutationStore.get(operationId);
+    const queueRequest = execution.mutationStore.getAll();
+    lookupRequest.onerror = execution.fail;
+    queueRequest.onerror = execution.fail;
     lookupRequest.onsuccess = () => {
-      currentValue = lookupRequest.result;
-      currentReady = true;
-      settleWhenReady();
+      state.currentValue = lookupRequest.result;
+      state.currentReady = true;
+      startAtomicSettlement(state, execution);
     };
     queueRequest.onsuccess = () => {
-      queueValues = queueRequest.result;
-      queueReady = true;
-      settleWhenReady();
+      state.queueValues = queueRequest.result;
+      state.queueReady = true;
+      startAtomicSettlement(state, execution);
     };
-    transaction.onerror = fail;
-    transaction.onabort = fail;
+    transaction.onerror = execution.fail;
+    transaction.onabort = execution.fail;
     transaction.oncomplete = () => {
-      if (validationError !== null) {
-        reject(validationError);
+      if (state.validationError !== null) {
+        reject(state.validationError);
         return;
       }
       resolve();
