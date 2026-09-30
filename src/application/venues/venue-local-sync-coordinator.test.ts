@@ -121,8 +121,12 @@ class MemoryLocalStore implements LocalProjectStore {
     this.cached.set(record.key, record);
   }
 
-  async putPendingMutation(mutation: PendingMutationEnvelope): Promise<void> {
+  async putPendingMutation(
+    mutation: PendingMutationEnvelope,
+    record?: CachedRecordEnvelope,
+  ): Promise<void> {
     this.pending.set(mutation.operationId, mutation);
+    if (record !== undefined) this.cached.set(record.key, record);
   }
 
   async settlePendingMutationWithCachedRecord(
