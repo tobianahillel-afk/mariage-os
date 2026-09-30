@@ -395,33 +395,36 @@ describe("VenueLocalSyncCoordinator refresh", () => {
 });
 
 describe("VenueLocalSyncCoordinator restart replay", () => {
-  it("replays a response-loss core update with the same operation id", async () => {
-    const { local, remote, coordinator } = await seededHarness();
-    remote.updateError = new VenueMutationPersistenceError(
-      "unavailable",
-      "response lost",
-    );
+  it.each(["response lost", "session expired"] as const)(
+    "replays a retryable core update after %s with the same operation id",
+    async (failure) => {
+      const { local, remote, coordinator } = await seededHarness();
+      remote.updateError = new VenueMutationPersistenceError(
+        "unavailable",
+        failure,
+      );
 
-    await coordinator.updateCore(updateInput());
-    expect(local.pending.get(operationId)?.status).toBe("failed_retryable");
+      await coordinator.updateCore(updateInput());
+      expect(local.pending.get(operationId)?.status).toBe("failed_retryable");
 
-    remote.updateError = null;
-    const restarted = coordinatorFor(local, remote);
-    const results = await restarted.replayPending();
+      remote.updateError = null;
+      const restarted = coordinatorFor(local, remote);
+      const results = await restarted.replayPending();
 
-    expect(results).toHaveLength(1);
-    expect(results[0]?.state).toBe("synced");
-    expect(remote.updateCalls).toHaveLength(2);
-    expect(remote.updateCalls.map((call) => call.operationId)).toEqual([
-      operationId,
-      operationId,
-    ]);
-    expect(local.pending.size).toBe(0);
-    expect(await cachedVenue(local)).toMatchObject({
-      name: "Venue Local",
-      revision: 2,
-    });
-  });
+      expect(results).toHaveLength(1);
+      expect(results[0]?.state).toBe("synced");
+      expect(remote.updateCalls).toHaveLength(2);
+      expect(remote.updateCalls.map((call) => call.operationId)).toEqual([
+        operationId,
+        operationId,
+      ]);
+      expect(local.pending.size).toBe(0);
+      expect(await cachedVenue(local)).toMatchObject({
+        name: "Venue Local",
+        revision: 2,
+      });
+    },
+  );
 
   it("does not automatically replay an explicit conflict", async () => {
     const { local, remote, coordinator } = await seededHarness();
