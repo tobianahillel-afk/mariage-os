@@ -38,7 +38,6 @@ import {
   MUTATION_STORE,
   openDatabase,
   purgeDatabase,
-  runAtomicCloudCacheRefresh,
   runAtomicMutationWithCache,
   runAtomicPendingMutationUpdate,
   runAtomicPendingMutationUpdateWithCache,
