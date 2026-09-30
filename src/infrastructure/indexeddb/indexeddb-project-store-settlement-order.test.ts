@@ -87,6 +87,54 @@ it("preserves a later unresolved Venue intent when an older mutation settles", a
   );
 });
 
+
+it("writes acknowledgement when remaining mutations target other records", async () => {
+  const factory = new FakeFactory();
+  const store = await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "1",
+  );
+  const first = venueMutation(
+    operationId,
+    "First local edit",
+    "2026-09-30T12:00:00.000Z",
+  );
+  const firstWorking = venueRecord("First local edit", "pending", "1");
+  const acknowledgement = venueRecord("Cloud value", "synced", "2");
+  await store.addPendingMutationWithCachedRecord(first, firstWorking);
+
+  rawStore(factory, "pending_mutations").set(missingOperationId, {
+    ...createMutation(),
+    operationId: missingOperationId,
+  });
+  rawStore(factory, "pending_mutations").set(
+    "58888888-8888-4888-8888-888888888888",
+    {
+      ...venueMutation(
+        "58888888-8888-4888-8888-888888888888",
+        "Other Venue edit",
+        "2026-09-30T12:02:00.000Z",
+      ),
+      entityId: "47777777-7777-4777-8777-777777777777",
+    },
+  );
+
+  await store.settlePendingMutationWithCachedRecord(
+    operationId,
+    acknowledgement,
+  );
+
+  expect(await store.getPendingMutation(operationId)).toBeNull();
+  expect(await store.getPendingMutation(missingOperationId)).not.toBeNull();
+  expect(await store.getPendingMutation(
+    "58888888-8888-4888-8888-888888888888",
+  )).not.toBeNull();
+  expect(await store.getCachedRecord("venue", entityId)).toEqual(
+    acknowledgement,
+  );
+});
+
 it.each([
   ["foreign", { projectId: missingOperationId }],
   ["malformed", { status: "not_a_status" }],
