@@ -146,6 +146,18 @@ export function shouldWriteCloudRefreshCache(
   record: CachedRecordEnvelope,
   scope: LocalProjectScope,
 ): boolean {
+  let hasPendingTarget = false;
+  for (const value of values) {
+    const mutation = parsePendingMutationEnvelope(value);
+    assertMutationScope(mutation, scope);
+    if (
+      mutation.entityType === record.recordType &&
+      mutation.entityId === record.entityId
+    ) {
+      hasPendingTarget = true;
+    }
+  }
+
   if (currentValue !== undefined) {
     const current = parseCachedRecordEnvelope(currentValue);
     assertCachedRecordScope(current, scope);
@@ -161,15 +173,5 @@ export function shouldWriteCloudRefreshCache(
     }
   }
 
-  for (const value of values) {
-    const mutation = parsePendingMutationEnvelope(value);
-    assertMutationScope(mutation, scope);
-    if (
-      mutation.entityType === record.recordType &&
-      mutation.entityId === record.entityId
-    ) {
-      return false;
-    }
-  }
-  return true;
+  return !hasPendingTarget;
 }
