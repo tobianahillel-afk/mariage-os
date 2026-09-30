@@ -135,39 +135,39 @@ it(
       name: "Concurrent Local",
       city: "Nice",
     };
-  local.beforeRefreshDecision = async () => {
-    await local.addPendingMutationWithCachedRecord(
-      createPendingMutationEnvelope(scope, {
-        operationId,
-        entityType: "venue",
-        entityId: venueId,
-        mutationType: "update_venue_core",
-        baseRevision: "1",
-        payload: {
-          name: localWorking.name,
-          code: localWorking.code,
-          websiteUrl: localWorking.websiteUrl,
-          city: localWorking.city,
-        },
-        createdAt: "2026-09-30T15:30:00.000Z",
-        priorityClass: "essential_structured",
-      }),
-      venueCachedRecord(scope, localWorking, "pending"),
-    );
-  };
-  const repository: VenueRepositoryPort = {
-    listVenues: async () => [{ ...venue, name: "Remote New", revision: 2 }],
-    getVenue: async () => venue,
-    updateVenueCore: async () => {
-      throw new Error("not used");
-    },
-  };
-  const coordinator = new VenueLocalSyncCoordinator({
-    local,
-    repository,
-    commands: commands(),
-    now: () => "2026-09-30T15:30:00.000Z",
-  });
+    local.beforeRefreshDecision = async () => {
+      await local.addPendingMutationWithCachedRecord(
+        createPendingMutationEnvelope(scope, {
+          operationId,
+          entityType: "venue",
+          entityId: venueId,
+          mutationType: "update_venue_core",
+          baseRevision: "1",
+          payload: {
+            name: localWorking.name,
+            code: localWorking.code,
+            websiteUrl: localWorking.websiteUrl,
+            city: localWorking.city,
+          },
+          createdAt: "2026-09-30T15:30:00.000Z",
+          priorityClass: "essential_structured",
+        }),
+        venueCachedRecord(scope, localWorking, "pending"),
+      );
+    };
+    const repository: VenueRepositoryPort = {
+      listVenues: async () => [{ ...venue, name: "Remote New", revision: 2 }],
+      getVenue: async () => venue,
+      updateVenueCore: async () => {
+        throw new Error("not used");
+      },
+    };
+    const coordinator = new VenueLocalSyncCoordinator({
+      local,
+      repository,
+      commands: commands(),
+      now: () => "2026-09-30T15:30:00.000Z",
+    });
 
     await coordinator.refreshFromCloud();
 
