@@ -130,11 +130,7 @@ it(
   async () => {
     const local = new RefreshRaceStore();
     await local.putCachedRecord(venueCachedRecord(scope, venue, "synced"));
-    const localWorking = {
-      ...venue,
-      name: "Concurrent Local",
-      city: "Nice",
-    };
+    const localWorking = { ...venue, name: "Concurrent Local", city: "Nice" };
     local.beforeRefreshDecision = async () => {
       await local.addPendingMutationWithCachedRecord(
         createPendingMutationEnvelope(scope, {
