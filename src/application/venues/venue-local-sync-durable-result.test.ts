@@ -51,13 +51,15 @@ function mutation(
   });
 }
 
-function local(options: {
-  readonly marker?: "synced" | "pending" | "conflict";
-  readonly missing?: boolean;
-  readonly cacheFailure?: boolean;
-  readonly queueFailure?: boolean;
-  readonly mutations?: readonly PendingMutationEnvelope[];
-} = {}): LocalProjectStore {
+function local(
+  options: {
+    readonly marker?: "synced" | "pending" | "conflict";
+    readonly missing?: boolean;
+    readonly cacheFailure?: boolean;
+    readonly queueFailure?: boolean;
+    readonly mutations?: readonly PendingMutationEnvelope[];
+  } = {},
+): LocalProjectStore {
   const marker = options.marker ?? "synced";
   return {
     scope,
@@ -134,7 +136,12 @@ describe("failureResult", () => {
 
   it("fails closed when queue or durable cache cannot be read", async () => {
     await expect(
-      failureResult(local({ queueFailure: true }), operationId, venueId, "conflict"),
+      failureResult(
+        local({ queueFailure: true }),
+        operationId,
+        venueId,
+        "conflict",
+      ),
     ).resolves.toEqual({ state: "pending", venue: null });
     await expect(
       failureResult(local({ missing: true }), operationId, venueId, "conflict"),
