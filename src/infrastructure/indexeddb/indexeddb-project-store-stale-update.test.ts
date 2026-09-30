@@ -85,7 +85,6 @@ it("fails closed when stale-update lookup storage fails", async () => {
   );
 });
 
-
 function cachedPreference(marker: "pending" | "conflict") {
   return createCachedRecordEnvelope(scope, {
     recordType: "project_preferences",
