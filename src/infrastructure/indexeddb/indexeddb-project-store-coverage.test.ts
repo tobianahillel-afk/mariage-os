@@ -80,8 +80,10 @@ it("surfaces a failure inside the atomic settlement transaction", async () => {
       factory.rawDatabase(databaseName) as unknown as IDBDatabase,
       operationId,
       cachedRecord("synced"),
-      () => undefined,
-      () => true,
+      {
+        validateMutation: () => undefined,
+        shouldWriteCache: () => true,
+      },
     ),
   ).rejects.toThrow("settlement/cache transaction");
 });

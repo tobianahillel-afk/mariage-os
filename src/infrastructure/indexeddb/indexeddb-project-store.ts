@@ -245,20 +245,22 @@ export class IndexedDbProjectStore implements LocalProjectStore {
       this.database,
       operationId,
       parsedRecord,
-      (value) =>
-        validateSettlementMutation(
-          value,
-          operationId,
-          parsedRecord,
-          this.scope,
-        ),
-      (values) =>
-        shouldWriteAcknowledgedCacheAfterSettlement(
-          values,
-          operationId,
-          parsedRecord,
-          this.scope,
-        ),
+      {
+        validateMutation: (value) =>
+          validateSettlementMutation(
+            value,
+            operationId,
+            parsedRecord,
+            this.scope,
+          ),
+        shouldWriteCache: (values) =>
+          shouldWriteAcknowledgedCacheAfterSettlement(
+            values,
+            operationId,
+            parsedRecord,
+            this.scope,
+          ),
+      },
     );
   }
 

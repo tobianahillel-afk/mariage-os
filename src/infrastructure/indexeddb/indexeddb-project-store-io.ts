@@ -198,13 +198,16 @@ interface AtomicSettlementState {
   validationError: unknown;
 }
 
-interface AtomicSettlementExecution {
+interface AtomicSettlementPolicy {
+  validateMutation: (value: unknown) => void;
+  shouldWriteCache: (values: readonly unknown[]) => boolean;
+}
+
+interface AtomicSettlementExecution extends AtomicSettlementPolicy {
   mutationStore: IDBObjectStore;
   cacheStore: IDBObjectStore;
   operationId: string;
   record: CachedRecordEnvelope;
-  validateMutation: (value: unknown) => void;
-  shouldWriteCache: (values: readonly unknown[]) => boolean;
   fail: () => void;
 }
 
@@ -214,7 +217,7 @@ function startAtomicSettlement(
 ): void {
   if (!state.currentReady || !state.queueReady || state.started) return;
   state.started = true;
-  let writeCache = false;
+  let writeCache: boolean;
   try {
     execution.validateMutation(state.currentValue);
     writeCache = execution.shouldWriteCache(state.queueValues);
@@ -233,8 +236,7 @@ export function runAtomicSettlementWithCache(
   database: IDBDatabase,
   operationId: string,
   record: CachedRecordEnvelope,
-  validateMutation: (value: unknown) => void,
-  shouldWriteCache: (values: readonly unknown[]) => boolean,
+  policy: AtomicSettlementPolicy,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     const transaction = database.transaction(
@@ -246,8 +248,7 @@ export function runAtomicSettlementWithCache(
       cacheStore: transaction.objectStore(CACHE_STORE),
       operationId,
       record,
-      validateMutation,
-      shouldWriteCache,
+      ...policy,
       fail: () => reject(storageError("settlement/cache transaction")),
     };
     const state: AtomicSettlementState = {
