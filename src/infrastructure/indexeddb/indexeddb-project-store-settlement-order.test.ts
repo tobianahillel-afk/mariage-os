@@ -127,9 +127,9 @@ it("writes acknowledgement when remaining mutations target other records", async
 
   expect(await store.getPendingMutation(operationId)).toBeNull();
   expect(await store.getPendingMutation(missingOperationId)).not.toBeNull();
-  expect(await store.getPendingMutation(
-    "58888888-8888-4888-8888-888888888888",
-  )).not.toBeNull();
+  expect(
+    await store.getPendingMutation("58888888-8888-4888-8888-888888888888"),
+  ).not.toBeNull();
   expect(await store.getCachedRecord("venue", entityId)).toEqual(
     acknowledgement,
   );
