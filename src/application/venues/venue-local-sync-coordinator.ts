@@ -355,10 +355,18 @@ export class VenueLocalSyncCoordinator {
         operationId,
         venueCachedRecord(this.local.scope, acknowledged, "synced"),
       );
+      const current = await this.local.getCachedRecord(
+        VENUE_CACHE_RECORD_TYPE,
+        acknowledged.id,
+      );
+      if (current === null) return { state: "pending", venue: acknowledged };
+      return {
+        state: current.syncMarker,
+        venue: venueFromCachedRecord(current),
+      };
     } catch {
       return { state: "pending", venue: acknowledged };
     }
-    return { state: "synced", venue: acknowledged };
   }
 
   private async sendPersistedMutation(
