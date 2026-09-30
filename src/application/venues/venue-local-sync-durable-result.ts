@@ -22,7 +22,10 @@ export async function currentDurableVenueResult(
   venueId: string,
 ): Promise<DurableVenueResult> {
   try {
-    const record = await local.getCachedRecord(VENUE_CACHE_RECORD_TYPE, venueId);
+    const record = await local.getCachedRecord(
+      VENUE_CACHE_RECORD_TYPE,
+      venueId,
+    );
     if (record === null) return { state: "pending", venue: null };
     return {
       state: record.syncMarker,

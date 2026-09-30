@@ -137,14 +137,13 @@ interface AtomicPendingCacheUpdatePolicy {
   shouldWriteCache: (values: readonly unknown[]) => boolean;
 }
 
-interface AtomicPendingCacheUpdateExecution
-  extends AtomicPendingCacheUpdatePolicy {
+type AtomicPendingCacheUpdateExecution = AtomicPendingCacheUpdatePolicy & {
   mutationStore: IDBObjectStore;
   cacheStore: IDBObjectStore;
   mutation: PendingMutationEnvelope;
   record: CachedRecordEnvelope;
   fail: () => void;
-}
+};
 
 function startAtomicPendingCacheUpdate(
   state: AtomicPendingCacheUpdateState,
