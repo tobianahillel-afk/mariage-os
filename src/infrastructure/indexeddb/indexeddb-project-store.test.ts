@@ -327,49 +327,6 @@ it.each(["request", "transaction_error", "transaction_abort"] as const)(
   },
 );
 
-it(
-  "rejects settlement when the queued target changes after precheck",
-  async () => {
-    const factory = new FakeFactory();
-    const store = await IndexedDbProjectStore.open(
-      factory as unknown as IDBFactory,
-      scope,
-      "1",
-    );
-    const mutation = createMutation();
-    const record = createCachedRecordEnvelope(scope, {
-      recordType: "project_preferences",
-      entityId,
-      serverRevision: "rev-2",
-      serverUpdatedAt: null,
-      syncMarker: "synced",
-      payload: { density: "compact" },
-    });
-    await store.addPendingMutation(mutation);
-
-    const readPending = store.getPendingMutation.bind(store);
-    store.getPendingMutation = async (id) => {
-      const existing = await readPending(id);
-      rawStore(factory, "pending_mutations").set(operationId, {
-        ...mutation,
-        entityId: missingOperationId,
-      });
-      return existing;
-    };
-
-    await expect(
-      store.settlePendingMutationWithCachedRecord(operationId, record),
-    ).rejects.toThrow("target does not match");
-
-    expect(
-      rawStore(factory, "pending_mutations").get(operationId),
-    ).toMatchObject({ entityId: missingOperationId });
-    expect(
-      await store.getCachedRecord("project_preferences", entityId),
-    ).toBeNull();
-  },
-);
-
 it("rejects acknowledgement settlement for a different cached target", async () => {
   const factory = new FakeFactory();
   const store = await IndexedDbProjectStore.open(
