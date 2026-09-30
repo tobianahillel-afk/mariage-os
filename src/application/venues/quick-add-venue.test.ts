@@ -112,6 +112,9 @@ describe("quickAddVenue confirmed local cache", () => {
     });
   });
 
+});
+
+describe("quickAddVenue cache failure handling", () => {
   it("keeps cloud success when local caching is unavailable", async () => {
     const port = commandPort(async (input) => ({
       id: "a1000000-0000-4000-8000-000000000001",

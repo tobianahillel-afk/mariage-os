@@ -50,12 +50,12 @@ insert into public.venues (id,project_id,name,status,created_by,updated_by) valu
 set local role authenticated;
 select set_config('request.jwt.claims','{"sub":"11111111-1111-4111-8111-111111111111","role":"authenticated"}',true);
 
-select lives_ok($$$select public.update_venue_core(
+select lives_ok($select public.update_venue_core(
 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','a1000000-0000-4000-8000-000000000001',
 1,'Receipt Venue Renamed',null,null,'Paris',
 '71000000-0000-4000-8000-000000000001','81000000-0000-4000-8000-000000000001')$$,'first core update succeeds');
 select is((select revision from public.venues where id='a1000000-0000-4000-8000-000000000001'),2::bigint,'core update increments once');
-select lives_ok($$$select public.update_venue_core(
+select lives_ok($select public.update_venue_core(
 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','a1000000-0000-4000-8000-000000000001',
 1,'Receipt Venue Renamed',null,null,'Paris',
 '71000000-0000-4000-8000-000000000001','81000000-0000-4000-8000-000000000001')$$,'same core operation retry survives stale base');
@@ -70,10 +70,10 @@ select throws_ok($$select public.update_venue_core(
 set local role authenticated;
 select set_config('request.jwt.claims','{"sub":"11111111-1111-4111-8111-111111111111","role":"authenticated"}',true);
 
-select lives_ok($$$select public.transition_venue_status(
+select lives_ok($select public.transition_venue_status(
 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','a1000000-0000-4000-8000-000000000001',
 'shortlist',null,2,'72000000-0000-4000-8000-000000000001','81000000-0000-4000-8000-000000000001')$$,'first lifecycle transition succeeds');
-select lives_ok($$$select public.transition_venue_status(
+select lives_ok($select public.transition_venue_status(
 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','a1000000-0000-4000-8000-000000000001',
 'shortlist',null,2,'72000000-0000-4000-8000-000000000001','81000000-0000-4000-8000-000000000001')$$,'same lifecycle operation retry survives response loss');
 select is((select count(*)::integer from public.activity_log where operation_id='72000000-0000-4000-8000-000000000001'),1,'lifecycle retry does not duplicate history');
@@ -86,20 +86,20 @@ select throws_ok($$select public.transition_venue_status(
 set local role authenticated;
 select set_config('request.jwt.claims','{"sub":"11111111-1111-4111-8111-111111111111","role":"authenticated"}',true);
 
-select throws_ok($$$select public.transition_venue_status(
+select throws_ok($select public.transition_venue_status(
 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','a1000000-0000-4000-8000-000000000001',
 'contacted',null,3,'71000000-0000-4000-8000-000000000001','81000000-0000-4000-8000-000000000001')$$,
 '22023','venue transition unavailable','operation id cannot cross command classes');
 
 select set_config('request.jwt.claims','{"sub":"22222222-2222-4222-8222-222222222222","role":"authenticated"}',true);
-select throws_ok($$$select public.update_venue_core(
+select throws_ok($select public.update_venue_core(
 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','a1000000-0000-4000-8000-000000000001',
 3,'Editor Reuse',null,null,null,
 '71000000-0000-4000-8000-000000000001','81000000-0000-4000-8000-000000000001')$$,
 '22023','venue update unavailable','receipt cannot be replayed by another authorized user');
 
 select set_config('request.jwt.claims','{"sub":"11111111-1111-4111-8111-111111111111","role":"authenticated"}',true);
-select throws_ok($$$select public.update_venue_core(
+select throws_ok($select public.update_venue_core(
 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb','b1000000-0000-4000-8000-000000000001',
 1,'Cross Project',null,null,null,
 '73000000-0000-4000-8000-000000000001','81000000-0000-4000-8000-000000000001')$$,
