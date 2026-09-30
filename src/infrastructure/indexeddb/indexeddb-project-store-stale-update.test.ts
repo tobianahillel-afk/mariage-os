@@ -122,7 +122,7 @@ it("atomically updates pending status and cache marker", async () => {
   ).toMatchObject({ syncMarker: "conflict" });
 });
 
-it("rolls back pending and cache together on atomic update failure", async () => {
+it("rolls back pending and cache on atomic update failure", async () => {
   const factory = new FakeFactory();
   const store = await IndexedDbProjectStore.open(
     factory as unknown as IDBFactory,
