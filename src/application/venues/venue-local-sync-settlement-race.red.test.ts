@@ -41,6 +41,7 @@ class RaceLocalStore implements LocalProjectStore {
   readonly cached = new Map<string, CachedRecordEnvelope>();
   readonly pending = new Map<string, PendingMutationEnvelope>();
   replacement: PendingMutationEnvelope | null = null;
+  settlementRecord: CachedRecordEnvelope | null = null;
 
   async getMetadata(): Promise<LocalProjectMetadata> {
     throw new Error("not used");
@@ -72,8 +73,9 @@ class RaceLocalStore implements LocalProjectStore {
   }
   async settlePendingMutationWithCachedRecord(
     id: string,
-    _record: CachedRecordEnvelope,
+    record: CachedRecordEnvelope,
   ): Promise<void> {
+    this.settlementRecord = record;
     const current = this.pending.get(id);
     if (current === undefined) throw new Error("missing mutation");
     this.replacement = {
@@ -144,6 +146,7 @@ describe("WP-2.10 acknowledgement settlement race RED", () => {
     });
 
     expect(result.state).toBe("pending");
+    expect(local.settlementRecord).not.toBeNull();
     expect(local.replacement).not.toBeNull();
     expect(local.pending.get(operationId)).toEqual(local.replacement);
   });
