@@ -111,7 +111,6 @@ describe("quickAddVenue confirmed local cache", () => {
       city: "Paris",
     });
   });
-
 });
 
 describe("quickAddVenue cache failure handling", () => {
