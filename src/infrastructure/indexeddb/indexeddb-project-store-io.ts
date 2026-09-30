@@ -123,6 +123,49 @@ export function runAtomicPendingMutationUpdate(
   });
 }
 
+export function runAtomicPendingMutationUpdateWithCache(
+  database: IDBDatabase,
+  mutation: PendingMutationEnvelope,
+  record: CachedRecordEnvelope,
+  validateCurrent: (value: unknown) => void,
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(
+      [MUTATION_STORE, CACHE_STORE],
+      "readwrite",
+    );
+    const mutationStore = transaction.objectStore(MUTATION_STORE);
+    const cacheStore = transaction.objectStore(CACHE_STORE);
+    let validationError: unknown = null;
+    const fail = (): void =>
+      reject(storageError("pending/cache update transaction"));
+    const lookupRequest = mutationStore.get(mutation.operationId);
+
+    lookupRequest.onerror = fail;
+    lookupRequest.onsuccess = () => {
+      try {
+        validateCurrent(lookupRequest.result);
+      } catch (error) {
+        validationError = error;
+        return;
+      }
+      const mutationRequest = mutationStore.put(mutation);
+      const cacheRequest = cacheStore.put(record);
+      mutationRequest.onerror = fail;
+      cacheRequest.onerror = fail;
+    };
+    transaction.onerror = fail;
+    transaction.onabort = fail;
+    transaction.oncomplete = () => {
+      if (validationError !== null) {
+        reject(validationError);
+        return;
+      }
+      resolve();
+    };
+  });
+}
+
 export function runAtomicMutationWithCache(
   database: IDBDatabase,
   mutation: PendingMutationEnvelope,
