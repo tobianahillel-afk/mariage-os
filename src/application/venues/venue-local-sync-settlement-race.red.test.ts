@@ -11,9 +11,7 @@ import {
 } from "@application/local-data/local-records";
 import type { VenueCommandPort } from "@application/venues/venue-command-port";
 import { VenueLocalSyncCoordinator } from "@application/venues/venue-local-sync-coordinator";
-import {
-  venueCachedRecord,
-} from "@application/venues/venue-local-cache";
+import { venueCachedRecord } from "@application/venues/venue-local-cache";
 import type {
   VenueCoreRecord,
   VenueRepositoryPort,
