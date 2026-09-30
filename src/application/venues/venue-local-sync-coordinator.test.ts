@@ -52,6 +52,7 @@ class MemoryLocalStore implements LocalProjectStore {
   readonly pending = new Map<string, PendingMutationEnvelope>();
   failNextAdd = false;
   failNextCachePut = false;
+  failNextSettlement = false;
 
   async getMetadata(): Promise<LocalProjectMetadata> {
     return {
@@ -122,6 +123,21 @@ class MemoryLocalStore implements LocalProjectStore {
 
   async putPendingMutation(mutation: PendingMutationEnvelope): Promise<void> {
     this.pending.set(mutation.operationId, mutation);
+  }
+
+  async settlePendingMutationWithCachedRecord(
+    operationIdToSettle: string,
+    record: CachedRecordEnvelope,
+  ): Promise<void> {
+    if (this.failNextSettlement) {
+      this.failNextSettlement = false;
+      throw new Error("synthetic settlement failure");
+    }
+    if (!this.pending.has(operationIdToSettle)) {
+      throw new Error("missing mutation");
+    }
+    this.cached.set(record.key, record);
+    this.pending.delete(operationIdToSettle);
   }
 
   async removePendingMutation(operationIdToRemove: string): Promise<void> {
@@ -242,6 +258,32 @@ describe("VenueLocalSyncCoordinator acknowledgement", () => {
       revision: 2,
     });
     expect(local.cached.get(`venue:${venueId}`)?.syncMarker).toBe("synced");
+  });
+
+  it("retains replayable work if atomic local acknowledgement settlement fails", async () => {
+    const { local, remote, coordinator } = await seededHarness();
+    local.failNextSettlement = true;
+
+    const result = await coordinator.updateCore(updateInput());
+
+    expect(result.state).toBe("pending");
+    expect(remote.updateCalls).toHaveLength(1);
+    expect(local.pending.get(operationId)).toMatchObject({
+      status: "failed_retryable",
+      lastErrorCode: "unavailable",
+    });
+    expect(local.cached.get(`venue:${venueId}`)?.syncMarker).toBe("pending");
+    expect(await cachedVenue(local)).toMatchObject({
+      name: "Venue Local",
+      revision: 1,
+    });
+
+    const replayed = await coordinator.replayPending();
+    expect(replayed).toHaveLength(1);
+    expect(replayed[0]?.state).toBe("synced");
+    expect(remote.updateCalls).toHaveLength(2);
+    expect(local.pending.size).toBe(0);
+    expect(await cachedVenue(local)).toMatchObject({ revision: 2 });
   });
 
   it("applies a lifecycle acknowledgement with the same operation id", async () => {

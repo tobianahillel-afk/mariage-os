@@ -323,10 +323,10 @@ export class VenueLocalSyncCoordinator {
     try {
       await this.local.putPendingMutation(sending);
       const acknowledged = await send();
-      await this.local.putCachedRecord(
+      await this.local.settlePendingMutationWithCachedRecord(
+        mutation.operationId,
         venueCachedRecord(this.local.scope, acknowledged, "synced"),
       );
-      await this.local.removePendingMutation(mutation.operationId);
       return { state: "synced", venue: acknowledged };
     } catch (error) {
       const failed = failedMutation(sending, error);

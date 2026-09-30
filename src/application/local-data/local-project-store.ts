@@ -40,6 +40,10 @@ export interface LocalProjectStore {
     record: CachedRecordEnvelope,
   ): Promise<void>;
   putPendingMutation(mutation: PendingMutationEnvelope): Promise<void>;
+  settlePendingMutationWithCachedRecord(
+    operationId: string,
+    record: CachedRecordEnvelope,
+  ): Promise<void>;
   removePendingMutation(operationId: string): Promise<void>;
   getPendingMutation(
     operationId: string,

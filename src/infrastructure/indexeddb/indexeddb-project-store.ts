@@ -124,6 +124,33 @@ function runAtomicMutationWithCache(
   });
 }
 
+function runAtomicSettlementWithCache(
+  database: IDBDatabase,
+  operationId: string,
+  record: CachedRecordEnvelope,
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(
+      [MUTATION_STORE, CACHE_STORE],
+      "readwrite",
+    );
+    const fail = (): void => {
+      reject(storageError("settlement/cache transaction"));
+    };
+
+    const mutationRequest = transaction
+      .objectStore(MUTATION_STORE)
+      .delete(operationId);
+    const cacheRequest = transaction.objectStore(CACHE_STORE).put(record);
+
+    mutationRequest.onerror = fail;
+    cacheRequest.onerror = fail;
+    transaction.onerror = fail;
+    transaction.onabort = fail;
+    transaction.oncomplete = () => resolve();
+  });
+}
+
 function createMetadata(
   scope: LocalProjectScope,
   appVersion: string,
@@ -322,6 +349,23 @@ export class IndexedDbProjectStore implements LocalProjectStore {
       MUTATION_STORE,
       "readwrite",
       (store) => store.put(parsed),
+    );
+  }
+
+  async settlePendingMutationWithCachedRecord(
+    operationId: string,
+    record: CachedRecordEnvelope,
+  ): Promise<void> {
+    const existing = await this.getPendingMutation(operationId);
+    if (existing === null) {
+      throw new Error("Pending mutation settlement target is missing.");
+    }
+    const parsedRecord = parseCachedRecordEnvelope(record);
+    assertCachedRecordScope(parsedRecord, this.scope);
+    await runAtomicSettlementWithCache(
+      this.database,
+      operationId,
+      parsedRecord,
     );
   }
 

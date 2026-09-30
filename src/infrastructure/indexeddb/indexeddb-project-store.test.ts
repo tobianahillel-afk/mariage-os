@@ -263,6 +263,74 @@ it.each(["request", "transaction_error", "transaction_abort"] as const)(
   },
 );
 
+it("atomically settles a pending mutation with its acknowledged cache", async () => {
+  const factory = new FakeFactory();
+  const store = await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "1",
+  );
+  const mutation = createMutation();
+  const pendingRecord = createCachedRecordEnvelope(scope, {
+    recordType: "project_preferences",
+    entityId,
+    serverRevision: "rev-1",
+    serverUpdatedAt: null,
+    syncMarker: "pending",
+    payload: { density: "compact" },
+  });
+  const syncedRecord = {
+    ...pendingRecord,
+    syncMarker: "synced" as const,
+    serverRevision: "rev-2",
+  };
+  await store.addPendingMutationWithCachedRecord(mutation, pendingRecord);
+
+  await store.settlePendingMutationWithCachedRecord(operationId, syncedRecord);
+
+  expect(await store.getPendingMutation(operationId)).toBeNull();
+  expect(await store.getCachedRecord("project_preferences", entityId)).toEqual(
+    syncedRecord,
+  );
+});
+
+it.each(["request", "transaction_error", "transaction_abort"] as const)(
+  "rolls back atomic acknowledgement settlement on %s failure",
+  async (failure) => {
+    const factory = new FakeFactory();
+    const store = await IndexedDbProjectStore.open(
+      factory as unknown as IDBFactory,
+      scope,
+      "1",
+    );
+    const mutation = createMutation();
+    const pendingRecord = createCachedRecordEnvelope(scope, {
+      recordType: "project_preferences",
+      entityId,
+      serverRevision: "rev-1",
+      serverUpdatedAt: null,
+      syncMarker: "pending",
+      payload: { density: "compact" },
+    });
+    const syncedRecord = {
+      ...pendingRecord,
+      syncMarker: "synced" as const,
+      serverRevision: "rev-2",
+    };
+    await store.addPendingMutationWithCachedRecord(mutation, pendingRecord);
+    factory.state.failure = failure;
+
+    await expect(
+      store.settlePendingMutationWithCachedRecord(operationId, syncedRecord),
+    ).rejects.toThrow();
+
+    expect(await store.getPendingMutation(operationId)).toEqual(mutation);
+    expect(await store.getCachedRecord("project_preferences", entityId)).toEqual(
+      pendingRecord,
+    );
+  },
+);
+
 it("retains pending mutation across store close and reopen", async () => {
   const factory = new FakeFactory();
   const first = await IndexedDbProjectStore.open(
