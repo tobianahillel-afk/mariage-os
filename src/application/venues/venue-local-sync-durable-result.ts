@@ -7,10 +7,7 @@ import {
 import type { VenueCoreRecord } from "@application/venues/venue-repository-port";
 
 type DurableResultState =
-  | "synced"
-  | "pending"
-  | "conflict"
-  | "failed_permanent";
+  "synced" | "pending" | "conflict" | "failed_permanent";
 
 export interface DurableVenueResult {
   readonly state: DurableResultState;
