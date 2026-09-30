@@ -57,8 +57,7 @@ class RefreshRaceStore implements LocalProjectStore {
     if (hook !== null) await hook();
     const existing = this.cached.get(record.key);
     const blockedByMarker =
-      existing?.syncMarker === "pending" ||
-      existing?.syncMarker === "conflict";
+      existing?.syncMarker === "pending" || existing?.syncMarker === "conflict";
     const blockedByQueue = [...this.pending.values()].some(
       (mutation) =>
         mutation.entityType === record.recordType &&
@@ -126,10 +125,16 @@ function commands(): VenueCommandPort {
   };
 }
 
-it("does not overwrite a Venue mutation that becomes pending during refresh", async () => {
-  const local = new RefreshRaceStore();
-  await local.putCachedRecord(venueCachedRecord(scope, venue, "synced"));
-  const localWorking = { ...venue, name: "Concurrent Local", city: "Nice" };
+it(
+  "does not overwrite a Venue mutation that becomes pending during refresh",
+  async () => {
+    const local = new RefreshRaceStore();
+    await local.putCachedRecord(venueCachedRecord(scope, venue, "synced"));
+    const localWorking = {
+      ...venue,
+      name: "Concurrent Local",
+      city: "Nice",
+    };
   local.beforeRefreshDecision = async () => {
     await local.addPendingMutationWithCachedRecord(
       createPendingMutationEnvelope(scope, {
@@ -164,10 +169,11 @@ it("does not overwrite a Venue mutation that becomes pending during refresh", as
     now: () => "2026-09-30T15:30:00.000Z",
   });
 
-  await coordinator.refreshFromCloud();
+    await coordinator.refreshFromCloud();
 
-  expect(local.pending.get(operationId)).not.toBeUndefined();
-  expect(local.cached.get(`venue:${venueId}`)).toEqual(
-    venueCachedRecord(scope, localWorking, "pending"),
-  );
-});
+    expect(local.pending.get(operationId)).not.toBeUndefined();
+    expect(local.cached.get(`venue:${venueId}`)).toEqual(
+      venueCachedRecord(scope, localWorking, "pending"),
+    );
+  },
+);
