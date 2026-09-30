@@ -269,6 +269,22 @@ describe("VenueLocalSyncCoordinator failure classification", () => {
   });
 });
 
+describe("VenueLocalSyncCoordinator sending durability", () => {
+  it("does not call remote when sending-state persistence fails", async () => {
+    const { local, remote, coordinator } = await harness();
+    local.failPendingPutAt = 1;
+
+    const result = await coordinator.updateCore(coreInput());
+
+    expect(result).toMatchObject({
+      state: "pending",
+      venue: { name: "Venue Local", revision: 1 },
+    });
+    expect(remote.updateCalls).toBe(0);
+    expect(local.pending.get(operationId)?.status).toBe("pending");
+  });
+});
+
 describe("VenueLocalSyncCoordinator lifecycle replay coverage", () => {
   it("replays a retryable lifecycle mutation after response loss", async () => {
     const { local, remote, coordinator } = await harness();
