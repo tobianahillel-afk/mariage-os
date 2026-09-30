@@ -1,8 +1,6 @@
 import { expect, it } from "vitest";
 
-import {
-  createCachedRecordEnvelope,
-} from "@application/local-data/local-records";
+import { createCachedRecordEnvelope } from "@application/local-data/local-records";
 
 import { IndexedDbProjectStore } from "./indexeddb-project-store";
 import {
@@ -41,56 +39,53 @@ function venueRecord(
   });
 }
 
-it(
-  "preserves a later unresolved Venue intent when an older mutation settles",
-  async () => {
-    const factory = new FakeFactory();
-    const store = await IndexedDbProjectStore.open(
-      factory as unknown as IDBFactory,
-      scope,
-      "1",
-    );
-    const first = venueMutation(
-      operationId,
-      "First local edit",
-      "2026-09-30T12:00:00.000Z",
-    );
-    const second = venueMutation(
-      missingOperationId,
-      "Later local edit",
-      "2026-09-30T12:01:00.000Z",
-    );
-    const firstWorking = venueRecord("First local edit", "pending", "1");
-    const laterWorking = venueRecord("Later local edit", "pending", "1");
-    const firstAcknowledged = venueRecord(
-      "First cloud acknowledgement",
-      "synced",
-      "2",
-    );
+it("preserves a later unresolved Venue intent when an older mutation settles", async () => {
+  const factory = new FakeFactory();
+  const store = await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "1",
+  );
+  const first = venueMutation(
+    operationId,
+    "First local edit",
+    "2026-09-30T12:00:00.000Z",
+  );
+  const second = venueMutation(
+    missingOperationId,
+    "Later local edit",
+    "2026-09-30T12:01:00.000Z",
+  );
+  const firstWorking = venueRecord("First local edit", "pending", "1");
+  const laterWorking = venueRecord("Later local edit", "pending", "1");
+  const firstAcknowledged = venueRecord(
+    "First cloud acknowledgement",
+    "synced",
+    "2",
+  );
 
-    await store.addPendingMutationWithCachedRecord(first, firstWorking);
-    await store.addPendingMutationWithCachedRecord(second, laterWorking);
-    await store.settlePendingMutationWithCachedRecord(
-      operationId,
-      firstAcknowledged,
-    );
+  await store.addPendingMutationWithCachedRecord(first, firstWorking);
+  await store.addPendingMutationWithCachedRecord(second, laterWorking);
+  await store.settlePendingMutationWithCachedRecord(
+    operationId,
+    firstAcknowledged,
+  );
 
-    expect(await store.getPendingMutation(operationId)).toBeNull();
-    expect(await store.getPendingMutation(missingOperationId)).toEqual(second);
-    expect(await store.getCachedRecord("venue", entityId)).toEqual(laterWorking);
+  expect(await store.getPendingMutation(operationId)).toBeNull();
+  expect(await store.getPendingMutation(missingOperationId)).toEqual(second);
+  expect(await store.getCachedRecord("venue", entityId)).toEqual(laterWorking);
 
-    store.close();
-    const reopened = await IndexedDbProjectStore.open(
-      factory as unknown as IDBFactory,
-      scope,
-      "1",
-    );
-    expect(await reopened.getPendingMutation(missingOperationId)).toEqual(second);
-    expect(await reopened.getCachedRecord("venue", entityId)).toEqual(
-      laterWorking,
-    );
-  },
-);
+  store.close();
+  const reopened = await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "1",
+  );
+  expect(await reopened.getPendingMutation(missingOperationId)).toEqual(second);
+  expect(await reopened.getCachedRecord("venue", entityId)).toEqual(
+    laterWorking,
+  );
+});
 
 it.each([
   ["foreign", { projectId: missingOperationId }],
@@ -122,10 +117,7 @@ it.each([
     });
 
     await expect(
-      store.settlePendingMutationWithCachedRecord(
-        operationId,
-        acknowledgement,
-      ),
+      store.settlePendingMutationWithCachedRecord(operationId, acknowledgement),
     ).rejects.toThrow();
 
     expect(await store.getPendingMutation(operationId)).toEqual(first);
