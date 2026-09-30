@@ -27,6 +27,7 @@ import {
   openDatabase,
   purgeDatabase,
   runAtomicMutationWithCache,
+  runAtomicPendingMutationUpdate,
   runAtomicSettlementWithCache,
   runRequest,
 } from "./indexeddb-project-store-io";
@@ -93,6 +94,40 @@ function assertMutationTarget(
     mutation.entityType !== record.recordType
   ) {
     throw new Error("Pending mutation settlement target does not match.");
+  }
+}
+
+function sameMutationIntent(
+  current: PendingMutationEnvelope,
+  next: PendingMutationEnvelope,
+): boolean {
+  return (
+    current.operationId === next.operationId &&
+    current.projectId === next.projectId &&
+    current.userId === next.userId &&
+    current.deviceId === next.deviceId &&
+    current.entityType === next.entityType &&
+    current.entityId === next.entityId &&
+    current.mutationType === next.mutationType &&
+    current.baseRevision === next.baseRevision &&
+    current.createdAt === next.createdAt &&
+    current.priorityClass === next.priorityClass &&
+    JSON.stringify(current.payload) === JSON.stringify(next.payload)
+  );
+}
+
+function validatePendingMutationUpdate(
+  value: unknown,
+  next: PendingMutationEnvelope,
+  scope: LocalProjectScope,
+): void {
+  if (value === undefined) {
+    throw new Error("Pending mutation update target is missing.");
+  }
+  const current = parsePendingMutationEnvelope(value);
+  assertMutationScope(current, scope);
+  if (!sameMutationIntent(current, next)) {
+    throw new Error("Pending mutation update intent does not match.");
   }
 }
 
@@ -254,11 +289,8 @@ export class IndexedDbProjectStore implements LocalProjectStore {
   async putPendingMutation(mutation: PendingMutationEnvelope): Promise<void> {
     const parsed = parsePendingMutationEnvelope(mutation);
     assertMutationScope(parsed, this.scope);
-    await runRequest<IDBValidKey>(
-      this.database,
-      MUTATION_STORE,
-      "readwrite",
-      (store) => store.put(parsed),
+    await runAtomicPendingMutationUpdate(this.database, parsed, (value) =>
+      validatePendingMutationUpdate(value, parsed, this.scope),
     );
   }
 

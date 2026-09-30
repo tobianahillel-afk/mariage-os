@@ -425,3 +425,54 @@ it("rejects acknowledgement settlement for a different cached target", async () 
   );
   expect(await store.getCachedRecord("venue", entityId)).toBeNull();
 });
+
+
+it("does not resurrect a settled pending mutation with a stale status write", async () => {
+  const factory = new FakeFactory();
+  const store = await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "1",
+  );
+  const mutation = createMutation();
+  await store.addPendingMutation(mutation);
+  await store.removePendingMutation(operationId);
+
+  await expect(
+    store.putPendingMutation({
+      ...mutation,
+      attemptCount: 1,
+      lastAttemptAt: "2026-09-30T10:50:00.000Z",
+      status: "sending",
+    }),
+  ).rejects.toThrow("update target is missing");
+  expect(await store.getPendingMutation(operationId)).toBeNull();
+});
+
+it("does not overwrite a changed pending mutation intent", async () => {
+  const factory = new FakeFactory();
+  const store = await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "1",
+  );
+  const mutation = createMutation();
+  await store.addPendingMutation(mutation);
+  const replacement = {
+    ...mutation,
+    payload: { density: "comfortable" },
+  };
+  rawStore(factory, "pending_mutations").set(operationId, replacement);
+
+  await expect(
+    store.putPendingMutation({
+      ...mutation,
+      attemptCount: 1,
+      lastAttemptAt: "2026-09-30T10:51:00.000Z",
+      status: "sending",
+    }),
+  ).rejects.toThrow("update intent does not match");
+  expect(rawStore(factory, "pending_mutations").get(operationId)).toEqual(
+    replacement,
+  );
+});
