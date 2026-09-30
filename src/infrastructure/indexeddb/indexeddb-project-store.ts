@@ -362,6 +362,12 @@ export class IndexedDbProjectStore implements LocalProjectStore {
     }
     const parsedRecord = parseCachedRecordEnvelope(record);
     assertCachedRecordScope(parsedRecord, this.scope);
+    if (
+      existing.entityId !== parsedRecord.entityId ||
+      existing.entityType !== parsedRecord.recordType
+    ) {
+      throw new Error("Pending mutation settlement target does not match.");
+    }
     await runAtomicSettlementWithCache(
       this.database,
       operationId,
