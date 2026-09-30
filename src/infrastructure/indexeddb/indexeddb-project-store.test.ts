@@ -2,14 +2,10 @@ import { expect, it } from "vitest";
 
 import { createCachedRecordEnvelope } from "@application/local-data/local-records";
 
-import {
-  IndexedDbProjectStore,
-  IndexedDbProjectStoreFactory,
-} from "./indexeddb-project-store";
+import { IndexedDbProjectStore } from "./indexeddb-project-store";
 import {
   FakeFactory,
   createMutation,
-  databaseName,
   deviceId,
   entityId,
   missingFixture,

@@ -15,7 +15,10 @@ import type {
   VenueTransitionInput,
 } from "@application/venues/venue-command-port";
 import { VenueLocalSyncCoordinator } from "@application/venues/venue-local-sync-coordinator";
-import { venueCachedRecord } from "@application/venues/venue-local-cache";
+import {
+  venueCachedRecord,
+  venueFromCachedRecord,
+} from "@application/venues/venue-local-cache";
 import type {
   VenueCoreRecord,
   VenueCoreUpdateInput,
@@ -175,6 +178,12 @@ function coordinatorFor(
     commands: remote.commands,
     now: () => now,
   });
+}
+
+async function cachedVenue(local: MemoryLocalStore): Promise<VenueCoreRecord> {
+  const record = await local.getCachedRecord("venue", venueId);
+  if (record === null) throw new Error("missing cached venue fixture");
+  return venueFromCachedRecord(record);
 }
 
 describe("VenueLocalSyncCoordinator replay ordering", () => {

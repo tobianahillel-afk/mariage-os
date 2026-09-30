@@ -6,7 +6,6 @@ import type {
 } from "@application/local-data/local-project-store";
 import { createLocalProjectScope } from "@application/local-data/local-project-scope";
 import {
-  createPendingMutationEnvelope,
   type CachedRecordEnvelope,
   type PendingMutationEnvelope,
 } from "@application/local-data/local-records";
