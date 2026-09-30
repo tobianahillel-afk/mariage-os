@@ -53,37 +53,33 @@ function unusedCommands(): VenueCommandPort {
   };
 }
 
-it("reports the preserved later local Venue intent after older acknowledgement", async () => {
-  const factory = new FakeFactory();
-  const local = await IndexedDbProjectStore.open(
-    factory as unknown as IDBFactory,
-    scope,
-    "1",
+async function stageLaterIntent(local: IndexedDbProjectStore): Promise<void> {
+  await local.addPendingMutationWithCachedRecord(
+    createPendingMutationEnvelope(scope, {
+      operationId: laterOperationId,
+      entityType: "venue",
+      entityId,
+      mutationType: "update_venue_core",
+      baseRevision: "1",
+      payload: {
+        name: laterWorking.name,
+        code: laterWorking.code,
+        websiteUrl: laterWorking.websiteUrl,
+        city: laterWorking.city,
+      },
+      createdAt: "2026-09-30T13:00:01.000Z",
+      priorityClass: "essential_structured",
+    }),
+    venueCachedRecord(scope, laterWorking, "pending"),
   );
-  await local.putCachedRecord(venueCachedRecord(scope, initialVenue, "synced"));
+}
 
-  const repository: VenueRepositoryPort = {
+function repositoryFor(local: IndexedDbProjectStore): VenueRepositoryPort {
+  return {
     listVenues: async () => [initialVenue],
     getVenue: async () => initialVenue,
     updateVenueCore: async () => {
-      await local.addPendingMutationWithCachedRecord(
-        createPendingMutationEnvelope(scope, {
-          operationId: laterOperationId,
-          entityType: "venue",
-          entityId,
-          mutationType: "update_venue_core",
-          baseRevision: "1",
-          payload: {
-            name: laterWorking.name,
-            code: laterWorking.code,
-            websiteUrl: laterWorking.websiteUrl,
-            city: laterWorking.city,
-          },
-          createdAt: "2026-09-30T13:00:01.000Z",
-          priorityClass: "essential_structured",
-        }),
-        venueCachedRecord(scope, laterWorking, "pending"),
-      );
+      await stageLaterIntent(local);
       return {
         ...initialVenue,
         name: "Older cloud acknowledgement",
@@ -92,9 +88,19 @@ it("reports the preserved later local Venue intent after older acknowledgement",
       };
     },
   };
+}
+
+it("reports the preserved later local Venue intent after older acknowledgement", async () => {
+  const factory = new FakeFactory();
+  const local = await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "1",
+  );
+  await local.putCachedRecord(venueCachedRecord(scope, initialVenue, "synced"));
   const coordinator = new VenueLocalSyncCoordinator({
     local,
-    repository,
+    repository: repositoryFor(local),
     commands: unusedCommands(),
     now: () => "2026-09-30T13:00:00.000Z",
   });
