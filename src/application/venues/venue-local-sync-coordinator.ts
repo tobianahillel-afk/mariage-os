@@ -380,9 +380,6 @@ export class VenueLocalSyncCoordinator {
       return this.persistSendFailure(sending, working, error);
     }
 
-    return this.settleAcknowledgedMutation(
-      mutation.operationId,
-      acknowledged,
-    );
+    return this.settleAcknowledgedMutation(mutation.operationId, acknowledged);
   }
 }
