@@ -6,6 +6,7 @@ import type {
 } from "@application/local-data/local-project-store";
 import { createLocalProjectScope } from "@application/local-data/local-project-scope";
 import {
+  createPendingMutationEnvelope,
   type CachedRecordEnvelope,
   type PendingMutationEnvelope,
 } from "@application/local-data/local-records";
@@ -53,6 +54,7 @@ class MemoryLocalStore implements LocalProjectStore {
   failNextAdd = false;
   failNextCachePut = false;
   failNextSettlement = false;
+  afterNextCacheRead: (() => Promise<void>) | null = null;
 
   async getMetadata(): Promise<LocalProjectMetadata> {
     return {
@@ -80,7 +82,11 @@ class MemoryLocalStore implements LocalProjectStore {
     recordType: string,
     entityId: string,
   ): Promise<CachedRecordEnvelope | null> {
-    return this.cached.get(`${recordType}:${entityId}`) ?? null;
+    const current = this.cached.get(`${recordType}:${entityId}`) ?? null;
+    const hook = this.afterNextCacheRead;
+    this.afterNextCacheRead = null;
+    if (hook !== null) await hook();
+    return current;
   }
 
   async listCachedRecords(
@@ -395,6 +401,42 @@ describe("VenueLocalSyncCoordinator refresh", () => {
       revision: 2,
     });
     expect(local.cached.get(`venue:${venueId}`)?.syncMarker).toBe("synced");
+  });
+
+  it("does not overwrite a mutation that becomes pending during refresh", async () => {
+    const { local, remote, coordinator } = await seededHarness();
+    const laterWorking = { ...venue, name: "Concurrent Local", city: "Nice" };
+    remote.remoteVenue = { ...venue, name: "Remote New", revision: 2 };
+    local.afterNextCacheRead = async () => {
+      await local.addPendingMutationWithCachedRecord(
+        createPendingMutationEnvelope(scope, {
+          operationId,
+          entityType: "venue",
+          entityId: venueId,
+          mutationType: "update_venue_core",
+          baseRevision: "1",
+          payload: {
+            name: laterWorking.name,
+            code: laterWorking.code,
+            websiteUrl: laterWorking.websiteUrl,
+            city: laterWorking.city,
+          },
+          createdAt: now,
+          priorityClass: "essential_structured",
+        }),
+        venueCachedRecord(scope, laterWorking, "pending"),
+      );
+    };
+
+    await coordinator.refreshFromCloud();
+
+    expect(local.pending.get(operationId)).not.toBeUndefined();
+    expect(local.cached.get(`venue:${venueId}`)?.syncMarker).toBe("pending");
+    expect(await cachedVenue(local)).toMatchObject({
+      name: "Concurrent Local",
+      city: "Nice",
+      revision: 1,
+    });
   });
 });
 
