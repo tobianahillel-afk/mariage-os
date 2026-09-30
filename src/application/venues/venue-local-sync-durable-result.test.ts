@@ -148,3 +148,25 @@ describe("failureResult", () => {
     ).resolves.toEqual({ state: "pending", venue: null });
   });
 });
+
+it("returns the newer pending state if same-target intent arrives between durable reads", async () => {
+  const newerVenue = { ...venue, name: "Newer durable intent" };
+  let newerIntentCommitted = false;
+  const racingLocal = {
+    scope,
+    listPendingMutations: async () => {
+      newerIntentCommitted = true;
+      return [];
+    },
+    getCachedRecord: async () =>
+      venueCachedRecord(
+        scope,
+        newerIntentCommitted ? newerVenue : venue,
+        newerIntentCommitted ? "pending" : "synced",
+      ),
+  } as unknown as LocalProjectStore;
+
+  await expect(
+    failureResult(racingLocal, operationId, venueId, "failed_permanent"),
+  ).resolves.toEqual({ state: "pending", venue: newerVenue });
+});
