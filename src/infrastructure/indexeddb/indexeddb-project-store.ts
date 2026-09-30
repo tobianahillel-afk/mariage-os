@@ -28,6 +28,7 @@ import {
   purgeDatabase,
   runAtomicMutationWithCache,
   runAtomicPendingMutationUpdate,
+  runAtomicPendingMutationUpdateWithCache,
   runAtomicSettlementWithCache,
   runRequest,
 } from "./indexeddb-project-store-io";
@@ -313,11 +314,27 @@ export class IndexedDbProjectStore implements LocalProjectStore {
     );
   }
 
-  async putPendingMutation(mutation: PendingMutationEnvelope): Promise<void> {
+  async putPendingMutation(
+    mutation: PendingMutationEnvelope,
+    record?: CachedRecordEnvelope,
+  ): Promise<void> {
     const parsed = parsePendingMutationEnvelope(mutation);
     assertMutationScope(parsed, this.scope);
-    await runAtomicPendingMutationUpdate(this.database, parsed, (value) =>
-      validatePendingMutationUpdate(value, parsed, this.scope),
+    const validate = (value: unknown): void =>
+      validatePendingMutationUpdate(value, parsed, this.scope);
+    if (record === undefined) {
+      await runAtomicPendingMutationUpdate(this.database, parsed, validate);
+      return;
+    }
+
+    const parsedRecord = parseCachedRecordEnvelope(record);
+    assertCachedRecordScope(parsedRecord, this.scope);
+    assertMutationTarget(parsed, parsedRecord);
+    await runAtomicPendingMutationUpdateWithCache(
+      this.database,
+      parsed,
+      parsedRecord,
+      validate,
     );
   }
 
