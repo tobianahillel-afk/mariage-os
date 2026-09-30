@@ -331,6 +331,43 @@ it.each(["request", "transaction_error", "transaction_abort"] as const)(
   },
 );
 
+it("rejects acknowledgement settlement for a different cached target", async () => {
+  const factory = new FakeFactory();
+  const store = await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "1",
+  );
+  const mutation = createMutation();
+  const pendingRecord = createCachedRecordEnvelope(scope, {
+    recordType: "project_preferences",
+    entityId,
+    serverRevision: "rev-1",
+    serverUpdatedAt: null,
+    syncMarker: "pending",
+    payload: { density: "compact" },
+  });
+  const wrongRecord = createCachedRecordEnvelope(scope, {
+    recordType: "venue",
+    entityId,
+    serverRevision: "2",
+    serverUpdatedAt: null,
+    syncMarker: "synced",
+    payload: { name: "Wrong target" },
+  });
+  await store.addPendingMutationWithCachedRecord(mutation, pendingRecord);
+
+  await expect(
+    store.settlePendingMutationWithCachedRecord(operationId, wrongRecord),
+  ).rejects.toThrow("target does not match");
+
+  expect(await store.getPendingMutation(operationId)).toEqual(mutation);
+  expect(await store.getCachedRecord("project_preferences", entityId)).toEqual(
+    pendingRecord,
+  );
+  expect(await store.getCachedRecord("venue", entityId)).toBeNull();
+});
+
 it("retains pending mutation across store close and reopen", async () => {
   const factory = new FakeFactory();
   const first = await IndexedDbProjectStore.open(
