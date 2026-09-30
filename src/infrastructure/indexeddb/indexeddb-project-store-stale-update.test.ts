@@ -61,3 +61,23 @@ it("does not overwrite a changed pending mutation intent", async () => {
     replacement,
   );
 });
+
+
+it("fails closed when stale-update lookup storage fails", async () => {
+  const factory = new FakeFactory();
+  const store = await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "1",
+  );
+  const mutation = createMutation();
+  await store.addPendingMutation(mutation);
+  factory.state.failure = "request";
+
+  await expect(
+    store.putPendingMutation(sendingMutation(mutation)),
+  ).rejects.toThrow("pending mutation transaction");
+  expect(rawStore(factory, "pending_mutations").get(operationId)).toEqual(
+    mutation,
+  );
+});
