@@ -44,7 +44,7 @@ function venueRecord(
 it(
   "preserves a later unresolved Venue intent when an older mutation settles",
   async () => {
-      const factory = new FakeFactory();
+    const factory = new FakeFactory();
     const store = await IndexedDbProjectStore.open(
       factory as unknown as IDBFactory,
       scope,
@@ -86,9 +86,9 @@ it(
       "1",
     );
     expect(await reopened.getPendingMutation(missingOperationId)).toEqual(second);
-      expect(await reopened.getCachedRecord("venue", entityId)).toEqual(
-        laterWorking,
-      );
+    expect(await reopened.getCachedRecord("venue", entityId)).toEqual(
+      laterWorking,
+    );
   },
 );
 
