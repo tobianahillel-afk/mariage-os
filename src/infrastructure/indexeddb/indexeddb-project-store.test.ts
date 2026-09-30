@@ -383,9 +383,7 @@ it("revalidates the persisted target during settlement", async () => {
   ).rejects.toThrow("target does not match");
   expect(
     rawStore(factory, "pending_mutations").get(operationId),
-  ).toMatchObject({
-    entityId: missingOperationId,
-  });
+  ).toMatchObject({ entityId: missingOperationId });
   expect(await store.getCachedRecord("project_preferences", entityId)).toEqual(
     pendingRecord,
   );
