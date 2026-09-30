@@ -390,34 +390,6 @@ describe("VenueLocalSyncCoordinator retained work", () => {
   });
 });
 
-describe("VenueLocalSyncCoordinator refresh", () => {
-  it("does not overwrite a pending local Venue with remote refresh", async () => {
-    const { local, remote, coordinator } = await seededHarness();
-    const working = { ...venue, name: "Pending Local" };
-    await local.putCachedRecord(venueCachedRecord(scope, working, "pending"));
-    remote.remoteVenue = { ...venue, name: "Remote Older" };
-
-    const refreshed = await coordinator.refreshFromCloud();
-
-    expect(refreshed).toHaveLength(1);
-    expect(refreshed[0]?.name).toBe("Pending Local");
-    expect(local.cached.get(`venue:${venueId}`)?.syncMarker).toBe("pending");
-  });
-
-  it("refreshes a synchronized cache from cloud", async () => {
-    const { local, remote, coordinator } = await seededHarness();
-    remote.remoteVenue = { ...venue, name: "Remote New", revision: 2 };
-
-    await coordinator.refreshFromCloud();
-
-    expect(await cachedVenue(local)).toMatchObject({
-      name: "Remote New",
-      revision: 2,
-    });
-    expect(local.cached.get(`venue:${venueId}`)?.syncMarker).toBe("synced");
-  });
-});
-
 describe("VenueLocalSyncCoordinator restart replay", () => {
   it.each(["response lost", "session expired"] as const)(
     "replays a retryable core update after %s with the same operation id",

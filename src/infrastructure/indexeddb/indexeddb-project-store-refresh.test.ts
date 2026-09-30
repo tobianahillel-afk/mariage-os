@@ -114,6 +114,9 @@ describe("IndexedDbProjectStore atomic cloud refresh", () => {
     );
   });
 
+});
+
+describe("IndexedDbProjectStore atomic cloud refresh failures", () => {
   it.each(["request", "transaction_error", "transaction_abort"] as const)(
     "fails closed on %s storage failure",
     async (failure) => {

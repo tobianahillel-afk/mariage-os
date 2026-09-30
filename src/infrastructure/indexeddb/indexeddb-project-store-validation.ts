@@ -140,13 +140,12 @@ export function shouldWriteMutationCache(
   return true;
 }
 
-export function shouldWriteCloudRefreshCache(
-  currentValue: unknown,
+function hasPendingRefreshTarget(
   values: readonly unknown[],
   record: CachedRecordEnvelope,
   scope: LocalProjectScope,
 ): boolean {
-  let hasPendingTarget = false;
+  let found = false;
   for (const value of values) {
     const mutation = parsePendingMutationEnvelope(value);
     assertMutationScope(mutation, scope);
@@ -154,24 +153,37 @@ export function shouldWriteCloudRefreshCache(
       mutation.entityType === record.recordType &&
       mutation.entityId === record.entityId
     ) {
-      hasPendingTarget = true;
+      found = true;
     }
   }
+  return found;
+}
 
-  if (currentValue !== undefined) {
-    const current = parseCachedRecordEnvelope(currentValue);
-    assertCachedRecordScope(current, scope);
-    if (
-      current.key !== record.key ||
-      current.recordType !== record.recordType ||
-      current.entityId !== record.entityId
-    ) {
-      throw new Error("Cached refresh target does not match.");
-    }
-    if (current.syncMarker === "pending" || current.syncMarker === "conflict") {
-      return false;
-    }
+function currentRefreshCacheIsSafe(
+  currentValue: unknown,
+  record: CachedRecordEnvelope,
+  scope: LocalProjectScope,
+): boolean {
+  if (currentValue === undefined) return true;
+  const current = parseCachedRecordEnvelope(currentValue);
+  assertCachedRecordScope(current, scope);
+  if (
+    current.key !== record.key ||
+    current.recordType !== record.recordType ||
+    current.entityId !== record.entityId
+  ) {
+    throw new Error("Cached refresh target does not match.");
   }
+  return current.syncMarker !== "pending" && current.syncMarker !== "conflict";
+}
 
-  return !hasPendingTarget;
+export function shouldWriteCloudRefreshCache(
+  currentValue: unknown,
+  values: readonly unknown[],
+  record: CachedRecordEnvelope,
+  scope: LocalProjectScope,
+): boolean {
+  const hasPendingTarget = hasPendingRefreshTarget(values, record, scope);
+  const currentIsSafe = currentRefreshCacheIsSafe(currentValue, record, scope);
+  return currentIsSafe && !hasPendingTarget;
 }

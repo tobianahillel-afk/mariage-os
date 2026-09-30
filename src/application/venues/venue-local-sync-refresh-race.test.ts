@@ -125,6 +125,28 @@ function commands(): VenueCommandPort {
   };
 }
 
+function repositoryWith(remote: VenueCoreRecord): VenueRepositoryPort {
+  return {
+    listVenues: async () => [remote],
+    getVenue: async () => remote,
+    updateVenueCore: async () => {
+      throw new Error("not used");
+    },
+  };
+}
+
+function coordinatorFor(
+  local: LocalProjectStore,
+  remote: VenueCoreRecord,
+): VenueLocalSyncCoordinator {
+  return new VenueLocalSyncCoordinator({
+    local,
+    repository: repositoryWith(remote),
+    commands: commands(),
+    now: () => "2026-09-30T15:30:00.000Z",
+  });
+}
+
 it("does not overwrite a Venue mutation that becomes pending during refresh", async () => {
   const local = new RefreshRaceStore();
   await local.putCachedRecord(venueCachedRecord(scope, venue, "synced"));
@@ -149,24 +171,48 @@ it("does not overwrite a Venue mutation that becomes pending during refresh", as
       venueCachedRecord(scope, localWorking, "pending"),
     );
   };
-  const repository: VenueRepositoryPort = {
-    listVenues: async () => [{ ...venue, name: "Remote New", revision: 2 }],
-    getVenue: async () => venue,
-    updateVenueCore: async () => {
-      throw new Error("not used");
-    },
-  };
-  const coordinator = new VenueLocalSyncCoordinator({
-    local,
-    repository,
-    commands: commands(),
-    now: () => "2026-09-30T15:30:00.000Z",
-  });
-
-  await coordinator.refreshFromCloud();
+  await coordinatorFor(local, {
+    ...venue,
+    name: "Remote New",
+    revision: 2,
+  }).refreshFromCloud();
 
   expect(local.pending.get(operationId)).not.toBeUndefined();
   expect(local.cached.get(`venue:${venueId}`)).toEqual(
     venueCachedRecord(scope, localWorking, "pending"),
+  );
+});
+
+it("preserves a pending working Venue during ordinary refresh", async () => {
+  const local = new RefreshRaceStore();
+  const working = { ...venue, name: "Pending Local" };
+  await local.putCachedRecord(venueCachedRecord(scope, working, "pending"));
+
+  const refreshed = await coordinatorFor(local, {
+    ...venue,
+    name: "Remote Older",
+  }).refreshFromCloud();
+
+  expect(refreshed).toHaveLength(1);
+  expect(refreshed[0]?.name).toBe("Pending Local");
+  expect(local.cached.get(`venue:${venueId}`)?.syncMarker).toBe("pending");
+});
+
+it("refreshes a synchronized working Venue from cloud", async () => {
+  const local = new RefreshRaceStore();
+  await local.putCachedRecord(venueCachedRecord(scope, venue, "synced"));
+
+  await coordinatorFor(local, {
+    ...venue,
+    name: "Remote New",
+    revision: 2,
+  }).refreshFromCloud();
+
+  expect(local.cached.get(`venue:${venueId}`)).toEqual(
+    venueCachedRecord(
+      scope,
+      { ...venue, name: "Remote New", revision: 2 },
+      "synced",
+    ),
   );
 });
