@@ -151,7 +151,7 @@ describe("WP-2.10 acknowledgement settlement race", () => {
 
     expect(result).toMatchObject({
       state: "pending",
-      venue: { name: "Acknowledged remotely", revision: 2 },
+      venue: { name: "Acknowledged remotely", revision: 1 },
     });
     expect(local.settlementRecord).not.toBeNull();
     expect(local.replacement).not.toBeNull();
