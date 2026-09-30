@@ -84,6 +84,35 @@ function assertMutationScope(
   }
 }
 
+function assertMutationTarget(
+  mutation: PendingMutationEnvelope,
+  record: CachedRecordEnvelope,
+): void {
+  if (
+    mutation.entityId !== record.entityId ||
+    mutation.entityType !== record.recordType
+  ) {
+    throw new Error("Pending mutation settlement target does not match.");
+  }
+}
+
+function validateSettlementMutation(
+  value: unknown,
+  operationId: string,
+  record: CachedRecordEnvelope,
+  scope: LocalProjectScope,
+): void {
+  if (value === undefined) {
+    throw new Error("Pending mutation settlement target is missing.");
+  }
+  const mutation = parsePendingMutationEnvelope(value);
+  assertMutationScope(mutation, scope);
+  if (mutation.operationId !== operationId) {
+    throw new Error("Pending mutation settlement target does not match.");
+  }
+  assertMutationTarget(mutation, record);
+}
+
 export class IndexedDbProjectStore implements LocalProjectStore {
   private constructor(
     private readonly database: IDBDatabase,
@@ -214,6 +243,7 @@ export class IndexedDbProjectStore implements LocalProjectStore {
     const parsedRecord = parseCachedRecordEnvelope(record);
     assertMutationScope(parsedMutation, this.scope);
     assertCachedRecordScope(parsedRecord, this.scope);
+    assertMutationTarget(parsedMutation, parsedRecord);
     await runAtomicMutationWithCache(
       this.database,
       parsedMutation,
@@ -236,22 +266,19 @@ export class IndexedDbProjectStore implements LocalProjectStore {
     operationId: string,
     record: CachedRecordEnvelope,
   ): Promise<void> {
-    const existing = await this.getPendingMutation(operationId);
-    if (existing === null) {
-      throw new Error("Pending mutation settlement target is missing.");
-    }
     const parsedRecord = parseCachedRecordEnvelope(record);
     assertCachedRecordScope(parsedRecord, this.scope);
-    if (
-      existing.entityId !== parsedRecord.entityId ||
-      existing.entityType !== parsedRecord.recordType
-    ) {
-      throw new Error("Pending mutation settlement target does not match.");
-    }
     await runAtomicSettlementWithCache(
       this.database,
       operationId,
       parsedRecord,
+      (value) =>
+        validateSettlementMutation(
+          value,
+          operationId,
+          parsedRecord,
+          this.scope,
+        ),
     );
   }
 

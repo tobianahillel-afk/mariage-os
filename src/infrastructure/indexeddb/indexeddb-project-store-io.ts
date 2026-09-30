@@ -114,22 +114,41 @@ export function runAtomicSettlementWithCache(
   database: IDBDatabase,
   operationId: string,
   record: CachedRecordEnvelope,
+  validateMutation: (value: unknown) => void,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     const transaction = database.transaction(
       [MUTATION_STORE, CACHE_STORE],
       "readwrite",
     );
+    const mutationStore = transaction.objectStore(MUTATION_STORE);
+    const cacheStore = transaction.objectStore(CACHE_STORE);
+    let validationError: unknown = null;
     const fail = (): void =>
       reject(storageError("settlement/cache transaction"));
-    const mutationRequest = transaction
-      .objectStore(MUTATION_STORE)
-      .delete(operationId);
-    const cacheRequest = transaction.objectStore(CACHE_STORE).put(record);
-    mutationRequest.onerror = fail;
-    cacheRequest.onerror = fail;
+    const lookupRequest = mutationStore.get(operationId);
+
+    lookupRequest.onerror = fail;
+    lookupRequest.onsuccess = () => {
+      try {
+        validateMutation(lookupRequest.result);
+      } catch (error) {
+        validationError = error;
+        return;
+      }
+      const mutationRequest = mutationStore.delete(operationId);
+      const cacheRequest = cacheStore.put(record);
+      mutationRequest.onerror = fail;
+      cacheRequest.onerror = fail;
+    };
     transaction.onerror = fail;
     transaction.onabort = fail;
-    transaction.oncomplete = () => resolve();
+    transaction.oncomplete = () => {
+      if (validationError !== null) {
+        reject(validationError);
+        return;
+      }
+      resolve();
+    };
   });
 }

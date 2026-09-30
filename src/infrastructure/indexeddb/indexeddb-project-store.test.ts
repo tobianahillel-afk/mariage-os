@@ -230,6 +230,30 @@ it("atomically stores a pending mutation with its working cache", async () => {
   );
 });
 
+it("rejects an atomic pending/cache write for different targets", async () => {
+  const factory = new FakeFactory();
+  const store = await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "1",
+  );
+  const mutation = createMutation();
+  const wrongRecord = createCachedRecordEnvelope(scope, {
+    recordType: "venue",
+    entityId,
+    serverRevision: "1",
+    serverUpdatedAt: null,
+    syncMarker: "pending",
+    payload: { name: "Wrong target" },
+  });
+
+  await expect(
+    store.addPendingMutationWithCachedRecord(mutation, wrongRecord),
+  ).rejects.toThrow("target does not match");
+  expect(rawStore(factory, "pending_mutations").size).toBe(0);
+  expect(rawStore(factory, "cached_records").size).toBe(0);
+});
+
 it.each(["request", "transaction_error", "transaction_abort"] as const)(
   "rolls back atomic pending/cache durability on %s failure",
   async (failure) => {
@@ -326,6 +350,44 @@ it.each(["request", "transaction_error", "transaction_abort"] as const)(
     ).toEqual(pendingRecord);
   },
 );
+
+it("revalidates the persisted target during settlement", async () => {
+  const factory = new FakeFactory();
+  const store = await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "1",
+  );
+  const mutation = createMutation();
+  const pendingRecord = createCachedRecordEnvelope(scope, {
+    recordType: "project_preferences",
+    entityId,
+    serverRevision: "rev-1",
+    serverUpdatedAt: null,
+    syncMarker: "pending",
+    payload: { density: "compact" },
+  });
+  const syncedRecord = {
+    ...pendingRecord,
+    syncMarker: "synced" as const,
+    serverRevision: "rev-2",
+  };
+  await store.addPendingMutationWithCachedRecord(mutation, pendingRecord);
+  rawStore(factory, "pending_mutations").set(operationId, {
+    ...mutation,
+    entityId: missingOperationId,
+  });
+
+  await expect(
+    store.settlePendingMutationWithCachedRecord(operationId, syncedRecord),
+  ).rejects.toThrow("target does not match");
+  expect(rawStore(factory, "pending_mutations").get(operationId)).toMatchObject({
+    entityId: missingOperationId,
+  });
+  expect(await store.getCachedRecord("project_preferences", entityId)).toEqual(
+    pendingRecord,
+  );
+});
 
 it("rejects acknowledgement settlement for a different cached target", async () => {
   const factory = new FakeFactory();
