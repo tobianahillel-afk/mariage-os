@@ -266,11 +266,14 @@ describe("VenueLocalSyncCoordinator acknowledgement", () => {
 
     const result = await coordinator.updateCore(updateInput());
 
-    expect(result.state).toBe("pending");
+    expect(result).toEqual({
+      state: "pending",
+      venue: expect.objectContaining({ name: "Venue Local", revision: 2 }),
+    });
     expect(remote.updateCalls).toHaveLength(1);
     expect(local.pending.get(operationId)).toMatchObject({
-      status: "failed_retryable",
-      lastErrorCode: "unavailable",
+      status: "sending",
+      lastErrorCode: null,
     });
     expect(local.cached.get(`venue:${venueId}`)?.syncMarker).toBe("pending");
     expect(await cachedVenue(local)).toMatchObject({
