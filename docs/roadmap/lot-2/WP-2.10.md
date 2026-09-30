@@ -6,7 +6,7 @@
 - Lot: 2 — Venues core
 - Name: Venue local cache and pending offline mutations
 - State: `REVIEW_FAILED`
-- Current pass: `B-ADVERSARIAL-REVIEW — FAILED / WP210-AR-001 MAJOR OPEN`
+- Current pass: `B-ADVERSARIAL-REVIEW — FAILED / WP210-AR-001 REMEDIATION CANDIDATE + WP210-AR-002 MAJOR OPEN`
 - Primary bounded context: Venues + local-data/sync foundation
 - Branch: `lot-2/venues-core`
 - Activation base: `c5cfe273468eb56592f8fe8f0de9eb764d671a58`
@@ -159,9 +159,9 @@ No production/private wedding data or external-provider mutation was used.
 - Current/next pass: B-ADVERSARIAL-REVIEW
 - Pass-A green implementation: `eca752c145f9c59c1d0ca17d938569d8977fba92` / CI `36713679555` attempt 2, five ordinary jobs SUCCESS including clean checkout
 - FIR: #42 — FTR-028 remains IN_PROGRESS because WP-2.12 owns downstream mobile-visit/offline-package completion
-- Remaining blocker/finding: `WP210-AR-001` — MAJOR / OPEN — acknowledgement of an older same-Venue operation can overwrite the cached working value/marker while a later unresolved mutation for that Venue remains queued
+- Review findings: `WP210-AR-001` — MAJOR / remediation candidate green on exact-head CI but not closed until fresh Pass B; `WP210-AR-002` — MAJOR / OPEN — cloud refresh can overwrite a Venue mutation that becomes pending between the refresh cache read and cache write
 - Pass-B record: `docs/roadmap/lot-2/WP-2.10-PASS-B-REVIEW-2026-09-30.md`
-- Next permitted action: bounded RED-first remediation of WP210-AR-001, exact-head verification, then a new complete fresh Pass B. No Pass C or WP-2.11 start is authorized.
+- Next permitted action: bounded RED-first remediation of WP210-AR-002 using an atomic queue-inspection + cache-write primitive, exact-head verification, then a new complete fresh Pass B over WP210-AR-001/002 and the full packet. No Pass C or WP-2.11 start is authorized.
 
 ## Pass B result — 2026-09-30
 
@@ -175,3 +175,17 @@ cloud-confirmed quick-add cache passed review. The open finding is local:
 settlement of one acknowledged mutation may overwrite the cached working value
 of a later unresolved same-Venue mutation. State is `REVIEW_FAILED`; remediation
 must preserve later local intent atomically before a new complete Pass B.
+
+## Additional Pass-B finding — WP210-AR-002 — MAJOR / OPEN
+
+The post-AR-001 remediation review found a second local TOCTOU. `refreshFromCloud()`
+currently reads the cached Venue and later writes the cloud snapshot in a separate
+transaction. A local mutation can become durable in between those operations, so
+the refresh may overwrite a newly-pending working value with a synced cloud value.
+Closed RED-only PRs #47/#48 reproduce the race without merging the red state.
+
+Required remediation is bounded to an atomic local-store primitive that inspects
+the scoped pending-mutation queue and conditionally writes the cloud cache record
+inside one IndexedDB transaction. Malformed/foreign queue rows must fail closed.
+WP210-AR-001 remains unclosed until a new complete fresh Pass B, even though its
+current remediation candidate is exact-head green.

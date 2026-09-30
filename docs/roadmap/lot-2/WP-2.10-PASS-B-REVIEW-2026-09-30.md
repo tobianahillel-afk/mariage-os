@@ -9,7 +9,7 @@
 - Review-entry CI: `36715447094` — 5/5 SUCCESS, clean checkout included
 - FIR: #42 / FTR-028
 - Review type: complete fresh adversarial Pass B
-- Verdict: **FAIL — WP210-AR-001 MAJOR / OPEN**
+- Verdict: **FAIL — WP210-AR-001 remediation candidate / WP210-AR-002 MAJOR OPEN**
 
 ## Contracts reconstructed independently
 
@@ -154,3 +154,41 @@ REVIEW_PENDING
 Next permitted work is bounded remediation of WP210-AR-001, starting with a
 reproducing RED. WP-2.11 remains blocked. No Pass C or WP-2.10 acceptance is
 authorized.
+
+## Post-review remediation review finding WP210-AR-002 — MAJOR — OPEN
+
+After the WP210-AR-001 remediation candidate was exercised with additional REDs,
+a separate refresh race was reproduced in closed RED-only PRs #47 and #48.
+
+### Title
+
+Cloud refresh can overwrite a Venue mutation that becomes pending between cache
+inspection and cache replacement.
+
+### Observed
+
+`VenueLocalSyncCoordinator.refreshFromCloud()` performs:
+
+1. `getCachedRecord("venue", venue.id)`;
+2. a pending/conflict marker decision;
+3. later `putCachedRecord(..., "synced")`.
+
+Those are separate local transactions. If a new mutation is durably queued with
+a pending cached working value after step 1 but before step 3, the refresh writes
+the cloud snapshot over that local intent while the pending mutation remains.
+
+### Required remediation
+
+- add a store-level atomic refresh primitive spanning the pending-mutation and
+  cache stores;
+- inside that one transaction, parse/validate the entire scoped queue and skip
+  the cloud cache write when any unresolved mutation targets the same record;
+- malformed or foreign persisted queue rows fail closed and must not permit the
+  cache write;
+- retain independent records and normal no-pending refresh behavior;
+- keep the RED race covered and run exact-head five-job CI + clean checkout;
+- then run a new complete fresh Pass B. Neither WP210-AR-001 nor WP210-AR-002 is
+  closed merely by implementation green.
+
+No schema downgrade, queue deletion, last-write-wins fallback or scope expansion
+is authorized.

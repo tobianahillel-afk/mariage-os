@@ -298,7 +298,7 @@ Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.8C, WP-2.9C, WP-2.9A, WP-2.9B
 WP-2.9C: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 21accd7f9ab1b845275507b7941a782c5e816a56 / CI 36494697647 5/5 including clean checkout
 WP-2.9A: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 656398bcd5520cfa56d782023d150eb64317161d / CI 36542083037 5/5 including clean checkout
-Current packet: WP-2.10 — REVIEW_FAILED; WP210-AR-001 MAJOR / OPEN; Pass-A implementation `eca752c145f9c59c1d0ca17d938569d8977fba92` / CI `36713679555` attempt 2 5/5; review-entry `333f584fd00ca2830839540f43465d21072e7616` / CI `36715447094` 5/5; FIR #42
+Current packet: WP-2.10 — REVIEW_FAILED; WP210-AR-001 remediation candidate exact-head green but awaiting fresh Pass B; WP210-AR-002 MAJOR / OPEN (refresh cache-read/cache-write TOCTOU); latest remediation-support head `0431315b310d7b55078efc6bf154d146af4e632c` / CI `36734158650` 5/5 including clean checkout; FIR #42
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
@@ -337,5 +337,5 @@ FTR-089 FIR: #17 — IN_PROGRESS / parent A accepted, later presentation and Lot
 WP-2.9B: ACCEPTED / COMPLETE; FTR-093 FIR #27 remains IN_PROGRESS for downstream scope; WP29B-AR-001/002 CLOSED / VERIFIED; Pass C gap ∅
 Lots 3–12: NOT_STARTED
 Latest distinct-PDF campaign: 2303df0c9e8d6f72561ec0ce42514663801229d8 / CI 36459949861 / provider job 109058754517 / artifact 10987866873 — 10 distinct exact-size PDFs, 10 finalized flows, 20 valid exact-version CPU readings within Workers Free; provider verdict PASS
-Next permitted action: bounded RED-first remediation of WP210-AR-001. Prove two unresolved same-Venue mutations cannot lose/hide the later cached working intent when the older operation is acknowledged; preserve fail-closed scope/corruption handling; rerun exact-head five-job CI + clean checkout, then a new complete fresh Pass B. WP-2.11, Pass C and Lot integration remain blocked.
+Next permitted action: bounded RED-first remediation of WP210-AR-002. Make cloud refresh inspect the scoped pending queue and conditionally write the cloud cache atomically in one IndexedDB transaction; malformed/foreign queue rows fail closed. PRs #47/#48 are the non-merged RED evidence. Rerun exact-head five-job CI + clean checkout, then a new complete fresh Pass B over WP210-AR-001/002 and the full packet. WP-2.11, Pass C and Lot integration remain blocked.
 ```
