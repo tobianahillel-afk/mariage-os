@@ -49,7 +49,7 @@ Before implementation gate opens, every V1 row remains `SPECIFIED`.
 | FTR-025 | Venue offers/date pricing/availability context | 2/5 | VENUES, BUDGET | IN_PROGRESS |
 | FTR-026 | Venue contacts/interactions/quote follow-up | 2/3 | VENUES, TASKS | IN_PROGRESS |
 | FTR-027 | Venue comparison 2–5 candidates/differences | 2 | VENUES, UX | SPECIFIED |
-| FTR-028 | Mobile venue visit/offline package | 2/10 | OFFLINE, USER-FLOWS | SPECIFIED |
+| FTR-028 | Mobile venue visit/offline package | 2/10 | OFFLINE, USER-FLOWS | IN_PROGRESS |
 
 ## Tasks / decisions / quick capture
 

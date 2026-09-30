@@ -5,12 +5,15 @@
 - Work Packet ID: WP-2.10
 - Lot: 2 — Venues core
 - Name: Venue local cache and pending offline mutations
-- State: `READY`
-- Current pass: `PLAN` (next: `A-IMPLEMENT`)
+- State: `REVIEW_PENDING`
+- Current pass: `B-ADVERSARIAL-REVIEW`
 - Primary bounded context: Venues + local-data/sync foundation
 - Branch: `lot-2/venues-core`
 - Activation base: `c5cfe273468eb56592f8fe8f0de9eb764d671a58`
 - Activation-base CI: `36579954211` — five ordinary jobs SUCCESS including clean checkout; provider-only jobs skipped
+- FIR: GitHub issue #42 — FTR-028 Venue local/offline foundation and mobile visit package
+- Pass-A candidate: `eca752c145f9c59c1d0ca17d938569d8977fba92`
+- Pass-A CI: `36713679555`, rerun attempt 2 — five ordinary jobs SUCCESS including clean checkout; provider-only jobs skipped
 
 ## Scope
 
@@ -105,6 +108,33 @@ Pass A must start by proving the current implementation is insufficient in at le
 
 The first two REDs must fail on the current server contract before receipt implementation. Do not weaken expected-revision checks to make them green.
 
+## Pass A evidence — 2026-09-30
+
+The required RED-first classes are now implemented and green for the intended reasons:
+
+1. Venue core update can be retried after response loss with the same stable operation ID without incrementing revision twice;
+2. lifecycle transition retry recognizes the same operation and does not duplicate activity history;
+3. pending Venue work survives local-store close/reopen and a simulated session-expiry interruption;
+4. remote refresh skips pending/conflicting cached Venue work;
+5. foreign project/user/device local scope and cross-target settlement are rejected fail-closed;
+6. local durability failure returns a degraded/pending-safe result rather than false offline success;
+7. successful cloud acknowledgement atomically settles the pending mutation and writes the acknowledged cache revision.
+
+The final Pass-A implementation also binds server receipts to the authenticated user, project, device, command class, entity and server result; preserves expected-revision conflict semantics; rejects changed-intent/cross-command operation-ID reuse; keeps the frozen physical receipt schema; makes pending intent/cache and failure-state/cache writes atomic; preserves sending state after acknowledgement-settlement failure; orders replay deterministically; and caches only cloud-confirmed quick-add Venues.
+
+Exact implementation evidence:
+
+- head: `eca752c145f9c59c1d0ca17d938569d8977fba92`;
+- CI: `36713679555`, rerun attempt 2 — **5/5 SUCCESS**;
+- unit/coverage: 201 files / 1,801 tests, 100% statements/branches/functions/lines;
+- local DB/RLS/Pages integration: PASS, including Venue receipt pgTAP;
+- browser: 40 E2E tests PASS;
+- mutation: 82.50% score;
+- `Full verify from clean checkout`: SUCCESS;
+- provider-only AR-006 workflows: SKIPPED, as required for WP-2.10.
+
+No production/private wedding data or external-provider mutation was used.
+
 ## Pass A — IMPLEMENT
 
 ### Planned evidence
@@ -117,16 +147,17 @@ The first two REDs must fail on the current server contract before receipt imple
 
 ### Pass A exit
 
-- [ ] intended vertical slice exists
-- [ ] applicable REDs turned green for the intended reason
-- [ ] no known untracked stub/TODO
-- [ ] packet moves to `REVIEW_PENDING`
-- [ ] current/next pass becomes `B-ADVERSARIAL-REVIEW`
+- [x] intended vertical slice exists
+- [x] applicable REDs turned green for the intended reason
+- [x] no known untracked stub/TODO
+- [x] packet moves to `REVIEW_PENDING`
+- [x] current/next pass becomes `B-ADVERSARIAL-REVIEW`
 
 ## Handoff
 
-- Current state: READY
-- Current/next pass: A-IMPLEMENT
-- Last green verification: activation base `c5cfe273...` / CI `36579954211`, five ordinary jobs SUCCESS
-- Remaining blocker/finding: none; RED-first evidence required before production implementation
-- Next permitted action: create failing WP-2.10 retry/offline tests against the accepted current contracts, then implement Pass A.
+- Current state: REVIEW_PENDING
+- Current/next pass: B-ADVERSARIAL-REVIEW
+- Pass-A green implementation: `eca752c145f9c59c1d0ca17d938569d8977fba92` / CI `36713679555` attempt 2, five ordinary jobs SUCCESS including clean checkout
+- FIR: #42 — FTR-028 remains IN_PROGRESS because WP-2.12 owns downstream mobile-visit/offline-package completion
+- Remaining blocker/finding: none known at Pass-A exit; Pass B must independently reconstruct the packet contract and search for defects
+- Next permitted action: run a fresh complete WP-2.10 adversarial Pass B. Any BLOCKING/MAJOR finding moves the packet to REVIEW_FAILED; only a clean Pass B may enter ACCEPTANCE_PENDING.
