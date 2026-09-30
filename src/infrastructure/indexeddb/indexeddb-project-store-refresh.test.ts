@@ -113,7 +113,6 @@ describe("IndexedDbProjectStore atomic cloud refresh", () => {
       venueRecord("Cloud", "synced"),
     );
   });
-
 });
 
 describe("IndexedDbProjectStore atomic cloud refresh failures", () => {
