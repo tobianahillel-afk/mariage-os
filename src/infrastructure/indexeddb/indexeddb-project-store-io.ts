@@ -52,7 +52,10 @@ export function openDatabase(
   });
 }
 
-export function purgeDatabase(factory: IDBFactory, name: string): Promise<void> {
+export function purgeDatabase(
+  factory: IDBFactory,
+  name: string,
+): Promise<void> {
   return new Promise((resolve, reject) => {
     const request = factory.deleteDatabase(name);
     request.onblocked = () => reject(storageError("purge blocked"));
