@@ -3,10 +3,7 @@ import type {
   VenueCommandPort,
   VenueQuickAddInput,
 } from "./venue-command-port";
-import {
-  quickAddVenue,
-  type VenueQuickAddCachePort,
-} from "./quick-add-venue";
+import { quickAddVenue, type VenueQuickAddCachePort } from "./quick-add-venue";
 
 function commandPort(
   createVenue: VenueCommandPort["createVenue"],
