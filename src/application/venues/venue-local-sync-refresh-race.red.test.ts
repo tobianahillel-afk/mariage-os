@@ -5,6 +5,7 @@ import { createLocalProjectScope } from "@application/local-data/local-project-s
 import {
   createPendingMutationEnvelope,
   type CachedRecordEnvelope,
+  type PendingMutationEnvelope,
 } from "@application/local-data/local-records";
 import type { VenueCommandPort } from "@application/venues/venue-command-port";
 import { VenueLocalSyncCoordinator } from "@application/venues/venue-local-sync-coordinator";
@@ -53,6 +54,7 @@ function deferred() {
 class RefreshRaceLocal {
   readonly scope = scope;
   readonly cached = new Map<string, CachedRecordEnvelope>();
+  readonly pending = new Map<string, PendingMutationEnvelope>();
   readonly readObserved = deferred();
   readonly releaseRead = deferred();
   private pauseNextRead = true;
@@ -98,11 +100,11 @@ class RefreshRaceLocal {
       createdAt: "2026-09-30T15:10:00.000Z",
       priorityClass: "essential_structured",
     });
+    this.pending.set(mutation.operationId, mutation);
     this.cached.set(
       `venue:${venueId}`,
       venueCachedRecord(scope, localVenue, "pending"),
     );
-    void mutation;
   }
 }
 
@@ -143,8 +145,9 @@ describe("Venue cloud refresh vs concurrent local intent RED", () => {
 
     const record = local.cached.get(`venue:${venueId}`);
     expect(record?.syncMarker).toBe("pending");
-    expect(record === undefined ? null : venueFromCachedRecord(record).name).toBe(
-      "Later local edit",
-    );
+    expect(
+      record === undefined ? null : venueFromCachedRecord(record).name,
+    ).toBe("Later local edit");
+    expect(local.pending.get(operationId)).toBeDefined();
   });
 });
