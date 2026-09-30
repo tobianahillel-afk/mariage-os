@@ -5,9 +5,10 @@ import type {
   LocalSyncCounters,
 } from "@application/local-data/local-project-store";
 import { createLocalProjectScope } from "@application/local-data/local-project-scope";
-import type {
-  CachedRecordEnvelope,
-  PendingMutationEnvelope,
+import {
+  createPendingMutationEnvelope,
+  type CachedRecordEnvelope,
+  type PendingMutationEnvelope,
 } from "@application/local-data/local-records";
 import type {
   VenueCommandPort,
@@ -433,6 +434,57 @@ describe("VenueLocalSyncCoordinator restart replay", () => {
     ).resolves.toEqual([]);
     expect(remote.updateCalls).toHaveLength(1);
     expect(local.pending.get(operationId)?.status).toBe("conflict");
+  });
+});
+
+describe("VenueLocalSyncCoordinator replay ordering", () => {
+  it("replays older local Venue intent before a newer intent", async () => {
+    const { local, remote } = await seededHarness();
+    const laterOperationId = "10000000-0000-4000-8000-000000000001";
+    const earlierOperationId = "f0000000-0000-4000-8000-000000000001";
+
+    await local.addPendingMutation(
+      createPendingMutationEnvelope(scope, {
+        operationId: laterOperationId,
+        entityType: "venue",
+        entityId: venueId,
+        mutationType: "update_venue_core",
+        baseRevision: "1",
+        payload: {
+          name: "Later Intent",
+          code: null,
+          websiteUrl: null,
+          city: "Paris",
+        },
+        createdAt: "2026-09-29T17:31:00.000Z",
+        priorityClass: "essential_structured",
+      }),
+    );
+    await local.addPendingMutation(
+      createPendingMutationEnvelope(scope, {
+        operationId: earlierOperationId,
+        entityType: "venue",
+        entityId: venueId,
+        mutationType: "update_venue_core",
+        baseRevision: "1",
+        payload: {
+          name: "Earlier Intent",
+          code: null,
+          websiteUrl: null,
+          city: "Paris",
+        },
+        createdAt: "2026-09-29T17:30:00.000Z",
+        priorityClass: "essential_structured",
+      }),
+    );
+
+    const results = await coordinatorFor(local, remote).replayPending();
+
+    expect(results).toHaveLength(2);
+    expect(remote.updateCalls.map((call) => call.operationId)).toEqual([
+      earlierOperationId,
+      laterOperationId,
+    ]);
   });
 });
 
