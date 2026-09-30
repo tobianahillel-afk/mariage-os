@@ -57,8 +57,7 @@ class RefreshRaceStore implements LocalProjectStore {
     if (hook !== null) await hook();
     const existing = this.cached.get(record.key);
     const blockedByMarker =
-      existing?.syncMarker === "pending" ||
-      existing?.syncMarker === "conflict";
+      existing?.syncMarker === "pending" || existing?.syncMarker === "conflict";
     const blockedByQueue = [...this.pending.values()].some(
       (mutation) =>
         mutation.entityType === record.recordType &&
