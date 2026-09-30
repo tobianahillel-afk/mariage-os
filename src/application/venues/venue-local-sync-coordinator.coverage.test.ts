@@ -95,6 +95,14 @@ class LocalHarness implements LocalProjectStore {
     }
     this.pending.set(mutation.operationId, mutation);
   }
+  async settlePendingMutationWithCachedRecord(
+    id: string,
+    record: CachedRecordEnvelope,
+  ): Promise<void> {
+    if (!this.pending.has(id)) throw new Error("missing mutation");
+    this.cached.set(record.key, record);
+    this.pending.delete(id);
+  }
   async removePendingMutation(id: string): Promise<void> {
     this.pending.delete(id);
   }
