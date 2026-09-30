@@ -62,7 +62,7 @@ select lives_ok($$select public.update_venue_core(
 select is((select revision from public.venues where id='a1000000-0000-4000-8000-000000000001'),2::bigint,'core retry does not reapply');
 reset role;
 select is((select result_revision from public.sync_mutation_receipts where operation_id='71000000-0000-4000-8000-000000000001'),2::bigint,'core receipt stores revision');
-select throws_ok($select public.update_venue_core(
+select throws_ok($$select public.update_venue_core(
 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','a1000000-0000-4000-8000-000000000001',
 1,'Different Intent',null,null,'Paris',
 '71000000-0000-4000-8000-000000000001','81000000-0000-4000-8000-000000000001')$$,
@@ -79,7 +79,7 @@ select lives_ok($$select public.transition_venue_status(
 select is((select count(*)::integer from public.activity_log where operation_id='72000000-0000-4000-8000-000000000001'),1,'lifecycle retry does not duplicate history');
 reset role;
 select is((select result_revision from public.sync_mutation_receipts where operation_id='72000000-0000-4000-8000-000000000001'),3::bigint,'lifecycle receipt stores revision');
-select throws_ok($select public.transition_venue_status(
+select throws_ok($$select public.transition_venue_status(
 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','a1000000-0000-4000-8000-000000000001',
 'contacted',null,2,'72000000-0000-4000-8000-000000000001','81000000-0000-4000-8000-000000000001')$$,
 '22023','venue transition unavailable','same operation id cannot acknowledge a different lifecycle intent');
