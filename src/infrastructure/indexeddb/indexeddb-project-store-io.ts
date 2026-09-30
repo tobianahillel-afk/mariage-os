@@ -194,6 +194,7 @@ export function runAtomicSettlementWithCache(
   operationId: string,
   record: CachedRecordEnvelope,
   validateMutation: (value: unknown) => void,
+  shouldWriteCache: (values: readonly unknown[]) => boolean,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     const transaction = database.transaction(
@@ -203,22 +204,46 @@ export function runAtomicSettlementWithCache(
     const mutationStore = transaction.objectStore(MUTATION_STORE);
     const cacheStore = transaction.objectStore(CACHE_STORE);
     let validationError: unknown = null;
+    let currentValue: unknown;
+    let queueValues: readonly unknown[] = [];
+    let currentReady = false;
+    let queueReady = false;
+    let settlementStarted = false;
     const fail = (): void =>
       reject(storageError("settlement/cache transaction"));
-    const lookupRequest = mutationStore.get(operationId);
 
-    lookupRequest.onerror = fail;
-    lookupRequest.onsuccess = () => {
+    const settleWhenReady = (): void => {
+      if (!currentReady || !queueReady || settlementStarted) return;
+      settlementStarted = true;
+      let writeCache = false;
       try {
-        validateMutation(lookupRequest.result);
+        validateMutation(currentValue);
+        writeCache = shouldWriteCache(queueValues);
       } catch (error) {
         validationError = error;
         return;
       }
       const mutationRequest = mutationStore.delete(operationId);
-      const cacheRequest = cacheStore.put(record);
       mutationRequest.onerror = fail;
-      cacheRequest.onerror = fail;
+      if (writeCache) {
+        const cacheRequest = cacheStore.put(record);
+        cacheRequest.onerror = fail;
+      }
+    };
+
+    const lookupRequest = mutationStore.get(operationId);
+    const queueRequest = mutationStore.getAll();
+    lookupRequest.onerror = fail;
+    queueRequest.onerror = fail;
+    lookupRequest.onsuccess = () => {
+      currentValue = lookupRequest.result;
+      currentReady = true;
+      settleWhenReady();
+    };
+    queueRequest.onsuccess = () => {
+      queueValues = queueRequest.result;
+      queueReady = true;
+      settleWhenReady();
     };
     transaction.onerror = fail;
     transaction.onabort = fail;

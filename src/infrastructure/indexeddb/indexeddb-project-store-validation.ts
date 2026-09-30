@@ -116,3 +116,24 @@ export function validateSettlementMutation(
   }
   assertMutationTarget(mutation, record);
 }
+
+
+export function shouldWriteAcknowledgedCacheAfterSettlement(
+  values: readonly unknown[],
+  operationId: string,
+  record: CachedRecordEnvelope,
+  scope: LocalProjectScope,
+): boolean {
+  for (const value of values) {
+    const mutation = parsePendingMutationEnvelope(value);
+    assertMutationScope(mutation, scope);
+    if (mutation.operationId === operationId) continue;
+    if (
+      mutation.entityType === record.recordType &&
+      mutation.entityId === record.entityId
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
