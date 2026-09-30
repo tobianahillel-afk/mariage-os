@@ -97,22 +97,49 @@ function assertMutationTarget(
   }
 }
 
-function sameMutationIntent(
+function sameMutationScope(
+  current: PendingMutationEnvelope,
+  next: PendingMutationEnvelope,
+): boolean {
+  return (
+    current.projectId === next.projectId &&
+    current.userId === next.userId &&
+    current.deviceId === next.deviceId
+  );
+}
+
+function sameMutationTarget(
   current: PendingMutationEnvelope,
   next: PendingMutationEnvelope,
 ): boolean {
   return (
     current.operationId === next.operationId &&
-    current.projectId === next.projectId &&
-    current.userId === next.userId &&
-    current.deviceId === next.deviceId &&
     current.entityType === next.entityType &&
-    current.entityId === next.entityId &&
+    current.entityId === next.entityId
+  );
+}
+
+function sameMutationCommand(
+  current: PendingMutationEnvelope,
+  next: PendingMutationEnvelope,
+): boolean {
+  return (
     current.mutationType === next.mutationType &&
     current.baseRevision === next.baseRevision &&
     current.createdAt === next.createdAt &&
     current.priorityClass === next.priorityClass &&
     JSON.stringify(current.payload) === JSON.stringify(next.payload)
+  );
+}
+
+function sameMutationIntent(
+  current: PendingMutationEnvelope,
+  next: PendingMutationEnvelope,
+): boolean {
+  return (
+    sameMutationScope(current, next) &&
+    sameMutationTarget(current, next) &&
+    sameMutationCommand(current, next)
   );
 }
 
