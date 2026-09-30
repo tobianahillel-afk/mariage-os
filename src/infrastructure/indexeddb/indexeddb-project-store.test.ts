@@ -325,9 +325,9 @@ it.each(["request", "transaction_error", "transaction_abort"] as const)(
     ).rejects.toThrow();
 
     expect(await store.getPendingMutation(operationId)).toEqual(mutation);
-    expect(await store.getCachedRecord("project_preferences", entityId)).toEqual(
-      pendingRecord,
-    );
+    expect(
+      await store.getCachedRecord("project_preferences", entityId),
+    ).toEqual(pendingRecord);
   },
 );
 
