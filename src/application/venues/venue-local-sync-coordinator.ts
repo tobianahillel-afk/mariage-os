@@ -9,6 +9,10 @@ import {
   VENUE_CORE_UPDATE_MUTATION,
   VENUE_STATUS_MUTATION,
 } from "@application/venues/venue-local-mutation";
+import {
+  currentDurableVenueResult,
+  failureResult,
+} from "@application/venues/venue-local-sync-durable-result";
 import { VenueMutationPersistenceError } from "@application/venues/venue-mutation-persistence-error";
 import type {
   VenueCommandPort,
@@ -277,52 +281,6 @@ export class VenueLocalSyncCoordinator {
     return record === null ? null : venueFromCachedRecord(record);
   }
 
-  private async currentDurableVenueResult(
-    venueId: string,
-  ): Promise<VenueLocalSyncResult> {
-    try {
-      const record = await this.local.getCachedRecord(
-        VENUE_CACHE_RECORD_TYPE,
-        venueId,
-      );
-      if (record === null) return { state: "pending", venue: null };
-      return {
-        state: record.syncMarker,
-        venue: venueFromCachedRecord(record),
-      };
-    } catch {
-      return { state: "pending", venue: null };
-    }
-  }
-
-  private async failureResult(
-    operationId: string,
-    venueId: string,
-    failure: "conflict" | "pending" | "failed_permanent",
-  ): Promise<VenueLocalSyncResult> {
-    let mutations: readonly PendingMutationEnvelope[];
-    try {
-      mutations = await this.local.listPendingMutations();
-    } catch {
-      return { state: "pending", venue: null };
-    }
-    const current = await this.currentDurableVenueResult(venueId);
-    if (current.venue === null) return current;
-    const hasOtherTarget = mutations.some(
-      (mutation) =>
-        mutation.operationId !== operationId &&
-        mutation.entityType === "venue" &&
-        mutation.entityId === venueId,
-    );
-    if (hasOtherTarget) {
-      return {
-        state: current.state === "conflict" ? "conflict" : "pending",
-        venue: current.venue,
-      };
-    }
-    return { state: failure, venue: current.venue };
-  }
-
   private async replayMutation(
     mutation: PendingMutationEnvelope,
   ): Promise<VenueLocalSyncResult> {
@@ -387,9 +345,10 @@ export class VenueLocalSyncCoordinator {
         ),
       );
     } catch {
-      return this.currentDurableVenueResult(working.id);
+      return currentDurableVenueResult(this.local, working.id);
     }
-    return this.failureResult(
+    return failureResult(
+      this.local,
       failed.mutation.operationId,
       working.id,
       failed.state,
@@ -406,9 +365,9 @@ export class VenueLocalSyncCoordinator {
         venueCachedRecord(this.local.scope, acknowledged, "synced"),
       );
     } catch {
-      return this.currentDurableVenueResult(acknowledged.id);
+      return currentDurableVenueResult(this.local, acknowledged.id);
     }
-    return this.currentDurableVenueResult(acknowledged.id);
+    return currentDurableVenueResult(this.local, acknowledged.id);
   }
 
   private async sendPersistedMutation(

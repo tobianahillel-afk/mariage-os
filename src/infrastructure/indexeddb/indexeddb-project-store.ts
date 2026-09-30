@@ -231,14 +231,16 @@ export class IndexedDbProjectStore implements LocalProjectStore {
       this.database,
       parsed,
       parsedRecord,
-      validate,
-      (values) =>
-        shouldWriteMutationCache(
-          values,
-          parsed.operationId,
-          parsedRecord,
-          this.scope,
-        ),
+      {
+        validateCurrent: validate,
+        shouldWriteCache: (values) =>
+          shouldWriteMutationCache(
+            values,
+            parsed.operationId,
+            parsedRecord,
+            this.scope,
+          ),
+      },
     );
   }
 

@@ -132,13 +132,17 @@ interface AtomicPendingCacheUpdateState {
   validationError: unknown;
 }
 
-interface AtomicPendingCacheUpdateExecution {
+interface AtomicPendingCacheUpdatePolicy {
+  validateCurrent: (value: unknown) => void;
+  shouldWriteCache: (values: readonly unknown[]) => boolean;
+}
+
+interface AtomicPendingCacheUpdateExecution
+  extends AtomicPendingCacheUpdatePolicy {
   mutationStore: IDBObjectStore;
   cacheStore: IDBObjectStore;
   mutation: PendingMutationEnvelope;
   record: CachedRecordEnvelope;
-  validateCurrent: (value: unknown) => void;
-  shouldWriteCache: (values: readonly unknown[]) => boolean;
   fail: () => void;
 }
 
@@ -168,8 +172,7 @@ export function runAtomicPendingMutationUpdateWithCache(
   database: IDBDatabase,
   mutation: PendingMutationEnvelope,
   record: CachedRecordEnvelope,
-  validateCurrent: (value: unknown) => void,
-  shouldWriteCache: (values: readonly unknown[]) => boolean,
+  policy: AtomicPendingCacheUpdatePolicy,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     const transaction = database.transaction(
@@ -181,8 +184,7 @@ export function runAtomicPendingMutationUpdateWithCache(
       cacheStore: transaction.objectStore(CACHE_STORE),
       mutation,
       record,
-      validateCurrent,
-      shouldWriteCache,
+      ...policy,
       fail: () => reject(storageError("pending/cache update transaction")),
     };
     const state: AtomicPendingCacheUpdateState = {
