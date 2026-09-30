@@ -301,9 +301,9 @@ describe("VenueLocalSyncCoordinator settlement fail-closed coverage", () => {
 
     const result = await coordinator.updateCore(coreInput());
 
-    expect(result).toMatchObject({
+    expect(result).toEqual({
       state: "pending",
-      venue: { name: "Venue Local", revision: 2 },
+      venue: null,
     });
     expect(local.pending.size).toBe(0);
     expect(await local.getCachedRecord("venue", venueId)).toBeNull();

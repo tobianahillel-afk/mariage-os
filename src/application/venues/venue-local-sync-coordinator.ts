@@ -277,6 +277,52 @@ export class VenueLocalSyncCoordinator {
     return record === null ? null : venueFromCachedRecord(record);
   }
 
+  private async currentDurableVenueResult(
+    venueId: string,
+  ): Promise<VenueLocalSyncResult> {
+    try {
+      const record = await this.local.getCachedRecord(
+        VENUE_CACHE_RECORD_TYPE,
+        venueId,
+      );
+      if (record === null) return { state: "pending", venue: null };
+      return {
+        state: record.syncMarker,
+        venue: venueFromCachedRecord(record),
+      };
+    } catch {
+      return { state: "pending", venue: null };
+    }
+  }
+
+  private async failureResult(
+    operationId: string,
+    venueId: string,
+    failure: "conflict" | "pending" | "failed_permanent",
+  ): Promise<VenueLocalSyncResult> {
+    let mutations: readonly PendingMutationEnvelope[];
+    try {
+      mutations = await this.local.listPendingMutations();
+    } catch {
+      return { state: "pending", venue: null };
+    }
+    const current = await this.currentDurableVenueResult(venueId);
+    if (current.venue === null) return current;
+    const hasOtherTarget = mutations.some(
+      (mutation) =>
+        mutation.operationId !== operationId &&
+        mutation.entityType === "venue" &&
+        mutation.entityId === venueId,
+    );
+    if (hasOtherTarget) {
+      return {
+        state: current.state === "conflict" ? "conflict" : "pending",
+        venue: current.venue,
+      };
+    }
+    return { state: failure, venue: current.venue };
+  }
+
   private async replayMutation(
     mutation: PendingMutationEnvelope,
   ): Promise<VenueLocalSyncResult> {
@@ -341,9 +387,13 @@ export class VenueLocalSyncCoordinator {
         ),
       );
     } catch {
-      return { state: "pending", venue: working };
+      return this.currentDurableVenueResult(working.id);
     }
-    return { state: failed.state, venue: working };
+    return this.failureResult(
+      failed.mutation.operationId,
+      working.id,
+      failed.state,
+    );
   }
 
   private async settleAcknowledgedMutation(
@@ -355,18 +405,10 @@ export class VenueLocalSyncCoordinator {
         operationId,
         venueCachedRecord(this.local.scope, acknowledged, "synced"),
       );
-      const current = await this.local.getCachedRecord(
-        VENUE_CACHE_RECORD_TYPE,
-        acknowledged.id,
-      );
-      if (current === null) return { state: "pending", venue: acknowledged };
-      return {
-        state: current.syncMarker,
-        venue: venueFromCachedRecord(current),
-      };
     } catch {
-      return { state: "pending", venue: acknowledged };
+      return this.currentDurableVenueResult(acknowledged.id);
     }
+    return this.currentDurableVenueResult(acknowledged.id);
   }
 
   private async sendPersistedMutation(

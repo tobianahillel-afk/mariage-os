@@ -23,7 +23,7 @@ import {
   assertCachedRecordScope,
   assertMutationScope,
   assertMutationTarget,
-  shouldWriteAcknowledgedCacheAfterSettlement,
+  shouldWriteMutationCache,
   validatePendingMutationUpdate,
   validateSettlementMutation,
 } from "./indexeddb-project-store-validation";
@@ -232,6 +232,13 @@ export class IndexedDbProjectStore implements LocalProjectStore {
       parsed,
       parsedRecord,
       validate,
+      (values) =>
+        shouldWriteMutationCache(
+          values,
+          parsed.operationId,
+          parsedRecord,
+          this.scope,
+        ),
     );
   }
 
@@ -254,7 +261,7 @@ export class IndexedDbProjectStore implements LocalProjectStore {
             this.scope,
           ),
         shouldWriteCache: (values) =>
-          shouldWriteAcknowledgedCacheAfterSettlement(
+          shouldWriteMutationCache(
             values,
             operationId,
             parsedRecord,

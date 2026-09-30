@@ -158,3 +158,30 @@ it("validates intent before atomic cache update", async () => {
   const cached = await store.getCachedRecord("project_preferences", entityId);
   expect(cached).toEqual(originalCache);
 });
+
+it("fails closed on malformed concurrent mutation before cache rewrite", async () => {
+  const factory = new FakeFactory();
+  const store = await openStore(factory);
+  const mutation = createMutation();
+  const originalCache = cachedPreference("pending");
+  await store.addPendingMutationWithCachedRecord(mutation, originalCache);
+  rawStore(factory, "pending_mutations").set(
+    "58888888-8888-4888-8888-888888888888",
+    {
+      ...createMutation(),
+      operationId: "58888888-8888-4888-8888-888888888888",
+      status: "not_a_status",
+    },
+  );
+
+  const write = store.putPendingMutation(
+    conflictMutation(mutation),
+    cachedPreference("conflict"),
+  );
+
+  await expect(write).rejects.toThrow();
+  expect(await store.getPendingMutation(operationId)).toEqual(mutation);
+  expect(await store.getCachedRecord("project_preferences", entityId)).toEqual(
+    originalCache,
+  );
+});

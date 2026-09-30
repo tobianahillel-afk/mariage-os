@@ -271,7 +271,7 @@ describe("VenueLocalSyncCoordinator acknowledgement", () => {
     const result = await coordinator.updateCore(updateInput());
 
     expect(result.state).toBe("pending");
-    expect(result.venue).toMatchObject({ name: "Venue Local", revision: 2 });
+    expect(result.venue).toMatchObject({ name: "Venue Local", revision: 1 });
     expect(remote.updateCalls).toHaveLength(1);
     expect(local.pending.get(operationId)).toMatchObject({
       status: "sending",

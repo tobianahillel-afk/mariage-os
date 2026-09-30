@@ -123,42 +123,96 @@ export function runAtomicPendingMutationUpdate(
   });
 }
 
+interface AtomicPendingCacheUpdateState {
+  currentValue: unknown;
+  queueValues: readonly unknown[];
+  currentReady: boolean;
+  queueReady: boolean;
+  started: boolean;
+  validationError: unknown;
+}
+
+interface AtomicPendingCacheUpdateExecution {
+  mutationStore: IDBObjectStore;
+  cacheStore: IDBObjectStore;
+  mutation: PendingMutationEnvelope;
+  record: CachedRecordEnvelope;
+  validateCurrent: (value: unknown) => void;
+  shouldWriteCache: (values: readonly unknown[]) => boolean;
+  fail: () => void;
+}
+
+function startAtomicPendingCacheUpdate(
+  state: AtomicPendingCacheUpdateState,
+  execution: AtomicPendingCacheUpdateExecution,
+): void {
+  if (!state.currentReady || !state.queueReady || state.started) return;
+  state.started = true;
+  let writeCache: boolean;
+  try {
+    execution.validateCurrent(state.currentValue);
+    writeCache = execution.shouldWriteCache(state.queueValues);
+  } catch (error) {
+    state.validationError = error;
+    return;
+  }
+
+  const mutationRequest = execution.mutationStore.put(execution.mutation);
+  mutationRequest.onerror = execution.fail;
+  if (!writeCache) return;
+  const cacheRequest = execution.cacheStore.put(execution.record);
+  cacheRequest.onerror = execution.fail;
+}
+
 export function runAtomicPendingMutationUpdateWithCache(
   database: IDBDatabase,
   mutation: PendingMutationEnvelope,
   record: CachedRecordEnvelope,
   validateCurrent: (value: unknown) => void,
+  shouldWriteCache: (values: readonly unknown[]) => boolean,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     const transaction = database.transaction(
       [MUTATION_STORE, CACHE_STORE],
       "readwrite",
     );
-    const mutationStore = transaction.objectStore(MUTATION_STORE);
-    const cacheStore = transaction.objectStore(CACHE_STORE);
-    let validationError: unknown = null;
-    const fail = (): void =>
-      reject(storageError("pending/cache update transaction"));
-    const lookupRequest = mutationStore.get(mutation.operationId);
-
-    lookupRequest.onerror = fail;
-    lookupRequest.onsuccess = () => {
-      try {
-        validateCurrent(lookupRequest.result);
-      } catch (error) {
-        validationError = error;
-        return;
-      }
-      const mutationRequest = mutationStore.put(mutation);
-      const cacheRequest = cacheStore.put(record);
-      mutationRequest.onerror = fail;
-      cacheRequest.onerror = fail;
+    const execution: AtomicPendingCacheUpdateExecution = {
+      mutationStore: transaction.objectStore(MUTATION_STORE),
+      cacheStore: transaction.objectStore(CACHE_STORE),
+      mutation,
+      record,
+      validateCurrent,
+      shouldWriteCache,
+      fail: () => reject(storageError("pending/cache update transaction")),
     };
-    transaction.onerror = fail;
-    transaction.onabort = fail;
+    const state: AtomicPendingCacheUpdateState = {
+      currentValue: undefined,
+      queueValues: [],
+      currentReady: false,
+      queueReady: false,
+      started: false,
+      validationError: null,
+    };
+    const lookupRequest = execution.mutationStore.get(mutation.operationId);
+    const queueRequest = execution.mutationStore.getAll();
+
+    lookupRequest.onerror = execution.fail;
+    queueRequest.onerror = execution.fail;
+    lookupRequest.onsuccess = () => {
+      state.currentValue = lookupRequest.result;
+      state.currentReady = true;
+      startAtomicPendingCacheUpdate(state, execution);
+    };
+    queueRequest.onsuccess = () => {
+      state.queueValues = queueRequest.result;
+      state.queueReady = true;
+      startAtomicPendingCacheUpdate(state, execution);
+    };
+    transaction.onerror = execution.fail;
+    transaction.onabort = execution.fail;
     transaction.oncomplete = () => {
-      if (validationError !== null) {
-        reject(validationError);
+      if (state.validationError !== null) {
+        reject(state.validationError);
         return;
       }
       resolve();

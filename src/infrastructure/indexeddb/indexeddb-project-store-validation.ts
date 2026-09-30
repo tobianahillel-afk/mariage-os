@@ -117,7 +117,7 @@ export function validateSettlementMutation(
   assertMutationTarget(mutation, record);
 }
 
-export function shouldWriteAcknowledgedCacheAfterSettlement(
+export function shouldWriteMutationCache(
   values: readonly unknown[],
   operationId: string,
   record: CachedRecordEnvelope,
