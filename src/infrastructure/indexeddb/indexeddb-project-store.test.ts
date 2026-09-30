@@ -426,8 +426,7 @@ it("rejects acknowledgement settlement for a different cached target", async () 
   expect(await store.getCachedRecord("venue", entityId)).toBeNull();
 });
 
-
-it("does not resurrect a settled pending mutation with a stale status write", async () => {
+it("rejects a stale status update after settlement", async () => {
   const factory = new FakeFactory();
   const store = await IndexedDbProjectStore.open(
     factory as unknown as IDBFactory,
