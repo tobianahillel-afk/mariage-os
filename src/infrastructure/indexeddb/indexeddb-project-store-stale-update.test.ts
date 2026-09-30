@@ -15,6 +15,14 @@ import {
   scope,
 } from "../../../tests/support/indexeddb-project-store-test-support";
 
+function openStore(factory: FakeFactory) {
+  return IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "1",
+  );
+}
+
 function sendingMutation(
   mutation: PendingMutationEnvelope,
 ): PendingMutationEnvelope {
@@ -26,64 +34,15 @@ function sendingMutation(
   };
 }
 
-it("rejects a stale status update after settlement", async () => {
-  const factory = new FakeFactory();
-  const store = await IndexedDbProjectStore.open(
-    factory as unknown as IDBFactory,
-    scope,
-    "1",
-  );
-  const mutation = createMutation();
-  await store.addPendingMutation(mutation);
-  await store.removePendingMutation(operationId);
-
-  await expect(
-    store.putPendingMutation(sendingMutation(mutation)),
-  ).rejects.toThrow("update target is missing");
-  expect(await store.getPendingMutation(operationId)).toBeNull();
-});
-
-it("does not overwrite a changed pending mutation intent", async () => {
-  const factory = new FakeFactory();
-  const store = await IndexedDbProjectStore.open(
-    factory as unknown as IDBFactory,
-    scope,
-    "1",
-  );
-  const mutation = createMutation();
-  await store.addPendingMutation(mutation);
-  const replacement = {
-    ...mutation,
-    payload: { density: "comfortable" },
+function conflictMutation(
+  mutation: PendingMutationEnvelope,
+): PendingMutationEnvelope {
+  return {
+    ...sendingMutation(mutation),
+    status: "conflict",
+    lastErrorCode: "conflict",
   };
-  rawStore(factory, "pending_mutations").set(operationId, replacement);
-
-  await expect(
-    store.putPendingMutation(sendingMutation(mutation)),
-  ).rejects.toThrow("update intent does not match");
-  expect(rawStore(factory, "pending_mutations").get(operationId)).toEqual(
-    replacement,
-  );
-});
-
-it("fails closed when stale-update lookup storage fails", async () => {
-  const factory = new FakeFactory();
-  const store = await IndexedDbProjectStore.open(
-    factory as unknown as IDBFactory,
-    scope,
-    "1",
-  );
-  const mutation = createMutation();
-  await store.addPendingMutation(mutation);
-  factory.state.failure = "request";
-
-  await expect(
-    store.putPendingMutation(sendingMutation(mutation)),
-  ).rejects.toThrow("pending mutation transaction");
-  expect(rawStore(factory, "pending_mutations").get(operationId)).toEqual(
-    mutation,
-  );
-});
+}
 
 function cachedPreference(marker: "pending" | "conflict") {
   return createCachedRecordEnvelope(scope, {
@@ -96,68 +55,92 @@ function cachedPreference(marker: "pending" | "conflict") {
   });
 }
 
-it("atomically updates pending status and cache marker", async () => {
+it("rejects stale status after settlement", async () => {
   const factory = new FakeFactory();
-  const store = await IndexedDbProjectStore.open(
-    factory as unknown as IDBFactory,
-    scope,
-    "1",
+  const store = await openStore(factory);
+  const mutation = createMutation();
+  await store.addPendingMutation(mutation);
+  await store.removePendingMutation(operationId);
+
+  const write = store.putPendingMutation(sendingMutation(mutation));
+
+  await expect(write).rejects.toThrow("update target is missing");
+  expect(await store.getPendingMutation(operationId)).toBeNull();
+});
+
+it("rejects changed pending intent", async () => {
+  const factory = new FakeFactory();
+  const store = await openStore(factory);
+  const mutation = createMutation();
+  await store.addPendingMutation(mutation);
+  const replacement = {
+    ...mutation,
+    payload: { density: "comfortable" },
+  };
+  rawStore(factory, "pending_mutations").set(operationId, replacement);
+
+  const write = store.putPendingMutation(sendingMutation(mutation));
+
+  await expect(write).rejects.toThrow("update intent does not match");
+  expect(rawStore(factory, "pending_mutations").get(operationId)).toEqual(
+    replacement,
   );
+});
+
+it("fails closed when stale lookup fails", async () => {
+  const factory = new FakeFactory();
+  const store = await openStore(factory);
+  const mutation = createMutation();
+  await store.addPendingMutation(mutation);
+  factory.state.failure = "request";
+
+  const write = store.putPendingMutation(sendingMutation(mutation));
+
+  await expect(write).rejects.toThrow("pending mutation transaction");
+  expect(rawStore(factory, "pending_mutations").get(operationId)).toEqual(
+    mutation,
+  );
+});
+
+it("updates pending status and cache atomically", async () => {
+  const factory = new FakeFactory();
+  const store = await openStore(factory);
   const mutation = createMutation();
   await store.addPendingMutationWithCachedRecord(
     mutation,
     cachedPreference("pending"),
   );
-  const failed = {
-    ...sendingMutation(mutation),
-    status: "conflict" as const,
-    lastErrorCode: "conflict",
-  };
+  const failed = conflictMutation(mutation);
 
   await store.putPendingMutation(failed, cachedPreference("conflict"));
 
   expect(await store.getPendingMutation(operationId)).toEqual(failed);
-  expect(
-    await store.getCachedRecord("project_preferences", entityId),
-  ).toMatchObject({ syncMarker: "conflict" });
+  const cached = await store.getCachedRecord("project_preferences", entityId);
+  expect(cached).toMatchObject({ syncMarker: "conflict" });
 });
 
-it("rolls back pending and cache on atomic update failure", async () => {
+it("rolls back pending and cache atomically", async () => {
   const factory = new FakeFactory();
-  const store = await IndexedDbProjectStore.open(
-    factory as unknown as IDBFactory,
-    scope,
-    "1",
-  );
+  const store = await openStore(factory);
   const mutation = createMutation();
   const originalCache = cachedPreference("pending");
   await store.addPendingMutationWithCachedRecord(mutation, originalCache);
   factory.state.failure = "transaction_abort";
 
-  await expect(
-    store.putPendingMutation(
-      {
-        ...sendingMutation(mutation),
-        status: "conflict",
-        lastErrorCode: "conflict",
-      },
-      cachedPreference("conflict"),
-    ),
-  ).rejects.toThrow("pending/cache update transaction");
+  const write = store.putPendingMutation(
+    conflictMutation(mutation),
+    cachedPreference("conflict"),
+  );
 
+  await expect(write).rejects.toThrow("pending/cache update transaction");
   expect(await store.getPendingMutation(operationId)).toEqual(mutation);
-  expect(
-    await store.getCachedRecord("project_preferences", entityId),
-  ).toEqual(originalCache);
+  const cached = await store.getCachedRecord("project_preferences", entityId);
+  expect(cached).toEqual(originalCache);
 });
 
-it("rejects changed intent before atomic cache update", async () => {
+it("validates intent before atomic cache update", async () => {
   const factory = new FakeFactory();
-  const store = await IndexedDbProjectStore.open(
-    factory as unknown as IDBFactory,
-    scope,
-    "1",
-  );
+  const store = await openStore(factory);
   const mutation = createMutation();
   const originalCache = cachedPreference("pending");
   await store.addPendingMutationWithCachedRecord(mutation, originalCache);
@@ -166,14 +149,12 @@ it("rejects changed intent before atomic cache update", async () => {
     payload: { density: "comfortable" },
   });
 
-  await expect(
-    store.putPendingMutation(
-      sendingMutation(mutation),
-      cachedPreference("conflict"),
-    ),
-  ).rejects.toThrow("update intent does not match");
+  const write = store.putPendingMutation(
+    sendingMutation(mutation),
+    cachedPreference("conflict"),
+  );
 
-  expect(
-    await store.getCachedRecord("project_preferences", entityId),
-  ).toEqual(originalCache);
+  await expect(write).rejects.toThrow("update intent does not match");
+  const cached = await store.getCachedRecord("project_preferences", entityId);
+  expect(cached).toEqual(originalCache);
 });
