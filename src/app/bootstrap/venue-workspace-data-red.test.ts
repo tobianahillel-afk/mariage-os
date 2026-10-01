@@ -4,6 +4,7 @@ import runtimeSource from "./browser-shell-runtime.ts?raw";
 import collectionSource from "../../ui/venues/render-venue-collection.ts?raw";
 import compareSource from "../../ui/venues/render-venue-compare.ts?raw";
 import detailSource from "../../ui/venues/render-venue-detail.ts?raw";
+import presentationSource from "../../ui/venues/venue-workspace-presentation.ts?raw";
 
 describe("WP-2.11 data-driven Venue workspace RED", () => {
   it("composes the accepted Venue read service in the browser runtime", () => {
@@ -19,7 +20,7 @@ describe("WP-2.11 data-driven Venue workspace RED", () => {
   });
 
   it("renders real Gallery and controlled Table surfaces", () => {
-    expect(collectionSource).toContain("data-venue-card");
+    expect(presentationSource).toContain("data-venue-card");
     expect(collectionSource).toContain("data-venue-table");
     expect(collectionSource).not.toContain(
       "Les salles autorisées de ce projet apparaîtront ici",
