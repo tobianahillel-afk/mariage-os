@@ -175,41 +175,36 @@ it.each([
 );
 
 
-it(
-  "fails closed when the same operation id carries changed local intent before acknowledgement",
-  async () => {
-    const factory = new FakeFactory();
-    const store = await IndexedDbProjectStore.open(
-      factory as unknown as IDBFactory,
-      scope,
-      "1",
-    );
-    const original = venueMutation(
-      operationId,
-      "Original local intent",
-      "2026-09-30T12:00:00.000Z",
-    );
-    const working = venueRecord("Original local intent", "pending", "1");
-    const acknowledgement = venueRecord(
-      "Original cloud acknowledgement",
-      "synced",
-      "2",
-    );
-    await store.addPendingMutationWithCachedRecord(original, working);
+it("rejects changed settlement intent", async () => {
+  const factory = new FakeFactory();
+  const store = await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "1",
+  );
+  const original = venueMutation(
+    operationId,
+    "Original local intent",
+    "2026-09-30T12:00:00.000Z",
+  );
+  const working = venueRecord("Original local intent", "pending", "1");
+  const acknowledgement = venueRecord(
+    "Original cloud acknowledgement",
+    "synced",
+    "2",
+  );
+  await store.addPendingMutationWithCachedRecord(original, working);
+  const changedIntent = {
+    ...original,
+    payload: { name: "Changed local intent" },
+  };
+  rawStore(factory, "pending_mutations").set(operationId, changedIntent);
 
-    const changedIntent = {
-      ...original,
-      payload: { name: "Changed local intent" },
-    };
-    rawStore(factory, "pending_mutations").set(operationId, changedIntent);
-
-    await expect(
-      store.settlePendingMutationWithCachedRecord(operationId, acknowledgement),
-    ).rejects.toThrow("settlement intent does not match");
-
-    expect(rawStore(factory, "pending_mutations").get(operationId)).toEqual(
-      changedIntent,
-    );
-    expect(await store.getCachedRecord("venue", entityId)).toEqual(working);
-  },
-);
+  await expect(
+    store.settlePendingMutationWithCachedRecord(operationId, acknowledgement),
+  ).rejects.toThrow("settlement intent does not match");
+  expect(rawStore(factory, "pending_mutations").get(operationId)).toEqual(
+    changedIntent,
+  );
+  expect(await store.getCachedRecord("venue", entityId)).toEqual(working);
+});
