@@ -219,7 +219,9 @@ it("ignores foreign local scope and foreign cloud rows", async () => {
 it("fails soft when the authorized local cache cannot be read", async () => {
   const local = {
     scope: { projectId, userId, deviceId },
-    listCachedRecords: vi.fn().mockRejectedValue(new Error("cache unavailable")),
+    listCachedRecords: vi
+      .fn()
+      .mockRejectedValue(new Error("cache unavailable")),
   } as unknown as LocalProjectStore;
 
   const [item] = await service(
