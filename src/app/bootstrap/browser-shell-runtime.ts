@@ -6,9 +6,18 @@ import type { SessionReader } from "@application/routing/protected-route-guard";
 import { VenueWorkspaceReadService } from "@application/venues/venue-workspace-read-service";
 import { SupabaseAuthAdapter } from "@infra/supabase/supabase-auth-adapter";
 import { SupabaseProjectAccessAdapter } from "@infra/supabase/supabase-project-access-adapter";
-import { SupabaseVenueCompatibilityQueryAdapter } from "@infra/supabase/supabase-venue-compatibility-query-adapter";
-import { SupabaseVenueMemberOpinionAdapter } from "@infra/supabase/supabase-venue-member-opinion-adapter";
-import { SupabaseVenueRepositoryAdapter } from "@infra/supabase/supabase-venue-repository-adapter";
+import {
+  SupabaseVenueCompatibilityQueryAdapter,
+  type SupabaseVenueCompatibilityClientLike,
+} from "@infra/supabase/supabase-venue-compatibility-query-adapter";
+import {
+  SupabaseVenueMemberOpinionAdapter,
+  type SupabaseVenueMemberOpinionClientLike,
+} from "@infra/supabase/supabase-venue-member-opinion-adapter";
+import {
+  SupabaseVenueRepositoryAdapter,
+  type SupabaseVenueRepositoryClientLike,
+} from "@infra/supabase/supabase-venue-repository-adapter";
 
 const PUBLISHABLE_KEY_PREFIX = "sb_publishable_";
 
@@ -102,11 +111,16 @@ function failClosedRuntime(): BrowserShellRuntime {
   };
 }
 
+type VenueWorkspaceClient = SupabaseVenueRepositoryClientLike &
+  SupabaseVenueCompatibilityClientLike &
+  SupabaseVenueMemberOpinionClientLike;
+
 function venueWorkspaceRead(client: SupabaseClient): VenueWorkspaceReadService {
+  const venueClient = client as unknown as VenueWorkspaceClient;
   return new VenueWorkspaceReadService({
-    repository: new SupabaseVenueRepositoryAdapter(client),
-    compatibility: new SupabaseVenueCompatibilityQueryAdapter(client),
-    opinions: new SupabaseVenueMemberOpinionAdapter(client),
+    repository: new SupabaseVenueRepositoryAdapter(venueClient),
+    compatibility: new SupabaseVenueCompatibilityQueryAdapter(venueClient),
+    opinions: new SupabaseVenueMemberOpinionAdapter(venueClient),
     now: () => new Date().toISOString(),
   });
 }
