@@ -13,6 +13,7 @@ import {
   operationId,
   rawStore,
   scope,
+  type Row,
 } from "../../../tests/support/indexeddb-project-store-test-support";
 
 const otherEntityId = "47777777-7777-4777-8777-777777777777";
@@ -173,7 +174,7 @@ describe("IndexedDbProjectStore cloud refresh current-cache validation", () => {
     const { factory, store } = await openedStore();
     const rawCache = rawStore(factory, "cached_records");
     const persisted = venueRecord("Other target", "synced", otherEntityId);
-    rawCache.set(`venue:${entityId}`, persisted);
+    rawCache.set(`venue:${entityId}`, persisted as unknown as Row);
 
     await expect(
       store.putCachedRecordIfRefreshSafe(venueRecord("Cloud", "synced")),
