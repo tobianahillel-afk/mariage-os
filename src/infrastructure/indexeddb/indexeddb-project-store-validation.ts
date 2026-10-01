@@ -167,11 +167,7 @@ function currentRefreshCacheIsSafe(
   if (currentValue === undefined) return true;
   const current = parseCachedRecordEnvelope(currentValue);
   assertCachedRecordScope(current, scope);
-  if (
-    current.key !== record.key ||
-    current.recordType !== record.recordType ||
-    current.entityId !== record.entityId
-  ) {
+  if (current.key !== record.key) {
     throw new Error("Cached refresh target does not match.");
   }
   return current.syncMarker !== "pending" && current.syncMarker !== "conflict";

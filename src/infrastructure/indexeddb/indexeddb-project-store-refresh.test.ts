@@ -169,6 +169,18 @@ describe("IndexedDbProjectStore cloud refresh current-cache validation", () => {
     );
   });
 
+  it("rejects a valid cached envelope stored under another target key", async () => {
+    const { factory, store } = await openedStore();
+    const rawCache = rawStore(factory, "cached_records");
+    const persisted = venueRecord("Other target", "synced", otherEntityId);
+    rawCache.set(`venue:${entityId}`, persisted);
+
+    await expect(
+      store.putCachedRecordIfRefreshSafe(venueRecord("Cloud", "synced")),
+    ).rejects.toThrow("Cached refresh target does not match.");
+    expect(rawCache.get(`venue:${entityId}`)).toEqual(persisted);
+  });
+
   it.each([
     ["key", { key: `other:${entityId}` }],
     ["record type", { recordType: "other" }],
