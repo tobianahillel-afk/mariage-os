@@ -118,7 +118,7 @@ export class VenueWorkspaceReadService {
     local: LocalProjectStore | null,
   ): Promise<readonly VenueWorkspaceItem[]> {
     const localState = await readLocalVenues(projectId, local);
-    let cloud: readonly VenueCoreRecord[] | null = null;
+    let cloud: readonly VenueCoreRecord[] | null;
     try {
       cloud = (await this.dependencies.repository.listVenues(projectId)).filter(
         (venue) => venue.projectId === projectId,
