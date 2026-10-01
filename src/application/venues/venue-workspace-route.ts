@@ -17,7 +17,7 @@ export function parseVenueWorkspaceRoute(
   if (
     segments.length === 2 &&
     segments[0] === "venues" &&
-    UUID_PATTERN.test(segments[1] ?? "")
+    UUID_PATTERN.test(segments[1] as string)
   ) {
     return { kind: "detail", venueId: segments[1] as string };
   }
