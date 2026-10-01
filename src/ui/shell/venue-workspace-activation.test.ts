@@ -62,7 +62,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-it("activates Gallery, detail and Compare inside the protected shell", () => {
+it("activates Gallery, detail, Compare and non-disclosing unavailable states", () => {
   installDocument();
   const root = new FakeElement();
 
@@ -77,4 +77,7 @@ it("activates Gallery, detail and Compare inside the protected shell", () => {
 
   renderShell(root as unknown as HTMLElement, state("/venues/compare"));
   expect(countAttribute(root, "data-venue-workspace", "compare")).toBe(1);
+
+  renderShell(root as unknown as HTMLElement, state("/venues/not-a-venue"));
+  expect(countAttribute(root, "data-venue-workspace", "unavailable")).toBe(1);
 });
