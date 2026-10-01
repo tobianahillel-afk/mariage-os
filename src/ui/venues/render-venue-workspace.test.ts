@@ -43,11 +43,9 @@ function hasAttribute(
 const projectId = "81111111-1111-4111-8111-111111111111";
 const venueId = "91111111-1111-4111-8111-111111111111";
 
-function workspace(projectPath: string): FakeElement {
-  return createVenueWorkspace(
-    projectId,
-    projectPath,
-  ) as unknown as FakeElement;
+function workspace(pathname: string): FakeElement {
+  const value = createVenueWorkspace(projectId, pathname);
+  return value as unknown as FakeElement;
 }
 
 afterEach(() => {
@@ -59,9 +57,8 @@ it("creates the Gallery default without synthetic Venue data", () => {
   const root = workspace("/venues");
   expect(hasAttribute(root, "data-venue-workspace", "gallery")).toBe(true);
   expect(hasAttribute(root, "data-venue-mode", "gallery")).toBe(true);
-  expect(descendants(root).some((item) => item.textContent === "Galerie")).toBe(
-    true,
-  );
+  const labels = descendants(root).map((item) => item.textContent);
+  expect(labels).toContain("Galerie");
 });
 
 it("keeps detail and downstream visit links project scoped", () => {
@@ -69,24 +66,19 @@ it("keeps detail and downstream visit links project scoped", () => {
   const root = workspace(`/venues/${venueId}`);
   expect(hasAttribute(root, "data-venue-workspace", "detail")).toBe(true);
   expect(hasAttribute(root, "data-venue-id", venueId)).toBe(true);
-  expect(
-    hasAttribute(
-      root,
-      "href",
-      `/app/p/${projectId}/venues/${venueId}/visit`,
-    ),
-  ).toBe(true);
+  const visitHref = `/app/p/${projectId}/venues/${venueId}/visit`;
+  expect(hasAttribute(root, "href", visitHref)).toBe(true);
 });
 
 it("creates Compare without declaring a winner", () => {
   installDocument();
   const root = workspace("/venues/compare");
   expect(hasAttribute(root, "data-venue-workspace", "compare")).toBe(true);
-  expect(
-    descendants(root).some((item) =>
-      item.textContent?.toLowerCase().includes("gagnant"),
-    ),
-  ).toBe(false);
+  const labels = descendants(root)
+    .map((item) => item.textContent ?? "")
+    .join(" ")
+    .toLowerCase();
+  expect(labels).not.toContain("gagnant");
 });
 
 it("fails closed for malformed Venue detail paths", () => {
