@@ -49,7 +49,7 @@ it("rejects changed settlement intent", async () => {
   expect(rawStore(factory, "pending_mutations").get(operationId)).toEqual(
     changedIntent,
   );
-  expect(
-    await store.getCachedRecord("project_preferences", entityId),
-  ).toEqual(working);
+  expect(await store.getCachedRecord("project_preferences", entityId)).toEqual(
+    working,
+  );
 });
