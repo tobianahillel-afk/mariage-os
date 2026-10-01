@@ -20,10 +20,7 @@ import type {
 import { compareVenueCodes } from "@domain/venues/venue-code";
 
 export type VenueWorkspaceSyncState =
-  | "synced"
-  | "pending"
-  | "conflict"
-  | "unknown";
+  "synced" | "pending" | "conflict" | "unknown";
 
 export interface VenueWorkspaceCompatibilitySummary {
   readonly blockingStatus: VenueCompatibilityReadModel["aggregate"]["blockingStatus"];
