@@ -1,6 +1,6 @@
 # WP-2.10 — Pass C acceptance reconciliation
 
-Status: **PASS C COMPLETE — gap ∅; acceptance-record exact-head CI pending**.
+Status: **ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record CI 5/5 green**.
 
 This is the separate `EXPECTED ↔ IMPLEMENTED ↔ VERIFIED` reconciliation for
 the bounded Lot-2 Venue local-cache and pending-mutation foundation. Entry state
@@ -94,7 +94,9 @@ required bounded WP-2.10 responsibilities
 
 **PASS — EXPECTED ↔ IMPLEMENTED ↔ VERIFIED gap ∅.**
 
-The packet is eligible for `ACCEPTED / COMPLETE` only after the exact HEAD
-containing this acceptance record passes all five ordinary CI jobs including
-`Full verify from clean checkout`. Until that gate is green, WP-2.11 remains
-blocked.
+The exact HEAD containing this acceptance record,
+`a2d48341515a516651d11454c3c5e89c01896c21`, passed CI `36849005712` with
+all five ordinary jobs green, including `Full verify from clean checkout`.
+WP-2.10 is therefore **ACCEPTED / COMPLETE**. WP-2.11 may undergo a separate
+activation revalidation, but its implementation remains forbidden until that
+packet reaches READY on its own exact-head CI gate.

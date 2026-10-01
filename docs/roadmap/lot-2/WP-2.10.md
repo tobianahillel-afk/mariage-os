@@ -5,7 +5,7 @@
 - Work Packet ID: WP-2.10
 - Lot: 2 — Venues core
 - Name: Venue local cache and pending offline mutations
-- State: `ACCEPTANCE_PENDING`
+- State: `ACCEPTED`
 - Current pass: `C-ACCEPTANCE — PASS / gap ∅ / acceptance-record CI pending`
 - Primary bounded context: Venues + local-data/sync foundation
 - Branch: `lot-2/venues-core`
@@ -155,15 +155,16 @@ No production/private wedding data or external-provider mutation was used.
 
 ## Handoff
 
-- Current state: ACCEPTANCE_PENDING
-- Current/next pass: C-ACCEPTANCE — reconciliation complete, exact-head acceptance-record CI pending
+- Current state: ACCEPTED / COMPLETE
+- Current/next pass: terminal for WP-2.10; WP-2.11 activation revalidation is next
 - Pass-A green implementation: `eca752c145f9c59c1d0ca17d938569d8977fba92` / CI `36713679555` attempt 2, five ordinary jobs SUCCESS including clean checkout
 - AR-001/002 remediation green head: `f3b0fc8528510f151bced32c1ba4760437c25d32` / CI `36838716613`, five ordinary jobs SUCCESS including clean checkout
 - FIR: #42 — FTR-028 remains IN_PROGRESS because WP-2.12 owns downstream mobile-visit/offline-package completion
 - Review findings: `WP210-AR-001`, `WP210-AR-002`, `WP210-AR-003` — CLOSED / VERIFIED by the complete fresh Pass B on `b0658cd9a6e9a0ebeb957a1a3157193ab4e611ec` / CI `36846712515`
 - Historical failed Pass-B record: `docs/roadmap/lot-2/WP-2.10-PASS-B-REVIEW-2026-09-30.md`
 - Clean fresh Pass-B record: `docs/roadmap/lot-2/WP-2.10-FRESH-PASS-B-2026-10-01.md`
-- Next permitted action: verify the separate `WP-2.10-ACCEPTANCE.md` record with exact-head five-job CI including clean checkout. Only then may WP-2.10 be sealed `ACCEPTED / COMPLETE` and WP-2.11 undergo separate activation revalidation.
+- Acceptance record: `a2d48341515a516651d11454c3c5e89c01896c21` / CI `36849005712` — five ordinary jobs SUCCESS including full verify from clean checkout.
+- Next permitted action: WP-2.11 activation revalidation only. Its own `PLANNED -> READY` governance head must pass exact-head five-job CI including clean checkout before Pass A.
 
 ## Pass B result — 2026-09-30
 
@@ -259,7 +260,8 @@ separate Pass-C acceptance record is exact-head green.
 Separate acceptance reconciliation is recorded in
 `docs/roadmap/lot-2/WP-2.10-ACCEPTANCE.md`.
 
-Verdict: **PASS; EXPECTED ↔ IMPLEMENTED ↔ VERIFIED gap ∅**. The packet remains
-`ACCEPTANCE_PENDING` until the acceptance-record HEAD itself passes all five
-ordinary CI jobs including full verification from a clean checkout. FTR-028
-remains `IN_PROGRESS` for WP-2.12 downstream mobile/offline completion.
+Verdict: **PASS; EXPECTED ↔ IMPLEMENTED ↔ VERIFIED gap ∅**. Acceptance-record
+`a2d48341515a516651d11454c3c5e89c01896c21` / CI `36849005712` passed all
+five ordinary jobs including full verification from a clean checkout. WP-2.10
+is therefore **ACCEPTED / COMPLETE**. FTR-028 remains `IN_PROGRESS` for
+WP-2.12 downstream mobile/offline completion.
