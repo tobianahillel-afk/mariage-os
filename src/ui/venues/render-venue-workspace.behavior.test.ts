@@ -96,7 +96,9 @@ function byAttribute(
 }
 
 function byClass(root: FakeNode, className: string): FakeElement[] {
-  return elements(root).filter((candidate) => candidate.className === className);
+  return elements(root).filter(
+    (candidate) => candidate.className === className,
+  );
 }
 
 function requiredInput(
@@ -180,17 +182,21 @@ it("renders safe project-scoped Gallery cards and switches to the bounded Table"
   expect(texts(root)).toContain("Modification en attente");
   expect(texts(root)).toContain("Avis partenaires · 4.0");
   expect(
-    byAttribute(
-      root,
-      "href",
-      `/app/p/${projectId}/venues/${first.venue.id}`,
-    ),
-  ).toHaveLength(2);
+    byAttribute(root, "href", `/app/p/${projectId}/venues/${first.venue.id}`),
+  ).toHaveLength(3);
 
   const gallery = byClass(root, "venue-gallery")[0] as FakeElement;
   const tablePanel = byClass(root, "venue-table-panel")[0] as FakeElement;
-  const tableButton = byAttribute(root, "data-venue-mode", "table")[0] as FakeElement;
-  const galleryButton = byAttribute(root, "data-venue-mode", "gallery")[0] as FakeElement;
+  const tableButton = byAttribute(
+    root,
+    "data-venue-mode",
+    "table",
+  )[0] as FakeElement;
+  const galleryButton = byAttribute(
+    root,
+    "data-venue-mode",
+    "gallery",
+  )[0] as FakeElement;
   expect(tablePanel.hidden).toBe(true);
 
   tableButton.dispatch("click");
@@ -228,12 +234,18 @@ it("renders empty Gallery and decision-first Detail without disclosing missing e
     syncState: "conflict",
     venue: { ...item(2).venue, city: null },
   });
-  const detail = createVenueWorkspace(projectId, `/venues/${unknown.venue.id}`, {
-    kind: "detail",
-    item: unknown,
-  }) as unknown as FakeElement;
+  const detail = createVenueWorkspace(
+    projectId,
+    `/venues/${unknown.venue.id}`,
+    {
+      kind: "detail",
+      item: unknown,
+    },
+  ) as unknown as FakeElement;
   const allTexts = texts(detail);
-  const blockingIndex = allTexts.findIndex((value) => value.startsWith("Blocage"));
+  const blockingIndex = allTexts.findIndex((value) =>
+    value.startsWith("Blocage"),
+  );
   const scoreIndex = allTexts.findIndex((value) => value.startsWith("Score"));
   expect(blockingIndex).toBeGreaterThanOrEqual(0);
   expect(scoreIndex).toBeGreaterThan(blockingIndex);
