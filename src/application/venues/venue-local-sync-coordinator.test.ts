@@ -150,9 +150,10 @@ class MemoryLocalStore implements LocalProjectStore {
   }
 
   async settlePendingMutationWithCachedRecord(
-    operationIdToSettle: string,
+    mutation: PendingMutationEnvelope,
     record: CachedRecordEnvelope,
   ): Promise<void> {
+    const operationIdToSettle = mutation.operationId;
     if (this.failNextSettlement) {
       this.failNextSettlement = false;
       throw new Error("synthetic settlement failure");

@@ -66,10 +66,7 @@ it("preserves a later unresolved Venue intent when an older mutation settles", a
 
   await store.addPendingMutationWithCachedRecord(first, firstWorking);
   await store.addPendingMutationWithCachedRecord(second, laterWorking);
-  await store.settlePendingMutationWithCachedRecord(
-    operationId,
-    firstAcknowledged,
-  );
+  await store.settlePendingMutationWithCachedRecord(first, firstAcknowledged);
 
   expect(await store.getPendingMutation(operationId)).toBeNull();
   expect(await store.getPendingMutation(missingOperationId)).toEqual(second);
@@ -119,10 +116,7 @@ it("writes acknowledgement when remaining mutations target other records", async
     },
   );
 
-  await store.settlePendingMutationWithCachedRecord(
-    operationId,
-    acknowledgement,
-  );
+  await store.settlePendingMutationWithCachedRecord(first, acknowledgement);
 
   expect(await store.getPendingMutation(operationId)).toBeNull();
   expect(await store.getPendingMutation(missingOperationId)).not.toBeNull();
@@ -164,7 +158,7 @@ it.each([
     });
 
     await expect(
-      store.settlePendingMutationWithCachedRecord(operationId, acknowledgement),
+      store.settlePendingMutationWithCachedRecord(first, acknowledgement),
     ).rejects.toThrow();
 
     expect(await store.getPendingMutation(operationId)).toEqual(first);

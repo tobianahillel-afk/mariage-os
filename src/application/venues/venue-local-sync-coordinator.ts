@@ -345,12 +345,12 @@ export class VenueLocalSyncCoordinator {
   }
 
   private async settleAcknowledgedMutation(
-    operationId: string,
+    mutation: PendingMutationEnvelope,
     acknowledged: VenueCoreRecord,
   ): Promise<VenueLocalSyncResult> {
     try {
       await this.local.settlePendingMutationWithCachedRecord(
-        operationId,
+        mutation,
         venueCachedRecord(this.local.scope, acknowledged, "synced"),
       );
     } catch {
@@ -378,6 +378,6 @@ export class VenueLocalSyncCoordinator {
       return this.persistSendFailure(sending, working, error);
     }
 
-    return this.settleAcknowledgedMutation(mutation.operationId, acknowledged);
+    return this.settleAcknowledgedMutation(sending, acknowledged);
   }
 }

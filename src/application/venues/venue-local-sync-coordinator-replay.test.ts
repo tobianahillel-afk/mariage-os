@@ -126,12 +126,12 @@ class MemoryLocalStore implements LocalProjectStore {
   }
 
   async settlePendingMutationWithCachedRecord(
-    id: string,
+    mutation: PendingMutationEnvelope,
     record: CachedRecordEnvelope,
   ): Promise<void> {
-    if (!this.pending.has(id)) throw new Error("missing");
+    if (!this.pending.has(mutation.operationId)) throw new Error("missing");
     this.cached.set(record.key, record);
-    this.pending.delete(id);
+    this.pending.delete(mutation.operationId);
   }
 
   async removePendingMutation(id: string): Promise<void> {

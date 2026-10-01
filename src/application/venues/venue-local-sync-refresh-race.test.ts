@@ -96,7 +96,10 @@ class RefreshRaceStore implements LocalProjectStore {
   async putPendingMutation(): Promise<void> {
     throw new Error("not used");
   }
-  async settlePendingMutationWithCachedRecord(): Promise<void> {
+  async settlePendingMutationWithCachedRecord(
+    _mutation: PendingMutationEnvelope,
+    _record: CachedRecordEnvelope,
+  ): Promise<void> {
     throw new Error("not used");
   }
   async removePendingMutation(): Promise<void> {

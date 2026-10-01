@@ -96,10 +96,11 @@ class RaceLocalStore implements LocalProjectStore {
     if (record !== undefined) this.cached.set(record.key, record);
   }
   async settlePendingMutationWithCachedRecord(
-    id: string,
+    mutation: PendingMutationEnvelope,
     record: CachedRecordEnvelope,
   ): Promise<void> {
     this.settlementRecord = record;
+    const id = mutation.operationId;
     const current = this.pending.get(id);
     if (current === undefined) throw new Error("missing mutation");
     this.replacement = {

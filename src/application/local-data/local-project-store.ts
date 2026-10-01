@@ -45,7 +45,7 @@ export interface LocalProjectStore {
     record?: CachedRecordEnvelope,
   ): Promise<void>;
   settlePendingMutationWithCachedRecord(
-    operationId: string,
+    mutation: PendingMutationEnvelope,
     record: CachedRecordEnvelope,
   ): Promise<void>;
   removePendingMutation(operationId: string): Promise<void>;

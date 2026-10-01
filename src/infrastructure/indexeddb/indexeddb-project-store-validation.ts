@@ -77,7 +77,7 @@ function sameMutationCommand(
   );
 }
 
-function sameMutationIntent(
+export function sameMutationIntent(
   current: PendingMutationEnvelope,
   next: PendingMutationEnvelope,
 ): boolean {
@@ -105,19 +105,19 @@ export function validatePendingMutationUpdate(
 
 export function validateSettlementMutation(
   value: unknown,
-  operationId: string,
+  expected: PendingMutationEnvelope,
   record: CachedRecordEnvelope,
   scope: LocalProjectScope,
 ): void {
   if (value === undefined) {
     throw new Error("Pending mutation settlement target is missing.");
   }
-  const mutation = parsePendingMutationEnvelope(value);
-  assertMutationScope(mutation, scope);
-  if (mutation.operationId !== operationId) {
-    throw new Error("Pending mutation settlement target does not match.");
+  const current = parsePendingMutationEnvelope(value);
+  assertMutationScope(current, scope);
+  if (!sameMutationIntent(current, expected)) {
+    throw new Error("Pending mutation settlement intent does not match.");
   }
-  assertMutationTarget(mutation, record);
+  assertMutationTarget(current, record);
 }
 
 export function shouldWriteMutationCache(

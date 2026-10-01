@@ -266,27 +266,24 @@ export class IndexedDbProjectStore implements LocalProjectStore {
   }
 
   async settlePendingMutationWithCachedRecord(
-    operationId: string,
+    mutation: PendingMutationEnvelope,
     record: CachedRecordEnvelope,
   ): Promise<void> {
+    const expected = parsePendingMutationEnvelope(mutation);
     const parsedRecord = parseCachedRecordEnvelope(record);
+    assertMutationScope(expected, this.scope);
     assertCachedRecordScope(parsedRecord, this.scope);
     await runAtomicSettlementWithCache(
       this.database,
-      operationId,
+      expected.operationId,
       parsedRecord,
       {
         validateMutation: (value) =>
-          validateSettlementMutation(
-            value,
-            operationId,
-            parsedRecord,
-            this.scope,
-          ),
+          validateSettlementMutation(value, expected, parsedRecord, this.scope),
         shouldWriteCache: (values) =>
           shouldWriteMutationCache(
             values,
-            operationId,
+            expected.operationId,
             parsedRecord,
             this.scope,
           ),
