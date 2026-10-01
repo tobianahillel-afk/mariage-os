@@ -41,6 +41,18 @@ export interface VenueWorkspaceItem {
   readonly opinions: VenueWorkspaceOpinionSummary;
 }
 
+export interface VenueWorkspaceReadPort {
+  list(
+    projectId: string,
+    local: LocalProjectStore | null,
+  ): Promise<readonly VenueWorkspaceItem[]>;
+  detail(
+    projectId: string,
+    venueId: string,
+    local: LocalProjectStore | null,
+  ): Promise<VenueWorkspaceItem | null>;
+}
+
 interface VenueWorkspaceReadDependencies {
   readonly repository: VenueRepositoryPort;
   readonly compatibility: VenueCompatibilityQueryPort;
@@ -109,7 +121,7 @@ function mergeVenues(
     .sort(naturalVenueOrder);
 }
 
-export class VenueWorkspaceReadService {
+export class VenueWorkspaceReadService implements VenueWorkspaceReadPort {
   constructor(private readonly dependencies: VenueWorkspaceReadDependencies) {}
 
   async list(

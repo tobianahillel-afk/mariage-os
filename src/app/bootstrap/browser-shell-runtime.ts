@@ -3,6 +3,22 @@ import type { AuthPort } from "@application/auth/auth-port";
 import type { SecurityDiagnosticsPort } from "@application/auth/security-diagnostics-port";
 import type { ProjectAccessPort } from "@application/projects/project-access-port";
 import type { SessionReader } from "@application/routing/protected-route-guard";
+import {
+  VenueWorkspaceReadService,
+  type VenueWorkspaceReadPort,
+} from "@application/venues/venue-workspace-read-service";
+import {
+  SupabaseVenueCompatibilityQueryAdapter,
+  type SupabaseVenueCompatibilityClientLike,
+} from "@infra/supabase/supabase-venue-compatibility-query-adapter";
+import {
+  SupabaseVenueMemberOpinionAdapter,
+  type SupabaseVenueMemberOpinionClientLike,
+} from "@infra/supabase/supabase-venue-member-opinion-adapter";
+import {
+  SupabaseVenueRepositoryAdapter,
+  type SupabaseVenueRepositoryClientLike,
+} from "@infra/supabase/supabase-venue-repository-adapter";
 import { SupabaseAuthAdapter } from "@infra/supabase/supabase-auth-adapter";
 import { SupabaseProjectAccessAdapter } from "@infra/supabase/supabase-project-access-adapter";
 
@@ -18,6 +34,7 @@ export interface BrowserShellRuntime {
   readonly sessionReader: SessionReader;
   readonly projectAccess: ProjectAccessPort | null;
   readonly securityDiagnostics: SecurityDiagnosticsPort | null;
+  readonly venueWorkspaceRead: VenueWorkspaceReadPort | null;
 }
 
 interface BrowserSupabaseConfig {
@@ -83,6 +100,21 @@ export function readBrowserSupabaseConfig(
   return url === null ? null : { url, publishableKey };
 }
 
+function venueWorkspaceRead(client: SupabaseClient): VenueWorkspaceReadPort {
+  return new VenueWorkspaceReadService({
+    repository: new SupabaseVenueRepositoryAdapter(
+      client as unknown as SupabaseVenueRepositoryClientLike,
+    ),
+    compatibility: new SupabaseVenueCompatibilityQueryAdapter(
+      client as unknown as SupabaseVenueCompatibilityClientLike,
+    ),
+    opinions: new SupabaseVenueMemberOpinionAdapter(
+      client as unknown as SupabaseVenueMemberOpinionClientLike,
+    ),
+    now: () => new Date().toISOString(),
+  });
+}
+
 function failClosedRuntime(): BrowserShellRuntime {
   return {
     auth: null,
@@ -93,6 +125,7 @@ function failClosedRuntime(): BrowserShellRuntime {
     },
     projectAccess: null,
     securityDiagnostics: null,
+    venueWorkspaceRead: null,
   };
 }
 
@@ -111,6 +144,7 @@ export function createBrowserShellRuntime(
       sessionReader: auth,
       projectAccess: new SupabaseProjectAccessAdapter(client),
       securityDiagnostics: auth,
+      venueWorkspaceRead: venueWorkspaceRead(client),
     };
   } catch {
     return failClosedRuntime();

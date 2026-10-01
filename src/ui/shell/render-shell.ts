@@ -1,4 +1,5 @@
 import type { SyncSummary } from "@application/local-data/sync-summary";
+import type { VenueWorkspaceState } from "@application/venues/venue-workspace-state";
 import { createVenueWorkspace } from "@ui/venues/render-venue-workspace";
 import type { AppRoute } from "@application/routing/app-route";
 import type { ProtectedRouteDecision } from "@application/routing/protected-route-guard";
@@ -16,6 +17,7 @@ type ProjectAllowedDecision = Extract<
 export type ProjectShellState = ProjectAllowedDecision & {
   readonly syncSummary: SyncSummary;
   readonly securitySettings?: SecuritySettingsState;
+  readonly venueWorkspace?: VenueWorkspaceState;
 };
 
 type ShellState =
@@ -298,7 +300,13 @@ function renderProjectShell(root: HTMLElement, state: ProjectShellState): void {
     createTextElement("h1", title, "page-title"),
   );
   if (section === "venues") {
-    content.append(createVenueWorkspace(state.projectId, state.projectPath));
+    content.append(
+      createVenueWorkspace(
+        state.projectId,
+        state.projectPath,
+        state.venueWorkspace ?? { kind: "unavailable" },
+      ),
+    );
   } else {
     content.append(
       createTextElement(

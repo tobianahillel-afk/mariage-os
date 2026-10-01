@@ -8,6 +8,11 @@ import {
   type SyncSummary,
 } from "@application/local-data/sync-summary";
 import type { ProjectAccessPort } from "@application/projects/project-access-port";
+import type { VenueWorkspaceReadPort } from "@application/venues/venue-workspace-read-service";
+import {
+  readVenueWorkspaceState,
+  type VenueWorkspaceState,
+} from "@application/venues/venue-workspace-state";
 import { parseAppRoute } from "@application/routing/app-route";
 import {
   resolveProtectedRoute,
@@ -26,6 +31,7 @@ export interface ApplicationShellDependencies {
   readonly projectAccess: ProjectAccessPort | null;
   readonly sessionContext: ProjectSessionContextPort | null;
   readonly securityDiagnostics: SecurityDiagnosticsPort | null;
+  readonly venueWorkspaceRead?: VenueWorkspaceReadPort | null;
   readonly logoutCoordinator: SafeLogoutCoordinator | null;
   readonly localStoreFactory: LocalProjectStoreFactory | null;
   readonly deviceId: string | null;
@@ -93,6 +99,43 @@ async function readProjectSyncSummary(
     }
   } catch {
     return unavailableDurabilitySummary();
+  }
+}
+
+async function readVenueWorkspace(
+  decision: Extract<ProtectedRouteDecision, { kind: "project_allowed" }>,
+  dependencies: ApplicationShellDependencies,
+): Promise<VenueWorkspaceState | undefined> {
+  if (!decision.projectPath.startsWith("/venues")) return undefined;
+  const read = dependencies.venueWorkspaceRead ?? null;
+  let local = null;
+  if (
+    dependencies.localStoreFactory !== null &&
+    dependencies.deviceId !== null
+  ) {
+    try {
+      const scope = createLocalProjectScope(
+        decision.userId,
+        decision.projectId,
+        dependencies.deviceId,
+      );
+      local = await dependencies.localStoreFactory.open(
+        scope,
+        dependencies.appVersion,
+      );
+    } catch {
+      local = null;
+    }
+  }
+  try {
+    return await readVenueWorkspaceState(
+      read,
+      decision.projectId,
+      decision.projectPath,
+      local,
+    );
+  } finally {
+    local?.close();
   }
 }
 
@@ -177,15 +220,16 @@ async function projectShellState(
   decision: Extract<ProtectedRouteDecision, { kind: "project_allowed" }>,
   dependencies: ApplicationShellDependencies,
 ): Promise<ProjectShellState> {
-  const securitySettings = await securitySettingsState(
-    root,
-    decision,
-    dependencies,
-  );
+  const [securitySettings, syncSummary, venueWorkspace] = await Promise.all([
+    securitySettingsState(root, decision, dependencies),
+    readProjectSyncSummary(decision, dependencies),
+    readVenueWorkspace(decision, dependencies),
+  ]);
   return {
     ...decision,
-    syncSummary: await readProjectSyncSummary(decision, dependencies),
+    syncSummary,
     ...(securitySettings === undefined ? {} : { securitySettings }),
+    ...(venueWorkspace === undefined ? {} : { venueWorkspace }),
   };
 }
 

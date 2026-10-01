@@ -30,6 +30,7 @@ await startApplication(root, {
   projectAccess: runtime.projectAccess,
   sessionContext: localRuntime.sessionContext,
   securityDiagnostics: runtime.securityDiagnostics,
+  venueWorkspaceRead: runtime.venueWorkspaceRead,
   logoutCoordinator,
   localStoreFactory: localRuntime.localStoreFactory,
   deviceId: localRuntime.deviceId,
