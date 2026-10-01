@@ -36,7 +36,7 @@ it("fails closed when acknowledgement settlement has no pending mutation", async
 
   await expect(
     store.settlePendingMutationWithCachedRecord(
-      operationId,
+      createMutation(),
       cachedRecord("synced"),
     ),
   ).rejects.toThrow("settlement target is missing");
@@ -56,10 +56,10 @@ it("rejects a corrupted persisted operation identity", async () => {
 
   await expect(
     store.settlePendingMutationWithCachedRecord(
-      operationId,
+      createMutation(),
       cachedRecord("synced"),
     ),
-  ).rejects.toThrow("target does not match");
+  ).rejects.toThrow("settlement intent does not match");
 });
 
 it("surfaces a failure inside the atomic settlement transaction", async () => {
