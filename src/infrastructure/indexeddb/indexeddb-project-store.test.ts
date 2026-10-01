@@ -306,7 +306,7 @@ it("atomically settles a pending mutation with its acknowledged cache", async ()
   };
   await store.addPendingMutationWithCachedRecord(mutation, pendingRecord);
 
-  await store.settlePendingMutationWithCachedRecord(operationId, syncedRecord);
+  await store.settlePendingMutationWithCachedRecord(mutation, syncedRecord);
 
   expect(await store.getPendingMutation(operationId)).toBeNull();
   expect(await store.getCachedRecord("project_preferences", entityId)).toEqual(
@@ -341,7 +341,7 @@ it.each(["request", "transaction_error", "transaction_abort"] as const)(
     factory.state.failure = failure;
 
     await expect(
-      store.settlePendingMutationWithCachedRecord(operationId, syncedRecord),
+      store.settlePendingMutationWithCachedRecord(mutation, syncedRecord),
     ).rejects.toThrow();
 
     expect(await store.getPendingMutation(operationId)).toEqual(mutation);
@@ -379,8 +379,8 @@ it("revalidates the persisted target during settlement", async () => {
   });
 
   await expect(
-    store.settlePendingMutationWithCachedRecord(operationId, syncedRecord),
-  ).rejects.toThrow("target does not match");
+    store.settlePendingMutationWithCachedRecord(mutation, syncedRecord),
+  ).rejects.toThrow("settlement intent does not match");
   expect(rawStore(factory, "pending_mutations").get(operationId)).toMatchObject(
     { entityId: missingOperationId },
   );
@@ -416,7 +416,7 @@ it("rejects acknowledgement settlement for a different cached target", async () 
   await store.addPendingMutationWithCachedRecord(mutation, pendingRecord);
 
   await expect(
-    store.settlePendingMutationWithCachedRecord(operationId, wrongRecord),
+    store.settlePendingMutationWithCachedRecord(mutation, wrongRecord),
   ).rejects.toThrow("target does not match");
 
   expect(await store.getPendingMutation(operationId)).toEqual(mutation);
