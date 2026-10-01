@@ -20,7 +20,7 @@ function venue(id: string, code: string, name: string): VenueCoreRecord {
     projectId,
     code,
     name,
-    status: "active",
+    status: "research",
     rejectionReason: null,
     websiteUrl: null,
     city: "Paris",
