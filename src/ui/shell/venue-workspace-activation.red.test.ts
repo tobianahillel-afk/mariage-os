@@ -59,7 +59,9 @@ function state(projectPath: string): ProjectShellState {
   };
 }
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 it("RED: /venues owns a real Gallery workspace", () => {
   installDocument();
