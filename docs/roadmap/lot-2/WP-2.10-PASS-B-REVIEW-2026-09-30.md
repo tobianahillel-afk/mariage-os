@@ -9,7 +9,7 @@
 - Review-entry CI: `36715447094` — 5/5 SUCCESS, clean checkout included
 - FIR: #42 / FTR-028
 - Review type: complete fresh adversarial Pass B
-- Verdict: **FAIL — WP210-AR-001 remediation candidate / WP210-AR-002 MAJOR OPEN**
+- Verdict: **FAIL — WP210-AR-001/002 remediation green; WP210-AR-003 MAJOR OPEN**
 
 ## Contracts reconstructed independently
 
@@ -192,3 +192,44 @@ the cloud snapshot over that local intent while the pending mutation remains.
 
 No schema downgrade, queue deletion, last-write-wins fallback or scope expansion
 is authorized.
+
+
+## Post-remediation fresh-review finding WP210-AR-003 — MAJOR — OPEN
+
+After AR-001 and AR-002 reached exact-head green remediation at
+`f3b0fc8528510f151bced32c1ba4760437c25d32` / CI `36838716613`,
+independent review compared settlement validation with the already-existing
+immutable-intent validation used by pending-mutation updates.
+
+### Finding
+
+`validateSettlementMutation()` validates the current persisted mutation's
+scope, operation ID and entity target, but not mutation type, base revision,
+createdAt, priority class or payload. A same-operation/same-target persisted row
+whose semantic intent changed can therefore be deleted by an acknowledgement
+for the older intent.
+
+### RED proof
+
+Closed RED-only PR #56 / final RED head
+`aa511f38c0cddef69bc6dea829eaa4e8090345c2` isolated this case without
+merging red state. CI `36840025014` reached the unit suite; 207 other test
+files / 1,831 tests passed and the sole new test failed with:
+
+```text
+AssertionError: promise resolved "undefined" instead of rejecting
+```
+
+This is the expected reproduction: settlement accepted the changed-intent row.
+
+### Required remediation
+
+Settlement must receive the expected mutation semantic intent and compare the
+persisted current row using the same immutable-intent definition as
+`validatePendingMutationUpdate()`. The comparison must deliberately ignore
+transient retry/status metadata. A mismatch must abort the IndexedDB
+transaction before queue deletion or cache replacement.
+
+AR-001 and AR-002 remain formally open until a new complete fresh Pass B even
+though their implementation is exact-head green. WP-2.10 remains
+`REVIEW_FAILED`; no Pass C or WP-2.11 activation is authorized.

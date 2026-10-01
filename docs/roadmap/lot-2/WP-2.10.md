@@ -6,7 +6,7 @@
 - Lot: 2 — Venues core
 - Name: Venue local cache and pending offline mutations
 - State: `REVIEW_FAILED`
-- Current pass: `B-ADVERSARIAL-REVIEW — FAILED / WP210-AR-001 REMEDIATION CANDIDATE + WP210-AR-002 MAJOR OPEN`
+- Current pass: `B-ADVERSARIAL-REVIEW — FAILED / AR-001/002 REMEDIATION GREEN + WP210-AR-003 MAJOR OPEN`
 - Primary bounded context: Venues + local-data/sync foundation
 - Branch: `lot-2/venues-core`
 - Activation base: `c5cfe273468eb56592f8fe8f0de9eb764d671a58`
@@ -155,13 +155,14 @@ No production/private wedding data or external-provider mutation was used.
 
 ## Handoff
 
-- Current state: REVIEW_PENDING
-- Current/next pass: B-ADVERSARIAL-REVIEW
+- Current state: REVIEW_FAILED
+- Current/next pass: B-ADVERSARIAL-REVIEW — WP210-AR-003 REMEDIATION
 - Pass-A green implementation: `eca752c145f9c59c1d0ca17d938569d8977fba92` / CI `36713679555` attempt 2, five ordinary jobs SUCCESS including clean checkout
+- AR-001/002 remediation green head: `f3b0fc8528510f151bced32c1ba4760437c25d32` / CI `36838716613`, five ordinary jobs SUCCESS including clean checkout
 - FIR: #42 — FTR-028 remains IN_PROGRESS because WP-2.12 owns downstream mobile-visit/offline-package completion
-- Review findings: `WP210-AR-001` — MAJOR / remediation candidate green on exact-head CI but not closed until fresh Pass B; `WP210-AR-002` — MAJOR / OPEN — cloud refresh can overwrite a Venue mutation that becomes pending between the refresh cache read and cache write
+- Review findings: `WP210-AR-001` — MAJOR / remediation green but awaiting fresh Pass B; `WP210-AR-002` — MAJOR / remediation green but awaiting fresh Pass B; `WP210-AR-003` — MAJOR / OPEN — stale acknowledgement settlement accepts a same-operation/same-target persisted mutation whose immutable intent changed
 - Pass-B record: `docs/roadmap/lot-2/WP-2.10-PASS-B-REVIEW-2026-09-30.md`
-- Next permitted action: bounded RED-first remediation of WP210-AR-002 using an atomic queue-inspection + cache-write primitive, exact-head verification, then a new complete fresh Pass B over WP210-AR-001/002 and the full packet. No Pass C or WP-2.11 start is authorized.
+- Next permitted action: bounded RED-first remediation of WP210-AR-003, exact-head verification, then a new complete fresh Pass B over WP210-AR-001/002/003 and the full packet. No Pass C or WP-2.11 start is authorized.
 
 ## Pass B result — 2026-09-30
 
@@ -189,3 +190,53 @@ the scoped pending-mutation queue and conditionally writes the cloud cache recor
 inside one IndexedDB transaction. Malformed/foreign queue rows must fail closed.
 WP210-AR-001 remains unclosed until a new complete fresh Pass B, even though its
 current remediation candidate is exact-head green.
+
+
+## Additional Pass-B finding — WP210-AR-003 — MAJOR / OPEN
+
+Fresh post-remediation adversarial review identified a third local settlement
+integrity gap after AR-001/002 were exact-head green.
+
+### Title
+
+Acknowledgement settlement can delete a same-operation/same-target mutation
+whose immutable local intent changed before settlement.
+
+### RED evidence
+
+Closed RED-only PR #56 retained an isolated IndexedDB test. It persisted an
+operation, replaced the persisted row with the same scope, operation ID and
+entity target but a different payload, then attempted acknowledgement
+settlement. CI `36840025014` reached unit tests with all unrelated unit files
+green; the new test failed because the settlement promise resolved successfully
+instead of rejecting.
+
+The RED branch was not merged.
+
+### Impact
+
+A stale acknowledgement can delete unsynchronized intent if a valid persisted
+row is replaced or corrupted to a different semantic command while retaining
+the same operation ID and target. The normal update path already rejects this
+through immutable-intent comparison, but settlement currently validates only
+scope, operation ID and target. The two boundaries therefore disagree on the
+identity of one queued operation.
+
+### Required remediation
+
+- pass the expected pending mutation intent into settlement, not only its
+  operation ID;
+- parse the current persisted row in the same settlement transaction and require
+  the same immutable intent already used by pending-mutation updates: scope,
+  operation/target, mutation type, base revision, creation time, priority class
+  and payload;
+- retry metadata such as status, attempt count, last attempt time and error code
+  remain mutable and must not cause false rejection;
+- on mismatch, fail closed before deleting the queue row or writing the
+  acknowledgement cache;
+- retain AR-001 behavior for a later same-target operation and AR-002 atomic
+  refresh behavior;
+- run exact-head five-job CI and clean checkout, then a new complete fresh Pass B.
+
+No last-write-wins fallback, queue deletion workaround, schema downgrade or
+scope expansion is authorized.
