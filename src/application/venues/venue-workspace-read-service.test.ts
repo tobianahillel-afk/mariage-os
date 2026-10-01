@@ -210,8 +210,9 @@ it("ignores foreign local scope and foreign cloud rows", async () => {
     projectId: foreignProjectId,
   });
 
-  await expect(service(repositoryWith([foreign])).list(projectId, local)).resolves
-    .toEqual([]);
+  await expect(
+    service(repositoryWith([foreign])).list(projectId, local),
+  ).resolves.toEqual([]);
   expect(local.listCachedRecords).not.toHaveBeenCalled();
 });
 
@@ -311,10 +312,13 @@ it("does not disclose absent, failed or mismatched detail identities", async () 
       venue(venueId, "S2", "Foreign", { projectId: foreignProjectId }),
     );
 
-  await expect(service(repository).detail(projectId, venueId, null)).resolves
-    .toBeNull();
-  await expect(service(repository).detail(projectId, venueId, null)).resolves
-    .toBeNull();
-  await expect(service(repository).detail(projectId, venueId, null)).resolves
-    .toBeNull();
+  await expect(
+    service(repository).detail(projectId, venueId, null),
+  ).resolves.toBeNull();
+  await expect(
+    service(repository).detail(projectId, venueId, null),
+  ).resolves.toBeNull();
+  await expect(
+    service(repository).detail(projectId, venueId, null),
+  ).resolves.toBeNull();
 });
