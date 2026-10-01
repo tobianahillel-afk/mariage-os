@@ -1,6 +1,4 @@
-import type {
-  LocalProjectStore,
-} from "@application/local-data/local-project-store";
+import type { LocalProjectStore } from "@application/local-data/local-project-store";
 import {
   VENUE_CACHE_RECORD_TYPE,
   venueFromCachedRecord,
@@ -14,9 +12,7 @@ import {
   getVenueCompatibility,
   type VenueCompatibilityReadModel,
 } from "@application/venues/venue-compatibility-service";
-import type {
-  VenueCompatibilityQueryPort,
-} from "@application/venues/venue-compatibility-query-port";
+import type { VenueCompatibilityQueryPort } from "@application/venues/venue-compatibility-query-port";
 import type {
   VenueCoreRecord,
   VenueRepositoryPort,
@@ -111,9 +107,7 @@ function mergeVenues(
   local: ReadonlyMap<string, LocalVenueState>,
 ): readonly VenueCoreRecord[] {
   if (cloud === null) {
-    return [...local.values()]
-      .map((item) => item.venue)
-      .sort(naturalVenueOrder);
+    return [...local.values()].map((item) => item.venue).sort(naturalVenueOrder);
   }
   return cloud
     .map((venue) => local.get(venue.id)?.venue ?? venue)
@@ -189,14 +183,11 @@ export class VenueWorkspaceReadService {
     venueId: string,
   ): Promise<VenueWorkspaceCompatibilitySummary | null> {
     try {
-      const model = await getVenueCompatibility(
-        this.dependencies.compatibility,
-        {
-          projectId,
-          venueId,
-          evaluatedAt: this.dependencies.now(),
-        },
-      );
+      const model = await getVenueCompatibility(this.dependencies.compatibility, {
+        projectId,
+        venueId,
+        evaluatedAt: this.dependencies.now(),
+      });
       return model === null ? null : compatibilitySummary(model);
     } catch {
       return null;
