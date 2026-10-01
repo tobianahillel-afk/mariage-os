@@ -71,11 +71,8 @@ function compareGrid(
 }
 
 function appendText(label: HTMLLabelElement, text: string): void {
-  const createTextNode = (
-    document as unknown as { createTextNode?: (value: string) => Node }
-  ).createTextNode;
-  if (typeof createTextNode === "function") {
-    label.append(createTextNode.call(document, text));
+  if (typeof document.createTextNode === "function") {
+    label.append(document.createTextNode(text));
     return;
   }
   label.append(textElement("span", text, ""));

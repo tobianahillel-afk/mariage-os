@@ -93,8 +93,7 @@ export function addListener(
   type: string,
   listener: EventListener,
 ): void {
-  const candidate = element as unknown as {
-    addEventListener?: (event: string, callback: EventListener) => void;
-  };
-  candidate.addEventListener?.(type, listener);
+  if (typeof element.addEventListener === "function") {
+    element.addEventListener(type, listener);
+  }
 }
