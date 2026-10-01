@@ -14,9 +14,7 @@ describe("parseVenueWorkspaceRoute", () => {
 
   it("recognizes only canonical UUID detail routes", () => {
     expect(
-      parseVenueWorkspaceRoute(
-        "/venues/91111111-1111-4111-8111-111111111111",
-      ),
+      parseVenueWorkspaceRoute("/venues/91111111-1111-4111-8111-111111111111"),
     ).toEqual({
       kind: "detail",
       venueId: "91111111-1111-4111-8111-111111111111",
