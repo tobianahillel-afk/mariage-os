@@ -36,9 +36,9 @@ Before implementation gate opens, every V1 row remains `SPECIFIED`.
 |---|---|---:|---|---|
 | FTR-013 | Minimal/quick venue creation with duplicate guard | 2 | VENUES, USER-FLOWS | IN_PROGRESS |
 | FTR-014 | Venue lifecycle shortlist/reject/restore/history | 2 | VENUES, STATE-MACHINES | IN_PROGRESS |
-| FTR-015 | Venue gallery browsing | 2 | VENUES, UX | SPECIFIED |
-| FTR-016 | Venue analytical table with controlled columns | 2 | VENUES, UX | SPECIFIED |
-| FTR-017 | Venue detail summary-first workspace | 2 | SCREEN-CONTRACTS, VENUES | SPECIFIED |
+| FTR-015 | Venue gallery browsing | 2 | VENUES, UX | READY |
+| FTR-016 | Venue analytical table with controlled columns | 2 | VENUES, UX | READY |
+| FTR-017 | Venue detail summary-first workspace | 2 | SCREEN-CONTRACTS, VENUES | READY |
 | FTR-018 | Venue spaces/dimensions/capacity/configuration | 2 | VENUES, PHYSICAL-SCHEMA | IN_PROGRESS |
 | FTR-019 | Typed facts/criteria retained value | 2 | FACTS-SOURCES, FACT-VALUE-TYPES | IN_PROGRESS |
 | FTR-020 | Multi-source observations/provenance/conflict | 2 | FACTS-SOURCES, CONFIDENCE-FRESHNESS | IN_PROGRESS |
@@ -48,7 +48,7 @@ Before implementation gate opens, every V1 row remains `SPECIFIED`.
 | FTR-024 | Venue photos remote references/private archive/gallery | 2 | STORAGE, DOCUMENTS-MEDIA | SPECIFIED |
 | FTR-025 | Venue offers/date pricing/availability context | 2/5 | VENUES, BUDGET | IN_PROGRESS |
 | FTR-026 | Venue contacts/interactions/quote follow-up | 2/3 | VENUES, TASKS | IN_PROGRESS |
-| FTR-027 | Venue comparison 2–5 candidates/differences | 2 | VENUES, UX | SPECIFIED |
+| FTR-027 | Venue comparison 2–5 candidates/differences | 2 | VENUES, UX | READY |
 | FTR-028 | Mobile venue visit/offline package | 2/10 | OFFLINE, USER-FLOWS | IN_PROGRESS |
 
 ## Tasks / decisions / quick capture
