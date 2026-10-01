@@ -77,7 +77,7 @@ function sameMutationCommand(
   );
 }
 
-export function sameMutationIntent(
+function sameMutationIntent(
   current: PendingMutationEnvelope,
   next: PendingMutationEnvelope,
 ): boolean {
