@@ -43,16 +43,20 @@ function hasAttribute(
 const projectId = "81111111-1111-4111-8111-111111111111";
 const venueId = "91111111-1111-4111-8111-111111111111";
 
+function workspace(projectPath: string): FakeElement {
+  return createVenueWorkspace(
+    projectId,
+    projectPath,
+  ) as unknown as FakeElement;
+}
+
 afterEach(() => {
   vi.unstubAllGlobals();
 });
 
 it("creates the Gallery default without synthetic Venue data", () => {
   installDocument();
-  const root = createVenueWorkspace(
-    projectId,
-    "/venues",
-  ) as unknown as FakeElement;
+  const root = workspace("/venues");
   expect(hasAttribute(root, "data-venue-workspace", "gallery")).toBe(true);
   expect(hasAttribute(root, "data-venue-mode", "gallery")).toBe(true);
   expect(descendants(root).some((item) => item.textContent === "Galerie")).toBe(
@@ -62,10 +66,7 @@ it("creates the Gallery default without synthetic Venue data", () => {
 
 it("keeps detail and downstream visit links project scoped", () => {
   installDocument();
-  const root = createVenueWorkspace(
-    projectId,
-    `/venues/${venueId}`,
-  ) as unknown as FakeElement;
+  const root = workspace(`/venues/${venueId}`);
   expect(hasAttribute(root, "data-venue-workspace", "detail")).toBe(true);
   expect(hasAttribute(root, "data-venue-id", venueId)).toBe(true);
   expect(
@@ -79,10 +80,7 @@ it("keeps detail and downstream visit links project scoped", () => {
 
 it("creates Compare without declaring a winner", () => {
   installDocument();
-  const root = createVenueWorkspace(
-    projectId,
-    "/venues/compare",
-  ) as unknown as FakeElement;
+  const root = workspace("/venues/compare");
   expect(hasAttribute(root, "data-venue-workspace", "compare")).toBe(true);
   expect(
     descendants(root).some((item) =>
@@ -93,9 +91,6 @@ it("creates Compare without declaring a winner", () => {
 
 it("fails closed for malformed Venue detail paths", () => {
   installDocument();
-  const root = createVenueWorkspace(
-    projectId,
-    "/venues/not-a-venue",
-  ) as unknown as FakeElement;
+  const root = workspace("/venues/not-a-venue");
   expect(hasAttribute(root, "data-venue-workspace", "unavailable")).toBe(true);
 });
