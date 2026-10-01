@@ -32,6 +32,7 @@ await startApplication(root, {
   securityDiagnostics: runtime.securityDiagnostics,
   logoutCoordinator,
   localStoreFactory: localRuntime.localStoreFactory,
+  venueWorkspaceRead: runtime.venueWorkspaceRead,
   deviceId: localRuntime.deviceId,
   online: localRuntime.online,
   appVersion: localRuntime.appVersion,

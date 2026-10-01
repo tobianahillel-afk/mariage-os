@@ -1,7 +1,10 @@
 import type { ProjectSessionContextPort } from "@application/auth/project-session-context-port";
 import type { SafeLogoutCoordinator } from "@application/auth/safe-logout";
 import type { SecurityDiagnosticsPort } from "@application/auth/security-diagnostics-port";
-import type { LocalProjectStoreFactory } from "@application/local-data/local-project-store";
+import type {
+  LocalProjectStore,
+  LocalProjectStoreFactory,
+} from "@application/local-data/local-project-store";
 import { createLocalProjectScope } from "@application/local-data/local-project-scope";
 import {
   deriveSyncSummary,
@@ -14,6 +17,11 @@ import {
   type ProtectedRouteDecision,
   type SessionReader,
 } from "@application/routing/protected-route-guard";
+import type { VenueWorkspaceReadService } from "@application/venues/venue-workspace-read-service";
+import {
+  loadVenueWorkspaceState,
+  type VenueWorkspaceState,
+} from "@application/venues/venue-workspace-state";
 import { renderShell, type ProjectShellState } from "@ui/shell/render-shell";
 import type {
   SecuritySettingsActions,
@@ -28,10 +36,16 @@ export interface ApplicationShellDependencies {
   readonly securityDiagnostics: SecurityDiagnosticsPort | null;
   readonly logoutCoordinator: SafeLogoutCoordinator | null;
   readonly localStoreFactory: LocalProjectStoreFactory | null;
+  readonly venueWorkspaceRead?: VenueWorkspaceReadService | null;
   readonly deviceId: string | null;
   readonly online: boolean;
   readonly appVersion: string;
 }
+
+type AllowedProject = Extract<
+  ProtectedRouteDecision,
+  { kind: "project_allowed" }
+>;
 
 function unavailableDurabilitySummary(): SyncSummary {
   return deriveSyncSummary({
@@ -47,7 +61,7 @@ function unavailableDurabilitySummary(): SyncSummary {
 }
 
 function rememberAuthorizedContext(
-  decision: Extract<ProtectedRouteDecision, { kind: "project_allowed" }>,
+  decision: AllowedProject,
   sessionContext: ProjectSessionContextPort | null,
 ): void {
   if (sessionContext === null) return;
@@ -58,41 +72,51 @@ function rememberAuthorizedContext(
   }
 }
 
-async function readProjectSyncSummary(
-  decision: Extract<ProtectedRouteDecision, { kind: "project_allowed" }>,
+async function openLocalStore(
+  decision: AllowedProject,
   dependencies: ApplicationShellDependencies,
-): Promise<SyncSummary> {
+): Promise<LocalProjectStore | null> {
   if (
     dependencies.localStoreFactory === null ||
     dependencies.deviceId === null
   ) {
-    return unavailableDurabilitySummary();
+    return null;
   }
-
   try {
     const scope = createLocalProjectScope(
       decision.userId,
       decision.projectId,
       dependencies.deviceId,
     );
-    const store = await dependencies.localStoreFactory.open(
+    return await dependencies.localStoreFactory.open(
       scope,
       dependencies.appVersion,
     );
-    try {
-      const counters = await store.readSyncCounters();
-      return deriveSyncSummary({
-        durability: "available",
-        online: dependencies.online,
-        syncing: false,
-        cloudSynchronized: false,
-        ...counters,
-      });
-    } finally {
-      store.close();
-    }
+  } catch {
+    return null;
+  }
+}
+
+async function readProjectSyncSummary(
+  decision: AllowedProject,
+  dependencies: ApplicationShellDependencies,
+): Promise<SyncSummary> {
+  const store = await openLocalStore(decision, dependencies);
+  if (store === null) return unavailableDurabilitySummary();
+
+  try {
+    const counters = await store.readSyncCounters();
+    return deriveSyncSummary({
+      durability: "available",
+      online: dependencies.online,
+      syncing: false,
+      cloudSynchronized: false,
+      ...counters,
+    });
   } catch {
     return unavailableDurabilitySummary();
+  } finally {
+    store.close();
   }
 }
 
@@ -119,7 +143,7 @@ async function readSecurityState(
 
 function createLogoutActions(
   root: HTMLElement,
-  decision: Extract<ProtectedRouteDecision, { kind: "project_allowed" }>,
+  decision: AllowedProject,
   dependencies: ApplicationShellDependencies,
 ): SecuritySettingsActions | null {
   const logoutCoordinator = dependencies.logoutCoordinator;
@@ -158,7 +182,7 @@ function createLogoutActions(
 
 async function securitySettingsState(
   root: HTMLElement,
-  decision: Extract<ProtectedRouteDecision, { kind: "project_allowed" }>,
+  decision: AllowedProject,
   dependencies: ApplicationShellDependencies,
 ): Promise<SecuritySettingsState | undefined> {
   if (!needsSecurityState(decision.projectPath)) return undefined;
@@ -172,20 +196,44 @@ async function securitySettingsState(
   };
 }
 
+async function venueWorkspaceState(
+  decision: AllowedProject,
+  dependencies: ApplicationShellDependencies,
+): Promise<VenueWorkspaceState | undefined> {
+  if (!decision.projectPath.startsWith("/venues")) return undefined;
+  const service = dependencies.venueWorkspaceRead ?? null;
+  if (service === null) return { kind: "unavailable" };
+
+  const store = await openLocalStore(decision, dependencies);
+  try {
+    return await loadVenueWorkspaceState(
+      service,
+      decision.projectId,
+      decision.projectPath,
+      store,
+    );
+  } catch {
+    return { kind: "unavailable" };
+  } finally {
+    store?.close();
+  }
+}
+
 async function projectShellState(
   root: HTMLElement,
-  decision: Extract<ProtectedRouteDecision, { kind: "project_allowed" }>,
+  decision: AllowedProject,
   dependencies: ApplicationShellDependencies,
 ): Promise<ProjectShellState> {
-  const securitySettings = await securitySettingsState(
-    root,
-    decision,
-    dependencies,
-  );
+  const [securitySettings, syncSummary, venueWorkspace] = await Promise.all([
+    securitySettingsState(root, decision, dependencies),
+    readProjectSyncSummary(decision, dependencies),
+    venueWorkspaceState(decision, dependencies),
+  ]);
   return {
     ...decision,
-    syncSummary: await readProjectSyncSummary(decision, dependencies),
+    syncSummary,
     ...(securitySettings === undefined ? {} : { securitySettings }),
+    ...(venueWorkspace === undefined ? {} : { venueWorkspace }),
   };
 }
 

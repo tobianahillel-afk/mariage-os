@@ -316,3 +316,102 @@ a {
   background: #fffaf7;
   line-height: 1.6;
 }
+
+
+.venue-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 16px;
+}
+
+.venue-card,
+.venue-decision-summary,
+.venue-compare-controls,
+.venue-compare-grid {
+  padding: 18px;
+  border: 1px solid #ded5d0;
+  border-radius: 18px;
+  background: #fffaf7;
+}
+
+.venue-card {
+  display: grid;
+  gap: 8px;
+}
+
+.venue-card > a {
+  font-weight: 700;
+}
+
+.venue-fact,
+.venue-sync-state {
+  margin: 0;
+}
+
+.venue-table-panel {
+  overflow-x: auto;
+}
+
+.venue-table-panel table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.venue-table-heading,
+.venue-table-cell,
+.venue-table-panel td {
+  padding: 10px;
+  border-bottom: 1px solid #e8dfda;
+  text-align: left;
+  vertical-align: top;
+}
+
+.venue-mobile-table-fallback {
+  display: none;
+}
+
+.venue-decision-summary {
+  display: grid;
+  gap: 8px;
+}
+
+.venue-compare-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+}
+
+.venue-compare-controls label {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.venue-compare-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.venue-compare-row {
+  display: grid;
+  grid-template-columns: minmax(130px, 0.7fr) repeat(5, minmax(150px, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+@media (max-width: 760px) {
+  .venue-table-panel table {
+    display: none;
+  }
+
+  .venue-mobile-table-fallback {
+    display: grid;
+    gap: 12px;
+  }
+
+  .venue-compare-row {
+    grid-template-columns: 1fr;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e8dfda;
+  }
+}

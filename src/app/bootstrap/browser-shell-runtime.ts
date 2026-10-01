@@ -3,8 +3,12 @@ import type { AuthPort } from "@application/auth/auth-port";
 import type { SecurityDiagnosticsPort } from "@application/auth/security-diagnostics-port";
 import type { ProjectAccessPort } from "@application/projects/project-access-port";
 import type { SessionReader } from "@application/routing/protected-route-guard";
+import { VenueWorkspaceReadService } from "@application/venues/venue-workspace-read-service";
 import { SupabaseAuthAdapter } from "@infra/supabase/supabase-auth-adapter";
 import { SupabaseProjectAccessAdapter } from "@infra/supabase/supabase-project-access-adapter";
+import { SupabaseVenueCompatibilityQueryAdapter } from "@infra/supabase/supabase-venue-compatibility-query-adapter";
+import { SupabaseVenueMemberOpinionAdapter } from "@infra/supabase/supabase-venue-member-opinion-adapter";
+import { SupabaseVenueRepositoryAdapter } from "@infra/supabase/supabase-venue-repository-adapter";
 
 const PUBLISHABLE_KEY_PREFIX = "sb_publishable_";
 
@@ -18,6 +22,7 @@ export interface BrowserShellRuntime {
   readonly sessionReader: SessionReader;
   readonly projectAccess: ProjectAccessPort | null;
   readonly securityDiagnostics: SecurityDiagnosticsPort | null;
+  readonly venueWorkspaceRead: VenueWorkspaceReadService | null;
 }
 
 interface BrowserSupabaseConfig {
@@ -93,7 +98,17 @@ function failClosedRuntime(): BrowserShellRuntime {
     },
     projectAccess: null,
     securityDiagnostics: null,
+    venueWorkspaceRead: null,
   };
+}
+
+function venueWorkspaceRead(client: SupabaseClient): VenueWorkspaceReadService {
+  return new VenueWorkspaceReadService({
+    repository: new SupabaseVenueRepositoryAdapter(client),
+    compatibility: new SupabaseVenueCompatibilityQueryAdapter(client),
+    opinions: new SupabaseVenueMemberOpinionAdapter(client),
+    now: () => new Date().toISOString(),
+  });
 }
 
 export function createBrowserShellRuntime(
@@ -111,6 +126,7 @@ export function createBrowserShellRuntime(
       sessionReader: auth,
       projectAccess: new SupabaseProjectAccessAdapter(client),
       securityDiagnostics: auth,
+      venueWorkspaceRead: venueWorkspaceRead(client),
     };
   } catch {
     return failClosedRuntime();
