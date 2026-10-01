@@ -49,7 +49,10 @@ afterEach(() => {
 
 it("creates the Gallery default without synthetic Venue data", () => {
   installDocument();
-  const root = createVenueWorkspace(projectId, "/venues") as unknown as FakeElement;
+  const root = createVenueWorkspace(
+    projectId,
+    "/venues",
+  ) as unknown as FakeElement;
   expect(hasAttribute(root, "data-venue-workspace", "gallery")).toBe(true);
   expect(hasAttribute(root, "data-venue-mode", "gallery")).toBe(true);
   expect(descendants(root).some((item) => item.textContent === "Galerie")).toBe(
