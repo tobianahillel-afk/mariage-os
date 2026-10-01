@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import bootstrapSource from "../../app/bootstrap/start-application.ts?raw";
-import runtimeSource from "../../app/bootstrap/browser-shell-runtime.ts?raw";
-import rendererSource from "./render-venue-workspace.ts?raw";
+import bootstrapSource from "./start-application.ts?raw";
+import runtimeSource from "./browser-shell-runtime.ts?raw";
+import rendererSource from "../../ui/venues/render-venue-workspace.ts?raw";
 
 describe("WP-2.11 data-driven Venue workspace RED", () => {
   it("composes the accepted Venue read service in the browser runtime", () => {
