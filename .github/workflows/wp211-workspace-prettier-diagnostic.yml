@@ -1,0 +1,35 @@
+name: WP-2.11 workspace Prettier diagnostic
+
+on:
+  push:
+    branches:
+      - diagnostic/wp211-workspace-prettier-20261001-2
+
+permissions:
+  contents: read
+
+jobs:
+  prettier-oracle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Print pinned Prettier diff
+        run: |
+          npx prettier --write \
+            src/app/bootstrap/venue-workspace-data-red.test.ts \
+            src/styles.css \
+            src/ui/venues/render-venue-detail.ts \
+            src/ui/venues/render-venue-workspace.ts
+          git diff -- \
+            src/app/bootstrap/venue-workspace-data-red.test.ts \
+            src/styles.css \
+            src/ui/venues/render-venue-detail.ts \
+            src/ui/venues/render-venue-workspace.ts
+          exit 1
