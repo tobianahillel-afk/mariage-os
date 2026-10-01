@@ -175,7 +175,9 @@ it.each([
 );
 
 
-it("fails closed when the same operation id carries changed local intent before acknowledgement", async () => {
+it(
+  "fails closed when the same operation id carries changed local intent before acknowledgement",
+  async () => {
   const factory = new FakeFactory();
   const store = await IndexedDbProjectStore.open(
     factory as unknown as IDBFactory,
@@ -188,7 +190,11 @@ it("fails closed when the same operation id carries changed local intent before 
     "2026-09-30T12:00:00.000Z",
   );
   const working = venueRecord("Original local intent", "pending", "1");
-  const acknowledgement = venueRecord("Original cloud acknowledgement", "synced", "2");
+    const acknowledgement = venueRecord(
+      "Original cloud acknowledgement",
+      "synced",
+      "2",
+    );
   await store.addPendingMutationWithCachedRecord(original, working);
 
   const changedIntent = {
@@ -204,5 +210,6 @@ it("fails closed when the same operation id carries changed local intent before 
   expect(rawStore(factory, "pending_mutations").get(operationId)).toEqual(
     changedIntent,
   );
-  expect(await store.getCachedRecord("venue", entityId)).toEqual(working);
-});
+    expect(await store.getCachedRecord("venue", entityId)).toEqual(working);
+  },
+);
