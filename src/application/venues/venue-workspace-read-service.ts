@@ -19,8 +19,7 @@ import type {
 } from "@application/venues/venue-repository-port";
 import { compareVenueCodes } from "@domain/venues/venue-code";
 
-type VenueWorkspaceSyncState =
-  "synced" | "pending" | "conflict" | "unknown";
+type VenueWorkspaceSyncState = "synced" | "pending" | "conflict" | "unknown";
 
 export interface VenueWorkspaceCompatibilitySummary {
   readonly blockingStatus: VenueCompatibilityReadModel["aggregate"]["blockingStatus"];
