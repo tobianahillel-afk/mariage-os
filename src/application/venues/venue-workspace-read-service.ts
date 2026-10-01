@@ -19,7 +19,7 @@ import type {
 } from "@application/venues/venue-repository-port";
 import { compareVenueCodes } from "@domain/venues/venue-code";
 
-export type VenueWorkspaceSyncState =
+type VenueWorkspaceSyncState =
   "synced" | "pending" | "conflict" | "unknown";
 
 export interface VenueWorkspaceCompatibilitySummary {
@@ -30,7 +30,7 @@ export interface VenueWorkspaceCompatibilitySummary {
   readonly conflictingCriteria: number;
 }
 
-export interface VenueWorkspaceOpinionSummary {
+interface VenueWorkspaceOpinionSummary {
   readonly ownPreference: VenueMemberPreferenceRecord | null;
   readonly ratings: readonly VenueMemberRatingRecord[];
 }
