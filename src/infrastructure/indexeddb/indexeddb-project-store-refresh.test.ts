@@ -177,14 +177,17 @@ describe("IndexedDbProjectStore cloud refresh current-cache validation", () => {
     "fails closed when the cached refresh target has a mismatched %s",
     async (_kind, corruption) => {
       const { factory, store } = await openedStore();
-      rawStore(factory, "cached_records").set(`venue:${entityId}`, {
+      const rawCache = rawStore(factory, "cached_records");
+      const persisted = {
         ...venueRecord("Local", "synced"),
         ...corruption,
-      });
+      };
+      rawCache.set(`venue:${entityId}`, persisted);
 
       await expect(
         store.putCachedRecordIfRefreshSafe(venueRecord("Cloud", "synced")),
-      ).rejects.toThrow("Cached refresh target does not match.");
+      ).rejects.toThrow();
+      expect(rawCache.get(`venue:${entityId}`)).toEqual(persisted);
     },
   );
 });
