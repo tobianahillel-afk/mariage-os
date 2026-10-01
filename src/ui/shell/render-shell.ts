@@ -1,4 +1,5 @@
 import type { SyncSummary } from "@application/local-data/sync-summary";
+import { createVenueWorkspace } from "@ui/venues/render-venue-workspace";
 import type { AppRoute } from "@application/routing/app-route";
 import type { ProtectedRouteDecision } from "@application/routing/protected-route-guard";
 import {
@@ -295,12 +296,18 @@ function renderProjectShell(root: HTMLElement, state: ProjectShellState): void {
     createTextElement("p", "Mariage OS", "eyebrow"),
     createSyncStatus(state.syncSummary),
     createTextElement("h1", title, "page-title"),
-    createTextElement(
-      "p",
-      "Le shell sécurisé est prêt. Les données métier de cette section arriveront dans leur lot dédié.",
-      "lede",
-    ),
   );
+  if (section === "venues") {
+    content.append(createVenueWorkspace(state.projectId, state.projectPath));
+  } else {
+    content.append(
+      createTextElement(
+        "p",
+        "Le shell sécurisé est prêt. Les données métier de cette section arriveront dans leur lot dédié.",
+        "lede",
+      ),
+    );
+  }
   if (section === "settings") {
     appendSettingsContent(content, state);
   }
