@@ -3,10 +3,7 @@ import { parseVenueWorkspaceRoute } from "@application/venues/venue-workspace-ro
 import { renderVenueCollection } from "./render-venue-collection";
 import { renderVenueCompare } from "./render-venue-compare";
 import { renderVenueDetail } from "./render-venue-detail";
-import {
-  textElement,
-  workspaceSection,
-} from "./venue-workspace-presentation";
+import { textElement, workspaceSection } from "./venue-workspace-presentation";
 
 function unavailableWorkspace(): HTMLElement {
   const section = workspaceSection("unavailable");

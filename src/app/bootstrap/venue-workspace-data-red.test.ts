@@ -31,9 +31,7 @@ describe("WP-2.11 data-driven Venue workspace RED", () => {
     expect(detailSource).toContain("data-venue-weighted-score");
     expect(compareSource).toContain("data-venue-compare-grid");
     expect(compareSource).toContain("data-only-differences");
-    expect(detailSource).not.toContain(
-      "Le résumé de cette salle sera chargé",
-    );
+    expect(detailSource).not.toContain("Le résumé de cette salle sera chargé");
     expect(compareSource).not.toContain(
       "Sélectionnez entre deux et cinq salles du même projet pour les comparer",
     );

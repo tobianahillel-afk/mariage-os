@@ -33,11 +33,7 @@ export function renderVenueDetail(
   section.setAttribute("data-venue-id", item.venue.id);
   const decision = document.createElement("div");
   decision.className = "venue-decision-summary";
-  const blocking = textElement(
-    "p",
-    `Blocage · ${blocker(item)}`,
-    "venue-fact",
-  );
+  const blocking = textElement("p", `Blocage · ${blocker(item)}`, "venue-fact");
   blocking.setAttribute("data-venue-blocking-status", blocker(item));
   const weighted = textElement("p", `Score · ${score(item)}`, "venue-fact");
   weighted.setAttribute("data-venue-weighted-score", score(item));
@@ -51,11 +47,7 @@ export function renderVenueDetail(
     blocking,
     weighted,
     textElement("p", `Preuves · ${readiness(item)}`, "venue-fact"),
-    textElement(
-      "p",
-      `Avis partenaires · ${averageRating(item)}`,
-      "venue-fact",
-    ),
+    textElement("p", `Avis partenaires · ${averageRating(item)}`, "venue-fact"),
     textElement("p", `Ville · ${item.venue.city ?? "—"}`, "venue-fact"),
   );
 

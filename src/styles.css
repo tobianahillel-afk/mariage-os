@@ -317,7 +317,6 @@ a {
   line-height: 1.6;
 }
 
-
 .venue-gallery {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
