@@ -1,0 +1,224 @@
+import type { LocalProjectStore } from "@application/local-data/local-project-store";
+import {
+  VENUE_CACHE_RECORD_TYPE,
+  venueFromCachedRecord,
+} from "@application/venues/venue-local-cache";
+import type {
+  VenueMemberOpinionPort,
+  VenueMemberPreferenceRecord,
+  VenueMemberRatingRecord,
+} from "@application/venues/venue-member-opinion-service";
+import {
+  getVenueCompatibility,
+  type VenueCompatibilityReadModel,
+} from "@application/venues/venue-compatibility-service";
+import type { VenueCompatibilityQueryPort } from "@application/venues/venue-compatibility-query-port";
+import type {
+  VenueCoreRecord,
+  VenueRepositoryPort,
+} from "@application/venues/venue-repository-port";
+import { compareVenueCodes } from "@domain/venues/venue-code";
+
+export type VenueWorkspaceSyncState =
+  | "synced"
+  | "pending"
+  | "conflict"
+  | "unknown";
+
+export interface VenueWorkspaceCompatibilitySummary {
+  readonly blockingStatus: VenueCompatibilityReadModel["aggregate"]["blockingStatus"];
+  readonly weightedScore: number | null;
+  readonly evidenceReadiness: number | null;
+  readonly unknownImportantCriteria: number;
+  readonly conflictingCriteria: number;
+}
+
+export interface VenueWorkspaceOpinionSummary {
+  readonly ownPreference: VenueMemberPreferenceRecord | null;
+  readonly ratings: readonly VenueMemberRatingRecord[];
+}
+
+export interface VenueWorkspaceItem {
+  readonly venue: VenueCoreRecord;
+  readonly syncState: VenueWorkspaceSyncState;
+  readonly compatibility: VenueWorkspaceCompatibilitySummary | null;
+  readonly opinions: VenueWorkspaceOpinionSummary;
+}
+
+interface VenueWorkspaceReadDependencies {
+  readonly repository: VenueRepositoryPort;
+  readonly compatibility: VenueCompatibilityQueryPort;
+  readonly opinions: VenueMemberOpinionPort;
+  readonly now: () => string;
+}
+
+interface LocalVenueState {
+  readonly venue: VenueCoreRecord;
+  readonly syncState: "synced" | "pending" | "conflict";
+}
+
+function naturalVenueOrder(
+  left: VenueCoreRecord,
+  right: VenueCoreRecord,
+): number {
+  const codeOrder = compareVenueCodes(left.code, right.code);
+  if (codeOrder !== 0) return codeOrder;
+  const nameOrder = left.name.localeCompare(right.name, "fr", {
+    sensitivity: "base",
+  });
+  return nameOrder !== 0 ? nameOrder : left.id.localeCompare(right.id);
+}
+
+function compatibilitySummary(
+  model: VenueCompatibilityReadModel,
+): VenueWorkspaceCompatibilitySummary {
+  return {
+    blockingStatus: model.aggregate.blockingStatus,
+    weightedScore: model.aggregate.weightedScore,
+    evidenceReadiness: model.readiness.evidenceReadiness,
+    unknownImportantCriteria: model.aggregate.unknownImportantCriteria,
+    conflictingCriteria: model.aggregate.conflictingCriteria,
+  };
+}
+
+async function readLocalVenues(
+  projectId: string,
+  local: LocalProjectStore | null,
+): Promise<ReadonlyMap<string, LocalVenueState>> {
+  if (local === null || local.scope.projectId !== projectId) return new Map();
+  try {
+    const records = await local.listCachedRecords(VENUE_CACHE_RECORD_TYPE);
+    return new Map(
+      records.map((record) => {
+        const venue = venueFromCachedRecord(record);
+        return [
+          venue.id,
+          { venue, syncState: record.syncMarker },
+        ] as const;
+      }),
+    );
+  } catch {
+    return new Map();
+  }
+}
+
+function mergeVenues(
+  cloud: readonly VenueCoreRecord[] | null,
+  local: ReadonlyMap<string, LocalVenueState>,
+): readonly VenueCoreRecord[] {
+  if (cloud === null) {
+    return [...local.values()].map((item) => item.venue).sort(naturalVenueOrder);
+  }
+  return cloud
+    .map((venue) => local.get(venue.id)?.venue ?? venue)
+    .sort(naturalVenueOrder);
+}
+
+export class VenueWorkspaceReadService {
+  constructor(private readonly dependencies: VenueWorkspaceReadDependencies) {}
+
+  async list(
+    projectId: string,
+    local: LocalProjectStore | null,
+  ): Promise<readonly VenueWorkspaceItem[]> {
+    const localState = await readLocalVenues(projectId, local);
+    let cloud: readonly VenueCoreRecord[] | null = null;
+    try {
+      cloud = (await this.dependencies.repository.listVenues(projectId)).filter(
+        (venue) => venue.projectId === projectId,
+      );
+    } catch {
+      cloud = null;
+    }
+    const venues = mergeVenues(cloud, localState);
+    return Promise.all(
+      venues.map((venue) => this.item(projectId, venue, localState)),
+    );
+  }
+
+  async detail(
+    projectId: string,
+    venueId: string,
+    local: LocalProjectStore | null,
+  ): Promise<VenueWorkspaceItem | null> {
+    const localState = await readLocalVenues(projectId, local);
+    let venue = localState.get(venueId)?.venue ?? null;
+    if (venue === null) {
+      try {
+        venue = await this.dependencies.repository.getVenue(projectId, venueId);
+      } catch {
+        venue = null;
+      }
+    }
+    if (
+      venue === null ||
+      venue.projectId !== projectId ||
+      venue.id !== venueId
+    ) {
+      return null;
+    }
+    return this.item(projectId, venue, localState);
+  }
+
+  private async item(
+    projectId: string,
+    venue: VenueCoreRecord,
+    local: ReadonlyMap<string, LocalVenueState>,
+  ): Promise<VenueWorkspaceItem> {
+    const [compatibility, ownPreference, ratings] = await Promise.all([
+      this.readCompatibility(projectId, venue.id),
+      this.readPreference(projectId, venue.id),
+      this.readRatings(projectId, venue.id),
+    ]);
+    return {
+      venue,
+      syncState: local.get(venue.id)?.syncState ?? "unknown",
+      compatibility,
+      opinions: { ownPreference, ratings },
+    };
+  }
+
+  private async readCompatibility(
+    projectId: string,
+    venueId: string,
+  ): Promise<VenueWorkspaceCompatibilitySummary | null> {
+    try {
+      const model = await getVenueCompatibility(this.dependencies.compatibility, {
+        projectId,
+        venueId,
+        evaluatedAt: this.dependencies.now(),
+      });
+      return model === null ? null : compatibilitySummary(model);
+    } catch {
+      return null;
+    }
+  }
+
+  private async readPreference(
+    projectId: string,
+    venueId: string,
+  ): Promise<VenueMemberPreferenceRecord | null> {
+    try {
+      return await this.dependencies.opinions.getOwnVenuePreference(
+        projectId,
+        venueId,
+      );
+    } catch {
+      return null;
+    }
+  }
+
+  private async readRatings(
+    projectId: string,
+    venueId: string,
+  ): Promise<readonly VenueMemberRatingRecord[]> {
+    try {
+      return await this.dependencies.opinions.listVenueRatings(
+        projectId,
+        venueId,
+      );
+    } catch {
+      return [];
+    }
+  }
+}
