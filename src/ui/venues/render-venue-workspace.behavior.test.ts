@@ -99,6 +99,17 @@ function byClass(root: FakeNode, className: string): FakeElement[] {
   return elements(root).filter((candidate) => candidate.className === className);
 }
 
+function requiredInput(
+  inputs: readonly FakeElement[],
+  index: number,
+): FakeElement {
+  const input = inputs[index];
+  if (input === undefined) {
+    throw new Error(`Expected compare input at index ${index}.`);
+  }
+  return input;
+}
+
 const projectId = "81111111-1111-4111-8111-111111111111";
 
 function venueId(index: number): string {
@@ -253,12 +264,17 @@ it("limits Compare to five selections and keeps blocking differences visible", (
     (candidate) =>
       byAttribute(root, "value", candidate.venue.id)[0] as FakeElement,
   );
-  inputs[0].checked = true;
-  inputs[0].dispatch("change");
+  const first = requiredInput(inputs, 0);
+  const second = requiredInput(inputs, 1);
+  const fifth = requiredInput(inputs, 4);
+  const sixth = requiredInput(inputs, 5);
+
+  first.checked = true;
+  first.dispatch("change");
   expect(texts(root)).toContain("Choisissez au moins deux salles à comparer.");
 
-  inputs[1].checked = true;
-  inputs[1].dispatch("change");
+  second.checked = true;
+  second.dispatch("change");
   expect(byAttribute(root, "data-venue-compare-grid", "true")).toHaveLength(1);
   expect(texts(root)).toContain("Blocage");
   expect(texts(root)).toContain("FAIL");
@@ -268,9 +284,9 @@ it("limits Compare to five selections and keeps blocking differences visible", (
     input.checked = true;
     input.dispatch("change");
   }
-  inputs[5].checked = true;
-  inputs[5].dispatch("change");
-  expect(inputs[5].checked).toBe(false);
+  sixth.checked = true;
+  sixth.dispatch("change");
+  expect(sixth.checked).toBe(false);
 
   const onlyDifferences = byAttribute(
     root,
@@ -282,11 +298,11 @@ it("limits Compare to five selections and keeps blocking differences visible", (
   expect(texts(root)).toContain("Blocage");
   expect(texts(root)).not.toContain("Statut");
 
-  inputs[4].checked = false;
-  inputs[4].dispatch("change");
-  inputs[5].checked = true;
-  inputs[5].dispatch("change");
-  expect(inputs[5].checked).toBe(true);
+  fifth.checked = false;
+  fifth.dispatch("change");
+  sixth.checked = true;
+  sixth.dispatch("change");
+  expect(sixth.checked).toBe(true);
 });
 
 it("uses the text-node fallback and tolerates DOM stubs without listeners", () => {
