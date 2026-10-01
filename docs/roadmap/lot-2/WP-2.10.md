@@ -5,8 +5,8 @@
 - Work Packet ID: WP-2.10
 - Lot: 2 — Venues core
 - Name: Venue local cache and pending offline mutations
-- State: `REVIEW_FAILED`
-- Current pass: `B-ADVERSARIAL-REVIEW — FAILED / AR-001/002 REMEDIATION GREEN + WP210-AR-003 MAJOR OPEN`
+- State: `ACCEPTANCE_PENDING`
+- Current pass: `C-ACCEPTANCE — fresh Pass B PASS / WP210-AR-001..003 CLOSED / VERIFIED`
 - Primary bounded context: Venues + local-data/sync foundation
 - Branch: `lot-2/venues-core`
 - Activation base: `c5cfe273468eb56592f8fe8f0de9eb764d671a58`
@@ -155,14 +155,15 @@ No production/private wedding data or external-provider mutation was used.
 
 ## Handoff
 
-- Current state: REVIEW_FAILED
-- Current/next pass: B-ADVERSARIAL-REVIEW — WP210-AR-003 REMEDIATION
+- Current state: ACCEPTANCE_PENDING
+- Current/next pass: C-ACCEPTANCE — separate EXPECTED ↔ IMPLEMENTED ↔ VERIFIED reconciliation
 - Pass-A green implementation: `eca752c145f9c59c1d0ca17d938569d8977fba92` / CI `36713679555` attempt 2, five ordinary jobs SUCCESS including clean checkout
 - AR-001/002 remediation green head: `f3b0fc8528510f151bced32c1ba4760437c25d32` / CI `36838716613`, five ordinary jobs SUCCESS including clean checkout
 - FIR: #42 — FTR-028 remains IN_PROGRESS because WP-2.12 owns downstream mobile-visit/offline-package completion
-- Review findings: `WP210-AR-001` — MAJOR / remediation green but awaiting fresh Pass B; `WP210-AR-002` — MAJOR / remediation green but awaiting fresh Pass B; `WP210-AR-003` — MAJOR / OPEN — stale acknowledgement settlement accepts a same-operation/same-target persisted mutation whose immutable intent changed
-- Pass-B record: `docs/roadmap/lot-2/WP-2.10-PASS-B-REVIEW-2026-09-30.md`
-- Next permitted action: bounded RED-first remediation of WP210-AR-003, exact-head verification, then a new complete fresh Pass B over WP210-AR-001/002/003 and the full packet. No Pass C or WP-2.11 start is authorized.
+- Review findings: `WP210-AR-001`, `WP210-AR-002`, `WP210-AR-003` — CLOSED / VERIFIED by the complete fresh Pass B on `b0658cd9a6e9a0ebeb957a1a3157193ab4e611ec` / CI `36846712515`
+- Historical failed Pass-B record: `docs/roadmap/lot-2/WP-2.10-PASS-B-REVIEW-2026-09-30.md`
+- Clean fresh Pass-B record: `docs/roadmap/lot-2/WP-2.10-FRESH-PASS-B-2026-10-01.md`
+- Next permitted action: separate Pass C acceptance reconciliation. WP-2.11 remains blocked until the Pass-C acceptance record passes exact-head five-job CI including clean checkout.
 
 ## Pass B result — 2026-09-30
 
@@ -240,3 +241,14 @@ identity of one queued operation.
 
 No last-write-wins fallback, queue deletion workaround, schema downgrade or
 scope expansion is authorized.
+
+
+## Fresh Pass B result — 2026-10-01
+
+The complete independent review in
+`docs/roadmap/lot-2/WP-2.10-FRESH-PASS-B-2026-10-01.md` is **PASS** on
+`b0658cd9a6e9a0ebeb957a1a3157193ab4e611ec` / CI `36846712515`.
+WP210-AR-001/002/003 are CLOSED / VERIFIED, unresolved findings = ∅, and the
+packet enters `ACCEPTANCE_PENDING / C-ACCEPTANCE`. This does not accept
+FTR-028 as a whole and does not authorize WP-2.11 implementation before the
+separate Pass-C acceptance record is exact-head green.

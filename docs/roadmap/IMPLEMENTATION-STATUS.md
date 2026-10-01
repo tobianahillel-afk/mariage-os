@@ -40,7 +40,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.9A | Venue-linked private PDF/document foundation                           | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.9C | trusted private-document ingestion hardening                           | **ACCEPTED / COMPLETE**                                                      |
 | WP-2.9B | generic project tags and Venue entity-tag links                        | **ACCEPTED / COMPLETE — Pass C gap ∅**                                      |
-| WP-2.10 | repositories, local cache, pending/offline mutations                   | **REVIEW_FAILED — AR-001/002 remediated green; WP210-AR-003 MAJOR / OPEN** |
+| WP-2.10 | repositories, local cache, pending/offline mutations                   | **ACCEPTANCE_PENDING — fresh Pass B PASS; AR-001/002/003 CLOSED / VERIFIED** |
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace                       | PLANNED                                                                    |
 | WP-2.12 | mobile/offline venue-visit workflow and packet E2E completion          | PLANNED                                                                    |
 
@@ -53,9 +53,10 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 - Scope is Venue-local only: cache essential Venue core records, durable pending Venue edits, retry-safe operation receipts for Venue core update/lifecycle transition, restart/session-expiry preservation and project/account isolation. Generic cross-domain sync remains Lot 10.
 - Pass A implementation head `eca752c145f9c59c1d0ca17d938569d8977fba92` / CI `36713679555` rerun attempt 2 passed **5/5 ordinary jobs**, including full verify from clean checkout; provider-only jobs were skipped.
 - FIR #42 records FTR-028's bounded current slice and downstream WP-2.12 responsibility.
-- Fresh Pass B record `WP-2.10-PASS-B-REVIEW-2026-09-30.md` remains **FAIL**. AR-001 and AR-002 now have exact-head-green remediation evidence at `f3b0fc8528510f151bced32c1ba4760437c25d32` / CI `36838716613` (5/5 SUCCESS including clean checkout), but they remain formally open until a new complete fresh Pass B.
-- Post-remediation adversarial RED-only PR #56 confirmed `WP210-AR-003` MAJOR / OPEN: settlement can accept/delete a persisted same-operation/same-target mutation whose immutable intent changed before acknowledgement. RED CI `36840025014` reached unit tests and failed only the new scenario because the settlement promise resolved instead of rejecting.
-- Current/next pass: **REVIEW_FAILED / bounded RED-first remediation of WP210-AR-003**. No Pass C or acceptance is authorized.
+- Historical Pass B `WP-2.10-PASS-B-REVIEW-2026-09-30.md` remains the failed-review record that discovered AR-001 and later AR-002/003.
+- AR-003 RED evidence remains closed PR #56 / `aa511f38c0cddef69bc6dea829eaa4e8090345c2` / CI `36840025014`. Final bounded remediation head `b0658cd9a6e9a0ebeb957a1a3157193ab4e611ec` / CI `36846712515` passed **5/5 ordinary jobs**, including clean checkout; 208 test files / 1,833 tests passed at 100% code coverage, DB/RLS/promotion passed, browser 40/40 passed and mutation score was 82.50%.
+- Complete fresh independent Pass B: `docs/roadmap/lot-2/WP-2.10-FRESH-PASS-B-2026-10-01.md` — **PASS**, no unresolved BLOCKING/MAJOR/MINOR; WP210-AR-001/002/003 CLOSED / VERIFIED.
+- Current/next pass: **ACCEPTANCE_PENDING / C-ACCEPTANCE**. WP-2.11 remains blocked until separate Pass C and its exact-head CI are green.
 
 ## Accepted packet evidence summary
 
@@ -288,7 +289,8 @@ Normative release/deployment/secret contracts require Pages Functions to deploy 
 61. WP-2.10 Pass-A head `eca752c145f9c59c1d0ca17d938569d8977fba92` / CI `36713679555` rerun attempt 2 passed **5/5 ordinary jobs**, including clean checkout. Core reported 201 test files / 1,801 tests at 100% code coverage; DB/RLS/Pages integration passed; browser 40/40 passed; mutation score 82.50%. FIR #42 is current. WP-2.10 transitions `IN_PROGRESS / A-IMPLEMENT -> REVIEW_PENDING / B-ADVERSARIAL-REVIEW`. No Pass B or acceptance is claimed.
 62. Review-entry seal `333f584fd00ca2830839540f43465d21072e7616` / CI `36715447094` passed **5/5**, including clean checkout. Fresh `WP-2.10-PASS-B-REVIEW-2026-09-30.md` reconstructed the offline/sync contracts and found `WP210-AR-001` MAJOR / OPEN: settling an older same-Venue operation can overwrite the cached newer local working value as `synced` while the newer mutation remains unresolved in the queue. Verdict **FAIL**; transition `REVIEW_PENDING -> REVIEW_FAILED`.
 63. AR-001 settlement-order and AR-002 atomic-refresh remediation are exact-head green at `f3b0fc8528510f151bced32c1ba4760437c25d32` / CI `36838716613`: five ordinary jobs SUCCESS including clean checkout. Neither finding is formally closed until the next complete fresh Pass B.
-64. Fresh post-remediation adversarial review found `WP210-AR-003` MAJOR / OPEN. Closed RED-only PR #56 / head `aa511f38c0cddef69bc6dea829eaa4e8090345c2` reproduced same-operation/same-target changed-intent loss; CI `36840025014` reached unit tests and the new test failed because settlement resolved successfully instead of rejecting. Next is bounded immutable-intent settlement validation, exact-head CI/clean checkout, then a complete fresh Pass B over AR-001/002/003 and the full packet.
+64. Fresh post-remediation adversarial review found `WP210-AR-003` MAJOR / OPEN. Closed RED-only PR #56 / head `aa511f38c0cddef69bc6dea829eaa4e8090345c2` reproduced same-operation/same-target changed-intent loss; CI `36840025014` reached unit tests and the new test failed because settlement resolved successfully instead of rejecting.
+65. AR-003 remediation and test-harness reconciliation reached exact-head `b0658cd9a6e9a0ebeb957a1a3157193ab4e611ec` / CI `36846712515` — **5/5 SUCCESS** including clean checkout. A new complete independent Pass B closed WP210-AR-001/002/003 as VERIFIED with no new finding and moved WP-2.10 to `ACCEPTANCE_PENDING / C-ACCEPTANCE`.
 
 ## Durable handoff
 
@@ -301,7 +303,7 @@ Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.8C, WP-2.9C, WP-2.9A, WP-2.9B
 WP-2.9C: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 21accd7f9ab1b845275507b7941a782c5e816a56 / CI 36494697647 5/5 including clean checkout
 WP-2.9A: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 656398bcd5520cfa56d782023d150eb64317161d / CI 36542083037 5/5 including clean checkout
-Current packet: WP-2.10 — REVIEW_FAILED; WP210-AR-001/002 remediation exact-head green at `f3b0fc8528510f151bced32c1ba4760437c25d32` / CI `36838716613` 5/5 including clean checkout but awaiting fresh Pass B; WP210-AR-003 MAJOR / OPEN (same-operation/same-target changed intent can be deleted by stale acknowledgement settlement); FIR #42
+Current packet: WP-2.10 — ACCEPTANCE_PENDING / C-ACCEPTANCE; fresh Pass B PASS on `b0658cd9a6e9a0ebeb957a1a3157193ab4e611ec` / CI `36846712515`; WP210-AR-001/002/003 CLOSED / VERIFIED; FIR #42
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
@@ -340,5 +342,5 @@ FTR-089 FIR: #17 — IN_PROGRESS / parent A accepted, later presentation and Lot
 WP-2.9B: ACCEPTED / COMPLETE; FTR-093 FIR #27 remains IN_PROGRESS for downstream scope; WP29B-AR-001/002 CLOSED / VERIFIED; Pass C gap ∅
 Lots 3–12: NOT_STARTED
 Latest distinct-PDF campaign: 2303df0c9e8d6f72561ec0ce42514663801229d8 / CI 36459949861 / provider job 109058754517 / artifact 10987866873 — 10 distinct exact-size PDFs, 10 finalized flows, 20 valid exact-version CPU readings within Workers Free; provider verdict PASS
-Next permitted action: bounded RED-first remediation of WP210-AR-003. Settlement must validate the persisted current mutation against the expected immutable intent (scope, operation/target, mutation type, base revision, createdAt, priority and payload) before deleting it or writing an acknowledgement cache record; retry/status metadata remain mutable. PR #56 is the closed non-merged RED evidence. Run exact-head five-job CI + clean checkout, then a new complete fresh Pass B over WP210-AR-001/002/003 and the full packet. WP-2.11, Pass C and Lot integration remain blocked.
+Next permitted action: run separate WP-2.10 Pass C acceptance reconciliation (EXPECTED ↔ IMPLEMENTED ↔ VERIFIED). WP-2.11 and Lot integration remain blocked until the acceptance record is exact-head green. FTR-028 remains IN_PROGRESS after this packet because WP-2.12 owns mobile venue-visit/offline-package completion.
 ```
