@@ -1,6 +1,4 @@
-import type {
-  LocalProjectStore,
-} from "@application/local-data/local-project-store";
+import type { LocalProjectStore } from "@application/local-data/local-project-store";
 import {
   VENUE_CACHE_RECORD_TYPE,
   venueFromCachedRecord,
@@ -14,9 +12,7 @@ import {
   getVenueCompatibility,
   type VenueCompatibilityReadModel,
 } from "@application/venues/venue-compatibility-service";
-import type {
-  VenueCompatibilityQueryPort,
-} from "@application/venues/venue-compatibility-query-port";
+import type { VenueCompatibilityQueryPort } from "@application/venues/venue-compatibility-query-port";
 import type {
   VenueCoreRecord,
   VenueRepositoryPort,
