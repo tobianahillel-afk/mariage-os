@@ -41,7 +41,11 @@ function descendants(element: FakeElement): FakeElement[] {
   return [element, ...element.children.flatMap(descendants)];
 }
 
-function countAttribute(root: FakeElement, name: string, value: string): number {
+function countAttribute(
+  root: FakeElement,
+  name: string,
+  value: string,
+): number {
   return descendants(root).filter(
     (element) => element.getAttribute(name) === value,
   ).length;
