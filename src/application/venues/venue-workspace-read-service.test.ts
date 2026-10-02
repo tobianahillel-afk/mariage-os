@@ -183,6 +183,59 @@ it("keeps pending local working intent above the cloud copy", async () => {
   expect(item?.syncState).toBe("pending");
 });
 
+it.each(["pending", "conflict"] as const)(
+  "keeps a local-only %s Venue visible while cloud listing succeeds",
+  async (syncMarker) => {
+    const cloud = venue(
+      "91111111-1111-4111-8111-111111111118",
+      "S1",
+      "Cloud",
+    );
+    const localOnly = venue(
+      "91111111-1111-4111-8111-111111111119",
+      "S2",
+      "Unresolved local",
+    );
+    const record = venueCachedRecord(
+      { projectId, userId, deviceId },
+      localOnly,
+      syncMarker,
+    );
+
+    const result = await service(repositoryWith([cloud])).list(
+      projectId,
+      localStore(record),
+    );
+
+    expect(result.map((item) => item.venue.id)).toEqual([
+      cloud.id,
+      localOnly.id,
+    ]);
+    expect(result[1]?.syncState).toBe(syncMarker);
+  },
+);
+
+it("does not resurrect a local-only synced Venue when cloud listing succeeds", async () => {
+  const cloud = venue("91111111-1111-4111-8111-111111111118", "S1", "Cloud");
+  const localOnly = venue(
+    "91111111-1111-4111-8111-111111111119",
+    "S2",
+    "Stale local",
+  );
+  const record = venueCachedRecord(
+    { projectId, userId, deviceId },
+    localOnly,
+    "synced",
+  );
+
+  const result = await service(repositoryWith([cloud])).list(
+    projectId,
+    localStore(record),
+  );
+
+  expect(result.map((item) => item.venue.id)).toEqual([cloud.id]);
+});
+
 it("falls back to project-scoped local cache when cloud listing fails", async () => {
   const cached = venue(venueId, "S2", "Cache");
   const record = venueCachedRecord(
