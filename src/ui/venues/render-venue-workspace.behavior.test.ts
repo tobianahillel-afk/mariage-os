@@ -182,7 +182,9 @@ it("renders safe project-scoped Gallery cards and switches to the bounded Table"
     root,
     "venue-mobile-table-fallback",
   )[0] as FakeElement;
-  expect(byAttribute(gallery, "data-venue-card", first.venue.id)).toHaveLength(1);
+  expect(
+    byAttribute(gallery, "data-venue-card", first.venue.id),
+  ).toHaveLength(1);
   expect(
     byAttribute(mobileFallback, "data-venue-card", first.venue.id),
   ).toHaveLength(1);
