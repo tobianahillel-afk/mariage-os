@@ -1,5 +1,10 @@
 import type { VenueWorkspaceItem } from "@application/venues/venue-workspace-read-service";
 import type { VenueWorkspaceRoute } from "@application/venues/venue-workspace-route";
+import {
+  capacityContext,
+  missingCriticalContext,
+  priceContext,
+} from "./venue-workspace-decision-presentation";
 
 export function textElement(
   tag: string,
@@ -80,8 +85,13 @@ export function venueCard(
     textElement("p", `Statut · ${item.venue.status}`, "venue-fact"),
     textElement("p", `Ville · ${item.venue.city ?? "—"}`, "venue-fact"),
     textElement("p", `Blocage · ${blocker(item)}`, "venue-fact"),
-    textElement("p", `Score · ${score(item)}`, "venue-fact"),
-    textElement("p", `Preuves · ${readiness(item)}`, "venue-fact"),
+    textElement("p", `Capacité · ${capacityContext(item)}`, "venue-fact"),
+    textElement("p", `Prix · ${priceContext(item)}`, "venue-fact"),
+    textElement(
+      "p",
+      `Manquants critiques · ${missingCriticalContext(item)}`,
+      "venue-fact",
+    ),
     textElement("p", `Avis partenaires · ${averageRating(item)}`, "venue-fact"),
     textElement("p", syncLabel(item), "venue-sync-state"),
   );
