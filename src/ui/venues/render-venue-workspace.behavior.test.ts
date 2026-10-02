@@ -177,7 +177,15 @@ it("renders safe project-scoped Gallery cards and switches to the bounded Table"
     items: [first],
   }) as unknown as FakeElement;
 
-  expect(byAttribute(root, "data-venue-card", first.venue.id)).toHaveLength(1);
+  const gallery = byClass(root, "venue-gallery")[0] as FakeElement;
+  const mobileFallback = byClass(
+    root,
+    "venue-mobile-table-fallback",
+  )[0] as FakeElement;
+  expect(byAttribute(gallery, "data-venue-card", first.venue.id)).toHaveLength(1);
+  expect(
+    byAttribute(mobileFallback, "data-venue-card", first.venue.id),
+  ).toHaveLength(1);
   expect(texts(root)).toContain(`V1 · ${hostileName}`);
   expect(texts(root)).toContain("Modification en attente");
   expect(texts(root)).toContain("Avis partenaires · 4.0");
@@ -185,7 +193,6 @@ it("renders safe project-scoped Gallery cards and switches to the bounded Table"
     byAttribute(root, "href", `/app/p/${projectId}/venues/${first.venue.id}`),
   ).toHaveLength(3);
 
-  const gallery = byClass(root, "venue-gallery")[0] as FakeElement;
   const tablePanel = byClass(root, "venue-table-panel")[0] as FakeElement;
   const tableButton = byAttribute(
     root,
