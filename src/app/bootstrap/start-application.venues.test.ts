@@ -56,8 +56,7 @@ function workspaceService(
 
 function renderedProjectState(): ProjectShellState {
   const state = renderShell.mock.calls.at(-1)?.[1] as
-    | ProjectShellState
-    | undefined;
+    ProjectShellState | undefined;
   if (state?.kind !== "project_allowed") {
     throw new Error("Expected rendered project shell.");
   }
