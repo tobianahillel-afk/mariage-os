@@ -169,7 +169,7 @@ it("renders safe project-scoped Gallery cards and switches to the bounded Table"
   installDocument();
   const hostileName = '<img src=x onerror="alert(1)">';
   const first = item(1, {
-    venue: { ...item(1).venue, name: hostileName },
+    venue: { ...item(1).venue, name: hostileName, city: null },
     syncState: "pending",
   });
   const root = createVenueWorkspace(projectId, "/venues", {
@@ -190,6 +190,7 @@ it("renders safe project-scoped Gallery cards and switches to the bounded Table"
   ).toHaveLength(1);
   expect(texts(root)).toContain(`V1 · ${hostileName}`);
   expect(texts(root)).toContain("Modification en attente");
+  expect(texts(root)).toContain("Ville · —");
   expect(texts(root)).toContain("Avis partenaires · 4.0");
   expect(
     byAttribute(root, "href", `/app/p/${projectId}/venues/${first.venue.id}`),
@@ -275,7 +276,12 @@ it("renders empty Gallery and decision-first Detail without disclosing missing e
 
 it("limits Compare to five selections and keeps blocking differences visible", () => {
   installDocument();
-  const candidates = Array.from({ length: 6 }, (_, index) => item(index + 1));
+  const candidates = Array.from({ length: 6 }, (_, index) => {
+    const candidate = item(index + 1);
+    return index === 1
+      ? { ...candidate, venue: { ...candidate.venue, city: null } }
+      : candidate;
+  });
   const root = createVenueWorkspace(projectId, "/venues/compare", {
     kind: "compare",
     items: candidates,
