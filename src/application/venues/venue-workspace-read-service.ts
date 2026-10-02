@@ -105,7 +105,12 @@ function mergeVenues(
       .sort(naturalVenueOrder);
   }
   const cloudIds = new Set(cloud.map((venue) => venue.id));
-  const venues = cloud.map((venue) => local.get(venue.id)?.venue ?? venue);
+  const venues = cloud.map((venue) => {
+    const localState = local.get(venue.id);
+    return localState !== undefined && localState.syncState !== "synced"
+      ? localState.venue
+      : venue;
+  });
   for (const [venueId, state] of local) {
     if (!cloudIds.has(venueId) && state.syncState !== "synced") {
       venues.push(state.venue);
