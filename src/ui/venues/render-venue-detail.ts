@@ -1,5 +1,18 @@
 import type { VenueWorkspaceItem } from "@application/venues/venue-workspace-read-service";
 import {
+  accessContext,
+  accessDetails,
+  availabilityContext,
+  capacityContext,
+  externalCatererContext,
+  missingCriticalContext,
+  nextAction,
+  priceContext,
+  quoteContext,
+  reservationsContext,
+  strengthsContext,
+} from "./venue-workspace-decision-presentation";
+import {
   averageRating,
   blocker,
   projectVenueHref,
@@ -9,6 +22,82 @@ import {
   textElement,
   workspaceSection,
 } from "./venue-workspace-presentation";
+
+function fact(label: string, value: string): HTMLElement {
+  return textElement("p", `${label} · ${value}`, "venue-fact");
+}
+
+function factGroup(
+  title: string,
+  entries: readonly [string, string][],
+): HTMLElement {
+  const group = document.createElement("section");
+  group.className = "venue-detail-group";
+  group.append(textElement("h3", title, "venue-detail-group-title"));
+  for (const [label, value] of entries) group.append(fact(label, value));
+  return group;
+}
+
+function decisionSummary(item: VenueWorkspaceItem): HTMLElement {
+  const decision = document.createElement("div");
+  decision.className = "venue-decision-summary";
+  const blocking = fact("Blocage", blocker(item));
+  blocking.setAttribute("data-venue-blocking-status", blocker(item));
+  const weighted = fact("Score", score(item));
+  weighted.setAttribute("data-venue-weighted-score", score(item));
+  decision.append(
+    textElement(
+      "h2",
+      `${item.venue.code} · ${item.venue.name}`,
+      "section-title",
+    ),
+    fact("Ville", item.venue.city ?? "—"),
+    textElement("p", syncLabel(item), "venue-sync-state"),
+    blocking,
+    fact("Capacité", capacityContext(item)),
+    fact("Prix", priceContext(item)),
+    fact("Accès", accessContext(item)),
+    fact("Manquants critiques", missingCriticalContext(item)),
+    fact("Avis partenaires", averageRating(item)),
+    fact("Prochaine action", nextAction(item)),
+    fact("Forces", strengthsContext(item)),
+    fact("Réserves", reservationsContext(item)),
+    weighted,
+  );
+  return decision;
+}
+
+function commercialGroup(item: VenueWorkspaceItem): HTMLElement {
+  return factGroup("Commercial", [
+    ["Prix", priceContext(item)],
+    ["Devis", quoteContext(item)],
+    ["Disponibilité", availabilityContext(item)],
+    ["Traiteur externe", externalCatererContext(item)],
+  ]);
+}
+
+function logisticsGroup(item: VenueWorkspaceItem): HTMLElement {
+  const access = accessDetails(item);
+  return factGroup("Logistique", [
+    ["Capacité", capacityContext(item)],
+    ["Accès", access.length === 0 ? "—" : access.join(" · ")],
+  ]);
+}
+
+function evidenceGroup(item: VenueWorkspaceItem): HTMLElement {
+  return factGroup("Éléments de preuve", [
+    ["Preuves", readiness(item)],
+    ["Manquants critiques", missingCriticalContext(item)],
+  ]);
+}
+
+function downstreamVisit(projectId: string, venueId: string): HTMLAnchorElement {
+  const visit = document.createElement("a");
+  visit.textContent = "Préparer la visite";
+  visit.setAttribute("href", projectVenueHref(projectId, `/${venueId}/visit`));
+  visit.setAttribute("data-downstream-visit", "true");
+  return visit;
+}
 
 export function renderVenueDetail(
   projectId: string,
@@ -31,33 +120,12 @@ export function renderVenueDetail(
   }
 
   section.setAttribute("data-venue-id", item.venue.id);
-  const decision = document.createElement("div");
-  decision.className = "venue-decision-summary";
-  const blocking = textElement("p", `Blocage · ${blocker(item)}`, "venue-fact");
-  blocking.setAttribute("data-venue-blocking-status", blocker(item));
-  const weighted = textElement("p", `Score · ${score(item)}`, "venue-fact");
-  weighted.setAttribute("data-venue-weighted-score", score(item));
-  decision.append(
-    textElement(
-      "h2",
-      `${item.venue.code} · ${item.venue.name}`,
-      "section-title",
-    ),
-    textElement("p", syncLabel(item), "venue-sync-state"),
-    blocking,
-    weighted,
-    textElement("p", `Preuves · ${readiness(item)}`, "venue-fact"),
-    textElement("p", `Avis partenaires · ${averageRating(item)}`, "venue-fact"),
-    textElement("p", `Ville · ${item.venue.city ?? "—"}`, "venue-fact"),
+  section.append(
+    decisionSummary(item),
+    commercialGroup(item),
+    logisticsGroup(item),
+    evidenceGroup(item),
+    downstreamVisit(projectId, item.venue.id),
   );
-
-  const visit = document.createElement("a");
-  visit.textContent = "Préparer la visite";
-  visit.setAttribute(
-    "href",
-    projectVenueHref(projectId, `/${item.venue.id}/visit`),
-  );
-  visit.setAttribute("data-downstream-visit", "true");
-  section.append(decision, visit);
   return section;
 }

@@ -35,8 +35,8 @@ const compareRows: readonly CompareRow[] = [
   { label: "Devis", value: quoteContext },
   { label: "Preuves", value: readiness },
   { label: "Manquants critiques", value: missingCriticalContext },
-  { label: "Score", value: score },
   { label: "Avis partenaires", value: averageRating },
+  { label: "Score", value: score },
 ];
 
 function onlyDifferent(
