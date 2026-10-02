@@ -1,0 +1,27 @@
+name: WP-2.11 bootstrap Prettier diagnostic
+
+on:
+  push:
+    branches:
+      - diagnostic/wp211-bootstrap-prettier-20261002
+
+permissions:
+  contents: read
+
+jobs:
+  prettier-oracle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Print pinned Prettier diff
+        run: |
+          npx prettier --write src/app/bootstrap/start-application.venues.test.ts
+          git diff -- src/app/bootstrap/start-application.venues.test.ts
+          exit 1
