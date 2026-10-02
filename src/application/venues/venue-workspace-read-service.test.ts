@@ -186,11 +186,7 @@ it("keeps pending local working intent above the cloud copy", async () => {
 it.each(["pending", "conflict"] as const)(
   "keeps a local-only %s Venue visible while cloud listing succeeds",
   async (syncMarker) => {
-    const cloud = venue(
-      "91111111-1111-4111-8111-111111111118",
-      "S1",
-      "Cloud",
-    );
+    const cloud = venue("91111111-1111-4111-8111-111111111118", "S1", "Cloud");
     const localOnly = venue(
       "91111111-1111-4111-8111-111111111119",
       "S2",
