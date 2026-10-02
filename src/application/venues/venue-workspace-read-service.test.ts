@@ -211,6 +211,24 @@ it.each(["pending", "conflict"] as const)(
   },
 );
 
+it("prefers the fresh cloud Venue over a same-id synced cache copy", async () => {
+  const cloud = venue(venueId, "S2", "Fresh cloud");
+  const stale = { ...cloud, name: "Stale synced cache" };
+  const record = venueCachedRecord(
+    { projectId, userId, deviceId },
+    stale,
+    "synced",
+  );
+
+  const [item] = await service(repositoryWith([cloud])).list(
+    projectId,
+    localStore(record),
+  );
+
+  expect(item?.venue.name).toBe("Fresh cloud");
+  expect(item?.syncState).toBe("synced");
+});
+
 it("does not resurrect a local-only synced Venue when cloud listing succeeds", async () => {
   const cloud = venue("91111111-1111-4111-8111-111111111118", "S1", "Cloud");
   const localOnly = venue(
