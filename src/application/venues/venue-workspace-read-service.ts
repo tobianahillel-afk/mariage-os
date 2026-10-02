@@ -24,9 +24,11 @@ import type {
 import { compareVenueCodes } from "@domain/venues/venue-code";
 
 type VenueWorkspaceSyncState = "synced" | "pending" | "conflict" | "unknown";
+type VenueWorkspaceBlockingStatus =
+  VenueCompatibilityReadModel["aggregate"]["blockingStatus"];
 
 export interface VenueWorkspaceCompatibilitySummary {
-  readonly blockingStatus: VenueCompatibilityReadModel["aggregate"]["blockingStatus"];
+  readonly blockingStatus: VenueWorkspaceBlockingStatus;
   readonly weightedScore: number | null;
   readonly evidenceReadiness: number | null;
   readonly unknownImportantCriteria: number;

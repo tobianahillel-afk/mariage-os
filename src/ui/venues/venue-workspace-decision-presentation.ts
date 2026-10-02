@@ -73,11 +73,15 @@ function routeContext(
 ): string | null {
   if (route === null || route === undefined) return null;
   const duration =
-    route.durationMinutes === null ? "durée inconnue" : `${route.durationMinutes} min`;
+    route.durationMinutes === null
+      ? "durée inconnue"
+      : `${route.durationMinutes} min`;
   const transfers =
     route.transfersCount === null
       ? ""
-      : ` · ${route.transfersCount} correspondance${route.transfersCount === 1 ? "" : "s"}`;
+      : ` · ${route.transfersCount} correspondance${
+          route.transfersCount === 1 ? "" : "s"
+        }`;
   return `${label} · ${route.originLabel} · ${duration}${transfers}`;
 }
 
@@ -154,6 +158,7 @@ export function reservationsContext(item: VenueWorkspaceItem): string {
   const missing = item.compatibility?.missingCriticalCriteria;
   const conflicts = item.compatibility?.conflictingCriteria;
   if (missing === undefined || conflicts === undefined) return "—";
-  if (missing === 0 && conflicts === 0) return "Aucune réserve critique connue";
+  if (missing === 0 && conflicts === 0)
+    return "Aucune réserve critique connue";
   return `${missing} manquant(s) critique(s) · ${conflicts} conflit(s)`;
 }

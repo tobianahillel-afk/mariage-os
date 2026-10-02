@@ -1,9 +1,6 @@
 import type { VenueAccessPort } from "./venue-access-service";
 import type { VenueAvailabilityPort } from "./venue-availability-service";
-import type {
-  VenueOfferPort,
-  VenueOfferRecord,
-} from "./venue-offer-service";
+import type { VenueOfferPort, VenueOfferRecord } from "./venue-offer-service";
 import {
   effectiveVenueAvailabilityStatus,
   latestVenueAvailability,

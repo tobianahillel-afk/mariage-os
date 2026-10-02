@@ -1,14 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import type {
-  VenueAccessPort,
-} from "./venue-access-service";
-import type {
-  VenueAvailabilityPort,
-} from "./venue-availability-service";
-import type {
-  VenueOfferPort,
-  VenueOfferRecord,
-} from "./venue-offer-service";
+import type { VenueAccessPort } from "./venue-access-service";
+import type { VenueAvailabilityPort } from "./venue-availability-service";
+import type { VenueOfferPort, VenueOfferRecord } from "./venue-offer-service";
 import type { VenueAvailabilityRecord } from "@domain/venues/venue-availability";
 import type {
   VenueAccessRouteRecord,
@@ -143,58 +136,67 @@ function service(options?: {
 }
 
 describe("VenueWorkspaceDecisionContextService", () => {
-  it("composes typed commercial, dated availability and contextual access", async () => {
-    const result = await service({
-      offers: [offer("quoted", 1_250_000), offer("quoted", 1_500_000)],
-    }).read(projectId, venueId);
+  it(
+    "composes typed commercial, dated availability and contextual access",
+    async () => {
+      const result = await service({
+        offers: [offer("quoted", 1_250_000), offer("quoted", 1_500_000)],
+      }).read(projectId, venueId);
 
-    expect(result).toEqual({
-      commercial: {
-        quoteState: "quoted",
-        price: {
-          kind: "known",
-          currency: "EUR",
-          minimumAmountMinor: 1_250_000,
-          maximumAmountMinor: 1_500_000,
+      expect(result).toEqual({
+        commercial: {
+          quoteState: "quoted",
+          price: {
+            kind: "known",
+            currency: "EUR",
+            minimumAmountMinor: 1_250_000,
+            maximumAmountMinor: 1_500_000,
+          },
         },
-      },
-      availability: {
-        eventDate: "2027-06-12",
-        status: "expired",
-        optionExpiresAt: "2026-10-02T10:00:00.000Z",
-        observedAt: "2026-10-01T10:00:00.000Z",
-      },
-      access: {
-        car: expect.objectContaining({
-          mode: "car",
-          originLabel: "Paris",
-          durationMinutes: 55,
-        }),
-        publicTransport: expect.objectContaining({
-          mode: "public_transport",
-          originLabel: "Paris",
-          durationMinutes: 70,
-          transfersCount: 1,
-        }),
-      },
-    });
-  });
+        availability: {
+          eventDate: "2027-06-12",
+          status: "expired",
+          optionExpiresAt: "2026-10-02T10:00:00.000Z",
+          observedAt: "2026-10-01T10:00:00.000Z",
+        },
+        access: {
+          car: expect.objectContaining({
+            mode: "car",
+            originLabel: "Paris",
+            durationMinutes: 55,
+          }),
+          publicTransport: expect.objectContaining({
+            mode: "public_transport",
+            originLabel: "Paris",
+            durationMinutes: 70,
+            transfersCount: 1,
+          }),
+        },
+      });
+    },
+  );
 
-  it("does not mix currencies or turn provider failure into a fake quote", async () => {
-    const mixed = await service({
-      offers: [
-        offer("accepted", 1_000_000, "EUR"),
-        offer("accepted", 1_200_000, "USD"),
-      ],
-    }).read(projectId, venueId);
-    expect(mixed.commercial).toEqual({
-      quoteState: "accepted",
-      price: { kind: "mixed_currency" },
-    });
+  it(
+    "does not mix currencies or turn provider failure into a fake quote",
+    async () => {
+      const mixed = await service({
+        offers: [
+          offer("accepted", 1_000_000, "EUR"),
+          offer("accepted", 1_200_000, "USD"),
+        ],
+      }).read(projectId, venueId);
+      expect(mixed.commercial).toEqual({
+        quoteState: "accepted",
+        price: { kind: "mixed_currency" },
+      });
 
-    const failed = await service({ failOffers: true }).read(projectId, venueId);
-    expect(failed.commercial).toBeNull();
-    expect(failed.availability?.eventDate).toBe("2027-06-12");
-    expect(failed.access?.car?.durationMinutes).toBe(55);
-  });
+      const failed = await service({ failOffers: true }).read(
+        projectId,
+        venueId,
+      );
+      expect(failed.commercial).toBeNull();
+      expect(failed.availability?.eventDate).toBe("2027-06-12");
+      expect(failed.access?.car?.durationMinutes).toBe(55);
+    },
+  );
 });
