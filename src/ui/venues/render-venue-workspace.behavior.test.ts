@@ -196,13 +196,14 @@ it("renders safe project-scoped Gallery cards and switches to the bounded Table"
   ).toHaveLength(3);
 
   const tablePanel = byClass(root, "venue-table-panel")[0] as FakeElement;
+  const switcher = byClass(root, "venue-view-switcher")[0] as FakeElement;
   const tableButton = byAttribute(
-    root,
+    switcher,
     "data-venue-mode",
     "table",
   )[0] as FakeElement;
   const galleryButton = byAttribute(
-    root,
+    switcher,
     "data-venue-mode",
     "gallery",
   )[0] as FakeElement;
