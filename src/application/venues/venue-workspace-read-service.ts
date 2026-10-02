@@ -17,16 +17,29 @@ import type {
   VenueCoreRecord,
   VenueRepositoryPort,
 } from "@application/venues/venue-repository-port";
+import type {
+  VenueWorkspaceDecisionContext,
+  VenueWorkspaceDecisionContextReader,
+} from "@application/venues/venue-workspace-decision-context";
 import { compareVenueCodes } from "@domain/venues/venue-code";
 
 type VenueWorkspaceSyncState = "synced" | "pending" | "conflict" | "unknown";
+type VenueWorkspaceBlockingStatus =
+  VenueCompatibilityReadModel["aggregate"]["blockingStatus"];
 
 export interface VenueWorkspaceCompatibilitySummary {
-  readonly blockingStatus: VenueCompatibilityReadModel["aggregate"]["blockingStatus"];
+  readonly blockingStatus: VenueWorkspaceBlockingStatus;
   readonly weightedScore: number | null;
   readonly evidenceReadiness: number | null;
   readonly unknownImportantCriteria: number;
   readonly conflictingCriteria: number;
+  readonly missingCriticalCriteria: number;
+  readonly targetGuestCount: number | null;
+  readonly supportMaximumGuestCount: number | null;
+  readonly targetGuestCountPasses: boolean | null;
+  readonly externalCatererOutcome:
+    | VenueCompatibilityReadModel["evaluations"][number]["outcome"]
+    | null;
 }
 
 interface VenueWorkspaceOpinionSummary {
@@ -38,6 +51,7 @@ export interface VenueWorkspaceItem {
   readonly venue: VenueCoreRecord;
   readonly syncState: VenueWorkspaceSyncState;
   readonly compatibility: VenueWorkspaceCompatibilitySummary | null;
+  readonly decisionContext: VenueWorkspaceDecisionContext | null;
   readonly opinions: VenueWorkspaceOpinionSummary;
 }
 
@@ -45,6 +59,7 @@ interface VenueWorkspaceReadDependencies {
   readonly repository: VenueRepositoryPort;
   readonly compatibility: VenueCompatibilityQueryPort;
   readonly opinions: VenueMemberOpinionPort;
+  readonly decisionContext?: VenueWorkspaceDecisionContextReader;
   readonly now: () => string;
 }
 
@@ -68,12 +83,27 @@ function naturalVenueOrder(
 function compatibilitySummary(
   model: VenueCompatibilityReadModel,
 ): VenueWorkspaceCompatibilitySummary {
+  const comparison = model.dynamicGuestCountExplanation?.comparison ?? null;
+  const externalCaterer = model.evaluations.find(
+    (evaluation) => evaluation.key === "external_caterer_allowed",
+  );
+  const missingCriticalCriteria = model.evaluations.filter(
+    (evaluation) =>
+      (evaluation.priority === "blocking" ||
+        evaluation.priority === "important") &&
+      evaluation.outcome === "UNKNOWN",
+  ).length;
   return {
     blockingStatus: model.aggregate.blockingStatus,
     weightedScore: model.aggregate.weightedScore,
     evidenceReadiness: model.readiness.evidenceReadiness,
     unknownImportantCriteria: model.aggregate.unknownImportantCriteria,
     conflictingCriteria: model.aggregate.conflictingCriteria,
+    missingCriticalCriteria,
+    targetGuestCount: model.targetGuestCount,
+    supportMaximumGuestCount: comparison?.supportMaximumGuestCount ?? null,
+    targetGuestCountPasses: comparison?.passes ?? null,
+    externalCatererOutcome: externalCaterer?.outcome ?? null,
   };
 }
 
@@ -170,15 +200,18 @@ export class VenueWorkspaceReadService {
     venue: VenueCoreRecord,
     local: ReadonlyMap<string, LocalVenueState>,
   ): Promise<VenueWorkspaceItem> {
-    const [compatibility, ownPreference, ratings] = await Promise.all([
-      this.readCompatibility(projectId, venue.id),
-      this.readPreference(projectId, venue.id),
-      this.readRatings(projectId, venue.id),
-    ]);
+    const [compatibility, decisionContext, ownPreference, ratings] =
+      await Promise.all([
+        this.readCompatibility(projectId, venue.id),
+        this.readDecisionContext(projectId, venue.id),
+        this.readPreference(projectId, venue.id),
+        this.readRatings(projectId, venue.id),
+      ]);
     return {
       venue,
       syncState: local.get(venue.id)?.syncState ?? "unknown",
       compatibility,
+      decisionContext,
       opinions: { ownPreference, ratings },
     };
   }
@@ -197,6 +230,19 @@ export class VenueWorkspaceReadService {
         },
       );
       return model === null ? null : compatibilitySummary(model);
+    } catch {
+      return null;
+    }
+  }
+
+  private async readDecisionContext(
+    projectId: string,
+    venueId: string,
+  ): Promise<VenueWorkspaceDecisionContext | null> {
+    const reader = this.dependencies.decisionContext;
+    if (reader === undefined) return null;
+    try {
+      return await reader.read(projectId, venueId);
     } catch {
       return null;
     }

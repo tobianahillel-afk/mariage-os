@@ -142,7 +142,13 @@ function item(
       evidenceReadiness: 0.8,
       unknownImportantCriteria: 0,
       conflictingCriteria: 0,
+      missingCriticalCriteria: 0,
+      targetGuestCount: 180,
+      supportMaximumGuestCount: 200,
+      targetGuestCountPasses: true,
+      externalCatererOutcome: "PASS",
     },
+    decisionContext: null,
     opinions: {
       ownPreference: null,
       ratings: [

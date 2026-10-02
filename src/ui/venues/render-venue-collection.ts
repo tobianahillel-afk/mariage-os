@@ -1,5 +1,13 @@
 import type { VenueWorkspaceItem } from "@application/venues/venue-workspace-read-service";
 import {
+  accessContext,
+  capacityContext,
+  externalCatererContext,
+  missingCriticalContext,
+  priceContext,
+  quoteContext,
+} from "./venue-workspace-decision-presentation";
+import {
   addListener,
   projectVenueHref,
   textElement,
@@ -7,8 +15,6 @@ import {
   venueLink,
   workspaceSection,
   blocker,
-  score,
-  syncLabel,
   averageRating,
 } from "./venue-workspace-presentation";
 
@@ -84,9 +90,12 @@ function tableRow(projectId: string, item: VenueWorkspaceItem): HTMLElement {
   for (const value of [
     item.venue.status,
     blocker(item),
-    score(item),
-    item.venue.city ?? "—",
-    syncLabel(item),
+    capacityContext(item),
+    priceContext(item),
+    externalCatererContext(item),
+    accessContext(item),
+    quoteContext(item),
+    missingCriticalContext(item),
     averageRating(item),
   ]) {
     row.append(textElement("td", value, "venue-table-cell"));
@@ -107,9 +116,12 @@ function tablePanel(
     "Code / nom",
     "Statut",
     "Blocage",
-    "Score",
-    "Ville",
-    "Synchronisation",
+    "Capacité",
+    "Prix",
+    "Traiteur externe",
+    "Accès",
+    "Devis",
+    "Manquants critiques",
     "Avis partenaires",
   ]) {
     header.append(tableHeader(label));
