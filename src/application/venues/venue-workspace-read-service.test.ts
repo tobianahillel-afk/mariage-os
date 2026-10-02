@@ -184,11 +184,7 @@ it("keeps pending local working intent above the cloud copy", async () => {
 });
 
 it("keeps a local-only pending Venue visible while cloud listing succeeds", async () => {
-  const cloud = venue(
-    "91111111-1111-4111-8111-111111111118",
-    "S1",
-    "Cloud",
-  );
+  const cloud = venue("91111111-1111-4111-8111-111111111118", "S1", "Cloud");
   const localOnly = venue(
     "91111111-1111-4111-8111-111111111119",
     "S2",
@@ -205,10 +201,7 @@ it("keeps a local-only pending Venue visible while cloud listing succeeds", asyn
     localStore(record),
   );
 
-  expect(result.map((item) => item.venue.id)).toEqual([
-    cloud.id,
-    localOnly.id,
-  ]);
+  expect(result.map((item) => item.venue.id)).toEqual([cloud.id, localOnly.id]);
   expect(result[1]?.syncState).toBe("pending");
 });
 
