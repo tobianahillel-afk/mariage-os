@@ -20,7 +20,7 @@ function fullPageBoundarySignature(rows: readonly unknown[]): string | null {
   return first === null || last === null ? null : `${first}\u0000${last}`;
 }
 
-export interface SupabaseRowsPage {
+interface SupabaseRowsPage {
   readonly data: unknown;
   readonly error: unknown;
 }
