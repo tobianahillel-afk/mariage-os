@@ -85,7 +85,5 @@ it("only reports no critical reservation for a clean summary", () => {
       },
     }),
   ).toBe("2 manquant(s) critique(s) · 1 conflit(s)");
-  expect(
-    reservationsContext({ ...base, compatibility: null }),
-  ).toBe("—");
+  expect(reservationsContext({ ...base, compatibility: null })).toBe("—");
 });
