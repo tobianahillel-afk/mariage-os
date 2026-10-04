@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.11`
 - Lot: 2 — Venues core
 - Name: Venue Gallery / Table / Detail / Compare / deep-link workspace
-- State: `REVIEW_FAILED / REMEDIATION` — fresh Pass B findings `WP211-AR-001..005` OPEN
-- Current pass: `B-ADVERSARIAL-REVIEW` failed; bounded remediation active
+- State: `ACCEPTANCE_PENDING`
+- Current pass: `C-ACCEPTANCE` — fresh Pass B PASS; `WP211-AR-001..005` CLOSED / VERIFIED
 - Branch: `lot-2/venues-core`
 - Activation base: `290a49a53556ffc6a91aa4467ba768eeb4c1ac00`
 - Activation-base CI: `36850174656` — **5/5 SUCCESS**, including full verify from clean checkout; provider-only workflows skipped
@@ -205,9 +205,29 @@ No database migration/provider campaign is expected in this packet.
 
 ## Handoff
 
-- Current state: **REVIEW_FAILED / REMEDIATION**
-- Current/next pass: fresh Pass B failed → remediate `WP211-AR-001..005`
+- Current state: **ACCEPTANCE_PENDING**
+- Current/next pass: **C-ACCEPTANCE** — separate EXPECTED ↔ IMPLEMENTED ↔ VERIFIED reconciliation
 - Merged Pass-A head: `b249e87804ba7a6a546ea2f3db3195a0d2c4d0a1` / CI `37231659301` — SUCCESS
-- Fresh review RED: PR #70 / `416e1f33e192726d0e53c4236ccfba2efe0fde69` / CI `37232085163`
-- Open packet findings: AR-001 MAJOR, AR-002 MAJOR, AR-003 MAJOR, AR-004 MAJOR, AR-005 MINOR
-- Next permitted action: bounded remediation plus regression tests, exact-head ordinary CI + clean checkout, then a new complete fresh Pass B. WP-2.12 remains gated.
+- Historical failed Pass-B record: `docs/roadmap/lot-2/WP-2.11-FRESH-PASS-B-2026-10-04.md`
+- Bounded remediation: PR #72 / reviewed head `619e17e910ed60076ce7c7e59ad4bece10d292b5` / CI `37238184427` — **5/5 SUCCESS** including clean checkout; merge commit `7cab3e8eaa59b3041d51de63bd32c17b3c9dd36a`
+- Review findings: `WP211-AR-001..005` — **CLOSED / VERIFIED**
+- Clean fresh Pass-B record: `docs/roadmap/lot-2/WP-2.11-FRESH-PASS-B-POST-REMEDIATION-2026-10-04.md`
+- Next permitted action: separate Pass C acceptance reconciliation. WP-2.12 remains gated until the acceptance record itself is exact-head green.
+
+
+## Fresh Pass B result — 2026-10-04 post-remediation
+
+The complete independent review in
+`docs/roadmap/lot-2/WP-2.11-FRESH-PASS-B-POST-REMEDIATION-2026-10-04.md`
+is **PASS** on reviewed exact head
+`619e17e910ed60076ce7c7e59ad4bece10d292b5` / CI `37238184427`.
+
+The reviewed head and merge commit
+`7cab3e8eaa59b3041d51de63bd32c17b3c9dd36a` have the same tree
+`a12533b421a8c91270128946fdd38bd7d5d19f41`.
+WP211-AR-001..005 are CLOSED / VERIFIED, the final fresh review produced no
+new suggestion and no unresolved review thread remains.
+
+The packet therefore enters `ACCEPTANCE_PENDING / C-ACCEPTANCE`. This does
+not accept WP-2.11, does not mark its downstream FIRs complete, and does not
+authorize WP-2.12 before the separate Pass-C record is exact-head green.

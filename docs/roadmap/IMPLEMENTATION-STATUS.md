@@ -41,7 +41,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.9C | trusted private-document ingestion hardening                           | **ACCEPTED / COMPLETE**                                                      |
 | WP-2.9B | generic project tags and Venue entity-tag links                        | **ACCEPTED / COMPLETE — Pass C gap ∅**                                      |
 | WP-2.10 | repositories, local cache, pending/offline mutations                   | **ACCEPTED / COMPLETE**                                                     |
-| WP-2.11 | gallery/table/detail/compare/deep-link workspace                       | **REVIEW_FAILED / REMEDIATION — WP211-AR-001..005 OPEN**                  |
+| WP-2.11 | gallery/table/detail/compare/deep-link workspace                       | **ACCEPTANCE_PENDING — fresh Pass B PASS; WP211-AR-001..005 CLOSED / VERIFIED** |
 | WP-2.12 | mobile/offline venue-visit workflow and packet E2E completion          | PLANNED                                                                    |
 
 ## WP-2.10 — activation revalidation
@@ -63,15 +63,15 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 
 - Activation base `290a49a53556ffc6a91aa4467ba768eeb4c1ac00` / CI `36850174656` passed **5/5**, including clean checkout.
 - Pass-A GREEN was merged by PR #68 at `b249e87804ba7a6a546ea2f3db3195a0d2c4d0a1`; CI `37231659301` passed and provider-only workflows were skipped.
-- Fresh independent RED PR #70 / `416e1f33e192726d0e53c4236ccfba2efe0fde69` / CI `37232085163` reproduced five defects. DB/RLS and browser/mutation jobs remained green; Core failed only the five review contracts with 1,904 other unit tests passing.
-- `WP211-AR-001` **MAJOR / OPEN** — selected-date offer validity/weekday is ignored.
-- `WP211-AR-002` **MAJOR / OPEN** — project-wide offer/availability/access reads are not explicitly paginated.
-- `WP211-AR-003` **MAJOR / OPEN** — UNKNOWN `important` criteria are miscounted as missing critical.
-- `WP211-AR-004` **MAJOR / OPEN** — absent commercial context invents a quote-specific next action.
-- `WP211-AR-005` **MINOR / OPEN** — Compare calls a base amount generic “Prix”.
-- Review record: `docs/roadmap/lot-2/WP-2.11-FRESH-PASS-B-2026-10-04.md`.
-- State: **REVIEW_FAILED / REMEDIATION**. Only bounded remediation plus regression tests is permitted, followed by exact-head CI and a new complete fresh Pass B.
-- `/venues/:venueId/visit` remains WP-2.12 and may not start before WP-2.11 Pass C.
+- Historical failed Pass B: `docs/roadmap/lot-2/WP-2.11-FRESH-PASS-B-2026-10-04.md` / RED PR #70 / `416e1f33e192726d0e53c4236ccfba2efe0fde69` / CI `37232085163` reproduced WP211-AR-001..005.
+- Bounded remediation PR #72 exact head `619e17e910ed60076ce7c7e59ad4bece10d292b5` / CI `37238184427` passed **5/5 ordinary jobs**, including clean checkout; Core passed 228 files / **1,920 tests** at **100%** statements/branches/functions/lines, DB/RLS/promotion passed, browser **40/40** passed and mutation score was **83.11%**.
+- PR #72 merged as `7cab3e8eaa59b3041d51de63bd32c17b3c9dd36a`; its tree `a12533b421a8c91270128946fdd38bd7d5d19f41` is identical to reviewed head `619e17e9...`.
+- Fresh remediation review first challenged date-scoped/no-date truth and pagination termination, then found an oversized-page fail-closed gap on `3855f6faa9...`; all were remediated with direct regressions before the final review.
+- Final fresh independent Codex review on `619e17e9...` returned **no new suggestion** (👍), with **0 unresolved review threads**.
+- Complete clean Pass-B record: `docs/roadmap/lot-2/WP-2.11-FRESH-PASS-B-POST-REMEDIATION-2026-10-04.md` — **PASS**.
+- `WP211-AR-001..005` are **CLOSED / VERIFIED**. No unresolved BLOCKING, MAJOR or MINOR finding remains.
+- State: **ACCEPTANCE_PENDING / C-ACCEPTANCE**. Separate Pass C reconciliation is now the only permitted packet action.
+- `/venues/:venueId/visit` remains WP-2.12 and may not start before WP-2.11 Pass C acceptance is exact-head green.
 
 ## Accepted packet evidence summary
 
@@ -321,7 +321,7 @@ Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.10
 WP-2.9C: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 21accd7f9ab1b845275507b7941a782c5e816a56 / CI 36494697647 5/5 including clean checkout
 WP-2.9A: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 656398bcd5520cfa56d782023d150eb64317161d / CI 36542083037 5/5 including clean checkout
-Current packet: WP-2.11 — READY candidate / activation exact-head CI pending; primary FIRs #57–60; no production implementation yet
+Current packet: WP-2.11 — ACCEPTANCE_PENDING / C-ACCEPTANCE; fresh Pass B PASS on `619e17e910ed60076ce7c7e59ad4bece10d292b5` / CI `37238184427`; WP211-AR-001..005 CLOSED / VERIFIED; primary FIRs #57–60
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
@@ -360,5 +360,5 @@ FTR-089 FIR: #17 — IN_PROGRESS / parent A accepted, later presentation and Lot
 WP-2.9B: ACCEPTED / COMPLETE; FTR-093 FIR #27 remains IN_PROGRESS for downstream scope; WP29B-AR-001/002 CLOSED / VERIFIED; Pass C gap ∅
 Lots 3–12: NOT_STARTED
 Latest distinct-PDF campaign: 2303df0c9e8d6f72561ec0ce42514663801229d8 / CI 36459949861 / provider job 109058754517 / artifact 10987866873 — 10 distinct exact-size PDFs, 10 finalized flows, 20 valid exact-version CPU readings within Workers Free; provider verdict PASS
-Next permitted action: remediate WP211-AR-001..005 from fresh review PR #70 without widening packet scope; prove the remediation with exact-head ordinary CI + clean checkout, then run a new complete fresh Pass B. WP-2.12 remains gated until WP-2.11 Pass C. No provider campaign or database migration is authorized or expected.
+Next permitted action: run separate WP-2.11 Pass C acceptance reconciliation (EXPECTED ↔ IMPLEMENTED ↔ VERIFIED) and prove the acceptance record with exact-head ordinary CI including clean checkout. WP-2.12 remains gated until that Pass C succeeds. No provider campaign or database migration is authorized or expected.
 ```
