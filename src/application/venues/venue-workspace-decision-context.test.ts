@@ -134,7 +134,10 @@ function service(
     listProjectOffers: result("offers", options.offers ?? []),
   };
   const dates = {
-    getSelectedEventDate: result("dates", options.selectedDate ?? eventDate),
+    getSelectedEventDate: result(
+      "dates",
+      options.selectedDate === undefined ? eventDate : options.selectedDate,
+    ),
   };
   const availabilityReader = {
     listProjectAvailability: result(
