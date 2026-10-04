@@ -16,7 +16,7 @@ import {
 export type VenueWorkspaceQuoteState =
   "none" | "draft" | "quoted" | "accepted" | "historical";
 
-export type VenueWorkspacePriceContext =
+type VenueWorkspacePriceContext =
   | {
       readonly kind: "known";
       readonly currency: string;
@@ -26,12 +26,12 @@ export type VenueWorkspacePriceContext =
   | { readonly kind: "mixed_currency" }
   | null;
 
-export interface VenueWorkspaceCommercialContext {
+interface VenueWorkspaceCommercialContext {
   readonly quoteState: VenueWorkspaceQuoteState;
   readonly price: VenueWorkspacePriceContext;
 }
 
-export interface VenueWorkspaceAvailabilityContext {
+interface VenueWorkspaceAvailabilityContext {
   readonly eventDate: string;
   readonly status: VenueAvailabilityStatus;
   readonly optionExpiresAt: string | null;
@@ -47,7 +47,7 @@ export interface VenueWorkspaceAccessContext {
   readonly observedAt: string;
 }
 
-export interface VenueWorkspaceAccessContexts {
+interface VenueWorkspaceAccessContexts {
   readonly car: VenueWorkspaceAccessContext | null;
   readonly publicTransport: VenueWorkspaceAccessContext | null;
 }
