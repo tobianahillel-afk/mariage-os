@@ -55,3 +55,18 @@ it("loads one canonical detail and fails closed on unsupported Venue paths", asy
   expect(unavailable).toEqual({ kind: "unavailable" });
   expect(read.list).not.toHaveBeenCalled();
 });
+
+it("loads the canonical visit route as visit state, never Gallery", async () => {
+  const read = service();
+
+  const visit = await loadVenueWorkspaceState(
+    read,
+    projectId,
+    `/venues/${venueId}/visit`,
+    null,
+  );
+
+  expect(visit.kind).toBe("visit");
+  expect(read.detail).toHaveBeenCalledWith(projectId, venueId, null);
+  expect(read.list).not.toHaveBeenCalled();
+});
