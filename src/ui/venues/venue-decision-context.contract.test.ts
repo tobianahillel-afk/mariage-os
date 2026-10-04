@@ -35,7 +35,7 @@ describe("WP-2.11 decision-context UI contract", () => {
     const labels = [
       "Blocage",
       "Capacité",
-      "Prix",
+      "Montant de base",
       "Accès",
       "Disponibilité",
       "Devis",
