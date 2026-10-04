@@ -44,3 +44,45 @@ it("fails closed on another local scope", () => {
     "another local scope",
   );
 });
+
+
+it.each([
+  ["primitive record", null],
+  ["array record", []],
+])("rejects malformed %s", (_label, value) => {
+  expect(() => parseLocalBinaryMetadata(value)).toThrow("local binary record");
+});
+
+it.each([
+  ["empty filename", { filename: "" }],
+  ["non-string filename", { filename: 42 }],
+  ["invalid id", { localBinaryId: "not-a-uuid" }],
+  ["invalid timestamp", { createdAt: "not-a-date" }],
+  ["non-canonical timestamp", { createdAt: "2026-10-04T23:00:00Z" }],
+  ["fractional size", { sizeBytes: 1.5 }],
+  ["negative size", { sizeBytes: -1 }],
+  ["invalid pin state", { pinned: "yes" }],
+  ["invalid sync state", { syncState: "uploading" }],
+])("rejects %s", (_label, override) => {
+  expect(() =>
+    parseLocalBinaryMetadata({ ...metadata(), ...override }),
+  ).toThrow("local binary");
+});
+
+it("accepts synced binary metadata", () => {
+  expect(parseLocalBinaryMetadata(metadata("synced")).syncState).toBe("synced");
+});
+
+it.each([
+  ["projectId", "d1111111-1111-4111-8111-111111111111"],
+  ["userId", "c1111111-1111-4111-8111-111111111111"],
+  ["deviceId", "e1111111-1111-4111-8111-111111111111"],
+] as const)("fails closed on foreign %s", (field, value) => {
+  const parsed = parseLocalBinaryMetadata({
+    ...metadata(),
+    [field]: value,
+  });
+  expect(() => assertLocalBinaryScope(parsed, scope)).toThrow(
+    "another local scope",
+  );
+});
