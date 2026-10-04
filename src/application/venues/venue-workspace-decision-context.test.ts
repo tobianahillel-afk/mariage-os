@@ -165,123 +165,123 @@ function service(
 }
 
 it("composes selected-date commercial and access context", async () => {
-    const fixture = service({
-      offers: [offer("quoted", 1_250_000), offer("quoted", 1_500_000)],
-    });
-    await expect(fixture.reader.read(projectId, venueId)).resolves.toEqual({
-      commercial: {
-        quoteState: "quoted",
-        price: {
-          kind: "known",
-          currency: "EUR",
-          minimumAmountMinor: 1_250_000,
-          maximumAmountMinor: 1_500_000,
-        },
+  const fixture = service({
+    offers: [offer("quoted", 1_250_000), offer("quoted", 1_500_000)],
+  });
+  await expect(fixture.reader.read(projectId, venueId)).resolves.toEqual({
+    commercial: {
+      quoteState: "quoted",
+      price: {
+        kind: "known",
+        currency: "EUR",
+        minimumAmountMinor: 1_250_000,
+        maximumAmountMinor: 1_500_000,
       },
-      availability: {
-        eventDate,
-        status: "expired",
-        optionExpiresAt: "2026-10-02T10:00:00.000Z",
-        observedAt: "2026-10-01T10:00:00.000Z",
-      },
-      access: {
-        car: expect.objectContaining({ durationMinutes: 55 }),
-        publicTransport: expect.objectContaining({
-          durationMinutes: 70,
-          transfersCount: 1,
-        }),
-      },
-    });
+    },
+    availability: {
+      eventDate,
+      status: "expired",
+      optionExpiresAt: "2026-10-02T10:00:00.000Z",
+      observedAt: "2026-10-01T10:00:00.000Z",
+    },
+    access: {
+      car: expect.objectContaining({ durationMinutes: 55 }),
+      publicTransport: expect.objectContaining({
+        durationMinutes: 70,
+        transfersCount: 1,
+      }),
+    },
+  });
+});
+
+it("filters commercial offers to selected-date applicability", async () => {
+  const outsideRange = {
+    ...offer("accepted", 100_000),
+    validFrom: "2027-07-01",
+  };
+  const wrongWeekday = { ...offer("quoted", 150_000), weekday: 5 };
+  const applicable = {
+    ...offer("quoted", 200_000),
+    validFrom: "2027-01-01",
+    validTo: "2027-12-31",
+    weekday: 6,
+  };
+
+  const value = await service({
+    offers: [outsideRange, wrongWeekday, applicable],
+  }).reader.read(projectId, venueId);
+
+  expect(value.commercial).toEqual({
+    quoteState: "quoted",
+    price: {
+      kind: "known",
+      currency: "EUR",
+      minimumAmountMinor: 200_000,
+      maximumAmountMinor: 200_000,
+    },
+  });
+});
+
+it("keeps date-scoped offers unknown until a date is selected", async () => {
+  const boundary = {
+    ...offer("accepted", 300_000),
+    validFrom: eventDate,
+    validTo: eventDate,
+    weekday: 6,
+  };
+  const unrestricted = offer("quoted", 250_000);
+
+  const selected = await service({
+    offers: [boundary, unrestricted],
+  }).reader.read(projectId, venueId);
+  expect(selected.commercial?.quoteState).toBe("accepted");
+
+  const withoutDate = await service({
+    offers: [boundary, unrestricted],
+    selectedDate: null,
+  }).reader.read(projectId, venueId);
+  expect(withoutDate.commercial).toBeNull();
+
+  const unrestrictedOnly = await service({
+    offers: [unrestricted],
+    selectedDate: null,
+  }).reader.read(projectId, venueId);
+  expect(unrestrictedOnly.commercial).toEqual({
+    quoteState: "quoted",
+    price: {
+      kind: "known",
+      currency: "EUR",
+      minimumAmountMinor: 250_000,
+      maximumAmountMinor: 250_000,
+    },
+  });
+});
+
+it("keeps quote-state and price semantics explicit", async () => {
+  const mixed = await service({
+    offers: [
+      offer("accepted", 1_000_000, "EUR"),
+      offer("accepted", 1_200_000, "USD"),
+    ],
+  }).reader.read(projectId, venueId);
+  expect(mixed.commercial).toEqual({
+    quoteState: "accepted",
+    price: { kind: "mixed_currency" },
   });
 
-  it("filters commercial offers to selected-date applicability", async () => {
-    const outsideRange = {
-      ...offer("accepted", 100_000),
-      validFrom: "2027-07-01",
-    };
-    const wrongWeekday = { ...offer("quoted", 150_000), weekday: 5 };
-    const applicable = {
-      ...offer("quoted", 200_000),
-      validFrom: "2027-01-01",
-      validTo: "2027-12-31",
-      weekday: 6,
-    };
-
+  for (const [status, quoteState] of [
+    ["draft", "draft"],
+    ["rejected", "historical"],
+  ] as const) {
     const value = await service({
-      offers: [outsideRange, wrongWeekday, applicable],
+      offers: [offer(status, null)],
     }).reader.read(projectId, venueId);
+    expect(value.commercial).toEqual({ quoteState, price: null });
+  }
 
-    expect(value.commercial).toEqual({
-      quoteState: "quoted",
-      price: {
-        kind: "known",
-        currency: "EUR",
-        minimumAmountMinor: 200_000,
-        maximumAmountMinor: 200_000,
-      },
-    });
-  });
-
-  it("keeps date-scoped offers unknown until a date is selected", async () => {
-    const boundary = {
-      ...offer("accepted", 300_000),
-      validFrom: eventDate,
-      validTo: eventDate,
-      weekday: 6,
-    };
-    const unrestricted = offer("quoted", 250_000);
-
-    const selected = await service({
-      offers: [boundary, unrestricted],
-    }).reader.read(projectId, venueId);
-    expect(selected.commercial?.quoteState).toBe("accepted");
-
-    const withoutDate = await service({
-      offers: [boundary, unrestricted],
-      selectedDate: null,
-    }).reader.read(projectId, venueId);
-    expect(withoutDate.commercial).toBeNull();
-
-    const unrestrictedOnly = await service({
-      offers: [unrestricted],
-      selectedDate: null,
-    }).reader.read(projectId, venueId);
-    expect(unrestrictedOnly.commercial).toEqual({
-      quoteState: "quoted",
-      price: {
-        kind: "known",
-        currency: "EUR",
-        minimumAmountMinor: 250_000,
-        maximumAmountMinor: 250_000,
-      },
-    });
-  });
-
-  it("keeps quote-state and price semantics explicit", async () => {
-    const mixed = await service({
-      offers: [
-        offer("accepted", 1_000_000, "EUR"),
-        offer("accepted", 1_200_000, "USD"),
-      ],
-    }).reader.read(projectId, venueId);
-    expect(mixed.commercial).toEqual({
-      quoteState: "accepted",
-      price: { kind: "mixed_currency" },
-    });
-
-    for (const [status, quoteState] of [
-      ["draft", "draft"],
-      ["rejected", "historical"],
-    ] as const) {
-      const value = await service({
-        offers: [offer(status, null)],
-      }).reader.read(projectId, venueId);
-      expect(value.commercial).toEqual({ quoteState, price: null });
-    }
-
-    const empty = await service().reader.read(projectId, venueId);
-    expect(empty.commercial).toEqual({ quoteState: "none", price: null });
-  });
+  const empty = await service().reader.read(projectId, venueId);
+  expect(empty.commercial).toEqual({ quoteState: "none", price: null });
+});
 
 describe("VenueWorkspaceDecisionContextService failure handling", () => {
   it("fails soft by source without inventing provider truth", async () => {
