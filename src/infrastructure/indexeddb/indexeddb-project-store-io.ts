@@ -7,7 +7,7 @@ export const LOCAL_SCHEMA_VERSION = 2;
 export const METADATA_STORE = "metadata";
 export const CACHE_STORE = "cached_records";
 export const MUTATION_STORE = "pending_mutations";
-export const OFFLINE_PIN_STORE = "offline_pins";
+const OFFLINE_PIN_STORE = "offline_pins";
 export const LOCAL_BINARY_STORE = "local_binaries";
 
 function storageError(action: string): Error {
