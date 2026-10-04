@@ -129,22 +129,35 @@ function eventWeekday(eventDate: string): number | null {
   return new Date(Date.UTC(year, month - 1, day)).getUTCDay();
 }
 
+function isDateScopedOffer(offer: VenueOfferRecord): boolean {
+  return (
+    offer.validFrom !== null ||
+    offer.validTo !== null ||
+    offer.weekday !== null
+  );
+}
+
 function offerAppliesToEventDate(
   offer: VenueOfferRecord,
-  eventDate: string | null,
+  eventDate: string,
 ): boolean {
-  if (eventDate === null) {
-    return (
-      offer.validFrom === null &&
-      offer.validTo === null &&
-      offer.weekday === null
-    );
-  }
   const weekday = eventWeekday(eventDate);
   if (weekday === null) return false;
   if (offer.validFrom !== null && eventDate < offer.validFrom) return false;
   if (offer.validTo !== null && eventDate > offer.validTo) return false;
   return offer.weekday === null || offer.weekday === weekday;
+}
+
+function commercialForEventDate(
+  offers: readonly VenueOfferRecord[],
+  eventDate: string | null,
+): VenueWorkspaceCommercialContext | null {
+  if (eventDate === null) {
+    return offers.some(isDateScopedOffer) ? null : commercialContext(offers);
+  }
+  return commercialContext(
+    offers.filter((offer) => offerAppliesToEventDate(offer, eventDate)),
+  );
 }
 
 function quoteState(
@@ -250,10 +263,9 @@ function contextFor(
 ): VenueWorkspaceDecisionContext {
   const commercial =
     snapshot.offers.ok && snapshot.eventDate.ok
-      ? commercialContext(
-          venueRows(snapshot.offers.value, venueId).filter((offer) =>
-            offerAppliesToEventDate(offer, snapshot.eventDate.value),
-          ),
+      ? commercialForEventDate(
+          venueRows(snapshot.offers.value, venueId),
+          snapshot.eventDate.value,
         )
       : null;
   const availability =
