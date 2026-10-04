@@ -2,7 +2,10 @@ import { describe, expect, it, vi } from "vitest";
 import type { CriterionDefinition } from "@domain/facts/criterion-types";
 import type { VenueCompatibilityInputs } from "./venue-compatibility-query-port";
 import type { VenueMemberOpinionPort } from "./venue-member-opinion-service";
-import type { VenueCoreRecord, VenueRepositoryPort } from "./venue-repository-port";
+import type {
+  VenueCoreRecord,
+  VenueRepositoryPort,
+} from "./venue-repository-port";
 import type { VenueWorkspaceDecisionContextReader } from "./venue-workspace-decision-context";
 import { VenueWorkspaceReadService } from "./venue-workspace-read-service";
 
