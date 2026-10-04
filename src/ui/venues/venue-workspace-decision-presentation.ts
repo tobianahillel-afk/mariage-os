@@ -4,8 +4,9 @@ import type {
   VenueWorkspaceQuoteState,
 } from "@application/venues/venue-workspace-decision-context";
 
-type BlockingStatus =
-  NonNullable<VenueWorkspaceItem["compatibility"]>["blockingStatus"];
+type BlockingStatus = NonNullable<
+  VenueWorkspaceItem["compatibility"]
+>["blockingStatus"];
 
 function guestCapacityOutcome(passes: boolean | null): string {
   if (passes === null) return "à vérifier";
