@@ -391,6 +391,27 @@ it("uses the text-node fallback and tolerates DOM stubs without listeners", () =
   ).not.toThrow();
 });
 
+it("renders visit state explicitly instead of falling back to Gallery", () => {
+  installDocument();
+  const candidate = item(4);
+  const root = createVenueWorkspace(
+    projectId,
+    `/venues/${candidate.venue.id}/visit`,
+    {
+      kind: "visit",
+      item: candidate,
+    },
+  ) as unknown as FakeElement;
+
+  expect(byAttribute(root, "data-venue-workspace", "visit")).toHaveLength(1);
+  expect(byAttribute(root, "data-venue-id", candidate.venue.id)).toHaveLength(1);
+  expect(texts(root)).toContain("Visite · V4 · Venue 4");
+  expect(texts(root)).toContain(
+    "La préparation hors ligne de la visite n’est pas encore disponible sur cet appareil.",
+  );
+  expect(byClass(root, "venue-gallery")).toHaveLength(0);
+});
+
 it("renders explicit unavailable workspace state", () => {
   installDocument();
   const root = createVenueWorkspace(projectId, "/venues/not-a-route", {
