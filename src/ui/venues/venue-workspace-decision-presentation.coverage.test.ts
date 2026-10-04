@@ -250,9 +250,9 @@ describe("Venue decision next-action priority", () => {
 
   it("falls through only for a comparison-ready Venue", () => {
     expect(nextAction(baseItem())).toBe("Comparer avec les finalistes");
-    expect(
-      nextAction({ ...baseItem(), compatibility: null }),
-    ).toBe("Comparer avec les finalistes");
+    expect(nextAction({ ...baseItem(), compatibility: null })).toBe(
+      "Comparer avec les finalistes",
+    );
     expect(strengthsContext(baseItem())).toBe(
       "Aucun critère bloquant en échec",
     );
