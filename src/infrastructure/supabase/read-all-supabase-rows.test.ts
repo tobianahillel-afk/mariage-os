@@ -30,6 +30,19 @@ it("continues after a full page without dropping the boundary", async () => {
   expect(readPage).toHaveBeenNthCalledWith(2, 1_000, 1_999);
 });
 
+it("fails closed when a provider returns more rows than requested", async () => {
+  const readPage = vi.fn().mockResolvedValue({
+    data: Array.from({ length: 1_001 }, (_, id) => ({ id })),
+    error: null,
+  });
+
+  await expect(readAllSupabaseRows(readPage)).rejects.toBeInstanceOf(
+    SupabasePaginationError,
+  );
+  expect(readPage).toHaveBeenCalledWith(0, 999);
+  expect(readPage).toHaveBeenCalledTimes(1);
+});
+
 it("fails closed when a provider repeats the same full page", async () => {
   const repeated = Array.from({ length: 1_000 }, (_, id) => ({
     id: `row-${id}`,
