@@ -69,7 +69,11 @@ class QueryBuilder implements PromiseLike<Result> {
     return this;
   }
 
-  order(): PromiseLike<Result> {
+  order(): QueryBuilder {
+    return this;
+  }
+
+  range(): PromiseLike<Result> {
     return Promise.resolve({ data: [], error: null });
   }
 

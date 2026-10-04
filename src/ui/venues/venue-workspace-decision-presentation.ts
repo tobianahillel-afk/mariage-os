@@ -29,7 +29,7 @@ function needsBlockerReview(status: BlockingStatus | undefined): boolean {
 }
 
 function needsQuote(status: VenueWorkspaceQuoteState | undefined): boolean {
-  return status === undefined || status === "none" || status === "draft";
+  return status === "none" || status === "draft";
 }
 
 function conflictAction(item: VenueWorkspaceItem): string | null {

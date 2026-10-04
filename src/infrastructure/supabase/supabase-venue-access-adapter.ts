@@ -10,6 +10,7 @@ import {
 } from "@domain/venues/venue-access-route";
 import { parseVenueAccessRouteRow } from "./parse-venue-access-route-row";
 import { parseVenueReferenceOriginRow } from "./parse-venue-reference-origin-row";
+import { readAllSupabaseRows } from "./read-all-supabase-rows";
 
 const ROUTE_COLUMNS =
   "id,project_id,venue_id,reference_origin_id,route_type,origin_label,destination_label,mode,duration_minutes,distance_meters,transfers_count,observed_at,source_id,notes,reference_origin_address_snapshot,reference_origin_latitude_snapshot,reference_origin_longitude_snapshot,created_at,created_by,updated_at,updated_by,revision";
@@ -27,6 +28,7 @@ interface FilterBuilder extends PromiseLike<SupabaseResult> {
     column: string,
     options: Readonly<{ ascending: boolean }>,
   ): FilterBuilder;
+  range(from: number, to: number): PromiseLike<SupabaseResult>;
 }
 
 interface AccessTable {
@@ -99,14 +101,19 @@ export class SupabaseVenueAccessAdapter implements VenueAccessPort {
   async listProjectAccessRoutes(
     projectId: string,
   ): Promise<readonly VenueAccessRouteRecord[]> {
-    const { data, error } = await this.client
-      .from("venue_access_routes")
-      .select(ROUTE_COLUMNS)
-      .eq("project_id", projectId)
-      .order("observed_at", { ascending: false })
-      .order("created_at", { ascending: false })
-      .order("id", { ascending: true });
-    if (error !== null || !Array.isArray(data)) {
+    let data: readonly unknown[];
+    try {
+      data = await readAllSupabaseRows((from, to) =>
+        this.client
+          .from("venue_access_routes")
+          .select(ROUTE_COLUMNS)
+          .eq("project_id", projectId)
+          .order("observed_at", { ascending: false })
+          .order("created_at", { ascending: false })
+          .order("id", { ascending: true })
+          .range(from, to),
+      );
+    } catch {
       throw new VenueAccessPersistenceError(
         "persistence_failed",
         "Venue access route query failed.",

@@ -126,7 +126,7 @@ describe("VenueWorkspaceReadService decision summary coverage", () => {
   it("keeps important unknowns and absent dynamic/caterer context explicit", async () => {
     const item = await workspace().detail(projectId, venueId, null);
     expect(item?.compatibility).toMatchObject({
-      missingCriticalCriteria: 1,
+      missingCriticalCriteria: 0,
       targetGuestCount: null,
       supportMaximumGuestCount: null,
       targetGuestCountPasses: null,

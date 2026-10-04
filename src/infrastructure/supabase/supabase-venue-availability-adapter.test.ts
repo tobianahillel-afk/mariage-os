@@ -62,6 +62,9 @@ class QueryBuilder implements PromiseLike<Result> {
     this.orderCalls.push({ column, ascending: options.ascending });
     return this;
   }
+  range(): PromiseLike<Result> {
+    return Promise.resolve(this.result);
+  }
   then<TResult1 = Result, TResult2 = never>(
     onfulfilled?: ((value: Result) => TResult1 | PromiseLike<TResult1>) | null,
     onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,

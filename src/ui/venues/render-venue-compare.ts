@@ -28,7 +28,7 @@ interface CompareRow {
 const compareRows: readonly CompareRow[] = [
   { label: "Blocage", value: blocker },
   { label: "Capacité", value: capacityContext },
-  { label: "Prix", value: priceContext },
+  { label: "Montant de base", value: priceContext },
   { label: "Accès", value: accessContext },
   { label: "Disponibilité", value: availabilityContext },
   { label: "Traiteur externe", value: externalCatererContext },
