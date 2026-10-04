@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1..WP-2.10 ACCEPTED; WP-2.11 READY candidate / activation CI pending**
+Status: **IN_PROGRESS — WP-2.1..WP-2.11 ACCEPTED; WP-2.12 activation revalidation next**
 
 Purpose: durable current responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`. Detailed historical evidence remains in packet records, acceptance records, FIRs and Git history.
 
@@ -29,12 +29,12 @@ Integration prerequisite is accepted Lot 0 + Lot 1 on `main` through PR #7; `mai
 | remote image references | FTR-024, VEN-013, MED-007/008/013 | WP-2.8A, WP-2.11 | WP-2.8A **ACCEPTED** |
 | private archived Venue image lifecycle | FTR-024 private slice, FTR-092 Lot-2, VEN-013, MED-004/005/006/009/010, ACC-055/056/058 | WP-2.8B | **ACCEPTED / COMPLETE** |
 | recoverable remote-media metadata lifecycle | FTR-024/FTR-092 Lot-2 continuation, MED-007/010/013 | WP-2.8C | **ACCEPTED / COMPLETE** |
-| Venue-linked ordinary private PDFs, provenance and document links | FTR-089 Lot-2; MED-001/002/003/008/010; PRD-008 link slice; file-security/deletion-retention | WP-2.9A + WP-2.9C remediation + WP-2.11 presentation | **WP-2.9A/C ACCEPTED**; FIR #17 still open for downstream work |
+| Venue-linked ordinary private PDFs, provenance and document links | FTR-089 Lot-2; MED-001/002/003/008/010; PRD-008 link slice; file-security/deletion-retention | WP-2.9A + WP-2.9C remediation + WP-2.11 presentation | **WP-2.9A/C + WP-2.11 presentation ACCEPTED**; FIR #17 remains open for later document responsibilities |
 | private PDF exact-duplicate detection in the user flow, without cross-project disclosure or automatic logical merge | DOCUMENTS acceptance; FTR-089 presentation | WP-2.9A project-scoped SHA-256/index foundation + WP-2.11 user-facing signal | hash foundation accepted in A; presentation downstream |
-| generic project Tags and Venue entity-tag assignments | FTR-093 Lot-2 | WP-2.9B, WP-2.11 | **WP-2.9B ACCEPTED / COMPLETE**; UI downstream |
+| generic project Tags and Venue entity-tag assignments | FTR-093 Lot-2 | WP-2.9B, WP-2.11 | **WP-2.9B + WP-2.11 Venue presentation ACCEPTED**; later target types remain downstream |
 | repository/read-model/provider ports and Supabase adapters | architecture, AUTHZ-006/020 | WP-2.1..WP-2.10 + WP-2.9C | accepted packets green through WP-2.10; Pass C and exact-head CI green |
 | local cache/pending Venue edits | FTR-028 Lot-2, SYN-001..003/007..011, PWA-003/004/006 | WP-2.10, WP-2.12 | WP-2.10 **ACCEPTED**; mobile visit/offline package downstream in WP-2.12 |
-| gallery/table/detail/compare/deep-link workspace | FTR-015/016/017/027, VEN-010/011/014/015 | WP-2.11 | **READY candidate — activation CI pending** |
+| gallery/table/detail/compare/deep-link workspace | FTR-015/016/017/027, VEN-010/011/014/015 | WP-2.11 | **ACCEPTED / COMPLETE — Pass C gap ∅** |
 | mobile visit mode | FTR-028, PWA-004 | WP-2.12 | PLANNED |
 | file/content validation, trusted binary lifecycle, no private production data in public artifacts | MED-001..010/013 + security/quality controls | WP-2.8A/B/C, WP-2.9A, WP-2.9C, WP-2.12 | media and A/C accepted; WP-2.12 downstream |
 | explicit permissions/grants/RLS/direct endpoint and Storage allow+deny evidence | AUTHZ-001..009/012/017/018/020 | owning packets WP-2.1..WP-2.9C | accepted authorization evidence green; C local/exact-head evidence green |
@@ -43,7 +43,7 @@ Integration prerequisite is accepted Lot 0 + Lot 1 on `main` through PR #7; `mai
 
 Required current-Lot responsibilities minus assigned packet responsibilities: **∅**.
 
-Accepted/evidenced packets: **WP-2.1..WP-2.10**.
+Accepted/evidenced packets: **WP-2.1..WP-2.11**.
 
 ## WP-2.9 sequencing
 
@@ -124,8 +124,8 @@ ADR 0011 later produced decisive deployed CPU evidence and was rejected for fina
 | WP-2.9C | **ACCEPTED / COMPLETE** | trusted private-Document ingress/lifecycle hardening; full fresh Pass B and Pass C closed AR-001..009 |
 | WP-2.9B | **ACCEPTED / COMPLETE** | generic project Tags + Venue entity-tags; FIR #27 downstream; AR-001/002 closed |
 | WP-2.10 | **ACCEPTED / COMPLETE** | repositories/local cache/pending offline mutations; Pass C gap ∅ / CI `36849005712` 5/5 |
-| WP-2.11 | **READY candidate — activation CI pending** | gallery/table/detail/compare/deep-link workspace; FIR #57–60 |
-| WP-2.12 | PLANNED | mobile/offline Venue visit + packet E2E completion |
+| WP-2.11 | **ACCEPTED / COMPLETE** | gallery/table/detail/compare/deep-link workspace; Pass C gap ∅ / CI `37240178167` 5/5 |
+| WP-2.12 | PLANNED — activation revalidation next | mobile/offline Venue visit + packet E2E completion |
 
 ## Sequencing
 
@@ -133,11 +133,11 @@ ADR 0011 later produced decisive deployed CPU evidence and was rejected for fina
 WP-2.1..WP-2.8C [ACCEPTED]
   → WP-2.9C [ACCEPTED]
     → WP-2.9A [ACCEPTED]
-                → WP-2.9B [ACCEPTED] → WP-2.10 [ACCEPTED] → WP-2.11 [READY gate] → WP-2.12
+                → WP-2.9B [ACCEPTED] → WP-2.10 [ACCEPTED] → WP-2.11 [ACCEPTED] → WP-2.12 [activation next]
                   → Lot reconciliation → Integration Pass
 ```
 
-Only one packet may be active at a time. WP-2.9A/B/C and WP-2.10 are terminal accepted. WP-2.11 activation revalidation is complete: size 4/cohesion PASS, primary FIRs #57–60 exist, and accepted read-model/local-sync boundaries are sufficient. Its activation-governance HEAD must pass exact-head ordinary CI/clean checkout before RED-first Pass A.
+Only one packet may be active at a time. WP-2.9A/B/C, WP-2.10 and WP-2.11 are terminal accepted. WP-2.12 is next but remains PLANNED until a separate activation revalidation proves the mobile/offline visit, pinning, local media and packet-E2E contract is reviewable and implementation-ready.
 
 ## Explicitly outside Lot 2
 
@@ -179,9 +179,9 @@ A reintegration record = WP-2.9A-REINTEGRATION-2026-09-29.md; Storage-RLS obsole
 A full review = WP-2.9A-FRESH-PASS-B-2026-09-29.md — PASS; no open A finding
 A Pass C = WP-2.9A-ACCEPTANCE.md — ACCEPTED / gap ∅; record 656398bcd5520cfa56d782023d150eb64317161d / CI 36542083037 5/5
 WP-2.10 = ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record `a2d48341515a516651d11454c3c5e89c01896c21` / CI `36849005712` 5/5 including clean checkout; FTR-028 remains IN_PROGRESS for WP-2.12
-WP-2.11 = READY candidate; activation record `docs/roadmap/lot-2/WP-2.11.md`; size 4 / cohesion PASS; FIR #57–60
-next permitted action = seal WP-2.11 activation with exact-head ordinary CI/clean checkout → only then isolated RED-first Pass A
+WP-2.11 = ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record `3167a380521119e9650859543778b040527332e2` / CI `37240178167` 5/5 including clean checkout; FTR-015/016/017/027 accepted
+next permitted action = WP-2.12 activation revalidation → separate PLANNED -> READY governance seal exact-head CI/clean checkout → only then isolated RED-first Pass A
 C acceptance and A resumption are authorized by green acceptance-record CI; no provider rerun
 ```
 
-Lot-level reconciliation remains intentionally incomplete until WP-2.11..WP-2.12 and the separate Lot Integration Pass are accepted; WP-2.1..WP-2.10 are complete.
+Lot-level reconciliation remains intentionally incomplete until WP-2.12 and the separate Lot Integration Pass are accepted; WP-2.1..WP-2.11 are complete.

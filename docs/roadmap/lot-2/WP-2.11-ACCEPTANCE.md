@@ -1,6 +1,6 @@
 # WP-2.11 — Pass C acceptance reconciliation
 
-Status: **PASS C COMPLETE — gap ∅; acceptance-record exact-head CI pending**.
+Status: **ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record CI 5/5 green**.
 
 This is the separate `EXPECTED ↔ IMPLEMENTED ↔ VERIFIED` reconciliation for
 the bounded Lot-2 Venue decision workspace. Entry state is
@@ -103,8 +103,11 @@ required bounded WP-2.11 responsibilities
 
 **PASS — EXPECTED ↔ IMPLEMENTED ↔ VERIFIED gap ∅.**
 
-The packet is eligible for `ACCEPTED / COMPLETE` only after the exact HEAD
-containing this acceptance record passes all five ordinary CI jobs including
-`Full verify from clean checkout`. Until that gate is green, primary FIRs
-#57–60 remain open, WP-2.11 stays `ACCEPTANCE_PENDING`, and WP-2.12 remains
-blocked.
+The exact HEAD containing this acceptance record,
+`3167a380521119e9650859543778b040527332e2`, passed CI `37240178167` with
+all five ordinary jobs green, including `Full verify from clean checkout`.
+WP-2.11 is therefore **ACCEPTED / COMPLETE** and FTR-015/FTR-016/FTR-017/FTR-027
+are accepted for this bounded workspace. WP-2.12 may undergo a separate
+activation revalidation only after the final status/ledger/matrix seal itself
+is exact-head green; no WP-2.12 implementation is authorized before its own
+READY gate.

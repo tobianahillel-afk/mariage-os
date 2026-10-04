@@ -41,7 +41,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.9C | trusted private-document ingestion hardening                           | **ACCEPTED / COMPLETE**                                                      |
 | WP-2.9B | generic project tags and Venue entity-tag links                        | **ACCEPTED / COMPLETE — Pass C gap ∅**                                      |
 | WP-2.10 | repositories, local cache, pending/offline mutations                   | **ACCEPTED / COMPLETE**                                                     |
-| WP-2.11 | gallery/table/detail/compare/deep-link workspace                       | **ACCEPTANCE_PENDING — Pass C PASS / gap ∅; acceptance-record CI pending** |
+| WP-2.11 | gallery/table/detail/compare/deep-link workspace                       | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.12 | mobile/offline venue-visit workflow and packet E2E completion          | PLANNED                                                                    |
 
 ## WP-2.10 — activation revalidation
@@ -71,9 +71,9 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 - Complete clean Pass-B record: `docs/roadmap/lot-2/WP-2.11-FRESH-PASS-B-POST-REMEDIATION-2026-10-04.md` — **PASS**.
 - `WP211-AR-001..005` are **CLOSED / VERIFIED**. No unresolved BLOCKING, MAJOR or MINOR finding remains.
 - Fresh Pass-B/status seal `344a23cc4caf215a5bcc4b3dbbfd9ae7c0f357a9` / CI `37239523579` passed **5/5 ordinary jobs**, including full verify from clean checkout.
-- Pass C reconciliation: **PASS / gap ∅** in `docs/roadmap/lot-2/WP-2.11-ACCEPTANCE.md`; exact-head acceptance-record CI is now the remaining gate.
-- Current/next pass: **ACCEPTANCE_PENDING / C-ACCEPTANCE — record verification**. WP-2.12 remains blocked until that CI is green.
-- `/venues/:venueId/visit` remains WP-2.12 and may not start before WP-2.11 acceptance is exact-head green.
+- Pass C reconciliation: **PASS / gap ∅** in `docs/roadmap/lot-2/WP-2.11-ACCEPTANCE.md`; acceptance-record `3167a380521119e9650859543778b040527332e2` / CI `37240178167` passed **5/5 ordinary jobs**, including full verify from clean checkout.
+- State: **ACCEPTED / COMPLETE**. Primary FTR-015/FTR-016/FTR-017/FTR-027 are accepted for their bounded Lot-2 responsibility.
+- `/venues/:venueId/visit` remains WP-2.12. WP-2.12 activation revalidation is next, but no implementation may begin until this final status/ledger/matrix seal is exact-head green and WP-2.12 then passes its own READY gate.
 
 ## Accepted packet evidence summary
 
@@ -312,7 +312,8 @@ Normative release/deployment/secret contracts require Pages Functions to deploy 
 67. WP-2.10 Pass-C acceptance-record `a2d48341515a516651d11454c3c5e89c01896c21` / CI `36849005712` passed **5/5 SUCCESS**, including full verify from clean checkout. WP-2.10 is **ACCEPTED / COMPLETE**. FTR-028 remains `IN_PROGRESS` because WP-2.12 owns the mobile venue-visit/offline-package completion.
 68. WP-2.10 final status seal `290a49a53556ffc6a91aa4467ba768eeb4c1ac00` / CI `36850174656` passed **5/5 SUCCESS**, including clean checkout. WP-2.11 activation revalidation found no unresolved dependency/design blocker: primary FIRs #57–60 now exist, packet size is 4/cohesion PASS, and no new persistence/RPC/RLS/provider/offline semantic is required. WP-2.11 entered its implementation/review sequence.
 69. WP-2.11 remediation/review converged at reviewed head `619e17e910ed60076ce7c7e59ad4bece10d292b5` / CI `37238184427`: **5/5 SUCCESS**, 1,920 unit tests / 100% code coverage, DB/RLS/promotion PASS, browser 40/40 PASS, mutation 83.11%, clean checkout PASS. Fresh Pass B closed WP211-AR-001..005 with no new finding.
-70. WP-2.11 fresh Pass-B/status seal `344a23cc4caf215a5bcc4b3dbbfd9ae7c0f357a9` / CI `37239523579` passed **5/5 SUCCESS**, including full verify from clean checkout. Separate Pass C now reconciles all bounded WP-2.11 responsibilities with gap ∅; acceptance-record exact-head CI remains required before ACCEPTED.
+70. WP-2.11 fresh Pass-B/status seal `344a23cc4caf215a5bcc4b3dbbfd9ae7c0f357a9` / CI `37239523579` passed **5/5 SUCCESS**, including full verify from clean checkout. Separate Pass C reconciled all bounded WP-2.11 responsibilities with gap ∅.
+71. WP-2.11 Pass-C acceptance-record `3167a380521119e9650859543778b040527332e2` / CI `37240178167` passed **5/5 SUCCESS**, including full verify from clean checkout. WP-2.11 is **ACCEPTED / COMPLETE**; FTR-015/016/017/027 are accepted for this bounded workspace. FTR-024/FTR-089/FTR-093 and FTR-028 retain downstream responsibilities. WP-2.12 activation revalidation is next after this final status seal is exact-head green.
 
 ## Durable handoff
 
@@ -322,10 +323,10 @@ Lot 0: ACCEPTED
 Lot 1: ACCEPTED
 Lot 2: IN_PROGRESS
 Lot 2 branch: lot-2/venues-core
-Accepted durable Lot-2 packets: WP-2.1..WP-2.10
+Accepted durable Lot-2 packets: WP-2.1..WP-2.11
 WP-2.9C: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 21accd7f9ab1b845275507b7941a782c5e816a56 / CI 36494697647 5/5 including clean checkout
 WP-2.9A: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 656398bcd5520cfa56d782023d150eb64317161d / CI 36542083037 5/5 including clean checkout
-Current packet: WP-2.11 — ACCEPTANCE_PENDING / C-ACCEPTANCE; Pass C PASS / gap ∅; acceptance-record exact-head CI pending; WP211-AR-001..005 CLOSED / VERIFIED; primary FIRs #57–60
+Current packet: none implementing — WP-2.11 ACCEPTED / COMPLETE; acceptance-record `3167a380521119e9650859543778b040527332e2` / CI `37240178167` 5/5; WP211-AR-001..005 CLOSED / VERIFIED; primary FIRs #57–60 pending issue closure only
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
@@ -364,5 +365,5 @@ FTR-089 FIR: #17 — IN_PROGRESS / parent A accepted, later presentation and Lot
 WP-2.9B: ACCEPTED / COMPLETE; FTR-093 FIR #27 remains IN_PROGRESS for downstream scope; WP29B-AR-001/002 CLOSED / VERIFIED; Pass C gap ∅
 Lots 3–12: NOT_STARTED
 Latest distinct-PDF campaign: 2303df0c9e8d6f72561ec0ce42514663801229d8 / CI 36459949861 / provider job 109058754517 / artifact 10987866873 — 10 distinct exact-size PDFs, 10 finalized flows, 20 valid exact-version CPU readings within Workers Free; provider verdict PASS
-Next permitted action: run exact-head five-job CI + clean checkout on the WP-2.11 Pass-C acceptance record. If green, seal WP-2.11 `ACCEPTED / COMPLETE`, update primary FIRs #57–60, then perform a separate WP-2.12 activation revalidation. No WP-2.12 implementation, provider campaign or database migration is authorized before that gate.
+Next permitted action: pass this WP-2.11 final status/ledger/matrix seal through exact-head five-job CI including clean checkout. If green, close primary FIRs #57–60 as accepted and perform a separate WP-2.12 activation revalidation. WP-2.12 must then pass its own READY-governance exact-head CI before RED-first Pass A; no WP-2.12 production implementation is authorized yet.
 ```
