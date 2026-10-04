@@ -6,7 +6,7 @@
 - Lot: 2 — Venues core
 - Name: Venue Gallery / Table / Detail / Compare / deep-link workspace
 - State: `ACCEPTANCE_PENDING`
-- Current pass: `C-ACCEPTANCE` — fresh Pass B PASS; `WP211-AR-001..005` CLOSED / VERIFIED
+- Current pass: `C-ACCEPTANCE — PASS / gap ∅ / acceptance-record CI pending`
 - Branch: `lot-2/venues-core`
 - Activation base: `290a49a53556ffc6a91aa4467ba768eeb4c1ac00`
 - Activation-base CI: `36850174656` — **5/5 SUCCESS**, including full verify from clean checkout; provider-only workflows skipped
@@ -206,13 +206,15 @@ No database migration/provider campaign is expected in this packet.
 ## Handoff
 
 - Current state: **ACCEPTANCE_PENDING**
-- Current/next pass: **C-ACCEPTANCE** — separate EXPECTED ↔ IMPLEMENTED ↔ VERIFIED reconciliation
+- Current/next pass: **C-ACCEPTANCE** — reconciliation complete, exact-head acceptance-record CI pending
 - Merged Pass-A head: `b249e87804ba7a6a546ea2f3db3195a0d2c4d0a1` / CI `37231659301` — SUCCESS
 - Historical failed Pass-B record: `docs/roadmap/lot-2/WP-2.11-FRESH-PASS-B-2026-10-04.md`
 - Bounded remediation: PR #72 / reviewed head `619e17e910ed60076ce7c7e59ad4bece10d292b5` / CI `37238184427` — **5/5 SUCCESS** including clean checkout; merge commit `7cab3e8eaa59b3041d51de63bd32c17b3c9dd36a`
 - Review findings: `WP211-AR-001..005` — **CLOSED / VERIFIED**
 - Clean fresh Pass-B record: `docs/roadmap/lot-2/WP-2.11-FRESH-PASS-B-POST-REMEDIATION-2026-10-04.md`
-- Next permitted action: separate Pass C acceptance reconciliation. WP-2.12 remains gated until the acceptance record itself is exact-head green.
+- Fresh Pass-B/status seal: `344a23cc4caf215a5bcc4b3dbbfd9ae7c0f357a9` / CI `37239523579` — **5/5 SUCCESS** including clean checkout.
+- Pass C record: `docs/roadmap/lot-2/WP-2.11-ACCEPTANCE.md` — **PASS / gap ∅**, acceptance-record CI pending.
+- Next permitted action: verify the Pass-C acceptance record with exact-head five-job CI including clean checkout. Only then may WP-2.11 be sealed `ACCEPTED / COMPLETE` and WP-2.12 undergo separate activation revalidation.
 
 
 ## Fresh Pass B result — 2026-10-04 post-remediation
@@ -231,3 +233,16 @@ new suggestion and no unresolved review thread remains.
 The packet therefore enters `ACCEPTANCE_PENDING / C-ACCEPTANCE`. This does
 not accept WP-2.11, does not mark its downstream FIRs complete, and does not
 authorize WP-2.12 before the separate Pass-C record is exact-head green.
+
+
+## Pass C result — 2026-10-05
+
+Separate acceptance reconciliation is recorded in
+`docs/roadmap/lot-2/WP-2.11-ACCEPTANCE.md`.
+
+Verdict: **PASS; EXPECTED ↔ IMPLEMENTED ↔ VERIFIED gap ∅**. The packet remains
+`ACCEPTANCE_PENDING` until the acceptance-record HEAD itself passes all five
+ordinary CI jobs including full verification from a clean checkout. Primary
+FIRs #57–60 remain open until that gate; downstream FTR-024/FTR-089/FTR-093 and
+FTR-028 responsibilities remain with their owning packets/lots. WP-2.12 remains
+blocked.
