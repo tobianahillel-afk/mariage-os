@@ -21,6 +21,7 @@ export interface LocalSyncCounters {
   readonly conflictCount: number;
   readonly retryableFailureCount: number;
   readonly permanentFailureCount: number;
+  readonly unsyncedBinaryCount: number;
 }
 
 export interface LocalProjectStore {

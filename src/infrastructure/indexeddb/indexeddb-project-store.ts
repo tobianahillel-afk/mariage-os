@@ -33,6 +33,7 @@ import { runAtomicCloudCacheRefresh } from "./indexeddb-project-store-refresh";
 
 import {
   CACHE_STORE,
+  LOCAL_BINARY_STORE,
   LOCAL_SCHEMA_VERSION,
   METADATA_STORE,
   MUTATION_STORE,
@@ -62,16 +63,34 @@ function createMetadata(
   };
 }
 
-function assertScopeMetadata(
+function assertScopeIdentity(
   value: LocalProjectMetadata,
   scope: LocalProjectScope,
 ): void {
   if (
-    value.localSchemaVersion !== LOCAL_SCHEMA_VERSION ||
     value.projectId !== scope.projectId ||
     value.userId !== scope.userId ||
     value.deviceId !== scope.deviceId
   ) {
+    throw new Error("Local IndexedDB scope metadata is inconsistent.");
+  }
+}
+
+function assertMigratableSchema(value: LocalProjectMetadata): void {
+  if (
+    value.localSchemaVersion < 1 ||
+    value.localSchemaVersion > LOCAL_SCHEMA_VERSION
+  ) {
+    throw new Error("Local IndexedDB scope metadata is inconsistent.");
+  }
+}
+
+function assertScopeMetadata(
+  value: LocalProjectMetadata,
+  scope: LocalProjectScope,
+): void {
+  assertScopeIdentity(value, scope);
+  if (value.localSchemaVersion !== LOCAL_SCHEMA_VERSION) {
     throw new Error("Local IndexedDB scope metadata is inconsistent.");
   }
 }
@@ -107,15 +126,18 @@ export class IndexedDbProjectStore implements LocalProjectStore {
       raw === undefined ? undefined : parseLocalProjectMetadata(raw);
 
     if (existing !== undefined) {
-      assertScopeMetadata(existing, this.scope);
+      assertScopeIdentity(existing, this.scope);
+      assertMigratableSchema(existing);
     }
 
     if (
       existing === undefined ||
+      existing.localSchemaVersion !== LOCAL_SCHEMA_VERSION ||
       existing.appVersionLastOpened !== appVersion
     ) {
       const metadata = {
         ...(existing ?? createMetadata(this.scope, appVersion)),
+        localSchemaVersion: LOCAL_SCHEMA_VERSION,
         appVersionLastOpened: appVersion,
       };
       await runRequest<IDBValidKey>(
@@ -334,11 +356,18 @@ export class IndexedDbProjectStore implements LocalProjectStore {
   }
 
   async readSyncCounters(): Promise<LocalSyncCounters> {
+    const binaries = await runRequest<unknown[]>(
+      this.database,
+      LOCAL_BINARY_STORE,
+      "readonly",
+      (binaryStore) => binaryStore.getAll(),
+    );
     const counters: LocalSyncCounters = {
       pendingCount: 0,
       conflictCount: 0,
       retryableFailureCount: 0,
       permanentFailureCount: 0,
+      unsyncedBinaryCount: binaries.length,
     };
     const mutable = { ...counters };
 

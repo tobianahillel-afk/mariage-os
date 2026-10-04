@@ -5,6 +5,7 @@ export type VenueWorkspaceRoute =
   | { readonly kind: "gallery" }
   | { readonly kind: "compare" }
   | { readonly kind: "detail"; readonly venueId: string }
+  | { readonly kind: "visit"; readonly venueId: string }
   | { readonly kind: "unavailable" };
 
 export function parseVenueWorkspaceRoute(
@@ -14,6 +15,14 @@ export function parseVenueWorkspaceRoute(
   if (projectPath === "/venues/compare") return { kind: "compare" };
 
   const segments = projectPath.split("/").filter(Boolean);
+  if (
+    segments.length === 3 &&
+    segments[0] === "venues" &&
+    UUID_PATTERN.test(segments[1] as string) &&
+    segments[2] === "visit"
+  ) {
+    return { kind: "visit", venueId: segments[1] as string };
+  }
   if (
     segments.length === 2 &&
     segments[0] === "venues" &&

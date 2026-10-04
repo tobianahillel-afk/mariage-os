@@ -21,6 +21,7 @@ const emptyCounters: LocalSyncCounters = {
   conflictCount: 0,
   retryableFailureCount: 0,
   permanentFailureCount: 0,
+  unsyncedBinaryCount: 0,
 };
 
 function storeFactory(counters: LocalSyncCounters = emptyCounters): {
@@ -137,6 +138,7 @@ it("counts failed mutations as unresolved local work", async () => {
     conflictCount: 0,
     retryableFailureCount: 2,
     permanentFailureCount: 1,
+    unsyncedBinaryCount: 0,
   });
   const coordinator = new SafeLogoutCoordinator({
     auth: target.auth,
