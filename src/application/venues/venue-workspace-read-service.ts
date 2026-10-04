@@ -90,27 +90,38 @@ function naturalVenueOrder(
   return nameOrder !== 0 ? nameOrder : left.id.localeCompare(right.id);
 }
 
+function guestCountComparison(model: VenueCompatibilityReadModel) {
+  const explanation = model.dynamicGuestCountExplanation;
+  return explanation === null ? null : explanation.comparison;
+}
+
+function externalCatererOutcome(
+  model: VenueCompatibilityReadModel,
+): VenueWorkspaceCompatibilitySummary["externalCatererOutcome"] {
+  const evaluation = model.evaluations.find(
+    (item) => item.key === "external_caterer_allowed",
+  );
+  return evaluation === undefined ? null : evaluation.outcome;
+}
+
 function compatibilitySummary(
   model: VenueCompatibilityReadModel,
 ): VenueWorkspaceCompatibilitySummary {
-  const comparison = model.dynamicGuestCountExplanation?.comparison ?? null;
-  const externalCaterer = model.evaluations.find(
-    (evaluation) => evaluation.key === "external_caterer_allowed",
-  );
-  const missingCriticalCriteria = model.evaluations.filter(
-    isMissingCriticalEvaluation,
-  ).length;
+  const comparison = guestCountComparison(model);
   return {
     blockingStatus: model.aggregate.blockingStatus,
     weightedScore: model.aggregate.weightedScore,
     evidenceReadiness: model.readiness.evidenceReadiness,
     unknownImportantCriteria: model.aggregate.unknownImportantCriteria,
     conflictingCriteria: model.aggregate.conflictingCriteria,
-    missingCriticalCriteria,
+    missingCriticalCriteria: model.evaluations.filter(
+      isMissingCriticalEvaluation,
+    ).length,
     targetGuestCount: model.targetGuestCount,
-    supportMaximumGuestCount: comparison?.supportMaximumGuestCount ?? null,
-    targetGuestCountPasses: comparison?.passes ?? null,
-    externalCatererOutcome: externalCaterer?.outcome ?? null,
+    supportMaximumGuestCount:
+      comparison === null ? null : comparison.supportMaximumGuestCount,
+    targetGuestCountPasses: comparison === null ? null : comparison.passes,
+    externalCatererOutcome: externalCatererOutcome(model),
   };
 }
 
