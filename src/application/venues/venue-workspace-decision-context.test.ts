@@ -222,6 +222,25 @@ it("filters commercial offers to selected-date applicability", async () => {
   });
 });
 
+it("fails closed for invalid dates and offers expired before the selected date", async () => {
+  const invalidDate = await service({
+    offers: [offer("quoted", 100_000)],
+    selectedDate: "not-a-date",
+  }).reader.read(projectId, venueId);
+  expect(invalidDate.commercial).toEqual({
+    quoteState: "none",
+    price: null,
+  });
+
+  const expired = await service({
+    offers: [{ ...offer("quoted", 120_000), validTo: "2027-06-11" }],
+  }).reader.read(projectId, venueId);
+  expect(expired.commercial).toEqual({
+    quoteState: "none",
+    price: null,
+  });
+});
+
 it("keeps date-scoped offers unknown until a date is selected", async () => {
   const boundary = {
     ...offer("accepted", 300_000),
