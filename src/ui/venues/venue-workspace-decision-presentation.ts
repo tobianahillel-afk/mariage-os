@@ -86,13 +86,8 @@ function routeContext(
 }
 
 export function accessContext(item: VenueWorkspaceItem): string {
-  const access = item.decisionContext?.access;
-  if (access === null || access === undefined) return "—";
-  return (
-    routeContext("Voiture", access.car) ??
-    routeContext("Transports", access.publicTransport) ??
-    "—"
-  );
+  const details = accessDetails(item);
+  return details.length === 0 ? "—" : details.join(" · ");
 }
 
 export function accessDetails(item: VenueWorkspaceItem): readonly string[] {
@@ -155,10 +150,25 @@ export function strengthsContext(item: VenueWorkspaceItem): string {
 }
 
 export function reservationsContext(item: VenueWorkspaceItem): string {
-  const missing = item.compatibility?.missingCriticalCriteria;
-  const conflicts = item.compatibility?.conflictingCriteria;
-  if (missing === undefined || conflicts === undefined) return "—";
-  if (missing === 0 && conflicts === 0)
-    return "Aucune réserve critique connue";
-  return `${missing} manquant(s) critique(s) · ${conflicts} conflit(s)`;
+  const compatibility = item.compatibility;
+  if (compatibility === null) return "—";
+  const reservations: string[] = [];
+  if (compatibility.blockingStatus === "FAIL") {
+    reservations.push("Critère bloquant en échec");
+  } else if (compatibility.blockingStatus === "CONFLICT") {
+    reservations.push("Critère bloquant en conflit");
+  } else if (compatibility.blockingStatus === "UNKNOWN") {
+    reservations.push("Critère bloquant à vérifier");
+  }
+  if (compatibility.missingCriticalCriteria > 0) {
+    reservations.push(
+      `${compatibility.missingCriticalCriteria} manquant(s) critique(s)`,
+    );
+  }
+  if (compatibility.conflictingCriteria > 0) {
+    reservations.push(`${compatibility.conflictingCriteria} conflit(s)`);
+  }
+  return reservations.length === 0
+    ? "Aucune réserve critique connue"
+    : reservations.join(" · ");
 }
