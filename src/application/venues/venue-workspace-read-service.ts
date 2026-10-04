@@ -38,8 +38,7 @@ export interface VenueWorkspaceCompatibilitySummary {
   readonly supportMaximumGuestCount: number | null;
   readonly targetGuestCountPasses: boolean | null;
   readonly externalCatererOutcome:
-    | VenueCompatibilityReadModel["evaluations"][number]["outcome"]
-    | null;
+    VenueCompatibilityReadModel["evaluations"][number]["outcome"] | null;
 }
 
 interface VenueWorkspaceOpinionSummary {
