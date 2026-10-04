@@ -70,7 +70,7 @@ function workspace(
         .mockResolvedValue(importantUnknownInputs()),
     },
     opinions,
-    decisionContext,
+    ...(decisionContext === undefined ? {} : { decisionContext }),
     now: () => "2026-10-04T12:00:00.000Z",
   });
 }
