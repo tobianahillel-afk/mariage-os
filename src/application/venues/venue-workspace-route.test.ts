@@ -37,9 +37,7 @@ describe("parseVenueWorkspaceRoute", () => {
 
   it("rejects non-Venue entity routes", () => {
     expect(
-      parseVenueWorkspaceRoute(
-        "/vendors/91111111-1111-4111-8111-111111111111",
-      ),
+      parseVenueWorkspaceRoute("/vendors/91111111-1111-4111-8111-111111111111"),
     ).toEqual({ kind: "unavailable" });
   });
 
