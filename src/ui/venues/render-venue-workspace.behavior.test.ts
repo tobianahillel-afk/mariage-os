@@ -228,7 +228,7 @@ it("renders safe project-scoped Gallery cards and switches to the bounded Table"
   expect(byAttribute(root, "data-venue-table", "true")).toHaveLength(1);
 });
 
-it("renders empty Gallery and decision-first Detail without disclosing missing entities", () => {
+it("renders empty Gallery and hides missing Venue identity", () => {
   installDocument();
   const empty = createVenueWorkspace(projectId, "/venues", {
     kind: "gallery",
@@ -244,7 +244,10 @@ it("renders empty Gallery and decision-first Detail without disclosing missing e
     "Cette salle n’est pas disponible avec le contexte actuel.",
   );
   expect(texts(missing).join(" ")).not.toContain(venueId(2));
+});
 
+it("renders decision-first Detail with downstream visit link", () => {
+  installDocument();
   const unknown = item(2, {
     compatibility: null,
     opinions: { ownPreference: null, ratings: [] },
