@@ -96,6 +96,35 @@ function expectedAppendPayload(
 export class SupabaseVenueAccessAdapter implements VenueAccessPort {
   constructor(private readonly client: SupabaseVenueAccessClientLike) {}
 
+  async listProjectAccessRoutes(
+    projectId: string,
+  ): Promise<readonly VenueAccessRouteRecord[]> {
+    const { data, error } = await this.client
+      .from("venue_access_routes")
+      .select(ROUTE_COLUMNS)
+      .eq("project_id", projectId)
+      .order("observed_at", { ascending: false })
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: true });
+    if (error !== null || !Array.isArray(data)) {
+      throw new VenueAccessPersistenceError(
+        "persistence_failed",
+        "Venue access route query failed.",
+      );
+    }
+    try {
+      return uniqueRoutes(
+        data.map((row) => parseVenueAccessRouteRow(row, projectId)),
+      );
+    } catch (errorValue) {
+      if (errorValue instanceof VenueAccessPersistenceError) throw errorValue;
+      throw new VenueAccessPersistenceError(
+        "provider_response_invalid",
+        "Invalid venue access route response.",
+      );
+    }
+  }
+
   async appendVenueAccessRoute(
     input: NormalizedAppendVenueAccessRouteInput,
   ): Promise<VenueAccessRouteRecord> {

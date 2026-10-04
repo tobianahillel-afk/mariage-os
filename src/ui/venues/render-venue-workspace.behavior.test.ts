@@ -142,7 +142,13 @@ function item(
       evidenceReadiness: 0.8,
       unknownImportantCriteria: 0,
       conflictingCriteria: 0,
+      missingCriticalCriteria: 0,
+      targetGuestCount: 180,
+      supportMaximumGuestCount: 200,
+      targetGuestCountPasses: true,
+      externalCatererOutcome: "PASS",
     },
+    decisionContext: null,
     opinions: {
       ownPreference: null,
       ratings: [
@@ -222,7 +228,7 @@ it("renders safe project-scoped Gallery cards and switches to the bounded Table"
   expect(byAttribute(root, "data-venue-table", "true")).toHaveLength(1);
 });
 
-it("renders empty Gallery and decision-first Detail without disclosing missing entities", () => {
+it("renders empty Gallery and hides missing Venue identity", () => {
   installDocument();
   const empty = createVenueWorkspace(projectId, "/venues", {
     kind: "gallery",
@@ -238,12 +244,30 @@ it("renders empty Gallery and decision-first Detail without disclosing missing e
     "Cette salle n’est pas disponible avec le contexte actuel.",
   );
   expect(texts(missing).join(" ")).not.toContain(venueId(2));
+});
 
+it("renders decision-first Detail with downstream visit link", () => {
+  installDocument();
   const unknown = item(2, {
     compatibility: null,
     opinions: { ownPreference: null, ratings: [] },
     syncState: "conflict",
     venue: { ...item(2).venue, city: null },
+    decisionContext: {
+      commercial: null,
+      availability: null,
+      access: {
+        car: {
+          mode: "car",
+          originLabel: "Paris",
+          durationMinutes: 45,
+          distanceMeters: null,
+          transfersCount: null,
+          observedAt: "2026-10-02T12:00:00.000Z",
+        },
+        publicTransport: null,
+      },
+    },
   });
   const detail = createVenueWorkspace(
     projectId,
@@ -272,6 +296,27 @@ it("renders empty Gallery and decision-first Detail without disclosing missing e
       `/app/p/${projectId}/venues/${unknown.venue.id}/visit`,
     ),
   ).toHaveLength(1);
+});
+
+it("renders an explicit empty access value in Detail logistics", () => {
+  installDocument();
+  const candidate = item(3, {
+    decisionContext: {
+      commercial: null,
+      availability: null,
+      access: { car: null, publicTransport: null },
+    },
+  });
+  const detail = createVenueWorkspace(
+    projectId,
+    `/venues/${candidate.venue.id}`,
+    {
+      kind: "detail",
+      item: candidate,
+    },
+  ) as unknown as FakeElement;
+
+  expect(texts(detail)).toContain("Accès · —");
 });
 
 it("limits Compare to five selections and keeps blocking differences visible", () => {

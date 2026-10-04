@@ -3,6 +3,7 @@ import type { AuthPort } from "@application/auth/auth-port";
 import type { SecurityDiagnosticsPort } from "@application/auth/security-diagnostics-port";
 import type { ProjectAccessPort } from "@application/projects/project-access-port";
 import type { SessionReader } from "@application/routing/protected-route-guard";
+import { VenueWorkspaceDecisionContextService } from "@application/venues/venue-workspace-decision-context";
 import { VenueWorkspaceReadService } from "@application/venues/venue-workspace-read-service";
 import { SupabaseAuthAdapter } from "@infra/supabase/supabase-auth-adapter";
 import { SupabaseProjectAccessAdapter } from "@infra/supabase/supabase-project-access-adapter";
@@ -18,6 +19,22 @@ import {
   SupabaseVenueRepositoryAdapter,
   type SupabaseVenueRepositoryClientLike,
 } from "@infra/supabase/supabase-venue-repository-adapter";
+import {
+  SupabaseVenueAccessAdapter,
+  type SupabaseVenueAccessClientLike,
+} from "@infra/supabase/supabase-venue-access-adapter";
+import {
+  SupabaseSelectedWeddingDateAdapter,
+  type SupabaseSelectedWeddingDateClientLike,
+} from "@infra/supabase/supabase-selected-wedding-date-adapter";
+import {
+  SupabaseVenueAvailabilityAdapter,
+  type SupabaseVenueAvailabilityClientLike,
+} from "@infra/supabase/supabase-venue-availability-adapter";
+import {
+  SupabaseVenueOfferAdapter,
+  type SupabaseVenueOfferClientLike,
+} from "@infra/supabase/supabase-venue-offer-adapter";
 
 const PUBLISHABLE_KEY_PREFIX = "sb_publishable_";
 
@@ -113,15 +130,27 @@ function failClosedRuntime(): BrowserShellRuntime {
 
 type VenueWorkspaceClient = SupabaseVenueRepositoryClientLike &
   SupabaseVenueCompatibilityClientLike &
-  SupabaseVenueMemberOpinionClientLike;
+  SupabaseVenueMemberOpinionClientLike &
+  SupabaseVenueOfferClientLike &
+  SupabaseVenueAvailabilityClientLike &
+  SupabaseVenueAccessClientLike &
+  SupabaseSelectedWeddingDateClientLike;
 
 function venueWorkspaceRead(client: SupabaseClient): VenueWorkspaceReadService {
   const venueClient = client as unknown as VenueWorkspaceClient;
+  const now = () => new Date().toISOString();
   return new VenueWorkspaceReadService({
     repository: new SupabaseVenueRepositoryAdapter(venueClient),
     compatibility: new SupabaseVenueCompatibilityQueryAdapter(venueClient),
     opinions: new SupabaseVenueMemberOpinionAdapter(venueClient),
-    now: () => new Date().toISOString(),
+    decisionContext: new VenueWorkspaceDecisionContextService({
+      offers: new SupabaseVenueOfferAdapter(venueClient),
+      availability: new SupabaseVenueAvailabilityAdapter(venueClient),
+      access: new SupabaseVenueAccessAdapter(venueClient),
+      dates: new SupabaseSelectedWeddingDateAdapter(venueClient),
+      now,
+    }),
+    now,
   });
 }
 

@@ -17,16 +17,28 @@ import type {
   VenueCoreRecord,
   VenueRepositoryPort,
 } from "@application/venues/venue-repository-port";
+import type {
+  VenueWorkspaceDecisionContext,
+  VenueWorkspaceDecisionContextReader,
+} from "@application/venues/venue-workspace-decision-context";
 import { compareVenueCodes } from "@domain/venues/venue-code";
 
 type VenueWorkspaceSyncState = "synced" | "pending" | "conflict" | "unknown";
+type VenueWorkspaceBlockingStatus =
+  VenueCompatibilityReadModel["aggregate"]["blockingStatus"];
 
 export interface VenueWorkspaceCompatibilitySummary {
-  readonly blockingStatus: VenueCompatibilityReadModel["aggregate"]["blockingStatus"];
+  readonly blockingStatus: VenueWorkspaceBlockingStatus;
   readonly weightedScore: number | null;
   readonly evidenceReadiness: number | null;
   readonly unknownImportantCriteria: number;
   readonly conflictingCriteria: number;
+  readonly missingCriticalCriteria: number;
+  readonly targetGuestCount: number | null;
+  readonly supportMaximumGuestCount: number | null;
+  readonly targetGuestCountPasses: boolean | null;
+  readonly externalCatererOutcome:
+    VenueCompatibilityReadModel["evaluations"][number]["outcome"] | null;
 }
 
 interface VenueWorkspaceOpinionSummary {
@@ -38,6 +50,7 @@ export interface VenueWorkspaceItem {
   readonly venue: VenueCoreRecord;
   readonly syncState: VenueWorkspaceSyncState;
   readonly compatibility: VenueWorkspaceCompatibilitySummary | null;
+  readonly decisionContext: VenueWorkspaceDecisionContext | null;
   readonly opinions: VenueWorkspaceOpinionSummary;
 }
 
@@ -45,12 +58,24 @@ interface VenueWorkspaceReadDependencies {
   readonly repository: VenueRepositoryPort;
   readonly compatibility: VenueCompatibilityQueryPort;
   readonly opinions: VenueMemberOpinionPort;
+  readonly decisionContext?: VenueWorkspaceDecisionContextReader;
   readonly now: () => string;
 }
 
 interface LocalVenueState {
   readonly venue: VenueCoreRecord;
   readonly syncState: "synced" | "pending" | "conflict";
+}
+
+type VenueCompatibilityEvaluation =
+  VenueCompatibilityReadModel["evaluations"][number];
+
+function isMissingCriticalEvaluation(
+  evaluation: VenueCompatibilityEvaluation,
+): boolean {
+  const criticalPriority =
+    evaluation.priority === "blocking" || evaluation.priority === "important";
+  return criticalPriority && evaluation.outcome === "UNKNOWN";
 }
 
 function naturalVenueOrder(
@@ -65,15 +90,38 @@ function naturalVenueOrder(
   return nameOrder !== 0 ? nameOrder : left.id.localeCompare(right.id);
 }
 
+function guestCountComparison(model: VenueCompatibilityReadModel) {
+  const explanation = model.dynamicGuestCountExplanation;
+  return explanation === null ? null : explanation.comparison;
+}
+
+function externalCatererOutcome(
+  model: VenueCompatibilityReadModel,
+): VenueWorkspaceCompatibilitySummary["externalCatererOutcome"] {
+  const evaluation = model.evaluations.find(
+    (item) => item.key === "external_caterer_allowed",
+  );
+  return evaluation === undefined ? null : evaluation.outcome;
+}
+
 function compatibilitySummary(
   model: VenueCompatibilityReadModel,
 ): VenueWorkspaceCompatibilitySummary {
+  const comparison = guestCountComparison(model);
   return {
     blockingStatus: model.aggregate.blockingStatus,
     weightedScore: model.aggregate.weightedScore,
     evidenceReadiness: model.readiness.evidenceReadiness,
     unknownImportantCriteria: model.aggregate.unknownImportantCriteria,
     conflictingCriteria: model.aggregate.conflictingCriteria,
+    missingCriticalCriteria: model.evaluations.filter(
+      isMissingCriticalEvaluation,
+    ).length,
+    targetGuestCount: model.targetGuestCount,
+    supportMaximumGuestCount:
+      comparison === null ? null : comparison.supportMaximumGuestCount,
+    targetGuestCountPasses: comparison === null ? null : comparison.passes,
+    externalCatererOutcome: externalCatererOutcome(model),
   };
 }
 
@@ -136,8 +184,16 @@ export class VenueWorkspaceReadService {
       cloud = null;
     }
     const venues = mergeVenues(cloud, localState);
+    const decisionContexts = await this.readDecisionContexts(projectId, venues);
     return Promise.all(
-      venues.map((venue) => this.item(projectId, venue, localState)),
+      venues.map((venue) =>
+        this.item(
+          projectId,
+          venue,
+          localState,
+          decisionContexts.get(venue.id) ?? null,
+        ),
+      ),
     );
   }
 
@@ -169,16 +225,24 @@ export class VenueWorkspaceReadService {
     projectId: string,
     venue: VenueCoreRecord,
     local: ReadonlyMap<string, LocalVenueState>,
+    prefetchedDecisionContext?: VenueWorkspaceDecisionContext | null,
   ): Promise<VenueWorkspaceItem> {
-    const [compatibility, ownPreference, ratings] = await Promise.all([
-      this.readCompatibility(projectId, venue.id),
-      this.readPreference(projectId, venue.id),
-      this.readRatings(projectId, venue.id),
-    ]);
+    const decisionContext =
+      prefetchedDecisionContext === undefined
+        ? this.readDecisionContext(projectId, venue.id)
+        : Promise.resolve(prefetchedDecisionContext);
+    const [compatibility, resolvedDecisionContext, ownPreference, ratings] =
+      await Promise.all([
+        this.readCompatibility(projectId, venue.id),
+        decisionContext,
+        this.readPreference(projectId, venue.id),
+        this.readRatings(projectId, venue.id),
+      ]);
     return {
       venue,
       syncState: local.get(venue.id)?.syncState ?? "unknown",
       compatibility,
+      decisionContext: resolvedDecisionContext,
       opinions: { ownPreference, ratings },
     };
   }
@@ -197,6 +261,35 @@ export class VenueWorkspaceReadService {
         },
       );
       return model === null ? null : compatibilitySummary(model);
+    } catch {
+      return null;
+    }
+  }
+
+  private async readDecisionContexts(
+    projectId: string,
+    venues: readonly VenueCoreRecord[],
+  ): Promise<ReadonlyMap<string, VenueWorkspaceDecisionContext>> {
+    const reader = this.dependencies.decisionContext;
+    if (reader === undefined || venues.length === 0) return new Map();
+    try {
+      return await reader.readMany(
+        projectId,
+        venues.map((venue) => venue.id),
+      );
+    } catch {
+      return new Map();
+    }
+  }
+
+  private async readDecisionContext(
+    projectId: string,
+    venueId: string,
+  ): Promise<VenueWorkspaceDecisionContext | null> {
+    const reader = this.dependencies.decisionContext;
+    if (reader === undefined) return null;
+    try {
+      return await reader.read(projectId, venueId);
     } catch {
       return null;
     }

@@ -1,5 +1,14 @@
 import type { VenueWorkspaceItem } from "@application/venues/venue-workspace-read-service";
 import {
+  accessContext,
+  availabilityContext,
+  capacityContext,
+  externalCatererContext,
+  missingCriticalContext,
+  priceContext,
+  quoteContext,
+} from "./venue-workspace-decision-presentation";
+import {
   addListener,
   averageRating,
   blocker,
@@ -18,11 +27,16 @@ interface CompareRow {
 
 const compareRows: readonly CompareRow[] = [
   { label: "Blocage", value: blocker },
-  { label: "Score", value: score },
+  { label: "Capacité", value: capacityContext },
+  { label: "Prix", value: priceContext },
+  { label: "Accès", value: accessContext },
+  { label: "Disponibilité", value: availabilityContext },
+  { label: "Traiteur externe", value: externalCatererContext },
+  { label: "Devis", value: quoteContext },
   { label: "Preuves", value: readiness },
-  { label: "Statut", value: (item) => item.venue.status },
-  { label: "Ville", value: (item) => item.venue.city ?? "—" },
+  { label: "Manquants critiques", value: missingCriticalContext },
   { label: "Avis partenaires", value: averageRating },
+  { label: "Score", value: score },
 ];
 
 function onlyDifferent(
