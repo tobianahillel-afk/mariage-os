@@ -46,9 +46,9 @@ function workspace(decisionContext: VenueWorkspaceDecisionContextReader) {
 
 it("uses one decision batch for collection and one read for detail", async () => {
   const context = { commercial: null, availability: null, access: null };
-  const readMany = vi.fn().mockResolvedValue(
-    new Map(ids.map((id) => [id, context])),
-  );
+  const readMany = vi
+    .fn()
+    .mockResolvedValue(new Map(ids.map((id) => [id, context])));
   const read = vi.fn().mockResolvedValue(context);
   const fixture = workspace({ read, readMany });
 
