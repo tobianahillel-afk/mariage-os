@@ -24,6 +24,10 @@ import {
   type SupabaseVenueAccessClientLike,
 } from "@infra/supabase/supabase-venue-access-adapter";
 import {
+  SupabaseSelectedWeddingDateAdapter,
+  type SupabaseSelectedWeddingDateClientLike,
+} from "@infra/supabase/supabase-selected-wedding-date-adapter";
+import {
   SupabaseVenueAvailabilityAdapter,
   type SupabaseVenueAvailabilityClientLike,
 } from "@infra/supabase/supabase-venue-availability-adapter";
@@ -129,7 +133,8 @@ type VenueWorkspaceClient = SupabaseVenueRepositoryClientLike &
   SupabaseVenueMemberOpinionClientLike &
   SupabaseVenueOfferClientLike &
   SupabaseVenueAvailabilityClientLike &
-  SupabaseVenueAccessClientLike;
+  SupabaseVenueAccessClientLike &
+  SupabaseSelectedWeddingDateClientLike;
 
 function venueWorkspaceRead(client: SupabaseClient): VenueWorkspaceReadService {
   const venueClient = client as unknown as VenueWorkspaceClient;
@@ -142,6 +147,7 @@ function venueWorkspaceRead(client: SupabaseClient): VenueWorkspaceReadService {
       offers: new SupabaseVenueOfferAdapter(venueClient),
       availability: new SupabaseVenueAvailabilityAdapter(venueClient),
       access: new SupabaseVenueAccessAdapter(venueClient),
+      dates: new SupabaseSelectedWeddingDateAdapter(venueClient),
       now,
     }),
     now,
