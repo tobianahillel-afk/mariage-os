@@ -403,10 +403,18 @@ it("renders visit state explicitly instead of falling back to Gallery", () => {
     },
   ) as unknown as FakeElement;
 
-  expect(byAttribute(root, "data-venue-workspace", "visit")).toHaveLength(1);
-  expect(
-    byAttribute(root, "data-venue-id", candidate.venue.id),
-  ).toHaveLength(1);
+  const visitWorkspace = byAttribute(
+    root,
+    "data-venue-workspace",
+    "visit",
+  );
+  const venueIdentity = byAttribute(
+    root,
+    "data-venue-id",
+    candidate.venue.id,
+  );
+  expect(visitWorkspace).toHaveLength(1);
+  expect(venueIdentity).toHaveLength(1);
   expect(texts(root)).toContain("Visite · V4 · Venue 4");
   expect(texts(root)).toContain(
     "La préparation hors ligne de la visite n’est pas encore disponible sur cet appareil.",
