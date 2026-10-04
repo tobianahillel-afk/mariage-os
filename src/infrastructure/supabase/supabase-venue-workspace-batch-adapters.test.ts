@@ -113,7 +113,7 @@ function routeRow(overrides: Record<string, unknown> = {}) {
   };
 }
 
-describe("WP-2.11 project-wide decision adapters", () => {
+describe("WP-2.11 project-wide commercial decision adapter", () => {
   it("lists project offers and rejects substituted Venue identity", async () => {
     let result: Result = { data: [offerRow()], error: null };
     const client = {
@@ -137,7 +137,9 @@ describe("WP-2.11 project-wide decision adapters", () => {
       "Venue offer query failed.",
     );
   });
+});
 
+describe("WP-2.11 project-wide availability/access decision adapters", () => {
   it("lists selected-date availability and rejects date substitution", async () => {
     let result: Result = { data: [availabilityRow()], error: null };
     const client = {
