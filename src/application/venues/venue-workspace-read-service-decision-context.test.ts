@@ -73,7 +73,6 @@ it("fails soft when collection decision batching is unavailable", async () => {
   expect(result.every((item) => item.decisionContext === null)).toBe(true);
 });
 
-
 it("does not call the batch reader for an empty Venue collection", async () => {
   const readMany = vi.fn();
   const fixture = workspace({ read: vi.fn(), readMany }, []);
