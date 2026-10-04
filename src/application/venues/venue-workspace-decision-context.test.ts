@@ -223,7 +223,7 @@ describe("VenueWorkspaceDecisionContextService", () => {
     });
   });
 
-  it("treats validity bounds as inclusive and no-date context as unrestricted only", async () => {
+  it("treats validity bounds as inclusive and keeps date-scoped no-date context unknown", async () => {
     const boundary = {
       ...offer("accepted", 300_000),
       validFrom: eventDate,
@@ -242,7 +242,13 @@ describe("VenueWorkspaceDecisionContextService", () => {
       offers: [boundary, unrestricted],
       selectedDate: null,
     }).reader.read(projectId, venueId);
-    expect(withoutDate.commercial).toEqual({
+    expect(withoutDate.commercial).toBeNull();
+
+    const unrestrictedOnly = await service({
+      offers: [unrestricted],
+      selectedDate: null,
+    }).reader.read(projectId, venueId);
+    expect(unrestrictedOnly.commercial).toEqual({
       quoteState: "quoted",
       price: {
         kind: "known",
