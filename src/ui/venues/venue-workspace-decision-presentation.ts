@@ -1,5 +1,33 @@
 import type { VenueWorkspaceItem } from "@application/venues/venue-workspace-read-service";
-import type { VenueWorkspaceAccessContext } from "@application/venues/venue-workspace-decision-context";
+import type {
+  VenueWorkspaceAccessContext,
+  VenueWorkspaceQuoteState,
+} from "@application/venues/venue-workspace-decision-context";
+
+type BlockingStatus =
+  NonNullable<VenueWorkspaceItem["compatibility"]>["blockingStatus"];
+
+function guestCapacityOutcome(passes: boolean | null): string {
+  if (passes === null) return "à vérifier";
+  return passes ? "compatible" : "insuffisant";
+}
+
+function capacityWithMaximum(
+  target: number | null,
+  maximum: number,
+  passes: boolean | null,
+): string {
+  if (target === null) return `Max estimé ${maximum} pers.`;
+  return `Cible ${target} / max estimé ${maximum} · ${guestCapacityOutcome(passes)}`;
+}
+
+function needsBlockerReview(status: BlockingStatus | undefined): boolean {
+  return status === "FAIL" || status === "CONFLICT";
+}
+
+function needsQuote(status: VenueWorkspaceQuoteState | undefined): boolean {
+  return status === undefined || status === "none" || status === "draft";
+}
 
 function money(amountMinor: number, currency: string): string {
   try {
@@ -19,19 +47,14 @@ export function capacityContext(item: VenueWorkspaceItem): string {
   if (compatibility === null) return "—";
   const target = compatibility.targetGuestCount;
   const maximum = compatibility.supportMaximumGuestCount;
-  if (target === null && maximum === null) return "—";
   if (maximum === null) {
     return target === null ? "—" : `Cible ${target} · à vérifier`;
   }
-  const outcome =
-    compatibility.targetGuestCountPasses === null
-      ? "à vérifier"
-      : compatibility.targetGuestCountPasses
-        ? "compatible"
-        : "insuffisant";
-  return target === null
-    ? `Max estimé ${maximum} pers.`
-    : `Cible ${target} / max estimé ${maximum} · ${outcome}`;
+  return capacityWithMaximum(
+    target,
+    maximum,
+    compatibility.targetGuestCountPasses,
+  );
 }
 
 export function priceContext(item: VenueWorkspaceItem): string {
@@ -126,15 +149,13 @@ export function favoriteContext(item: VenueWorkspaceItem): string {
 
 export function nextAction(item: VenueWorkspaceItem): string {
   if (item.syncState === "conflict") return "Résoudre le conflit local";
-  const blocker = item.compatibility?.blockingStatus;
-  if (blocker === "FAIL" || blocker === "CONFLICT") {
+  if (needsBlockerReview(item.compatibility?.blockingStatus)) {
     return "Vérifier les critères bloquants";
   }
   if ((item.compatibility?.missingCriticalCriteria ?? 0) > 0) {
     return "Compléter les informations critiques";
   }
-  const quote = item.decisionContext?.commercial?.quoteState;
-  if (quote === "none" || quote === "draft" || quote === undefined) {
+  if (needsQuote(item.decisionContext?.commercial?.quoteState)) {
     return "Obtenir ou compléter le devis";
   }
   if (item.decisionContext?.availability === null) {

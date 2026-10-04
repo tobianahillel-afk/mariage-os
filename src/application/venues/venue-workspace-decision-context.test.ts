@@ -218,6 +218,9 @@ describe("VenueWorkspaceDecisionContextService", () => {
     expect(empty.commercial).toEqual({ quoteState: "none", price: null });
   });
 
+});
+
+describe("VenueWorkspaceDecisionContextService failure handling", () => {
   it("fails soft by source without inventing provider truth", async () => {
     expect(
       (await service({ fail: "offers" }).reader.read(projectId, venueId))
@@ -261,6 +264,9 @@ describe("VenueWorkspaceDecisionContextService", () => {
     expect(value.availability).toBeNull();
   });
 
+});
+
+describe("VenueWorkspaceDecisionContextService batching", () => {
   it("batches project inputs once and separates Venue contexts", async () => {
     const fixture = service({
       offers: [offer("quoted", 100, "EUR", secondVenueId)],

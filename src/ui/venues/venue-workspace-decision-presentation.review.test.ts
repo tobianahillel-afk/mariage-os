@@ -5,6 +5,13 @@ import {
   reservationsContext,
 } from "./venue-workspace-decision-presentation";
 
+function compatibilityOf(item: VenueWorkspaceItem) {
+  if (item.compatibility === null) {
+    throw new Error("Synthetic review item must include compatibility.");
+  }
+  return item.compatibility;
+}
+
 function item(blockingStatus: "PASS" | "FAIL" | "CONFLICT" | "UNKNOWN") {
   return {
     venue: {
@@ -79,7 +86,7 @@ it("only reports no critical reservation for a clean summary", () => {
     reservationsContext({
       ...base,
       compatibility: {
-        ...base.compatibility!,
+        ...compatibilityOf(base),
         missingCriticalCriteria: 2,
         conflictingCriteria: 1,
       },

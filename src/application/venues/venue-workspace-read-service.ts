@@ -67,6 +67,17 @@ interface LocalVenueState {
   readonly syncState: "synced" | "pending" | "conflict";
 }
 
+type VenueCompatibilityEvaluation =
+  VenueCompatibilityReadModel["evaluations"][number];
+
+function isMissingCriticalEvaluation(
+  evaluation: VenueCompatibilityEvaluation,
+): boolean {
+  const criticalPriority =
+    evaluation.priority === "blocking" || evaluation.priority === "important";
+  return criticalPriority && evaluation.outcome === "UNKNOWN";
+}
+
 function naturalVenueOrder(
   left: VenueCoreRecord,
   right: VenueCoreRecord,
@@ -87,10 +98,7 @@ function compatibilitySummary(
     (evaluation) => evaluation.key === "external_caterer_allowed",
   );
   const missingCriticalCriteria = model.evaluations.filter(
-    (evaluation) =>
-      (evaluation.priority === "blocking" ||
-        evaluation.priority === "important") &&
-      evaluation.outcome === "UNKNOWN",
+    isMissingCriticalEvaluation,
   ).length;
   return {
     blockingStatus: model.aggregate.blockingStatus,
