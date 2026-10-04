@@ -7,5 +7,6 @@ describe("WP-2.11 decision-context runtime contract", () => {
     expect(runtimeSource).toContain("SupabaseVenueOfferAdapter");
     expect(runtimeSource).toContain("SupabaseVenueAvailabilityAdapter");
     expect(runtimeSource).toContain("SupabaseVenueAccessAdapter");
+    expect(runtimeSource).toContain("SupabaseSelectedWeddingDateAdapter");
   });
 });
