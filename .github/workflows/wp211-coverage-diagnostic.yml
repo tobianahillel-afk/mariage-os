@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   coverage:
-    name: Print files below full coverage
+    name: Print uncovered statements and branches
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
@@ -21,22 +21,46 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci --no-audit --no-fund
-      - name: Generate JSON coverage summary
+      - name: Generate exact JSON coverage
         run: |
-          npx vitest run --coverage --coverage.reporter=json-summary || true
+          npx vitest run --coverage --coverage.reporter=json || true
           node --input-type=module <<'NODE'
           import { readFileSync } from "node:fs";
-          const summary = JSON.parse(readFileSync("coverage/coverage-summary.json", "utf8"));
-          for (const [file, metrics] of Object.entries(summary)) {
-            if (file === "total") continue;
-            const bad = ["statements","branches","functions","lines"].filter(
-              (key) => metrics[key].pct < 100,
-            );
-            if (bad.length > 0) {
-              console.log(JSON.stringify({
-                file: file.replace(process.cwd() + "/", ""),
-                metrics: Object.fromEntries(bad.map((key) => [key, metrics[key]])),
+          const report = JSON.parse(readFileSync("coverage/coverage-final.json", "utf8"));
+          const root = process.cwd() + "/";
+          for (const [absolute, data] of Object.entries(report)) {
+            const file = absolute.replace(root, "");
+            const statements = Object.entries(data.s)
+              .filter(([, count]) => count === 0)
+              .map(([id]) => ({
+                id,
+                line: data.statementMap[id].start.line,
+                endLine: data.statementMap[id].end.line,
               }));
+            const functions = Object.entries(data.f)
+              .filter(([, count]) => count === 0)
+              .map(([id]) => ({
+                id,
+                name: data.fnMap[id].name,
+                line: data.fnMap[id].loc.start.line,
+              }));
+            const branches = [];
+            for (const [id, counts] of Object.entries(data.b)) {
+              counts.forEach((count, index) => {
+                if (count === 0) {
+                  const loc = data.branchMap[id].locations[index];
+                  branches.push({
+                    id,
+                    index,
+                    type: data.branchMap[id].type,
+                    line: loc.start.line,
+                    endLine: loc.end.line,
+                  });
+                }
+              });
+            }
+            if (statements.length || functions.length || branches.length) {
+              console.log(JSON.stringify({ file, statements, functions, branches }));
             }
           }
           NODE
