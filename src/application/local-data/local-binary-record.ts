@@ -3,7 +3,7 @@ import {
   type LocalProjectScope,
 } from "@application/local-data/local-project-scope";
 
-export type LocalBinarySyncState = "unsynced" | "synced";
+type LocalBinarySyncState = "unsynced" | "synced";
 
 export interface LocalBinaryMetadata {
   readonly localBinaryId: string;
