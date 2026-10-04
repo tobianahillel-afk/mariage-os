@@ -164,8 +164,7 @@ function service(
   };
 }
 
-describe("VenueWorkspaceDecisionContextService", () => {
-  it("composes selected-date commercial and access context", async () => {
+it("composes selected-date commercial and access context", async () => {
     const fixture = service({
       offers: [offer("quoted", 1_250_000), offer("quoted", 1_500_000)],
     });
@@ -283,7 +282,6 @@ describe("VenueWorkspaceDecisionContextService", () => {
     const empty = await service().reader.read(projectId, venueId);
     expect(empty.commercial).toEqual({ quoteState: "none", price: null });
   });
-});
 
 describe("VenueWorkspaceDecisionContextService failure handling", () => {
   it("fails soft by source without inventing provider truth", async () => {
