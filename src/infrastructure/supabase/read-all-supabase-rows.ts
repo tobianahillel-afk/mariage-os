@@ -44,8 +44,13 @@ export async function readAllSupabaseRows(
   let previousFullPageSignature: string | null = null;
   for (let pageIndex = 0; pageIndex < MAX_SUPABASE_PAGE_COUNT; pageIndex += 1) {
     const from = pageIndex * SUPABASE_PAGE_SIZE;
-    const { data, error } = await readPage(from, from + SUPABASE_PAGE_SIZE - 1);
-    if (error !== null || !Array.isArray(data)) {
+    const to = from + SUPABASE_PAGE_SIZE - 1;
+    const { data, error } = await readPage(from, to);
+    if (
+      error !== null ||
+      !Array.isArray(data) ||
+      data.length > to - from + 1
+    ) {
       throw new SupabasePaginationError();
     }
     const signature = fullPageBoundarySignature(data);
