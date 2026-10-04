@@ -414,6 +414,24 @@ it("renders visit state explicitly instead of falling back to Gallery", () => {
   expect(byClass(root, "venue-gallery")).toHaveLength(0);
 });
 
+it("renders the missing visit fallback without inventing Gallery data", () => {
+  installDocument();
+  const missingId = venueId(7);
+  const root = createVenueWorkspace(
+    projectId,
+    `/venues/${missingId}/visit`,
+  ) as unknown as FakeElement;
+
+  expect(byAttribute(root, "data-venue-workspace", "visit")).toHaveLength(1);
+  expect(texts(root)).toContain(
+    "Cette salle n’est pas disponible avec le contexte actuel.",
+  );
+  expect(
+    byAttribute(root, "href", `/app/p/${projectId}/venues`),
+  ).toHaveLength(1);
+  expect(byClass(root, "venue-gallery")).toHaveLength(0);
+});
+
 it("renders explicit unavailable workspace state", () => {
   installDocument();
   const root = createVenueWorkspace(projectId, "/venues/not-a-route", {
