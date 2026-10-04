@@ -131,9 +131,7 @@ function eventWeekday(eventDate: string): number | null {
 
 function isDateScopedOffer(offer: VenueOfferRecord): boolean {
   return (
-    offer.validFrom !== null ||
-    offer.validTo !== null ||
-    offer.weekday !== null
+    offer.validFrom !== null || offer.validTo !== null || offer.weekday !== null
   );
 }
 
