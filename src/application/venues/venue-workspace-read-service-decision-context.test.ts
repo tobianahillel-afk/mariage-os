@@ -11,8 +11,11 @@ const ids = [
   "92111111-1111-4211-8211-111111111111",
 ];
 
-function workspace(decisionContext: VenueWorkspaceDecisionContextReader) {
-  const venues = ids.map((id, index) => ({
+function workspace(
+  decisionContext: VenueWorkspaceDecisionContextReader,
+  selectedIds: readonly string[] = ids,
+) {
+  const venues = selectedIds.map((id, index) => ({
     id,
     projectId,
     code: `S${index + 1}`,
@@ -68,4 +71,12 @@ it("fails soft when collection decision batching is unavailable", async () => {
   });
   const result = await fixture.service.list(projectId, null);
   expect(result.every((item) => item.decisionContext === null)).toBe(true);
+});
+
+
+it("does not call the batch reader for an empty Venue collection", async () => {
+  const readMany = vi.fn();
+  const fixture = workspace({ read: vi.fn(), readMany }, []);
+  await expect(fixture.service.list(projectId, null)).resolves.toEqual([]);
+  expect(readMany).not.toHaveBeenCalled();
 });
