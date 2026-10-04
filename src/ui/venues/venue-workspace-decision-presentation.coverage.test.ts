@@ -229,7 +229,7 @@ describe("Venue decision next-action priority", () => {
 
   it("covers quote and availability priorities", () => {
     expect(nextAction({ ...baseItem(), decisionContext: null })).toBe(
-      "Obtenir ou compléter le devis",
+      "Comparer avec les finalistes",
     );
     expect(
       nextAction(withCommercial({ quoteState: "none", price: null })),

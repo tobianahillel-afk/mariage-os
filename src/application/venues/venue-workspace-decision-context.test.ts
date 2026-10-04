@@ -195,6 +195,32 @@ describe("VenueWorkspaceDecisionContextService", () => {
     });
   });
 
+  it("filters commercial offers to the selected event-date applicability", async () => {
+    const outsideAccepted = {
+      ...offer("accepted", 100_000),
+      validFrom: "2027-07-01",
+    };
+    const wrongWeekday = { ...offer("quoted", 150_000), weekday: 5 };
+    const applicable = {
+      ...offer("quoted", 200_000),
+      validFrom: "2027-01-01",
+      validTo: "2027-12-31",
+      weekday: 6,
+    };
+    const value = await service({
+      offers: [outsideAccepted, wrongWeekday, applicable],
+    }).reader.read(projectId, venueId);
+    expect(value.commercial).toEqual({
+      quoteState: "quoted",
+      price: {
+        kind: "known",
+        currency: "EUR",
+        minimumAmountMinor: 200_000,
+        maximumAmountMinor: 200_000,
+      },
+    });
+  });
+
   it("keeps quote-state and price semantics explicit", async () => {
     const mixed = await service({
       offers: [
