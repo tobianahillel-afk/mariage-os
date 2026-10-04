@@ -31,6 +31,37 @@ describe("readAllSupabaseRows", () => {
     expect(readPage).toHaveBeenNthCalledWith(2, 1_000, 1_999);
   });
 
+  it("fails closed when a provider repeats the same full page", async () => {
+    const repeated = Array.from({ length: 1_000 }, (_, id) => ({
+      id: `row-${id}`,
+    }));
+    const readPage = vi
+      .fn()
+      .mockResolvedValue({ data: repeated, error: null });
+
+    await expect(readAllSupabaseRows(readPage)).rejects.toBeInstanceOf(
+      SupabasePaginationError,
+    );
+    expect(readPage).toHaveBeenCalledTimes(2);
+  });
+
+  it("fails closed when full pages never terminate", async () => {
+    let page = 0;
+    const readPage = vi.fn().mockImplementation(() => {
+      const start = page * 1_000;
+      page += 1;
+      return Promise.resolve({
+        data: Array.from({ length: 1_000 }, (_, offset) => start + offset),
+        error: null,
+      });
+    });
+
+    await expect(readAllSupabaseRows(readPage)).rejects.toBeInstanceOf(
+      SupabasePaginationError,
+    );
+    expect(readPage).toHaveBeenCalledTimes(100);
+  });
+
   it.each([
     [{ data: [], error: { message: "provider" } }],
     [{ data: null, error: null }],
