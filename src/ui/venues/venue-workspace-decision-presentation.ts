@@ -18,7 +18,9 @@ function capacityWithMaximum(
   passes: boolean | null,
 ): string {
   if (target === null) return `Max estimé ${maximum} pers.`;
-  return `Cible ${target} / max estimé ${maximum} · ${guestCapacityOutcome(passes)}`;
+  return `Cible ${target} / max estimé ${maximum} · ${guestCapacityOutcome(
+    passes,
+  )}`;
 }
 
 function needsBlockerReview(status: BlockingStatus | undefined): boolean {

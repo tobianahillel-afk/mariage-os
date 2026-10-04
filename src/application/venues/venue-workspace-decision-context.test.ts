@@ -217,7 +217,6 @@ describe("VenueWorkspaceDecisionContextService", () => {
     const empty = await service().reader.read(projectId, venueId);
     expect(empty.commercial).toEqual({ quoteState: "none", price: null });
   });
-
 });
 
 describe("VenueWorkspaceDecisionContextService failure handling", () => {
@@ -263,7 +262,6 @@ describe("VenueWorkspaceDecisionContextService failure handling", () => {
     }).reader.read(projectId, venueId);
     expect(value.availability).toBeNull();
   });
-
 });
 
 describe("VenueWorkspaceDecisionContextService batching", () => {
