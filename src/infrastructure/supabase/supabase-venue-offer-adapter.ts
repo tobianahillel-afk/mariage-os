@@ -18,6 +18,7 @@ import {
   parseVenueOfferRemovalReceipt,
   parseVenueOfferRow,
 } from "./parse-venue-offer-row";
+import { readAllSupabaseRows } from "./read-all-supabase-rows";
 
 const OFFER_COLUMNS =
   "id,project_id,venue_id,name,status,valid_from,valid_to,weekday,base_amount_minor,currency,tax_mode,tax_rate_basis_points,included_guest_count,extra_guest_amount_minor,deposit_amount_minor,deposit_refundable,security_deposit_minor,security_deposit_refundable,included_start_time,included_end_time,included_end_day_offset,extra_hour_amount_minor,source_id,notes,revision";
@@ -35,7 +36,8 @@ interface FilterBuilder extends PromiseLike<SupabaseResult> {
   order(
     column: string,
     options: Readonly<{ ascending: boolean }>,
-  ): PromiseLike<SupabaseResult>;
+  ): FilterBuilder;
+  range(from: number, to: number): PromiseLike<SupabaseResult>;
 }
 
 interface CommercialTable {
@@ -187,15 +189,20 @@ export class SupabaseVenueOfferAdapter implements VenueOfferPort {
   async listProjectOffers(
     projectId: string,
   ): Promise<readonly VenueOfferRecord[]> {
-    const data = await resultOrFailure(
-      this.client
-        .from("venue_offers")
-        .select(OFFER_COLUMNS)
-        .eq("project_id", projectId)
-        .order("created_at", { ascending: false }),
-      "Venue offer query failed.",
-    );
-    if (!Array.isArray(data)) failure("Venue offer query failed.");
+    let data: readonly unknown[];
+    try {
+      data = await readAllSupabaseRows((from, to) =>
+        this.client
+          .from("venue_offers")
+          .select(OFFER_COLUMNS)
+          .eq("project_id", projectId)
+          .order("created_at", { ascending: false })
+          .order("id", { ascending: true })
+          .range(from, to),
+      );
+    } catch {
+      return failure("Venue offer query failed.");
+    }
     return uniqueRecords(
       data.map((row) =>
         parseVenueOfferRow(row, projectId, providerVenueId(row)),
