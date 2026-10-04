@@ -53,6 +53,50 @@ function importantUnknownInputs(): VenueCompatibilityInputs {
   };
 }
 
+function dynamicGuestInputs(): VenueCompatibilityInputs {
+  const support: CriterionDefinition = {
+    key: "two_dance_areas_max_guest_estimate",
+    valueType: "number",
+    unit: "people",
+    optionsJson: { min: 0, integer: true },
+    priority: "important",
+    weight: null,
+    evaluationRuleJson: { type: "number_min", minimum: 0 },
+    systemDefined: true,
+  };
+  const derived: CriterionDefinition = {
+    key: "target_guest_count_supported",
+    valueType: "boolean",
+    unit: null,
+    optionsJson: null,
+    priority: "blocking",
+    weight: null,
+    evaluationRuleJson: { type: "project_target_guest_count_supported" },
+    systemDefined: true,
+  };
+  return {
+    projectId,
+    venueId,
+    projectTargetGuestCount: 160,
+    snapshots: [
+      {
+        definition: support,
+        state: "known",
+        retainedValue: 170,
+        retainedObservationStatus: "active",
+        staleAt: null,
+      },
+      {
+        definition: derived,
+        state: null,
+        retainedValue: null,
+        retainedObservationStatus: null,
+        staleAt: null,
+      },
+    ],
+  };
+}
+
 function workspace(
   decisionContext?: VenueWorkspaceDecisionContextReader,
 ): VenueWorkspaceReadService {
@@ -87,6 +131,31 @@ describe("VenueWorkspaceReadService decision summary coverage", () => {
       supportMaximumGuestCount: null,
       targetGuestCountPasses: null,
       externalCatererOutcome: null,
+    });
+  });
+
+  it("summarizes reconstructible dynamic guest capacity", async () => {
+    const record = venue();
+    const service = new VenueWorkspaceReadService({
+      repository: {
+        listVenues: vi.fn().mockResolvedValue([record]),
+        getVenue: vi.fn().mockResolvedValue(record),
+      } as unknown as VenueRepositoryPort,
+      compatibility: {
+        loadVenueCompatibilityInputs: vi.fn().mockResolvedValue(dynamicGuestInputs()),
+      },
+      opinions: {
+        getOwnVenuePreference: vi.fn().mockResolvedValue(null),
+        listVenueRatings: vi.fn().mockResolvedValue([]),
+      } as unknown as VenueMemberOpinionPort,
+      now: () => "2026-10-04T12:00:00.000Z",
+    });
+
+    const item = await service.detail(projectId, venueId, null);
+    expect(item?.compatibility).toMatchObject({
+      targetGuestCount: 160,
+      supportMaximumGuestCount: 170,
+      targetGuestCountPasses: true,
     });
   });
 
