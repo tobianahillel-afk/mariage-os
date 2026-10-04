@@ -155,12 +155,12 @@ describe("WP-2.11 project-wide decision adapters", () => {
       rpc: () => Promise.resolve({ data: null, error: null }),
     } as unknown as SupabaseVenueAccessClientLike;
     const adapter = new SupabaseVenueAccessAdapter(client);
-    await expect(adapter.listProjectAccessRoutes(projectId)).resolves.toMatchObject([
-      { projectId, venueId, mode: "car" },
-    ]);
+    await expect(
+      adapter.listProjectAccessRoutes(projectId),
+    ).resolves.toMatchObject([{ projectId, venueId, mode: "car" }]);
     result = { data: null, error: null };
-    await expect(adapter.listProjectAccessRoutes(projectId)).rejects.toMatchObject(
-      { code: "persistence_failed" },
-    );
+    await expect(
+      adapter.listProjectAccessRoutes(projectId),
+    ).rejects.toMatchObject({ code: "persistence_failed" });
   });
 });
