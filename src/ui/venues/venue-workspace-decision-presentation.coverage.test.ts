@@ -121,6 +121,9 @@ describe("Venue decision capacity and commercial presentation", () => {
     expect(priceContext(absent)).toBe("—");
     expect(quoteContext(absent)).toBe("—");
 
+    const noPrice = withCommercial({ quoteState: "quoted", price: null });
+    expect(priceContext(noPrice)).toBe("—");
+
     const mixed = withCommercial({
       quoteState: "draft",
       price: { kind: "mixed_currency" },
@@ -199,6 +202,11 @@ describe("Venue decision access and availability presentation", () => {
     expect(externalCatererContext({ ...baseItem(), compatibility: null })).toBe(
       "—",
     );
+    expect(
+      externalCatererContext(
+        withCompatibility({ externalCatererOutcome: null }),
+      ),
+    ).toBe("—");
     expect(externalCatererContext(baseItem())).toBe("Autorisé");
   });
 });
@@ -209,6 +217,9 @@ describe("Venue decision next-action priority", () => {
       "Résoudre le conflit local",
     );
     expect(nextAction(withCompatibility({ blockingStatus: "FAIL" }))).toBe(
+      "Vérifier les critères bloquants",
+    );
+    expect(nextAction(withCompatibility({ blockingStatus: "CONFLICT" }))).toBe(
       "Vérifier les critères bloquants",
     );
     expect(nextAction(withCompatibility({ missingCriticalCriteria: 2 }))).toBe(
@@ -239,6 +250,9 @@ describe("Venue decision next-action priority", () => {
 
   it("falls through only for a comparison-ready Venue", () => {
     expect(nextAction(baseItem())).toBe("Comparer avec les finalistes");
+    expect(
+      nextAction({ ...baseItem(), compatibility: null }),
+    ).toBe("Comparer avec les finalistes");
     expect(strengthsContext(baseItem())).toBe(
       "Aucun critère bloquant en échec",
     );
