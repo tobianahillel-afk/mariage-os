@@ -73,9 +73,7 @@ type VenueCompatibilityEvaluation =
 function isMissingCriticalEvaluation(
   evaluation: VenueCompatibilityEvaluation,
 ): boolean {
-  const criticalPriority =
-    evaluation.priority === "blocking" || evaluation.priority === "important";
-  return criticalPriority && evaluation.outcome === "UNKNOWN";
+  return evaluation.priority === "blocking" && evaluation.outcome === "UNKNOWN";
 }
 
 function naturalVenueOrder(
