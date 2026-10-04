@@ -42,6 +42,15 @@ class MetadataTransaction {
         });
         return request as unknown as IDBRequest<unknown>;
       },
+      put: () => {
+        const request = new MetadataRequest<IDBValidKey>();
+        queueMicrotask(() => {
+          request.result = "scope";
+          request.onsuccess?.();
+          this.oncomplete?.();
+        });
+        return request as unknown as IDBRequest<IDBValidKey>;
+      },
     } as unknown as IDBObjectStore;
   }
 }
