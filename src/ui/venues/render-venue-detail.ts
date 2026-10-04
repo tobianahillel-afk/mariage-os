@@ -91,13 +91,13 @@ function evidenceGroup(item: VenueWorkspaceItem): HTMLElement {
   ]);
 }
 
-function downstreamVisit(projectId: string, venueId: string): HTMLAnchorElement {
+function downstreamVisit(
+  projectId: string,
+  venueId: string,
+): HTMLAnchorElement {
   const visit = document.createElement("a");
   visit.textContent = "Préparer la visite";
-  visit.setAttribute(
-    "href",
-    projectVenueHref(projectId, `/${venueId}/visit`),
-  );
+  visit.setAttribute("href", projectVenueHref(projectId, `/${venueId}/visit`));
   visit.setAttribute("data-downstream-visit", "true");
   return visit;
 }
