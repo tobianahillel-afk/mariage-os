@@ -250,6 +250,21 @@ it("renders empty Gallery and decision-first Detail without disclosing missing e
     opinions: { ownPreference: null, ratings: [] },
     syncState: "conflict",
     venue: { ...item(2).venue, city: null },
+    decisionContext: {
+      commercial: null,
+      availability: null,
+      access: {
+        car: {
+          mode: "car",
+          originLabel: "Paris",
+          durationMinutes: 45,
+          distanceMeters: null,
+          transfersCount: null,
+          observedAt: "2026-10-02T12:00:00.000Z",
+        },
+        publicTransport: null,
+      },
+    },
   });
   const detail = createVenueWorkspace(
     projectId,

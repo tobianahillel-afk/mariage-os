@@ -80,6 +80,7 @@ it("fails closed on provider, multiplicity and selected-row substitution", async
   const invalid: readonly Result[] = [
     { data: [], error: { message: "down" } },
     { data: null, error: null },
+    { data: [null], error: null },
     {
       data: [
         {

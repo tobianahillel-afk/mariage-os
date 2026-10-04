@@ -159,7 +159,7 @@ function commercialContext(
     quoteState: quoteState(offers),
     price: {
       kind: "known",
-      currency: candidates[0]?.currency ?? "EUR",
+      currency: [...currencies].join(""),
       minimumAmountMinor: Math.min(...amounts),
       maximumAmountMinor: Math.max(...amounts),
     },

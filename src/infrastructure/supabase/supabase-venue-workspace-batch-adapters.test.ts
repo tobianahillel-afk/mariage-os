@@ -85,7 +85,7 @@ function availabilityRow(overrides: Record<string, unknown> = {}) {
   };
 }
 
-function routeRow() {
+function routeRow(overrides: Record<string, unknown> = {}) {
   return {
     id: "61111111-1111-4111-8111-111111111111",
     project_id: projectId,
@@ -109,6 +109,7 @@ function routeRow() {
     updated_at: "2026-10-01T10:01:00.000Z",
     updated_by: actorId,
     revision: 1,
+    ...overrides,
   };
 }
 
@@ -126,6 +127,14 @@ describe("WP-2.11 project-wide decision adapters", () => {
     result = { data: [offerRow({ venue_id: "bad" })], error: null };
     await expect(adapter.listProjectOffers(projectId)).rejects.toThrow(
       "Invalid venue commercial response.",
+    );
+    result = { data: [null], error: null };
+    await expect(adapter.listProjectOffers(projectId)).rejects.toThrow(
+      "Invalid venue commercial response.",
+    );
+    result = { data: null, error: null };
+    await expect(adapter.listProjectOffers(projectId)).rejects.toThrow(
+      "Venue offer query failed.",
     );
   });
 
@@ -146,6 +155,16 @@ describe("WP-2.11 project-wide decision adapters", () => {
     await expect(
       adapter.listProjectAvailability(projectId, "2027-06-12"),
     ).rejects.toMatchObject({ code: "provider_response_invalid" });
+
+    result = { data: null, error: null };
+    await expect(
+      adapter.listProjectAvailability(projectId, "2027-06-12"),
+    ).rejects.toMatchObject({ code: "persistence_failed" });
+
+    result = { data: [availabilityRow(), availabilityRow()], error: null };
+    await expect(
+      adapter.listProjectAvailability(projectId, "2027-06-12"),
+    ).rejects.toMatchObject({ code: "provider_response_invalid" });
   });
 
   it("lists project access routes and rejects query shape failure", async () => {
@@ -162,5 +181,15 @@ describe("WP-2.11 project-wide decision adapters", () => {
     await expect(
       adapter.listProjectAccessRoutes(projectId),
     ).rejects.toMatchObject({ code: "persistence_failed" });
+
+    result = { data: [routeRow(), routeRow()], error: null };
+    await expect(
+      adapter.listProjectAccessRoutes(projectId),
+    ).rejects.toMatchObject({ code: "provider_response_invalid" });
+
+    result = { data: [routeRow({ observed_at: "bad" })], error: null };
+    await expect(
+      adapter.listProjectAccessRoutes(projectId),
+    ).rejects.toMatchObject({ code: "provider_response_invalid" });
   });
 });
