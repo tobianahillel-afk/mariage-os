@@ -422,13 +422,13 @@ it("renders the missing visit fallback without inventing Gallery data", () => {
     `/venues/${missingId}/visit`,
   ) as unknown as FakeElement;
 
-  expect(byAttribute(root, "data-venue-workspace", "visit")).toHaveLength(1);
+  const visitWorkspace = byAttribute(root, "data-venue-workspace", "visit");
+  const backLinks = byAttribute(root, "href", `/app/p/${projectId}/venues`);
+  expect(visitWorkspace).toHaveLength(1);
   expect(texts(root)).toContain(
     "Cette salle n’est pas disponible avec le contexte actuel.",
   );
-  expect(
-    byAttribute(root, "href", `/app/p/${projectId}/venues`),
-  ).toHaveLength(1);
+  expect(backLinks).toHaveLength(1);
   expect(byClass(root, "venue-gallery")).toHaveLength(0);
 });
 
