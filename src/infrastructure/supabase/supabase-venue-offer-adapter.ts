@@ -10,6 +10,7 @@ import type {
   VenueOfferRecord,
 } from "@application/venues/venue-offer-service";
 import type { NormalizedVenueOfferComponent } from "@domain/venues/venue-offer-component";
+import { isVenueCommercialUuid } from "@domain/venues/venue-commercial-values";
 import type { NormalizedVenueOfferTerms } from "@domain/venues/venue-offer";
 import {
   parseVenueOfferAggregate,
@@ -57,6 +58,14 @@ export interface SupabaseVenueOfferClientLike {
 
 function failure(message: string): never {
   throw new Error(message);
+}
+
+function providerVenueId(value: unknown): string {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return failure(INVALID_RESPONSE);
+  }
+  const venueId = (value as Record<string, unknown>).venue_id;
+  return isVenueCommercialUuid(venueId) ? venueId : failure(INVALID_RESPONSE);
 }
 
 function uniqueRecords<T extends { readonly id: string }>(
@@ -174,6 +183,25 @@ async function resultOrFailure(
 
 export class SupabaseVenueOfferAdapter implements VenueOfferPort {
   constructor(private readonly client: SupabaseVenueOfferClientLike) {}
+
+  async listProjectOffers(
+    projectId: string,
+  ): Promise<readonly VenueOfferRecord[]> {
+    const data = await resultOrFailure(
+      this.client
+        .from("venue_offers")
+        .select(OFFER_COLUMNS)
+        .eq("project_id", projectId)
+        .order("created_at", { ascending: false }),
+      "Venue offer query failed.",
+    );
+    if (!Array.isArray(data)) failure("Venue offer query failed.");
+    return uniqueRecords(
+      data.map((row) =>
+        parseVenueOfferRow(row, projectId, providerVenueId(row)),
+      ),
+    );
+  }
 
   async listVenueOffers(
     projectId: string,
