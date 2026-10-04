@@ -116,14 +116,16 @@ function route(
 
 type Failure = "offers" | "dates" | "availability" | "origin" | "routes";
 
-function service(options: {
-  offers?: readonly VenueOfferRecord[];
-  selectedDate?: string | null;
-  availability?: readonly VenueAvailabilityRecord[];
-  origin?: VenueReferenceOrigin | null;
-  routes?: readonly VenueAccessRouteRecord[];
-  fail?: Failure;
-} = {}) {
+function service(
+  options: {
+    offers?: readonly VenueOfferRecord[];
+    selectedDate?: string | null;
+    availability?: readonly VenueAvailabilityRecord[];
+    origin?: VenueReferenceOrigin | null;
+    routes?: readonly VenueAccessRouteRecord[];
+    fail?: Failure;
+  } = {},
+) {
   const result = <T>(key: Failure, value: T) =>
     options.fail === key
       ? vi.fn().mockRejectedValue(new Error(key))
@@ -222,15 +224,16 @@ describe("VenueWorkspaceDecisionContextService", () => {
         .commercial,
     ).toBeNull();
     expect(
-      (await service({ fail: "origin" }).reader.read(projectId, venueId)).access,
+      (await service({ fail: "origin" }).reader.read(projectId, venueId))
+        .access,
     ).toBeNull();
     expect(
-      (await service({ fail: "routes" }).reader.read(projectId, venueId)).access,
+      (await service({ fail: "routes" }).reader.read(projectId, venueId))
+        .access,
     ).toBeNull();
     expect(
-      (
-        await service({ fail: "availability" }).reader.read(projectId, venueId)
-      ).availability,
+      (await service({ fail: "availability" }).reader.read(projectId, venueId))
+        .availability,
     ).toBeNull();
     expect(
       (await service({ fail: "dates" }).reader.read(projectId, venueId))
