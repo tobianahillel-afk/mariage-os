@@ -8,8 +8,11 @@ describe("WP-2.11 project-wide decision reads", () => {
     ["offers", offerSource],
     ["availability", availabilitySource],
     ["access", accessSource],
-  ])("paginates all %s rows instead of relying on one provider page", (_, source) => {
-    expect(source).toContain("readAllSupabaseRows");
-    expect(source).toContain(".range(");
-  });
+  ])(
+    "paginates all %s rows instead of relying on one provider page",
+    (_, source) => {
+      expect(source).toContain("readAllSupabaseRows");
+      expect(source).toContain(".range(");
+    },
+  );
 });
