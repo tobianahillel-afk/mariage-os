@@ -104,9 +104,9 @@ describe("Venue decision capacity and commercial presentation", () => {
     expect(
       capacityContext(withCompatibility({ supportMaximumGuestCount: null })),
     ).toContain("à vérifier");
-    expect(
-      capacityContext(withCompatibility({ targetGuestCount: null })),
-    ).toBe("Max estimé 200 pers.");
+    expect(capacityContext(withCompatibility({ targetGuestCount: null }))).toBe(
+      "Max estimé 200 pers.",
+    );
     expect(
       capacityContext(withCompatibility({ targetGuestCountPasses: null })),
     ).toContain("à vérifier");
@@ -208,12 +208,12 @@ describe("Venue decision next-action priority", () => {
     expect(nextAction({ ...baseItem(), syncState: "conflict" })).toBe(
       "Résoudre le conflit local",
     );
-    expect(
-      nextAction(withCompatibility({ blockingStatus: "FAIL" })),
-    ).toBe("Vérifier les critères bloquants");
-    expect(
-      nextAction(withCompatibility({ missingCriticalCriteria: 2 })),
-    ).toBe("Compléter les informations critiques");
+    expect(nextAction(withCompatibility({ blockingStatus: "FAIL" }))).toBe(
+      "Vérifier les critères bloquants",
+    );
+    expect(nextAction(withCompatibility({ missingCriticalCriteria: 2 }))).toBe(
+      "Compléter les informations critiques",
+    );
   });
 
   it("covers quote and availability priorities", () => {
