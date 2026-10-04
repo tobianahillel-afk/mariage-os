@@ -13,6 +13,26 @@ import {
   scope,
 } from "../../../tests/support/indexeddb-project-store-test-support";
 
+const localBinaryId = "a1111111-1111-4111-8111-111111111111";
+const venueId = "b1111111-1111-4111-8111-111111111111";
+
+function binary(syncState: "unsynced" | "synced") {
+  return {
+    localBinaryId,
+    projectId: scope.projectId,
+    userId: scope.userId,
+    deviceId: scope.deviceId,
+    venueId,
+    filename: "visite.jpg",
+    mimeType: "image/jpeg",
+    sizeBytes: 2048,
+    createdAt: "2026-10-04T23:00:00.000Z",
+    lastAccessedAt: "2026-10-04T23:00:00.000Z",
+    pinned: true,
+    syncState,
+  } as const;
+}
+
 it("migrates v1 metadata to v2 without losing accepted cache or queue state", async () => {
   const factory = new FakeFactory();
   const first = await IndexedDbProjectStore.open(
@@ -52,7 +72,7 @@ it("migrates v1 metadata to v2 without losing accepted cache or queue state", as
   expect(rawStore(factory, "local_binaries").size).toBe(0);
 });
 
-it("counts local visit binaries as unresolved local work", async () => {
+it("counts only unsynced local visit binaries as unresolved local work", async () => {
   const factory = new FakeFactory();
   const store = await IndexedDbProjectStore.open(
     factory as unknown as IDBFactory,
@@ -60,15 +80,30 @@ it("counts local visit binaries as unresolved local work", async () => {
     "2.12-green",
   );
 
-  rawStore(factory, "local_binaries").set("binary-1", {
-    localBinaryId: "binary-1",
-  });
+  rawStore(factory, "local_binaries").set(localBinaryId, binary("synced"));
+  expect((await store.readSyncCounters()).unsyncedBinaryCount).toBe(0);
 
-  expect(await store.readSyncCounters()).toEqual({
-    pendingCount: 0,
-    conflictCount: 0,
-    retryableFailureCount: 0,
-    permanentFailureCount: 0,
-    unsyncedBinaryCount: 1,
+  rawStore(factory, "local_binaries").set(localBinaryId, binary("unsynced"));
+  expect((await store.readSyncCounters()).unsyncedBinaryCount).toBe(1);
+});
+
+it("fails closed on malformed or foreign local-binary metadata", async () => {
+  const factory = new FakeFactory();
+  const store = await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "2.12-green",
+  );
+
+  rawStore(factory, "local_binaries").set(localBinaryId, {
+    ...binary("unsynced"),
+    mimeType: "invalid",
   });
+  await expect(store.readSyncCounters()).rejects.toThrow("local binary");
+
+  rawStore(factory, "local_binaries").set(localBinaryId, {
+    ...binary("unsynced"),
+    userId: "c1111111-1111-4111-8111-111111111111",
+  });
+  await expect(store.readSyncCounters()).rejects.toThrow("another local scope");
 });
