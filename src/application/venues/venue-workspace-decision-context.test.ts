@@ -195,6 +195,64 @@ describe("VenueWorkspaceDecisionContextService", () => {
     });
   });
 
+  it("filters commercial offers to selected-date applicability", async () => {
+    const outsideRange = {
+      ...offer("accepted", 100_000),
+      validFrom: "2027-07-01",
+    };
+    const wrongWeekday = { ...offer("quoted", 150_000), weekday: 5 };
+    const applicable = {
+      ...offer("quoted", 200_000),
+      validFrom: "2027-01-01",
+      validTo: "2027-12-31",
+      weekday: 6,
+    };
+
+    const value = await service({
+      offers: [outsideRange, wrongWeekday, applicable],
+    }).reader.read(projectId, venueId);
+
+    expect(value.commercial).toEqual({
+      quoteState: "quoted",
+      price: {
+        kind: "known",
+        currency: "EUR",
+        minimumAmountMinor: 200_000,
+        maximumAmountMinor: 200_000,
+      },
+    });
+  });
+
+  it("treats validity bounds as inclusive and no-date context as unrestricted only", async () => {
+    const boundary = {
+      ...offer("accepted", 300_000),
+      validFrom: eventDate,
+      validTo: eventDate,
+      weekday: 6,
+    };
+    const unrestricted = offer("quoted", 250_000);
+
+    const selected = await service({ offers: [boundary, unrestricted] }).reader.read(
+      projectId,
+      venueId,
+    );
+    expect(selected.commercial?.quoteState).toBe("accepted");
+
+    const withoutDate = await service({
+      offers: [boundary, unrestricted],
+      selectedDate: null,
+    }).reader.read(projectId, venueId);
+    expect(withoutDate.commercial).toEqual({
+      quoteState: "quoted",
+      price: {
+        kind: "known",
+        currency: "EUR",
+        minimumAmountMinor: 250_000,
+        maximumAmountMinor: 250_000,
+      },
+    });
+  });
+
   it("keeps quote-state and price semantics explicit", async () => {
     const mixed = await service({
       offers: [
@@ -240,10 +298,12 @@ describe("VenueWorkspaceDecisionContextService failure handling", () => {
       (await service({ fail: "availability" }).reader.read(projectId, venueId))
         .availability,
     ).toBeNull();
-    expect(
-      (await service({ fail: "dates" }).reader.read(projectId, venueId))
-        .availability,
-    ).toBeNull();
+    const failedDate = await service({ fail: "dates" }).reader.read(
+      projectId,
+      venueId,
+    );
+    expect(failedDate.availability).toBeNull();
+    expect(failedDate.commercial).toBeNull();
   });
 
   it("does not choose an arbitrary candidate date without a selection", async () => {
