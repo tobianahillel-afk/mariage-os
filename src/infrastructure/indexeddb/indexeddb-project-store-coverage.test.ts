@@ -88,8 +88,9 @@ it("surfaces a failure inside the atomic settlement transaction", async () => {
   ).rejects.toThrow("settlement/cache transaction");
 });
 
-
-it.each([0, 3])("rejects non-migratable local schema version %s", async (version) => {
+it.each([0, 3])(
+  "rejects non-migratable local schema version %s",
+  async (version) => {
   const factory = new FakeFactory();
   const store = await IndexedDbProjectStore.open(
     factory as unknown as IDBFactory,
@@ -103,7 +104,8 @@ it.each([0, 3])("rejects non-migratable local schema version %s", async (version
   store.close();
   factory.forceUpgrade = true;
 
-  await expect(
-    IndexedDbProjectStore.open(factory as unknown as IDBFactory, scope, "2"),
-  ).rejects.toThrow("scope metadata is inconsistent");
-});
+    await expect(
+      IndexedDbProjectStore.open(factory as unknown as IDBFactory, scope, "2"),
+    ).rejects.toThrow("scope metadata is inconsistent");
+  },
+);
