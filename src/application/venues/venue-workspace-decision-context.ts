@@ -5,6 +5,7 @@ import {
   type VenueAvailabilityRecord,
   type VenueAvailabilityStatus,
 } from "@domain/venues/venue-availability";
+import { isCommercialCivilDate } from "@domain/venues/venue-commercial-values";
 import {
   selectVenueAccessRouteSummary,
   type VenueAccessMode,
@@ -120,6 +121,32 @@ async function load<T>(reader: () => Promise<T>): Promise<Loaded<T>> {
   }
 }
 
+function eventWeekday(eventDate: string): number | null {
+  if (!isCommercialCivilDate(eventDate)) return null;
+  const year = Number(eventDate.slice(0, 4));
+  const month = Number(eventDate.slice(5, 7));
+  const day = Number(eventDate.slice(8, 10));
+  return new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+}
+
+function offerAppliesToEventDate(
+  offer: VenueOfferRecord,
+  eventDate: string | null,
+): boolean {
+  if (eventDate === null) {
+    return (
+      offer.validFrom === null &&
+      offer.validTo === null &&
+      offer.weekday === null
+    );
+  }
+  const weekday = eventWeekday(eventDate);
+  if (weekday === null) return false;
+  if (offer.validFrom !== null && eventDate < offer.validFrom) return false;
+  if (offer.validTo !== null && eventDate > offer.validTo) return false;
+  return offer.weekday === null || offer.weekday === weekday;
+}
+
 function quoteState(
   offers: readonly VenueOfferRecord[],
 ): VenueWorkspaceQuoteState {
@@ -221,9 +248,14 @@ function contextFor(
   venueId: string,
   now: string,
 ): VenueWorkspaceDecisionContext {
-  const commercial = snapshot.offers.ok
-    ? commercialContext(venueRows(snapshot.offers.value, venueId))
-    : null;
+  const commercial =
+    snapshot.offers.ok && snapshot.eventDate.ok
+      ? commercialContext(
+          venueRows(snapshot.offers.value, venueId).filter((offer) =>
+            offerAppliesToEventDate(offer, snapshot.eventDate.value),
+          ),
+        )
+      : null;
   const availability =
     snapshot.eventDate.ok &&
     snapshot.eventDate.value !== null &&
