@@ -175,13 +175,6 @@ export function missingCriticalContext(item: VenueWorkspaceItem): string {
   return count === null || count === undefined ? "—" : String(count);
 }
 
-export function favoriteContext(item: VenueWorkspaceItem): string {
-  const favorite = item.opinions.ownPreference?.favorite;
-  if (favorite === true) return "Favori";
-  if (favorite === false) return "Non favori";
-  return "—";
-}
-
 export function nextAction(item: VenueWorkspaceItem): string {
   const action = firstAction([
     conflictAction(item),
