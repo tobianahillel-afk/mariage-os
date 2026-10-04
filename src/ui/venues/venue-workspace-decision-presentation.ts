@@ -32,6 +32,38 @@ function needsQuote(status: VenueWorkspaceQuoteState | undefined): boolean {
   return status === undefined || status === "none" || status === "draft";
 }
 
+function conflictAction(item: VenueWorkspaceItem): string | null {
+  return item.syncState === "conflict" ? "Résoudre le conflit local" : null;
+}
+
+function blockerAction(item: VenueWorkspaceItem): string | null {
+  const status = item.compatibility?.blockingStatus;
+  return needsBlockerReview(status) ? "Vérifier les critères bloquants" : null;
+}
+
+function missingCriticalAction(item: VenueWorkspaceItem): string | null {
+  const count = item.compatibility?.missingCriticalCriteria;
+  return count !== undefined && count > 0
+    ? "Compléter les informations critiques"
+    : null;
+}
+
+function quoteAction(item: VenueWorkspaceItem): string | null {
+  const status = item.decisionContext?.commercial?.quoteState;
+  return needsQuote(status) ? "Obtenir ou compléter le devis" : null;
+}
+
+function availabilityAction(item: VenueWorkspaceItem): string | null {
+  const context = item.decisionContext;
+  return context !== null && context.availability === null
+    ? "Confirmer une disponibilité datée"
+    : null;
+}
+
+function firstAction(actions: readonly (string | null)[]): string | null {
+  return actions.find((action) => action !== null) ?? null;
+}
+
 function money(amountMinor: number, currency: string): string {
   try {
     return new Intl.NumberFormat("fr-FR", {
@@ -151,20 +183,14 @@ export function favoriteContext(item: VenueWorkspaceItem): string {
 }
 
 export function nextAction(item: VenueWorkspaceItem): string {
-  if (item.syncState === "conflict") return "Résoudre le conflit local";
-  if (needsBlockerReview(item.compatibility?.blockingStatus)) {
-    return "Vérifier les critères bloquants";
-  }
-  if ((item.compatibility?.missingCriticalCriteria ?? 0) > 0) {
-    return "Compléter les informations critiques";
-  }
-  if (needsQuote(item.decisionContext?.commercial?.quoteState)) {
-    return "Obtenir ou compléter le devis";
-  }
-  if (item.decisionContext?.availability === null) {
-    return "Confirmer une disponibilité datée";
-  }
-  return "Comparer avec les finalistes";
+  const action = firstAction([
+    conflictAction(item),
+    blockerAction(item),
+    missingCriticalAction(item),
+    quoteAction(item),
+    availabilityAction(item),
+  ]);
+  return action === null ? "Comparer avec les finalistes" : action;
 }
 
 export function strengthsContext(item: VenueWorkspaceItem): string {
