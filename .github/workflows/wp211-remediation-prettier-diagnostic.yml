@@ -1,0 +1,29 @@
+name: WP-2.11 remediation Prettier diagnostic
+
+on:
+  push:
+    branches:
+      - diagnostic/wp211-remediation-prettier-20261004
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Print canonical Prettier diff
+        run: |
+          npx prettier --write \
+            src/application/venues/venue-workspace-decision-context.ts \
+            src/infrastructure/supabase/read-all-supabase-rows.ts
+          git diff --no-ext-diff --unified=80
+          test -z "$(git status --porcelain)"
