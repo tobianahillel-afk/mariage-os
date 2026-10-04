@@ -35,9 +35,10 @@ describe("readAllSupabaseRows", () => {
     const repeated = Array.from({ length: 1_000 }, (_, id) => ({
       id: `row-${id}`,
     }));
-    const readPage = vi
-      .fn()
-      .mockResolvedValue({ data: repeated, error: null });
+    const readPage = vi.fn().mockResolvedValue({
+      data: repeated,
+      error: null,
+    });
 
     await expect(readAllSupabaseRows(readPage)).rejects.toBeInstanceOf(
       SupabasePaginationError,
