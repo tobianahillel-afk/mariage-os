@@ -42,16 +42,9 @@ export async function readAllSupabaseRows(
 ): Promise<readonly unknown[]> {
   const rows: unknown[] = [];
   let previousFullPageSignature: string | null = null;
-  for (
-    let pageIndex = 0;
-    pageIndex < MAX_SUPABASE_PAGE_COUNT;
-    pageIndex += 1
-  ) {
+  for (let pageIndex = 0; pageIndex < MAX_SUPABASE_PAGE_COUNT; pageIndex += 1) {
     const from = pageIndex * SUPABASE_PAGE_SIZE;
-    const { data, error } = await readPage(
-      from,
-      from + SUPABASE_PAGE_SIZE - 1,
-    );
+    const { data, error } = await readPage(from, from + SUPABASE_PAGE_SIZE - 1);
     if (error !== null || !Array.isArray(data)) {
       throw new SupabasePaginationError();
     }
