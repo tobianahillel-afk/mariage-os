@@ -4,8 +4,7 @@ import {
   SupabasePaginationError,
 } from "./read-all-supabase-rows";
 
-describe("readAllSupabaseRows", () => {
-  it("reads one short page with the canonical inclusive range", async () => {
+it("reads one short page with the canonical inclusive range", async () => {
     const readPage = vi
       .fn()
       .mockResolvedValue({ data: [{ id: 1 }, { id: 2 }], error: null });
@@ -72,4 +71,3 @@ describe("readAllSupabaseRows", () => {
       SupabasePaginationError,
     );
   });
-});
