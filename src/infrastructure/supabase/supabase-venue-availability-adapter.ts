@@ -8,6 +8,7 @@ import type {
 } from "@application/venues/venue-availability-service";
 import { VenueAvailabilityPersistenceError } from "@application/venues/venue-availability-persistence-error";
 import { parseVenueAvailabilityRow } from "./parse-venue-availability-row";
+import { readAllSupabaseRows } from "./read-all-supabase-rows";
 
 const AVAILABILITY_COLUMNS =
   "id,project_id,venue_id,date_option_id,event_date,status,option_expires_at,observed_at,source_id,notes,created_at,created_by,updated_at,updated_by,revision";
@@ -23,6 +24,7 @@ interface FilterBuilder extends PromiseLike<SupabaseResult> {
     column: string,
     options: Readonly<{ ascending: boolean }>,
   ): FilterBuilder;
+  range(from: number, to: number): PromiseLike<SupabaseResult>;
 }
 
 interface AvailabilityTable {
@@ -92,15 +94,20 @@ export class SupabaseVenueAvailabilityAdapter implements VenueAvailabilityPort {
     projectId: string,
     eventDate: string,
   ): Promise<readonly VenueAvailabilityRecord[]> {
-    const { data, error } = await this.client
-      .from("venue_availabilities")
-      .select(AVAILABILITY_COLUMNS)
-      .eq("project_id", projectId)
-      .eq("event_date", eventDate)
-      .order("observed_at", { ascending: false })
-      .order("created_at", { ascending: false })
-      .order("id", { ascending: true });
-    if (error !== null || !Array.isArray(data)) {
+    let data: readonly unknown[];
+    try {
+      data = await readAllSupabaseRows((from, to) =>
+        this.client
+          .from("venue_availabilities")
+          .select(AVAILABILITY_COLUMNS)
+          .eq("project_id", projectId)
+          .eq("event_date", eventDate)
+          .order("observed_at", { ascending: false })
+          .order("created_at", { ascending: false })
+          .order("id", { ascending: true })
+          .range(from, to),
+      );
+    } catch {
       throw new VenueAvailabilityPersistenceError(
         "persistence_failed",
         "Venue availability query failed.",
