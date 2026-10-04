@@ -17,7 +17,9 @@ function parseVenueEntityRoute(
 ): VenueWorkspaceRoute {
   if (segments[0] !== "venues") return unavailable();
   const venueId = segments[1];
-  if (venueId === undefined || !UUID_PATTERN.test(venueId)) return unavailable();
+  if (venueId === undefined || !UUID_PATTERN.test(venueId)) {
+    return unavailable();
+  }
   if (segments.length === 2) return { kind: "detail", venueId };
   if (segments.length === 3 && segments[2] === "visit") {
     return { kind: "visit", venueId };
