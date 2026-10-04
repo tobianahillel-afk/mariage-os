@@ -1,3 +1,7 @@
+import {
+  assertLocalBinaryScope,
+  parseLocalBinaryMetadata,
+} from "@application/local-data/local-binary-record";
 import type { LocalProjectPurgePort } from "@application/local-data/local-project-purge-port";
 import {
   parseCachedRecordEnvelope,
@@ -93,6 +97,19 @@ function assertScopeMetadata(
   if (value.localSchemaVersion !== LOCAL_SCHEMA_VERSION) {
     throw new Error("Local IndexedDB scope metadata is inconsistent.");
   }
+}
+
+function countUnsyncedBinaries(
+  values: readonly unknown[],
+  scope: LocalProjectScope,
+): number {
+  let count = 0;
+  for (const value of values) {
+    const binary = parseLocalBinaryMetadata(value);
+    assertLocalBinaryScope(binary, scope);
+    if (binary.syncState === "unsynced") count += 1;
+  }
+  return count;
 }
 
 export class IndexedDbProjectStore implements LocalProjectStore {
@@ -367,7 +384,7 @@ export class IndexedDbProjectStore implements LocalProjectStore {
       conflictCount: 0,
       retryableFailureCount: 0,
       permanentFailureCount: 0,
-      unsyncedBinaryCount: binaries.length,
+      unsyncedBinaryCount: countUnsyncedBinaries(binaries, this.scope),
     };
     const mutable = { ...counters };
 
