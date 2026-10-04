@@ -299,10 +299,11 @@ export class VenueWorkspaceDecisionContextService
   ): Promise<Loaded<readonly VenueAvailabilityRecord[]>> {
     if (!eventDate.ok) return { ok: false };
     if (eventDate.value === null) return { ok: true, value: [] };
+    const selectedEventDate = eventDate.value;
     return load(() =>
       this.dependencies.availability.listProjectAvailability(
         projectId,
-        eventDate.value,
+        selectedEventDate,
       ),
     );
   }
