@@ -1,15 +1,16 @@
-import type { VenueAccessPort } from "./venue-access-service";
-import type { VenueAvailabilityPort } from "./venue-availability-service";
-import type { VenueOfferPort, VenueOfferRecord } from "./venue-offer-service";
+import type { VenueOfferRecord } from "./venue-offer-service";
 import {
   effectiveVenueAvailabilityStatus,
   latestVenueAvailability,
+  type VenueAvailabilityRecord,
   type VenueAvailabilityStatus,
 } from "@domain/venues/venue-availability";
 import {
   selectVenueAccessRouteSummary,
   type VenueAccessMode,
+  type VenueAccessRouteRecord,
   type VenueAccessRouteSummary,
+  type VenueReferenceOrigin,
 } from "@domain/venues/venue-access-route";
 
 export type VenueWorkspaceQuoteState =
@@ -66,13 +67,62 @@ export interface VenueWorkspaceDecisionContextReader {
     projectId: string,
     venueId: string,
   ): Promise<VenueWorkspaceDecisionContext>;
+  readMany(
+    projectId: string,
+    venueIds: readonly string[],
+  ): Promise<ReadonlyMap<string, VenueWorkspaceDecisionContext>>;
+}
+
+interface ProjectOfferReader {
+  listProjectOffers(projectId: string): Promise<readonly VenueOfferRecord[]>;
+}
+
+interface ProjectAvailabilityReader {
+  listProjectAvailability(
+    projectId: string,
+    eventDate: string,
+  ): Promise<readonly VenueAvailabilityRecord[]>;
+}
+
+interface ProjectAccessReader {
+  getDefaultReferenceOrigin(
+    projectId: string,
+  ): Promise<VenueReferenceOrigin | null>;
+  listProjectAccessRoutes(
+    projectId: string,
+  ): Promise<readonly VenueAccessRouteRecord[]>;
+}
+
+interface SelectedEventDateReader {
+  getSelectedEventDate(projectId: string): Promise<string | null>;
 }
 
 interface VenueWorkspaceDecisionContextDependencies {
-  readonly offers: VenueOfferPort;
-  readonly availability: VenueAvailabilityPort;
-  readonly access: VenueAccessPort;
+  readonly offers: ProjectOfferReader;
+  readonly availability: ProjectAvailabilityReader;
+  readonly access: ProjectAccessReader;
+  readonly dates: SelectedEventDateReader;
   readonly now: () => string;
+}
+
+type Loaded<T> =
+  | { readonly ok: true; readonly value: T }
+  | { readonly ok: false };
+
+interface ProjectDecisionSnapshot {
+  readonly offers: Loaded<readonly VenueOfferRecord[]>;
+  readonly eventDate: Loaded<string | null>;
+  readonly availability: Loaded<readonly VenueAvailabilityRecord[]>;
+  readonly origin: Loaded<VenueReferenceOrigin | null>;
+  readonly routes: Loaded<readonly VenueAccessRouteRecord[]>;
+}
+
+async function load<T>(reader: () => Promise<T>): Promise<Loaded<T>> {
+  try {
+    return { ok: true, value: await reader() };
+  } catch {
+    return { ok: false };
+  }
 }
 
 function quoteState(
@@ -93,21 +143,45 @@ function priceOffers(
     : offers.filter((offer) => offer.status === "quoted");
 }
 
-function priceContext(
+function commercialContext(
   offers: readonly VenueOfferRecord[],
-): VenueWorkspacePriceContext {
+): VenueWorkspaceCommercialContext {
   const candidates = priceOffers(offers).filter(
     (offer) => offer.baseAmountMinor !== null,
   );
-  if (candidates.length === 0) return null;
+  if (candidates.length === 0) {
+    return { quoteState: quoteState(offers), price: null };
+  }
   const currencies = new Set(candidates.map((offer) => offer.currency));
-  if (currencies.size !== 1) return { kind: "mixed_currency" };
+  if (currencies.size !== 1) {
+    return { quoteState: quoteState(offers), price: { kind: "mixed_currency" } };
+  }
   const amounts = candidates.map((offer) => offer.baseAmountMinor as number);
   return {
-    kind: "known",
-    currency: candidates[0]?.currency ?? "EUR",
-    minimumAmountMinor: Math.min(...amounts),
-    maximumAmountMinor: Math.max(...amounts),
+    quoteState: quoteState(offers),
+    price: {
+      kind: "known",
+      currency: candidates[0]?.currency ?? "EUR",
+      minimumAmountMinor: Math.min(...amounts),
+      maximumAmountMinor: Math.max(...amounts),
+    },
+  };
+}
+
+function availabilityContext(
+  records: readonly VenueAvailabilityRecord[],
+  eventDate: string,
+  now: string,
+): VenueWorkspaceAvailabilityContext | null {
+  const latest = latestVenueAvailability(
+    records.filter((record) => record.eventDate === eventDate),
+  );
+  if (latest === null) return null;
+  return {
+    eventDate: latest.eventDate,
+    status: effectiveVenueAvailabilityStatus(latest, now),
+    optionExpiresAt: latest.optionExpiresAt,
+    observedAt: latest.observedAt,
   };
 }
 
@@ -125,6 +199,53 @@ function accessValue(
   };
 }
 
+function accessContexts(
+  routes: readonly VenueAccessRouteRecord[],
+  origin: VenueReferenceOrigin | null,
+): VenueWorkspaceAccessContexts {
+  return {
+    car: accessValue(selectVenueAccessRouteSummary(routes, origin, "car")),
+    publicTransport: accessValue(
+      selectVenueAccessRouteSummary(routes, origin, "public_transport"),
+    ),
+  };
+}
+
+function venueRows<T extends { readonly venueId: string }>(
+  rows: readonly T[],
+  venueId: string,
+): readonly T[] {
+  return rows.filter((row) => row.venueId === venueId);
+}
+
+function contextFor(
+  snapshot: ProjectDecisionSnapshot,
+  venueId: string,
+  now: string,
+): VenueWorkspaceDecisionContext {
+  const commercial = snapshot.offers.ok
+    ? commercialContext(venueRows(snapshot.offers.value, venueId))
+    : null;
+  const availability =
+    snapshot.eventDate.ok &&
+    snapshot.eventDate.value !== null &&
+    snapshot.availability.ok
+      ? availabilityContext(
+          venueRows(snapshot.availability.value, venueId),
+          snapshot.eventDate.value,
+          now,
+        )
+      : null;
+  const access =
+    snapshot.origin.ok && snapshot.routes.ok
+      ? accessContexts(
+          venueRows(snapshot.routes.value, venueId),
+          snapshot.origin.value,
+        )
+      : null;
+  return { commercial, availability, access };
+}
+
 export class VenueWorkspaceDecisionContextService
   implements VenueWorkspaceDecisionContextReader
 {
@@ -136,75 +257,53 @@ export class VenueWorkspaceDecisionContextService
     projectId: string,
     venueId: string,
   ): Promise<VenueWorkspaceDecisionContext> {
-    const [commercial, availability, access] = await Promise.all([
-      this.readCommercial(projectId, venueId),
-      this.readAvailability(projectId, venueId),
-      this.readAccess(projectId, venueId),
-    ]);
-    return { commercial, availability, access };
+    return contextFor(
+      await this.loadProjectSnapshot(projectId),
+      venueId,
+      this.dependencies.now(),
+    );
   }
 
-  private async readCommercial(
+  async readMany(
     projectId: string,
-    venueId: string,
-  ): Promise<VenueWorkspaceCommercialContext | null> {
-    try {
-      const offers = await this.dependencies.offers.listVenueOffers(
-        projectId,
+    venueIds: readonly string[],
+  ): Promise<ReadonlyMap<string, VenueWorkspaceDecisionContext>> {
+    const uniqueVenueIds = [...new Set(venueIds)];
+    if (uniqueVenueIds.length === 0) return new Map();
+    const snapshot = await this.loadProjectSnapshot(projectId);
+    const now = this.dependencies.now();
+    return new Map(
+      uniqueVenueIds.map((venueId) => [
         venueId,
-      );
-      return { quoteState: quoteState(offers), price: priceContext(offers) };
-    } catch {
-      return null;
-    }
+        contextFor(snapshot, venueId, now),
+      ]),
+    );
   }
 
-  private async readAvailability(
+  private async loadProjectSnapshot(
     projectId: string,
-    venueId: string,
-  ): Promise<VenueWorkspaceAvailabilityContext | null> {
-    try {
-      const records =
-        await this.dependencies.availability.listVenueAvailabilityHistory(
-          projectId,
-          venueId,
-        );
-      const latest = latestVenueAvailability(records);
-      if (latest === null) return null;
-      return {
-        eventDate: latest.eventDate,
-        status: effectiveVenueAvailabilityStatus(
-          latest,
-          this.dependencies.now(),
-        ),
-        optionExpiresAt: latest.optionExpiresAt,
-        observedAt: latest.observedAt,
-      };
-    } catch {
-      return null;
-    }
+  ): Promise<ProjectDecisionSnapshot> {
+    const [offers, eventDate, origin, routes] = await Promise.all([
+      load(() => this.dependencies.offers.listProjectOffers(projectId)),
+      load(() => this.dependencies.dates.getSelectedEventDate(projectId)),
+      load(() => this.dependencies.access.getDefaultReferenceOrigin(projectId)),
+      load(() => this.dependencies.access.listProjectAccessRoutes(projectId)),
+    ]);
+    const availability = await this.loadAvailability(projectId, eventDate);
+    return { offers, eventDate, availability, origin, routes };
   }
 
-  private async readAccess(
+  private async loadAvailability(
     projectId: string,
-    venueId: string,
-  ): Promise<VenueWorkspaceAccessContexts | null> {
-    try {
-      const [origin, history] = await Promise.all([
-        this.dependencies.access.getDefaultReferenceOrigin(projectId),
-        this.dependencies.access.listVenueAccessRouteHistory(
-          projectId,
-          venueId,
-        ),
-      ]);
-      return {
-        car: accessValue(selectVenueAccessRouteSummary(history, origin, "car")),
-        publicTransport: accessValue(
-          selectVenueAccessRouteSummary(history, origin, "public_transport"),
-        ),
-      };
-    } catch {
-      return null;
-    }
+    eventDate: Loaded<string | null>,
+  ): Promise<Loaded<readonly VenueAvailabilityRecord[]>> {
+    if (!eventDate.ok) return { ok: false };
+    if (eventDate.value === null) return { ok: true, value: [] };
+    return load(() =>
+      this.dependencies.availability.listProjectAvailability(
+        projectId,
+        eventDate.value,
+      ),
+    );
   }
 }
