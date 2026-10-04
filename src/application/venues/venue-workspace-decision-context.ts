@@ -14,11 +14,7 @@ import {
 } from "@domain/venues/venue-access-route";
 
 export type VenueWorkspaceQuoteState =
-  | "none"
-  | "draft"
-  | "quoted"
-  | "accepted"
-  | "historical";
+  "none" | "draft" | "quoted" | "accepted" | "historical";
 
 export type VenueWorkspacePriceContext =
   | {
@@ -106,8 +102,7 @@ interface VenueWorkspaceDecisionContextDependencies {
 }
 
 type Loaded<T> =
-  | { readonly ok: true; readonly value: T }
-  | { readonly ok: false };
+  { readonly ok: true; readonly value: T } | { readonly ok: false };
 
 interface ProjectDecisionSnapshot {
   readonly offers: Loaded<readonly VenueOfferRecord[]>;
@@ -154,7 +149,10 @@ function commercialContext(
   }
   const currencies = new Set(candidates.map((offer) => offer.currency));
   if (currencies.size !== 1) {
-    return { quoteState: quoteState(offers), price: { kind: "mixed_currency" } };
+    return {
+      quoteState: quoteState(offers),
+      price: { kind: "mixed_currency" },
+    };
   }
   const amounts = candidates.map((offer) => offer.baseAmountMinor as number);
   return {
@@ -246,9 +244,7 @@ function contextFor(
   return { commercial, availability, access };
 }
 
-export class VenueWorkspaceDecisionContextService
-  implements VenueWorkspaceDecisionContextReader
-{
+export class VenueWorkspaceDecisionContextService implements VenueWorkspaceDecisionContextReader {
   constructor(
     private readonly dependencies: VenueWorkspaceDecisionContextDependencies,
   ) {}
