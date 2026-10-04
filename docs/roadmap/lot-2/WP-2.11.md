@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.11`
 - Lot: 2 — Venues core
 - Name: Venue Gallery / Table / Detail / Compare / deep-link workspace
-- State: `READY` — activation governance HEAD must pass exact-head CI before Pass A starts
-- Current pass: `PLAN` (next: `A-IMPLEMENT / RED first`)
+- State: `REVIEW_FAILED / REMEDIATION` — fresh Pass B findings `WP211-AR-001..005` OPEN
+- Current pass: `B-ADVERSARIAL-REVIEW` failed; bounded remediation active
 - Branch: `lot-2/venues-core`
 - Activation base: `290a49a53556ffc6a91aa4467ba768eeb4c1ac00`
 - Activation-base CI: `36850174656` — **5/5 SUCCESS**, including full verify from clean checkout; provider-only workflows skipped
@@ -205,10 +205,9 @@ No database migration/provider campaign is expected in this packet.
 
 ## Handoff
 
-- Current state: READY, **activation exact-head CI pending**
-- Current/next pass: PLAN → A-IMPLEMENT / RED first
-- Last accepted dependency: WP-2.10 final seal `290a49a53556ffc6a91aa4467ba768eeb4c1ac00` / CI `36850174656` — 5/5
-- Open packet findings: ∅
-- Next permitted action: pass this activation-governance HEAD through all five
-  ordinary CI jobs including clean checkout; only then create RED-only evidence
-  and begin Pass A implementation.
+- Current state: **REVIEW_FAILED / REMEDIATION**
+- Current/next pass: fresh Pass B failed → remediate `WP211-AR-001..005`
+- Merged Pass-A head: `b249e87804ba7a6a546ea2f3db3195a0d2c4d0a1` / CI `37231659301` — SUCCESS
+- Fresh review RED: PR #70 / `416e1f33e192726d0e53c4236ccfba2efe0fde69` / CI `37232085163`
+- Open packet findings: AR-001 MAJOR, AR-002 MAJOR, AR-003 MAJOR, AR-004 MAJOR, AR-005 MINOR
+- Next permitted action: bounded remediation plus regression tests, exact-head ordinary CI + clean checkout, then a new complete fresh Pass B. WP-2.12 remains gated.

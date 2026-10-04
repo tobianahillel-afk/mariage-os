@@ -41,7 +41,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.9C | trusted private-document ingestion hardening                           | **ACCEPTED / COMPLETE**                                                      |
 | WP-2.9B | generic project tags and Venue entity-tag links                        | **ACCEPTED / COMPLETE — Pass C gap ∅**                                      |
 | WP-2.10 | repositories, local cache, pending/offline mutations                   | **ACCEPTED / COMPLETE**                                                     |
-| WP-2.11 | gallery/table/detail/compare/deep-link workspace                       | **READY — activation seal CI pending; no Pass A yet**                     |
+| WP-2.11 | gallery/table/detail/compare/deep-link workspace                       | **REVIEW_FAILED / REMEDIATION — WP211-AR-001..005 OPEN**                  |
 | WP-2.12 | mobile/offline venue-visit workflow and packet E2E completion          | PLANNED                                                                    |
 
 ## WP-2.10 — activation revalidation
@@ -59,16 +59,19 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 - Pass C reconciliation: **PASS / gap ∅** in `docs/roadmap/lot-2/WP-2.10-ACCEPTANCE.md`; acceptance-record `a2d48341515a516651d11454c3c5e89c01896c21` / CI `36849005712` passed **5/5 ordinary jobs**, including full verify from clean checkout.
 - State: **ACCEPTED / COMPLETE**. Final status seal `290a49a53556ffc6a91aa4467ba768eeb4c1ac00` / CI `36850174656` passed **5/5**, including clean checkout.
 
-## WP-2.11 — activation revalidation
+## WP-2.11 — implementation and fresh Pass B
 
-- **READY candidate** after revalidation against accepted WP-2.1..WP-2.10 and the frozen Gallery/Table/Detail/Compare/deep-link contracts.
-- Activation base `290a49a53556ffc6a91aa4467ba768eeb4c1ac00` / CI `36850174656` passed **5/5**, including clean checkout; provider-only workflows were skipped.
-- Packet record: `docs/roadmap/lot-2/WP-2.11.md`.
-- Primary FIRs: #57/FTR-015, #58/FTR-016, #59/FTR-017, #60/FTR-027.
-- Presentation consumes accepted FTR-024/#15, FTR-089/#17, FTR-093/#27 and WP-2.10/FTR-028 #42 without reopening their persistence/security boundaries.
-- Size: **4 points / cohesion PASS** — four major UI workflows, no new persistence/RPC/RLS/provider/offline semantics.
-- `/venues/:venueId/visit` remains WP-2.12; Map provider remains Lot 9; generic sync remains Lot 10.
-- Current/next pass: **PLAN → A-IMPLEMENT / RED first**, but implementation is forbidden until this activation-governance HEAD itself passes five ordinary exact-head CI jobs including clean checkout.
+- Activation base `290a49a53556ffc6a91aa4467ba768eeb4c1ac00` / CI `36850174656` passed **5/5**, including clean checkout.
+- Pass-A GREEN was merged by PR #68 at `b249e87804ba7a6a546ea2f3db3195a0d2c4d0a1`; CI `37231659301` passed and provider-only workflows were skipped.
+- Fresh independent RED PR #70 / `416e1f33e192726d0e53c4236ccfba2efe0fde69` / CI `37232085163` reproduced five defects. DB/RLS and browser/mutation jobs remained green; Core failed only the five review contracts with 1,904 other unit tests passing.
+- `WP211-AR-001` **MAJOR / OPEN** — selected-date offer validity/weekday is ignored.
+- `WP211-AR-002` **MAJOR / OPEN** — project-wide offer/availability/access reads are not explicitly paginated.
+- `WP211-AR-003` **MAJOR / OPEN** — UNKNOWN `important` criteria are miscounted as missing critical.
+- `WP211-AR-004` **MAJOR / OPEN** — absent commercial context invents a quote-specific next action.
+- `WP211-AR-005` **MINOR / OPEN** — Compare calls a base amount generic “Prix”.
+- Review record: `docs/roadmap/lot-2/WP-2.11-FRESH-PASS-B-2026-10-04.md`.
+- State: **REVIEW_FAILED / REMEDIATION**. Only bounded remediation plus regression tests is permitted, followed by exact-head CI and a new complete fresh Pass B.
+- `/venues/:venueId/visit` remains WP-2.12 and may not start before WP-2.11 Pass C.
 
 ## Accepted packet evidence summary
 
@@ -357,5 +360,5 @@ FTR-089 FIR: #17 — IN_PROGRESS / parent A accepted, later presentation and Lot
 WP-2.9B: ACCEPTED / COMPLETE; FTR-093 FIR #27 remains IN_PROGRESS for downstream scope; WP29B-AR-001/002 CLOSED / VERIFIED; Pass C gap ∅
 Lots 3–12: NOT_STARTED
 Latest distinct-PDF campaign: 2303df0c9e8d6f72561ec0ce42514663801229d8 / CI 36459949861 / provider job 109058754517 / artifact 10987866873 — 10 distinct exact-size PDFs, 10 finalized flows, 20 valid exact-version CPU readings within Workers Free; provider verdict PASS
-Next permitted action: pass the WP-2.11 activation-governance HEAD through five ordinary exact-head CI jobs including clean checkout. If green, create isolated RED-first evidence for Gallery/Table/Detail/Compare/deep-link behavior and begin Pass A. No provider campaign or database migration is authorized or expected.
+Next permitted action: remediate WP211-AR-001..005 from fresh review PR #70 without widening packet scope; prove the remediation with exact-head ordinary CI + clean checkout, then run a new complete fresh Pass B. WP-2.12 remains gated until WP-2.11 Pass C. No provider campaign or database migration is authorized or expected.
 ```
