@@ -88,6 +88,43 @@ function expectedAppendPayload(
 export class SupabaseVenueAvailabilityAdapter implements VenueAvailabilityPort {
   constructor(private readonly client: SupabaseVenueAvailabilityClientLike) {}
 
+  async listProjectAvailability(
+    projectId: string,
+    eventDate: string,
+  ): Promise<readonly VenueAvailabilityRecord[]> {
+    const { data, error } = await this.client
+      .from("venue_availabilities")
+      .select(AVAILABILITY_COLUMNS)
+      .eq("project_id", projectId)
+      .eq("event_date", eventDate)
+      .order("observed_at", { ascending: false })
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: true });
+    if (error !== null || !Array.isArray(data)) {
+      throw new VenueAvailabilityPersistenceError(
+        "persistence_failed",
+        "Venue availability query failed.",
+      );
+    }
+    try {
+      const records = uniqueRecords(
+        data.map((row) => parseVenueAvailabilityRow(row, projectId)),
+      );
+      if (records.some((record) => record.eventDate !== eventDate)) {
+        throw new Error("event-date mismatch");
+      }
+      return records;
+    } catch (errorValue) {
+      if (errorValue instanceof VenueAvailabilityPersistenceError) {
+        throw errorValue;
+      }
+      throw new VenueAvailabilityPersistenceError(
+        "provider_response_invalid",
+        "Invalid venue availability response.",
+      );
+    }
+  }
+
   async appendVenueAvailability(
     input: NormalizedAppendVenueAvailabilityInput,
   ): Promise<VenueAvailabilityRecord> {
