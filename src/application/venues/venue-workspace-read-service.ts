@@ -166,8 +166,16 @@ export class VenueWorkspaceReadService {
       cloud = null;
     }
     const venues = mergeVenues(cloud, localState);
+    const decisionContexts = await this.readDecisionContexts(projectId, venues);
     return Promise.all(
-      venues.map((venue) => this.item(projectId, venue, localState)),
+      venues.map((venue) =>
+        this.item(
+          projectId,
+          venue,
+          localState,
+          decisionContexts.get(venue.id) ?? null,
+        ),
+      ),
     );
   }
 
@@ -199,11 +207,16 @@ export class VenueWorkspaceReadService {
     projectId: string,
     venue: VenueCoreRecord,
     local: ReadonlyMap<string, LocalVenueState>,
+    prefetchedDecisionContext?: VenueWorkspaceDecisionContext | null,
   ): Promise<VenueWorkspaceItem> {
-    const [compatibility, decisionContext, ownPreference, ratings] =
+    const decisionContext =
+      prefetchedDecisionContext === undefined
+        ? this.readDecisionContext(projectId, venue.id)
+        : Promise.resolve(prefetchedDecisionContext);
+    const [compatibility, resolvedDecisionContext, ownPreference, ratings] =
       await Promise.all([
         this.readCompatibility(projectId, venue.id),
-        this.readDecisionContext(projectId, venue.id),
+        decisionContext,
         this.readPreference(projectId, venue.id),
         this.readRatings(projectId, venue.id),
       ]);
@@ -211,7 +224,7 @@ export class VenueWorkspaceReadService {
       venue,
       syncState: local.get(venue.id)?.syncState ?? "unknown",
       compatibility,
-      decisionContext,
+      decisionContext: resolvedDecisionContext,
       opinions: { ownPreference, ratings },
     };
   }
@@ -232,6 +245,22 @@ export class VenueWorkspaceReadService {
       return model === null ? null : compatibilitySummary(model);
     } catch {
       return null;
+    }
+  }
+
+  private async readDecisionContexts(
+    projectId: string,
+    venues: readonly VenueCoreRecord[],
+  ): Promise<ReadonlyMap<string, VenueWorkspaceDecisionContext>> {
+    const reader = this.dependencies.decisionContext;
+    if (reader === undefined || venues.length === 0) return new Map();
+    try {
+      return await reader.readMany(
+        projectId,
+        venues.map((venue) => venue.id),
+      );
+    } catch {
+      return new Map();
     }
   }
 
