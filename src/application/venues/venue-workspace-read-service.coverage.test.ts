@@ -142,7 +142,9 @@ describe("VenueWorkspaceReadService decision summary coverage", () => {
         getVenue: vi.fn().mockResolvedValue(record),
       } as unknown as VenueRepositoryPort,
       compatibility: {
-        loadVenueCompatibilityInputs: vi.fn().mockResolvedValue(dynamicGuestInputs()),
+        loadVenueCompatibilityInputs: vi
+          .fn()
+          .mockResolvedValue(dynamicGuestInputs()),
       },
       opinions: {
         getOwnVenuePreference: vi.fn().mockResolvedValue(null),
