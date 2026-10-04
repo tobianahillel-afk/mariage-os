@@ -45,7 +45,6 @@ it("fails closed on another local scope", () => {
   );
 });
 
-
 it.each([
   ["primitive record", null],
   ["array record", []],
