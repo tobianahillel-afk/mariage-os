@@ -223,7 +223,9 @@ describe("VenueWorkspaceDecisionContextService", () => {
     });
   });
 
-  it("treats validity bounds as inclusive and keeps date-scoped no-date context unknown", async () => {
+  it(
+    "treats validity bounds as inclusive and keeps date-scoped no-date context unknown",
+    async () => {
     const boundary = {
       ...offer("accepted", 300_000),
       validFrom: eventDate,
@@ -232,32 +234,32 @@ describe("VenueWorkspaceDecisionContextService", () => {
     };
     const unrestricted = offer("quoted", 250_000);
 
-    const selected = await service({ offers: [boundary, unrestricted] }).reader.read(
-      projectId,
-      venueId,
-    );
-    expect(selected.commercial?.quoteState).toBe("accepted");
+      const selected = await service({
+        offers: [boundary, unrestricted],
+      }).reader.read(projectId, venueId);
+      expect(selected.commercial?.quoteState).toBe("accepted");
 
-    const withoutDate = await service({
-      offers: [boundary, unrestricted],
-      selectedDate: null,
-    }).reader.read(projectId, venueId);
-    expect(withoutDate.commercial).toBeNull();
+      const withoutDate = await service({
+        offers: [boundary, unrestricted],
+        selectedDate: null,
+      }).reader.read(projectId, venueId);
+      expect(withoutDate.commercial).toBeNull();
 
-    const unrestrictedOnly = await service({
-      offers: [unrestricted],
-      selectedDate: null,
-    }).reader.read(projectId, venueId);
-    expect(unrestrictedOnly.commercial).toEqual({
-      quoteState: "quoted",
-      price: {
-        kind: "known",
-        currency: "EUR",
-        minimumAmountMinor: 250_000,
-        maximumAmountMinor: 250_000,
-      },
-    });
-  });
+      const unrestrictedOnly = await service({
+        offers: [unrestricted],
+        selectedDate: null,
+      }).reader.read(projectId, venueId);
+      expect(unrestrictedOnly.commercial).toEqual({
+        quoteState: "quoted",
+        price: {
+          kind: "known",
+          currency: "EUR",
+          minimumAmountMinor: 250_000,
+          maximumAmountMinor: 250_000,
+        },
+      });
+    },
+  );
 
   it("keeps quote-state and price semantics explicit", async () => {
     const mixed = await service({
