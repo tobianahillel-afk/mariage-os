@@ -350,6 +350,7 @@ it("limits Compare to five selections and keeps blocking differences visible", (
   second.dispatch("change");
   expect(byAttribute(root, "data-venue-compare-grid", "true")).toHaveLength(1);
   expect(texts(root)).toContain("Blocage");
+  expect(texts(root)).toContain("Montant de base");
   expect(texts(root)).toContain("FAIL");
   expect(texts(root)).toContain("PASS");
 
