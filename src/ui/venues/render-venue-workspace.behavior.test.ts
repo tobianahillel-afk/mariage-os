@@ -298,6 +298,27 @@ it("renders decision-first Detail with downstream visit link", () => {
   ).toHaveLength(1);
 });
 
+it("renders an explicit empty access value in Detail logistics", () => {
+  installDocument();
+  const candidate = item(3, {
+    decisionContext: {
+      commercial: null,
+      availability: null,
+      access: { car: null, publicTransport: null },
+    },
+  });
+  const detail = createVenueWorkspace(
+    projectId,
+    `/venues/${candidate.venue.id}`,
+    {
+      kind: "detail",
+      item: candidate,
+    },
+  ) as unknown as FakeElement;
+
+  expect(texts(detail)).toContain("Accès · —");
+});
+
 it("limits Compare to five selections and keeps blocking differences visible", () => {
   installDocument();
   const candidates = Array.from({ length: 6 }, (_, index) => {
