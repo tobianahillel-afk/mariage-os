@@ -34,9 +34,7 @@ function recordValue(value: unknown): RawRecord {
 }
 
 function stringValue(value: unknown, field: string): string {
-  return typeof value === "string" && value.length > 0
-    ? value
-    : invalid(field);
+  return typeof value === "string" && value.length > 0 ? value : invalid(field);
 }
 
 function uuidValue(value: unknown, field: string): string {
