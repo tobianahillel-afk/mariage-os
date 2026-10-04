@@ -28,7 +28,9 @@ function createSchema(database: IDBDatabase): void {
     database.createObjectStore(OFFLINE_PIN_STORE, { keyPath: "key" });
   }
   if (!database.objectStoreNames.contains(LOCAL_BINARY_STORE)) {
-    database.createObjectStore(LOCAL_BINARY_STORE, { keyPath: "localBinaryId" });
+    database.createObjectStore(LOCAL_BINARY_STORE, {
+      keyPath: "localBinaryId",
+    });
   }
 }
 
