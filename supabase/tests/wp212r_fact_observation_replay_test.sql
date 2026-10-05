@@ -223,7 +223,7 @@ select set_config(
 );
 
 select lives_ok(
-  $select public.append_venue_fact_observation(
+  $$select public.append_venue_fact_observation(
     'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
     'ee300000-0000-4000-8000-000000000001',
     'ee400000-0000-4000-8000-000000000001',
@@ -239,7 +239,7 @@ select lives_ok(
 );
 
 select lives_ok(
-  $select public.append_venue_fact_observation(
+  $$select public.append_venue_fact_observation(
     'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
     'ee300000-0000-4000-8000-000000000001',
     'ee400000-0000-4000-8000-000000000001',
@@ -391,7 +391,7 @@ select throws_ok(
 );
 
 select throws_ok(
-  $select public.append_venue_fact_observation(
+  $$select public.append_venue_fact_observation(
     'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
     'ee300000-0000-4000-8000-000000000001',
     'ff400000-0000-4000-8000-000000000001',
@@ -409,7 +409,7 @@ select throws_ok(
 );
 
 select lives_ok(
-  $select public.append_venue_fact_observation(
+  $$select public.append_venue_fact_observation(
     'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
     'ee300000-0000-4000-8000-000000000001',
     'ee400000-0000-4000-8000-000000000002',
@@ -425,7 +425,7 @@ select lives_ok(
 );
 
 select lives_ok(
-  $select public.append_venue_fact_observation(
+  $$select public.append_venue_fact_observation(
     'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
     'ee300000-0000-4000-8000-000000000001',
     'ee400000-0000-4000-8000-000000000003',
@@ -441,7 +441,7 @@ select lives_ok(
 );
 
 select lives_ok(
-  $select public.append_venue_fact_observation(
+  $$select public.append_venue_fact_observation(
     'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
     'ee300000-0000-4000-8000-000000000001',
     'ee400000-0000-4000-8000-000000000003',
@@ -467,7 +467,7 @@ select is(
 );
 
 select throws_ok(
-  $select public.append_venue_fact_observation(
+  $$select public.append_venue_fact_observation(
     'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
     'ee300000-0000-4000-8000-000000000001',
     'ee400000-0000-4000-8000-000000000003',
