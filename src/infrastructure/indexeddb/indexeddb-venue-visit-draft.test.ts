@@ -168,3 +168,76 @@ it("fails closed when the cached target and draft Venue differ", async () => {
     "target does not match cache key",
   );
 });
+
+
+it("counts a persisted Venue visit draft as unresolved local work", async () => {
+  const factory = new FakeFactory();
+  const store = await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "2.12-draft-green",
+  );
+
+  await store.putVenueVisitDraft(draft());
+
+  await expect(store.readSyncCounters()).resolves.toMatchObject({
+    pendingCount: 1,
+  });
+});
+
+it("rejects an older autosave snapshot and preserves the newer draft", async () => {
+  const factory = new FakeFactory();
+  const store = await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "2.12-draft-green",
+  );
+  const newer = draft({
+    draftRevision: 2,
+    notes: "Nouvelle note.",
+    updatedAt: "2026-10-05T01:06:00.000Z",
+  });
+
+  await store.putVenueVisitDraft(newer);
+  await expect(store.putVenueVisitDraft(draft())).rejects.toThrow("stale");
+  await expect(store.getVenueVisitDraft(venueId)).resolves.toEqual(newer);
+});
+
+it("accepts an idempotent retry of the same draft revision", async () => {
+  const factory = new FakeFactory();
+  const store = await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "2.12-draft-green",
+  );
+  const expected = draft({
+    draftRevision: 2,
+    updatedAt: "2026-10-05T01:06:00.000Z",
+  });
+
+  await store.putVenueVisitDraft(expected);
+  await expect(store.putVenueVisitDraft(expected)).resolves.toBeUndefined();
+  await expect(store.getVenueVisitDraft(venueId)).resolves.toEqual(expected);
+});
+
+it("rejects changed content that reuses the same draft revision", async () => {
+  const factory = new FakeFactory();
+  const store = await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "2.12-draft-green",
+  );
+  const current = draft({
+    draftRevision: 2,
+    updatedAt: "2026-10-05T01:06:00.000Z",
+  });
+
+  await store.putVenueVisitDraft(current);
+  await expect(
+    store.putVenueVisitDraft({
+      ...current,
+      notes: "Contenu concurrent.",
+    }),
+  ).rejects.toThrow("revision was reused");
+  await expect(store.getVenueVisitDraft(venueId)).resolves.toEqual(current);
+});
