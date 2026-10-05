@@ -156,6 +156,23 @@ describe("saveVenueMemberRating", () => {
     expect(captures.rating).toBeNull();
   });
 
+  it("hides rating provider failures", async () => {
+    const captures: Captures = { preference: null, rating: null };
+    await expect(
+      saveVenueMemberRating(portWith(captures, { failRating: true }), {
+        projectId,
+        venueId,
+        dimensionKey: "love_score",
+        rating: 5,
+        expectedRevision: 0,
+        operationId,
+        deviceId,
+      }),
+    ).resolves.toEqual({ ok: false, error: "persistence_failed" });
+  });
+});
+
+describe("saveVenueMemberRating replay identity", () => {
   it.each([
     ["operation id", { operationId: "not-a-uuid" }, "operation_id_invalid"],
     ["device id", { deviceId: "not-a-uuid" }, "device_id_invalid"],
@@ -178,19 +195,4 @@ describe("saveVenueMemberRating", () => {
       expect(captures.rating).toBeNull();
     },
   );
-
-  it("hides rating provider failures", async () => {
-    const captures: Captures = { preference: null, rating: null };
-    await expect(
-      saveVenueMemberRating(portWith(captures, { failRating: true }), {
-        projectId,
-        venueId,
-        dimensionKey: "love_score",
-        rating: 5,
-        expectedRevision: 0,
-        operationId,
-        deviceId,
-      }),
-    ).resolves.toEqual({ ok: false, error: "persistence_failed" });
-  });
 });
