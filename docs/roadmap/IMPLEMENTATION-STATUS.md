@@ -44,7 +44,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace                       | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.12 | mobile/offline venue-visit workflow and packet E2E completion          | **BLOCKED — replay-safe member rating boundary requires WP-2.12S**       |
 | WP-2.12R | replay-safe Venue fact-observation command boundary                     | **ACCEPTED / COMPLETE — Pass C gap ∅**                                    |
-| WP-2.12S | replay-safe Venue member-rating command boundary                        | **READY candidate — activation exact-head CI pending**                    |
+| WP-2.12S | replay-safe Venue member-rating command boundary                        | **IN_PROGRESS / A-IMPLEMENT — RED complete; GREEN CI pending**             |
 
 ## WP-2.10 — activation revalidation
 
@@ -125,7 +125,9 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 - Support packet record: `docs/roadmap/lot-2/WP-2.12S.md`.
 - Size: **3 points / cohesion PASS** — one forward-only RPC migration family + one changed rating command; existing `sync_mutation_receipts` is reused, so no table/RLS/permission/provider/UI change is needed.
 - Parent WP-2.12 is **BLOCKED** with tranches 1–3 GREEN preserved. WP-2.12R remains terminally accepted.
-- Current/next pass: **WP-2.12S PLAN → A-IMPLEMENT / RED first**, but no support production implementation before this activation-governance HEAD itself passes five ordinary exact-head CI jobs including clean checkout.
+- Activation-governance head `4768853fa9c86c44f7cc54c85381fbf87a795547` / CI `37343723399` passed **5/5 ordinary jobs**, including clean checkout.
+- RED-only PR #90 / `9d4bfb5ffffc388b954d9fa9b6a2c031aa46602d` is closed unmerged. CI `37364388534` proves the intended gaps: Core fails exactly the two application/adapter identity tests while 2,054 existing tests pass; DB fails exactly 4/7 rating replay assertions (new signature, legacy removal, lost-response retry, receipt), while browser/mutation remains green.
+- Current/next pass: **WP-2.12S A-IMPLEMENT / GREEN candidate**. Bounded implementation may change only rating operation/device propagation plus a forward-only receipt-aware rating RPC migration and its regression matrix. Parent WP-2.12 remains BLOCKED.
 
 ## Accepted packet evidence summary
 
