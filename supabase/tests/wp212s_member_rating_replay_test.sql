@@ -185,13 +185,13 @@ select set_config(
 );
 
 select lives_ok(
-  $select public.set_venue_member_rating(
+  $legacy$select public.set_venue_member_rating(
     'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
     'dd100000-0000-4000-8000-000000000001',
     'interior_aesthetic_score_personal',
     5.25,
     0
-  )$,
+  )$legacy$,
   'authenticated legacy five-argument overload still mutates during rollout'
 );
 
@@ -224,7 +224,7 @@ select is(
 );
 
 select lives_ok(
-  $select public.set_venue_member_rating(
+  $receipt$select public.set_venue_member_rating(
     'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
     'dd100000-0000-4000-8000-000000000001',
     'love_score',
@@ -232,7 +232,7 @@ select lives_ok(
     0,
     'dd600000-0000-4000-8000-000000000001',
     'dd700000-0000-4000-8000-000000000001'
-  )$,
+  )$receipt$,
   'first receipt-aware rating write succeeds'
 );
 
