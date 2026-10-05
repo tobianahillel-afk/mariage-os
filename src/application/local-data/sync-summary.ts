@@ -67,6 +67,36 @@ function settledConnectivitySummary(
   return { kind: "synced", label: "En ligne · synchronisé" };
 }
 
+function pendingConnectivitySummary(input: SyncSummaryInput): SyncSummary {
+  const hasPendingWork =
+    input.pendingCount > 0 || input.unsyncedBinaryCount > 0;
+  if (!input.online && hasPendingWork) {
+    return {
+      kind: "offline_pending",
+      label: `Hors ligne · ${pendingWorkLabel(
+        input.pendingCount,
+        input.unsyncedBinaryCount,
+      )}`,
+    };
+  }
+  if (input.syncing) {
+    return { kind: "synchronizing", label: "Synchronisation…" };
+  }
+  if (!hasPendingWork) {
+    return settledConnectivitySummary(input.online, input.cloudSynchronized);
+  }
+
+  const work = pendingWorkLabel(input.pendingCount, input.unsyncedBinaryCount);
+  const suffix =
+    input.pendingCount === 0
+      ? "conservé localement"
+      : "enregistrées localement";
+  return {
+    kind: "pending",
+    label: `${work} · ${suffix}`,
+  };
+}
+
 export function deriveSyncSummary(input: SyncSummaryInput): SyncSummary {
   assertCount(input.pendingCount, "pendingCount");
   assertCount(input.conflictCount, "conflictCount");
@@ -89,34 +119,5 @@ export function deriveSyncSummary(input: SyncSummaryInput): SyncSummary {
       label: "Erreur de sync · travail conservé localement",
     };
   }
-
-  const hasPendingWork =
-    input.pendingCount > 0 || input.unsyncedBinaryCount > 0;
-  if (!input.online && hasPendingWork) {
-    return {
-      kind: "offline_pending",
-      label: `Hors ligne · ${pendingWorkLabel(
-        input.pendingCount,
-        input.unsyncedBinaryCount,
-      )}`,
-    };
-  }
-  if (input.syncing) {
-    return { kind: "synchronizing", label: "Synchronisation…" };
-  }
-  if (hasPendingWork) {
-    const work = pendingWorkLabel(
-      input.pendingCount,
-      input.unsyncedBinaryCount,
-    );
-    const suffix =
-      input.pendingCount === 0
-        ? "conservé localement"
-        : "enregistrées localement";
-    return {
-      kind: "pending",
-      label: `${work} · ${suffix}`,
-    };
-  }
-  return settledConnectivitySummary(input.online, input.cloudSynchronized);
+  return pendingConnectivitySummary(input);
 }
