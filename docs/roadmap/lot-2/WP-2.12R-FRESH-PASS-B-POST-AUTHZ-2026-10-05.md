@@ -1,6 +1,6 @@
 # WP-2.12R — Fresh Pass B adversarial review after authorization remediation — 2026-10-05
 
-Status: **REVIEW_IN_PROGRESS — independent fresh Pass B**
+Status: **PASS — fresh independent Pass B complete; no unresolved finding**
 
 ## Review identity
 
@@ -97,4 +97,49 @@ Pass B may be marked **PASS** only if a fresh independent review finds:
 Any new finding keeps WP-2.12R out of acceptance. It must be remediated and followed by
 another complete fresh Pass B.
 
-Current verdict: **PENDING**.
+## Targeted challenge of the transient multiselect-order finding
+
+The first fresh Codex review raised one P2 suggesting that replay of a custom
+multiselect observation might depend on mutable `fact_definitions.options_json`
+order. That hypothesis was challenged rather than accepted by assertion.
+
+Targeted review-only PR #88 starts from the exact canonical review base
+`9e9851d29830decd1dd927496b7aaa473445ca51` and proves on the effective
+migration chain that:
+
+- the effective `fact_multiselect_canonical_value` is the hardened replacement
+  from `20260906223000_harden_venue_fact_adversarial_canonicality.sql`;
+- selected option keys are canonicalized lexically with
+  `order by ... collate "C"`, independently of definition option order;
+- a first replay-safe multiselect append succeeds;
+- the unresolved custom definition can then be legally reordered;
+- the stored observation remains in its original canonical selected-key order;
+- retry of the same observation ID and same selected keys still succeeds;
+- the final observation row count remains exactly one.
+
+PR #88 final head
+`55f0fc8b54554d1f108098d12fa6b718e2288115` / CI
+`37322464350` passed **5/5 SUCCESS**, including full verify from clean
+checkout. The PR was closed unmerged because its role was adversarial
+counter-evidence only.
+
+The corresponding #87 thread is resolved. A subsequent fresh Codex pass on the
+same review head returned **👍** and left **zero unresolved review threads**.
+
+Therefore the multiselect-order P2 is a **review false positive**, not a packet
+defect and not a remediation item.
+
+## Final verdict
+
+**PASS — no unresolved BLOCKING / P0, MAJOR / P1, or MINOR / P2 finding remains.**
+
+- Direct authorization evidence on the exact changed SECURITY DEFINER RPC is
+  present and executed.
+- `WP212R-AR-001/002` remain CLOSED / VERIFIED.
+- The transient multiselect-order hypothesis is disproved by #88 and creates no
+  `WP212R-AR-003` implementation finding.
+- Parent WP-2.12 remains BLOCKED until a separate Pass C accepts WP-2.12R.
+
+Next permitted action: merge/seal this fresh Pass-B record after its exact-head
+ordinary CI and fresh review remain clean, then enter
+`ACCEPTANCE_PENDING / C-ACCEPTANCE`.
