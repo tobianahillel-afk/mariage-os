@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.12S`
 - Lot: 2 — Venues core
 - Name: replay-safe Venue member-rating command identity
-- State: `IN_PROGRESS`
-- Current pass: `A-IMPLEMENT / GREEN candidate — exact-head CI pending`
+- State: `REVIEW_PENDING`
+- Current pass: `B-ADVERSARIAL-REVIEW` — Pass A + rollout-compatibility remediation sealed
 - Branch: `lot-2/venues-core`
 - Parent-resumption base: `2b2035740736dde090da9b1f5d86066975e7bc60`
 - Parent-resumption CI: `37342313598` — **5/5 SUCCESS**, including full verify from clean checkout
@@ -164,16 +164,16 @@ RED failures are demonstrated for these intended reasons.
 
 ## Pass A exit
 
-- [ ] activation-governance HEAD passed 5/5 ordinary CI including clean checkout
-- [ ] isolated RED-only evidence captured the current response-loss defect
-- [ ] stable operation/device identity reaches the rating RPC
-- [ ] exact replay returns prior semantic result without second revision
-- [ ] changed intent/identity fails closed
-- [ ] live authorization is rechecked on replay
-- [ ] current adapter uses only the receipt-aware rating RPC; legacy five-argument overload remains compatibility-only pending safe retirement
-- [ ] all existing Member Opinion semantics remain green
-- [ ] exact-head 5/5 CI including clean checkout
-- [ ] packet moves to `REVIEW_PENDING / B-ADVERSARIAL-REVIEW`
+- [x] activation-governance HEAD passed 5/5 ordinary CI including clean checkout
+- [x] isolated RED-only evidence captured the current response-loss defect
+- [x] stable operation/device identity reaches the rating RPC
+- [x] exact replay returns prior semantic result without second revision
+- [x] changed intent/identity fails closed
+- [x] live authorization is rechecked on replay
+- [x] current adapter uses only the receipt-aware rating RPC; legacy five-argument overload remains compatibility-only pending safe retirement
+- [x] all existing Member Opinion semantics remain green
+- [x] exact-head 5/5 CI including clean checkout
+- [x] packet moves to `REVIEW_PENDING / B-ADVERSARIAL-REVIEW`
 
 ## RED evidence and current handoff
 
@@ -182,9 +182,12 @@ RED failures are demonstrated for these intended reasons.
   - Core rerun fails exactly 2 tests: application service drops `operationId/deviceId`; Supabase adapter omits `target_operation_id/target_device_id`; **2,054 existing tests pass**.
   - DB/RLS originally failed 4/7 assertions under the pre-review contract: seven-argument signature absent, legacy signature present, exact retry after response loss raises `40001`, and no replay receipt exists. Fresh review reclassified the legacy-signature-presence failure as a rollout-compatibility requirement; the genuine RED gaps are the missing seven-argument path, failed exact replay and missing receipt.
   - Browser E2E + mutation remains green.
-- Current state: **IN_PROGRESS / A-REMEDIATION**.
+- Current state: **REVIEW_PENDING / B-ADVERSARIAL-REVIEW**.
 - Parent WP-2.12: BLOCKED, tranches 1–3 GREEN preserved.
 - Accepted sibling support: WP-2.12R.
-- Open packet finding: `WP212S-AR-001` **P1 / REMEDIATION** — preserve the legacy five-argument RPC during expand/switch because no update-required/version gate retires obsolete cached clients yet.
-- Pre-finding GREEN head `a5e6c1a4e51c39882c93d4c13038275a430472bc` / CI `37379588696` passed 5/5, 2,056 tests and 100% coverage, but is not merge-eligible because AR-001 was discovered by independent review.
-- Next permitted action: prove the compatibility remediation on a new exact head, then run a fresh independent review. Only a clean review may move the packet to `REVIEW_PENDING / B-ADVERSARIAL-REVIEW`.
+- Historical packet finding: `WP212S-AR-001` **CLOSED / VERIFIED** — the legacy five-argument authenticated RPC remains during the expand/switch window; current code uses only the receipt-aware seven-argument RPC.
+- Pre-finding GREEN head `a5e6c1a4e51c39882c93d4c13038275a430472bc` / CI `37379588696` passed 5/5, 2,056 tests and 100% coverage.
+- Remediation PR #91 reviewed head `c751c1908ee0fc7691c4ea4d57ade9bad6dfbabb` / CI `37381076113` passed **5/5 SUCCESS**, including clean checkout; fresh independent Codex review on that exact head found no major issue and left zero unresolved threads.
+- PR #91 merged canonically as `c95364bd7f9215fe2686b2e3b76d517cc5b2ded4`; canonical CI `37384351528` passed **5/5 SUCCESS**, including clean checkout. Core reports **236/236 files, 2,056/2,056 tests and 100% statements/branches/functions/lines**.
+- Open packet findings: ∅.
+- Next permitted action: complete fresh independent Pass B over the entire bounded replay-safe member-rating command. Do not resume parent WP-2.12 until WP-2.12S is ACCEPTED.
