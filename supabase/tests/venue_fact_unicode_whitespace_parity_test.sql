@@ -107,6 +107,7 @@ begin
   result_row := public.append_venue_fact_observation(
     '81000000-0000-4000-8000-000000000001',
     '81000000-0000-4000-8000-000000000031',
+    '81000000-0000-4000-8000-000000000041',
     'true'::jsonb,
     'yes',
     'confirmed_for_event',
