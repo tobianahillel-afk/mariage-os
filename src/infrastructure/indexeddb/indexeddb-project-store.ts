@@ -5,7 +5,6 @@ import {
 import type { LocalOfflinePin } from "@application/local-data/local-offline-pin";
 import {
   assertLocalVenueVisitDraftScope,
-  createLocalVenueVisitDraftCachedRecord,
   parseLocalVenueVisitDraft,
   type LocalVenueVisitDraft,
 } from "@application/local-data/local-venue-visit-draft";
