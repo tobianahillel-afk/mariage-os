@@ -43,7 +43,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.10 | repositories, local cache, pending/offline mutations                   | **ACCEPTED / COMPLETE**                                                     |
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace                       | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.12 | mobile/offline venue-visit workflow and packet E2E completion          | **BLOCKED — replay-safe fact observation boundary requires WP-2.12R**     |
-| WP-2.12R | replay-safe Venue fact-observation command boundary                     | **READY candidate — activation exact-head CI pending**                    |
+| WP-2.12R | replay-safe Venue fact-observation command boundary                     | **IN_PROGRESS / A-REMEDIATION — WP212R-AR-001/002 OPEN**                  |
 
 ## WP-2.10 — activation revalidation
 
@@ -99,7 +99,11 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 - Adding replay identity inside WP-2.12 would add one migration family (+1) and one meaningfully changed RPC (+2), taking the packet from 9 to **12 points**. Under AI Lot Orchestration (>10), the packet must split.
 - WP-2.12 is therefore **BLOCKED** with its three GREEN tranches preserved. Support packet `WP-2.12R` owns only replay-safe fact-observation identity hardening.
 - WP-2.12R size: **3 points / cohesion PASS** — one migration family + one changed RPC; no table, RLS, permission, provider, UI or new product Feature.
-- Current/next pass: **WP-2.12R PLAN → A-IMPLEMENT / RED first**, gated by its own exact-head activation CI. Parent WP-2.12 resumes only after WP-2.12R is ACCEPTED.
+- Activation governance `cc12be09d1569a739c11943e5283146d02de950f` / CI `37289339246` passed **5/5**, including clean checkout; RED #81 then proved the missing replay-identity contract.
+- Pass-A GREEN PR #82 reviewed head `78c1d83e45357b653486ceb53dec64a9afdfec51` / CI `37295580568` passed **5/5** and merged as `5389bb31f2b57c1b02a011dbd6fd775a9c048570`; canonical CI `37296758669` passed **5/5**.
+- Post-merge review opened `WP212R-AR-001` **P2 / OPEN**: NULL evidence/confidence replay metadata can bypass validation under SQL three-valued logic; and `WP212R-AR-002` **P1 / OPEN**: durable handoff state still described the packet as READY/activation-pending.
+- Targeted RED #83 / `b4909ef100f1ea40d73e1490bfa19258b0820eec` / CI `37300726435` executed 21 replay pgTAP assertions and failed **exactly tests 7–8** for NULL evidence/confidence while Core, browser/mutation and preview remained green; PR closed unmerged.
+- Current/next pass: **WP-2.12R A-REMEDIATION**. Forward-only SQL remediation + durable handoff reconciliation are being exact-head verified. Parent WP-2.12 remains BLOCKED until WP-2.12R completes fresh Pass B and Pass C.
 
 ## Accepted packet evidence summary
 
@@ -359,7 +363,7 @@ Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.11
 WP-2.9C: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 21accd7f9ab1b845275507b7941a782c5e816a56 / CI 36494697647 5/5 including clean checkout
 WP-2.9A: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 656398bcd5520cfa56d782023d150eb64317161d / CI 36542083037 5/5 including clean checkout
-Current packet: WP-2.12R — READY candidate / activation exact-head CI pending; replay-safe Venue fact-observation command boundary. Parent WP-2.12 BLOCKED with tranches 1–3 GREEN preserved; primary FIR #42 / FTR-028
+Current packet: WP-2.12R — IN_PROGRESS / A-REMEDIATION; WP212R-AR-001 NULL replay metadata and WP212R-AR-002 stale handoff OPEN; forward-only remediation branch active. Parent WP-2.12 BLOCKED with tranches 1–3 GREEN preserved; primary FIR #42 / FTR-028
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
@@ -398,5 +402,5 @@ FTR-089 FIR: #17 — IN_PROGRESS / parent A accepted, later presentation and Lot
 WP-2.9B: ACCEPTED / COMPLETE; FTR-093 FIR #27 remains IN_PROGRESS for downstream scope; WP29B-AR-001/002 CLOSED / VERIFIED; Pass C gap ∅
 Lots 3–12: NOT_STARTED
 Latest distinct-PDF campaign: 2303df0c9e8d6f72561ec0ce42514663801229d8 / CI 36459949861 / provider job 109058754517 / artifact 10987866873 — 10 distinct exact-size PDFs, 10 finalized flows, 20 valid exact-version CPU readings within Workers Free; provider verdict PASS
-Next permitted action: pass the WP-2.12R activation-governance HEAD through all five ordinary exact-head CI jobs including clean checkout. If green, create a closed/non-merged RED proving that `append_venue_fact_observation` lacks a client observation replay identity, then implement only the replay-safe command hardening. No new table, RLS, permission, provider campaign or parent WP-2.12 replay code is authorized until WP-2.12R is accepted.
+Next permitted action: exact-head five-job CI including clean checkout on the WP-2.12R remediation, then a fresh independent re-review. Only after AR-001/002 are CLOSED / VERIFIED may WP-2.12R move to REVIEW_PENDING for a complete fresh Pass B. Parent WP-2.12 remains BLOCKED; no provider campaign or parent replay implementation is authorized yet.
 ```

@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.12R`
 - Lot: 2 — Venues core
 - Name: replay-safe Venue fact-observation command boundary
-- State: `READY` candidate — activation exact-head CI pending
-- Current pass: `PLAN` (next: `A-IMPLEMENT / RED first`)
+- State: `IN_PROGRESS / A-REMEDIATION` — post-merge findings WP212R-AR-001/002 OPEN
+- Current pass: `A-REMEDIATION` — exact-head verification + fresh remediation review next
 - Branch: `lot-2/venues-core`
 - Parent packet: `WP-2.12` — BLOCKED until this support packet is ACCEPTED
 - Discovery base: `8ffe905b026645affb6f218b65b601f565e80fe6`
@@ -150,22 +150,35 @@ At minimum:
 - new table, RLS, permission or provider integration;
 - Lot 10 generic sync.
 
+## Pass A implementation and remediation evidence
+
+- Activation governance: `cc12be09d1569a739c11943e5283146d02de950f` / CI `37289339246` — **5/5 SUCCESS**, including clean checkout.
+- RED #81 / `8d30a16ea8f234c8cee712eed66dc4e1fb64764b` — closed unmerged after proving the accepted append boundary lacked stable client replay identity.
+- GREEN PR #82 exact reviewed head `78c1d83e45357b653486ceb53dec64a9afdfec51` / CI `37295580568` — **5/5 SUCCESS**; stable client observation ID is implemented application → adapter → RPC, exact replay is idempotent, semantic drift conflicts, cross-project collision is non-disclosing, supersede replay is guarded, and the legacy authenticated signature is removed.
+- PR #82 merged as `5389bb31f2b57c1b02a011dbd6fd775a9c048570`; canonical CI `37296758669` — **5/5 SUCCESS**, clean checkout included.
+- Post-merge fresh Codex review opened two findings:
+  - `WP212R-AR-001` **P2 / OPEN** — NULL `target_evidence_level` or `target_confidence` can evade validation/comparison because SQL three-valued predicates evaluate to NULL.
+  - `WP212R-AR-002` **P1 / OPEN** — durable packet/status/matrix handoff still described the pre-implementation READY state.
+- Targeted RED #83 / `b4909ef100f1ea40d73e1490bfa19258b0820eec` / CI `37300726435` — 21 pgTAP replay assertions executed; **exactly tests 7–8 failed** for NULL evidence/confidence; Core, browser/mutation and preview stayed green; PR closed unmerged.
+- Remediation is forward-only: migration `20261005111500_reject_null_venue_fact_replay_metadata.sql` explicitly rejects NULL evidence/confidence and uses NULL-safe replay comparisons; the RED assertions are retained as regression tests. Exact-head CI/re-review is pending.
+
 ## Pass A exit
 
-- [ ] activation-governance HEAD 5/5 including clean checkout
-- [ ] RED-only evidence failed for missing replay identity
-- [ ] stable observation identity implemented application → adapter → RPC
-- [ ] identical replay returns same row; semantic drift conflicts
-- [ ] cross-project collision fails non-disclosing
-- [ ] supersede replay is idempotent/fail-closed
-- [ ] legacy authenticated signature unavailable
-- [ ] full exact-head CI 5/5
+- [x] activation-governance HEAD 5/5 including clean checkout
+- [x] RED-only evidence failed for missing replay identity
+- [x] stable observation identity implemented application → adapter → RPC
+- [x] identical replay returns same row; semantic drift conflicts
+- [x] cross-project collision fails non-disclosing
+- [x] supersede replay is idempotent/fail-closed
+- [x] legacy authenticated signature unavailable
+- [ ] WP212R-AR-001/002 remediation exact-head CI 5/5
+- [ ] fresh remediation review closes WP212R-AR-001/002
 - [ ] packet moves to `REVIEW_PENDING / B-ADVERSARIAL-REVIEW`
 
 ## Handoff
 
-- Current state: READY candidate / activation CI pending
-- Current/next pass: PLAN → A-IMPLEMENT / RED first
-- Parent WP-2.12: BLOCKED with tranches 1–3 GREEN preserved
-- Next permitted action: exact-head five-job activation CI including clean
-  checkout; only then create RED-only evidence.
+- Current state: **IN_PROGRESS / A-REMEDIATION**
+- Current/next pass: exact-head remediation CI → fresh remediation review → complete fresh Pass B
+- Parent WP-2.12: **BLOCKED** with tranches 1–3 GREEN preserved
+- Open findings: `WP212R-AR-001` P2 NULL replay metadata; `WP212R-AR-002` P1 stale durable handoff
+- Next permitted action: exact-head five-job CI including clean checkout on the remediation branch, then fresh independent review. Do not resume parent WP-2.12 until WP-2.12R is ACCEPTED.

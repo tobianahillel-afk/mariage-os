@@ -265,7 +265,43 @@ select is(
 );
 
 select throws_ok(
-  $$select public.append_venue_fact_observation(
+  $cmd$select public.append_venue_fact_observation(
+    'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+    'ee300000-0000-4000-8000-000000000001',
+    'ee400000-0000-4000-8000-000000000001',
+    'true'::jsonb,
+    'measured during visit',
+    null,
+    'high',
+    '2026-10-05T09:00:00Z',
+    'visit measurement',
+    null
+  )$cmd$,
+  '22023',
+  'venue fact observation unavailable',
+  'replay rejects null evidence metadata'
+);
+
+select throws_ok(
+  $cmd$select public.append_venue_fact_observation(
+    'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+    'ee300000-0000-4000-8000-000000000001',
+    'ee400000-0000-4000-8000-000000000001',
+    'true'::jsonb,
+    'measured during visit',
+    'observed',
+    null,
+    '2026-10-05T09:00:00Z',
+    'visit measurement',
+    null
+  )$cmd$,
+  '22023',
+  'venue fact observation unavailable',
+  'replay rejects null confidence metadata'
+);
+
+select throws_ok(
+  $fact$select public.append_venue_fact_observation(
     'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
     'ee300000-0000-4000-8000-000000000002',
     'ee400000-0000-4000-8000-000000000001',
@@ -276,7 +312,7 @@ select throws_ok(
     '2026-10-05T09:00:00Z',
     'visit measurement',
     null
-  )$$,
+  )$fact$,
   '23505',
   'venue fact observation conflict',
   'same observation id with changed Fact conflicts'
