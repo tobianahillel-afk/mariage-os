@@ -1,6 +1,6 @@
 # WP-2.12R — Pass C acceptance reconciliation
 
-Status: **PASS C COMPLETE — gap ∅; acceptance-record exact-head CI pending**.
+Status: **ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record CI 5/5 green**.
 
 This is the separate `EXPECTED ↔ IMPLEMENTED ↔ VERIFIED` reconciliation for
 the bounded replay-safe Venue fact-observation support packet. Entry state is
@@ -116,12 +116,12 @@ required bounded WP-2.12R responsibilities
 
 **PASS — EXPECTED ↔ IMPLEMENTED ↔ VERIFIED gap ∅.**
 
-WP-2.12R is eligible for `ACCEPTED / COMPLETE` only after the exact HEAD
-containing this acceptance record passes all five ordinary CI jobs including
-`Full verify from clean checkout`.
+The exact HEAD containing this acceptance record,
+`5c6d40296ccf7ee2e616a6587b8e910e762dd541`, passed CI `37335393969` with
+all five ordinary jobs green, including `Full verify from clean checkout`.
+WP-2.12R is therefore **ACCEPTED / COMPLETE**.
 
-Until that gate is green:
-- WP-2.12R remains `ACCEPTANCE_PENDING`;
-- parent WP-2.12 remains `BLOCKED`;
-- FIR #42 / FTR-028 remains open;
-- no parent Pass-A production implementation may resume.
+The support dependency is satisfied. Parent WP-2.12 remains paused only until a
+separate resumption seal records this accepted dependency and that seal itself
+passes exact-head ordinary CI including clean checkout. FIR #42 / FTR-028
+remains open for the parent workflow.

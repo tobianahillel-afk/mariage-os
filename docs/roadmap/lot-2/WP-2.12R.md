@@ -5,10 +5,10 @@
 - Work Packet ID: `WP-2.12R`
 - Lot: 2 — Venues core
 - Name: replay-safe Venue fact-observation command boundary
-- State: `ACCEPTANCE_PENDING`
-- Current pass: `C-ACCEPTANCE — PASS / gap ∅ / acceptance-record CI pending`
+- State: `ACCEPTED`
+- Current pass: `C-ACCEPTANCE — PASS / gap ∅ / acceptance-record CI 5/5 green`
 - Branch: `lot-2/venues-core`
-- Parent packet: `WP-2.12` — BLOCKED until this support packet is ACCEPTED
+- Parent packet: `WP-2.12` — support dependency satisfied; separate parent resumption seal required
 - Discovery base: `8ffe905b026645affb6f218b65b601f565e80fe6`
 - Discovery-base CI: `37288210671` — **5/5 SUCCESS**, including clean checkout
 - Product Feature: no new Feature; bounded support for FTR-028 / FIR #42 structured reconnect safety
@@ -193,18 +193,19 @@ At minimum:
 Separate acceptance reconciliation is recorded in
 `docs/roadmap/lot-2/WP-2.12R-ACCEPTANCE.md`.
 
-Verdict: **PASS; EXPECTED ↔ IMPLEMENTED ↔ VERIFIED gap ∅**. The packet remains
-`ACCEPTANCE_PENDING` until the acceptance-record HEAD itself passes all five
-ordinary CI jobs including full verification from a clean checkout. Parent
-WP-2.12 remains BLOCKED until the support packet is sealed ACCEPTED.
+Verdict: **PASS; EXPECTED ↔ IMPLEMENTED ↔ VERIFIED gap ∅**. Acceptance-record
+`5c6d40296ccf7ee2e616a6587b8e910e762dd541` / CI `37335393969` passed all
+five ordinary jobs including full verification from a clean checkout.
+WP-2.12R is therefore **ACCEPTED / COMPLETE**. Parent WP-2.12 remains paused
+until its own separate resumption seal is exact-head green.
 
 ## Handoff
 
-- Current state: **ACCEPTANCE_PENDING / C-ACCEPTANCE**
-- Current/next pass: Pass C complete; exact-head acceptance-record CI pending
+- Current state: **ACCEPTED / COMPLETE**
+- Current/next pass: terminal for WP-2.12R; parent WP-2.12 resumption seal is next
 - Fresh Pass-B/status seal: `091d5f00e5e07afcefaafd8e89d4bb477a55dd10` / CI `37333914603` — **5/5 SUCCESS**
-- Pass C record: `docs/roadmap/lot-2/WP-2.12R-ACCEPTANCE.md` — **PASS / gap ∅**
-- Parent WP-2.12: **BLOCKED** with tranches 1–3 GREEN preserved
+- Pass C acceptance-record: `5c6d40296ccf7ee2e616a6587b8e910e762dd541` / CI `37335393969` — **5/5 SUCCESS**, clean checkout included; gap ∅
+- Parent WP-2.12: **BLOCKED pending separate resumption seal** with tranches 1–3 GREEN preserved
 - Open findings: ∅
 - Closed findings: `WP212R-AR-001/002` — CLOSED / VERIFIED
-- Next permitted action: exact-head CI on this acceptance record. Only after green CI + final support-packet seal may parent WP-2.12 receive a separate resumption seal.
+- Next permitted action: separate WP-2.12 resumption seal and exact-head CI. No additional WP-2.12R code is authorized.
