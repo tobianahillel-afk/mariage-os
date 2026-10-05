@@ -220,6 +220,8 @@ select is(
   'exact replay does not increment rating revision twice'
 );
 
+reset role;
+
 select is(
   (
     select count(*)
@@ -251,6 +253,13 @@ select is(
       and dimension_key = 'love_score'
   ),
   'receipt binds the acknowledged rating-row identity'
+);
+
+set local role authenticated;
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"d1111111-1111-4111-8111-111111111111","role":"authenticated"}',
+  true
 );
 
 select throws_ok(
