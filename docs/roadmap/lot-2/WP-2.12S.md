@@ -5,11 +5,13 @@
 - Work Packet ID: `WP-2.12S`
 - Lot: 2 — Venues core
 - Name: replay-safe Venue member-rating command identity
-- State: `READY` — activation-governance exact-head CI pending
-- Current pass: `PLAN` (next: `A-IMPLEMENT / RED first`)
+- State: `IN_PROGRESS`
+- Current pass: `A-IMPLEMENT / GREEN candidate — exact-head CI pending`
 - Branch: `lot-2/venues-core`
-- Activation base: `2b2035740736dde090da9b1f5d86066975e7bc60`
-- Activation-base CI: `37342313598` — **5/5 SUCCESS**, including full verify from clean checkout
+- Parent-resumption base: `2b2035740736dde090da9b1f5d86066975e7bc60`
+- Parent-resumption CI: `37342313598` — **5/5 SUCCESS**, including full verify from clean checkout
+- Activation-governance head: `4768853fa9c86c44f7cc54c85381fbf87a795547`
+- Activation-governance CI: `37343723399` — **5/5 SUCCESS**, including full verify from clean checkout
 - Parent packet: `WP-2.12` — BLOCKED with tranches 1–3 GREEN preserved
 - Accepted sibling support: `WP-2.12R` — ACCEPTED / COMPLETE
 - Primary FIR: #42 / FTR-028
@@ -173,11 +175,15 @@ RED failures are demonstrated for these intended reasons.
 - [ ] exact-head 5/5 CI including clean checkout
 - [ ] packet moves to `REVIEW_PENDING / B-ADVERSARIAL-REVIEW`
 
-## Handoff
+## RED evidence and current handoff
 
-- Current state: READY candidate / activation exact-head CI pending
-- Parent WP-2.12: BLOCKED, tranches 1–3 GREEN preserved
-- Accepted sibling support: WP-2.12R
-- Open packet findings: ∅
-- Next permitted action: activation exact-head CI; only after green CI create
-  isolated RED-only response-loss replay evidence.
+- RED-only PR #90 / `9d4bfb5ffffc388b954d9fa9b6a2c031aa46602d` is **closed unmerged**.
+- RED CI `37364388534`:
+  - Core rerun fails exactly 2 tests: application service drops `operationId/deviceId`; Supabase adapter omits `target_operation_id/target_device_id`; **2,054 existing tests pass**.
+  - DB/RLS fails exactly 4/7 targeted replay assertions: seven-argument signature absent, legacy signature present, exact retry after response loss raises `40001`, and no replay receipt exists.
+  - Browser E2E + mutation remains green.
+- Current state: **IN_PROGRESS / A-IMPLEMENT**.
+- Parent WP-2.12: BLOCKED, tranches 1–3 GREEN preserved.
+- Accepted sibling support: WP-2.12R.
+- Open packet findings: ∅.
+- Next permitted action: bounded GREEN implementation on `lot-2/wp212s-rating-replay-green`, followed by exact-head five-job CI including clean checkout and fresh Pass B.
