@@ -89,11 +89,7 @@ export function parseLocalOfflinePin(value: unknown): LocalOfflinePin {
 
   return {
     key,
-    entityType: enumValue(
-      row.entityType,
-      ["venue"] as const,
-      "entity type",
-    ),
+    entityType: enumValue(row.entityType, ["venue"] as const, "entity type"),
     entityId,
     projectId: uuidValue(row.projectId, "project id"),
     userId: uuidValue(row.userId, "user id"),
