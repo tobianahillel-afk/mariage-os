@@ -1,7 +1,9 @@
 import { expect, it } from "vitest";
 
-import { createCachedRecordEnvelope } from "@application/local-data/local-records";
-import type { CachedRecordEnvelope } from "@application/local-data/local-records";
+import {
+  createCachedRecordEnvelope,
+  type CachedRecordEnvelope,
+} from "@application/local-data/local-records";
 
 import { IndexedDbProjectStore } from "./indexeddb-project-store";
 import {
@@ -84,7 +86,7 @@ function visitPackage(): CachedRecordEnvelope {
   });
 }
 
-it("durably writes a scoped offline pin and visit package together", async () => {
+it("writes a scoped offline pin and visit package together", async () => {
   const factory = new FakeFactory();
   const store = await IndexedDbProjectStore.open(
     factory as unknown as IDBFactory,
@@ -97,13 +99,16 @@ it("durably writes a scoped offline pin and visit package together", async () =>
 
   await contract.putOfflinePinWithCachedRecord(expectedPin, expectedPackage);
 
-  expect(await contract.getOfflinePin("venue", venueId)).toEqual(expectedPin);
-  expect(
-    await store.getCachedRecord("venue_visit_package", venueId),
-  ).toEqual(expectedPackage);
+  const storedPin = await contract.getOfflinePin("venue", venueId);
+  const storedPackage = await store.getCachedRecord(
+    "venue_visit_package",
+    venueId,
+  );
+  expect(storedPin).toEqual(expectedPin);
+  expect(storedPackage).toEqual(expectedPackage);
 });
 
-it("retains the offline pin and package after store reopen", async () => {
+it("retains the pin and package after reopen", async () => {
   const factory = new FakeFactory();
   const first = await IndexedDbProjectStore.open(
     factory as unknown as IDBFactory,
@@ -121,14 +126,17 @@ it("retains the offline pin and package after store reopen", async () => {
     "2.12-red",
   );
   const reopenedContract = requireOfflinePinContract(reopened);
+  const storedPin = await reopenedContract.getOfflinePin("venue", venueId);
+  const storedPackage = await reopened.getCachedRecord(
+    "venue_visit_package",
+    venueId,
+  );
 
-  expect(await reopenedContract.getOfflinePin("venue", venueId)).toEqual(pin());
-  expect(
-    await reopened.getCachedRecord("venue_visit_package", venueId),
-  ).toEqual(visitPackage());
+  expect(storedPin).toEqual(pin());
+  expect(storedPackage).toEqual(visitPackage());
 });
 
-it("fails closed when a persisted offline pin belongs to another local scope", async () => {
+it("fails closed on a foreign offline pin", async () => {
   const factory = new FakeFactory();
   const store = await IndexedDbProjectStore.open(
     factory as unknown as IDBFactory,
@@ -146,7 +154,7 @@ it("fails closed when a persisted offline pin belongs to another local scope", a
   );
 });
 
-it("fails closed on malformed persisted offline pin metadata", async () => {
+it("fails closed on malformed offline pin metadata", async () => {
   const factory = new FakeFactory();
   const store = await IndexedDbProjectStore.open(
     factory as unknown as IDBFactory,
@@ -165,7 +173,7 @@ it("fails closed on malformed persisted offline pin metadata", async () => {
   );
 });
 
-it("does not leave a partial pin or package when durable preparation fails", async () => {
+it("does not partially write pin/package on local failure", async () => {
   const factory = new FakeFactory();
   const store = await IndexedDbProjectStore.open(
     factory as unknown as IDBFactory,
