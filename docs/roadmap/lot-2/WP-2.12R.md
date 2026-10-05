@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.12R`
 - Lot: 2 — Venues core
 - Name: replay-safe Venue fact-observation command boundary
-- State: `REVIEW_PENDING`
-- Current pass: `B-ADVERSARIAL-REVIEW` — Pass A + remediation sealed; complete fresh review next
+- State: `ACCEPTANCE_PENDING`
+- Current pass: `C-ACCEPTANCE` — complete Fresh Pass B v2 PASS; separate reconciliation next
 - Branch: `lot-2/venues-core`
 - Parent packet: `WP-2.12` — BLOCKED until this support packet is ACCEPTED
 - Discovery base: `8ffe905b026645affb6f218b65b601f565e80fe6`
@@ -178,11 +178,21 @@ At minimum:
 - [x] fresh remediation review closes WP212R-AR-001/002
 - [x] packet moves to `REVIEW_PENDING / B-ADVERSARIAL-REVIEW`
 
+## Fresh Pass B v2
+
+- Canonical review target: `9e9851d29830decd1dd927496b7aaa473445ca51` / CI `37316129635` — **5/5 SUCCESS**, including clean checkout.
+- Review-only PR #87 final head `bd17217f6d2ecb2ffc20ef7dd1c9017713737019` / CI `37327242771` — **PASS**.
+- Review-only #88 / `55f0fc8b54554d1f108098d12fa6b718e2288115` / CI `37322464350` disproved the multiselect-order hypothesis.
+- Review-only #89 / `8bb749810082332efb9de43fb9a61f101e8f39c9` / CI `37329487914` disproved the definition-constraint-drift hypothesis.
+- Final fresh Codex review on exact head `bd17217f...` returned **“Didn't find any major issues”** with zero unresolved review threads.
+- `WP212R-AR-001/002` remain **CLOSED / VERIFIED**; no new implementation finding remains.
+- Canonical review record: `docs/roadmap/lot-2/WP-2.12R-FRESH-PASS-B-POST-AUTHZ-2026-10-05.md`.
+
 ## Handoff
 
-- Current state: **REVIEW_PENDING / B-ADVERSARIAL-REVIEW**
-- Current/next pass: complete fresh independent Pass B
+- Current state: **ACCEPTANCE_PENDING / C-ACCEPTANCE**
+- Current/next pass: separate EXPECTED ↔ IMPLEMENTED ↔ VERIFIED reconciliation
 - Parent WP-2.12: **BLOCKED** with tranches 1–3 GREEN preserved
 - Open findings: ∅
 - Closed findings: `WP212R-AR-001/002` — VERIFIED by RED #83 + PR #84 + canonical CI
-- Next permitted action: complete fresh Pass B over the entire replay-safe observation contract. Do not resume parent WP-2.12 until WP-2.12R is ACCEPTED.
+- Next permitted action: Pass C only. Do not resume parent WP-2.12 until WP-2.12R acceptance-record CI is green and the packet is sealed ACCEPTED.

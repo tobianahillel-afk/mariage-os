@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1..WP-2.11 ACCEPTED; WP-2.12 BLOCKED on WP-2.12R; WP-2.12R REVIEW_PENDING / PASS B**
+Status: **IN_PROGRESS — WP-2.1..WP-2.11 ACCEPTED; WP-2.12 BLOCKED on WP-2.12R; WP-2.12R ACCEPTANCE_PENDING / PASS C**
 
 Purpose: durable current responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`. Detailed historical evidence remains in packet records, acceptance records, FIRs and Git history.
 
@@ -35,7 +35,7 @@ Integration prerequisite is accepted Lot 0 + Lot 1 on `main` through PR #7; `mai
 | repository/read-model/provider ports and Supabase adapters | architecture, AUTHZ-006/020 | WP-2.1..WP-2.10 + WP-2.9C | accepted packets green through WP-2.10; Pass C and exact-head CI green |
 | local cache/pending Venue edits | FTR-028 Lot-2, SYN-001..003/007..011, PWA-003/004/006 | WP-2.10, WP-2.12 | WP-2.10 **ACCEPTED**; WP-2.12 **IN_PROGRESS** — schema v2, pin/package + draft durability GREEN |
 | gallery/table/detail/compare/deep-link workspace | FTR-015/016/017/027, VEN-010/011/014/015 | WP-2.11 | **ACCEPTED / COMPLETE — Pass C gap ∅** |
-| mobile visit mode | FTR-028, PWA-004 | WP-2.12 + WP-2.12R support | WP-2.12 **BLOCKED** with shell/package/draft GREEN; WP-2.12R **REVIEW_PENDING / B-ADVERSARIAL-REVIEW** |
+| mobile visit mode | FTR-028, PWA-004 | WP-2.12 + WP-2.12R support | WP-2.12 **BLOCKED** with shell/package/draft GREEN; WP-2.12R **ACCEPTANCE_PENDING / C-ACCEPTANCE** |
 | file/content validation, trusted binary lifecycle, no private production data in public artifacts | MED-001..010/013 + security/quality controls | WP-2.8A/B/C, WP-2.9A, WP-2.9C, WP-2.12 | media and A/C accepted; WP-2.12 local-binary store/logout safety GREEN; byte lifecycle/upload completion pending |
 | explicit permissions/grants/RLS/direct endpoint and Storage allow+deny evidence | AUTHZ-001..009/012/017/018/020 | owning packets WP-2.1..WP-2.9C | accepted authorization evidence green; C local/exact-head evidence green |
 | synthetic complex Venue exit fixture/integrated workflows | Lot-2 acceptance | WP-2.12 + Lot Integration Pass | downstream |
@@ -126,7 +126,7 @@ ADR 0011 later produced decisive deployed CPU evidence and was rejected for fina
 | WP-2.10 | **ACCEPTED / COMPLETE** | repositories/local cache/pending offline mutations; Pass C gap ∅ / CI `36849005712` 5/5 |
 | WP-2.11 | **ACCEPTED / COMPLETE** | gallery/table/detail/compare/deep-link workspace; Pass C gap ∅ / CI `37240178167` 5/5 |
 | WP-2.12 | **BLOCKED — dependency WP-2.12R** | mobile/offline Venue visit + packet E2E completion; tranches 1–3 GREEN; FIR #42 |
-| WP-2.12R | **REVIEW_PENDING / B-ADVERSARIAL-REVIEW — AR-001/002 CLOSED / VERIFIED** | replay-safe fact-observation command identity; 3 points / cohesion PASS |
+| WP-2.12R | **ACCEPTANCE_PENDING / C-ACCEPTANCE — Fresh Pass B v2 PASS** | replay-safe fact-observation command identity; 3 points / cohesion PASS |
 
 ## Sequencing
 
@@ -135,12 +135,12 @@ WP-2.1..WP-2.8C [ACCEPTED]
   → WP-2.9C [ACCEPTED]
     → WP-2.9A [ACCEPTED]
                 → WP-2.9B [ACCEPTED] → WP-2.10 [ACCEPTED] → WP-2.11 [ACCEPTED] → WP-2.12 [BLOCKED]
-                                                                                           ↘ WP-2.12R [PASS B]
+                                                                                           ↘ WP-2.12R [PASS C]
                                                                                               → WP-2.12 [resume A after acceptance]
                                                                                                 → Lot reconciliation → Integration Pass
 ```
 
-Only one packet may be active at a time. WP-2.9A/B/C, WP-2.10 and WP-2.11 are terminal accepted. WP-2.12 READY gate `99cf3b68...` / CI `37241583422` passed 5/5 and tranches 1–3 remain GREEN through `1794a3d9...` / CI `37280907551`. WP-2.12R remediation is green through canonical `e6c46b0e...` / CI `37309288791`; AR-001/002 are CLOSED / VERIFIED, so WP-2.12R is the sole active packet in fresh Pass B and parent WP-2.12 stays BLOCKED.
+Only one packet may be active at a time. WP-2.9A/B/C, WP-2.10 and WP-2.11 are terminal accepted. WP-2.12 READY gate `99cf3b68...` / CI `37241583422` passed 5/5 and tranches 1–3 remain GREEN through `1794a3d9...` / CI `37280907551`. WP-2.12R Fresh Pass B v2 is PASS on canonical `9e9851d2...` / CI `37316129635` plus review head `bd17217f...` / CI `37327242771`; AR-001/002 are CLOSED / VERIFIED and review-only #88/#89 close the transient migration-chain hypotheses. WP-2.12R is the sole active packet in Pass C and parent WP-2.12 stays BLOCKED.
 
 ## Explicitly outside Lot 2
 
