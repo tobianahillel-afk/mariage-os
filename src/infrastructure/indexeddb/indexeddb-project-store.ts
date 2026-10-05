@@ -14,6 +14,7 @@ import {
   parsePendingMutationEnvelope,
 } from "@application/local-data/persisted-local-data-parser";
 import type {
+  LocalOfflinePinStore,
   LocalProjectMetadata,
   LocalProjectStore,
   LocalProjectStoreFactory,
@@ -131,7 +132,9 @@ function countUnsyncedBinaries(
   return count;
 }
 
-export class IndexedDbProjectStore implements LocalProjectStore {
+export class IndexedDbProjectStore
+  implements LocalProjectStore, LocalOfflinePinStore
+{
   private constructor(
     private readonly database: IDBDatabase,
     readonly scope: LocalProjectScope,
