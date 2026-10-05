@@ -1,5 +1,6 @@
 import type { LocalOfflinePin } from "@application/local-data/local-offline-pin";
 import type { LocalProjectScope } from "@application/local-data/local-project-scope";
+import type { LocalVenueVisitDraft } from "@application/local-data/local-venue-visit-draft";
 import type {
   CachedRecordEnvelope,
   PendingMutationEnvelope,
@@ -68,6 +69,11 @@ export interface LocalOfflinePinStore {
     entityType: string,
     entityId: string,
   ): Promise<LocalOfflinePin | null>;
+}
+
+export interface LocalVenueVisitDraftStore {
+  putVenueVisitDraft(draft: LocalVenueVisitDraft): Promise<void>;
+  getVenueVisitDraft(venueId: string): Promise<LocalVenueVisitDraft | null>;
 }
 
 export interface LocalProjectStoreFactory {
