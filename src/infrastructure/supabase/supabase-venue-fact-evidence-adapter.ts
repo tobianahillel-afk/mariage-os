@@ -283,13 +283,14 @@ export class SupabaseVenueFactEvidenceAdapter implements VenueFactEvidencePort {
     input: AppendVenueFactObservationInput,
   ): Promise<VenueFactObservationRecord> {
     const context = await this.getFactContext(input.projectId, input.factId);
+    const observationId = input.observationId.toLowerCase();
     const data = await rpcData(
       this.client,
       "append_venue_fact_observation",
       {
         target_project_id: input.projectId,
         target_fact_id: input.factId,
-        target_observation_id: input.observationId,
+        target_observation_id: observationId,
         target_value: input.value,
         target_raw_value_text: input.rawValueText,
         target_evidence_level: input.evidenceLevel,
@@ -300,7 +301,7 @@ export class SupabaseVenueFactEvidenceAdapter implements VenueFactEvidencePort {
       },
       OBSERVATION_MUTATION_FAILED,
     );
-    return observationData(data, context, input.observationId);
+    return observationData(data, context, observationId);
   }
 
   async linkObservationSource(
