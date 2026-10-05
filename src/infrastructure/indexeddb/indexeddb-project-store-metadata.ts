@@ -1,9 +1,5 @@
-import {
-  parseLocalProjectMetadata,
-} from "@application/local-data/persisted-local-data-parser";
-import type {
-  LocalProjectMetadata,
-} from "@application/local-data/local-project-store";
+import { parseLocalProjectMetadata } from "@application/local-data/persisted-local-data-parser";
+import type { LocalProjectMetadata } from "@application/local-data/local-project-store";
 import type { LocalProjectScope } from "@application/local-data/local-project-scope";
 
 import {
