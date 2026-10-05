@@ -28,6 +28,10 @@ import type {
   CachedRecordEnvelope,
   PendingMutationEnvelope,
 } from "@application/local-data/local-records";
+import {
+  assertVenueVisitPackageMatchesPin,
+  parseVenueVisitPackagePayload,
+} from "@application/venues/venue-visit-package";
 
 import {
   assertCachedRecordScope,
@@ -107,7 +111,7 @@ function assertScopeMetadata(
   }
 }
 
-function assertOfflinePinPackageTarget(
+function assertOfflinePinPackage(
   pin: LocalOfflinePin,
   record: CachedRecordEnvelope,
 ): void {
@@ -117,6 +121,8 @@ function assertOfflinePinPackageTarget(
   ) {
     throw new Error("Offline pin visit package target does not match.");
   }
+  const visitPackage = parseVenueVisitPackagePayload(record.payload);
+  assertVenueVisitPackageMatchesPin(visitPackage, pin);
 }
 
 function countUnsyncedBinaries(
@@ -274,7 +280,7 @@ export class IndexedDbProjectStore
     const parsedRecord = parseCachedRecordEnvelope(record);
     assertLocalOfflinePinScope(parsedPin, this.scope);
     assertCachedRecordScope(parsedRecord, this.scope);
-    assertOfflinePinPackageTarget(parsedPin, parsedRecord);
+    assertOfflinePinPackage(parsedPin, parsedRecord);
     await runAtomicOfflinePinWithCache(
       this.database,
       parsedPin,
