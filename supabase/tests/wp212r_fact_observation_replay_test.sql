@@ -301,7 +301,7 @@ select throws_ok(
 );
 
 select throws_ok(
-  $select public.append_venue_fact_observation(
+  $fact$select public.append_venue_fact_observation(
     'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
     'ee300000-0000-4000-8000-000000000002',
     'ee400000-0000-4000-8000-000000000001',
@@ -312,7 +312,7 @@ select throws_ok(
     '2026-10-05T09:00:00Z',
     'visit measurement',
     null
-  )$$,
+  )$fact$,
   '23505',
   'venue fact observation conflict',
   'same observation id with changed Fact conflicts'
