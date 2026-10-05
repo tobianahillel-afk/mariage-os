@@ -6,7 +6,7 @@
 - Lot: 2 — Venues core
 - Name: replay-safe Venue fact-observation command boundary
 - State: `ACCEPTANCE_PENDING`
-- Current pass: `C-ACCEPTANCE` — complete Fresh Pass B v2 PASS; separate reconciliation next
+- Current pass: `C-ACCEPTANCE — PASS / gap ∅ / acceptance-record CI pending`
 - Branch: `lot-2/venues-core`
 - Parent packet: `WP-2.12` — BLOCKED until this support packet is ACCEPTED
 - Discovery base: `8ffe905b026645affb6f218b65b601f565e80fe6`
@@ -188,11 +188,23 @@ At minimum:
 - `WP212R-AR-001/002` remain **CLOSED / VERIFIED**; no new implementation finding remains.
 - Canonical review record: `docs/roadmap/lot-2/WP-2.12R-FRESH-PASS-B-POST-AUTHZ-2026-10-05.md`.
 
+## Pass C result — 2026-10-05
+
+Separate acceptance reconciliation is recorded in
+`docs/roadmap/lot-2/WP-2.12R-ACCEPTANCE.md`.
+
+Verdict: **PASS; EXPECTED ↔ IMPLEMENTED ↔ VERIFIED gap ∅**. The packet remains
+`ACCEPTANCE_PENDING` until the acceptance-record HEAD itself passes all five
+ordinary CI jobs including full verification from a clean checkout. Parent
+WP-2.12 remains BLOCKED until the support packet is sealed ACCEPTED.
+
 ## Handoff
 
 - Current state: **ACCEPTANCE_PENDING / C-ACCEPTANCE**
-- Current/next pass: separate EXPECTED ↔ IMPLEMENTED ↔ VERIFIED reconciliation
+- Current/next pass: Pass C complete; exact-head acceptance-record CI pending
+- Fresh Pass-B/status seal: `091d5f00e5e07afcefaafd8e89d4bb477a55dd10` / CI `37333914603` — **5/5 SUCCESS**
+- Pass C record: `docs/roadmap/lot-2/WP-2.12R-ACCEPTANCE.md` — **PASS / gap ∅**
 - Parent WP-2.12: **BLOCKED** with tranches 1–3 GREEN preserved
 - Open findings: ∅
-- Closed findings: `WP212R-AR-001/002` — VERIFIED by RED #83 + PR #84 + canonical CI
-- Next permitted action: Pass C only. Do not resume parent WP-2.12 until WP-2.12R acceptance-record CI is green and the packet is sealed ACCEPTED.
+- Closed findings: `WP212R-AR-001/002` — CLOSED / VERIFIED
+- Next permitted action: exact-head CI on this acceptance record. Only after green CI + final support-packet seal may parent WP-2.12 receive a separate resumption seal.
