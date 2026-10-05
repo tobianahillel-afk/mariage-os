@@ -68,7 +68,12 @@ it.each([
 });
 
 it("accepts every frozen pin reason and media policy", () => {
-  for (const reason of ["manual", "upcoming_visit", "favorite", "recent"] as const) {
+  for (const reason of [
+    "manual",
+    "upcoming_visit",
+    "favorite",
+    "recent",
+  ] as const) {
     expect(parseLocalOfflinePin(pin({ reason })).reason).toBe(reason);
   }
   expect(
