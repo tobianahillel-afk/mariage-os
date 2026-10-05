@@ -740,7 +740,7 @@ select throws_ok(
 );
 
 select lives_ok(
-  $select public.append_venue_fact_observation(
+  $replay$select public.append_venue_fact_observation(
     'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
     'ee300000-0000-4000-8000-000000000003',
     'ee400000-0000-4000-8000-000000000020',
@@ -751,12 +751,12 @@ select lives_ok(
     '2026-10-05T09:20:00Z',
     'same multiselect visit intent',
     null
-  )$,
+  )$replay$,
   'multiselect replay fixture first append succeeds'
 );
 
 select lives_ok(
-  $select public.update_venue_fact_definition(
+  $replay$select public.update_venue_fact_definition(
     'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
     'ee200000-0000-4000-8000-000000000003',
     1,
@@ -766,12 +766,12 @@ select lives_ok(
     null,
     '{"options":[{"key":"open_air","labelKey":"open_air"},{"key":"covered","labelKey":"covered"}]}'::jsonb,
     null
-  )$,
+  )$replay$,
   'unresolved custom multiselect definition may reorder options'
 );
 
 select lives_ok(
-  $select public.append_venue_fact_observation(
+  $replay$select public.append_venue_fact_observation(
     'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
     'ee300000-0000-4000-8000-000000000003',
     'ee400000-0000-4000-8000-000000000020',
@@ -782,7 +782,7 @@ select lives_ok(
     '2026-10-05T09:20:00Z',
     'same multiselect visit intent',
     null
-  )$,
+  )$replay$,
   'exact replay remains idempotent after multiselect option reorder'
 );
 
