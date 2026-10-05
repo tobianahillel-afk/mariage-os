@@ -1,8 +1,6 @@
 import { expect, it } from "vitest";
 
-import type {
-  LocalOfflinePin,
-} from "@application/local-data/local-offline-pin";
+import type { LocalOfflinePin } from "@application/local-data/local-offline-pin";
 import {
   assertVenueVisitPackageMatchesPin,
   parseVenueVisitPackagePayload,
