@@ -86,20 +86,14 @@ it.each([
     "unsafe draft revision",
     { ...draft(), draftRevision: Number.MAX_SAFE_INTEGER + 1 },
   ],
-  [
-    "fractional question-set revision",
-    { ...draft(), questionSetRevision: 1.5 },
-  ],
+  ["fractional question-set revision", { ...draft(), questionSetRevision: 1.5 }],
   ["zero question-set revision", { ...draft(), questionSetRevision: 0 }],
   [
     "unsafe question-set revision",
     { ...draft(), questionSetRevision: Number.MAX_SAFE_INTEGER + 1 },
   ],
   ["invalid timestamp", { ...draft(), createdAt: "not-a-date" }],
-  [
-    "non-canonical timestamp",
-    { ...draft(), createdAt: "2026-10-05T01:00:00Z" },
-  ],
+  ["non-canonical timestamp", { ...draft(), createdAt: "2026-10-05T01:00:00Z" }],
   [
     "reversed timestamps",
     {
@@ -109,10 +103,7 @@ it.each([
     },
   ],
   ["non-array questions", { ...draft(), questions: "nope" }],
-  [
-    "invalid question record",
-    { ...draft(), questions: [null] },
-  ],
+  ["invalid question record", { ...draft(), questions: [null] }],
   [
     "empty question id",
     {
@@ -145,10 +136,7 @@ it.each([
     },
   ],
   ["non-array measurements", { ...draft(), measurements: "nope" }],
-  [
-    "invalid measurement record",
-    { ...draft(), measurements: [null] },
-  ],
+  ["invalid measurement record", { ...draft(), measurements: [null] }],
   [
     "empty measurement key",
     {
