@@ -12,6 +12,7 @@ const projectId = "81111111-1111-4111-8111-111111111111";
 const venueId = "82222222-2222-4222-8222-222222222222";
 const definitionId = "83333333-3333-4333-8333-333333333333";
 const factId = "84444444-4444-4444-8444-444444444444";
+const observationId = "85555555-5555-4555-8555-555555555555";
 
 const factRow = {
   id: factId,
@@ -52,6 +53,7 @@ const sourceInput: CreateVenueFactSourceInput = {
 const appendInput: AppendVenueFactObservationInput = {
   projectId,
   factId,
+  observationId,
   value: false,
   rawValueText: "No",
   evidenceLevel: "confirmed_for_event",
