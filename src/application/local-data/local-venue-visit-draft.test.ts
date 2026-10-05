@@ -83,10 +83,18 @@ it.each([
   ["fractional draft revision", { ...draft(), draftRevision: 1.5 }],
   ["zero draft revision", { ...draft(), draftRevision: 0 }],
   [
+    "unsafe draft revision",
+    { ...draft(), draftRevision: Number.MAX_SAFE_INTEGER + 1 },
+  ],
+  [
     "fractional question-set revision",
     { ...draft(), questionSetRevision: 1.5 },
   ],
   ["zero question-set revision", { ...draft(), questionSetRevision: 0 }],
+  [
+    "unsafe question-set revision",
+    { ...draft(), questionSetRevision: Number.MAX_SAFE_INTEGER + 1 },
+  ],
   ["invalid timestamp", { ...draft(), createdAt: "not-a-date" }],
   [
     "non-canonical timestamp",
