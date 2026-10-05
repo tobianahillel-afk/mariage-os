@@ -308,6 +308,7 @@ it("opens only the authorized account+project namespace and renders its counters
     conflictCount: 0,
     retryableFailureCount: 0,
     permanentFailureCount: 0,
+    unsyncedBinaryCount: 0,
   });
 
   await startApplication(rootWithClear(), {

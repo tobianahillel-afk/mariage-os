@@ -38,7 +38,8 @@ function unresolvedCount(counters: LocalSyncCounters): number {
     counters.pendingCount +
     counters.conflictCount +
     counters.retryableFailureCount +
-    counters.permanentFailureCount
+    counters.permanentFailureCount +
+    counters.unsyncedBinaryCount
   );
 }
 

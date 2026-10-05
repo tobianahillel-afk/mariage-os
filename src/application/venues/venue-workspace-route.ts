@@ -5,21 +5,32 @@ export type VenueWorkspaceRoute =
   | { readonly kind: "gallery" }
   | { readonly kind: "compare" }
   | { readonly kind: "detail"; readonly venueId: string }
+  | { readonly kind: "visit"; readonly venueId: string }
   | { readonly kind: "unavailable" };
+
+function unavailable(): VenueWorkspaceRoute {
+  return { kind: "unavailable" };
+}
+
+function parseVenueEntityRoute(
+  segments: readonly string[],
+): VenueWorkspaceRoute {
+  if (segments[0] !== "venues") return unavailable();
+  const venueId = segments[1];
+  if (venueId === undefined || !UUID_PATTERN.test(venueId)) {
+    return unavailable();
+  }
+  if (segments.length === 2) return { kind: "detail", venueId };
+  if (segments.length === 3 && segments[2] === "visit") {
+    return { kind: "visit", venueId };
+  }
+  return unavailable();
+}
 
 export function parseVenueWorkspaceRoute(
   projectPath: string,
 ): VenueWorkspaceRoute {
   if (projectPath === "/venues") return { kind: "gallery" };
   if (projectPath === "/venues/compare") return { kind: "compare" };
-
-  const segments = projectPath.split("/").filter(Boolean);
-  if (
-    segments.length === 2 &&
-    segments[0] === "venues" &&
-    UUID_PATTERN.test(segments[1] as string)
-  ) {
-    return { kind: "detail", venueId: segments[1] as string };
-  }
-  return { kind: "unavailable" };
+  return parseVenueEntityRoute(projectPath.split("/").filter(Boolean));
 }

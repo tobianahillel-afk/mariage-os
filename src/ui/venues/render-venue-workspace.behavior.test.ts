@@ -391,6 +391,47 @@ it("uses the text-node fallback and tolerates DOM stubs without listeners", () =
   ).not.toThrow();
 });
 
+it("renders visit state explicitly instead of falling back to Gallery", () => {
+  installDocument();
+  const candidate = item(4);
+  const root = createVenueWorkspace(
+    projectId,
+    `/venues/${candidate.venue.id}/visit`,
+    {
+      kind: "visit",
+      item: candidate,
+    },
+  ) as unknown as FakeElement;
+
+  const visitWorkspace = byAttribute(root, "data-venue-workspace", "visit");
+  const venueIdentity = byAttribute(root, "data-venue-id", candidate.venue.id);
+  expect(visitWorkspace).toHaveLength(1);
+  expect(venueIdentity).toHaveLength(1);
+  expect(texts(root)).toContain("Visite · V4 · Venue 4");
+  expect(texts(root)).toContain(
+    "La préparation hors ligne de la visite n’est pas encore disponible sur cet appareil.",
+  );
+  expect(byClass(root, "venue-gallery")).toHaveLength(0);
+});
+
+it("renders the missing visit fallback without inventing Gallery data", () => {
+  installDocument();
+  const missingId = venueId(7);
+  const root = createVenueWorkspace(
+    projectId,
+    `/venues/${missingId}/visit`,
+  ) as unknown as FakeElement;
+
+  const visitWorkspace = byAttribute(root, "data-venue-workspace", "visit");
+  const backLinks = byAttribute(root, "href", `/app/p/${projectId}/venues`);
+  expect(visitWorkspace).toHaveLength(1);
+  expect(texts(root)).toContain(
+    "Cette salle n’est pas disponible avec le contexte actuel.",
+  );
+  expect(backLinks).toHaveLength(1);
+  expect(byClass(root, "venue-gallery")).toHaveLength(0);
+});
+
 it("renders explicit unavailable workspace state", () => {
   installDocument();
   const root = createVenueWorkspace(projectId, "/venues/not-a-route", {

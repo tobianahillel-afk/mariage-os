@@ -3,10 +3,12 @@ import type {
   PendingMutationEnvelope,
 } from "@application/local-data/local-records";
 
-export const LOCAL_SCHEMA_VERSION = 1;
+export const LOCAL_SCHEMA_VERSION = 2;
 export const METADATA_STORE = "metadata";
 export const CACHE_STORE = "cached_records";
 export const MUTATION_STORE = "pending_mutations";
+const OFFLINE_PIN_STORE = "offline_pins";
+export const LOCAL_BINARY_STORE = "local_binaries";
 
 function storageError(action: string): Error {
   return new Error(`Local IndexedDB ${action} failed.`);
@@ -21,6 +23,14 @@ function createSchema(database: IDBDatabase): void {
   }
   if (!database.objectStoreNames.contains(MUTATION_STORE)) {
     database.createObjectStore(MUTATION_STORE, { keyPath: "operationId" });
+  }
+  if (!database.objectStoreNames.contains(OFFLINE_PIN_STORE)) {
+    database.createObjectStore(OFFLINE_PIN_STORE, { keyPath: "key" });
+  }
+  if (!database.objectStoreNames.contains(LOCAL_BINARY_STORE)) {
+    database.createObjectStore(LOCAL_BINARY_STORE, {
+      keyPath: "localBinaryId",
+    });
   }
 }
 

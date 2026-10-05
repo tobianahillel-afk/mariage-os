@@ -1,3 +1,7 @@
+import {
+  assertLocalBinaryScope,
+  parseLocalBinaryMetadata,
+} from "@application/local-data/local-binary-record";
 import type { LocalProjectPurgePort } from "@application/local-data/local-project-purge-port";
 import {
   parseCachedRecordEnvelope,
@@ -33,6 +37,7 @@ import { runAtomicCloudCacheRefresh } from "./indexeddb-project-store-refresh";
 
 import {
   CACHE_STORE,
+  LOCAL_BINARY_STORE,
   LOCAL_SCHEMA_VERSION,
   METADATA_STORE,
   MUTATION_STORE,
@@ -62,18 +67,49 @@ function createMetadata(
   };
 }
 
-function assertScopeMetadata(
+function assertScopeIdentity(
   value: LocalProjectMetadata,
   scope: LocalProjectScope,
 ): void {
   if (
-    value.localSchemaVersion !== LOCAL_SCHEMA_VERSION ||
     value.projectId !== scope.projectId ||
     value.userId !== scope.userId ||
     value.deviceId !== scope.deviceId
   ) {
     throw new Error("Local IndexedDB scope metadata is inconsistent.");
   }
+}
+
+function assertMigratableSchema(value: LocalProjectMetadata): void {
+  if (
+    value.localSchemaVersion < 1 ||
+    value.localSchemaVersion > LOCAL_SCHEMA_VERSION
+  ) {
+    throw new Error("Local IndexedDB scope metadata is inconsistent.");
+  }
+}
+
+function assertScopeMetadata(
+  value: LocalProjectMetadata,
+  scope: LocalProjectScope,
+): void {
+  assertScopeIdentity(value, scope);
+  if (value.localSchemaVersion !== LOCAL_SCHEMA_VERSION) {
+    throw new Error("Local IndexedDB scope metadata is inconsistent.");
+  }
+}
+
+function countUnsyncedBinaries(
+  values: readonly unknown[],
+  scope: LocalProjectScope,
+): number {
+  let count = 0;
+  for (const value of values) {
+    const binary = parseLocalBinaryMetadata(value);
+    assertLocalBinaryScope(binary, scope);
+    if (binary.syncState === "unsynced") count += 1;
+  }
+  return count;
 }
 
 export class IndexedDbProjectStore implements LocalProjectStore {
@@ -107,15 +143,18 @@ export class IndexedDbProjectStore implements LocalProjectStore {
       raw === undefined ? undefined : parseLocalProjectMetadata(raw);
 
     if (existing !== undefined) {
-      assertScopeMetadata(existing, this.scope);
+      assertScopeIdentity(existing, this.scope);
+      assertMigratableSchema(existing);
     }
 
     if (
       existing === undefined ||
+      existing.localSchemaVersion !== LOCAL_SCHEMA_VERSION ||
       existing.appVersionLastOpened !== appVersion
     ) {
       const metadata = {
         ...(existing ?? createMetadata(this.scope, appVersion)),
+        localSchemaVersion: LOCAL_SCHEMA_VERSION,
         appVersionLastOpened: appVersion,
       };
       await runRequest<IDBValidKey>(
@@ -334,11 +373,18 @@ export class IndexedDbProjectStore implements LocalProjectStore {
   }
 
   async readSyncCounters(): Promise<LocalSyncCounters> {
+    const binaries = await runRequest<unknown[]>(
+      this.database,
+      LOCAL_BINARY_STORE,
+      "readonly",
+      (binaryStore) => binaryStore.getAll(),
+    );
     const counters: LocalSyncCounters = {
       pendingCount: 0,
       conflictCount: 0,
       retryableFailureCount: 0,
       permanentFailureCount: 0,
+      unsyncedBinaryCount: countUnsyncedBinaries(binaries, this.scope),
     };
     const mutable = { ...counters };
 

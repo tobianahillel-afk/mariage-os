@@ -185,6 +185,7 @@ class MemoryLocalStore implements LocalProjectStore {
       conflictCount: 0,
       retryableFailureCount: 0,
       permanentFailureCount: 0,
+      unsyncedBinaryCount: 0,
     };
   }
 

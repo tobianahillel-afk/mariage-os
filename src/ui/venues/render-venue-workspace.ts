@@ -3,6 +3,7 @@ import { parseVenueWorkspaceRoute } from "@application/venues/venue-workspace-ro
 import { renderVenueCollection } from "./render-venue-collection";
 import { renderVenueCompare } from "./render-venue-compare";
 import { renderVenueDetail } from "./render-venue-detail";
+import { renderVenueVisit } from "./render-venue-visit";
 import { textElement, workspaceSection } from "./venue-workspace-presentation";
 
 function unavailableWorkspace(): HTMLElement {
@@ -20,6 +21,7 @@ function unavailableWorkspace(): HTMLElement {
 function fallbackState(projectPath: string): VenueWorkspaceState {
   const route = parseVenueWorkspaceRoute(projectPath);
   if (route.kind === "detail") return { kind: "detail", item: null };
+  if (route.kind === "visit") return { kind: "visit", item: null };
   if (route.kind === "compare") return { kind: "compare", items: [] };
   if (route.kind === "gallery") return { kind: "gallery", items: [] };
   return { kind: "unavailable" };
@@ -36,6 +38,9 @@ export function createVenueWorkspace(
   }
   if (resolved.kind === "detail") {
     return renderVenueDetail(projectId, resolved.item);
+  }
+  if (resolved.kind === "visit") {
+    return renderVenueVisit(projectId, resolved.item);
   }
   if (resolved.kind === "compare") {
     return renderVenueCompare(projectId, resolved.items);

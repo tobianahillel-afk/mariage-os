@@ -27,7 +27,7 @@ it("creates schema metadata and keeps it stable on the same app version", async 
 
   expect(await store.getMetadata()).toEqual({
     key: "scope",
-    localSchemaVersion: 1,
+    localSchemaVersion: 2,
     appVersionLastOpened: "1.0.0",
     projectId,
     userId,
@@ -62,7 +62,7 @@ it("updates app-version metadata on reopen", async () => {
 });
 
 it.each([
-  ["localSchemaVersion", 2],
+  ["localSchemaVersion", 3],
   ["projectId", "99999999-9999-4999-8999-999999999999"],
   ["userId", "99999999-9999-4999-8999-999999999999"],
   ["deviceId", "99999999-9999-4999-8999-999999999999"],
@@ -184,6 +184,7 @@ it("persists pending operations once and exposes counters", async () => {
     conflictCount: 1,
     retryableFailureCount: 1,
     permanentFailureCount: 1,
+    unsyncedBinaryCount: 0,
   });
   expect((await store.listPendingMutations()).length).toBe(5);
   expect(await store.getPendingMutation(operationId)).toEqual(mutation);

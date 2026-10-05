@@ -24,10 +24,30 @@ describe("parseVenueWorkspaceRoute", () => {
     });
   });
 
-  it("does not implement the downstream visit route", () => {
+  it("recognizes the canonical Venue visit route", () => {
     expect(
       parseVenueWorkspaceRoute(
         "/venues/91111111-1111-4111-8111-111111111111/visit",
+      ),
+    ).toEqual({
+      kind: "visit",
+      venueId: "91111111-1111-4111-8111-111111111111",
+    });
+  });
+
+  it("rejects non-Venue entity routes", () => {
+    expect(
+      parseVenueWorkspaceRoute("/vendors/91111111-1111-4111-8111-111111111111"),
+    ).toEqual({ kind: "unavailable" });
+  });
+
+  it("keeps malformed Venue visit routes unavailable", () => {
+    expect(parseVenueWorkspaceRoute("/venues/not-a-venue/visit")).toEqual({
+      kind: "unavailable",
+    });
+    expect(
+      parseVenueWorkspaceRoute(
+        "/venues/91111111-1111-4111-8111-111111111111/visit/extra",
       ),
     ).toEqual({ kind: "unavailable" });
   });

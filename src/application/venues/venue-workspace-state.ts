@@ -15,6 +15,10 @@ export type VenueWorkspaceState =
       readonly item: VenueWorkspaceItem | null;
     }
   | {
+      readonly kind: "visit";
+      readonly item: VenueWorkspaceItem | null;
+    }
+  | {
       readonly kind: "compare";
       readonly items: readonly VenueWorkspaceItem[];
     }
@@ -28,14 +32,16 @@ export async function loadVenueWorkspaceState(
 ): Promise<VenueWorkspaceState> {
   const route = parseVenueWorkspaceRoute(projectPath);
   if (route.kind === "unavailable") return { kind: "unavailable" };
-  if (route.kind === "detail") {
-    return {
-      kind: "detail",
-      item: await service.detail(projectId, route.venueId, local),
-    };
+
+  if (route.kind === "gallery" || route.kind === "compare") {
+    const items = await service.list(projectId, local);
+    return route.kind === "compare"
+      ? { kind: "compare", items }
+      : { kind: "gallery", items };
   }
-  const items = await service.list(projectId, local);
-  return route.kind === "compare"
-    ? { kind: "compare", items }
-    : { kind: "gallery", items };
+
+  const item = await service.detail(projectId, route.venueId, local);
+  return route.kind === "visit"
+    ? { kind: "visit", item }
+    : { kind: "detail", item };
 }
