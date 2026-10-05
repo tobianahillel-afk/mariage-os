@@ -770,6 +770,57 @@ select lives_ok(
   'unresolved custom multiselect definition may reorder options'
 );
 
+select is(
+  (
+    select value
+    from public.fact_observations
+    where id = 'ee400000-0000-4000-8000-000000000020'
+  ),
+  '["covered","open_air"]'::jsonb,
+  'first append stores the original definition-order canonical multiselect'
+);
+
+select is(
+  (
+    select jsonb_agg(option_row ->> 'key' order by option_order)
+    from public.fact_definitions fd,
+      jsonb_array_elements(fd.options_json -> 'options')
+        with ordinality as configured(option_row, option_order)
+    where fd.id = 'ee200000-0000-4000-8000-000000000003'
+  ),
+  '["open_air","covered"]'::jsonb,
+  'definition update really persists the reversed option order'
+);
+
+select is(
+  public.fact_multiselect_canonical_value(
+    '["covered","open_air"]'::jsonb,
+    (
+      select options_json
+      from public.fact_definitions
+      where id = 'ee200000-0000-4000-8000-000000000003'
+    )
+  ),
+  '["open_air","covered"]'::jsonb,
+  'current canonicalization follows the reordered definition'
+);
+
+select ok(
+  (
+    select value
+    from public.fact_observations
+    where id = 'ee400000-0000-4000-8000-000000000020'
+  ) is distinct from public.fact_multiselect_canonical_value(
+    '["covered","open_air"]'::jsonb,
+    (
+      select options_json
+      from public.fact_definitions
+      where id = 'ee200000-0000-4000-8000-000000000003'
+    )
+  ),
+  'stored replay value differs from canonicalization under the reordered definition'
+);
+
 select lives_ok(
   $replay$select public.append_venue_fact_observation(
     'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
