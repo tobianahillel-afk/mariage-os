@@ -138,6 +138,7 @@ select lives_ok(
   $$select public.append_venue_fact_observation(
     '80000000-0000-4000-8000-000000000001',
     '80000000-0000-4000-8000-000000000031',
+    '80000000-0000-4000-8000-000000000041',
     'true'::jsonb,
     'Confirmed',
     'confirmed_for_event',
@@ -195,6 +196,7 @@ select lives_ok(
   $$select public.append_venue_fact_observation(
     '80000000-0000-4000-8000-000000000001',
     '80000000-0000-4000-8000-000000000033',
+    '80000000-0000-4000-8000-000000000043',
     '"legacy"'::jsonb,
     'Legacy option',
     'official_general',
