@@ -63,9 +63,11 @@ it("surfaces unsynced local binaries as pending work", () => {
     kind: "pending",
     label: "1 fichier local en attente d’envoi · conservé localement",
   });
-  expect(
-    deriveSyncSummary({ ...binaryPending, online: false }),
-  ).toEqual({
+  const offlineBinaryPending = deriveSyncSummary({
+    ...binaryPending,
+    online: false,
+  });
+  expect(offlineBinaryPending).toEqual({
     kind: "offline_pending",
     label: "Hors ligne · 1 fichier local en attente d’envoi",
   });
