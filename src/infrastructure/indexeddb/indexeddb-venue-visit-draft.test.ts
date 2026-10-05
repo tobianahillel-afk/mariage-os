@@ -240,3 +240,56 @@ it("rejects changed content that reuses the same draft revision", async () => {
   ).rejects.toThrow("revision was reused");
   await expect(store.getVenueVisitDraft(venueId)).resolves.toEqual(current);
 });
+
+it("fails closed when the local draft transaction request fails", async () => {
+  const factory = new FakeFactory();
+  const store = await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "2.12-draft-green",
+  );
+  factory.state.failure = "request";
+
+  await expect(store.putVenueVisitDraft(draft())).rejects.toThrow(
+    "Venue visit draft transaction failed",
+  );
+});
+
+it("rejects a corrupt existing cache target before replacing a draft", async () => {
+  const factory = new FakeFactory();
+  const store = await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "2.12-draft-green",
+  );
+  rawStore(factory, "cached_records").set(
+    `venue_visit_draft:${venueId}`,
+    rawDraftRow(draft(), otherVenueId),
+  );
+
+  await expect(
+    store.putVenueVisitDraft(
+      draft({
+        draftRevision: 2,
+        updatedAt: "2026-10-05T01:06:00.000Z",
+      }),
+    ),
+  ).rejects.toThrow("target does not match cache key");
+});
+
+it("rejects a mismatched pending visit draft while reading sync counters", async () => {
+  const factory = new FakeFactory();
+  const store = await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "2.12-draft-green",
+  );
+  rawStore(factory, "cached_records").set(
+    `venue_visit_draft:${venueId}`,
+    rawDraftRow(draft({ venueId: otherVenueId }), venueId),
+  );
+
+  await expect(store.readSyncCounters()).rejects.toThrow(
+    "target does not match cache key",
+  );
+});
