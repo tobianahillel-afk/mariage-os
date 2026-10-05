@@ -3,6 +3,11 @@ import {
   parseLocalBinaryMetadata,
 } from "@application/local-data/local-binary-record";
 import type { LocalOfflinePin } from "@application/local-data/local-offline-pin";
+import {
+  assertLocalVenueVisitDraftScope,
+  parseLocalVenueVisitDraft,
+  type LocalVenueVisitDraft,
+} from "@application/local-data/local-venue-visit-draft";
 import type { LocalProjectPurgePort } from "@application/local-data/local-project-purge-port";
 import {
   parseCachedRecordEnvelope,
@@ -11,6 +16,7 @@ import {
 import type {
   LocalOfflinePinStore,
   LocalProjectMetadata,
+  LocalVenueVisitDraftStore,
   LocalProjectStore,
   LocalProjectStoreFactory,
   LocalSyncCounters,
@@ -42,6 +48,7 @@ import {
   getIndexedDbProjectMetadata,
   initializeIndexedDbProjectMetadata,
 } from "./indexeddb-project-store-metadata";
+import { putIndexedDbVenueVisitDraft } from "./indexeddb-project-store-visit-draft";
 
 import {
   CACHE_STORE,
@@ -69,8 +76,24 @@ function countUnsyncedBinaries(
   return count;
 }
 
+function countPendingVisitDrafts(
+  records: readonly CachedRecordEnvelope[],
+  scope: LocalProjectScope,
+): number {
+  let count = 0;
+  for (const record of records) {
+    const draft = parseLocalVenueVisitDraft(record.payload);
+    assertLocalVenueVisitDraftScope(draft, scope);
+    if (draft.venueId !== record.entityId) {
+      throw new Error("Venue visit draft target does not match cache key.");
+    }
+    if (record.syncMarker !== "synced") count += 1;
+  }
+  return count;
+}
+
 export class IndexedDbProjectStore
-  implements LocalProjectStore, LocalOfflinePinStore
+  implements LocalProjectStore, LocalOfflinePinStore, LocalVenueVisitDraftStore
 {
   private constructor(
     private readonly database: IDBDatabase,
@@ -188,6 +211,23 @@ export class IndexedDbProjectStore
       entityType,
       entityId,
     );
+  }
+
+  putVenueVisitDraft(draft: LocalVenueVisitDraft): Promise<void> {
+    return putIndexedDbVenueVisitDraft(this.database, this.scope, draft);
+  }
+
+  async getVenueVisitDraft(
+    venueId: string,
+  ): Promise<LocalVenueVisitDraft | null> {
+    const record = await this.getCachedRecord("venue_visit_draft", venueId);
+    if (record === null) return null;
+    const draft = parseLocalVenueVisitDraft(record.payload);
+    assertLocalVenueVisitDraftScope(draft, this.scope);
+    if (draft.venueId !== record.entityId) {
+      throw new Error("Venue visit draft target does not match cache key.");
+    }
+    return draft;
   }
 
   async addPendingMutation(mutation: PendingMutationEnvelope): Promise<void> {
@@ -325,8 +365,9 @@ export class IndexedDbProjectStore
       "readonly",
       (binaryStore) => binaryStore.getAll(),
     );
+    const visitDrafts = await this.listCachedRecords("venue_visit_draft");
     const counters: LocalSyncCounters = {
-      pendingCount: 0,
+      pendingCount: countPendingVisitDrafts(visitDrafts, this.scope),
       conflictCount: 0,
       retryableFailureCount: 0,
       permanentFailureCount: 0,
