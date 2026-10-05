@@ -140,6 +140,7 @@ const updateSourceInput: UpdateVenueFactSourceInput = {
 const appendInput: AppendVenueFactObservationInput = {
   projectId,
   factId,
+  observationId,
   value: false,
   rawValueText: "No",
   evidenceLevel: "confirmed_for_event",
@@ -242,6 +243,7 @@ it("maps append without mutating retained truth implicitly", async () => {
       args: {
         target_project_id: projectId,
         target_fact_id: factId,
+        target_observation_id: observationId,
         target_value: false,
         target_raw_value_text: "No",
         target_evidence_level: "confirmed_for_event",
@@ -252,6 +254,45 @@ it("maps append without mutating retained truth implicitly", async () => {
       },
     },
   ]);
+});
+
+it("canonicalizes uppercase observation UUIDs before RPC and receipt validation", async () => {
+  const calls: RecordedRpc[] = [];
+  const adapter = new SupabaseVenueFactEvidenceAdapter(
+    makeClient(
+      (name) =>
+        name === "append_venue_fact_observation" ? observationRow : null,
+      calls,
+    ),
+  );
+
+  await expect(
+    adapter.appendObservation({
+      ...appendInput,
+      observationId: observationId.toUpperCase(),
+    }),
+  ).resolves.toMatchObject({ id: observationId });
+
+  expect(calls[0]).toMatchObject({
+    name: "append_venue_fact_observation",
+    args: { target_observation_id: observationId },
+  });
+});
+
+it("fails closed when the append receipt substitutes another observation id", async () => {
+  const adapter = new SupabaseVenueFactEvidenceAdapter(
+    makeClient((name) =>
+      name === "append_venue_fact_observation"
+        ? {
+            ...observationRow,
+            id: "89999999-9999-4999-8999-999999999999",
+          }
+        : null,
+    ),
+  );
+  await expect(adapter.appendObservation(appendInput)).rejects.toMatchObject({
+    code: "provider_response_invalid",
+  });
 });
 
 it("maps same-project source links and explicit retained resolution", async () => {

@@ -14,7 +14,7 @@ select has_function(
 );
 select has_function(
   'public','append_venue_fact_observation',
-  array['uuid','uuid','jsonb','text','text','text','text','text','uuid'],
+  array['uuid','uuid','uuid','jsonb','text','text','text','text','text','uuid'],
   'public observation RPC receives raw timestamp text'
 );
 select has_function(
@@ -131,6 +131,7 @@ declare saved jsonb;
 begin
   saved := public.append_venue_fact_observation(
     'a7000000-0000-4000-8000-000000000001','a7000000-0000-4000-8000-000000000031',
+    'a7000000-0000-4000-8000-000000000041',
     'true'::jsonb,null,'confirmed_for_event','high',raw_timestamp,null,null
   );
   return saved;
