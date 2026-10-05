@@ -1,8 +1,6 @@
 import { expect, it } from "vitest";
 
-import type {
-  LocalOfflinePin,
-} from "@application/local-data/local-offline-pin";
+import type { LocalOfflinePin } from "@application/local-data/local-offline-pin";
 import {
   createCachedRecordEnvelope,
   type CachedRecordEnvelope,
@@ -171,10 +169,7 @@ it("rejects a non-visit package for an offline Venue pin", async () => {
   );
 
   await expect(
-    store.putOfflinePinWithCachedRecord(
-      pin(),
-      visitPackage("venue", venueId),
-    ),
+    store.putOfflinePinWithCachedRecord(pin(), visitPackage("venue", venueId)),
   ).rejects.toThrow("visit package target does not match");
 });
 
