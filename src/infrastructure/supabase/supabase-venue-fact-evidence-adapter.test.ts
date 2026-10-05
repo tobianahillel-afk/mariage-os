@@ -256,6 +256,29 @@ it("maps append without mutating retained truth implicitly", async () => {
   ]);
 });
 
+it("canonicalizes uppercase observation UUIDs before RPC and receipt validation", async () => {
+  const calls: RecordedRpc[] = [];
+  const adapter = new SupabaseVenueFactEvidenceAdapter(
+    makeClient(
+      (name) =>
+        name === "append_venue_fact_observation" ? observationRow : null,
+      calls,
+    ),
+  );
+
+  await expect(
+    adapter.appendObservation({
+      ...appendInput,
+      observationId: observationId.toUpperCase(),
+    }),
+  ).resolves.toMatchObject({ id: observationId });
+
+  expect(calls[0]).toMatchObject({
+    name: "append_venue_fact_observation",
+    args: { target_observation_id: observationId },
+  });
+});
+
 it("fails closed when the append receipt substitutes another observation id", async () => {
   const adapter = new SupabaseVenueFactEvidenceAdapter(
     makeClient((name) =>
