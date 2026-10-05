@@ -256,7 +256,6 @@ it("maps append without mutating retained truth implicitly", async () => {
   ]);
 });
 
-
 it("fails closed when the append receipt substitutes another observation id", async () => {
   const adapter = new SupabaseVenueFactEvidenceAdapter(
     makeClient((name) =>
