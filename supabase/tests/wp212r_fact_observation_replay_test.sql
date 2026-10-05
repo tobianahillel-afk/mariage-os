@@ -134,6 +134,18 @@ values
   'e1111111-1111-4111-8111-111111111111'
 ),
 (
+  'ee200000-0000-4000-8000-000000000002',
+  'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+  'visit_secondary_measurement_confirmed',
+  'Visit secondary measurement confirmed',
+  'venue',
+  'boolean',
+  'important',
+  false,
+  'e1111111-1111-4111-8111-111111111111',
+  'e1111111-1111-4111-8111-111111111111'
+),
+(
   'ff200000-0000-4000-8000-000000000001',
   'ffffffff-ffff-4fff-8fff-ffffffffffff',
   'visit_measurement_confirmed',
@@ -157,6 +169,17 @@ values
   'venue',
   'ee100000-0000-4000-8000-000000000001',
   'ee200000-0000-4000-8000-000000000001',
+  'unknown',
+  null,
+  'e1111111-1111-4111-8111-111111111111',
+  'e1111111-1111-4111-8111-111111111111'
+),
+(
+  'ee300000-0000-4000-8000-000000000002',
+  'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+  'venue',
+  'ee100000-0000-4000-8000-000000000001',
+  'ee200000-0000-4000-8000-000000000002',
   'unknown',
   null,
   'e1111111-1111-4111-8111-111111111111',
@@ -242,7 +265,115 @@ select is(
 );
 
 select throws_ok(
-  $$select public.append_venue_fact_observation(
+  $select public.append_venue_fact_observation(
+    'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+    'ee300000-0000-4000-8000-000000000002',
+    'ee400000-0000-4000-8000-000000000001',
+    'true'::jsonb,
+    'measured during visit',
+    'observed',
+    'high',
+    '2026-10-05T09:00:00Z',
+    'visit measurement',
+    null
+  )$,
+  '23505',
+  'venue fact observation conflict',
+  'same observation id with changed Fact conflicts'
+);
+
+select throws_ok(
+  $select public.append_venue_fact_observation(
+    'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+    'ee300000-0000-4000-8000-000000000001',
+    'ee400000-0000-4000-8000-000000000001',
+    'false'::jsonb,
+    'measured during visit',
+    'observed',
+    'high',
+    '2026-10-05T09:00:00Z',
+    'visit measurement',
+    null
+  )$,
+  '23505',
+  'venue fact observation conflict',
+  'same observation id with changed value conflicts'
+);
+
+select throws_ok(
+  $select public.append_venue_fact_observation(
+    'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+    'ee300000-0000-4000-8000-000000000001',
+    'ee400000-0000-4000-8000-000000000001',
+    'true'::jsonb,
+    'different raw evidence',
+    'observed',
+    'high',
+    '2026-10-05T09:00:00Z',
+    'visit measurement',
+    null
+  )$,
+  '23505',
+  'venue fact observation conflict',
+  'same observation id with changed raw evidence conflicts'
+);
+
+select throws_ok(
+  $select public.append_venue_fact_observation(
+    'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+    'ee300000-0000-4000-8000-000000000001',
+    'ee400000-0000-4000-8000-000000000001',
+    'true'::jsonb,
+    'measured during visit',
+    'official_general',
+    'high',
+    '2026-10-05T09:00:00Z',
+    'visit measurement',
+    null
+  )$,
+  '23505',
+  'venue fact observation conflict',
+  'same observation id with changed evidence level conflicts'
+);
+
+select throws_ok(
+  $select public.append_venue_fact_observation(
+    'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+    'ee300000-0000-4000-8000-000000000001',
+    'ee400000-0000-4000-8000-000000000001',
+    'true'::jsonb,
+    'measured during visit',
+    'observed',
+    'medium',
+    '2026-10-05T09:00:00Z',
+    'visit measurement',
+    null
+  )$,
+  '23505',
+  'venue fact observation conflict',
+  'same observation id with changed confidence conflicts'
+);
+
+select throws_ok(
+  $select public.append_venue_fact_observation(
+    'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+    'ee300000-0000-4000-8000-000000000001',
+    'ee400000-0000-4000-8000-000000000001',
+    'true'::jsonb,
+    'measured during visit',
+    'observed',
+    'high',
+    '2026-10-05T09:00:01Z',
+    'visit measurement',
+    null
+  )$,
+  '23505',
+  'venue fact observation conflict',
+  'same observation id with changed timestamp conflicts'
+);
+
+select throws_ok(
+  $select public.append_venue_fact_observation(
     'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
     'ee300000-0000-4000-8000-000000000001',
     'ee400000-0000-4000-8000-000000000001',
@@ -253,10 +384,10 @@ select throws_ok(
     '2026-10-05T09:00:00Z',
     'different note',
     null
-  )$$,
+  )$,
   '23505',
   'venue fact observation conflict',
-  'same observation id with semantic drift conflicts'
+  'same observation id with changed note conflicts'
 );
 
 select throws_ok(
