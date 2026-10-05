@@ -42,7 +42,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.9B | generic project tags and Venue entity-tag links                        | **ACCEPTED / COMPLETE — Pass C gap ∅**                                      |
 | WP-2.10 | repositories, local cache, pending/offline mutations                   | **ACCEPTED / COMPLETE**                                                     |
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace                       | **ACCEPTED / COMPLETE**                                                    |
-| WP-2.12 | mobile/offline venue-visit workflow and packet E2E completion          | **BLOCKED — replay-safe fact observation boundary requires WP-2.12R**     |
+| WP-2.12 | mobile/offline venue-visit workflow and packet E2E completion          | **IN_PROGRESS — A-IMPLEMENT resumption seal CI pending**                  |
 | WP-2.12R | replay-safe Venue fact-observation command boundary                     | **ACCEPTED / COMPLETE — Pass C gap ∅**                                    |
 
 ## WP-2.10 — activation revalidation
@@ -97,7 +97,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 - Tranche 3 GREEN: PR #80 / `b5076b335f62ae92df1e660ced1b8d59d81d4840` / CI `37280176962` passed after remediating draft-only logout safety, atomic stale/equal-revision write handling and safe-integer revisions; merged canon `1794a3d9d564769437a22582b918f793e57cf150` / CI `37280907551` passed **5/5**, with zero unresolved review threads.
 - Re-review blocker discovered before structured replay: the accepted `append_venue_fact_observation` RPC generates observation UUIDs server-side and exposes no client replay identity. A lost success response can therefore duplicate a measurement on retry.
 - Adding replay identity inside WP-2.12 would add one migration family (+1) and one meaningfully changed RPC (+2), taking the packet from 9 to **12 points**. Under AI Lot Orchestration (>10), the packet must split.
-- WP-2.12 is therefore **BLOCKED** with its three GREEN tranches preserved. Support packet `WP-2.12R` owns only replay-safe fact-observation identity hardening.
+- WP-2.12 was paused after three GREEN tranches while support packet `WP-2.12R` hardened replay-safe fact-observation identity. WP-2.12R is now **ACCEPTED / COMPLETE**; the parent blocker is resolved.
 - WP-2.12R size: **3 points / cohesion PASS** — one migration family + one changed RPC; no table, RLS, permission, provider, UI or new product Feature.
 - Activation governance `cc12be09d1569a739c11943e5283146d02de950f` / CI `37289339246` passed **5/5**, including clean checkout; RED #81 then proved the missing replay-identity contract.
 - Pass-A GREEN PR #82 reviewed head `78c1d83e45357b653486ceb53dec64a9afdfec51` / CI `37295580568` passed **5/5** and merged as `5389bb31f2b57c1b02a011dbd6fd775a9c048570`; canonical CI `37296758669` passed **5/5**.
@@ -112,7 +112,8 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 - Fresh Pass-B/status seal `091d5f00e5e07afcefaafd8e89d4bb477a55dd10` / CI `37333914603` passed **5/5 ordinary jobs**, including full verify from clean checkout.
 - Pass C reconciliation: **PASS / gap ∅** in `docs/roadmap/lot-2/WP-2.12R-ACCEPTANCE.md`; acceptance-record head `5c6d40296ccf7ee2e616a6587b8e910e762dd541` / CI `37335393969` passed **5/5 ordinary jobs**, including full verify from clean checkout.
 - State: **ACCEPTED / COMPLETE**. The bounded replay-safe Fact Observation support responsibility is terminal; no open P0/P1/P2 remains.
-- Parent WP-2.12 stays **BLOCKED only until a separate resumption seal** records this accepted dependency and its own exact-head CI passes.
+- WP-2.12R final support seal `cdad9eb82052ac3e2296769e5381b2371558ec4d` / CI `37341157497` passed **5/5 ordinary jobs**, including full verify from clean checkout.
+- Parent WP-2.12 resumption is now recorded separately. No new parent production code is authorized until this resumption-governance HEAD itself passes all five ordinary jobs including clean checkout.
 
 ## Accepted packet evidence summary
 
@@ -364,7 +365,8 @@ Normative release/deployment/secret contracts require Pages Functions to deploy 
 80. WP-2.12R remediation PR #84 reviewed head `bb856ab835a48ddc7bcc6b6278f5f83bc815d991` / CI `37301743650` passed **5/5 SUCCESS** with fresh independent review clean; merged canonical `e6c46b0e6b0879aa48ce29fd58c80f91b6900cb7` / CI `37309288791` also passed **5/5 SUCCESS**, including clean checkout. AR-001/002 are CLOSED / VERIFIED.
 81. WP-2.12R authorization-evidence remediation #86 merged as `9e9851d29830decd1dd927496b7aaa473445ca51` / CI `37316129635` — **5/5 SUCCESS**, including clean checkout. Complete Fresh Pass B v2 #87 is PASS after #88/#89 disproved two migration-chain false positives; final Codex review on `bd17217f...` found no major issue and left zero unresolved threads.
 82. WP-2.12R Fresh Pass-B/status seal `091d5f00e5e07afcefaafd8e89d4bb477a55dd10` / CI `37333914603` passed **5/5 SUCCESS**, including full verify from clean checkout. Separate Pass C reconciled all bounded replay-safe observation-command responsibilities with gap ∅.
-83. WP-2.12R Pass-C acceptance-record `5c6d40296ccf7ee2e616a6587b8e910e762dd541` / CI `37335393969` passed **5/5 SUCCESS**, including full verify from clean checkout. WP-2.12R is **ACCEPTED / COMPLETE**. Parent WP-2.12 remains blocked only for a separate resumption seal; no further WP-2.12R implementation or provider campaign is authorized.
+83. WP-2.12R Pass-C acceptance-record `5c6d40296ccf7ee2e616a6587b8e910e762dd541` / CI `37335393969` passed **5/5 SUCCESS**, including full verify from clean checkout. Final support seal `cdad9eb82052ac3e2296769e5381b2371558ec4d` / CI `37341157497` also passed **5/5 SUCCESS**. WP-2.12R is **ACCEPTED / COMPLETE**.
+84. WP-2.12 parent replay blocker is resolved. A separate resumption-governance head returns the parent to **IN_PROGRESS / A-IMPLEMENT** with tranches 1–3 preserved; exact-head five-job CI including clean checkout is required before the next structured-reconnect RED/production tranche.
 
 ## Durable handoff
 
@@ -377,7 +379,7 @@ Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.11
 WP-2.9C: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 21accd7f9ab1b845275507b7941a782c5e816a56 / CI 36494697647 5/5 including clean checkout
 WP-2.9A: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 656398bcd5520cfa56d782023d150eb64317161d / CI 36542083037 5/5 including clean checkout
-Current packet: none implementing — WP-2.12R ACCEPTED / COMPLETE; acceptance-record `5c6d40296ccf7ee2e616a6587b8e910e762dd541` / CI `37335393969` 5/5; parent WP-2.12 resumption seal is next; primary FIR #42 / FTR-028
+Current packet: WP-2.12 — IN_PROGRESS / A-IMPLEMENT resumption gate; WP-2.12R ACCEPTED / COMPLETE with final seal `cdad9eb82052ac3e2296769e5381b2371558ec4d` / CI `37341157497` 5/5; tranches 1–3 GREEN preserved; primary FIR #42 / FTR-028
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
@@ -416,5 +418,5 @@ FTR-089 FIR: #17 — IN_PROGRESS / parent A accepted, later presentation and Lot
 WP-2.9B: ACCEPTED / COMPLETE; FTR-093 FIR #27 remains IN_PROGRESS for downstream scope; WP29B-AR-001/002 CLOSED / VERIFIED; Pass C gap ∅
 Lots 3–12: NOT_STARTED
 Latest distinct-PDF campaign: 2303df0c9e8d6f72561ec0ce42514663801229d8 / CI 36459949861 / provider job 109058754517 / artifact 10987866873 — 10 distinct exact-size PDFs, 10 finalized flows, 20 valid exact-version CPU readings within Workers Free; provider verdict PASS
-Next permitted action: create a separate parent WP-2.12 resumption seal that records WP-2.12R as accepted and transitions WP-2.12 from BLOCKED back to IN_PROGRESS / A-IMPLEMENT. That resumption head must pass five ordinary exact-head CI jobs including clean checkout before any new parent production code. No provider campaign is authorized or required.
+Next permitted action: pass this WP-2.12 resumption-governance HEAD through five ordinary exact-head CI jobs including clean checkout. If green, create an isolated RED-only structured-reconnect tranche covering durable/replay-safe visit note, measurement and personal-rating mutations through the already accepted Interaction / Fact-Evidence / Member Opinion boundaries. Media bytes/upload remain a separate later tranche. No provider campaign is authorized or required.
 ```

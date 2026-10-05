@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.12`
 - Lot: 2 — Venues core
 - Name: mobile/offline Venue visit, offline package, local visit media and packet E2E completion
-- State: `BLOCKED`
-- Current pass: `A-IMPLEMENT PAUSED` — tranches 1–3 remain GREEN; dependency WP-2.12R
+- State: `IN_PROGRESS`
+- Current pass: `A-IMPLEMENT RESUMPTION GATE` — tranches 1–3 remain GREEN; WP-2.12R ACCEPTED; resumption exact-head CI pending
 - Branch: `lot-2/venues-core`
 - Activation base: `0a2d051d3f0a45b638f5c1b5f8c81acf36491c36`
 - Activation-base CI: `37240817336` — **5/5 SUCCESS**, including full verify from clean checkout; provider-only workflows skipped
@@ -152,9 +152,12 @@ WP-2.12 reuses:
 Implementation re-review discovered exactly this condition: the accepted
 `append_venue_fact_observation` command generates observation IDs server-side,
 so a lost successful response can be retried as a duplicate measurement.
-The parent packet therefore stops here. Replay identity hardening is extracted
-to support packet `WP-2.12R`; no parent replay implementation resumes until
-that packet is accepted.
+The parent packet paused here while replay identity hardening was extracted to
+support packet `WP-2.12R`. That support packet is now **ACCEPTED / COMPLETE**
+with final seal `cdad9eb82052ac3e2296769e5381b2371558ec4d` / CI
+`37341157497` — **5/5 SUCCESS**, including clean checkout. Parent
+implementation may resume only after this separate resumption-governance HEAD
+itself passes exact-head ordinary CI including clean checkout.
 
 ## Explicitly out of scope
 
@@ -296,12 +299,12 @@ Still required before Pass A exit:
 
 ## Handoff
 
-- Current state: **BLOCKED**
-- Current/next pass: A-IMPLEMENT paused after tranches 1–3 GREEN; dependency `WP-2.12R`
+- Current state: **IN_PROGRESS / A-IMPLEMENT RESUMPTION GATE**
+- Current/next pass: A-IMPLEMENT resumes after resumption exact-head CI; next tranche is structured reconnect RED-first
 - READY gate: `99cf3b68f91b616b8aca9a218d3fb6ea62b493d9` / CI `37241583422` — 5/5
-- Current canonical implementation preserved: `1794a3d9d564769437a22582b918f793e57cf150` / CI `37280907551` — 5/5
+- Current canonical parent implementation preserved: `1794a3d9d564769437a22582b918f793e57cf150` / CI `37280907551` — 5/5
 - Pass-A reconciliation: `8ffe905b026645affb6f218b65b601f565e80fe6` / CI `37288210671` — 5/5
-- Blocking dependency: accepted Facts/Evidence observation append lacks client replay identity; support packet `WP-2.12R` owns the bounded hardening.
+- Replay dependency satisfied: WP-2.12R final support seal `cdad9eb82052ac3e2296769e5381b2371558ec4d` / CI `37341157497` — 5/5, ACCEPTED / COMPLETE
 - Primary FIR: #42 / FTR-028 — IN_PROGRESS
-- Open parent findings: replay-safety dependency only; no tranches 1–3 regression
-- Next permitted parent action: none until WP-2.12R is ACCEPTED; then resume A-IMPLEMENT with structured reconnect replay RED.
+- Open parent findings: ∅; remaining Pass-A responsibilities are structured reconnect, local binary bytes/upload, mobile completion and synthetic E2E
+- Next permitted parent action: pass this resumption-governance HEAD through exact-head 5/5 CI including clean checkout; only then create isolated RED for replay-safe visit note / fact measurement / personal-rating mutations. Media remains separate.

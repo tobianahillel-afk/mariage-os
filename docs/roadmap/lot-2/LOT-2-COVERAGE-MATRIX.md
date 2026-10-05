@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1..WP-2.11 + WP-2.12R ACCEPTED; WP-2.12 resumption seal next**
+Status: **IN_PROGRESS — WP-2.1..WP-2.11 + WP-2.12R ACCEPTED; WP-2.12 A-IMPLEMENT resumption CI pending**
 
 Purpose: durable current responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`. Detailed historical evidence remains in packet records, acceptance records, FIRs and Git history.
 
@@ -35,7 +35,7 @@ Integration prerequisite is accepted Lot 0 + Lot 1 on `main` through PR #7; `mai
 | repository/read-model/provider ports and Supabase adapters | architecture, AUTHZ-006/020 | WP-2.1..WP-2.10 + WP-2.9C | accepted packets green through WP-2.10; Pass C and exact-head CI green |
 | local cache/pending Venue edits | FTR-028 Lot-2, SYN-001..003/007..011, PWA-003/004/006 | WP-2.10, WP-2.12 | WP-2.10 **ACCEPTED**; WP-2.12 **IN_PROGRESS** — schema v2, pin/package + draft durability GREEN |
 | gallery/table/detail/compare/deep-link workspace | FTR-015/016/017/027, VEN-010/011/014/015 | WP-2.11 | **ACCEPTED / COMPLETE — Pass C gap ∅** |
-| mobile visit mode | FTR-028, PWA-004 | WP-2.12 + WP-2.12R support | WP-2.12 **BLOCKED pending separate resumption seal** with shell/package/draft GREEN; WP-2.12R **ACCEPTED / COMPLETE** |
+| mobile visit mode | FTR-028, PWA-004 | WP-2.12 + WP-2.12R support | WP-2.12 **IN_PROGRESS — resumption CI pending** with shell/package/draft GREEN; WP-2.12R **ACCEPTED / COMPLETE** |
 | file/content validation, trusted binary lifecycle, no private production data in public artifacts | MED-001..010/013 + security/quality controls | WP-2.8A/B/C, WP-2.9A, WP-2.9C, WP-2.12 | media and A/C accepted; WP-2.12 local-binary store/logout safety GREEN; byte lifecycle/upload completion pending |
 | explicit permissions/grants/RLS/direct endpoint and Storage allow+deny evidence | AUTHZ-001..009/012/017/018/020 | owning packets WP-2.1..WP-2.9C | accepted authorization evidence green; C local/exact-head evidence green |
 | synthetic complex Venue exit fixture/integrated workflows | Lot-2 acceptance | WP-2.12 + Lot Integration Pass | downstream |
@@ -125,7 +125,7 @@ ADR 0011 later produced decisive deployed CPU evidence and was rejected for fina
 | WP-2.9B | **ACCEPTED / COMPLETE** | generic project Tags + Venue entity-tags; FIR #27 downstream; AR-001/002 closed |
 | WP-2.10 | **ACCEPTED / COMPLETE** | repositories/local cache/pending offline mutations; Pass C gap ∅ / CI `36849005712` 5/5 |
 | WP-2.11 | **ACCEPTED / COMPLETE** | gallery/table/detail/compare/deep-link workspace; Pass C gap ∅ / CI `37240178167` 5/5 |
-| WP-2.12 | **BLOCKED — dependency WP-2.12R** | mobile/offline Venue visit + packet E2E completion; tranches 1–3 GREEN; FIR #42 |
+| WP-2.12 | **IN_PROGRESS — A-IMPLEMENT resumption CI pending** | mobile/offline Venue visit + packet E2E completion; tranches 1–3 GREEN; replay dependency satisfied; FIR #42 |
 | WP-2.12R | **ACCEPTED / COMPLETE** | replay-safe fact-observation command identity; Pass C gap ∅ / CI `37335393969` 5/5; 3 points / cohesion PASS |
 
 ## Sequencing
@@ -134,13 +134,13 @@ ADR 0011 later produced decisive deployed CPU evidence and was rejected for fina
 WP-2.1..WP-2.8C [ACCEPTED]
   → WP-2.9C [ACCEPTED]
     → WP-2.9A [ACCEPTED]
-                → WP-2.9B [ACCEPTED] → WP-2.10 [ACCEPTED] → WP-2.11 [ACCEPTED] → WP-2.12 [BLOCKED]
+                → WP-2.9B [ACCEPTED] → WP-2.10 [ACCEPTED] → WP-2.11 [ACCEPTED] → WP-2.12 [RESUME A gate]
                                                                                            ↘ WP-2.12R [ACCEPTED]
-                                                                                              → WP-2.12 [resume A after acceptance]
+                                                                                              → WP-2.12 [resumption CI pending]
                                                                                                 → Lot reconciliation → Integration Pass
 ```
 
-Only one packet may be active at a time. WP-2.9A/B/C, WP-2.10 and WP-2.11 are terminal accepted. WP-2.12 READY gate `99cf3b68...` / CI `37241583422` passed 5/5 and tranches 1–3 remain GREEN through `1794a3d9...` / CI `37280907551`. WP-2.12R Fresh Pass B v2 is PASS, Pass C gap ∅, and acceptance-record `5c6d4029...` / CI `37335393969` passed 5/5 including clean checkout. WP-2.12R is ACCEPTED / COMPLETE. Parent WP-2.12 remains blocked only until its separate resumption seal is exact-head green.
+Only one packet may be active at a time. WP-2.9A/B/C, WP-2.10, WP-2.11 and support packet WP-2.12R are terminal accepted. WP-2.12 READY gate `99cf3b68...` / CI `37241583422` passed 5/5 and tranches 1–3 remain GREEN through `1794a3d9...` / CI `37280907551`. WP-2.12R final support seal `cdad9eb8...` / CI `37341157497` passed 5/5. The parent is back in IN_PROGRESS / A-IMPLEMENT, but new production work remains gated on this separate resumption head passing exact-head CI.
 
 ## Explicitly outside Lot 2
 
@@ -183,10 +183,10 @@ A full review = WP-2.9A-FRESH-PASS-B-2026-09-29.md — PASS; no open A finding
 A Pass C = WP-2.9A-ACCEPTANCE.md — ACCEPTED / gap ∅; record 656398bcd5520cfa56d782023d150eb64317161d / CI 36542083037 5/5
 WP-2.10 = ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record `a2d48341515a516651d11454c3c5e89c01896c21` / CI `36849005712` 5/5 including clean checkout; FTR-028 remains IN_PROGRESS for WP-2.12
 WP-2.11 = ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record `3167a380521119e9650859543778b040527332e2` / CI `37240178167` 5/5; final seal `0a2d051d3f0a45b638f5c1b5f8c81acf36491c36` / CI `37240817336` 5/5; FTR-015/016/017/027 closed completed
-WP-2.12 = BLOCKED — tranches 1–3 GREEN through `1794a3d9...` / `37280907551`; replay dependency extracted after 12-point re-review; FIR #42
-WP-2.12R = ACCEPTED / COMPLETE — Fresh Pass B v2 PASS; Pass C gap ∅; acceptance-record `5c6d40296ccf7ee2e616a6587b8e910e762dd541` / CI `37335393969` 5/5 including clean checkout
-next permitted action = separate WP-2.12 resumption seal → exact-head ordinary CI/clean checkout → only then resume parent A-IMPLEMENT
-no provider rerun or WP-2.12R production change is authorized
+WP-2.12 = IN_PROGRESS / A-IMPLEMENT — tranches 1–3 GREEN through `1794a3d9...` / `37280907551`; replay dependency satisfied; separate resumption head exact-CI pending; FIR #42
+WP-2.12R = ACCEPTED / COMPLETE — Fresh Pass B v2 PASS; Pass C gap ∅; final support seal `cdad9eb82052ac3e2296769e5381b2371558ec4d` / CI `37341157497` 5/5 including clean checkout
+next permitted action = exact-head resumption CI/clean checkout → isolated RED structured reconnect (note / measurement / personal rating) → bounded GREEN
+media-byte durability/upload remains a separate later tranche; no provider rerun or WP-2.12R production change is authorized
 ```
 
 Lot-level reconciliation remains intentionally incomplete until WP-2.12 and the separate Lot Integration Pass are accepted; WP-2.1..WP-2.11 are complete.
