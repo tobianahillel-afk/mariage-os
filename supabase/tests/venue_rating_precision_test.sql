@@ -86,7 +86,7 @@ select throws_ok(
     1,
     '8d600000-0000-4000-8000-000000000002',
     '8d700000-0000-4000-8000-000000000001'
-  )$,
+  )$$,
   '22023',
   'venue rating unavailable',
   'rating with more than two decimal places is rejected instead of rounded'
