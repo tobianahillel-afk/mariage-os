@@ -62,7 +62,7 @@ function uuidValue(value: unknown, field: string): string {
 }
 
 function positiveInteger(value: unknown, field: string): number {
-  return Number.isInteger(value) && (value as number) >= 1
+  return Number.isSafeInteger(value) && (value as number) >= 1
     ? (value as number)
     : invalid(field);
 }
