@@ -134,7 +134,9 @@ function ratingValue(value: unknown): number | null {
     : invalid("personal rating");
 }
 
-export function parseLocalVenueVisitDraft(value: unknown): LocalVenueVisitDraft {
+export function parseLocalVenueVisitDraft(
+  value: unknown,
+): LocalVenueVisitDraft {
   const row = recordValue(value, "record");
   const createdAt = instantValue(row.createdAt, "created timestamp");
   const updatedAt = instantValue(row.updatedAt, "updated timestamp");
