@@ -7,7 +7,9 @@ import {
   parseLocalOfflinePin,
   type LocalOfflinePin,
 } from "@application/local-data/local-offline-pin";
-import type { LocalProjectPurgePort } from "@application/local-data/local-project-purge-port";
+import type {
+  LocalProjectPurgePort,
+} from "@application/local-data/local-project-purge-port";
 import {
   parseCachedRecordEnvelope,
   parseLocalProjectMetadata,
