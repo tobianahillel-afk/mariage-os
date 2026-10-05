@@ -265,7 +265,7 @@ select is(
 );
 
 select throws_ok(
-  $select public.append_venue_fact_observation(
+  $cmd$select public.append_venue_fact_observation(
     'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
     'ee300000-0000-4000-8000-000000000001',
     'ee400000-0000-4000-8000-000000000001',
@@ -276,14 +276,14 @@ select throws_ok(
     '2026-10-05T09:00:00Z',
     'visit measurement',
     null
-  )$,
+  )$cmd$,
   '22023',
   'venue fact observation unavailable',
   'replay rejects null evidence metadata'
 );
 
 select throws_ok(
-  $select public.append_venue_fact_observation(
+  $cmd$select public.append_venue_fact_observation(
     'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
     'ee300000-0000-4000-8000-000000000001',
     'ee400000-0000-4000-8000-000000000001',
@@ -294,7 +294,7 @@ select throws_ok(
     '2026-10-05T09:00:00Z',
     'visit measurement',
     null
-  )$,
+  )$cmd$,
   '22023',
   'venue fact observation unavailable',
   'replay rejects null confidence metadata'
