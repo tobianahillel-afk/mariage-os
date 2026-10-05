@@ -130,6 +130,7 @@ it("rejects observation append and resolution for the derived criterion", async 
     appendVenueFactObservation(port, {
       projectId,
       factId,
+      observationId,
       supersedesObservationId: null,
       value: true,
       rawValueText: null,
