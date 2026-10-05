@@ -1,3 +1,4 @@
+import type { LocalOfflinePin } from "@application/local-data/local-offline-pin";
 import type {
   CachedRecordEnvelope,
   PendingMutationEnvelope,
@@ -7,7 +8,7 @@ export const LOCAL_SCHEMA_VERSION = 2;
 export const METADATA_STORE = "metadata";
 export const CACHE_STORE = "cached_records";
 export const MUTATION_STORE = "pending_mutations";
-const OFFLINE_PIN_STORE = "offline_pins";
+export const OFFLINE_PIN_STORE = "offline_pins";
 export const LOCAL_BINARY_STORE = "local_binaries";
 
 function storageError(action: string): Error {
@@ -228,6 +229,28 @@ export function runAtomicPendingMutationUpdateWithCache(
       }
       resolve();
     };
+  });
+}
+
+export function runAtomicOfflinePinWithCache(
+  database: IDBDatabase,
+  pin: LocalOfflinePin,
+  record: CachedRecordEnvelope,
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(
+      [OFFLINE_PIN_STORE, CACHE_STORE],
+      "readwrite",
+    );
+    const fail = (): void =>
+      reject(storageError("offline pin/cache transaction"));
+    const pinRequest = transaction.objectStore(OFFLINE_PIN_STORE).put(pin);
+    const cacheRequest = transaction.objectStore(CACHE_STORE).put(record);
+    pinRequest.onerror = fail;
+    cacheRequest.onerror = fail;
+    transaction.onerror = fail;
+    transaction.onabort = fail;
+    transaction.oncomplete = () => resolve();
   });
 }
 
