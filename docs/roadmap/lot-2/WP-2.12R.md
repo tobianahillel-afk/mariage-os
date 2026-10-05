@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.12R`
 - Lot: 2 — Venues core
 - Name: replay-safe Venue fact-observation command boundary
-- State: `IN_PROGRESS / A-REMEDIATION` — post-merge findings WP212R-AR-001/002 OPEN
-- Current pass: `A-REMEDIATION` — exact-head verification + fresh remediation review next
+- State: `REVIEW_PENDING`
+- Current pass: `B-ADVERSARIAL-REVIEW` — Pass A + remediation sealed; complete fresh review next
 - Branch: `lot-2/venues-core`
 - Parent packet: `WP-2.12` — BLOCKED until this support packet is ACCEPTED
 - Discovery base: `8ffe905b026645affb6f218b65b601f565e80fe6`
@@ -160,7 +160,10 @@ At minimum:
   - `WP212R-AR-001` **P2 / OPEN** — NULL `target_evidence_level` or `target_confidence` can evade validation/comparison because SQL three-valued predicates evaluate to NULL.
   - `WP212R-AR-002` **P1 / OPEN** — durable packet/status/matrix handoff still described the pre-implementation READY state.
 - Targeted RED #83 / `b4909ef100f1ea40d73e1490bfa19258b0820eec` / CI `37300726435` — 21 pgTAP replay assertions executed; **exactly tests 7–8 failed** for NULL evidence/confidence; Core, browser/mutation and preview stayed green; PR closed unmerged.
-- Remediation is forward-only: migration `20261005111500_reject_null_venue_fact_replay_metadata.sql` explicitly rejects NULL evidence/confidence and uses NULL-safe replay comparisons; the RED assertions are retained as regression tests. Exact-head CI/re-review is pending.
+- Remediation is forward-only: migration `20261005111500_reject_null_venue_fact_replay_metadata.sql` explicitly rejects NULL evidence/confidence and uses NULL-safe replay comparisons; the RED assertions are retained as regression tests.
+- Remediation PR #84 exact head `bb856ab835a48ddc7bcc6b6278f5f83bc815d991` / CI `37301743650` passed **5/5 SUCCESS**; fresh Codex review found no major issue and left zero unresolved threads.
+- PR #84 merged as `e6c46b0e6b0879aa48ce29fd58c80f91b6900cb7`; canonical CI `37309288791` passed **5/5 SUCCESS**, including clean checkout.
+- `WP212R-AR-001` and `WP212R-AR-002` are **CLOSED / VERIFIED**.
 
 ## Pass A exit
 
@@ -171,14 +174,15 @@ At minimum:
 - [x] cross-project collision fails non-disclosing
 - [x] supersede replay is idempotent/fail-closed
 - [x] legacy authenticated signature unavailable
-- [ ] WP212R-AR-001/002 remediation exact-head CI 5/5
-- [ ] fresh remediation review closes WP212R-AR-001/002
-- [ ] packet moves to `REVIEW_PENDING / B-ADVERSARIAL-REVIEW`
+- [x] WP212R-AR-001/002 remediation exact-head CI 5/5
+- [x] fresh remediation review closes WP212R-AR-001/002
+- [x] packet moves to `REVIEW_PENDING / B-ADVERSARIAL-REVIEW`
 
 ## Handoff
 
-- Current state: **IN_PROGRESS / A-REMEDIATION**
-- Current/next pass: exact-head remediation CI → fresh remediation review → complete fresh Pass B
+- Current state: **REVIEW_PENDING / B-ADVERSARIAL-REVIEW**
+- Current/next pass: complete fresh independent Pass B
 - Parent WP-2.12: **BLOCKED** with tranches 1–3 GREEN preserved
-- Open findings: `WP212R-AR-001` P2 NULL replay metadata; `WP212R-AR-002` P1 stale durable handoff
-- Next permitted action: exact-head five-job CI including clean checkout on the remediation branch, then fresh independent review. Do not resume parent WP-2.12 until WP-2.12R is ACCEPTED.
+- Open findings: ∅
+- Closed findings: `WP212R-AR-001/002` — VERIFIED by RED #83 + PR #84 + canonical CI
+- Next permitted action: complete fresh Pass B over the entire replay-safe observation contract. Do not resume parent WP-2.12 until WP-2.12R is ACCEPTED.

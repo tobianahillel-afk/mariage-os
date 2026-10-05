@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1..WP-2.11 ACCEPTED; WP-2.12 BLOCKED on WP-2.12R; WP-2.12R A-REMEDIATION**
+Status: **IN_PROGRESS — WP-2.1..WP-2.11 ACCEPTED; WP-2.12 BLOCKED on WP-2.12R; WP-2.12R REVIEW_PENDING / PASS B**
 
 Purpose: durable current responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`. Detailed historical evidence remains in packet records, acceptance records, FIRs and Git history.
 
@@ -35,7 +35,7 @@ Integration prerequisite is accepted Lot 0 + Lot 1 on `main` through PR #7; `mai
 | repository/read-model/provider ports and Supabase adapters | architecture, AUTHZ-006/020 | WP-2.1..WP-2.10 + WP-2.9C | accepted packets green through WP-2.10; Pass C and exact-head CI green |
 | local cache/pending Venue edits | FTR-028 Lot-2, SYN-001..003/007..011, PWA-003/004/006 | WP-2.10, WP-2.12 | WP-2.10 **ACCEPTED**; WP-2.12 **IN_PROGRESS** — schema v2, pin/package + draft durability GREEN |
 | gallery/table/detail/compare/deep-link workspace | FTR-015/016/017/027, VEN-010/011/014/015 | WP-2.11 | **ACCEPTED / COMPLETE — Pass C gap ∅** |
-| mobile visit mode | FTR-028, PWA-004 | WP-2.12 + WP-2.12R support | WP-2.12 **BLOCKED** with shell/package/draft GREEN; WP-2.12R **A-REMEDIATION** after post-merge replay review |
+| mobile visit mode | FTR-028, PWA-004 | WP-2.12 + WP-2.12R support | WP-2.12 **BLOCKED** with shell/package/draft GREEN; WP-2.12R **REVIEW_PENDING / B-ADVERSARIAL-REVIEW** |
 | file/content validation, trusted binary lifecycle, no private production data in public artifacts | MED-001..010/013 + security/quality controls | WP-2.8A/B/C, WP-2.9A, WP-2.9C, WP-2.12 | media and A/C accepted; WP-2.12 local-binary store/logout safety GREEN; byte lifecycle/upload completion pending |
 | explicit permissions/grants/RLS/direct endpoint and Storage allow+deny evidence | AUTHZ-001..009/012/017/018/020 | owning packets WP-2.1..WP-2.9C | accepted authorization evidence green; C local/exact-head evidence green |
 | synthetic complex Venue exit fixture/integrated workflows | Lot-2 acceptance | WP-2.12 + Lot Integration Pass | downstream |
@@ -126,7 +126,7 @@ ADR 0011 later produced decisive deployed CPU evidence and was rejected for fina
 | WP-2.10 | **ACCEPTED / COMPLETE** | repositories/local cache/pending offline mutations; Pass C gap ∅ / CI `36849005712` 5/5 |
 | WP-2.11 | **ACCEPTED / COMPLETE** | gallery/table/detail/compare/deep-link workspace; Pass C gap ∅ / CI `37240178167` 5/5 |
 | WP-2.12 | **BLOCKED — dependency WP-2.12R** | mobile/offline Venue visit + packet E2E completion; tranches 1–3 GREEN; FIR #42 |
-| WP-2.12R | **IN_PROGRESS / A-REMEDIATION — AR-001/002 OPEN** | replay-safe fact-observation command identity; 3 points / cohesion PASS |
+| WP-2.12R | **REVIEW_PENDING / B-ADVERSARIAL-REVIEW — AR-001/002 CLOSED / VERIFIED** | replay-safe fact-observation command identity; 3 points / cohesion PASS |
 
 ## Sequencing
 
@@ -135,12 +135,12 @@ WP-2.1..WP-2.8C [ACCEPTED]
   → WP-2.9C [ACCEPTED]
     → WP-2.9A [ACCEPTED]
                 → WP-2.9B [ACCEPTED] → WP-2.10 [ACCEPTED] → WP-2.11 [ACCEPTED] → WP-2.12 [BLOCKED]
-                                                                                           ↘ WP-2.12R [A-REMEDIATION]
-                                                                                              → WP-2.12 [resume A]
+                                                                                           ↘ WP-2.12R [PASS B]
+                                                                                              → WP-2.12 [resume A after acceptance]
                                                                                                 → Lot reconciliation → Integration Pass
 ```
 
-Only one packet may be active at a time. WP-2.9A/B/C, WP-2.10 and WP-2.11 are terminal accepted. WP-2.12 READY gate `99cf3b68...` / CI `37241583422` passed 5/5 and tranches 1–3 remain GREEN through `1794a3d9...` / CI `37280907551`. WP-2.12R activation and initial replay-safe implementation are green through canonical `5389bb31...` / CI `37296758669`; post-merge review found AR-001 NULL replay metadata plus AR-002 stale handoff, so WP-2.12R is the sole active packet in A-REMEDIATION and parent WP-2.12 stays BLOCKED.
+Only one packet may be active at a time. WP-2.9A/B/C, WP-2.10 and WP-2.11 are terminal accepted. WP-2.12 READY gate `99cf3b68...` / CI `37241583422` passed 5/5 and tranches 1–3 remain GREEN through `1794a3d9...` / CI `37280907551`. WP-2.12R remediation is green through canonical `e6c46b0e...` / CI `37309288791`; AR-001/002 are CLOSED / VERIFIED, so WP-2.12R is the sole active packet in fresh Pass B and parent WP-2.12 stays BLOCKED.
 
 ## Explicitly outside Lot 2
 
@@ -184,8 +184,8 @@ A Pass C = WP-2.9A-ACCEPTANCE.md — ACCEPTED / gap ∅; record 656398bcd5520cfa
 WP-2.10 = ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record `a2d48341515a516651d11454c3c5e89c01896c21` / CI `36849005712` 5/5 including clean checkout; FTR-028 remains IN_PROGRESS for WP-2.12
 WP-2.11 = ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record `3167a380521119e9650859543778b040527332e2` / CI `37240178167` 5/5; final seal `0a2d051d3f0a45b638f5c1b5f8c81acf36491c36` / CI `37240817336` 5/5; FTR-015/016/017/027 closed completed
 WP-2.12 = BLOCKED — tranches 1–3 GREEN through `1794a3d9...` / `37280907551`; replay dependency extracted after 12-point re-review; FIR #42
-WP-2.12R = IN_PROGRESS / A-REMEDIATION — activation + initial GREEN canonical CI 5/5; AR-001 NULL replay metadata and AR-002 stale durable handoff OPEN
-next permitted action = WP-2.12R remediation exact-head CI/clean checkout → fresh remediation review → complete fresh Pass B → Pass C → only then resume WP-2.12
+WP-2.12R = REVIEW_PENDING / B-ADVERSARIAL-REVIEW — remediation canonical `e6c46b0e...` / CI `37309288791` 5/5; AR-001/002 CLOSED / VERIFIED
+next permitted action = complete fresh independent WP-2.12R Pass B → Pass C if clean → only then resume WP-2.12
 C acceptance and A resumption are authorized by green acceptance-record CI; no provider rerun
 ```
 

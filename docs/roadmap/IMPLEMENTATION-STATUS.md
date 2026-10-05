@@ -43,7 +43,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.10 | repositories, local cache, pending/offline mutations                   | **ACCEPTED / COMPLETE**                                                     |
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace                       | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.12 | mobile/offline venue-visit workflow and packet E2E completion          | **BLOCKED — replay-safe fact observation boundary requires WP-2.12R**     |
-| WP-2.12R | replay-safe Venue fact-observation command boundary                     | **IN_PROGRESS / A-REMEDIATION — WP212R-AR-001/002 OPEN**                  |
+| WP-2.12R | replay-safe Venue fact-observation command boundary                     | **REVIEW_PENDING / B-ADVERSARIAL-REVIEW — AR-001/002 CLOSED / VERIFIED** |
 
 ## WP-2.10 — activation revalidation
 
@@ -101,9 +101,10 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 - WP-2.12R size: **3 points / cohesion PASS** — one migration family + one changed RPC; no table, RLS, permission, provider, UI or new product Feature.
 - Activation governance `cc12be09d1569a739c11943e5283146d02de950f` / CI `37289339246` passed **5/5**, including clean checkout; RED #81 then proved the missing replay-identity contract.
 - Pass-A GREEN PR #82 reviewed head `78c1d83e45357b653486ceb53dec64a9afdfec51` / CI `37295580568` passed **5/5** and merged as `5389bb31f2b57c1b02a011dbd6fd775a9c048570`; canonical CI `37296758669` passed **5/5**.
-- Post-merge review opened `WP212R-AR-001` **P2 / OPEN**: NULL evidence/confidence replay metadata can bypass validation under SQL three-valued logic; and `WP212R-AR-002` **P1 / OPEN**: durable handoff state still described the packet as READY/activation-pending.
+- Historical post-merge findings `WP212R-AR-001` and `WP212R-AR-002` are **CLOSED / VERIFIED**. Targeted RED #83 reproduced the NULL-metadata defect; remediation PR #84 exact head `bb856ab835a48ddc7bcc6b6278f5f83bc815d991` / CI `37301743650` passed 5/5 and fresh Codex review found no major issue with zero unresolved threads.
 - Targeted RED #83 / `b4909ef100f1ea40d73e1490bfa19258b0820eec` / CI `37300726435` executed 21 replay pgTAP assertions and failed **exactly tests 7–8** for NULL evidence/confidence while Core, browser/mutation and preview remained green; PR closed unmerged.
-- Current/next pass: **WP-2.12R A-REMEDIATION**. Forward-only SQL remediation + durable handoff reconciliation are being exact-head verified. Parent WP-2.12 remains BLOCKED until WP-2.12R completes fresh Pass B and Pass C.
+- PR #84 merged as `e6c46b0e6b0879aa48ce29fd58c80f91b6900cb7`; canonical CI `37309288791` passed **5/5 SUCCESS**, including full verify from clean checkout.
+- Current/next pass: **REVIEW_PENDING / B-ADVERSARIAL-REVIEW**. Complete fresh Pass B is now the only active packet action. Parent WP-2.12 remains BLOCKED until WP-2.12R completes Pass B and Pass C.
 
 ## Accepted packet evidence summary
 
@@ -351,6 +352,8 @@ Normative release/deployment/secret contracts require Pages Functions to deploy 
 76. WP-2.12 tranche 2 offline pin/package GREEN merged at `853ef01f480b7c28d4f8b3a2b53ccfe2bcb85259` / CI `37249343123` — **5/5 SUCCESS**, no unresolved review thread.
 77. WP-2.12 tranche 3 durable visit-draft GREEN merged at `1794a3d9d564769437a22582b918f793e57cf150` / CI `37280907551` — **5/5 SUCCESS** after RED #79 and three review findings were remediated; no unresolved review thread remains.
 78. WP-2.12 Pass-A reconciliation `8ffe905b026645affb6f218b65b601f565e80fe6` / CI `37288210671` passed **5/5 SUCCESS**, including clean checkout. Structured-replay re-review then found the fact-observation RPC has no client replay identity; adding it would raise WP-2.12 from 9 to 12 points, so orchestration requires split support packet WP-2.12R.
+79. WP-2.12R initial GREEN merged at `5389bb31f2b57c1b02a011dbd6fd775a9c048570` / CI `37296758669` — **5/5 SUCCESS**; post-merge review then opened AR-001/002.
+80. WP-2.12R remediation PR #84 reviewed head `bb856ab835a48ddc7bcc6b6278f5f83bc815d991` / CI `37301743650` passed **5/5 SUCCESS** with fresh independent review clean; merged canonical `e6c46b0e6b0879aa48ce29fd58c80f91b6900cb7` / CI `37309288791` also passed **5/5 SUCCESS**, including clean checkout. AR-001/002 are CLOSED / VERIFIED and WP-2.12R enters fresh Pass B.
 
 ## Durable handoff
 
@@ -363,7 +366,7 @@ Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.11
 WP-2.9C: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 21accd7f9ab1b845275507b7941a782c5e816a56 / CI 36494697647 5/5 including clean checkout
 WP-2.9A: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 656398bcd5520cfa56d782023d150eb64317161d / CI 36542083037 5/5 including clean checkout
-Current packet: WP-2.12R — IN_PROGRESS / A-REMEDIATION; WP212R-AR-001 NULL replay metadata and WP212R-AR-002 stale handoff OPEN; forward-only remediation branch active. Parent WP-2.12 BLOCKED with tranches 1–3 GREEN preserved; primary FIR #42 / FTR-028
+Current packet: WP-2.12R — REVIEW_PENDING / B-ADVERSARIAL-REVIEW; AR-001/002 CLOSED / VERIFIED; remediation canonical `e6c46b0e6b0879aa48ce29fd58c80f91b6900cb7` / CI `37309288791` 5/5; parent WP-2.12 BLOCKED with tranches 1–3 GREEN preserved; primary FIR #42 / FTR-028
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
@@ -402,5 +405,5 @@ FTR-089 FIR: #17 — IN_PROGRESS / parent A accepted, later presentation and Lot
 WP-2.9B: ACCEPTED / COMPLETE; FTR-093 FIR #27 remains IN_PROGRESS for downstream scope; WP29B-AR-001/002 CLOSED / VERIFIED; Pass C gap ∅
 Lots 3–12: NOT_STARTED
 Latest distinct-PDF campaign: 2303df0c9e8d6f72561ec0ce42514663801229d8 / CI 36459949861 / provider job 109058754517 / artifact 10987866873 — 10 distinct exact-size PDFs, 10 finalized flows, 20 valid exact-version CPU readings within Workers Free; provider verdict PASS
-Next permitted action: exact-head five-job CI including clean checkout on the WP-2.12R remediation, then a fresh independent re-review. Only after AR-001/002 are CLOSED / VERIFIED may WP-2.12R move to REVIEW_PENDING for a complete fresh Pass B. Parent WP-2.12 remains BLOCKED; no provider campaign or parent replay implementation is authorized yet.
+Next permitted action: run a complete fresh independent WP-2.12R Pass B against the full bounded replay-safe observation contract. If clean, move to ACCEPTANCE_PENDING / Pass C; if findings appear, remediate them before any acceptance. Parent WP-2.12 remains BLOCKED; no provider campaign or parent replay implementation is authorized yet.
 ```
