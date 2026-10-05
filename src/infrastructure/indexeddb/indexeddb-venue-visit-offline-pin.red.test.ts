@@ -137,10 +137,9 @@ it("fails closed when a persisted offline pin belongs to another local scope", a
   );
   const contract = requireOfflinePinContract(store);
 
-  rawStore(factory, "offline_pins").set(
-    `venue:${venueId}`,
-    pin({ userId: "b2111111-1111-4111-8111-111111111111" }),
-  );
+  rawStore(factory, "offline_pins").set(`venue:${venueId}`, {
+    ...pin({ userId: "b2111111-1111-4111-8111-111111111111" }),
+  });
 
   await expect(contract.getOfflinePin("venue", venueId)).rejects.toThrow(
     "another local scope",
