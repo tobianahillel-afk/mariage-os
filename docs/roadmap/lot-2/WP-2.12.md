@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.12`
 - Lot: 2 — Venues core
 - Name: mobile/offline Venue visit, offline package, local visit media and packet E2E completion
-- State: `READY` — activation governance HEAD must pass exact-head CI before Pass A starts
-- Current pass: `PLAN` (next: `A-IMPLEMENT / RED first`)
+- State: `IN_PROGRESS`
+- Current pass: `A-IMPLEMENT` — activation gate green; tranches 1–3 merged and canonical 5/5
 - Branch: `lot-2/venues-core`
 - Activation base: `0a2d051d3f0a45b638f5c1b5f8c81acf36491c36`
 - Activation-base CI: `37240817336` — **5/5 SUCCESS**, including full verify from clean checkout; provider-only workflows skipped
@@ -239,12 +239,49 @@ exact-head green.
 
 No provider campaign, production data or server migration is expected.
 
+## Pass A progress — 2026-10-05
+
+Activation READY gate:
+- `99cf3b68f91b616b8aca9a218d3fb6ea62b493d9` / CI `37241583422` — **5/5 SUCCESS**, including clean checkout.
+
+Completed RED→GREEN tranches:
+
+1. **Visit route + local schema v2 / local-binary logout safety**
+   - RED #73 / `8e8f9c1f36b9465630d1f60dff60a5fab0e14061` / CI `37242212073` — intended failures only.
+   - GREEN #74 / `fa3495a8b059d8a14b7e678be9d29087057761a1` / CI `37245441506` — 5/5, 1,949 tests, 100% coverage.
+   - canonical merge `bca9bd27ba7b47e011248480efad703f51de8ebf` / CI `37245983552` — 5/5.
+2. **Offline pin + cached visit-package durability**
+   - RED #76 closed unmerged at `ae83bcd4f654ada4813e03df3472b42a2d0f144f`.
+   - GREEN #78 / `9fe3545e8354288b4a514278038d59c873ff8bd3` / CI `37248870611`; canonical `853ef01f480b7c28d4f8b3a2b53ccfe2bcb85259` / CI `37249343123` — 5/5.
+   - sync-summary remediation #77 canonical `2a4bca34529a896016b6298eada0892e9196fb24` / CI `37248133866` — 5/5.
+3. **Durable scoped Venue visit drafts**
+   - RED #79 / `082979532a4df4e7669ab519e220a7673740b8dc` / CI `37252892728` — exactly five intended failures with existing surfaces green.
+   - GREEN #80 / `b5076b335f62ae92df1e660ced1b8d59d81d4840` / CI `37280176962` — review findings for draft-only logout, stale/equal-revision atomicity and unsafe revisions remediated; zero unresolved threads.
+   - canonical merge `1794a3d9d564769437a22582b918f793e57cf150` / CI `37280907551` — **5/5 SUCCESS**, clean checkout included.
+
+Already GREEN:
+- canonical protected visit route + explicit visit state/shell;
+- IndexedDB v2 migration preserving accepted v1 metadata/cache/pending work;
+- scoped `offline_pins`, durable cached visit package and fail-closed isolation;
+- validated local-binary metadata + unsynced-binary logout safety;
+- durable scoped visit draft for questions, notes, measurements and personal-rating intent;
+- stale draft replacement rejection and idempotent equal-revision retry;
+- pending visit draft participates in safe-logout sync counters.
+
+Still required before Pass A exit:
+- structured reconnect/replay through accepted Interaction / Facts-Evidence / Member Opinion boundaries;
+- local binary **bytes** durability and separate private-media upload lifecycle;
+- media failure isolation from structured replay;
+- complete mobile checklist/capture/rating/photo/summary UI and unsupported-camera file fallback;
+- restart/re-auth reconnect integration and synthetic complex Venue exit E2E;
+- final exact-head 5/5 gate and fresh Pass B.
+
 ## Pass A exit
 
-- [ ] activation-governance HEAD passed five ordinary jobs including clean checkout
-- [ ] RED evidence exists and failed for the intended missing-contract reasons
-- [ ] IndexedDB v2 migration preserves accepted v1 local work
-- [ ] scoped offline package/pin is durable and fail-closed
+- [x] activation-governance HEAD passed five ordinary jobs including clean checkout
+- [x] RED evidence exists and failed for the intended missing-contract reasons
+- [x] IndexedDB v2 migration preserves accepted v1 local work
+- [x] scoped offline package/pin is durable and fail-closed
 - [ ] structured visit work survives restart and replays safely
 - [ ] unsynced local media bytes survive until upload/recovery/discard
 - [ ] media failure cannot block structured visit mutations
@@ -255,9 +292,10 @@ No provider campaign, production data or server migration is expected.
 
 ## Handoff
 
-- Current state: READY, **activation exact-head CI pending**
-- Current/next pass: PLAN → A-IMPLEMENT / RED first
-- Last accepted dependency: WP-2.11 final seal `0a2d051d3f0a45b638f5c1b5f8c81acf36491c36` / CI `37240817336` — 5/5
+- Current state: **IN_PROGRESS / A-IMPLEMENT**
+- Current/next pass: A-IMPLEMENT — tranches 1–3 GREEN; structured reconnect replay RED next
+- READY gate: `99cf3b68f91b616b8aca9a218d3fb6ea62b493d9` / CI `37241583422` — 5/5
+- Current canonical implementation: `1794a3d9d564769437a22582b918f793e57cf150` / CI `37280907551` — 5/5
 - Primary FIR: #42 / FTR-028 — IN_PROGRESS
 - Open packet findings: ∅
-- Next permitted action: pass this activation-governance HEAD through all five ordinary CI jobs including clean checkout; only then create RED-only evidence and begin Pass A implementation.
+- Next permitted action: closed/non-merged RED for structured reconnect replay of note/measurement/rating work through accepted service boundaries, explicitly proving that media upload failure cannot block critical structured operations; then bounded GREEN from the canonical base.
