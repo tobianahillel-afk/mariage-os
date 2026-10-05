@@ -2,13 +2,14 @@ import {
   assertLocalBinaryScope,
   parseLocalBinaryMetadata,
 } from "@application/local-data/local-binary-record";
+import type { LocalOfflinePin } from "@application/local-data/local-offline-pin";
 import type { LocalProjectPurgePort } from "@application/local-data/local-project-purge-port";
 import {
   parseCachedRecordEnvelope,
-  parseLocalProjectMetadata,
   parsePendingMutationEnvelope,
 } from "@application/local-data/persisted-local-data-parser";
 import type {
+  LocalOfflinePinStore,
   LocalProjectMetadata,
   LocalProjectStore,
   LocalProjectStoreFactory,
@@ -22,7 +23,6 @@ import type {
   CachedRecordEnvelope,
   PendingMutationEnvelope,
 } from "@application/local-data/local-records";
-
 import {
   assertCachedRecordScope,
   assertMutationScope,
@@ -34,12 +34,18 @@ import {
 } from "./indexeddb-project-store-validation";
 
 import { runAtomicCloudCacheRefresh } from "./indexeddb-project-store-refresh";
+import {
+  getIndexedDbOfflinePin,
+  putIndexedDbOfflinePinWithCachedRecord,
+} from "./indexeddb-project-store-offline-pin";
+import {
+  getIndexedDbProjectMetadata,
+  initializeIndexedDbProjectMetadata,
+} from "./indexeddb-project-store-metadata";
 
 import {
   CACHE_STORE,
   LOCAL_BINARY_STORE,
-  LOCAL_SCHEMA_VERSION,
-  METADATA_STORE,
   MUTATION_STORE,
   openDatabase,
   purgeDatabase,
@@ -49,55 +55,6 @@ import {
   runAtomicSettlementWithCache,
   runRequest,
 } from "./indexeddb-project-store-io";
-
-function createMetadata(
-  scope: LocalProjectScope,
-  appVersion: string,
-): LocalProjectMetadata {
-  return {
-    key: "scope",
-    localSchemaVersion: LOCAL_SCHEMA_VERSION,
-    appVersionLastOpened: appVersion,
-    projectId: scope.projectId,
-    userId: scope.userId,
-    deviceId: scope.deviceId,
-    lastSuccessfulSyncAt: null,
-    backendSchemaVersionLastSeen: null,
-    serviceWorkerBuildLastSeen: null,
-  };
-}
-
-function assertScopeIdentity(
-  value: LocalProjectMetadata,
-  scope: LocalProjectScope,
-): void {
-  if (
-    value.projectId !== scope.projectId ||
-    value.userId !== scope.userId ||
-    value.deviceId !== scope.deviceId
-  ) {
-    throw new Error("Local IndexedDB scope metadata is inconsistent.");
-  }
-}
-
-function assertMigratableSchema(value: LocalProjectMetadata): void {
-  if (
-    value.localSchemaVersion < 1 ||
-    value.localSchemaVersion > LOCAL_SCHEMA_VERSION
-  ) {
-    throw new Error("Local IndexedDB scope metadata is inconsistent.");
-  }
-}
-
-function assertScopeMetadata(
-  value: LocalProjectMetadata,
-  scope: LocalProjectScope,
-): void {
-  assertScopeIdentity(value, scope);
-  if (value.localSchemaVersion !== LOCAL_SCHEMA_VERSION) {
-    throw new Error("Local IndexedDB scope metadata is inconsistent.");
-  }
-}
 
 function countUnsyncedBinaries(
   values: readonly unknown[],
@@ -112,7 +69,9 @@ function countUnsyncedBinaries(
   return count;
 }
 
-export class IndexedDbProjectStore implements LocalProjectStore {
+export class IndexedDbProjectStore
+  implements LocalProjectStore, LocalOfflinePinStore
+{
   private constructor(
     private readonly database: IDBDatabase,
     readonly scope: LocalProjectScope,
@@ -132,53 +91,16 @@ export class IndexedDbProjectStore implements LocalProjectStore {
     return store;
   }
 
-  private async initializeMetadata(appVersion: string): Promise<void> {
-    const raw = await runRequest<unknown>(
+  private initializeMetadata(appVersion: string): Promise<void> {
+    return initializeIndexedDbProjectMetadata(
       this.database,
-      METADATA_STORE,
-      "readonly",
-      (store) => store.get("scope"),
+      this.scope,
+      appVersion,
     );
-    const existing =
-      raw === undefined ? undefined : parseLocalProjectMetadata(raw);
-
-    if (existing !== undefined) {
-      assertScopeIdentity(existing, this.scope);
-      assertMigratableSchema(existing);
-    }
-
-    if (
-      existing === undefined ||
-      existing.localSchemaVersion !== LOCAL_SCHEMA_VERSION ||
-      existing.appVersionLastOpened !== appVersion
-    ) {
-      const metadata = {
-        ...(existing ?? createMetadata(this.scope, appVersion)),
-        localSchemaVersion: LOCAL_SCHEMA_VERSION,
-        appVersionLastOpened: appVersion,
-      };
-      await runRequest<IDBValidKey>(
-        this.database,
-        METADATA_STORE,
-        "readwrite",
-        (store) => store.put(metadata),
-      );
-    }
   }
 
-  async getMetadata(): Promise<LocalProjectMetadata> {
-    const raw = await runRequest<unknown>(
-      this.database,
-      METADATA_STORE,
-      "readonly",
-      (store) => store.get("scope"),
-    );
-    if (raw === undefined) {
-      throw new Error("Local IndexedDB scope metadata is missing.");
-    }
-    const metadata = parseLocalProjectMetadata(raw);
-    assertScopeMetadata(metadata, this.scope);
-    return metadata;
+  getMetadata(): Promise<LocalProjectMetadata> {
+    return getIndexedDbProjectMetadata(this.database, this.scope);
   }
 
   async putCachedRecord(record: CachedRecordEnvelope): Promise<void> {
@@ -242,6 +164,30 @@ export class IndexedDbProjectStore implements LocalProjectStore {
       assertCachedRecordScope(record, this.scope);
       return record.recordType === recordType ? [record] : [];
     });
+  }
+
+  putOfflinePinWithCachedRecord(
+    pin: LocalOfflinePin,
+    record: CachedRecordEnvelope,
+  ): Promise<void> {
+    return putIndexedDbOfflinePinWithCachedRecord(
+      this.database,
+      this.scope,
+      pin,
+      record,
+    );
+  }
+
+  getOfflinePin(
+    entityType: string,
+    entityId: string,
+  ): Promise<LocalOfflinePin | null> {
+    return getIndexedDbOfflinePin(
+      this.database,
+      this.scope,
+      entityType,
+      entityId,
+    );
   }
 
   async addPendingMutation(mutation: PendingMutationEnvelope): Promise<void> {
