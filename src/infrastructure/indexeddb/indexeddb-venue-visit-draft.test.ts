@@ -293,3 +293,20 @@ it("rejects a mismatched pending visit draft while reading sync counters", async
     "target does not match cache key",
   );
 });
+
+it("does not count a synced visit draft as unresolved local work", async () => {
+  const factory = new FakeFactory();
+  const store = await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "2.12-draft-green",
+  );
+  rawStore(factory, "cached_records").set(`venue_visit_draft:${venueId}`, {
+    ...rawDraftRow(draft()),
+    syncMarker: "synced",
+  });
+
+  await expect(store.readSyncCounters()).resolves.toMatchObject({
+    pendingCount: 0,
+  });
+});
