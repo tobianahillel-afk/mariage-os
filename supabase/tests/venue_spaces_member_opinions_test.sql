@@ -29,6 +29,11 @@ select has_function(
   array['uuid','uuid','text','numeric','bigint','uuid','uuid'],
   'receipt-aware self-authored venue rating command exists'
 );
+select has_function(
+  'public', 'set_venue_member_rating',
+  array['uuid','uuid','text','numeric','bigint'],
+  'legacy self-authored venue rating overload remains for rollout compatibility'
+);
 select ok(
   not has_table_privilege('anon', 'public.venue_spaces', 'select')
   and not has_table_privilege('anon', 'public.member_entity_preferences', 'select')
