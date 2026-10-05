@@ -5,7 +5,9 @@ import {
   parseLocalOfflinePin,
   type LocalOfflinePin,
 } from "./local-offline-pin";
-import { scope } from "../../../tests/support/indexeddb-project-store-test-support";
+import {
+  scope,
+} from "../../../tests/support/indexeddb-project-store-test-support";
 
 const venueId = "a2111111-1111-4111-8111-111111111111";
 
