@@ -3,13 +3,13 @@ import {
   type LocalProjectScope,
 } from "@application/local-data/local-project-scope";
 
-export type LocalOfflinePinReason =
+type LocalOfflinePinReason =
   | "manual"
   | "upcoming_visit"
   | "favorite"
   | "recent";
 
-export type LocalOfflineMediaPolicy = "none" | "thumbnails";
+type LocalOfflineMediaPolicy = "none" | "thumbnails";
 
 export interface LocalOfflinePin {
   readonly key: string;
