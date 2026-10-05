@@ -5,9 +5,7 @@ import {
   parseLocalOfflinePin,
   type LocalOfflinePin,
 } from "./local-offline-pin";
-import {
-  scope,
-} from "../../../tests/support/indexeddb-project-store-test-support";
+import { scope } from "../../../tests/support/indexeddb-project-store-test-support";
 
 const venueId = "a2111111-1111-4111-8111-111111111111";
 
@@ -78,7 +76,7 @@ it("accepts every frozen pin reason and media policy", () => {
   ] as const) {
     expect(parseLocalOfflinePin(pin({ reason })).reason).toBe(reason);
   }
-  expect(
-    parseLocalOfflinePin(pin({ mediaPolicy: "none" })).mediaPolicy,
-  ).toBe("none");
+  expect(parseLocalOfflinePin(pin({ mediaPolicy: "none" })).mediaPolicy).toBe(
+    "none",
+  );
 });
