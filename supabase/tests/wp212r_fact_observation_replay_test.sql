@@ -55,6 +55,45 @@ values
   '{}',
   now(),
   now()
+),
+(
+  '00000000-0000-0000-0000-000000000000',
+  'e3333333-3333-4333-8333-333333333333',
+  'authenticated',
+  'authenticated',
+  'wp212r-viewer@example.invalid',
+  '',
+  now(),
+  '{"provider":"email","providers":["email"]}',
+  '{}',
+  now(),
+  now()
+),
+(
+  '00000000-0000-0000-0000-000000000000',
+  'e4444444-4444-4444-8444-444444444444',
+  'authenticated',
+  'authenticated',
+  'wp212r-outsider@example.invalid',
+  '',
+  now(),
+  '{"provider":"email","providers":["email"]}',
+  '{}',
+  now(),
+  now()
+),
+(
+  '00000000-0000-0000-0000-000000000000',
+  'e5555555-5555-4555-8555-555555555555',
+  'authenticated',
+  'authenticated',
+  'wp212r-revoked@example.invalid',
+  '',
+  now(),
+  '{"provider":"email","providers":["email"]}',
+  '{}',
+  now(),
+  now()
 );
 
 insert into public.projects(id, name, created_by, updated_by)
@@ -91,6 +130,22 @@ values
   'active',
   now(),
   null
+),
+(
+  'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+  'e3333333-3333-4333-8333-333333333333',
+  'viewer',
+  'active',
+  now(),
+  null
+),
+(
+  'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+  'e5555555-5555-4555-8555-555555555555',
+  'owner',
+  'revoked',
+  now(),
+  now()
 );
 
 insert into public.venues(
@@ -213,6 +268,136 @@ values (
   '2026-10-05T08:50:00Z',
   'foreign',
   'e2222222-2222-4222-8222-222222222222'
+);
+
+set local role anon;
+select throws_ok(
+  $select public.append_venue_fact_observation(
+    'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+    'ee300000-0000-4000-8000-000000000001',
+    'ee400000-0000-4000-8000-000000000010',
+    'true'::jsonb,
+    'denied anon',
+    'observed',
+    'high',
+    '2026-10-05T08:40:00Z',
+    'anon',
+    null
+  )$,
+  '42501',
+  'permission denied for function append_venue_fact_observation',
+  'anon cannot execute replay-safe observation RPC'
+);
+reset role;
+
+set local role authenticated;
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"e3333333-3333-4333-8333-333333333333","role":"authenticated"}',
+  true
+);
+select throws_ok(
+  $select public.append_venue_fact_observation(
+    'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+    'ee300000-0000-4000-8000-000000000001',
+    'ee400000-0000-4000-8000-000000000011',
+    'true'::jsonb,
+    'denied viewer',
+    'observed',
+    'high',
+    '2026-10-05T08:41:00Z',
+    'viewer',
+    null
+  )$,
+  '42501',
+  'venue fact observation unavailable',
+  'viewer cannot execute venues.write replay-safe observation'
+);
+
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"e4444444-4444-4444-8444-444444444444","role":"authenticated"}',
+  true
+);
+select throws_ok(
+  $select public.append_venue_fact_observation(
+    'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+    'ee300000-0000-4000-8000-000000000001',
+    'ee400000-0000-4000-8000-000000000012',
+    'true'::jsonb,
+    'denied outsider',
+    'observed',
+    'high',
+    '2026-10-05T08:42:00Z',
+    'outsider',
+    null
+  )$,
+  '42501',
+  'venue fact observation unavailable',
+  'outsider cannot execute replay-safe observation for the project'
+);
+
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"e2222222-2222-4222-8222-222222222222","role":"authenticated"}',
+  true
+);
+select throws_ok(
+  $select public.append_venue_fact_observation(
+    'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+    'ee300000-0000-4000-8000-000000000001',
+    'ee400000-0000-4000-8000-000000000013',
+    'true'::jsonb,
+    'denied foreign owner',
+    'observed',
+    'high',
+    '2026-10-05T08:43:00Z',
+    'foreign owner',
+    null
+  )$,
+  '42501',
+  'venue fact observation unavailable',
+  'project-B owner cannot execute project-A replay-safe observation'
+);
+
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"e5555555-5555-4555-8555-555555555555","role":"authenticated"}',
+  true
+);
+select throws_ok(
+  $select public.append_venue_fact_observation(
+    'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+    'ee300000-0000-4000-8000-000000000001',
+    'ee400000-0000-4000-8000-000000000014',
+    'true'::jsonb,
+    'denied revoked',
+    'observed',
+    'high',
+    '2026-10-05T08:44:00Z',
+    'revoked',
+    null
+  )$,
+  '42501',
+  'venue fact observation unavailable',
+  'revoked project member cannot execute replay-safe observation'
+);
+
+reset role;
+select is(
+  (
+    select count(*)
+    from public.fact_observations
+    where id in (
+      'ee400000-0000-4000-8000-000000000010',
+      'ee400000-0000-4000-8000-000000000011',
+      'ee400000-0000-4000-8000-000000000012',
+      'ee400000-0000-4000-8000-000000000013',
+      'ee400000-0000-4000-8000-000000000014'
+    )
+  ),
+  0::bigint,
+  'directly denied replay-safe RPC attempts create no observations'
 );
 
 set local role authenticated;
