@@ -4,10 +4,7 @@ import {
 } from "@application/local-data/local-project-scope";
 
 type LocalOfflinePinReason =
-  | "manual"
-  | "upcoming_visit"
-  | "favorite"
-  | "recent";
+  "manual" | "upcoming_visit" | "favorite" | "recent";
 
 type LocalOfflineMediaPolicy = "none" | "thumbnails";
 
