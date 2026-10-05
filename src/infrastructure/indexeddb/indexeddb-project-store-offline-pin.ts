@@ -3,9 +3,7 @@ import {
   parseLocalOfflinePin,
   type LocalOfflinePin,
 } from "@application/local-data/local-offline-pin";
-import {
-  parseCachedRecordEnvelope,
-} from "@application/local-data/persisted-local-data-parser";
+import { parseCachedRecordEnvelope } from "@application/local-data/persisted-local-data-parser";
 import type { LocalProjectScope } from "@application/local-data/local-project-scope";
 import type { CachedRecordEnvelope } from "@application/local-data/local-records";
 import {
