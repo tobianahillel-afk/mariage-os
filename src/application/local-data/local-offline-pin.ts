@@ -50,9 +50,7 @@ function recordValue(value: unknown): RawRecord {
 }
 
 function stringValue(value: unknown, field: string): string {
-  return typeof value === "string" && value.length > 0
-    ? value
-    : invalid(field);
+  return typeof value === "string" && value.length > 0 ? value : invalid(field);
 }
 
 function uuidValue(value: unknown, field: string): string {
@@ -91,7 +89,11 @@ export function parseLocalOfflinePin(value: unknown): LocalOfflinePin {
 
   return {
     key,
-    entityType: enumValue(row.entityType, ["venue"] as const, "entity type"),
+    entityType: enumValue(
+      row.entityType,
+      ["venue"] as const,
+      "entity type",
+    ),
     entityId,
     projectId: uuidValue(row.projectId, "project id"),
     userId: uuidValue(row.userId, "user id"),
