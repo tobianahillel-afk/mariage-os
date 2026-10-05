@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.12`
 - Lot: 2 — Venues core
 - Name: mobile/offline Venue visit, offline package, local visit media and packet E2E completion
-- State: `IN_PROGRESS`
-- Current pass: `A-IMPLEMENT` — activation gate green; tranches 1–3 merged and canonical 5/5
+- State: `BLOCKED`
+- Current pass: `A-IMPLEMENT PAUSED` — tranches 1–3 remain GREEN; dependency WP-2.12R
 - Branch: `lot-2/venues-core`
 - Activation base: `0a2d051d3f0a45b638f5c1b5f8c81acf36491c36`
 - Activation-base CI: `37240817336` — **5/5 SUCCESS**, including full verify from clean checkout; provider-only workflows skipped
@@ -149,9 +149,12 @@ WP-2.12 reuses:
 - Venue Member Opinion service for personal ratings;
 - accepted private Media service for image validation, hashing, Storage lifecycle and Venue linking.
 
-If implementation discovers that an accepted server service cannot safely express
-the frozen visit contract, stop and re-review the packet rather than silently
-adding a table/RPC/RLS/provider boundary.
+Implementation re-review discovered exactly this condition: the accepted
+`append_venue_fact_observation` command generates observation IDs server-side,
+so a lost successful response can be retried as a duplicate measurement.
+The parent packet therefore stops here. Replay identity hardening is extracted
+to support packet `WP-2.12R`; no parent replay implementation resumes until
+that packet is accepted.
 
 ## Explicitly out of scope
 
@@ -182,16 +185,17 @@ adding a table/RPC/RLS/provider boundary.
 | security-sensitive token/crypto boundary | 0 | 2 | 0 |
 | financial/calculation critical engine | 0 | 3 | 0 |
 | backup/import/version migration semantics | 0 | 2 | 0 |
-| **Total** |  |  | **9** |
+| **Original WP-2.12 total** |  |  | **9** |
 
-Cohesion review: **PASS**.
+Cohesion review at activation: **PASS** for the original 9-point plan.
 
-The packet is above the normal 8-point target but within the 9–10 explicit-review
-range. Splitting local schema/pinning/media from the visit route/replay would
-produce separately green halves that cannot prove UF-08: the safety property is
-the end-to-end chain prepare → offline capture → restart → reconnect. There is
-one Feature, one bounded context and one user-facing route, with no new server
-authorization/provider family.
+Later implementation re-review invalidated one planning assumption: the existing
+Facts/Evidence command is not replay-idempotent. Adding one SQL migration family
+(+1) and one meaningfully changed RPC (+2) inside this parent would raise it to
+**12 points**. The orchestration hard rule for >10 therefore requires a split.
+This is not a product-scope expansion: `WP-2.12R` owns only reusable
+fact-observation replay identity hardening, after which the original Venue Visit
+workflow resumes.
 
 ## RED-first gate
 
@@ -292,10 +296,12 @@ Still required before Pass A exit:
 
 ## Handoff
 
-- Current state: **IN_PROGRESS / A-IMPLEMENT**
-- Current/next pass: A-IMPLEMENT — tranches 1–3 GREEN; structured reconnect replay RED next
+- Current state: **BLOCKED**
+- Current/next pass: A-IMPLEMENT paused after tranches 1–3 GREEN; dependency `WP-2.12R`
 - READY gate: `99cf3b68f91b616b8aca9a218d3fb6ea62b493d9` / CI `37241583422` — 5/5
-- Current canonical implementation: `1794a3d9d564769437a22582b918f793e57cf150` / CI `37280907551` — 5/5
+- Current canonical implementation preserved: `1794a3d9d564769437a22582b918f793e57cf150` / CI `37280907551` — 5/5
+- Pass-A reconciliation: `8ffe905b026645affb6f218b65b601f565e80fe6` / CI `37288210671` — 5/5
+- Blocking dependency: accepted Facts/Evidence observation append lacks client replay identity; support packet `WP-2.12R` owns the bounded hardening.
 - Primary FIR: #42 / FTR-028 — IN_PROGRESS
-- Open packet findings: ∅
-- Next permitted action: closed/non-merged RED for structured reconnect replay of note/measurement/rating work through accepted service boundaries, explicitly proving that media upload failure cannot block critical structured operations; then bounded GREEN from the canonical base.
+- Open parent findings: replay-safety dependency only; no tranches 1–3 regression
+- Next permitted parent action: none until WP-2.12R is ACCEPTED; then resume A-IMPLEMENT with structured reconnect replay RED.
