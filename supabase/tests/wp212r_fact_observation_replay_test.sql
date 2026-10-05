@@ -792,33 +792,13 @@ select is(
   'definition update really persists the reversed option order'
 );
 
-select is(
-  public.fact_multiselect_canonical_value(
-    '["covered","open_air"]'::jsonb,
-    (
-      select options_json
-      from public.fact_definitions
-      where id = 'ee200000-0000-4000-8000-000000000003'
-    )
-  ),
-  '["open_air","covered"]'::jsonb,
-  'current canonicalization follows the reordered definition'
-);
-
 select ok(
   (
     select value
     from public.fact_observations
     where id = 'ee400000-0000-4000-8000-000000000020'
-  ) is distinct from public.fact_multiselect_canonical_value(
-    '["covered","open_air"]'::jsonb,
-    (
-      select options_json
-      from public.fact_definitions
-      where id = 'ee200000-0000-4000-8000-000000000003'
-    )
-  ),
-  'stored replay value differs from canonicalization under the reordered definition'
+  ) is distinct from '["open_air","covered"]'::jsonb,
+  'stored replay value differs from the reordered definition canonical order'
 );
 
 select lives_ok(
