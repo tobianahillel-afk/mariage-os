@@ -49,6 +49,7 @@ import {
   getIndexedDbProjectMetadata,
   initializeIndexedDbProjectMetadata,
 } from "./indexeddb-project-store-metadata";
+import { putIndexedDbVenueVisitDraft } from "./indexeddb-project-store-visit-draft";
 
 import {
   CACHE_STORE,
@@ -72,6 +73,22 @@ function countUnsyncedBinaries(
     const binary = parseLocalBinaryMetadata(value);
     assertLocalBinaryScope(binary, scope);
     if (binary.syncState === "unsynced") count += 1;
+  }
+  return count;
+}
+
+function countPendingVisitDrafts(
+  records: readonly CachedRecordEnvelope[],
+  scope: LocalProjectScope,
+): number {
+  let count = 0;
+  for (const record of records) {
+    const draft = parseLocalVenueVisitDraft(record.payload);
+    assertLocalVenueVisitDraftScope(draft, scope);
+    if (draft.venueId !== record.entityId) {
+      throw new Error("Venue visit draft target does not match cache key.");
+    }
+    if (record.syncMarker !== "synced") count += 1;
   }
   return count;
 }
@@ -197,9 +214,8 @@ export class IndexedDbProjectStore
     );
   }
 
-  async putVenueVisitDraft(draft: LocalVenueVisitDraft): Promise<void> {
-    const record = createLocalVenueVisitDraftCachedRecord(this.scope, draft);
-    await this.putCachedRecord(record);
+  putVenueVisitDraft(draft: LocalVenueVisitDraft): Promise<void> {
+    return putIndexedDbVenueVisitDraft(this.database, this.scope, draft);
   }
 
   async getVenueVisitDraft(
@@ -350,8 +366,9 @@ export class IndexedDbProjectStore
       "readonly",
       (binaryStore) => binaryStore.getAll(),
     );
+    const visitDrafts = await this.listCachedRecords("venue_visit_draft");
     const counters: LocalSyncCounters = {
-      pendingCount: 0,
+      pendingCount: countPendingVisitDrafts(visitDrafts, this.scope),
       conflictCount: 0,
       retryableFailureCount: 0,
       permanentFailureCount: 0,
