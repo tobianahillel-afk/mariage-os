@@ -191,3 +191,55 @@ it("rejects a visit package for another Venue", async () => {
     ),
   ).rejects.toThrow("visit package target does not match");
 });
+
+
+it("rejects an incomplete persisted visit package before pinning", async () => {
+  const factory = new FakeFactory();
+  const store = await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "2.12-green",
+  );
+  const incomplete = {
+    ...visitPackage(),
+    payload: {
+      venue: { id: venueId, name: "Venue offline fixture" },
+      preparedAt: "2026-10-05T00:00:00.000Z",
+      mediaPolicy: "thumbnails",
+      packageRevision: 1,
+    },
+  } as CachedRecordEnvelope;
+
+  await expect(
+    store.putOfflinePinWithCachedRecord(pin(), incomplete),
+  ).rejects.toThrow("Invalid persisted Venue visit package checklist");
+  expect(rawStore(factory, "offline_pins").size).toBe(0);
+  expect(rawStore(factory, "cached_records").size).toBe(0);
+});
+
+it.each([
+  ["preparedAt", { preparedAt: "2026-10-05T00:01:00.000Z" }],
+  ["mediaPolicy", { mediaPolicy: "none" }],
+  ["packageRevision", { packageRevision: 2 }],
+])("rejects visit package %s that disagrees with the pin", async (_label, override) => {
+  const factory = new FakeFactory();
+  const store = await IndexedDbProjectStore.open(
+    factory as unknown as IDBFactory,
+    scope,
+    "2.12-green",
+  );
+  const expected = visitPackage();
+  const mismatched = {
+    ...expected,
+    payload: {
+      ...(expected.payload as Record<string, unknown>),
+      ...override,
+    },
+  } as CachedRecordEnvelope;
+
+  await expect(
+    store.putOfflinePinWithCachedRecord(pin(), mismatched),
+  ).rejects.toThrow("metadata does not match");
+  expect(rawStore(factory, "offline_pins").size).toBe(0);
+  expect(rawStore(factory, "cached_records").size).toBe(0);
+});
