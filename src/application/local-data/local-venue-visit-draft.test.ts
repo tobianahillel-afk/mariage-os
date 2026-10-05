@@ -82,7 +82,10 @@ it.each([
   ["invalid Venue id", { ...draft(), venueId: "not-a-uuid" }],
   ["fractional draft revision", { ...draft(), draftRevision: 1.5 }],
   ["zero draft revision", { ...draft(), draftRevision: 0 }],
-  ["fractional question-set revision", { ...draft(), questionSetRevision: 1.5 }],
+  [
+    "fractional question-set revision",
+    { ...draft(), questionSetRevision: 1.5 },
+  ],
   ["zero question-set revision", { ...draft(), questionSetRevision: 0 }],
   ["invalid timestamp", { ...draft(), createdAt: "not-a-date" }],
   [
