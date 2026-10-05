@@ -1,6 +1,8 @@
 import { expect, it } from "vitest";
 
-import { createLocalProjectScope } from "@application/local-data/local-project-scope";
+import {
+  createLocalProjectScope,
+} from "@application/local-data/local-project-scope";
 import {
   assertLocalVenueVisitDraftScope,
   createLocalVenueVisitDraftCachedRecord,
