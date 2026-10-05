@@ -245,8 +245,6 @@ describe("SupabaseVenueMemberOpinionAdapter preference writes", () => {
       target_favorite: true,
       target_personal_note: "private",
       target_expected_revision: 0,
-      target_operation_id: operationId,
-      target_device_id: deviceId,
     });
     expect(captures.rpc).not.toHaveProperty("user_id");
   });
@@ -274,6 +272,8 @@ describe("SupabaseVenueMemberOpinionAdapter rating writes", () => {
       target_dimension_key: "love_score",
       target_rating: 9,
       target_expected_revision: 0,
+      target_operation_id: operationId,
+      target_device_id: deviceId,
     });
     expect(captures.rpc).not.toHaveProperty("user_id");
   });
