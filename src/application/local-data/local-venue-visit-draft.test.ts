@@ -1,6 +1,8 @@
 import { expect, it } from "vitest";
 
-import { createLocalProjectScope } from "@application/local-data/local-project-scope";
+import {
+  createLocalProjectScope,
+} from "@application/local-data/local-project-scope";
 import {
   assertLocalVenueVisitDraftScope,
   createLocalVenueVisitDraftCachedRecord,
@@ -86,14 +88,20 @@ it.each([
     "unsafe draft revision",
     { ...draft(), draftRevision: Number.MAX_SAFE_INTEGER + 1 },
   ],
-  ["fractional question-set revision", { ...draft(), questionSetRevision: 1.5 }],
+  [
+    "fractional question-set revision",
+    { ...draft(), questionSetRevision: 1.5 },
+  ],
   ["zero question-set revision", { ...draft(), questionSetRevision: 0 }],
   [
     "unsafe question-set revision",
     { ...draft(), questionSetRevision: Number.MAX_SAFE_INTEGER + 1 },
   ],
   ["invalid timestamp", { ...draft(), createdAt: "not-a-date" }],
-  ["non-canonical timestamp", { ...draft(), createdAt: "2026-10-05T01:00:00Z" }],
+  [
+    "non-canonical timestamp",
+    { ...draft(), createdAt: "2026-10-05T01:00:00Z" },
+  ],
   [
     "reversed timestamps",
     {
