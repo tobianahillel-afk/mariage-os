@@ -1,6 +1,8 @@
 import { expect, it } from "vitest";
 
-import type { LocalVenueVisitDraft } from "@application/local-data/local-venue-visit-draft";
+import type {
+  LocalVenueVisitDraft,
+} from "@application/local-data/local-venue-visit-draft";
 
 import { IndexedDbProjectStore } from "./indexeddb-project-store";
 import {
@@ -169,8 +171,9 @@ it("fails closed when the cached target and draft Venue differ", async () => {
   );
 });
 
-
-it("counts a persisted Venue visit draft as unresolved local work", async () => {
+it(
+  "counts a persisted Venue visit draft as unresolved local work",
+  async () => {
   const factory = new FakeFactory();
   const store = await IndexedDbProjectStore.open(
     factory as unknown as IDBFactory,
@@ -180,12 +183,15 @@ it("counts a persisted Venue visit draft as unresolved local work", async () => 
 
   await store.putVenueVisitDraft(draft());
 
-  await expect(store.readSyncCounters()).resolves.toMatchObject({
-    pendingCount: 1,
-  });
-});
+    await expect(store.readSyncCounters()).resolves.toMatchObject({
+      pendingCount: 1,
+    });
+  },
+);
 
-it("rejects an older autosave snapshot and preserves the newer draft", async () => {
+it(
+  "rejects an older autosave snapshot and preserves the newer draft",
+  async () => {
   const factory = new FakeFactory();
   const store = await IndexedDbProjectStore.open(
     factory as unknown as IDBFactory,
@@ -198,10 +204,11 @@ it("rejects an older autosave snapshot and preserves the newer draft", async () 
     updatedAt: "2026-10-05T01:06:00.000Z",
   });
 
-  await store.putVenueVisitDraft(newer);
-  await expect(store.putVenueVisitDraft(draft())).rejects.toThrow("stale");
-  await expect(store.getVenueVisitDraft(venueId)).resolves.toEqual(newer);
-});
+    await store.putVenueVisitDraft(newer);
+    await expect(store.putVenueVisitDraft(draft())).rejects.toThrow("stale");
+    await expect(store.getVenueVisitDraft(venueId)).resolves.toEqual(newer);
+  },
+);
 
 it("accepts an idempotent retry of the same draft revision", async () => {
   const factory = new FakeFactory();
