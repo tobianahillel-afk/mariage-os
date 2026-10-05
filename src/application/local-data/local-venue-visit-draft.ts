@@ -127,7 +127,9 @@ function measurementsValue(
 
 function ratingValue(value: unknown): number | null {
   if (value === null) return null;
-  return Number.isInteger(value) && (value as number) >= 1 && (value as number) <= 5
+  return Number.isInteger(value) &&
+    (value as number) >= 1 &&
+    (value as number) <= 5
     ? (value as number)
     : invalid("personal rating");
 }
@@ -169,7 +171,6 @@ export function assertLocalVenueVisitDraftScope(
     throw new Error("Venue visit draft belongs to another local scope.");
   }
 }
-
 
 export function createLocalVenueVisitDraftCachedRecord(
   scope: LocalProjectScope,
