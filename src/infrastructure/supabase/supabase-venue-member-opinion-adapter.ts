@@ -129,6 +129,8 @@ export class SupabaseVenueMemberOpinionAdapter implements VenueMemberOpinionPort
         target_dimension_key: input.dimensionKey,
         target_rating: input.rating,
         target_expected_revision: input.expectedRevision,
+        target_operation_id: input.operationId,
+        target_device_id: input.deviceId,
       });
       if (error !== null) mutationFailure();
       return parseVenueMemberRatingRow(data, input.projectId, input.venueId);
