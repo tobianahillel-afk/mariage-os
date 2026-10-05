@@ -337,6 +337,33 @@ it("opens only the authorized account+project namespace and renders its counters
   });
 });
 
+it("renders unsynced local binary work as pending in the project shell", async () => {
+  const local = localFactory({
+    pendingCount: 0,
+    conflictCount: 0,
+    retryableFailureCount: 0,
+    permanentFailureCount: 0,
+    unsyncedBinaryCount: 1,
+  });
+
+  await startApplication(rootWithClear(), {
+    pathname: `/app/p/${projectId}/dashboard`,
+    sessionReader: verifiedSession(),
+    projectAccess: successfulProjectAccess(),
+    ...baseDependencies(),
+    localStoreFactory: local.factory,
+    deviceId,
+    online: true,
+  });
+
+  expect(renderShell.mock.calls.at(-1)?.[1]).toMatchObject({
+    syncSummary: {
+      kind: "pending",
+      label: "1 fichier local en attente d’envoi · conservé localement",
+    },
+  });
+});
+
 it("degrades without exposing data when opening local persistence fails", async () => {
   const factory: LocalProjectStoreFactory = {
     open: vi.fn().mockRejectedValue(new Error("storage blocked")),
