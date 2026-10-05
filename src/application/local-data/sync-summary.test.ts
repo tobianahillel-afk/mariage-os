@@ -56,6 +56,21 @@ it.each([
   });
 });
 
+it("surfaces unsynced local binaries as pending work", () => {
+  const binaryPending = { ...base, unsyncedBinaryCount: 1 };
+
+  expect(deriveSyncSummary(binaryPending)).toEqual({
+    kind: "pending",
+    label: "1 fichier local en attente d’envoi · conservé localement",
+  });
+  expect(
+    deriveSyncSummary({ ...binaryPending, online: false }),
+  ).toEqual({
+    kind: "offline_pending",
+    label: "Hors ligne · 1 fichier local en attente d’envoi",
+  });
+});
+
 it("prioritizes conflict over failures and pending state", () => {
   expect(
     deriveSyncSummary({
