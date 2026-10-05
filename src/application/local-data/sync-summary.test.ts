@@ -74,6 +74,20 @@ it("surfaces unsynced local binaries as pending work", () => {
   });
 });
 
+it("combines structured and binary pending work without hiding either", () => {
+  expect(
+    deriveSyncSummary({
+      ...base,
+      pendingCount: 2,
+      unsyncedBinaryCount: 2,
+    }),
+  ).toEqual({
+    kind: "pending",
+    label:
+      "2 modifications en attente · 2 fichiers locaux en attente d’envoi · enregistrées localement",
+  });
+});
+
 it("prioritizes conflict over failures and pending state", () => {
   expect(
     deriveSyncSummary({
