@@ -13,10 +13,7 @@ interface ExpectedOfflinePinApi {
     pin: unknown,
     record: CachedRecordEnvelope,
   ): Promise<void>;
-  getOfflinePin(
-    entityType: string,
-    entityId: string,
-  ): Promise<unknown | null>;
+  getOfflinePin(entityType: string, entityId: string): Promise<unknown | null>;
 }
 
 async function api(): Promise<ExpectedOfflinePinApi> {
