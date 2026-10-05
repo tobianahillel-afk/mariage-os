@@ -2,6 +2,10 @@ import {
   isUuid,
   type LocalProjectScope,
 } from "@application/local-data/local-project-scope";
+import {
+  createCachedRecordEnvelope,
+  type CachedRecordEnvelope,
+} from "@application/local-data/local-records";
 
 interface LocalVenueVisitQuestion {
   readonly questionId: string;
@@ -164,4 +168,42 @@ export function assertLocalVenueVisitDraftScope(
   ) {
     throw new Error("Venue visit draft belongs to another local scope.");
   }
+}
+
+
+export function createLocalVenueVisitDraftCachedRecord(
+  scope: LocalProjectScope,
+  draft: LocalVenueVisitDraft,
+): CachedRecordEnvelope {
+  const parsed = parseLocalVenueVisitDraft(draft);
+  assertLocalVenueVisitDraftScope(parsed, scope);
+  return createCachedRecordEnvelope(scope, {
+    recordType: "venue_visit_draft",
+    entityId: parsed.venueId,
+    serverRevision: null,
+    serverUpdatedAt: null,
+    syncMarker: "pending",
+    payload: {
+      venueId: parsed.venueId,
+      projectId: parsed.projectId,
+      userId: parsed.userId,
+      deviceId: parsed.deviceId,
+      draftRevision: parsed.draftRevision,
+      questionSetRevision: parsed.questionSetRevision,
+      questions: parsed.questions.map((question) => ({
+        questionId: question.questionId,
+        prompt: question.prompt,
+        response: question.response,
+      })),
+      notes: parsed.notes,
+      measurements: parsed.measurements.map((measurement) => ({
+        key: measurement.key,
+        value: measurement.value,
+        unit: measurement.unit,
+      })),
+      personalRatingIntent: parsed.personalRatingIntent,
+      createdAt: parsed.createdAt,
+      updatedAt: parsed.updatedAt,
+    },
+  });
 }
