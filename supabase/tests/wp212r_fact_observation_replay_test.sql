@@ -252,6 +252,40 @@ values
   'e2222222-2222-4222-8222-222222222222'
 );
 
+insert into public.fact_definitions(
+  id, project_id, key, label, entity_type, value_type, priority,
+  system_defined, options_json, created_by, updated_by
+)
+values (
+  'ee200000-0000-4000-8000-000000000003',
+  'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+  'visit_supported_layouts',
+  'Visit supported layouts',
+  'venue',
+  'multiselect',
+  'important',
+  false,
+  '{"options":[{"key":"covered","labelKey":"covered"},{"key":"open_air","labelKey":"open_air"}]}'::jsonb,
+  'e1111111-1111-4111-8111-111111111111',
+  'e1111111-1111-4111-8111-111111111111'
+);
+
+insert into public.facts(
+  id, project_id, target_type, target_id, definition_id, state,
+  retained_value, created_by, updated_by
+)
+values (
+  'ee300000-0000-4000-8000-000000000003',
+  'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+  'venue',
+  'ee100000-0000-4000-8000-000000000001',
+  'ee200000-0000-4000-8000-000000000003',
+  'unknown',
+  null,
+  'e1111111-1111-4111-8111-111111111111',
+  'e1111111-1111-4111-8111-111111111111'
+);
+
 insert into public.fact_observations(
   id, project_id, fact_id, value, raw_value_text, evidence_level, confidence,
   observation_status, observed_at, note, created_by
@@ -703,6 +737,63 @@ select throws_ok(
   '23505',
   'venue fact observation conflict',
   'changing supersede intent on replay conflicts'
+);
+
+select lives_ok(
+  $select public.append_venue_fact_observation(
+    'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+    'ee300000-0000-4000-8000-000000000003',
+    'ee400000-0000-4000-8000-000000000020',
+    '["covered","open_air"]'::jsonb,
+    'same multiselect visit intent',
+    'observed',
+    'high',
+    '2026-10-05T09:20:00Z',
+    'same multiselect visit intent',
+    null
+  )$,
+  'multiselect replay fixture first append succeeds'
+);
+
+select lives_ok(
+  $select public.update_venue_fact_definition(
+    'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+    'ee200000-0000-4000-8000-000000000003',
+    1,
+    'Visit supported layouts',
+    'important',
+    null,
+    null,
+    '{"options":[{"key":"open_air","labelKey":"open_air"},{"key":"covered","labelKey":"covered"}]}'::jsonb,
+    null
+  )$,
+  'unresolved custom multiselect definition may reorder options'
+);
+
+select lives_ok(
+  $select public.append_venue_fact_observation(
+    'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+    'ee300000-0000-4000-8000-000000000003',
+    'ee400000-0000-4000-8000-000000000020',
+    '["covered","open_air"]'::jsonb,
+    'same multiselect visit intent',
+    'observed',
+    'high',
+    '2026-10-05T09:20:00Z',
+    'same multiselect visit intent',
+    null
+  )$,
+  'exact replay remains idempotent after multiselect option reorder'
+);
+
+select is(
+  (
+    select count(*)
+    from public.fact_observations
+    where id = 'ee400000-0000-4000-8000-000000000020'
+  ),
+  1::bigint,
+  'multiselect replay after definition reorder keeps one observation row'
 );
 
 reset role;
