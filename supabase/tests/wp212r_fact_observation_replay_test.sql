@@ -272,7 +272,7 @@ values (
 
 set local role anon;
 select throws_ok(
-  $select public.append_venue_fact_observation(
+  $authz$select public.append_venue_fact_observation(
     'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
     'ee300000-0000-4000-8000-000000000001',
     'ee400000-0000-4000-8000-000000000010',
@@ -283,7 +283,7 @@ select throws_ok(
     '2026-10-05T08:40:00Z',
     'anon',
     null
-  )$,
+  )$authz$,
   '42501',
   'permission denied for function append_venue_fact_observation',
   'anon cannot execute replay-safe observation RPC'
@@ -297,7 +297,7 @@ select set_config(
   true
 );
 select throws_ok(
-  $select public.append_venue_fact_observation(
+  $authz$select public.append_venue_fact_observation(
     'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
     'ee300000-0000-4000-8000-000000000001',
     'ee400000-0000-4000-8000-000000000011',
@@ -308,7 +308,7 @@ select throws_ok(
     '2026-10-05T08:41:00Z',
     'viewer',
     null
-  )$,
+  )$authz$,
   '42501',
   'venue fact observation unavailable',
   'viewer cannot execute venues.write replay-safe observation'
@@ -320,7 +320,7 @@ select set_config(
   true
 );
 select throws_ok(
-  $select public.append_venue_fact_observation(
+  $authz$select public.append_venue_fact_observation(
     'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
     'ee300000-0000-4000-8000-000000000001',
     'ee400000-0000-4000-8000-000000000012',
@@ -331,7 +331,7 @@ select throws_ok(
     '2026-10-05T08:42:00Z',
     'outsider',
     null
-  )$,
+  )$authz$,
   '42501',
   'venue fact observation unavailable',
   'outsider cannot execute replay-safe observation for the project'
@@ -343,7 +343,7 @@ select set_config(
   true
 );
 select throws_ok(
-  $select public.append_venue_fact_observation(
+  $authz$select public.append_venue_fact_observation(
     'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
     'ee300000-0000-4000-8000-000000000001',
     'ee400000-0000-4000-8000-000000000013',
@@ -354,7 +354,7 @@ select throws_ok(
     '2026-10-05T08:43:00Z',
     'foreign owner',
     null
-  )$,
+  )$authz$,
   '42501',
   'venue fact observation unavailable',
   'project-B owner cannot execute project-A replay-safe observation'
@@ -366,7 +366,7 @@ select set_config(
   true
 );
 select throws_ok(
-  $select public.append_venue_fact_observation(
+  $authz$select public.append_venue_fact_observation(
     'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
     'ee300000-0000-4000-8000-000000000001',
     'ee400000-0000-4000-8000-000000000014',
@@ -377,7 +377,7 @@ select throws_ok(
     '2026-10-05T08:44:00Z',
     'revoked',
     null
-  )$,
+  )$authz$,
   '42501',
   'venue fact observation unavailable',
   'revoked project member cannot execute replay-safe observation'
