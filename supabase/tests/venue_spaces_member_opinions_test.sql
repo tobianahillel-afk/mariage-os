@@ -26,8 +26,13 @@ select has_function(
 );
 select has_function(
   'public', 'set_venue_member_rating',
+  array['uuid','uuid','text','numeric','bigint','uuid','uuid'],
+  'receipt-aware self-authored venue rating command exists'
+);
+select has_function(
+  'public', 'set_venue_member_rating',
   array['uuid','uuid','text','numeric','bigint'],
-  'self-authored venue rating command exists'
+  'legacy self-authored venue rating overload remains for rollout compatibility'
 );
 select ok(
   not has_table_privilege('anon', 'public.venue_spaces', 'select')
@@ -173,7 +178,13 @@ create function pg_temp.try_rating(
 returns boolean language plpgsql as $$
 begin
   perform public.set_venue_member_rating(
-    target_project, target_venue, target_dimension, target_rating, target_revision
+    target_project,
+    target_venue,
+    target_dimension,
+    target_rating,
+    target_revision,
+    gen_random_uuid(),
+    '8d700000-0000-4000-8000-000000000002'
   );
   return true;
 exception

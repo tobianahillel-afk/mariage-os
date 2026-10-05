@@ -12,6 +12,8 @@ import {
 const projectId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const venueId = "a1000000-0000-4000-8000-000000000001";
 const userId = "a3000000-0000-4000-8000-000000000001";
+const operationId = "a6000000-0000-4000-8000-000000000001";
+const deviceId = "a7000000-0000-4000-8000-000000000001";
 
 const preference: VenueMemberPreferenceRecord = {
   id: "a4000000-0000-4000-8000-000000000001",
@@ -114,7 +116,7 @@ describe("saveVenueMemberPreference", () => {
 });
 
 describe("saveVenueMemberRating", () => {
-  it("persists a validated personal rating without an author field", async () => {
+  it("persists a validated personal rating with stable replay identity", async () => {
     const captures: Captures = { preference: null, rating: null };
     const result = await saveVenueMemberRating(portWith(captures), {
       projectId,
@@ -122,6 +124,8 @@ describe("saveVenueMemberRating", () => {
       dimensionKey: "love_score",
       rating: 9,
       expectedRevision: 0,
+      operationId,
+      deviceId,
     });
 
     expect(result.ok && result.rating.userId).toBe(userId);
@@ -131,6 +135,8 @@ describe("saveVenueMemberRating", () => {
       dimensionKey: "love_score",
       rating: 9,
       expectedRevision: 0,
+      operationId,
+      deviceId,
     });
   });
 
@@ -142,6 +148,8 @@ describe("saveVenueMemberRating", () => {
       dimensionKey: "typo_score",
       rating: 5,
       expectedRevision: 0,
+      operationId,
+      deviceId,
     });
 
     expect(result).toEqual({ ok: false, error: "rating_dimension_invalid" });
@@ -157,7 +165,34 @@ describe("saveVenueMemberRating", () => {
         dimensionKey: "love_score",
         rating: 5,
         expectedRevision: 0,
+        operationId,
+        deviceId,
       }),
     ).resolves.toEqual({ ok: false, error: "persistence_failed" });
   });
+});
+
+describe("saveVenueMemberRating replay identity", () => {
+  it.each([
+    ["operation id", { operationId: "not-a-uuid" }, "operation_id_invalid"],
+    ["device id", { deviceId: "not-a-uuid" }, "device_id_invalid"],
+  ] as const)(
+    "rejects invalid %s before persistence",
+    async (_label, override, expectedError) => {
+      const captures: Captures = { preference: null, rating: null };
+      const result = await saveVenueMemberRating(portWith(captures), {
+        projectId,
+        venueId,
+        dimensionKey: "love_score",
+        rating: 5,
+        expectedRevision: 0,
+        operationId,
+        deviceId,
+        ...override,
+      });
+
+      expect(result).toEqual({ ok: false, error: expectedError });
+      expect(captures.rating).toBeNull();
+    },
+  );
 });

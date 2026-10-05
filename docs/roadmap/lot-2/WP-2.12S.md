@@ -5,11 +5,13 @@
 - Work Packet ID: `WP-2.12S`
 - Lot: 2 — Venues core
 - Name: replay-safe Venue member-rating command identity
-- State: `READY` — activation-governance exact-head CI pending
-- Current pass: `PLAN` (next: `A-IMPLEMENT / RED first`)
+- State: `IN_PROGRESS`
+- Current pass: `A-IMPLEMENT / GREEN candidate — exact-head CI pending`
 - Branch: `lot-2/venues-core`
-- Activation base: `2b2035740736dde090da9b1f5d86066975e7bc60`
-- Activation-base CI: `37342313598` — **5/5 SUCCESS**, including full verify from clean checkout
+- Parent-resumption base: `2b2035740736dde090da9b1f5d86066975e7bc60`
+- Parent-resumption CI: `37342313598` — **5/5 SUCCESS**, including full verify from clean checkout
+- Activation-governance head: `4768853fa9c86c44f7cc54c85381fbf87a795547`
+- Activation-governance CI: `37343723399` — **5/5 SUCCESS**, including full verify from clean checkout
 - Parent packet: `WP-2.12` — BLOCKED with tranches 1–3 GREEN preserved
 - Accepted sibling support: `WP-2.12R` — ACCEPTED / COMPLETE
 - Primary FIR: #42 / FTR-028
@@ -47,7 +49,7 @@ points. The orchestration >10 hard rule therefore requires this support packet.
 WP-2.12S may change only the self-authored Venue member-rating mutation path:
 
 - add stable `operationId` and `deviceId` to the application/port input;
-- replace the rating RPC with a receipt-aware exact signature;
+- add a receipt-aware seven-argument rating overload and switch the current adapter to it;
 - reuse the existing frozen-schema `sync_mutation_receipts` table;
 - record one server-owned receipt per accepted rating operation;
 - recognize an exact replay after response loss without incrementing rating
@@ -56,7 +58,7 @@ WP-2.12S may change only the self-authored Venue member-rating mutation path:
 - preserve optimistic revision conflict semantics for genuinely different
   operations;
 - enforce live membership/authorization before replay recognition;
-- keep the old non-receipt RPC signature removed.
+- retain the five-argument rating overload only for expand/switch compatibility with obsolete cached clients; the current adapter must not use it, and removal is deferred until obsolete clients are retired or an update-required gate exists.
 
 No preference/favorite command change is in scope because WP-2.12's local visit
 draft currently carries only a personal rating intent, not a preference write.
@@ -144,7 +146,7 @@ Required RED classes:
 6. same operation ID cannot cross project/user/device identity;
 7. revoked/unauthorized caller cannot exploit an existing receipt;
 8. genuinely new stale operation still conflicts;
-9. old non-receipt RPC signature must disappear after GREEN.
+9. current code must use only the receipt-aware overload, while the legacy five-argument overload remains temporarily callable for authenticated obsolete clients during the compatibility window.
 
 The RED PR must remain closed/unmerged. No production implementation before the
 RED failures are demonstrated for these intended reasons.
@@ -168,16 +170,21 @@ RED failures are demonstrated for these intended reasons.
 - [ ] exact replay returns prior semantic result without second revision
 - [ ] changed intent/identity fails closed
 - [ ] live authorization is rechecked on replay
-- [ ] old non-receipt rating RPC signature is absent
+- [ ] current adapter uses only the receipt-aware rating RPC; legacy five-argument overload remains compatibility-only pending safe retirement
 - [ ] all existing Member Opinion semantics remain green
 - [ ] exact-head 5/5 CI including clean checkout
 - [ ] packet moves to `REVIEW_PENDING / B-ADVERSARIAL-REVIEW`
 
-## Handoff
+## RED evidence and current handoff
 
-- Current state: READY candidate / activation exact-head CI pending
-- Parent WP-2.12: BLOCKED, tranches 1–3 GREEN preserved
-- Accepted sibling support: WP-2.12R
-- Open packet findings: ∅
-- Next permitted action: activation exact-head CI; only after green CI create
-  isolated RED-only response-loss replay evidence.
+- RED-only PR #90 / `9d4bfb5ffffc388b954d9fa9b6a2c031aa46602d` is **closed unmerged**.
+- RED CI `37364388534`:
+  - Core rerun fails exactly 2 tests: application service drops `operationId/deviceId`; Supabase adapter omits `target_operation_id/target_device_id`; **2,054 existing tests pass**.
+  - DB/RLS originally failed 4/7 assertions under the pre-review contract: seven-argument signature absent, legacy signature present, exact retry after response loss raises `40001`, and no replay receipt exists. Fresh review reclassified the legacy-signature-presence failure as a rollout-compatibility requirement; the genuine RED gaps are the missing seven-argument path, failed exact replay and missing receipt.
+  - Browser E2E + mutation remains green.
+- Current state: **IN_PROGRESS / A-REMEDIATION**.
+- Parent WP-2.12: BLOCKED, tranches 1–3 GREEN preserved.
+- Accepted sibling support: WP-2.12R.
+- Open packet finding: `WP212S-AR-001` **P1 / REMEDIATION** — preserve the legacy five-argument RPC during expand/switch because no update-required/version gate retires obsolete cached clients yet.
+- Pre-finding GREEN head `a5e6c1a4e51c39882c93d4c13038275a430472bc` / CI `37379588696` passed 5/5, 2,056 tests and 100% coverage, but is not merge-eligible because AR-001 was discovered by independent review.
+- Next permitted action: prove the compatibility remediation on a new exact head, then run a fresh independent review. Only a clean review may move the packet to `REVIEW_PENDING / B-ADVERSARIAL-REVIEW`.

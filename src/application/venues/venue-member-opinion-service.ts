@@ -8,6 +8,9 @@ import {
   type VenueRatingDimension,
 } from "@domain/venues/venue-member-opinion";
 
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 export interface VenueMemberPreferenceRecord {
   readonly id: string;
   readonly projectId: string;
@@ -42,6 +45,8 @@ export interface SaveVenueMemberRatingInput {
   readonly dimensionKey: VenueRatingDimension;
   readonly rating: number;
   readonly expectedRevision: number;
+  readonly operationId: string;
+  readonly deviceId: string;
 }
 
 export interface VenueMemberOpinionPort {
@@ -69,11 +74,17 @@ export interface SaveVenuePreferenceDraft extends VenueMemberPreferenceDraft {
 export interface SaveVenueRatingDraft extends VenueMemberRatingDraft {
   readonly projectId: string;
   readonly venueId: string;
+  readonly operationId: string;
+  readonly deviceId: string;
 }
 
 type PreferenceMutationError =
   VenueMemberPreferenceError | "persistence_failed";
-type RatingMutationError = VenueMemberRatingError | "persistence_failed";
+type RatingMutationError =
+  | VenueMemberRatingError
+  | "operation_id_invalid"
+  | "device_id_invalid"
+  | "persistence_failed";
 
 export type PreferenceMutationResult =
   | { readonly ok: true; readonly preference: VenueMemberPreferenceRecord }
@@ -102,6 +113,14 @@ export async function saveVenueMemberPreference(
   }
 }
 
+function validateRatingReplayIdentity(
+  draft: SaveVenueRatingDraft,
+): RatingMutationError | null {
+  if (!UUID_PATTERN.test(draft.operationId)) return "operation_id_invalid";
+  if (!UUID_PATTERN.test(draft.deviceId)) return "device_id_invalid";
+  return null;
+}
+
 export async function saveVenueMemberRating(
   port: VenueMemberOpinionPort,
   draft: SaveVenueRatingDraft,
@@ -109,10 +128,15 @@ export async function saveVenueMemberRating(
   const normalized = normalizeVenueMemberRating(draft);
   if (!normalized.ok) return normalized;
 
+  const identityError = validateRatingReplayIdentity(draft);
+  if (identityError !== null) return { ok: false, error: identityError };
+
   try {
     const rating = await port.saveVenueRating({
       projectId: draft.projectId,
       venueId: draft.venueId,
+      operationId: draft.operationId,
+      deviceId: draft.deviceId,
       ...normalized.value,
     });
     return { ok: true, rating };

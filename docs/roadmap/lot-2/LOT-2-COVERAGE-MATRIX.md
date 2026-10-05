@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1..WP-2.11 + WP-2.12R ACCEPTED; WP-2.12 BLOCKED on WP-2.12S; WP-2.12S activation CI pending**
+Status: **IN_PROGRESS — WP-2.1..WP-2.11 + WP-2.12R ACCEPTED; WP-2.12 BLOCKED on WP-2.12S; WP-2.12S A-REMEDIATION**
 
 Purpose: durable current responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`. Detailed historical evidence remains in packet records, acceptance records, FIRs and Git history.
 
@@ -127,7 +127,7 @@ ADR 0011 later produced decisive deployed CPU evidence and was rejected for fina
 | WP-2.11 | **ACCEPTED / COMPLETE** | gallery/table/detail/compare/deep-link workspace; Pass C gap ∅ / CI `37240178167` 5/5 |
 | WP-2.12 | **BLOCKED — dependency WP-2.12S** | mobile/offline Venue visit + packet E2E completion; tranches 1–3 GREEN; Fact replay dependency satisfied; rating replay dependency open; FIR #42 |
 | WP-2.12R | **ACCEPTED / COMPLETE** | replay-safe fact-observation command identity; Pass C gap ∅ / CI `37335393969` 5/5; 3 points / cohesion PASS |
-| WP-2.12S | **READY candidate — activation CI pending** | replay-safe Venue member-rating command identity; 3 points / cohesion PASS |
+| WP-2.12S | **IN_PROGRESS / A-REMEDIATION — WP212S-AR-001 P1 OPEN** | replay-safe Venue member-rating command identity with expand/switch compatibility; 3 points / cohesion PASS |
 
 ## Sequencing
 
@@ -137,7 +137,7 @@ WP-2.1..WP-2.8C [ACCEPTED]
     → WP-2.9A [ACCEPTED]
                 → WP-2.9B [ACCEPTED] → WP-2.10 [ACCEPTED] → WP-2.11 [ACCEPTED] → WP-2.12 [BLOCKED]
                                                                                            ↘ WP-2.12R [ACCEPTED]
-                                                                                           ↘ WP-2.12S [READY gate]
+                                                                                           ↘ WP-2.12S [A-REMEDIATION]
                                                                                               → WP-2.12 [resume A after S acceptance]
                                                                                                 → Lot reconciliation → Integration Pass
 ```
@@ -187,8 +187,8 @@ WP-2.10 = ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record `a2d48341515
 WP-2.11 = ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record `3167a380521119e9650859543778b040527332e2` / CI `37240178167` 5/5; final seal `0a2d051d3f0a45b638f5c1b5f8c81acf36491c36` / CI `37240817336` 5/5; FTR-015/016/017/027 closed completed
 WP-2.12 = BLOCKED — tranches 1–3 GREEN through `1794a3d9...` / `37280907551`; resumption head `2b203574...` / CI `37342313598` 5/5; Fact replay dependency satisfied; Member Rating replay dependency extracted; FIR #42
 WP-2.12R = ACCEPTED / COMPLETE — final support seal `cdad9eb82052ac3e2296769e5381b2371558ec4d` / CI `37341157497` 5/5
-WP-2.12S = READY candidate — replay-safe Venue member-rating command; 3 points / cohesion PASS; activation exact-head CI pending
-next permitted action = WP-2.12S activation CI/clean checkout → isolated RED lost-response/replay evidence → bounded GREEN → fresh Pass B/C → separate parent resumption
+WP-2.12S = IN_PROGRESS / A-REMEDIATION — activation `4768853f...` / CI `37343723399` 5/5; RED #90 / `9d4bfb5f...` / CI `37364388534`; pre-finding GREEN `a5e6c1a4...` / CI `37379588696` 5/5; `WP212S-AR-001` P1 requires temporary legacy-overload coexistence during rollout
+next permitted action = compatibility-remediated exact-head CI/clean checkout → fresh independent review → Pass B → separate Pass C → separate parent resumption
 media-byte durability/upload remains a separate later parent tranche; no provider rerun is authorized
 ```
 
