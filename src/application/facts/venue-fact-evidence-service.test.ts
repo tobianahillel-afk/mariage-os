@@ -108,6 +108,7 @@ const resolvedFact: ResolvedVenueFactRecord = {
 const observationDraft = {
   projectId,
   factId,
+  observationId,
   supersedesObservationId: null,
   value: false,
   rawValueText: "No",
@@ -218,11 +219,30 @@ it("validates observation against the fact definition before appending", async (
   expect(received).toMatchObject({
     projectId,
     factId,
+    observationId,
     value: false,
     evidenceLevel: "confirmed_for_event",
     confidence: "high",
     observedAt: "2026-09-07T06:30:00.000Z",
   });
+});
+
+
+it("rejects malformed observation identity before any persistence lookup", async () => {
+  let lookedUp = false;
+  const port = makePort({
+    getFactContext: async () => {
+      lookedUp = true;
+      return context;
+    },
+  });
+  await expect(
+    appendVenueFactObservation(port, {
+      ...observationDraft,
+      observationId: "not-a-uuid",
+    }),
+  ).resolves.toEqual({ ok: false, error: "invalid_observation_identity" });
+  expect(lookedUp).toBe(false);
 });
 
 it("fails before observation mutation for malformed typed values", async () => {

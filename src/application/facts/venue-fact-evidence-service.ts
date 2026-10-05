@@ -17,6 +17,7 @@ import {
   type FactSourceError,
   type NormalizedFactSource,
 } from "@domain/facts/fact-source";
+import { isVenueCommercialUuid } from "@domain/venues/venue-commercial-values";
 import {
   validateExpectedVenueRevision,
   type VenueRevisionError,
@@ -81,6 +82,7 @@ export interface UpdateVenueFactSourceInput extends NormalizedFactSource {
 export interface AppendVenueFactObservationInput extends NormalizedFactObservation {
   readonly projectId: string;
   readonly factId: string;
+  readonly observationId: string;
   readonly supersedesObservationId: string | null;
 }
 
@@ -130,6 +132,7 @@ export interface UpdateVenueFactSourceDraft extends FactSourceDraft {
 export interface AppendVenueFactObservationDraft extends FactObservationDraft {
   readonly projectId: string;
   readonly factId: string;
+  readonly observationId: unknown;
   readonly supersedesObservationId: string | null;
 }
 export interface LinkObservationSourceDraft {
@@ -153,6 +156,7 @@ type EvidenceDomainError =
   | FactResolutionError
   | VenueRevisionError
   | "invalid_primary_flag"
+  | "invalid_observation_identity"
   | "derived_fact_read_only";
 type EvidenceMutationError =
   EvidenceDomainError | VenueFactPersistenceErrorCode;
@@ -220,6 +224,9 @@ export async function appendVenueFactObservation(
   port: VenueFactEvidencePort,
   draft: AppendVenueFactObservationDraft,
 ): Promise<ObservationMutationResult> {
+  if (!isVenueCommercialUuid(draft.observationId)) {
+    return { ok: false, error: "invalid_observation_identity" };
+  }
   try {
     const context = await port.getFactContext(draft.projectId, draft.factId);
     if (isDerivedTargetGuestDefinition(context.definition)) {
@@ -230,6 +237,7 @@ export async function appendVenueFactObservation(
     const observation = await port.appendObservation({
       projectId: draft.projectId,
       factId: draft.factId,
+      observationId: draft.observationId,
       supersedesObservationId: draft.supersedesObservationId,
       ...normalized.value,
     });

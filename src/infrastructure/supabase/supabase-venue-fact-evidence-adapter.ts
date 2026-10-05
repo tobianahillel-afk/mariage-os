@@ -169,9 +169,10 @@ function sourceData(
 function observationData(
   value: unknown,
   context: VenueFactContext,
+  expectedObservationId: string,
 ): VenueFactObservationRecord {
   try {
-    return parseVenueFactObservationRow(value, context);
+    return parseVenueFactObservationRow(value, context, expectedObservationId);
   } catch {
     fail("provider_response_invalid", OBSERVATION_MUTATION_FAILED);
   }
@@ -288,6 +289,7 @@ export class SupabaseVenueFactEvidenceAdapter implements VenueFactEvidencePort {
       {
         target_project_id: input.projectId,
         target_fact_id: input.factId,
+        target_observation_id: input.observationId,
         target_value: input.value,
         target_raw_value_text: input.rawValueText,
         target_evidence_level: input.evidenceLevel,
@@ -298,7 +300,7 @@ export class SupabaseVenueFactEvidenceAdapter implements VenueFactEvidencePort {
       },
       OBSERVATION_MUTATION_FAILED,
     );
-    return observationData(data, context);
+    return observationData(data, context, input.observationId);
   }
 
   async linkObservationSource(
