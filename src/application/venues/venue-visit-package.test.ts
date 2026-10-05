@@ -1,6 +1,8 @@
 import { expect, it } from "vitest";
 
-import type { LocalOfflinePin } from "@application/local-data/local-offline-pin";
+import type {
+  LocalOfflinePin,
+} from "@application/local-data/local-offline-pin";
 import {
   assertVenueVisitPackageMatchesPin,
   parseVenueVisitPackagePayload,
@@ -62,19 +64,30 @@ it("accepts the no-media policy", () => {
 });
 
 it.each([
-  ["Venue", { venue: { ...payload().venue, id: "a2222222-2222-4222-8222-222222222222" } }],
+  [
+    "Venue",
+    {
+      venue: {
+        ...payload().venue,
+        id: "a2222222-2222-4222-8222-222222222222",
+      },
+    },
+  ],
   ["preparedAt", { preparedAt: "2026-10-05T00:01:00.000Z" }],
   ["mediaPolicy", { mediaPolicy: "none" }],
   ["packageRevision", { packageRevision: 2 }],
-])("rejects package metadata that disagrees with the pin: %s", (_label, override) => {
-  const parsed = parseVenueVisitPackagePayload({
-    ...payload(),
-    ...override,
-  });
-  expect(() => assertVenueVisitPackageMatchesPin(parsed, pin())).toThrow(
-    "metadata does not match",
-  );
-});
+])(
+  "rejects package metadata that disagrees with the pin: %s",
+  (_label, override) => {
+    const parsed = parseVenueVisitPackagePayload({
+      ...payload(),
+      ...override,
+    });
+    expect(() => assertVenueVisitPackageMatchesPin(parsed, pin())).toThrow(
+      "metadata does not match",
+    );
+  },
+);
 
 it("accepts package metadata that matches the pin", () => {
   expect(() =>
