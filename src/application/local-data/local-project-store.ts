@@ -1,3 +1,4 @@
+import type { LocalOfflinePin } from "@application/local-data/local-offline-pin";
 import type { LocalProjectScope } from "@application/local-data/local-project-scope";
 import type {
   CachedRecordEnvelope,
@@ -36,6 +37,14 @@ export interface LocalProjectStore {
   listCachedRecords(
     recordType: string,
   ): Promise<readonly CachedRecordEnvelope[]>;
+  putOfflinePinWithCachedRecord(
+    pin: LocalOfflinePin,
+    record: CachedRecordEnvelope,
+  ): Promise<void>;
+  getOfflinePin(
+    entityType: string,
+    entityId: string,
+  ): Promise<LocalOfflinePin | null>;
   addPendingMutation(mutation: PendingMutationEnvelope): Promise<void>;
   addPendingMutationWithCachedRecord(
     mutation: PendingMutationEnvelope,
