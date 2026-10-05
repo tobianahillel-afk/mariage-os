@@ -11,6 +11,7 @@ const base: SyncSummaryInput = {
   conflictCount: 0,
   retryableFailureCount: 0,
   permanentFailureCount: 0,
+  unsyncedBinaryCount: 0,
 };
 
 it.each([
@@ -89,6 +90,7 @@ it.each([
   ["conflictCount", 0.5],
   ["retryableFailureCount", -2],
   ["permanentFailureCount", Number.NaN],
+  ["unsyncedBinaryCount", -1],
 ] as const)("rejects invalid %s", (field, value) => {
   expect(() => deriveSyncSummary({ ...base, [field]: value })).toThrow(field);
 });
