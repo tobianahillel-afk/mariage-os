@@ -286,6 +286,40 @@ values (
   'e1111111-1111-4111-8111-111111111111'
 );
 
+insert into public.fact_definitions(
+  id, project_id, key, label, entity_type, value_type, priority,
+  system_defined, options_json, created_by, updated_by
+)
+values (
+  'ee200000-0000-4000-8000-000000000004',
+  'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+  'visit_numeric_clearance',
+  'Visit numeric clearance',
+  'venue',
+  'number',
+  'important',
+  false,
+  '{"min":0,"max":10}'::jsonb,
+  'e1111111-1111-4111-8111-111111111111',
+  'e1111111-1111-4111-8111-111111111111'
+);
+
+insert into public.facts(
+  id, project_id, target_type, target_id, definition_id, state,
+  retained_value, created_by, updated_by
+)
+values (
+  'ee300000-0000-4000-8000-000000000004',
+  'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+  'venue',
+  'ee100000-0000-4000-8000-000000000001',
+  'ee200000-0000-4000-8000-000000000004',
+  'unknown',
+  null,
+  'e1111111-1111-4111-8111-111111111111',
+  'e1111111-1111-4111-8111-111111111111'
+);
+
 insert into public.fact_observations(
   id, project_id, fact_id, value, raw_value_text, evidence_level, confidence,
   observation_status, observed_at, note, created_by
@@ -755,7 +789,7 @@ select lives_ok(
   'mutable-definition replay fixture first append succeeds'
 );
 
-select lives_ok(
+select throws_ok(
   $replay$select public.update_venue_fact_definition(
     'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
     'ee200000-0000-4000-8000-000000000003',
@@ -767,7 +801,9 @@ select lives_ok(
     '{"options":[{"key":"open_air","labelKey":"open_air"}]}'::jsonb,
     null
   )$replay$,
-  'unresolved custom definition may remove a previously selected option'
+  '23514',
+  'fact definition invalidates observation history',
+  'definition cannot remove an option used by observation history'
 );
 
 select is(
@@ -804,6 +840,65 @@ select is(
   ),
   1::bigint,
   'definition-drift replay keeps exactly one observation row'
+);
+
+select lives_ok(
+  $numeric$select public.append_venue_fact_observation(
+    'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+    'ee300000-0000-4000-8000-000000000004',
+    'ee400000-0000-4000-8000-000000000021',
+    '8'::jsonb,
+    'numeric visit intent',
+    'observed',
+    'high',
+    '2026-10-05T09:25:00Z',
+    'numeric visit intent',
+    null
+  )$numeric$,
+  'numeric replay fixture first append succeeds'
+);
+
+select throws_ok(
+  $numeric$select public.update_venue_fact_definition(
+    'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+    'ee200000-0000-4000-8000-000000000004',
+    1,
+    'Visit numeric clearance',
+    'important',
+    null,
+    null,
+    '{"min":0,"max":5}'::jsonb,
+    null
+  )$numeric$,
+  '23514',
+  'fact definition invalidates observation history',
+  'definition cannot tighten numeric bounds below observation history'
+);
+
+select lives_ok(
+  $numeric$select public.append_venue_fact_observation(
+    'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+    'ee300000-0000-4000-8000-000000000004',
+    'ee400000-0000-4000-8000-000000000021',
+    '8'::jsonb,
+    'numeric visit intent',
+    'observed',
+    'high',
+    '2026-10-05T09:25:00Z',
+    'numeric visit intent',
+    null
+  )$numeric$,
+  'exact numeric replay remains idempotent after rejected bound tightening'
+);
+
+select is(
+  (
+    select count(*)
+    from public.fact_observations
+    where id = 'ee400000-0000-4000-8000-000000000021'
+  ),
+  1::bigint,
+  'numeric definition-drift challenge keeps exactly one observation row'
 );
 
 reset role;
