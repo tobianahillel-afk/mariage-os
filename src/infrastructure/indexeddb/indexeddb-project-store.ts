@@ -7,9 +7,7 @@ import {
   parseLocalOfflinePin,
   type LocalOfflinePin,
 } from "@application/local-data/local-offline-pin";
-import type {
-  LocalProjectPurgePort,
-} from "@application/local-data/local-project-purge-port";
+import type { LocalProjectPurgePort } from "@application/local-data/local-project-purge-port";
 import {
   parseCachedRecordEnvelope,
   parseLocalProjectMetadata,
@@ -283,11 +281,7 @@ export class IndexedDbProjectStore
     assertLocalOfflinePinScope(parsedPin, this.scope);
     assertCachedRecordScope(parsedRecord, this.scope);
     assertOfflinePinPackage(parsedPin, parsedRecord);
-    await runAtomicOfflinePinWithCache(
-      this.database,
-      parsedPin,
-      parsedRecord,
-    );
+    await runAtomicOfflinePinWithCache(this.database, parsedPin, parsedRecord);
   }
 
   async getOfflinePin(
