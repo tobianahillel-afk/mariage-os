@@ -1,8 +1,6 @@
 import { expect, it } from "vitest";
 
-import type {
-  LocalVenueVisitDraft,
-} from "@application/local-data/local-venue-visit-draft";
+import type { LocalVenueVisitDraft } from "@application/local-data/local-venue-visit-draft";
 
 import { IndexedDbProjectStore } from "./indexeddb-project-store";
 import {
