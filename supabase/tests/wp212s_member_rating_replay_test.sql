@@ -13,8 +13,26 @@ select ok(
 select ok(
   to_regprocedure(
     'public.set_venue_member_rating(uuid,uuid,text,numeric,bigint)'
-  ) is null,
-  'legacy non-receipt rating signature is removed'
+  ) is not null,
+  'legacy rating overload remains during the expand/switch compatibility window'
+);
+
+select ok(
+  has_function_privilege(
+    'authenticated',
+    'public.set_venue_member_rating(uuid,uuid,text,numeric,bigint)',
+    'EXECUTE'
+  ),
+  'authenticated legacy clients remain compatible during rollout'
+);
+
+select ok(
+  not has_function_privilege(
+    'anon',
+    'public.set_venue_member_rating(uuid,uuid,text,numeric,bigint)',
+    'EXECUTE'
+  ),
+  'legacy compatibility does not widen anonymous access'
 );
 
 select ok(
