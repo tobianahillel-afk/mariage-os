@@ -9,6 +9,8 @@ const otherProjectId = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
 const venueId = "a1000000-0000-4000-8000-000000000001";
 const userA = "a3000000-0000-4000-8000-000000000001";
 const userB = "a3000000-0000-4000-8000-000000000002";
+const operationId = "a6000000-0000-4000-8000-000000000001";
+const deviceId = "a7000000-0000-4000-8000-000000000001";
 
 const preferenceRow = {
   id: "a4000000-0000-4000-8000-000000000001",
@@ -243,6 +245,8 @@ describe("SupabaseVenueMemberOpinionAdapter preference writes", () => {
       target_favorite: true,
       target_personal_note: "private",
       target_expected_revision: 0,
+      target_operation_id: operationId,
+      target_device_id: deviceId,
     });
     expect(captures.rpc).not.toHaveProperty("user_id");
   });
@@ -260,6 +264,8 @@ describe("SupabaseVenueMemberOpinionAdapter rating writes", () => {
       dimensionKey: "love_score",
       rating: 9,
       expectedRevision: 0,
+      operationId,
+      deviceId,
     });
     expect(captures.rpcName).toBe("set_venue_member_rating");
     expect(captures.rpc).toMatchObject({
@@ -288,6 +294,8 @@ describe("SupabaseVenueMemberOpinionAdapter unsafe writes", () => {
               dimensionKey: "love_score",
               rating: 9,
               expectedRevision: 0,
+              operationId,
+              deviceId,
             })
           : adapter.saveVenuePreference({
               projectId,
