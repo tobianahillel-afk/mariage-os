@@ -11,6 +11,7 @@ const base: SyncSummaryInput = {
   conflictCount: 0,
   retryableFailureCount: 0,
   permanentFailureCount: 0,
+  unsyncedBinaryCount: 0,
 };
 
 it.each([
@@ -56,6 +57,37 @@ it.each([
   });
 });
 
+it("surfaces unsynced local binaries as pending work", () => {
+  const binaryPending = { ...base, unsyncedBinaryCount: 1 };
+
+  expect(deriveSyncSummary(binaryPending)).toEqual({
+    kind: "pending",
+    label: "1 fichier local en attente d’envoi · conservé localement",
+  });
+  const offlineBinaryPending = deriveSyncSummary({
+    ...binaryPending,
+    online: false,
+  });
+  expect(offlineBinaryPending).toEqual({
+    kind: "offline_pending",
+    label: "Hors ligne · 1 fichier local en attente d’envoi",
+  });
+});
+
+it("combines structured and binary pending work without hiding either", () => {
+  expect(
+    deriveSyncSummary({
+      ...base,
+      pendingCount: 2,
+      unsyncedBinaryCount: 2,
+    }),
+  ).toEqual({
+    kind: "pending",
+    label:
+      "2 modifications en attente · 2 fichiers locaux en attente d’envoi · enregistrées localement",
+  });
+});
+
 it("prioritizes conflict over failures and pending state", () => {
   expect(
     deriveSyncSummary({
@@ -72,6 +104,7 @@ it.each([
   ["conflictCount", 0.5],
   ["retryableFailureCount", -2],
   ["permanentFailureCount", Number.NaN],
+  ["unsyncedBinaryCount", -1],
 ] as const)("rejects invalid %s", (field, value) => {
   expect(() => deriveSyncSummary({ ...base, [field]: value })).toThrow(field);
 });

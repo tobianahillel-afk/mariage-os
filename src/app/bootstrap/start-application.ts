@@ -57,6 +57,7 @@ function unavailableDurabilitySummary(): SyncSummary {
     conflictCount: 0,
     retryableFailureCount: 0,
     permanentFailureCount: 0,
+    unsyncedBinaryCount: 0,
   });
 }
 

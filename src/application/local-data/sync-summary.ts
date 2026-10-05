@@ -9,6 +9,7 @@ export interface SyncSummaryInput {
   readonly conflictCount: number;
   readonly retryableFailureCount: number;
   readonly permanentFailureCount: number;
+  readonly unsyncedBinaryCount: number;
 }
 
 export type SyncSummary =
@@ -25,6 +26,20 @@ export type SyncSummary =
 function pendingLabel(count: number): string {
   const noun = count === 1 ? "modification" : "modifications";
   return `${count} ${noun} en attente`;
+}
+
+function binaryPendingLabel(count: number): string {
+  const noun = count === 1 ? "fichier local" : "fichiers locaux";
+  return `${count} ${noun} en attente d’envoi`;
+}
+
+function pendingWorkLabel(
+  pendingCount: number,
+  unsyncedBinaryCount: number,
+): string {
+  if (pendingCount === 0) return binaryPendingLabel(unsyncedBinaryCount);
+  if (unsyncedBinaryCount === 0) return pendingLabel(pendingCount);
+  return `${pendingLabel(pendingCount)} · ${binaryPendingLabel(unsyncedBinaryCount)}`;
 }
 
 function assertCount(value: number, field: string): void {
@@ -52,11 +67,42 @@ function settledConnectivitySummary(
   return { kind: "synced", label: "En ligne · synchronisé" };
 }
 
+function pendingConnectivitySummary(input: SyncSummaryInput): SyncSummary {
+  const hasPendingWork =
+    input.pendingCount > 0 || input.unsyncedBinaryCount > 0;
+  if (!input.online && hasPendingWork) {
+    return {
+      kind: "offline_pending",
+      label: `Hors ligne · ${pendingWorkLabel(
+        input.pendingCount,
+        input.unsyncedBinaryCount,
+      )}`,
+    };
+  }
+  if (input.syncing) {
+    return { kind: "synchronizing", label: "Synchronisation…" };
+  }
+  if (!hasPendingWork) {
+    return settledConnectivitySummary(input.online, input.cloudSynchronized);
+  }
+
+  const work = pendingWorkLabel(input.pendingCount, input.unsyncedBinaryCount);
+  const suffix =
+    input.pendingCount === 0
+      ? "conservé localement"
+      : "enregistrées localement";
+  return {
+    kind: "pending",
+    label: `${work} · ${suffix}`,
+  };
+}
+
 export function deriveSyncSummary(input: SyncSummaryInput): SyncSummary {
   assertCount(input.pendingCount, "pendingCount");
   assertCount(input.conflictCount, "conflictCount");
   assertCount(input.retryableFailureCount, "retryableFailureCount");
   assertCount(input.permanentFailureCount, "permanentFailureCount");
+  assertCount(input.unsyncedBinaryCount, "unsyncedBinaryCount");
 
   if (input.durability === "unavailable") {
     return {
@@ -73,20 +119,5 @@ export function deriveSyncSummary(input: SyncSummaryInput): SyncSummary {
       label: "Erreur de sync · travail conservé localement",
     };
   }
-  if (!input.online && input.pendingCount > 0) {
-    return {
-      kind: "offline_pending",
-      label: `Hors ligne · ${pendingLabel(input.pendingCount)}`,
-    };
-  }
-  if (input.syncing) {
-    return { kind: "synchronizing", label: "Synchronisation…" };
-  }
-  if (input.pendingCount > 0) {
-    return {
-      kind: "pending",
-      label: `${pendingLabel(input.pendingCount)} · enregistrées localement`,
-    };
-  }
-  return settledConnectivitySummary(input.online, input.cloudSynchronized);
+  return pendingConnectivitySummary(input);
 }
