@@ -1,7 +1,3 @@
-drop function public.set_venue_member_rating(
-  uuid, uuid, text, numeric, bigint
-);
-
 create function public.set_venue_member_rating(
   target_project_id uuid,
   target_venue_id uuid,
@@ -212,3 +208,9 @@ comment on function public.set_venue_member_rating(
   uuid, uuid, text, numeric, bigint, uuid, uuid
 ) is
   'Receipt-aware self-authored Venue rating command with stable operation/device identity, live authorization, exact replay recognition and optimistic revision conflicts.';
+
+
+comment on function public.set_venue_member_rating(
+  uuid, uuid, text, numeric, bigint
+) is
+  'Temporary authenticated compatibility overload retained for expand/switch deployment. Current clients must use the receipt-aware seven-argument overload; remove only after obsolete clients are retired or an update-required gate exists.';
