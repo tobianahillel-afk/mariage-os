@@ -179,11 +179,11 @@ begin
 exception when others then
   return false;
 end$$;
-create function pg_temp.try_observe(f uuid,x jsonb)
+create function pg_temp.try_observe(o uuid,f uuid,x jsonb)
 returns boolean language plpgsql as $$
 begin
   perform public.append_venue_fact_observation(
-    'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',f,x,null,'estimated','medium',
+    'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',f,o,x,null,'estimated','medium',
     '2026-09-07T18:00:00Z',null,null
   );
   return true;
@@ -233,6 +233,7 @@ select ok(
 );
 select ok(
   pg_temp.try_observe(
+    'ee400000-0000-4000-8000-000000000001',
     (select id from public.facts
       where definition_id = 'ee200000-0000-4000-8000-000000000002'),
     '170'
@@ -262,7 +263,7 @@ select set_config(
   true
 );
 select ok(
-  not pg_temp.try_observe('ee300000-0000-4000-8000-000000000001','true'),
+  not pg_temp.try_observe('ee400000-0000-4000-8000-000000000002','ee300000-0000-4000-8000-000000000001','true'),
   'legacy derived fact rows cannot acquire authoritative observations'
 );
 
