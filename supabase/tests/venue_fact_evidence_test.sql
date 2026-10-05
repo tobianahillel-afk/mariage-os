@@ -26,7 +26,7 @@ select has_function(
 select has_function(
   'public',
   'append_venue_fact_observation',
-  array['uuid','uuid','jsonb','text','text','text','text','text','uuid'],
+  array['uuid','uuid','uuid','jsonb','text','text','text','text','text','uuid'],
   'append observation RPC exists'
 );
 select has_function(
@@ -126,12 +126,12 @@ exception when others then
 end$$;
 
 create function pg_temp.try_observation(
-  p uuid, f uuid, v jsonb, l text, c text, supersedes uuid
+  p uuid, f uuid, o uuid, v jsonb, l text, c text, supersedes uuid
 ) returns uuid language plpgsql as $$
 declare result_row jsonb;
 begin
   result_row := public.append_venue_fact_observation(
-    p, f, v, 'raw evidence', l, c, '2026-09-07T10:11:12Z', 'note', supersedes
+    p, f, o, v, 'raw evidence', l, c, '2026-09-07T10:11:12Z', 'note', supersedes
   );
   return (result_row ->> 'id')::uuid;
 exception when others then
@@ -225,6 +225,7 @@ select isnt(
   pg_temp.try_observation(
     'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
     'cc300000-0000-4000-8000-000000000001',
+    'cc400000-0000-4000-8000-000000000001',
     'false',
     'estimated',
     'low',
@@ -247,6 +248,7 @@ select is(
   pg_temp.try_observation(
     'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
     'cc300000-0000-4000-8000-000000000001',
+    'cc400000-0000-4000-8000-000000000002',
     '"false"',
     'contractual',
     'high',
@@ -259,6 +261,7 @@ select is(
   pg_temp.try_observation(
     'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
     'dd300000-0000-4000-8000-000000000001',
+    'cc400000-0000-4000-8000-000000000003',
     'true',
     'contractual',
     'high',
@@ -272,6 +275,7 @@ select isnt(
   pg_temp.try_observation(
     'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
     'cc300000-0000-4000-8000-000000000001',
+    'cc400000-0000-4000-8000-000000000004',
     'false',
     'contractual',
     'high',
@@ -483,6 +487,7 @@ select isnt(
   pg_temp.try_observation(
     'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
     'cc300000-0000-4000-8000-000000000001',
+    'cc400000-0000-4000-8000-000000000005',
     null,
     'unknown_source',
     'unknown',
