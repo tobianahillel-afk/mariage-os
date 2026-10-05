@@ -227,7 +227,6 @@ it("validates observation against the fact definition before appending", async (
   });
 });
 
-
 it("rejects malformed observation identity before any persistence lookup", async () => {
   let lookedUp = false;
   const port = makePort({
