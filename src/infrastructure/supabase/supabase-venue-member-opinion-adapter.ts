@@ -131,9 +131,7 @@ export class SupabaseVenueMemberOpinionAdapter implements VenueMemberOpinionPort
         input.venueId,
       );
     } catch {
-      throw new Error("Venue member opinion mutation failed.", {
-        cause: error,
-      });
+      throw new Error("Venue member opinion mutation failed.");
     }
   }
 
@@ -154,7 +152,9 @@ export class SupabaseVenueMemberOpinionAdapter implements VenueMemberOpinionPort
       return parseVenueMemberRatingRow(data, input.projectId, input.venueId);
     } catch (error) {
       if (error instanceof VenueMemberOpinionPersistenceError) throw error;
-      throw new Error("Venue member opinion mutation failed.");
+      throw new Error("Venue member opinion mutation failed.", {
+        cause: error,
+      });
     }
   }
 }
