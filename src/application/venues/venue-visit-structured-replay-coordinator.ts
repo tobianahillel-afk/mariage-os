@@ -2,6 +2,7 @@ import {
   appendVenueFactObservation,
   linkVenueFactObservationSource,
   type VenueFactEvidencePort,
+  type VenueFactSourceReadPort,
 } from "@application/facts/venue-fact-evidence-service";
 import { venueFactPersistenceErrorCode } from "@application/facts/venue-fact-persistence-error";
 import type { LocalProjectStore } from "@application/local-data/local-project-store";
@@ -9,8 +10,16 @@ import type { PendingMutationEnvelope } from "@application/local-data/local-reco
 import {
   retryableVenueVisitMutation,
   venueReplayCommand,
-  type VenueReplayCommand,
+  venueVisitMutation,
 } from "@application/venues/venue-local-mutation";
+import {
+  addReplayFailureBlockers,
+  createReplayDependencyBlockers,
+  hasReplayBlockedDependency,
+  orderStructuredReplayEntries,
+  type StructuredReplayEntry,
+  type StructuredVenueReplayCommand,
+} from "@application/venues/venue-visit-replay-dependencies";
 import {
   VenueInteractionService,
   type VenueInteractionPort,
@@ -33,7 +42,7 @@ export interface VenueVisitStructuredReplayResult {
 interface VenueVisitStructuredReplayDependencies {
   readonly local: LocalProjectStore;
   readonly interactions: VenueInteractionPort;
-  readonly facts: VenueFactEvidencePort;
+  readonly facts: VenueFactEvidencePort & VenueFactSourceReadPort;
   readonly memberOpinions: VenueMemberOpinionPort;
   readonly now: () => string;
 }
@@ -41,126 +50,6 @@ interface VenueVisitStructuredReplayDependencies {
 interface RemoteFailure {
   readonly state: Exclude<VenueVisitStructuredReplayState, "synced">;
   readonly error: string;
-}
-
-type StructuredVenueReplayCommand = Extract<
-  VenueReplayCommand,
-  {
-    readonly kind: "visit_note" | "fact_observation" | "member_rating";
-  }
->;
-
-function replayOrder(
-  left: PendingMutationEnvelope,
-  right: PendingMutationEnvelope,
-): number {
-  const createdOrder = left.createdAt.localeCompare(right.createdAt);
-  return createdOrder !== 0
-    ? createdOrder
-    : left.operationId.localeCompare(right.operationId);
-}
-
-function sendingMutation(
-  mutation: PendingMutationEnvelope,
-  now: string,
-): PendingMutationEnvelope {
-  return {
-    ...mutation,
-    attemptCount: mutation.attemptCount + 1,
-    lastAttemptAt: now,
-    status: "sending",
-    lastErrorCode: null,
-  };
-}
-
-function failureStatus(
-  state: RemoteFailure["state"],
-): PendingMutationEnvelope["status"] {
-  if (state === "conflict") return "conflict";
-  if (state === "failed_permanent") return "failed_permanent";
-  return "failed_retryable";
-}
-
-function failedMutation(
-  mutation: PendingMutationEnvelope,
-  failure: RemoteFailure,
-): PendingMutationEnvelope {
-  return {
-    ...mutation,
-    status: failureStatus(failure.state),
-    lastErrorCode: failure.error,
-  };
-}
-
-function noteFailure(error: string): RemoteFailure {
-  if (error === "replay_conflict") {
-    return { state: "conflict", error };
-  }
-  if (error === "persistence_failed") {
-    return { state: "pending", error };
-  }
-  return { state: "failed_permanent", error };
-}
-
-function factFailure(error: string): RemoteFailure {
-  if (error === "conflict") {
-    return { state: "conflict", error };
-  }
-  if (error === "backend_unavailable" || error === "persistence_failed") {
-    return { state: "pending", error };
-  }
-  return { state: "failed_permanent", error };
-}
-
-function ratingFailure(error: string): RemoteFailure {
-  if (error === "conflict") {
-    return { state: "conflict", error };
-  }
-  return error === "persistence_failed"
-    ? { state: "pending", error }
-    : { state: "failed_permanent", error };
-}
-
-function ratingDependencyKey(
-  command: Extract<
-    StructuredVenueReplayCommand,
-    { readonly kind: "member_rating" }
-  >,
-): string {
-  return `rating:${command.input.venueId}:${command.input.dimensionKey}`;
-}
-
-function requiredDependencyKeys(
-  command: StructuredVenueReplayCommand,
-): readonly string[] {
-  if (command.kind === "member_rating") {
-    return [ratingDependencyKey(command)];
-  }
-  if (
-    command.kind === "fact_observation" &&
-    command.input.supersedesObservationId !== null
-  ) {
-    return [`fact:${command.input.supersedesObservationId}`];
-  }
-  return [];
-}
-
-function blockedKeysAfterFailure(
-  mutation: PendingMutationEnvelope,
-  command: StructuredVenueReplayCommand,
-): readonly string[] {
-  const keys = [`fact:${mutation.operationId}`];
-  if (command.kind === "member_rating") {
-    keys.push(ratingDependencyKey(command));
-  }
-  return keys;
-}
-
-function hasBlockedDependency(
-  command: StructuredVenueReplayCommand,
-  blocked: ReadonlySet<string>,
-): boolean {
-  return requiredDependencyKeys(command).some((key) => blocked.has(key));
 }
 
 function ratingAcknowledgementFailure(
@@ -185,7 +74,7 @@ function ratingAcknowledgementFailure(
 export class VenueVisitStructuredReplayCoordinator {
   private readonly local: LocalProjectStore;
   private readonly interactionService: VenueInteractionService;
-  private readonly facts: VenueFactEvidencePort;
+  private readonly facts: VenueFactEvidencePort & VenueFactSourceReadPort;
   private readonly memberOpinions: VenueMemberOpinionPort;
   private readonly now: () => string;
 
@@ -200,50 +89,68 @@ export class VenueVisitStructuredReplayCoordinator {
   }
 
   async replayPending(): Promise<readonly VenueVisitStructuredReplayResult[]> {
-    const pending = (await this.local.listPendingMutations())
-      .filter(retryableVenueVisitMutation)
-      .sort(replayOrder);
+    const retained = (await this.local.listPendingMutations()).filter(
+      venueVisitMutation,
+    );
+    const ordered = orderStructuredReplayEntries(
+      retained.map((mutation) => this.structuredReplayEntry(mutation)),
+    );
+    const blockers = createReplayDependencyBlockers();
     const results: VenueVisitStructuredReplayResult[] = [];
-    const blocked = new Set<string>();
 
-    for (const mutation of pending) {
-      let command: StructuredVenueReplayCommand;
-      try {
-        command = venueReplayCommand(
-          mutation,
-          this.local.scope,
-        ) as StructuredVenueReplayCommand;
-      } catch {
+    for (const entry of ordered) {
+      if (!retryableVenueVisitMutation(entry.mutation)) {
+        addReplayFailureBlockers(blockers, entry);
+      }
+    }
+
+    for (const entry of ordered) {
+      const { mutation, command } = entry;
+      if (!retryableVenueVisitMutation(mutation)) continue;
+
+      if (command === null) {
         const result = await this.persistLocalFailure(mutation, {
           state: "failed_permanent",
           error: "invalid_local_mutation",
         });
         results.push(result);
-        blocked.add(`fact:${mutation.operationId}`);
+        addReplayFailureBlockers(blockers, entry);
         continue;
       }
 
-      if (hasBlockedDependency(command, blocked)) {
+      if (hasReplayBlockedDependency(blockers, command)) {
         const result = await this.persistLocalFailure(mutation, {
           state: "pending",
           error: "dependency_pending",
         });
         results.push(result);
-        for (const key of blockedKeysAfterFailure(mutation, command)) {
-          blocked.add(key);
-        }
+        addReplayFailureBlockers(blockers, entry);
         continue;
       }
 
       const result = await this.replayMutation(mutation, command);
       results.push(result);
       if (result.state !== "synced") {
-        for (const key of blockedKeysAfterFailure(mutation, command)) {
-          blocked.add(key);
-        }
+        addReplayFailureBlockers(blockers, entry);
       }
     }
     return results;
+  }
+
+  private structuredReplayEntry(
+    mutation: PendingMutationEnvelope,
+  ): StructuredReplayEntry {
+    try {
+      return {
+        mutation,
+        command: venueReplayCommand(
+          mutation,
+          this.local.scope,
+        ) as StructuredVenueReplayCommand,
+      };
+    } catch {
+      return { mutation, command: null };
+    }
   }
 
   private async replayMutation(
@@ -317,6 +224,9 @@ export class VenueVisitStructuredReplayCoordinator {
     const scopeFailure = await this.factScopeFailure(command);
     if (scopeFailure !== null) return scopeFailure;
 
+    const sourceFailure = await this.factSourceFailure(command);
+    if (sourceFailure !== null) return sourceFailure;
+
     const observation = await appendVenueFactObservation(
       this.facts,
       command.input,
@@ -346,6 +256,39 @@ export class VenueVisitStructuredReplayCoordinator {
       return context.venueId === command.venueId
         ? null
         : { state: "failed_permanent", error: "fact_scope_mismatch" };
+    } catch (error) {
+      return factFailure(
+        venueFactPersistenceErrorCode(error) ?? "persistence_failed",
+      );
+    }
+  }
+
+  private async factSourceFailure(
+    command: Extract<
+      StructuredVenueReplayCommand,
+      { readonly kind: "fact_observation" }
+    >,
+  ): Promise<RemoteFailure | null> {
+    try {
+      const source = await this.facts.getSource(
+        command.input.projectId,
+        command.sourceId,
+      );
+      if (
+        source.projectId !== command.input.projectId ||
+        source.id !== command.sourceId
+      ) {
+        return {
+          state: "failed_permanent",
+          error: "provider_response_invalid",
+        };
+      }
+      return source.sourceType === command.sourceType
+        ? null
+        : {
+            state: "failed_permanent",
+            error: "fact_source_type_mismatch",
+          };
     } catch (error) {
       return factFailure(
         venueFactPersistenceErrorCode(error) ?? "persistence_failed",
