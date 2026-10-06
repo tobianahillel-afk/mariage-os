@@ -1,5 +1,8 @@
 import type { AppendVenueFactObservationDraft } from "@application/facts/venue-fact-evidence-service";
-import { isUuid, type LocalProjectScope } from "@application/local-data/local-project-scope";
+import {
+  isUuid,
+  type LocalProjectScope,
+} from "@application/local-data/local-project-scope";
 import type { PendingMutationEnvelope } from "@application/local-data/local-records";
 import type { VenueTransitionInput } from "@application/venues/venue-command-port";
 import type { AppendVenueInteractionInput } from "@application/venues/venue-interaction-service";
@@ -244,9 +247,7 @@ export function venueReplayCommand(
   return invalidMutation();
 }
 
-function retryableStatus(
-  mutation: PendingMutationEnvelope,
-): boolean {
+function retryableStatus(mutation: PendingMutationEnvelope): boolean {
   return (
     mutation.status === "pending" ||
     mutation.status === "sending" ||
