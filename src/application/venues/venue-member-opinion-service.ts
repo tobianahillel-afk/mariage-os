@@ -86,6 +86,7 @@ type RatingMutationError =
   | "operation_id_invalid"
   | "device_id_invalid"
   | "conflict"
+  | "replay_identity_mismatch"
   | "persistence_failed";
 
 export type PreferenceMutationResult =
