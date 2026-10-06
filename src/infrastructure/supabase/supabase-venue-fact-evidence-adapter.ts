@@ -4,6 +4,7 @@ import {
 } from "@application/facts/venue-fact-persistence-error";
 import type {
   AppendVenueFactObservationInput,
+  CheckedLinkObservationSourceInput,
   CreateVenueFactSourceInput,
   LinkObservationSourceInput,
   ObservationSourceLinkRecord,
@@ -13,6 +14,7 @@ import type {
   VenueFactContext,
   VenueFactEvidencePort,
   VenueFactObservationRecord,
+  VenueFactProvenanceLinkPort,
   VenueFactSourceRecord,
 } from "@application/facts/venue-fact-evidence-service";
 import { parseVenueFactDefinitionRow } from "./parse-venue-fact-row";
@@ -56,6 +58,7 @@ type EvidenceRpcName =
   | "update_venue_fact_source"
   | "append_venue_fact_observation"
   | "link_venue_fact_observation_source"
+  | "link_venue_fact_observation_source_checked"
   | "resolve_venue_fact_from_observation";
 
 export interface SupabaseVenueFactEvidenceClientLike {
@@ -194,6 +197,17 @@ function linkData(
   }
 }
 
+function checkedLinkData(
+  value: unknown,
+  input: CheckedLinkObservationSourceInput,
+): ObservationSourceLinkRecord {
+  const link = linkData(value, input);
+  if (link.isPrimary !== input.isPrimary) {
+    fail("provider_response_invalid", LINK_MUTATION_FAILED);
+  }
+  return link;
+}
+
 function resolutionData(
   value: unknown,
   input: ResolveVenueFactObservationInput,
@@ -225,7 +239,9 @@ function sourcePayload(
   };
 }
 
-export class SupabaseVenueFactEvidenceAdapter implements VenueFactEvidencePort {
+export class SupabaseVenueFactEvidenceAdapter
+  implements VenueFactEvidencePort, VenueFactProvenanceLinkPort
+{
   constructor(private readonly client: SupabaseVenueFactEvidenceClientLike) {}
 
   async getFactContext(
@@ -319,6 +335,25 @@ export class SupabaseVenueFactEvidenceAdapter implements VenueFactEvidencePort {
       LINK_MUTATION_FAILED,
     );
     return linkData(data, input);
+  }
+
+  async linkObservationSourceChecked(
+    input: CheckedLinkObservationSourceInput,
+  ): Promise<ObservationSourceLinkRecord> {
+    const data = await rpcData(
+      this.client,
+      "link_venue_fact_observation_source_checked",
+      {
+        target_project_id: input.projectId,
+        target_observation_id: input.observationId,
+        target_source_id: input.sourceId,
+        target_is_primary: input.isPrimary,
+        target_expected_source_type: input.expectedSourceType,
+        target_expected_source_revision: input.expectedSourceRevision,
+      },
+      LINK_MUTATION_FAILED,
+    );
+    return checkedLinkData(data, input);
   }
 
   async resolveFromObservation(
