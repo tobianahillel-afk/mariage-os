@@ -2,12 +2,8 @@ import {
   appendVenueFactObservation,
   type VenueFactEvidencePort,
 } from "@application/facts/venue-fact-evidence-service";
-import type {
-  LocalProjectStore,
-} from "@application/local-data/local-project-store";
-import type {
-  PendingMutationEnvelope,
-} from "@application/local-data/local-records";
+import type { LocalProjectStore } from "@application/local-data/local-project-store";
+import type { PendingMutationEnvelope } from "@application/local-data/local-records";
 import {
   retryableVenueVisitMutation,
   venueReplayCommand,
@@ -23,10 +19,7 @@ import {
 } from "@application/venues/venue-member-opinion-service";
 
 export type VenueVisitStructuredReplayState =
-  | "synced"
-  | "pending"
-  | "conflict"
-  | "failed_permanent";
+  "synced" | "pending" | "conflict" | "failed_permanent";
 
 export interface VenueVisitStructuredReplayResult {
   readonly operationId: string;
