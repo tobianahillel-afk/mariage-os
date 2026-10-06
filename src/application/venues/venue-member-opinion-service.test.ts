@@ -116,7 +116,7 @@ describe("saveVenueMemberPreference", () => {
   });
 });
 
-describe("saveVenueMemberRating", () => {
+describe("saveVenueMemberRating validation", () => {
   it("persists a validated personal rating with stable replay identity", async () => {
     const captures: Captures = { preference: null, rating: null };
     const result = await saveVenueMemberRating(portWith(captures), {
@@ -157,6 +157,9 @@ describe("saveVenueMemberRating", () => {
     expect(captures.rating).toBeNull();
   });
 
+});
+
+describe("saveVenueMemberRating persistence", () => {
   it("preserves rating persistence conflicts", async () => {
     const captures: Captures = { preference: null, rating: null };
     const base = portWith(captures);
