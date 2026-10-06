@@ -44,7 +44,7 @@ export const factId = "55555555-5555-4555-8555-555555555555";
 export const noteId = "61111111-1111-4111-8111-111111111111";
 export const factOperationId = "62222222-2222-4222-8222-222222222222";
 export const ratingOperationId = "63333333-3333-4333-8333-333333333333";
-export const now = "2026-10-06T13:30:00.000Z";
+const now = "2026-10-06T13:30:00.000Z";
 
 export class MemoryLocalStore implements LocalProjectStore {
   readonly scope = scope;
