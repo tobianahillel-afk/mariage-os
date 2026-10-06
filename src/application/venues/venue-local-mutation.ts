@@ -283,9 +283,7 @@ export function retryableVenueMutation(
   );
 }
 
-export function venueVisitMutation(
-  mutation: PendingMutationEnvelope,
-): boolean {
+export function venueVisitMutation(mutation: PendingMutationEnvelope): boolean {
   return (
     mutation.entityType === "venue" &&
     venueVisitMutationType(mutation.mutationType)
