@@ -79,6 +79,9 @@ export class RemoteHarness {
   ratingMode: RatingMode = "success";
   factVenueId = venueId;
   factSourceType: VenueFactSourceRecord["sourceType"] = "in_person_visit";
+  factSourceProjectIdOverride: string | null = null;
+  factSourceIdOverride: string | null = null;
+  factSourceReadError: Error | null = null;
   ratingResponseOverride: Partial<VenueMemberRatingRecord> = {};
 
   readonly interactions: VenueInteractionPort = {
@@ -104,18 +107,23 @@ export class RemoteHarness {
       }
       return factContext(this.factVenueId);
     },
-    getSource: async (projectId, sourceId) => ({
-      id: sourceId,
-      projectId,
-      sourceType: this.factSourceType,
-      title: "Venue visit",
-      url: null,
-      evidenceLevel: "observed",
-      observedAt: "2026-10-06T12:00:00.000Z",
-      notes: null,
-      status: "active",
-      revision: 1,
-    }),
+    getSource: async (projectId, sourceId) => {
+      if (this.factSourceReadError !== null) {
+        throw this.factSourceReadError;
+      }
+      return {
+        id: this.factSourceIdOverride ?? sourceId,
+        projectId: this.factSourceProjectIdOverride ?? projectId,
+        sourceType: this.factSourceType,
+        title: "Venue visit",
+        url: null,
+        evidenceLevel: "observed",
+        observedAt: "2026-10-06T12:00:00.000Z",
+        notes: null,
+        status: "active",
+        revision: 1,
+      };
+    },
     createSource: async () => {
       throw new Error("not used");
     },
