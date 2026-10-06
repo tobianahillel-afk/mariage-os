@@ -4,6 +4,8 @@ import type {
   VenueFactContext,
   VenueFactEvidencePort,
   VenueFactObservationRecord,
+  VenueFactSourceReadPort,
+  VenueFactSourceRecord,
 } from "@application/facts/venue-fact-evidence-service";
 import {
   createPendingMutationEnvelope,
@@ -76,7 +78,7 @@ export class RemoteHarness {
   factLinkMode: FactLinkMode = "success";
   ratingMode: RatingMode = "success";
   factVenueId = venueId;
-  factSourceType = "in_person_visit";
+  factSourceType: VenueFactSourceRecord["sourceType"] = "in_person_visit";
   ratingResponseOverride: Partial<VenueMemberRatingRecord> = {};
 
   readonly interactions: VenueInteractionPort = {
@@ -92,7 +94,7 @@ export class RemoteHarness {
     listVenueInteractionHistory: async () => [],
   };
 
-  readonly facts: VenueFactEvidencePort = {
+  readonly facts: VenueFactEvidencePort & VenueFactSourceReadPort = {
     getFactContext: async () => {
       if (this.factMode === "backend_unavailable") {
         throw new VenueFactPersistenceError("backend_unavailable", "offline");
@@ -102,6 +104,18 @@ export class RemoteHarness {
       }
       return factContext(this.factVenueId);
     },
+    getSource: async (projectId, sourceId) => ({
+      id: sourceId,
+      projectId,
+      sourceType: this.factSourceType,
+      title: "Venue visit",
+      url: null,
+      evidenceLevel: "observed",
+      observedAt: "2026-10-06T12:00:00.000Z",
+      notes: null,
+      status: "active",
+      revision: 1,
+    }),
     createSource: async () => {
       throw new Error("not used");
     },
