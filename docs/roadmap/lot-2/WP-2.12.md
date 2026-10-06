@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.12`
 - Lot: 2 — Venues core
 - Name: mobile/offline Venue visit, offline package, local visit media and packet E2E completion
-- State: `BLOCKED`
-- Current pass: `A-IMPLEMENT PAUSED` — tranches 1–3 remain GREEN; WP-2.12R ACCEPTED; dependency WP-2.12S
+- State: `IN_PROGRESS`
+- Current pass: `A-IMPLEMENT RESUMPTION GATE` — tranches 1–3 remain GREEN; WP-2.12R + WP-2.12S ACCEPTED; resumption exact-head CI pending
 - Branch: `lot-2/venues-core`
 - Activation base: `0a2d051d3f0a45b638f5c1b5f8c81acf36491c36`
 - Activation-base CI: `37240817336` — **5/5 SUCCESS**, including full verify from clean checkout; provider-only workflows skipped
@@ -160,13 +160,14 @@ with final seal `cdad9eb82052ac3e2296769e5381b2371558ec4d` / CI
 subsequently passed **5/5 SUCCESS**, including clean checkout.
 
 The next structured-reconnect re-review found one additional narrow server
-assumption was false: `set_venue_member_rating` has optimistic revision checks
-but no stable operation/device identity. A successful rating write followed by
-a lost response therefore cannot be recognized as the same replay. Interaction
-already has exact `interactionId` replay semantics and Fact Observation is
-covered by accepted WP-2.12R, so only Member Rating is extracted to support
-packet `WP-2.12S`. Parent implementation pauses again without invalidating
-tranches 1–3.
+assumption was false: `set_venue_member_rating` lacked stable operation/device
+identity for response-loss replay. That hardening was extracted to support
+packet `WP-2.12S`, which is now **ACCEPTED / COMPLETE** at final support seal
+`93f2916db125139f7694e56248c188a2cf21f794` / CI `37465538267` — 5/5 including clean checkout.
+Interaction already has exact `interactionId` replay semantics and Fact
+Observation is covered by accepted WP-2.12R. Both structured-replay dependencies
+are therefore satisfied. Parent implementation may resume only after this
+separate resumption-governance HEAD itself passes exact-head ordinary CI.
 
 ## Explicitly out of scope
 
@@ -315,14 +316,14 @@ Still required before Pass A exit:
 
 ## Handoff
 
-- Current state: **BLOCKED**
-- Current/next pass: A-IMPLEMENT paused after resumption re-review; dependency `WP-2.12S`
+- Current state: **IN_PROGRESS / A-IMPLEMENT RESUMPTION GATE**
+- Current/next pass: A-IMPLEMENT resumes after resumption exact-head CI; next tranche is structured reconnect RED-first
 - READY gate: `99cf3b68f91b616b8aca9a218d3fb6ea62b493d9` / CI `37241583422` — 5/5
 - Current canonical parent implementation preserved: `1794a3d9d564769437a22582b918f793e57cf150` / CI `37280907551` — 5/5
 - Pass-A reconciliation: `8ffe905b026645affb6f218b65b601f565e80fe6` / CI `37288210671` — 5/5
 - Parent resumption gate: `2b2035740736dde090da9b1f5d86066975e7bc60` / CI `37342313598` — 5/5
 - Fact replay dependency satisfied: WP-2.12R final support seal `cdad9eb82052ac3e2296769e5381b2371558ec4d` / CI `37341157497` — 5/5, ACCEPTED / COMPLETE
-- Rating replay dependency: `WP-2.12S` — READY candidate / activation exact-head CI pending
+- Rating replay dependency satisfied: WP-2.12S final support seal `93f2916db125139f7694e56248c188a2cf21f794` / CI `37465538267` — 5/5, ACCEPTED / COMPLETE
 - Primary FIR: #42 / FTR-028 — IN_PROGRESS
-- Open parent finding: response-loss replay ambiguity on Member Rating only; Interaction and Fact Observation replay boundaries are already safe
-- Next permitted parent action: none until WP-2.12S is ACCEPTED; then a separate parent resumption seal precedes structured reconnect RED. Media remains separate.
+- Open parent findings: ∅; remaining Pass-A work is structured reconnect, local binary bytes/upload, mobile workflow completion and synthetic E2E
+- Next permitted parent action: pass this resumption-governance HEAD through exact-head 5/5 CI including clean checkout; only then create isolated RED for replay-safe visit note / fact measurement / personal-rating mutations. Media remains separate.

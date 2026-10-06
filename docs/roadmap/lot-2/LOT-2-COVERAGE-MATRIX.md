@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1..WP-2.11 + WP-2.12R + WP-2.12S ACCEPTED; WP-2.12 resumption seal pending**
+Status: **IN_PROGRESS — WP-2.1..WP-2.11 + WP-2.12R + WP-2.12S ACCEPTED; WP-2.12 A-IMPLEMENT resumption CI pending**
 
 Purpose: durable current responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`. Detailed historical evidence remains in packet records, acceptance records, FIRs and Git history.
 
@@ -125,7 +125,7 @@ ADR 0011 later produced decisive deployed CPU evidence and was rejected for fina
 | WP-2.9B | **ACCEPTED / COMPLETE** | generic project Tags + Venue entity-tags; FIR #27 downstream; AR-001/002 closed |
 | WP-2.10 | **ACCEPTED / COMPLETE** | repositories/local cache/pending offline mutations; Pass C gap ∅ / CI `36849005712` 5/5 |
 | WP-2.11 | **ACCEPTED / COMPLETE** | gallery/table/detail/compare/deep-link workspace; Pass C gap ∅ / CI `37240178167` 5/5 |
-| WP-2.12 | **BLOCKED — resumption seal pending** | mobile/offline Venue visit + packet E2E completion; tranches 1–3 GREEN; Fact + Member Rating replay dependencies satisfied; FIR #42 |
+| WP-2.12 | **IN_PROGRESS — A-IMPLEMENT resumption CI pending** | mobile/offline Venue visit + packet E2E completion; tranches 1–3 GREEN; Fact + Member Rating replay dependencies satisfied; FIR #42 |
 | WP-2.12R | **ACCEPTED / COMPLETE** | replay-safe fact-observation command identity; Pass C gap ∅ / CI `37335393969` 5/5; 3 points / cohesion PASS |
 | WP-2.12S | **ACCEPTED / COMPLETE** | replay-safe Venue member-rating command identity with expand/switch compatibility; Pass C gap ∅ / CI `37463358444` 5/5; 3 points / cohesion PASS |
 
@@ -142,7 +142,7 @@ WP-2.1..WP-2.8C [ACCEPTED]
                                                                                                 → Lot reconciliation → Integration Pass
 ```
 
-Only one packet may be active at a time. WP-2.9A/B/C, WP-2.10, WP-2.11 and support packets WP-2.12R/WP-2.12S are terminal accepted. WP-2.12 READY gate `99cf3b68...` / CI `37241583422` passed 5/5 and tranches 1–3 remain GREEN through `1794a3d9...` / CI `37280907551`. WP-2.12S Pass C acceptance-record `8b0eae20d59e6013a14064fdea29451fbb503c42` / CI `37463358444` passed 5/5; AR-001/002/003 are CLOSED / VERIFIED. Parent WP-2.12 is the next packet but stays blocked until a new resumption-governance head itself passes exact-head ordinary CI including clean checkout.
+Only one packet may be active at a time. WP-2.9A/B/C, WP-2.10, WP-2.11 and support packets WP-2.12R/WP-2.12S are terminal accepted. WP-2.12 READY gate `99cf3b68...` / CI `37241583422` passed 5/5 and tranches 1–3 remain GREEN through `1794a3d9...` / CI `37280907551`. WP-2.12S final support seal `93f2916d...` / CI `37465538267` passed 5/5. Parent WP-2.12 is back in IN_PROGRESS / A-IMPLEMENT, but new production work remains gated on this separate resumption head passing exact-head ordinary CI including clean checkout.
 
 ## Explicitly outside Lot 2
 
@@ -185,10 +185,10 @@ A full review = WP-2.9A-FRESH-PASS-B-2026-09-29.md — PASS; no open A finding
 A Pass C = WP-2.9A-ACCEPTANCE.md — ACCEPTED / gap ∅; record 656398bcd5520cfa56d782023d150eb64317161d / CI 36542083037 5/5
 WP-2.10 = ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record `a2d48341515a516651d11454c3c5e89c01896c21` / CI `36849005712` 5/5 including clean checkout; FTR-028 remains IN_PROGRESS for WP-2.12
 WP-2.11 = ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record `3167a380521119e9650859543778b040527332e2` / CI `37240178167` 5/5; final seal `0a2d051d3f0a45b638f5c1b5f8c81acf36491c36` / CI `37240817336` 5/5; FTR-015/016/017/027 closed completed
-WP-2.12 = BLOCKED — tranches 1–3 GREEN through `1794a3d9...` / `37280907551`; Fact + Member Rating replay dependencies satisfied; separate resumption-governance seal pending; FIR #42
+WP-2.12 = IN_PROGRESS / A-IMPLEMENT — tranches 1–3 GREEN through `1794a3d9...` / `37280907551`; Fact + Member Rating replay dependencies satisfied; separate resumption-head exact-CI pending; FIR #42
 WP-2.12R = ACCEPTED / COMPLETE — final support seal `cdad9eb82052ac3e2296769e5381b2371558ec4d` / CI `37341157497` 5/5
-WP-2.12S = ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record `8b0eae20d59e6013a14064fdea29451fbb503c42` / CI `37463358444` 5/5; AR-001/002/003 CLOSED / VERIFIED
-next permitted action = final WP-2.12S support seal → separate parent WP-2.12 resumption-governance head → exact-head 5/5 gate → resume parent A-IMPLEMENT
+WP-2.12S = ACCEPTED / COMPLETE — final support seal `93f2916db125139f7694e56248c188a2cf21f794` / CI `37465538267` 5/5; AR-001/002/003 CLOSED / VERIFIED
+next permitted action = exact-head resumption CI/clean checkout → isolated RED structured reconnect (note / measurement / personal rating) → bounded GREEN
 media-byte durability/upload remains a separate later parent tranche; no provider rerun is authorized
 ```
 
