@@ -158,13 +158,15 @@ describe("Venue visit structured replay source-read trust boundary", () => {
       remote.factSourceIdOverride = sourceOverride;
       await seed(local, factMutation());
 
-      await expect(coordinator(local, remote).replayPending()).resolves.toEqual([
-        {
-          operationId: factOperationId,
-          state: "failed_permanent",
-          error: "provider_response_invalid",
-        },
-      ]);
+      await expect(coordinator(local, remote).replayPending()).resolves.toEqual(
+        [
+          {
+            operationId: factOperationId,
+            state: "failed_permanent",
+            error: "provider_response_invalid",
+          },
+        ],
+      );
       expect(remote.observations).toHaveLength(0);
       expect(remote.factLinks).toHaveLength(0);
       expect(local.pending.get(factOperationId)).toMatchObject({
