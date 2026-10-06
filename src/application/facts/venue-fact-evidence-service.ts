@@ -102,6 +102,13 @@ export interface ResolveVenueFactObservationInput {
   readonly resolutionNote: string | null;
 }
 
+export interface VenueFactSourceReadPort {
+  getSource(
+    projectId: string,
+    sourceId: string,
+  ): Promise<VenueFactSourceRecord>;
+}
+
 export interface VenueFactEvidencePort {
   getFactContext(projectId: string, factId: string): Promise<VenueFactContext>;
   createSource(

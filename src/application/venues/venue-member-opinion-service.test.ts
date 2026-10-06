@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { VenueMemberOpinionPersistenceError } from "./venue-member-opinion-persistence-error";
 import {
   saveVenueMemberPreference,
   saveVenueMemberRating,
@@ -115,7 +116,7 @@ describe("saveVenueMemberPreference", () => {
   });
 });
 
-describe("saveVenueMemberRating", () => {
+describe("saveVenueMemberRating validation", () => {
   it("persists a validated personal rating with stable replay identity", async () => {
     const captures: Captures = { preference: null, rating: null };
     const result = await saveVenueMemberRating(portWith(captures), {
@@ -154,6 +155,35 @@ describe("saveVenueMemberRating", () => {
 
     expect(result).toEqual({ ok: false, error: "rating_dimension_invalid" });
     expect(captures.rating).toBeNull();
+  });
+});
+
+describe("saveVenueMemberRating persistence", () => {
+  it("preserves rating persistence conflicts", async () => {
+    const captures: Captures = { preference: null, rating: null };
+    const base = portWith(captures);
+    const port: VenueMemberOpinionPort = {
+      ...base,
+      async saveVenueRating(input) {
+        captures.rating = input;
+        throw new VenueMemberOpinionPersistenceError(
+          "conflict",
+          "revision conflict",
+        );
+      },
+    };
+
+    await expect(
+      saveVenueMemberRating(port, {
+        projectId,
+        venueId,
+        dimensionKey: "love_score",
+        rating: 5,
+        expectedRevision: 0,
+        operationId,
+        deviceId,
+      }),
+    ).resolves.toEqual({ ok: false, error: "conflict" });
   });
 
   it("hides rating provider failures", async () => {

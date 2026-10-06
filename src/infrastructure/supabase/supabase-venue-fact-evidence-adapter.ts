@@ -13,6 +13,7 @@ import type {
   VenueFactContext,
   VenueFactEvidencePort,
   VenueFactObservationRecord,
+  VenueFactSourceReadPort,
   VenueFactSourceRecord,
 } from "@application/facts/venue-fact-evidence-service";
 import { parseVenueFactDefinitionRow } from "./parse-venue-fact-row";
@@ -29,6 +30,8 @@ const FACT_CONTEXT_COLUMNS =
   "id,project_id,target_type,target_id,definition_id";
 const DEFINITION_COLUMNS =
   "id,project_id,key,label,entity_type,value_type,unit,priority,weight,freshness_policy,system_defined,options_json,evaluation_rule_json,revision";
+const SOURCE_COLUMNS =
+  "id,project_id,source_type,title,url,evidence_level,observed_at,notes,status,revision";
 const CONTEXT_QUERY_FAILED = "Venue fact evidence context query failed.";
 const SOURCE_MUTATION_FAILED = "Venue fact source mutation failed.";
 const OBSERVATION_MUTATION_FAILED = "Venue fact observation mutation failed.";
@@ -59,7 +62,7 @@ type EvidenceRpcName =
   | "resolve_venue_fact_from_observation";
 
 export interface SupabaseVenueFactEvidenceClientLike {
-  from(table: "facts" | "fact_definitions"): EvidenceTable;
+  from(table: "facts" | "fact_definitions" | "sources"): EvidenceTable;
   rpc(
     functionName: EvidenceRpcName,
     args: Readonly<Record<string, unknown>>,
@@ -104,7 +107,7 @@ function providerData(result: SupabaseResult, message: string): unknown {
 
 async function querySingle(
   client: SupabaseVenueFactEvidenceClientLike,
-  table: "facts" | "fact_definitions",
+  table: "facts" | "fact_definitions" | "sources",
   columns: string,
   filters: ReadonlyArray<readonly [string, string]>,
 ): Promise<unknown> {
@@ -225,7 +228,9 @@ function sourcePayload(
   };
 }
 
-export class SupabaseVenueFactEvidenceAdapter implements VenueFactEvidencePort {
+export class SupabaseVenueFactEvidenceAdapter
+  implements VenueFactEvidencePort, VenueFactSourceReadPort
+{
   constructor(private readonly client: SupabaseVenueFactEvidenceClientLike) {}
 
   async getFactContext(
@@ -249,6 +254,17 @@ export class SupabaseVenueFactEvidenceAdapter implements VenueFactEvidencePort {
       identity.definitionId,
     );
     return venueFactContextFromIdentity(identity, definition);
+  }
+
+  async getSource(
+    projectId: string,
+    sourceId: string,
+  ): Promise<VenueFactSourceRecord> {
+    const data = await querySingle(this.client, "sources", SOURCE_COLUMNS, [
+      ["project_id", projectId],
+      ["id", sourceId],
+    ]);
+    return sourceData(data, projectId, sourceId);
   }
 
   async createSource(

@@ -1,3 +1,4 @@
+import { VenueMemberOpinionPersistenceError } from "@application/venues/venue-member-opinion-persistence-error";
 import type {
   SaveVenueMemberPreferenceInput,
   SaveVenueMemberRatingInput,
@@ -15,9 +16,14 @@ const PREFERENCE_COLUMNS =
 const RATING_COLUMNS =
   "id,project_id,user_id,target_type,target_id,dimension_key,rating,revision";
 
+interface SupabaseFailure {
+  readonly code?: unknown;
+  readonly [key: string]: unknown;
+}
+
 interface SupabaseResult {
   readonly data: unknown;
-  readonly error: unknown;
+  readonly error: SupabaseFailure | null;
 }
 
 interface TargetFilterBuilder extends PromiseLike<SupabaseResult> {
@@ -48,7 +54,23 @@ function queryFailure(): never {
   throw new Error("Venue member opinion query failed.");
 }
 function mutationFailure(): never {
-  throw new Error("Venue member opinion mutation failed.");
+  throw new VenueMemberOpinionPersistenceError(
+    "persistence_failed",
+    "Venue member opinion mutation failed.",
+  );
+}
+
+function ratingMutationFailure(error: SupabaseFailure): never {
+  const code =
+    error.code === "40001"
+      ? "conflict"
+      : error.code === "22023"
+        ? "replay_identity_mismatch"
+        : "persistence_failed";
+  throw new VenueMemberOpinionPersistenceError(
+    code,
+    "Venue member opinion mutation failed.",
+  );
 }
 
 export class SupabaseVenueMemberOpinionAdapter implements VenueMemberOpinionPort {
@@ -132,10 +154,13 @@ export class SupabaseVenueMemberOpinionAdapter implements VenueMemberOpinionPort
         target_operation_id: input.operationId,
         target_device_id: input.deviceId,
       });
-      if (error !== null) mutationFailure();
+      if (error !== null) ratingMutationFailure(error);
       return parseVenueMemberRatingRow(data, input.projectId, input.venueId);
-    } catch {
-      throw new Error("Venue member opinion mutation failed.");
+    } catch (error) {
+      if (error instanceof VenueMemberOpinionPersistenceError) throw error;
+      throw new Error("Venue member opinion mutation failed.", {
+        cause: error,
+      });
     }
   }
 }

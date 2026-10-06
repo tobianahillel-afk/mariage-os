@@ -39,9 +39,13 @@ const ratingB = {
   rating: 6,
 };
 
+interface Failure {
+  readonly code?: unknown;
+  readonly [key: string]: unknown;
+}
 interface Result {
   readonly data: unknown;
-  readonly error: unknown;
+  readonly error: Failure | null;
 }
 interface Results {
   readonly preference: Result;
@@ -251,6 +255,60 @@ describe("SupabaseVenueMemberOpinionAdapter preference writes", () => {
 });
 
 describe("SupabaseVenueMemberOpinionAdapter rating writes", () => {
+  it("surfaces SQLSTATE 40001 as a typed conflict", async () => {
+    const adapter = new SupabaseVenueMemberOpinionAdapter(
+      clientWith(
+        resultsWith({
+          saveRating: { data: null, error: { code: "40001" } },
+        }),
+        emptyCaptures(),
+      ),
+    );
+
+    await expect(
+      adapter.saveVenueRating({
+        projectId,
+        venueId,
+        dimensionKey: "love_score",
+        rating: 9,
+        expectedRevision: 0,
+        operationId,
+        deviceId,
+      }),
+    ).rejects.toMatchObject({
+      name: "VenueMemberOpinionPersistenceError",
+      code: "conflict",
+    });
+  });
+});
+
+describe("SupabaseVenueMemberOpinionAdapter rating replay safety", () => {
+  it("surfaces SQLSTATE 22023 as a deterministic replay mismatch", async () => {
+    const adapter = new SupabaseVenueMemberOpinionAdapter(
+      clientWith(
+        resultsWith({
+          saveRating: { data: null, error: { code: "22023" } },
+        }),
+        emptyCaptures(),
+      ),
+    );
+
+    await expect(
+      adapter.saveVenueRating({
+        projectId,
+        venueId,
+        dimensionKey: "love_score",
+        rating: 9,
+        expectedRevision: 0,
+        operationId,
+        deviceId,
+      }),
+    ).rejects.toMatchObject({
+      name: "VenueMemberOpinionPersistenceError",
+      code: "replay_identity_mismatch",
+    });
+  });
+
   it("saves rating through the self-authored RPC", async () => {
     const captures = emptyCaptures();
     const adapter = new SupabaseVenueMemberOpinionAdapter(
