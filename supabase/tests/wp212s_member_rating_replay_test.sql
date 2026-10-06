@@ -405,7 +405,7 @@ select set_config(
   true
 );
 select throws_ok(
-  $$select public.set_venue_member_rating(
+  $authz$select public.set_venue_member_rating(
     'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
     'cc100000-0000-4000-8000-000000000001',
     'love_score',
@@ -413,13 +413,79 @@ select throws_ok(
     0,
     'dd600000-0000-4000-8000-000000000001',
     'dd700000-0000-4000-8000-000000000001'
-  )$$,
+  )$authz$,
   '22023',
   'venue rating unavailable',
   'same operation id cannot cross project identity'
 );
 
+select throws_ok(
+  $authz$select public.set_venue_member_rating(
+    'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+    'dd100000-0000-4000-8000-000000000001',
+    'exterior_aesthetic_score_personal',
+    4,
+    0
+  )$authz$,
+  '42501',
+  'venue rating unavailable',
+  'authenticated outsider is denied by the legacy five-argument overload'
+);
+
+select throws_ok(
+  $authz$select public.set_venue_member_rating(
+    'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+    'dd100000-0000-4000-8000-000000000001',
+    'value_for_money_score_personal',
+    4.5,
+    0,
+    'dd600000-0000-4000-8000-000000000030',
+    'dd700000-0000-4000-8000-000000000030'
+  )$authz$,
+  '42501',
+  'venue rating unavailable',
+  'authenticated outsider is denied by the receipt-aware seven-argument overload'
+);
+
 reset role;
+
+select is(
+  (
+    select count(*)
+    from public.member_ratings
+    where project_id = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'
+      and user_id = 'd3333333-3333-4333-8333-333333333333'
+      and target_type = 'venue'
+      and target_id = 'dd100000-0000-4000-8000-000000000001'
+      and dimension_key = 'exterior_aesthetic_score_personal'
+  ),
+  0::bigint,
+  'denied legacy outsider attempt creates no rating row'
+);
+
+select is(
+  (
+    select count(*)
+    from public.member_ratings
+    where project_id = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'
+      and user_id = 'd3333333-3333-4333-8333-333333333333'
+      and target_type = 'venue'
+      and target_id = 'dd100000-0000-4000-8000-000000000001'
+      and dimension_key = 'value_for_money_score_personal'
+  ),
+  0::bigint,
+  'denied receipt-aware outsider attempt creates no rating row'
+);
+
+select is(
+  (
+    select count(*)
+    from public.sync_mutation_receipts
+    where operation_id = 'dd600000-0000-4000-8000-000000000030'
+  ),
+  0::bigint,
+  'denied receipt-aware outsider attempt leaves no replay receipt'
+);
 
 insert into public.sync_mutation_receipts(
   operation_id, project_id, user_id, device_id, entity_type, entity_id,
@@ -575,7 +641,7 @@ select set_config(
   true
 );
 select throws_ok(
-  $$select public.set_venue_member_rating(
+  $authz$select public.set_venue_member_rating(
     'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
     'dd100000-0000-4000-8000-000000000001',
     'value_for_money_score_personal',
@@ -583,12 +649,40 @@ select throws_ok(
     0,
     'dd600000-0000-4000-8000-000000000020',
     'dd700000-0000-4000-8000-000000000020'
-  )$$,
+  )$authz$,
   '42501',
   'venue rating unavailable',
   'revoked member cannot exploit an existing replay receipt'
 );
 
+select throws_ok(
+  $authz$select public.set_venue_member_rating(
+    'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+    'dd100000-0000-4000-8000-000000000001',
+    'logistics_score_personal',
+    6,
+    0
+  )$authz$,
+  '42501',
+  'venue rating unavailable',
+  'revoked member is denied by the legacy five-argument overload'
+);
+
 reset role;
+
+select is(
+  (
+    select count(*)
+    from public.member_ratings
+    where project_id = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'
+      and user_id = 'd4444444-4444-4444-8444-444444444444'
+      and target_type = 'venue'
+      and target_id = 'dd100000-0000-4000-8000-000000000001'
+      and dimension_key = 'logistics_score_personal'
+  ),
+  0::bigint,
+  'denied legacy revoked-member attempt creates no rating row'
+);
+
 select * from finish();
 rollback;
