@@ -152,7 +152,10 @@ function factAcknowledgementFailure(
   observation: VenueFactObservationRecord,
   expectedUserId: string,
 ): RemoteFailure | null {
-  const normalized = normalizeFactObservation(context.definition, command.input);
+  const normalized = normalizeFactObservation(
+    context.definition,
+    command.input,
+  );
   if (!normalized.ok) {
     return { state: "failed_permanent", error: "provider_response_invalid" };
   }
