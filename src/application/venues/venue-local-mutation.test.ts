@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  createLocalProjectScope,
-} from "@application/local-data/local-project-scope";
+import { createLocalProjectScope } from "@application/local-data/local-project-scope";
 import {
   createPendingMutationEnvelope,
   type PendingMutationEnvelope,
@@ -226,8 +224,7 @@ describe("Venue visit persisted mutation replay commands", () => {
             confidence: "high",
             observedAt: createdAt,
             note: "Mesuré sur place.",
-            supersedesObservationId:
-              "67777777-7777-4777-8777-777777777777",
+            supersedesObservationId: "67777777-7777-4777-8777-777777777777",
           },
           createdAt,
           priorityClass: "essential_structured",
@@ -240,8 +237,7 @@ describe("Venue visit persisted mutation replay commands", () => {
         projectId: scope.projectId,
         factId: "66666666-6666-4666-8666-666666666666",
         observationId: factOperationId,
-        supersedesObservationId:
-          "67777777-7777-4777-8777-777777777777",
+        supersedesObservationId: "67777777-7777-4777-8777-777777777777",
       },
     });
 
