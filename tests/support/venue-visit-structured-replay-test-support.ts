@@ -39,6 +39,8 @@ import {
   venueId,
 } from "./venue-visit-structured-replay-local-test-support";
 
+const now = "2026-10-06T13:30:00.000Z";
+
 export {
   MemoryLocalStore,
   factId,
