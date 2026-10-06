@@ -13,8 +13,8 @@ import type {
   VenueFactContext,
   VenueFactEvidencePort,
   VenueFactObservationRecord,
+  VenueFactSourceReadPort,
   VenueFactSourceRecord,
-  type VenueFactSourceReadPort,
 } from "@application/facts/venue-fact-evidence-service";
 import { parseVenueFactDefinitionRow } from "./parse-venue-fact-row";
 import {
