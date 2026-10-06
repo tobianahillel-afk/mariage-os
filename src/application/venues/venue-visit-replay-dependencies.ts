@@ -91,7 +91,10 @@ export function orderStructuredReplayEntries(
       break;
     }
 
-    const candidate = remaining.splice(candidateIndex, 1)[0] as StructuredReplayEntry;
+    const candidate = remaining.splice(
+      candidateIndex,
+      1,
+    )[0] as StructuredReplayEntry;
     ordered.push(candidate);
   }
 
