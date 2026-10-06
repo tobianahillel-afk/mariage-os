@@ -113,7 +113,7 @@ describe("structured replay dependency ordering", () => {
       ratingMutation(
         "41111111-1111-4111-8111-111111111111",
         timestamp,
-        "logistics_score",
+        "logistics_score_personal",
         0,
       ),
     );
@@ -260,7 +260,7 @@ describe("structured replay dependency blockers", () => {
       ratingMutation(
         "53333333-3333-4333-8333-333333333334",
         "2026-10-06T12:02:00.000Z",
-        "logistics_score",
+        "logistics_score_personal",
         2,
       ),
     );
