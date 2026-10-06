@@ -178,11 +178,7 @@ const invalidCases = [
   ],
   [
     "rating invalid expected revision",
-    visitMutation(
-      VENUE_VISIT_MEMBER_RATING_MUTATION,
-      "0",
-      ratingPayload(-1),
-    ),
+    visitMutation(VENUE_VISIT_MEMBER_RATING_MUTATION, "0", ratingPayload(-1)),
   ],
 ] as const;
 
