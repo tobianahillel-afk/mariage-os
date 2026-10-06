@@ -132,9 +132,7 @@ export function hasReplayBlockedDependency(
     command.kind === "fact_observation" &&
     command.input.supersedesObservationId !== null
   ) {
-    return blockers.factOperationIds.has(
-      command.input.supersedesObservationId,
-    );
+    return blockers.factOperationIds.has(command.input.supersedesObservationId);
   }
 
   if (command.kind === "member_rating") {
