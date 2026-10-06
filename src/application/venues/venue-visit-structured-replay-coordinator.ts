@@ -2,8 +2,12 @@ import {
   appendVenueFactObservation,
   type VenueFactEvidencePort,
 } from "@application/facts/venue-fact-evidence-service";
-import type { LocalProjectStore } from "@application/local-data/local-project-store";
-import type { PendingMutationEnvelope } from "@application/local-data/local-records";
+import type {
+  LocalProjectStore,
+} from "@application/local-data/local-project-store";
+import type {
+  PendingMutationEnvelope,
+} from "@application/local-data/local-records";
 import {
   retryableVenueVisitMutation,
   venueReplayCommand,
@@ -205,7 +209,10 @@ export class VenueVisitStructuredReplayCoordinator {
     }
 
     if (command.kind === "fact_observation") {
-      const result = await appendVenueFactObservation(this.facts, command.input);
+      const result = await appendVenueFactObservation(
+        this.facts,
+        command.input,
+      );
       return result.ok ? null : factFailure(result.error);
     }
 
