@@ -169,6 +169,14 @@ const invalidCases = [
     visitMutation(VENUE_VISIT_MEMBER_RATING_MUTATION, "1", ratingPayload()),
   ],
   [
+    "rating missing base revision",
+    visitMutation(VENUE_VISIT_MEMBER_RATING_MUTATION, null, ratingPayload()),
+  ],
+  [
+    "rating malformed base revision",
+    visitMutation(VENUE_VISIT_MEMBER_RATING_MUTATION, "01", ratingPayload()),
+  ],
+  [
     "rating non-finite",
     visitMutation(
       VENUE_VISIT_MEMBER_RATING_MUTATION,
