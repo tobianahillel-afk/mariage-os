@@ -25,7 +25,9 @@ import {
   VENUE_VISIT_MEMBER_RATING_MUTATION,
   VENUE_VISIT_NOTE_MUTATION,
 } from "@application/venues/venue-local-mutation";
-import { VenueMemberOpinionPersistenceError } from "@application/venues/venue-member-opinion-persistence-error";
+import {
+  VenueMemberOpinionPersistenceError,
+} from "@application/venues/venue-member-opinion-persistence-error";
 import type {
   SaveVenueMemberRatingInput,
   VenueMemberOpinionPort,
