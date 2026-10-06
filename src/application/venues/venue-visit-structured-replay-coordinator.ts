@@ -19,7 +19,7 @@ import {
   type VenueMemberOpinionPort,
 } from "@application/venues/venue-member-opinion-service";
 
-export type VenueVisitStructuredReplayState =
+type VenueVisitStructuredReplayState =
   "synced" | "pending" | "conflict" | "failed_permanent";
 
 export interface VenueVisitStructuredReplayResult {
