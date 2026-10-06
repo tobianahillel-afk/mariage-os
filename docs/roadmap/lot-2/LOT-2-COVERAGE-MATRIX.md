@@ -125,9 +125,10 @@ ADR 0011 later produced decisive deployed CPU evidence and was rejected for fina
 | WP-2.9B | **ACCEPTED / COMPLETE** | generic project Tags + Venue entity-tags; FIR #27 downstream; AR-001/002 closed |
 | WP-2.10 | **ACCEPTED / COMPLETE** | repositories/local cache/pending offline mutations; Pass C gap ∅ / CI `36849005712` 5/5 |
 | WP-2.11 | **ACCEPTED / COMPLETE** | gallery/table/detail/compare/deep-link workspace; Pass C gap ∅ / CI `37240178167` 5/5 |
-| WP-2.12 | **IN_PROGRESS — A-IMPLEMENT resumption CI pending** | mobile/offline Venue visit + packet E2E completion; tranches 1–3 GREEN; Fact + Member Rating replay dependencies satisfied; FIR #42 |
+| WP-2.12 | **BLOCKED — WP-2.12T dependency** | mobile/offline Venue visit + packet E2E completion; tranches 1–3 GREEN; structured reconnect #99 preserved; FIR #42 |
 | WP-2.12R | **ACCEPTED / COMPLETE** | replay-safe fact-observation command identity; Pass C gap ∅ / CI `37335393969` 5/5; 3 points / cohesion PASS |
 | WP-2.12S | **ACCEPTED / COMPLETE** | replay-safe Venue member-rating command identity with expand/switch compatibility; Pass C gap ∅ / CI `37463358444` 5/5; 3 points / cohesion PASS |
+| WP-2.12T | **READY — activation CI pending** | atomic in-person Fact source provenance link; expected source type + revision checked server-side; 3 points / cohesion PASS |
 
 ## Sequencing
 
@@ -135,14 +136,15 @@ ADR 0011 later produced decisive deployed CPU evidence and was rejected for fina
 WP-2.1..WP-2.8C [ACCEPTED]
   → WP-2.9C [ACCEPTED]
     → WP-2.9A [ACCEPTED]
-                → WP-2.9B [ACCEPTED] → WP-2.10 [ACCEPTED] → WP-2.11 [ACCEPTED] → WP-2.12 [RESUMPTION GATE]
+                → WP-2.9B [ACCEPTED] → WP-2.10 [ACCEPTED] → WP-2.11 [ACCEPTED] → WP-2.12 [BLOCKED]
                                                                                            ↘ WP-2.12R [ACCEPTED]
                                                                                            ↘ WP-2.12S [ACCEPTED]
-                                                                                              → WP-2.12 [resume A after resumption CI]
+                                                                                           ↘ WP-2.12T [READY gate]
+                                                                                              → WP-2.12 [resume A after T acceptance]
                                                                                                 → Lot reconciliation → Integration Pass
 ```
 
-Only one packet may be active at a time. WP-2.9A/B/C, WP-2.10, WP-2.11 and support packets WP-2.12R/WP-2.12S are terminal accepted. WP-2.12 READY gate `99cf3b68...` / CI `37241583422` passed 5/5 and tranches 1–3 remain GREEN through `1794a3d9...` / CI `37280907551`. WP-2.12S final support seal `93f2916d...` / CI `37465538267` passed 5/5. Parent WP-2.12 is back in IN_PROGRESS / A-IMPLEMENT, but new production work remains gated on this separate resumption head passing exact-head ordinary CI including clean checkout.
+Only one packet may be active at a time. WP-2.9A/B/C, WP-2.10, WP-2.11 and support packets WP-2.12R/WP-2.12S are terminal accepted. Parent resumption head `be616638...` / CI `37466734867` passed 5/5, and structured-reconnect PR #99 remains preserved. Fresh review then exposed an atomic source-provenance TOCTOU that requires server-side type/revision enforcement. Parent WP-2.12 is BLOCKED while 3-point support packet WP-2.12T passes its own A/B/C sequence.
 
 ## Explicitly outside Lot 2
 

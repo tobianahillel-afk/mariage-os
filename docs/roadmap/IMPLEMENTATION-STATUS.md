@@ -42,9 +42,10 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.9B | generic project tags and Venue entity-tag links                        | **ACCEPTED / COMPLETE — Pass C gap ∅**                                      |
 | WP-2.10 | repositories, local cache, pending/offline mutations                   | **ACCEPTED / COMPLETE**                                                     |
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace                       | **ACCEPTED / COMPLETE**                                                    |
-| WP-2.12 | mobile/offline venue-visit workflow and packet E2E completion          | **IN_PROGRESS — A-IMPLEMENT resumption seal CI pending**                  |
+| WP-2.12 | mobile/offline venue-visit workflow and packet E2E completion          | **BLOCKED — WP-2.12T atomic visit-source provenance dependency**          |
 | WP-2.12R | replay-safe Venue fact-observation command boundary                     | **ACCEPTED / COMPLETE — Pass C gap ∅**                                    |
 | WP-2.12S | replay-safe Venue member-rating command boundary                        | **ACCEPTED / COMPLETE — Pass C gap ∅**                                    |
+| WP-2.12T | atomic Venue fact-observation visit-source provenance link               | **READY — activation exact-head CI pending**                              |
 
 ## WP-2.10 — activation revalidation
 
@@ -143,6 +144,18 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 - State: **ACCEPTED / COMPLETE**. The bounded replay-safe Member Rating support responsibility is terminal; `WP212S-AR-001/002/003` remain CLOSED / VERIFIED and no new P0/P1/P2 is open.
 - WP-2.12S final support seal `93f2916db125139f7694e56248c188a2cf21f794` / CI `37465538267` passed **5/5 ordinary jobs**, including full verify from clean checkout.
 - Parent WP-2.12 resumption is recorded separately below. No new parent production code is authorized until the resumption-governance HEAD itself passes five ordinary jobs including clean checkout.
+
+## WP-2.12T — atomic visit-source provenance split
+
+- Fresh review of parent structured-reconnect PR #99 found a valid TOCTOU gap: the parent reads a Fact source, verifies `source_type = in_person_visit`, then later calls `link_venue_fact_observation_source` in a separate transaction. `update_venue_fact_source` may change `source_type`/revision between those calls, while the current link RPC verifies only source existence.
+- Parent WP-2.12 is therefore **BLOCKED** with all prior GREEN tranches, accepted WP-2.12R/WP-2.12S support, and the current #99 structured-reconnect work preserved.
+- Packet record: `docs/roadmap/lot-2/WP-2.12T.md`.
+- Discovery base: `be616638026b0c56e8d6317b182ccaa5932f1809` / CI `37466734867` — **5/5 SUCCESS**, including clean checkout.
+- Trigger evidence: PR #99 fresh review on `283971609d5ee8144556f045fe5066dee941e34f`; the application-only ACK validation is being remediated separately in #99, while atomic provenance cannot be proven outside the server transaction.
+- Size: **3 points / cohesion PASS** — one forward-only migration/API family (+1) and one provenance-checked link RPC (+2); no table, RLS policy, permission, provider, UI or product-domain expansion.
+- Frozen responsibility: add a checked Fact Observation → Source link command that atomically locks/reads the exact project source and validates the caller-supplied expected `source_type` and source revision before linking. Mismatch must fail closed and create/update no link.
+- Existing general four-argument link behavior remains untouched for accepted non-visit Fact/Evidence flows. WP-2.12 parent will consume only the checked boundary for `in_person_visit` replay after T is accepted.
+- Current/next pass: **PLAN → activation gate → RED-first Pass A**. No WP-2.12T production migration/RPC code, and no parent #99 merge, is authorized before this governance HEAD itself passes all five ordinary jobs including clean checkout.
 
 ## Accepted packet evidence summary
 

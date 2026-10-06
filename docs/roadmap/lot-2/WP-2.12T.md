@@ -1,0 +1,149 @@
+# WP-2.12T — Atomic Venue Fact visit-source provenance link
+
+## Identity
+
+- Work Packet ID: `WP-2.12T`
+- Lot: 2 — Venues core
+- Name: atomic in-person source provenance enforcement for Venue Fact observation links
+- State: `READY` — activation-governance exact-head CI pending
+- Current pass: `PLAN` (next: `A-IMPLEMENT / RED first`)
+- Branch: `lot-2/venues-core`
+- Parent packet: `WP-2.12` — BLOCKED with all previous GREEN work preserved
+- Discovery base: `be616638026b0c56e8d6317b182ccaa5932f1809`
+- Discovery-base CI: `37466734867` — **5/5 SUCCESS**, including clean checkout
+- Trigger: fresh review of structured-reconnect PR #99
+- Primary FIR: #42 / FTR-028 support only; no new product Feature
+
+## Why this packet exists
+
+WP-2.12 structured replay must preserve measurement provenance as
+`in_person_visit`.
+
+The parent currently performs:
+
+1. `getSource(projectId, sourceId)`;
+2. checks `source.sourceType === "in_person_visit"`;
+3. appends/replays the Fact observation;
+4. later calls `link_venue_fact_observation_source`.
+
+Those reads/writes are not one transaction. The accepted source update command
+may change `source_type` and source revision after step 2. The current link RPC
+checks only that the source exists, so another project member can change the
+source before step 4 and the replay may acknowledge/remove local work with
+false visit provenance.
+
+This cannot be closed by another client-side read. The invariant belongs in the
+server-side link transaction.
+
+## Frozen responsibility
+
+Add one provenance-checked link command for the parent visit workflow.
+
+The checked command must:
+
+1. preserve current authentication, active-membership and `venues.write`
+   authorization;
+2. receive exact project, observation, source and primary-link identity;
+3. receive expected source type and expected source revision;
+4. require expected source type `in_person_visit` for the parent use case;
+5. lock/read the exact same-project source inside the link transaction;
+6. fail closed if the source is absent, foreign, wrong type or no longer at the
+   expected revision;
+7. verify the observation belongs to the same project and a Venue Fact;
+8. create/update the link only after all checks pass;
+9. return the exact linked project/observation/source/primary identity;
+10. create/update **no** link on authorization, type, revision or scope failure.
+
+The existing accepted general four-argument link command remains available to
+existing non-visit Fact/Evidence callers. WP-2.12 will consume only the checked
+boundary for visit measurement replay after this support packet is accepted.
+
+## Bounded implementation surface
+
+Expected changes only:
+
+- one forward-only Supabase migration defining the checked link RPC;
+- one application port/input for expected source type + revision;
+- Supabase adapter maps that contract exactly and validates the receipt;
+- direct pgTAP authorization/type/revision/isolation/no-write evidence;
+- unit/adapter tests;
+- minimal parent-compatible fixture/call-site preparation only where necessary
+  to expose the accepted port.
+
+No new table, column, RLS policy, permission key, provider, Storage path, UI,
+offline queue, Fact product semantic or source-edit behavior belongs here.
+
+## Complexity / cohesion
+
+| Complexity source | Points |
+|---|---:|
+| one migration/API family | 1 |
+| one new/meaningfully changed checked-link RPC | 2 |
+| table/entity/RLS/permission | 0 |
+| UI/provider/offline workflow | 0 |
+| **Total** | **3** |
+
+Cohesion: **PASS**. One atomic invariant, one transaction boundary, one
+independent review target.
+
+Folding these 3 points into the original 9-point parent would make WP-2.12 a
+12-point packet, so the >10 split rule requires this support packet.
+
+## RED-first gate
+
+No production implementation before this activation-governance HEAD passes all
+five ordinary jobs including clean checkout.
+
+Then create an isolated closed/unmerged RED-only PR proving:
+
+1. the accepted boundary has no provenance-checked link command;
+2. source type can be changed after a successful client read while the existing
+   link RPC still accepts the source;
+3. no expected source revision is enforced by the existing link RPC;
+4. wrong type/stale revision must produce no observation-source link;
+5. authorization and cross-project failures remain non-disclosing.
+
+## Pass A GREEN evidence
+
+At minimum:
+
+- pgTAP correct `in_person_visit` type + exact revision links successfully;
+- wrong source type fails and row count remains unchanged;
+- stale source revision fails and row count remains unchanged;
+- source updated between read and checked-link attempt is rejected;
+- outsider/revoked/non-member direct call is denied with zero link side effect;
+- cross-project source/observation IDs fail non-disclosing with zero link;
+- adapter sends expected source type/revision and exact identities;
+- substituted/malformed returned link receipt fails closed;
+- legacy accepted general link tests remain green;
+- full Core, DB/RLS/promotion, browser/mutation, preview and clean checkout are
+  exact-head green.
+
+## Explicitly out of scope
+
+- parent structured replay coordinator and queue settlement;
+- Fact observation replay identity — accepted WP-2.12R;
+- Member Rating replay identity — accepted WP-2.12S;
+- source creation/update product semantics;
+- local media bytes/upload;
+- generic sync/PWA;
+- new table/RLS/permission/provider/UI.
+
+## Pass A exit
+
+- [ ] activation-governance HEAD 5/5 including clean checkout
+- [ ] isolated RED proves missing atomic type/revision contract
+- [ ] checked link RPC enforces type + revision in the link transaction
+- [ ] direct authorization/isolation/no-side-effect evidence green
+- [ ] adapter/application contract green with exact receipt validation
+- [ ] legacy Fact/Evidence link behavior remains green
+- [ ] exact-head 5/5 CI including clean checkout
+- [ ] packet moves to `REVIEW_PENDING / B-ADVERSARIAL-REVIEW`
+
+## Handoff
+
+- Current state: **READY — activation exact-head CI pending**
+- Parent WP-2.12: **BLOCKED**, prior GREEN work and PR #99 preserved
+- Open support findings: ∅
+- Next permitted action: activation exact-head five-job CI including clean
+  checkout; only then isolated RED-first evidence.

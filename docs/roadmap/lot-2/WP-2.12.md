@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.12`
 - Lot: 2 — Venues core
 - Name: mobile/offline Venue visit, offline package, local visit media and packet E2E completion
-- State: `IN_PROGRESS`
-- Current pass: `A-IMPLEMENT RESUMPTION GATE` — tranches 1–3 remain GREEN; WP-2.12R + WP-2.12S ACCEPTED; resumption exact-head CI pending
+- State: `BLOCKED`
+- Current pass: `A-IMPLEMENT PAUSED` — tranches 1–3 GREEN and structured-reconnect #99 preserved; WP-2.12R + WP-2.12S ACCEPTED; WP-2.12T atomic provenance dependency active
 - Branch: `lot-2/venues-core`
 - Activation base: `0a2d051d3f0a45b638f5c1b5f8c81acf36491c36`
 - Activation-base CI: `37240817336` — **5/5 SUCCESS**, including full verify from clean checkout; provider-only workflows skipped
@@ -165,9 +165,24 @@ identity for response-loss replay. That hardening was extracted to support
 packet `WP-2.12S`, which is now **ACCEPTED / COMPLETE** at final support seal
 `93f2916db125139f7694e56248c188a2cf21f794` / CI `37465538267` — 5/5 including clean checkout.
 Interaction already has exact `interactionId` replay semantics and Fact
-Observation is covered by accepted WP-2.12R. Both structured-replay dependencies
-are therefore satisfied. Parent implementation may resume only after this
-separate resumption-governance HEAD itself passes exact-head ordinary CI.
+Observation identity is covered by accepted WP-2.12R. Member Rating identity is
+covered by accepted WP-2.12S.
+
+Fresh review of the parent structured-reconnect GREEN then exposed a third,
+narrow server assumption: the application checks a source as
+`in_person_visit` with `getSource()`, but the later
+`link_venue_fact_observation_source` RPC runs in a separate transaction and
+checks only that the source exists. Because `update_venue_fact_source` may
+change `source_type` and revision between those calls, visit provenance can
+drift after the client check but before the link is committed.
+
+Closing that race requires one forward-only migration/API family (+1) and one
+meaningfully changed/added checked-link RPC (+2). Folding those 3 points into
+the original 9-point parent would make it 12, so the orchestration >10 rule
+requires support packet `WP-2.12T`. Parent implementation is **BLOCKED** until
+T is independently accepted. The current structured-reconnect PR #99 remains
+preserved and may resume after T; its separate Fact-ACK validation remediation
+does not require the support packet.
 
 ## Explicitly out of scope
 
@@ -210,12 +225,16 @@ different accepted server boundary.
 2. After parent resumption, Member Rating was found to have the same
    response-loss problem: no operation/device identity exists on
    `set_venue_member_rating`.
+3. Structured-reconnect fresh review found a Fact provenance TOCTOU: source
+   type is checked before a separate link transaction that does not validate
+   the expected type/revision. Atomic provenance enforcement is extracted to
+   `WP-2.12T`.
 
 Each hardening adds one migration/API family (+1) and one meaningfully changed
-RPC (+2). Folding either into the 9-point parent would make it 12 points. The
-orchestration hard rule for >10 therefore requires bounded support packets.
-`WP-2.12S` owns only member-rating replay identity hardening. This is not a
-product-scope expansion and does not reopen accepted WP-2.2 rating semantics.
+RPC (+2). Folding any such hardening into the 9-point parent makes it 12 points.
+The orchestration hard rule for >10 therefore requires bounded support packets.
+`WP-2.12T` owns only atomic visit-source provenance linking; it does not add a
+new product Feature or reopen accepted Fact semantics.
 
 ## RED-first gate
 
@@ -316,8 +335,8 @@ Still required before Pass A exit:
 
 ## Handoff
 
-- Current state: **IN_PROGRESS / A-IMPLEMENT RESUMPTION GATE**
-- Current/next pass: A-IMPLEMENT resumes after resumption exact-head CI; next tranche is structured reconnect RED-first
+- Current state: **BLOCKED — WP-2.12T dependency**
+- Current/next pass: parent A-IMPLEMENT paused; structured-reconnect #99 preserved; resume only after WP-2.12T ACCEPTED and separate parent resumption seal
 - READY gate: `99cf3b68f91b616b8aca9a218d3fb6ea62b493d9` / CI `37241583422` — 5/5
 - Current canonical parent implementation preserved: `1794a3d9d564769437a22582b918f793e57cf150` / CI `37280907551` — 5/5
 - Pass-A reconciliation: `8ffe905b026645affb6f218b65b601f565e80fe6` / CI `37288210671` — 5/5
@@ -325,5 +344,5 @@ Still required before Pass A exit:
 - Fact replay dependency satisfied: WP-2.12R final support seal `cdad9eb82052ac3e2296769e5381b2371558ec4d` / CI `37341157497` — 5/5, ACCEPTED / COMPLETE
 - Rating replay dependency satisfied: WP-2.12S final support seal `93f2916db125139f7694e56248c188a2cf21f794` / CI `37465538267` — 5/5, ACCEPTED / COMPLETE
 - Primary FIR: #42 / FTR-028 — IN_PROGRESS
-- Open parent findings: ∅; remaining Pass-A work is structured reconnect, local binary bytes/upload, mobile workflow completion and synthetic E2E
-- Next permitted parent action: pass this resumption-governance HEAD through exact-head 5/5 CI including clean checkout; only then create isolated RED for replay-safe visit note / fact measurement / personal-rating mutations. Media remains separate.
+- Open parent blocker: atomic `in_person_visit` source provenance cannot be guaranteed by the current read-then-link boundary; owned by WP-2.12T. Fact-ACK response validation remediation remains in parent PR #99.
+- Next permitted parent action: none until WP-2.12T is ACCEPTED and a separate parent resumption-governance head passes exact-head 5/5 CI. Media remains a separate later parent tranche.
