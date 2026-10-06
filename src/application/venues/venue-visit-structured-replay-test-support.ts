@@ -416,4 +416,3 @@ export async function seed(
     await local.addPendingMutation(mutation);
   }
 }
-
