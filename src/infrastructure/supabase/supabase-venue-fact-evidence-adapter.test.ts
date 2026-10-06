@@ -105,7 +105,12 @@ function makeClient(
           eq: () => query,
           single: () =>
             Promise.resolve({
-              data: table === "facts" ? factRow : definitionRow,
+              data:
+                table === "facts"
+                  ? factRow
+                  : table === "sources"
+                    ? sourceRow
+                    : definitionRow,
               error: null,
             }),
         };
@@ -175,6 +180,17 @@ it("loads a project-scoped fact context and definition", async () => {
     projectId,
     venueId,
     definition: { id: definitionId, valueType: "boolean" },
+  });
+});
+
+it("loads an exact project-scoped source for replay provenance", async () => {
+  const adapter = new SupabaseVenueFactEvidenceAdapter(makeClient(() => null));
+
+  await expect(adapter.getSource(projectId, sourceId)).resolves.toMatchObject({
+    id: sourceId,
+    projectId,
+    sourceType: "written_confirmation",
+    revision: 1,
   });
 });
 
