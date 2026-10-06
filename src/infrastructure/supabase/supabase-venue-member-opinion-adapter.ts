@@ -131,7 +131,9 @@ export class SupabaseVenueMemberOpinionAdapter implements VenueMemberOpinionPort
         input.venueId,
       );
     } catch {
-      throw new Error("Venue member opinion mutation failed.");
+      throw new Error("Venue member opinion mutation failed.", {
+        cause: error,
+      });
     }
   }
 
