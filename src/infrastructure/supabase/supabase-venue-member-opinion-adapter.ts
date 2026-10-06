@@ -61,8 +61,14 @@ function mutationFailure(): never {
 }
 
 function ratingMutationFailure(error: SupabaseFailure): never {
+  const code =
+    error.code === "40001"
+      ? "conflict"
+      : error.code === "22023"
+        ? "replay_identity_mismatch"
+        : "persistence_failed";
   throw new VenueMemberOpinionPersistenceError(
-    error.code === "40001" ? "conflict" : "persistence_failed",
+    code,
     "Venue member opinion mutation failed.",
   );
 }
