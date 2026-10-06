@@ -378,11 +378,7 @@ describe("Venue visit structured replay retained dependency blockers", () => {
       lastErrorCode: "conflict",
     };
     const second = {
-      ...factMutation(
-        secondId,
-        "2026-10-06T12:03:00.000Z",
-        factOperationId,
-      ),
+      ...factMutation(secondId, "2026-10-06T12:03:00.000Z", factOperationId),
       status: "failed_retryable" as const,
       lastErrorCode: "dependency_pending",
     };
@@ -413,12 +409,7 @@ describe("Venue visit structured replay retained dependency blockers", () => {
       lastErrorCode: "replay_identity_mismatch",
     };
     const second = {
-      ...ratingMutation(
-        secondId,
-        "2026-10-06T12:03:00.000Z",
-        "love_score",
-        1,
-      ),
+      ...ratingMutation(secondId, "2026-10-06T12:03:00.000Z", "love_score", 1),
       status: "failed_retryable" as const,
       lastErrorCode: "dependency_pending",
     };
