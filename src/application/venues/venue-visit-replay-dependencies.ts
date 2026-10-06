@@ -82,12 +82,20 @@ export function orderStructuredReplayEntries(
     );
 
     if (candidateIndex < 0) {
-      ordered.push(...remaining);
+      ordered.push(
+        ...remaining.map((entry) => ({
+          ...entry,
+          command: null,
+        })),
+      );
       break;
     }
 
     const [candidate] = remaining.splice(candidateIndex, 1);
-    if (candidate !== undefined) ordered.push(candidate);
+    if (candidate === undefined) {
+      throw new Error("Structured replay ordering invariant failed.");
+    }
+    ordered.push(candidate);
   }
 
   return ordered;
