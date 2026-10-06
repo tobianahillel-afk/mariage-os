@@ -150,7 +150,8 @@ export class SupabaseVenueMemberOpinionAdapter implements VenueMemberOpinionPort
       });
       if (error !== null) ratingMutationFailure(error);
       return parseVenueMemberRatingRow(data, input.projectId, input.venueId);
-    } catch {
+    } catch (error) {
+      if (error instanceof VenueMemberOpinionPersistenceError) throw error;
       throw new Error("Venue member opinion mutation failed.");
     }
   }
