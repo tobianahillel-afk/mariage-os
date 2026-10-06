@@ -156,7 +156,6 @@ describe("saveVenueMemberRating validation", () => {
     expect(result).toEqual({ ok: false, error: "rating_dimension_invalid" });
     expect(captures.rating).toBeNull();
   });
-
 });
 
 describe("saveVenueMemberRating persistence", () => {
