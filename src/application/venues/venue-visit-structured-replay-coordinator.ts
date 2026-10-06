@@ -111,6 +111,9 @@ function factFailure(error: string): RemoteFailure {
 }
 
 function ratingFailure(error: string): RemoteFailure {
+  if (error === "conflict") {
+    return { state: "conflict", error };
+  }
   return error === "persistence_failed"
     ? { state: "pending", error }
     : { state: "failed_permanent", error };
