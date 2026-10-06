@@ -283,12 +283,17 @@ export function retryableVenueMutation(
   );
 }
 
-export function retryableVenueVisitMutation(
+export function venueVisitMutation(
   mutation: PendingMutationEnvelope,
 ): boolean {
   return (
     mutation.entityType === "venue" &&
-    venueVisitMutationType(mutation.mutationType) &&
-    retryableStatus(mutation)
+    venueVisitMutationType(mutation.mutationType)
   );
+}
+
+export function retryableVenueVisitMutation(
+  mutation: PendingMutationEnvelope,
+): boolean {
+  return venueVisitMutation(mutation) && retryableStatus(mutation);
 }
