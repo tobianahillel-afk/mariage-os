@@ -20,6 +20,7 @@ const scope = createLocalProjectScope(
 );
 const venueId = "44444444-4444-4444-8444-444444444444";
 const operationId = "55555555-5555-4555-8555-555555555555";
+const sourceId = "58888888-8888-4888-8888-888888888888";
 const createdAt = "2026-09-29T17:30:00.000Z";
 
 function visitMutation(
@@ -56,6 +57,8 @@ function factPayload(id = operationId) {
   return {
     factId: "66666666-6666-4666-8666-666666666666",
     observationId: id,
+    sourceId,
+    sourceType: "in_person_visit",
     value: 12.5,
     rawValueText: "12.5 m",
     evidenceLevel: "observed",
@@ -107,6 +110,8 @@ it("reconstructs a replay-safe fact observation command", () => {
   expect(venueReplayCommand(mutation, scope)).toEqual({
     kind: "fact_observation",
     venueId,
+    sourceId,
+    sourceType: "in_person_visit",
     input: {
       projectId: scope.projectId,
       factId: "66666666-6666-4666-8666-666666666666",
@@ -169,6 +174,20 @@ const invalidCases = [
     visitMutation(VENUE_VISIT_FACT_OBSERVATION_MUTATION, null, {
       ...factPayload(),
       factId: "not-a-uuid",
+    }),
+  ],
+  [
+    "fact missing visit source",
+    visitMutation(VENUE_VISIT_FACT_OBSERVATION_MUTATION, null, {
+      ...factPayload(),
+      sourceId: undefined,
+    }),
+  ],
+  [
+    "fact wrong visit source type",
+    visitMutation(VENUE_VISIT_FACT_OBSERVATION_MUTATION, null, {
+      ...factPayload(),
+      sourceType: "user_estimate",
     }),
   ],
   [
