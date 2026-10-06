@@ -93,6 +93,32 @@ describe("Venue visit structured replay note failures", () => {
     });
   });
 
+  it("marks an invalid normalized note permanent before persistence", async () => {
+    const local = new MemoryLocalStore();
+    const remote = new RemoteHarness();
+    const candidate = noteMutation();
+    await seed(local, {
+      ...candidate,
+      payload: {
+        ...(candidate.payload as Record<string, unknown>),
+        interactionType: "",
+      },
+    });
+
+    await expect(coordinator(local, remote).replayPending()).resolves.toEqual([
+      {
+        operationId: noteId,
+        state: "failed_permanent",
+        error: "invalid_interaction_type",
+      },
+    ]);
+    expect(remote.notes).toHaveLength(0);
+    expect(local.pending.get(noteId)).toMatchObject({
+      status: "failed_permanent",
+      lastErrorCode: "invalid_interaction_type",
+    });
+  });
+
   it("retains a generic note provider failure as retryable", async () => {
     const local = new MemoryLocalStore();
     const remote = new RemoteHarness();
