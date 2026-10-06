@@ -367,17 +367,13 @@ describe("Venue visit structured replay rating validation", () => {
   });
 });
 
-
 describe("Venue visit structured replay retained dependency blockers", () => {
   it("keeps a superseding Fact blocked when its predecessor is already conflict", async () => {
     const local = new MemoryLocalStore();
     const remote = new RemoteHarness();
     const secondId = "12222222-2222-4222-8222-222222222223";
     const first = {
-      ...factMutation(
-        factOperationId,
-        "2026-10-06T12:02:00.000Z",
-      ),
+      ...factMutation(factOperationId, "2026-10-06T12:02:00.000Z"),
       status: "conflict" as const,
       lastErrorCode: "conflict",
     };
