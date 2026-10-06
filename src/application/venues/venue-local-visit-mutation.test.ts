@@ -188,11 +188,13 @@ it.each(invalidCases)("rejects invalid visit %s", (_label, mutation) => {
   );
 });
 
-it.each([
-  [VENUE_VISIT_NOTE_MUTATION, null, notePayload()],
-  [VENUE_VISIT_FACT_OBSERVATION_MUTATION, null, factPayload()],
-  [VENUE_VISIT_MEMBER_RATING_MUTATION, "0", ratingPayload()],
-] as const)(
+it.each(
+  [
+    [VENUE_VISIT_NOTE_MUTATION, null, notePayload()],
+    [VENUE_VISIT_FACT_OBSERVATION_MUTATION, null, factPayload()],
+    [VENUE_VISIT_MEMBER_RATING_MUTATION, "0", ratingPayload()],
+  ] as const,
+)(
   "keeps %s isolated from core/status replay",
   (mutationType, revision, payload) => {
     const candidate = visitMutation(mutationType, revision, payload);
