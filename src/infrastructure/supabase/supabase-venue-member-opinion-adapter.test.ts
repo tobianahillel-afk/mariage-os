@@ -280,7 +280,6 @@ describe("SupabaseVenueMemberOpinionAdapter rating writes", () => {
       code: "conflict",
     });
   });
-
 });
 
 describe("SupabaseVenueMemberOpinionAdapter rating replay safety", () => {
