@@ -168,7 +168,6 @@ describe("Venue pending mutation retry classification", () => {
   });
 });
 
-
 describe("Venue visit persisted mutation replay commands", () => {
   it("reconstructs note, fact-observation and member-rating commands", () => {
     const noteOperationId = "61111111-1111-4111-8111-111111111111";
@@ -370,15 +369,18 @@ describe("Venue visit persisted mutation replay commands", () => {
     [VENUE_VISIT_NOTE_MUTATION, null],
     [VENUE_VISIT_FACT_OBSERVATION_MUTATION, null],
     [VENUE_VISIT_MEMBER_RATING_MUTATION, "0"],
-  ] as const)("classifies %s as visit-only retry work", (mutationType, revision) => {
-    const candidate = {
-      ...mutation(mutationType, {}),
-      baseRevision: revision,
-    };
-    expect(retryableVenueMutation(candidate)).toBe(false);
-    expect(retryableVenueVisitMutation(candidate)).toBe(true);
-    expect(
-      retryableVenueVisitMutation({ ...candidate, status: "conflict" }),
-    ).toBe(false);
-  });
+  ] as const)(
+    "classifies %s as visit-only retry work",
+    (mutationType, revision) => {
+      const candidate = {
+        ...mutation(mutationType, {}),
+        baseRevision: revision,
+      };
+      expect(retryableVenueMutation(candidate)).toBe(false);
+      expect(retryableVenueVisitMutation(candidate)).toBe(true);
+      expect(
+        retryableVenueVisitMutation({ ...candidate, status: "conflict" }),
+      ).toBe(false);
+    },
+  );
 });
