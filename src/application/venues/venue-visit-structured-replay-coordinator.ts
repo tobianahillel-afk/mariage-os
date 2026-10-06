@@ -3,11 +3,10 @@ import {
   linkVenueFactObservationSource,
   type VenueFactContext,
   type VenueFactEvidencePort,
-  type VenueFactObservationRecord,
   type VenueFactSourceReadPort,
 } from "@application/facts/venue-fact-evidence-service";
 import { venueFactPersistenceErrorCode } from "@application/facts/venue-fact-persistence-error";
-import { normalizeFactObservation } from "@domain/facts/fact-observation";
+import { venueVisitFactAcknowledgementMatches } from "./venue-visit-fact-acknowledgement";
 import type { LocalProjectStore } from "@application/local-data/local-project-store";
 import type { PendingMutationEnvelope } from "@application/local-data/local-records";
 import {
@@ -135,44 +134,6 @@ function ratingAcknowledgementFailure(
     rating.dimensionKey === expected.dimensionKey &&
     rating.rating === expected.rating &&
     rating.revision === expected.expectedRevision + 1
-    ? null
-    : { state: "failed_permanent", error: "provider_response_invalid" };
-}
-
-function jsonValueMatches(left: unknown, right: unknown): boolean {
-  return JSON.stringify(left) === JSON.stringify(right);
-}
-
-function factAcknowledgementFailure(
-  command: Extract<
-    StructuredVenueReplayCommand,
-    { readonly kind: "fact_observation" }
-  >,
-  context: VenueFactContext,
-  observation: VenueFactObservationRecord,
-  expectedUserId: string,
-): RemoteFailure | null {
-  const normalized = normalizeFactObservation(
-    context.definition,
-    command.input,
-  );
-  if (!normalized.ok) {
-    return { state: "failed_permanent", error: "provider_response_invalid" };
-  }
-
-  const expected = normalized.value;
-  return observation.id === command.input.observationId &&
-    observation.projectId === command.input.projectId &&
-    observation.factId === command.input.factId &&
-    observation.status === "active" &&
-    observation.supersededByObservationId === null &&
-    observation.createdBy === expectedUserId &&
-    jsonValueMatches(observation.value, expected.value) &&
-    observation.rawValueText === expected.rawValueText &&
-    observation.evidenceLevel === expected.evidenceLevel &&
-    observation.confidence === expected.confidence &&
-    observation.observedAt === expected.observedAt &&
-    observation.note === expected.note
     ? null
     : { state: "failed_permanent", error: "provider_response_invalid" };
 }
@@ -339,13 +300,16 @@ export class VenueVisitStructuredReplayCoordinator {
     );
     if (!observation.ok) return factFailure(observation.error);
 
-    const acknowledgementFailure = factAcknowledgementFailure(
-      command,
-      contextResult.context,
-      observation.observation,
-      this.local.scope.userId,
-    );
-    if (acknowledgementFailure !== null) return acknowledgementFailure;
+    if (
+      !venueVisitFactAcknowledgementMatches(
+        command,
+        contextResult.context,
+        observation.observation,
+        this.local.scope.userId,
+      )
+    ) {
+      return { state: "failed_permanent", error: "provider_response_invalid" };
+    }
 
     const link = await linkVenueFactObservationSource(this.facts, {
       projectId: command.input.projectId,
