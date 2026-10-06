@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  VenueFactPersistenceError,
-} from "@application/facts/venue-fact-persistence-error";
+import { VenueFactPersistenceError } from "@application/facts/venue-fact-persistence-error";
 import type {
   CreateVenueFactSourceInput,
   LinkObservationSourceInput,
@@ -22,9 +20,7 @@ import {
   type CachedRecordEnvelope,
   type PendingMutationEnvelope,
 } from "@application/local-data/local-records";
-import {
-  VenueInteractionPersistenceError,
-} from "@application/venues/venue-interaction-persistence-error";
+import { VenueInteractionPersistenceError } from "@application/venues/venue-interaction-persistence-error";
 import type {
   NormalizedAppendVenueInteractionInput,
   VenueInteractionPort,
@@ -38,7 +34,6 @@ import type {
   SaveVenueMemberPreferenceInput,
   SaveVenueMemberRatingInput,
   VenueMemberOpinionPort,
-  VenueMemberPreferenceRecord,
   VenueMemberRatingRecord,
 } from "@application/venues/venue-member-opinion-service";
 import { VenueVisitStructuredReplayCoordinator } from "@application/venues/venue-visit-structured-replay-coordinator";
@@ -327,20 +322,6 @@ function ratingRecord(
   };
 }
 
-function preferenceRecord(
-  input: SaveVenueMemberPreferenceInput,
-): VenueMemberPreferenceRecord {
-  return {
-    id: "68888888-8888-4888-8888-888888888888",
-    projectId: input.projectId,
-    userId: scope.userId,
-    venueId: input.venueId,
-    favorite: input.favorite,
-    personalNote: input.personalNote,
-    revision: input.expectedRevision + 1,
-  };
-}
-
 function noteMutation(
   operationId = noteId,
   createdAt = "2026-10-06T12:00:00.000Z",
@@ -438,12 +419,7 @@ describe("Venue visit structured replay success", () => {
   it("replays note, measurement and rating in durable queue order", async () => {
     const local = new MemoryLocalStore();
     const remote = new RemoteHarness();
-    await seed(
-      local,
-      ratingMutation(),
-      noteMutation(),
-      factMutation(),
-    );
+    await seed(local, ratingMutation(), noteMutation(), factMutation());
 
     const result = await coordinator(local, remote).replayPending();
 
@@ -482,7 +458,11 @@ describe("Venue visit structured replay success", () => {
     const first = "10000000-0000-4000-8000-000000000001";
     const second = "f0000000-0000-4000-8000-000000000001";
     const timestamp = "2026-10-06T12:00:00.000Z";
-    await seed(local, noteMutation(second, timestamp), noteMutation(first, timestamp));
+    await seed(
+      local,
+      noteMutation(second, timestamp),
+      noteMutation(first, timestamp),
+    );
 
     await coordinator(local, remote).replayPending();
 
@@ -570,7 +550,10 @@ describe("Venue visit structured replay remote failures", () => {
   it("marks invalid rating intent permanent before provider mutation", async () => {
     const local = new MemoryLocalStore();
     const remote = new RemoteHarness();
-    await seed(local, ratingMutation(ratingOperationId, undefined, "typo_score"));
+    await seed(
+      local,
+      ratingMutation(ratingOperationId, undefined, "typo_score"),
+    );
 
     await expect(coordinator(local, remote).replayPending()).resolves.toEqual([
       {
@@ -655,4 +638,3 @@ describe("Venue visit structured replay local durability", () => {
   });
 });
 
-void preferenceRecord;
