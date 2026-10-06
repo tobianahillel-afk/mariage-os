@@ -73,20 +73,21 @@ function sendingMutation(
   };
 }
 
+function failureStatus(
+  state: RemoteFailure["state"],
+): PendingMutationEnvelope["status"] {
+  if (state === "conflict") return "conflict";
+  if (state === "failed_permanent") return "failed_permanent";
+  return "failed_retryable";
+}
+
 function failedMutation(
   mutation: PendingMutationEnvelope,
   failure: RemoteFailure,
 ): PendingMutationEnvelope {
-  const status =
-    failure.state === "conflict"
-      ? "conflict"
-      : failure.state === "failed_permanent"
-        ? "failed_permanent"
-        : "failed_retryable";
-
   return {
     ...mutation,
-    status,
+    status: failureStatus(failure.state),
     lastErrorCode: failure.error,
   };
 }
