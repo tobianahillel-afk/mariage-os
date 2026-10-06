@@ -82,6 +82,7 @@ export class RemoteHarness {
   factSourceProjectIdOverride: string | null = null;
   factSourceIdOverride: string | null = null;
   factSourceReadError: Error | null = null;
+  factObservationResponseOverride: Partial<VenueFactObservationRecord> = {};
   ratingResponseOverride: Partial<VenueMemberRatingRecord> = {};
 
   readonly interactions: VenueInteractionPort = {
@@ -142,7 +143,10 @@ export class RemoteHarness {
       if (this.factMode === "authorization_failed") {
         throw new VenueFactPersistenceError("authorization_failed", "denied");
       }
-      return observationRecord(input);
+      return {
+        ...observationRecord(input),
+        ...this.factObservationResponseOverride,
+      };
     },
     linkObservationSource: async (input) => {
       this.calls.push(`link:${input.observationId}:${input.sourceId}`);
