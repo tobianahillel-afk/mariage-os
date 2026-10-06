@@ -265,38 +265,26 @@ describe("Venue visit structured replay Fact failures", () => {
   });
 });
 
+const otherObservationId = "68888888-8888-4888-8888-888888888888";
+const otherProjectId = "69999999-9999-4999-8999-999999999999";
+const otherFactId = "6aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+const otherSupersedingId = "6bbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+const otherAuthorId = "6ccccccc-cccc-4ccc-8ccc-cccccccccccc";
+
 describe("Venue visit structured replay Fact ACK validation", () => {
   it.each([
-    [
-      "observation id",
-      { id: "68888888-8888-4888-8888-888888888888" },
-    ],
-    [
-      "project",
-      { projectId: "69999999-9999-4999-8999-999999999999" },
-    ],
-    ["Fact", { factId: "6aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" }],
+    ["observation id", { id: otherObservationId }],
+    ["project", { projectId: otherProjectId }],
+    ["Fact", { factId: otherFactId }],
     ["value", { value: 13 }],
     ["raw value", { rawValueText: "13 m" }],
     ["evidence", { evidenceLevel: "estimated" as const }],
     ["confidence", { confidence: "low" as const }],
-    [
-      "timestamp",
-      { observedAt: "2026-10-06T12:01:01.000Z" },
-    ],
+    ["timestamp", { observedAt: "2026-10-06T12:01:01.000Z" }],
     ["note", { note: "Autre mesure." }],
     ["status", { status: "superseded" as const }],
-    [
-      "supersession",
-      {
-        supersededByObservationId:
-          "6bbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
-      },
-    ],
-    [
-      "author",
-      { createdBy: "6ccccccc-cccc-4ccc-8ccc-cccccccccccc" },
-    ],
+    ["supersession", { supersededByObservationId: otherSupersedingId }],
+    ["author", { createdBy: otherAuthorId }],
   ])(
     "retains the local Fact mutation when provider ACK substitutes %s",
     async (_label, override) => {
