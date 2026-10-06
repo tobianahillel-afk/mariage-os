@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { VenueFactPersistenceError } from "@application/facts/venue-fact-persistence-error";
 import {
   MemoryLocalStore,
   RemoteHarness,
@@ -131,6 +132,88 @@ describe("Venue visit structured replay source provenance", () => {
     expect(local.pending.get(factOperationId)).toMatchObject({
       status: "failed_permanent",
       lastErrorCode: "fact_source_type_mismatch",
+    });
+  });
+});
+
+
+describe("Venue visit structured replay source-read trust boundary", () => {
+  it.each([
+    [
+      "project",
+      "99999999-9999-4999-8999-999999999999",
+      null,
+    ],
+    [
+      "source",
+      null,
+      "98888888-8888-4888-8888-888888888888",
+    ],
+  ] as const)(
+    "fails permanently when the provider returns another %s identity",
+    async (_label, projectOverride, sourceOverride) => {
+      const local = new MemoryLocalStore();
+      const remote = new RemoteHarness();
+      remote.factSourceProjectIdOverride = projectOverride;
+      remote.factSourceIdOverride = sourceOverride;
+      await seed(local, factMutation());
+
+      await expect(coordinator(local, remote).replayPending()).resolves.toEqual([
+        {
+          operationId: factOperationId,
+          state: "failed_permanent",
+          error: "provider_response_invalid",
+        },
+      ]);
+      expect(remote.observations).toHaveLength(0);
+      expect(remote.factLinks).toHaveLength(0);
+      expect(local.pending.get(factOperationId)).toMatchObject({
+        status: "failed_permanent",
+        lastErrorCode: "provider_response_invalid",
+      });
+    },
+  );
+
+  it("keeps the measurement pending when source lookup is temporarily unavailable", async () => {
+    const local = new MemoryLocalStore();
+    const remote = new RemoteHarness();
+    remote.factSourceReadError = new VenueFactPersistenceError(
+      "backend_unavailable",
+      "offline",
+    );
+    await seed(local, factMutation());
+
+    await expect(coordinator(local, remote).replayPending()).resolves.toEqual([
+      {
+        operationId: factOperationId,
+        state: "pending",
+        error: "backend_unavailable",
+      },
+    ]);
+    expect(remote.observations).toHaveLength(0);
+    expect(local.pending.get(factOperationId)).toMatchObject({
+      status: "failed_retryable",
+      lastErrorCode: "backend_unavailable",
+    });
+  });
+
+  it("maps an unknown source lookup failure to retryable persistence failure", async () => {
+    const local = new MemoryLocalStore();
+    const remote = new RemoteHarness();
+    remote.factSourceReadError = new Error("provider");
+    await seed(local, factMutation());
+
+    await expect(coordinator(local, remote).replayPending()).resolves.toEqual([
+      {
+        operationId: factOperationId,
+        state: "pending",
+        error: "persistence_failed",
+      },
+    ]);
+    expect(remote.observations).toHaveLength(0);
+    expect(local.pending.get(factOperationId)).toMatchObject({
+      status: "failed_retryable",
+      lastErrorCode: "persistence_failed",
     });
   });
 });
