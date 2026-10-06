@@ -177,10 +177,10 @@ const invalidCases = [
     }),
   ],
   [
-    "fact missing visit source",
+    "fact null visit source",
     visitMutation(VENUE_VISIT_FACT_OBSERVATION_MUTATION, null, {
       ...factPayload(),
-      sourceId: undefined,
+      sourceId: null,
     }),
   ],
   [
