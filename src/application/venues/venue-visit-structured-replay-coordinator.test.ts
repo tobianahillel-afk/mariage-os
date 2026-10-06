@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { VenueFactPersistenceError } from "@application/facts/venue-fact-persistence-error";
+import {
+  VenueFactPersistenceError,
+} from "@application/facts/venue-fact-persistence-error";
 import type {
   CreateVenueFactSourceInput,
   LinkObservationSourceInput,
@@ -14,13 +16,17 @@ import type {
   LocalProjectStore,
   LocalSyncCounters,
 } from "@application/local-data/local-project-store";
-import { createLocalProjectScope } from "@application/local-data/local-project-scope";
+import {
+  createLocalProjectScope,
+} from "@application/local-data/local-project-scope";
 import {
   createPendingMutationEnvelope,
   type CachedRecordEnvelope,
   type PendingMutationEnvelope,
 } from "@application/local-data/local-records";
-import { VenueInteractionPersistenceError } from "@application/venues/venue-interaction-persistence-error";
+import {
+  VenueInteractionPersistenceError,
+} from "@application/venues/venue-interaction-persistence-error";
 import type {
   NormalizedAppendVenueInteractionInput,
   VenueInteractionPort,
@@ -36,7 +42,9 @@ import type {
   VenueMemberOpinionPort,
   VenueMemberRatingRecord,
 } from "@application/venues/venue-member-opinion-service";
-import { VenueVisitStructuredReplayCoordinator } from "@application/venues/venue-visit-structured-replay-coordinator";
+import {
+  VenueVisitStructuredReplayCoordinator,
+} from "@application/venues/venue-visit-structured-replay-coordinator";
 import type { VenueInteractionRecord } from "@domain/venues/venue-interaction";
 
 const scope = createLocalProjectScope(
@@ -416,7 +424,9 @@ async function seed(
 }
 
 describe("Venue visit structured replay success", () => {
-  it("replays note, measurement and rating in durable queue order", async () => {
+  it(
+    "replays note, measurement and rating in durable queue order",
+    async () => {
     const local = new MemoryLocalStore();
     const remote = new RemoteHarness();
     await seed(local, ratingMutation(), noteMutation(), factMutation());
@@ -449,10 +459,13 @@ describe("Venue visit structured replay success", () => {
       operationId: ratingOperationId,
       deviceId: scope.deviceId,
     });
-    expect(local.pending.size).toBe(0);
-  });
+      expect(local.pending.size).toBe(0);
+    },
+  );
 
-  it("uses operation id as deterministic tie-break for equal timestamps", async () => {
+  it(
+    "uses operation id as deterministic tie-break for equal timestamps",
+    async () => {
     const local = new MemoryLocalStore();
     const remote = new RemoteHarness();
     const first = "10000000-0000-4000-8000-000000000001";
@@ -466,11 +479,12 @@ describe("Venue visit structured replay success", () => {
 
     await coordinator(local, remote).replayPending();
 
-    expect(remote.notes.map((input) => input.interactionId)).toEqual([
-      first,
-      second,
-    ]);
-  });
+      expect(remote.notes.map((input) => input.interactionId)).toEqual([
+        first,
+        second,
+      ]);
+    },
+  );
 });
 
 describe("Venue visit structured replay remote failures", () => {
@@ -522,7 +536,9 @@ describe("Venue visit structured replay remote failures", () => {
       remote.factMode = mode;
       await seed(local, factMutation());
 
-      await expect(coordinator(local, remote).replayPending()).resolves.toEqual([
+      await expect(
+        coordinator(local, remote).replayPending(),
+      ).resolves.toEqual([
         {
           operationId: factOperationId,
           state: expectedState,
@@ -547,7 +563,9 @@ describe("Venue visit structured replay remote failures", () => {
     ]);
   });
 
-  it("marks invalid rating intent permanent before provider mutation", async () => {
+  it(
+    "marks invalid rating intent permanent before provider mutation",
+    async () => {
     const local = new MemoryLocalStore();
     const remote = new RemoteHarness();
     await seed(
@@ -562,12 +580,15 @@ describe("Venue visit structured replay remote failures", () => {
         error: "rating_dimension_invalid",
       },
     ]);
-    expect(remote.ratings).toHaveLength(0);
-  });
+      expect(remote.ratings).toHaveLength(0);
+    },
+  );
 });
 
 describe("Venue visit structured replay local durability", () => {
-  it("marks corrupt persisted commands permanent without network dispatch", async () => {
+  it(
+    "marks corrupt persisted commands permanent without network dispatch",
+    async () => {
     const local = new MemoryLocalStore();
     const remote = new RemoteHarness();
     const corrupt = {
@@ -586,8 +607,9 @@ describe("Venue visit structured replay local durability", () => {
         error: "invalid_local_mutation",
       },
     ]);
-    expect(remote.calls).toHaveLength(0);
-  });
+      expect(remote.calls).toHaveLength(0);
+    },
+  );
 
   it("does not send when the sending-state write is not durable", async () => {
     const local = new MemoryLocalStore();
@@ -605,7 +627,9 @@ describe("Venue visit structured replay local durability", () => {
     expect(remote.calls).toHaveLength(0);
   });
 
-  it("reports pending when a remote failure cannot be persisted locally", async () => {
+  it(
+    "reports pending when a remote failure cannot be persisted locally",
+    async () => {
     const local = new MemoryLocalStore();
     const remote = new RemoteHarness();
     remote.noteMode = "failure";
@@ -618,10 +642,13 @@ describe("Venue visit structured replay local durability", () => {
         state: "pending",
         error: "local_durability_unavailable",
       },
-    ]);
-  });
+      ]);
+    },
+  );
 
-  it("keeps the operation pending when acknowledged settlement cannot be removed", async () => {
+  it(
+    "keeps the operation pending when acknowledged settlement cannot be removed",
+    async () => {
     const local = new MemoryLocalStore();
     const remote = new RemoteHarness();
     local.failRemove = true;
@@ -634,7 +661,7 @@ describe("Venue visit structured replay local durability", () => {
         error: "settlement_pending",
       },
     ]);
-    expect(local.pending.has(noteId)).toBe(true);
-  });
+      expect(local.pending.has(noteId)).toBe(true);
+    },
+  );
 });
-
