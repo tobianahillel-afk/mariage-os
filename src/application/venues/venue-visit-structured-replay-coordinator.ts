@@ -117,19 +117,6 @@ function ratingFailure(error: string): RemoteFailure {
     : { state: "failed_permanent", error };
 }
 
-function structuredCommand(
-  command: VenueReplayCommand,
-): StructuredVenueReplayCommand {
-  if (
-    command.kind === "visit_note" ||
-    command.kind === "fact_observation" ||
-    command.kind === "member_rating"
-  ) {
-    return command;
-  }
-  throw new Error("Invalid persisted Venue visit mutation.");
-}
-
 export class VenueVisitStructuredReplayCoordinator {
   private readonly local: LocalProjectStore;
   private readonly interactionService: VenueInteractionService;
@@ -163,9 +150,10 @@ export class VenueVisitStructuredReplayCoordinator {
   ): Promise<VenueVisitStructuredReplayResult> {
     let command: StructuredVenueReplayCommand;
     try {
-      command = structuredCommand(
-        venueReplayCommand(mutation, this.local.scope),
-      );
+      command = venueReplayCommand(
+        mutation,
+        this.local.scope,
+      ) as StructuredVenueReplayCommand;
     } catch {
       return this.persistLocalFailure(mutation, {
         state: "failed_permanent",
