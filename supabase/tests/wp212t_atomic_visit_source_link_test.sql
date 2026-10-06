@@ -426,6 +426,7 @@ select throws_ok(
   'venue fact evidence link unavailable',
   'cross-project observation identity fails non-disclosing'
 );
+reset role;
 select is(
   (
     select count(*) from public.observation_sources
@@ -435,6 +436,7 @@ select is(
   'cross-project observation failure creates no link'
 );
 
+set local role authenticated;
 select set_config(
   'request.jwt.claims',
   '{"sub":"b7222222-2222-4222-8222-222222222222","role":"authenticated"}',
@@ -453,6 +455,7 @@ select throws_ok(
   'venue fact evidence link unavailable',
   'non-member cannot call the checked link boundary'
 );
+reset role;
 select is(
   (
     select count(*) from public.observation_sources
@@ -462,6 +465,7 @@ select is(
   'authorization failure creates no link'
 );
 
+set local role authenticated;
 select set_config(
   'request.jwt.claims',
   '{"sub":"b7333333-3333-4333-8333-333333333333","role":"authenticated"}',
@@ -480,6 +484,7 @@ select throws_ok(
   'venue fact evidence link unavailable',
   'revoked project member cannot call the checked link boundary'
 );
+reset role;
 select is(
   (
     select count(*) from public.observation_sources
@@ -489,6 +494,7 @@ select is(
   'revoked-member denial creates no link'
 );
 
+set local role authenticated;
 select set_config(
   'request.jwt.claims',
   '{"sub":"b7444444-4444-4444-8444-444444444444","role":"authenticated"}',
@@ -507,6 +513,7 @@ select throws_ok(
   'venue fact evidence link unavailable',
   'active viewer without venues.write cannot call the checked link boundary'
 );
+reset role;
 select is(
   (
     select count(*) from public.observation_sources
@@ -515,7 +522,5 @@ select is(
   0::bigint,
   'read-only member denial creates no link'
 );
-
-reset role;
 select * from finish();
 rollback;
