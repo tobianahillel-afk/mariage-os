@@ -6,13 +6,9 @@ import {
 } from "@application/local-data/local-records";
 import {
   retryableVenueMutation,
-  retryableVenueVisitMutation,
   venueReplayCommand,
   VENUE_CORE_UPDATE_MUTATION,
   VENUE_STATUS_MUTATION,
-  VENUE_VISIT_FACT_OBSERVATION_MUTATION,
-  VENUE_VISIT_MEMBER_RATING_MUTATION,
-  VENUE_VISIT_NOTE_MUTATION,
 } from "@application/venues/venue-local-mutation";
 
 const scope = createLocalProjectScope(
