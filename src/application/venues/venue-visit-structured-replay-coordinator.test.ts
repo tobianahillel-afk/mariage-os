@@ -175,6 +175,7 @@ class RemoteHarness {
   noteMode: NoteMode = "success";
   factMode: FactMode = "success";
   ratingMode: RatingMode = "success";
+  factVenueId = venueId;
 
   readonly interactions: VenueInteractionPort = {
     appendVenueInteraction: async (input) => {
@@ -196,7 +197,7 @@ class RemoteHarness {
       if (this.factMode === "backend_unavailable") {
         throw new VenueFactPersistenceError("backend_unavailable", "offline");
       }
-      return factContext();
+      return factContext(this.factVenueId);
     },
     createSource: async (_input: CreateVenueFactSourceInput) => {
       throw new Error("not used");
@@ -243,11 +244,11 @@ class RemoteHarness {
   };
 }
 
-function factContext(): VenueFactContext {
+function factContext(contextVenueId = venueId): VenueFactContext {
   return {
     factId,
     projectId: scope.projectId,
-    venueId,
+    venueId: contextVenueId,
     definition: {
       id: "56666666-6666-4666-8666-666666666666",
       projectId: scope.projectId,
@@ -565,6 +566,25 @@ describe("Venue visit structured replay remote failures", () => {
       },
     ]);
     expect(remote.ratings).toHaveLength(0);
+  });
+});
+
+describe("Venue visit structured replay scope validation", () => {
+  it("fails closed when the fact belongs to another Venue", async () => {
+    const local = new MemoryLocalStore();
+    const remote = new RemoteHarness();
+    remote.factVenueId = "48888888-8888-4888-8888-888888888888";
+    await seed(local, factMutation());
+
+    await expect(coordinator(local, remote).replayPending()).resolves.toEqual([
+      {
+        operationId: factOperationId,
+        state: "failed_permanent",
+        error: "fact_scope_mismatch",
+      },
+    ]);
+    expect(remote.observations).toHaveLength(0);
+    expect(local.pending.get(factOperationId)?.status).toBe("failed_permanent");
   });
 });
 
