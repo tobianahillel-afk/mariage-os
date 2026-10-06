@@ -70,9 +70,7 @@ it("orders Fact supersession and Rating revisions before UUID tie-breaking", () 
   const ratingSecondId = "13333333-3333-4333-8333-333333333333";
 
   const factFirst = entry(factMutation(factFirstId, timestamp));
-  const factSecond = entry(
-    factMutation(factSecondId, timestamp, factFirstId),
-  );
+  const factSecond = entry(factMutation(factSecondId, timestamp, factFirstId));
   const ratingFirst = entry(
     ratingMutation(ratingFirstId, timestamp, "love_score", 0),
   );
@@ -117,9 +115,7 @@ it("does not invent dependencies across unrelated Rating series or command kinds
     ),
   );
 
-  expect(orderStructuredReplayEntries([love, note, logistics])).toHaveLength(
-    3,
-  );
+  expect(orderStructuredReplayEntries([love, note, logistics])).toHaveLength(3);
 });
 
 it("marks a corrupt Fact dependency cycle invalid instead of replaying arbitrarily", () => {
