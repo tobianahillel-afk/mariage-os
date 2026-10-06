@@ -6,7 +6,7 @@
 - Lot: 2 — Venues core
 - Name: replay-safe Venue member-rating command identity
 - State: `ACCEPTANCE_PENDING`
-- Current pass: `C-ACCEPTANCE` — Fresh Pass B v3 PASS; AR-001/002/003 CLOSED / VERIFIED
+- Current pass: `C-ACCEPTANCE — PASS / gap ∅ / acceptance-record CI pending`
 - Branch: `lot-2/venues-core`
 - Parent-resumption base: `2b2035740736dde090da9b1f5d86066975e7bc60`
 - Parent-resumption CI: `37342313598` — **5/5 SUCCESS**, including full verify from clean checkout
@@ -182,7 +182,7 @@ RED failures are demonstrated for these intended reasons.
   - Core rerun fails exactly 2 tests: application service drops `operationId/deviceId`; Supabase adapter omits `target_operation_id/target_device_id`; **2,054 existing tests pass**.
   - DB/RLS originally failed 4/7 assertions under the pre-review contract: seven-argument signature absent, legacy signature present, exact retry after response loss raises `40001`, and no replay receipt exists. Fresh review reclassified the legacy-signature-presence failure as a rollout-compatibility requirement; the genuine RED gaps are the missing seven-argument path, failed exact replay and missing receipt.
   - Browser E2E + mutation remains green.
-- Current state: **ACCEPTANCE_PENDING / C-ACCEPTANCE**.
+- Current state: **ACCEPTANCE_PENDING / C-ACCEPTANCE — Pass C gap ∅ / record CI pending**.
 - Parent WP-2.12: BLOCKED, tranches 1–3 GREEN preserved.
 - Accepted sibling support: WP-2.12R.
 - Historical packet findings: `WP212S-AR-001`, `WP212S-AR-002`, `WP212S-AR-003` — **CLOSED / VERIFIED**.
@@ -194,4 +194,18 @@ RED failures are demonstrated for these intended reasons.
 - Fresh Pass B v3 review-only PR #97 / `826ea3dd61d9d13257c83715dc418fae16c5b9df` / CI `37454663521` — **PASS**, Codex clean, 👍, zero unresolved review threads; closed unmerged by design.
 - Review record: `docs/roadmap/lot-2/WP-2.12S-FRESH-PASS-B-V3-2026-10-06.md`.
 - Open packet findings: ∅.
-- Next permitted action: separate Pass C acceptance reconciliation. Do not resume parent WP-2.12 until WP-2.12S is ACCEPTED.
+- Fresh Pass-B/status seal: `54d3faaca10be74556372ec5e2f8ade2c5fddc53` / CI `37462189131` — **5/5 SUCCESS** including clean checkout.
+- Pass C record: `docs/roadmap/lot-2/WP-2.12S-ACCEPTANCE.md` — **PASS / gap ∅**, acceptance-record CI pending.
+- Next permitted action: verify the Pass-C acceptance record with exact-head five-job CI including clean checkout. Only then may WP-2.12S be sealed `ACCEPTED / COMPLETE` and parent WP-2.12 receive a separate resumption seal.
+
+
+## Pass C result — 2026-10-06
+
+Separate acceptance reconciliation is recorded in
+`docs/roadmap/lot-2/WP-2.12S-ACCEPTANCE.md`.
+
+Verdict: **PASS; EXPECTED ↔ IMPLEMENTED ↔ VERIFIED gap ∅**. The support packet
+remains `ACCEPTANCE_PENDING` until the acceptance-record HEAD itself passes all
+five ordinary CI jobs including full verification from a clean checkout.
+Parent WP-2.12 remains blocked until a final WP-2.12S support seal is exact-head
+green.

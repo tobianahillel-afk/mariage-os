@@ -44,7 +44,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace                       | **ACCEPTED / COMPLETE**                                                    |
 | WP-2.12 | mobile/offline venue-visit workflow and packet E2E completion          | **BLOCKED — replay-safe member rating boundary requires WP-2.12S**       |
 | WP-2.12R | replay-safe Venue fact-observation command boundary                     | **ACCEPTED / COMPLETE — Pass C gap ∅**                                    |
-| WP-2.12S | replay-safe Venue member-rating command boundary                        | **ACCEPTANCE_PENDING / C-ACCEPTANCE — Fresh Pass B v3 PASS**              |
+| WP-2.12S | replay-safe Venue member-rating command boundary                        | **ACCEPTANCE_PENDING — Pass C PASS / gap ∅; acceptance-record CI pending** |
 
 ## WP-2.10 — activation revalidation
 
@@ -138,7 +138,9 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 - Canonical review base `c4bac33388c24e7b3c2746242ca6edd017f8ede0` / CI `37453636126` passed **5/5 SUCCESS**, including clean checkout; Core remains 236 files / **2,056 tests** / **100%** global coverage.
 - Complete Fresh Pass B v3 review-only PR #97 / `826ea3dd61d9d13257c83715dc418fae16c5b9df` / CI `37454663521` is **PASS**: Codex found no major issue, returned 👍 and left zero unresolved review threads. PR #97 is closed unmerged by design.
 - `WP212S-AR-001`, `WP212S-AR-002` and `WP212S-AR-003` are **CLOSED / VERIFIED**. Complete review record: `docs/roadmap/lot-2/WP-2.12S-FRESH-PASS-B-V3-2026-10-06.md`.
-- Current/next pass: **ACCEPTANCE_PENDING / C-ACCEPTANCE**. Separate EXPECTED ↔ IMPLEMENTED ↔ VERIFIED reconciliation is now the only active support-packet action. Parent WP-2.12 remains BLOCKED until WP-2.12S is ACCEPTED.
+- Fresh Pass-B/status seal `54d3faaca10be74556372ec5e2f8ade2c5fddc53` / CI `37462189131` passed **5/5 SUCCESS**, including full verify from clean checkout.
+- Pass C reconciliation: **PASS / gap ∅** in `docs/roadmap/lot-2/WP-2.12S-ACCEPTANCE.md`; acceptance-record exact-head CI is now the remaining support-packet gate.
+- Current/next pass: **ACCEPTANCE_PENDING / C-ACCEPTANCE — record verification**. Parent WP-2.12 remains BLOCKED until WP-2.12S is ACCEPTED.
 
 ## Accepted packet evidence summary
 
@@ -394,7 +396,8 @@ Normative release/deployment/secret contracts require Pages Functions to deploy 
 84. WP-2.12 parent replay resumption-governance head `2b2035740736dde090da9b1f5d86066975e7bc60` / CI `37342313598` passed **5/5 SUCCESS**, including full verify from clean checkout.
 85. Structured-reconnect re-review then found the remaining Member Rating command is not response-loss replay-safe. Interaction and Fact Observation are already replay-safe; only rating is extracted to 3-point support packet WP-2.12S. Parent WP-2.12 returns to **BLOCKED** with all existing GREEN evidence preserved; no parent production change is authorized until WP-2.12S is accepted.
 86. WP-2.12S remediation PR #91 reviewed head `c751c1908ee0fc7691c4ea4d57ade9bad6dfbabb` / CI `37381076113` passed **5/5 SUCCESS** after preserving the legacy five-argument rollout-compatibility overload while current code uses the seven-argument receipt-aware path. Fresh Codex review on that exact head found no major issue and left zero unresolved threads. PR #91 merged as `c95364bd7f9215fe2686b2e3b76d517cc5b2ded4`; canonical CI `37384351528` passed **5/5 SUCCESS**, including clean checkout, with 2,056 tests / 100% coverage.
-87. WP-2.12S compatibility-evidence #93 and authorization-evidence #96 closed the remaining Pass-B evidence gaps; canonical `c4bac33388c24e7b3c2746242ca6edd017f8ede0` / CI `37453636126` passed 5/5. Complete Fresh Pass B v3 review-only #97 / `826ea3dd61d9d13257c83715dc418fae16c5b9df` / CI `37454663521` is PASS with Codex clean, 👍 and zero unresolved threads. AR-001/002/003 are CLOSED / VERIFIED; WP-2.12S enters Pass C.
+87. WP-2.12S compatibility-evidence #93 and authorization-evidence #96 closed the remaining Pass-B evidence gaps; canonical `c4bac33388c24e7b3c2746242ca6edd017f8ede0` / CI `37453636126` passed 5/5. Complete Fresh Pass B v3 review-only #97 / `826ea3dd61d9d13257c83715dc418fae16c5b9df` / CI `37454663521` is PASS with Codex clean, 👍 and zero unresolved threads. AR-001/002/003 are CLOSED / VERIFIED.
+88. WP-2.12S Fresh Pass-B/status seal `54d3faaca10be74556372ec5e2f8ade2c5fddc53` / CI `37462189131` passed **5/5 SUCCESS**, including full verify from clean checkout. Separate Pass C now reconciles all bounded member-rating replay/authorization/rollout responsibilities with gap ∅; acceptance-record exact-head CI remains required before ACCEPTED.
 
 ## Durable handoff
 
@@ -407,7 +410,7 @@ Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.11
 WP-2.9C: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 21accd7f9ab1b845275507b7941a782c5e816a56 / CI 36494697647 5/5 including clean checkout
 WP-2.9A: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 656398bcd5520cfa56d782023d150eb64317161d / CI 36542083037 5/5 including clean checkout
-Current packet: WP-2.12S — ACCEPTANCE_PENDING / C-ACCEPTANCE; Fresh Pass B v3 PASS; canonical `c4bac33388c24e7b3c2746242ca6edd017f8ede0` / CI `37453636126` 5/5; AR-001/002/003 CLOSED / VERIFIED; parent WP-2.12 BLOCKED with tranches 1–3 GREEN preserved; WP-2.12R ACCEPTED / COMPLETE; primary FIR #42 / FTR-028
+Current packet: WP-2.12S — ACCEPTANCE_PENDING / C-ACCEPTANCE; Pass C PASS / gap ∅; acceptance-record exact-head CI pending; Fresh Pass-B seal `54d3faaca10be74556372ec5e2f8ade2c5fddc53` / CI `37462189131` 5/5; AR-001/002/003 CLOSED / VERIFIED; parent WP-2.12 BLOCKED; WP-2.12R ACCEPTED / COMPLETE; primary FIR #42 / FTR-028
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
@@ -446,5 +449,5 @@ FTR-089 FIR: #17 — IN_PROGRESS / parent A accepted, later presentation and Lot
 WP-2.9B: ACCEPTED / COMPLETE; FTR-093 FIR #27 remains IN_PROGRESS for downstream scope; WP29B-AR-001/002 CLOSED / VERIFIED; Pass C gap ∅
 Lots 3–12: NOT_STARTED
 Latest distinct-PDF campaign: 2303df0c9e8d6f72561ec0ce42514663801229d8 / CI 36459949861 / provider job 109058754517 / artifact 10987866873 — 10 distinct exact-size PDFs, 10 finalized flows, 20 valid exact-version CPU readings within Workers Free; provider verdict PASS
-Next permitted action: run separate WP-2.12S Pass C acceptance reconciliation (EXPECTED ↔ IMPLEMENTED ↔ VERIFIED) and prove its acceptance record with exact-head five-job CI including clean checkout. Only after WP-2.12S is ACCEPTED may parent WP-2.12 resume Pass A. No provider campaign is authorized or required.
+Next permitted action: run exact-head five-job CI including clean checkout on the WP-2.12S Pass-C acceptance record. If green, seal WP-2.12S `ACCEPTED / COMPLETE`, then perform a separate parent WP-2.12 resumption-governance seal. No parent production change or provider campaign is authorized before those gates.
 ```

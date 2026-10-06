@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1..WP-2.11 + WP-2.12R ACCEPTED; WP-2.12 BLOCKED on WP-2.12S; WP-2.12S ACCEPTANCE_PENDING / PASS C**
+Status: **IN_PROGRESS — WP-2.1..WP-2.11 + WP-2.12R ACCEPTED; WP-2.12 BLOCKED on WP-2.12S; WP-2.12S Pass C gap ∅ / acceptance-record CI pending**
 
 Purpose: durable current responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`. Detailed historical evidence remains in packet records, acceptance records, FIRs and Git history.
 
@@ -127,7 +127,7 @@ ADR 0011 later produced decisive deployed CPU evidence and was rejected for fina
 | WP-2.11 | **ACCEPTED / COMPLETE** | gallery/table/detail/compare/deep-link workspace; Pass C gap ∅ / CI `37240178167` 5/5 |
 | WP-2.12 | **BLOCKED — dependency WP-2.12S** | mobile/offline Venue visit + packet E2E completion; tranches 1–3 GREEN; Fact replay dependency satisfied; rating replay dependency open; FIR #42 |
 | WP-2.12R | **ACCEPTED / COMPLETE** | replay-safe fact-observation command identity; Pass C gap ∅ / CI `37335393969` 5/5; 3 points / cohesion PASS |
-| WP-2.12S | **ACCEPTANCE_PENDING / C-ACCEPTANCE — Fresh Pass B v3 PASS** | replay-safe Venue member-rating command identity with expand/switch compatibility; 3 points / cohesion PASS |
+| WP-2.12S | **ACCEPTANCE_PENDING — Pass C PASS / gap ∅; CI pending** | replay-safe Venue member-rating command identity with expand/switch compatibility; 3 points / cohesion PASS |
 
 ## Sequencing
 
@@ -187,8 +187,8 @@ WP-2.10 = ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record `a2d48341515
 WP-2.11 = ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record `3167a380521119e9650859543778b040527332e2` / CI `37240178167` 5/5; final seal `0a2d051d3f0a45b638f5c1b5f8c81acf36491c36` / CI `37240817336` 5/5; FTR-015/016/017/027 closed completed
 WP-2.12 = BLOCKED — tranches 1–3 GREEN through `1794a3d9...` / `37280907551`; resumption head `2b203574...` / CI `37342313598` 5/5; Fact replay dependency satisfied; Member Rating replay dependency extracted; FIR #42
 WP-2.12R = ACCEPTED / COMPLETE — final support seal `cdad9eb82052ac3e2296769e5381b2371558ec4d` / CI `37341157497` 5/5
-WP-2.12S = ACCEPTANCE_PENDING / C-ACCEPTANCE — Fresh Pass B v3 review-only #97 / `826ea3dd...` / CI `37454663521` PASS; canonical `c4bac33388c24e7b3c2746242ca6edd017f8ede0` / CI `37453636126` 5/5; AR-001/002/003 CLOSED / VERIFIED
-next permitted action = separate WP-2.12S Pass C → final support seal if exact-head green → separate parent WP-2.12 resumption
+WP-2.12S = ACCEPTANCE_PENDING / C-ACCEPTANCE — Pass C gap ∅; Fresh Pass-B/status seal `54d3faac...` / CI `37462189131` 5/5; acceptance-record exact-head CI pending; AR-001/002/003 CLOSED / VERIFIED
+next permitted action = acceptance-record 5/5 gate → final WP-2.12S support seal → separate parent WP-2.12 resumption
 media-byte durability/upload remains a separate later parent tranche; no provider rerun is authorized
 ```
 
