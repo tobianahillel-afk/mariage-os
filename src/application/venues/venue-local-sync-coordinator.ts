@@ -38,6 +38,11 @@ type VenueLocalSyncState =
   | "durability_unavailable"
   | "cache_miss";
 
+type CoreVenueReplayCommand = Extract<
+  VenueReplayCommand,
+  { readonly kind: "core" | "status" }
+>;
+
 export interface VenueLocalSyncResult {
   readonly state: VenueLocalSyncState;
   readonly venue: VenueCoreRecord | null;
@@ -274,15 +279,12 @@ export class VenueLocalSyncCoordinator {
   private async replayMutation(
     mutation: PendingMutationEnvelope,
   ): Promise<VenueLocalSyncResult> {
-    let command: Extract<
-      VenueReplayCommand,
-      { readonly kind: "core" | "status" }
-    >;
+    let command: CoreVenueReplayCommand;
     try {
       command = venueReplayCommand(
         mutation,
         this.local.scope,
-      ) as Extract<VenueReplayCommand, { readonly kind: "core" | "status" }>;
+      ) as CoreVenueReplayCommand;
     } catch {
       await this.local.putPendingMutation({
         ...mutation,
