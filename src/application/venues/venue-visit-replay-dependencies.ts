@@ -91,10 +91,7 @@ export function orderStructuredReplayEntries(
       break;
     }
 
-    const [candidate] = remaining.splice(candidateIndex, 1);
-    if (candidate === undefined) {
-      throw new Error("Structured replay ordering invariant failed.");
-    }
+    const candidate = remaining.splice(candidateIndex, 1)[0] as StructuredReplayEntry;
     ordered.push(candidate);
   }
 
