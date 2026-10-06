@@ -136,19 +136,10 @@ describe("Venue visit structured replay source provenance", () => {
   });
 });
 
-
 describe("Venue visit structured replay source-read trust boundary", () => {
   it.each([
-    [
-      "project",
-      "99999999-9999-4999-8999-999999999999",
-      null,
-    ],
-    [
-      "source",
-      null,
-      "98888888-8888-4888-8888-888888888888",
-    ],
+    ["project", "99999999-9999-4999-8999-999999999999", null],
+    ["source", null, "98888888-8888-4888-8888-888888888888"],
   ] as const)(
     "fails permanently when the provider returns another %s identity",
     async (_label, projectOverride, sourceOverride) => {
