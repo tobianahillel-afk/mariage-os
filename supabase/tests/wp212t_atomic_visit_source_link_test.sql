@@ -414,14 +414,14 @@ select is(
 );
 
 select throws_ok(
-  $select public.link_venue_fact_observation_source_checked(
+  $$select public.link_venue_fact_observation_source_checked(
     'b7000000-0000-4000-8000-000000000001',
     'b7000000-0000-4000-8000-000000000049',
     'b7000000-0000-4000-8000-000000000051',
     true,
     'in_person_visit',
     1
-  )$,
+  )$$,
   '42501',
   'venue fact evidence link unavailable',
   'cross-project observation identity fails non-disclosing'
@@ -468,14 +468,14 @@ select set_config(
   true
 );
 select throws_ok(
-  $select public.link_venue_fact_observation_source_checked(
+  $$select public.link_venue_fact_observation_source_checked(
     'b7000000-0000-4000-8000-000000000001',
     'b7000000-0000-4000-8000-000000000047',
     'b7000000-0000-4000-8000-000000000057',
     true,
     'in_person_visit',
     1
-  )$,
+  )$$,
   '42501',
   'venue fact evidence link unavailable',
   'revoked project member cannot call the checked link boundary'
@@ -495,14 +495,14 @@ select set_config(
   true
 );
 select throws_ok(
-  $select public.link_venue_fact_observation_source_checked(
+  $$select public.link_venue_fact_observation_source_checked(
     'b7000000-0000-4000-8000-000000000001',
     'b7000000-0000-4000-8000-000000000048',
     'b7000000-0000-4000-8000-000000000058',
     true,
     'in_person_visit',
     1
-  )$,
+  )$$,
   '42501',
   'venue fact evidence link unavailable',
   'active viewer without venues.write cannot call the checked link boundary'
