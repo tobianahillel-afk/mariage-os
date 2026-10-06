@@ -13,7 +13,7 @@ import {
   scope,
   seed,
   venueId,
-} from "./venue-visit-structured-replay-test-support";
+} from "../../../tests/support/venue-visit-structured-replay-test-support";
 
 describe("Venue visit structured replay success", () => {
   it("replays note, measurement and rating in durable queue order", async () => {
