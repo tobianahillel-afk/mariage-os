@@ -93,8 +93,7 @@ export interface LinkObservationSourceInput {
   readonly isPrimary: boolean;
 }
 
-export interface CheckedLinkObservationSourceInput
-  extends LinkObservationSourceInput {
+export interface CheckedLinkObservationSourceInput extends LinkObservationSourceInput {
   readonly expectedSourceType: "in_person_visit";
   readonly expectedSourceRevision: number;
 }
@@ -170,7 +169,8 @@ type EvidenceDomainError =
   | "invalid_primary_flag"
   | "invalid_observation_identity"
   | "derived_fact_read_only";
-type EvidenceMutationError = EvidenceDomainError | VenueFactPersistenceErrorCode;
+type EvidenceMutationError =
+  EvidenceDomainError | VenueFactPersistenceErrorCode;
 
 export type SourceMutationResult =
   | { readonly ok: true; readonly source: VenueFactSourceRecord }
