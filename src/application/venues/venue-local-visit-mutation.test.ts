@@ -106,6 +106,7 @@ it("reconstructs a replay-safe fact observation command", () => {
 
   expect(venueReplayCommand(mutation, scope)).toEqual({
     kind: "fact_observation",
+    venueId,
     input: {
       projectId: scope.projectId,
       factId: "66666666-6666-4666-8666-666666666666",
