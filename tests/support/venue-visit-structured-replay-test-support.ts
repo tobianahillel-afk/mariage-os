@@ -163,10 +163,7 @@ type FactMode =
   | "persistence_failed"
   | "authorization_failed";
 type RatingMode =
-  | "success"
-  | "failure"
-  | "conflict"
-  | "replay_identity_mismatch";
+  "success" | "failure" | "conflict" | "replay_identity_mismatch";
 type FactLinkMode = "success" | "persistence_failed" | "authorization_failed";
 
 export class RemoteHarness {
