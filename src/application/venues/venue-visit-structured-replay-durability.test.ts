@@ -8,7 +8,7 @@ import {
   noteId,
   noteMutation,
   seed,
-} from "./venue-visit-structured-replay-test-support";
+} from "../../../tests/support/venue-visit-structured-replay-test-support";
 
 describe("Venue visit structured replay scope validation", () => {
   it("fails closed when the fact belongs to another Venue", async () => {
