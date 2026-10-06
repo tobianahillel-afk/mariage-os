@@ -6,6 +6,7 @@ import {
 import {
   retryableVenueMutation,
   venueReplayCommand,
+  type VenueReplayCommand,
   VENUE_CORE_UPDATE_MUTATION,
   VENUE_STATUS_MUTATION,
 } from "@application/venues/venue-local-mutation";
@@ -273,9 +274,15 @@ export class VenueLocalSyncCoordinator {
   private async replayMutation(
     mutation: PendingMutationEnvelope,
   ): Promise<VenueLocalSyncResult> {
-    let command;
+    let command: Extract<
+      VenueReplayCommand,
+      { readonly kind: "core" | "status" }
+    >;
     try {
-      command = venueReplayCommand(mutation, this.local.scope);
+      command = venueReplayCommand(
+        mutation,
+        this.local.scope,
+      ) as Extract<VenueReplayCommand, { readonly kind: "core" | "status" }>;
     } catch {
       await this.local.putPendingMutation({
         ...mutation,
