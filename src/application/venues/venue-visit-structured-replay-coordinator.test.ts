@@ -113,7 +113,9 @@ describe("Venue visit structured replay dependencies", () => {
       lastErrorCode: "dependency_pending",
     });
   });
+});
 
+describe("Venue visit structured replay rating dependencies", () => {
   it("blocks a later rating revision after an earlier retryable failure", async () => {
     const local = new MemoryLocalStore();
     const remote = new RemoteHarness();
@@ -315,7 +317,9 @@ describe("Venue visit structured replay rating failures", () => {
       "failed_permanent",
     );
   });
+});
 
+describe("Venue visit structured replay rating ACK validation", () => {
   it.each([
     ["author", { userId: "69999999-9999-4999-8999-999999999999" }],
     ["dimension", { dimensionKey: "logistics_score_personal" }],
