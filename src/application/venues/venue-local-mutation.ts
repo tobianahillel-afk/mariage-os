@@ -24,6 +24,8 @@ export type VenueReplayCommand =
   | {
       readonly kind: "fact_observation";
       readonly venueId: string;
+      readonly sourceId: string;
+      readonly sourceType: "in_person_visit";
       readonly input: AppendVenueFactObservationDraft;
     }
   | { readonly kind: "member_rating"; readonly input: SaveVenueRatingDraft };
@@ -91,6 +93,10 @@ function ratingBaseRevision(value: string | null): number {
 
 function requireNoBaseRevision(value: string | null): void {
   if (value !== null) invalidMutation();
+}
+
+function inPersonVisitSourceType(value: unknown): "in_person_visit" {
+  return value === "in_person_visit" ? value : invalidMutation();
 }
 
 function assertScope(
@@ -187,6 +193,8 @@ function factObservationCommand(
   return {
     kind: "fact_observation",
     venueId: mutation.entityId,
+    sourceId: uuidValue(payload.sourceId),
+    sourceType: inPersonVisitSourceType(payload.sourceType),
     input: {
       projectId: mutation.projectId,
       factId: uuidValue(payload.factId),
