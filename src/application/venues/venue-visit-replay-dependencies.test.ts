@@ -18,6 +18,7 @@ import {
   noteMutation,
   ratingMutation,
   scope,
+  venueId,
 } from "../../../tests/support/venue-visit-structured-replay-test-support";
 
 function entry(mutation: PendingMutationEnvelope): StructuredReplayEntry {
@@ -212,9 +213,9 @@ describe("structured replay dependency blockers", () => {
     addReplayFailureBlockers(blockers, newest);
     addReplayFailureBlockers(blockers, note);
 
-    expect(blockers.ratingRevisionFloor.get(
-      `${scope.projectId === "" ? "" : earlier.command && earlier.command.kind === "member_rating" ? earlier.command.input.venueId : ""}:love_score`,
-    )).toBe(1);
+    expect(
+      blockers.ratingRevisionFloor.get(`${venueId}:love_score`),
+    ).toBe(1);
   });
 
   it("detects blocked Fact supersession and Rating revisions while allowing unrelated work", () => {
