@@ -52,6 +52,67 @@ interface RemoteFailure {
   readonly error: string;
 }
 
+function sendingMutation(
+  mutation: PendingMutationEnvelope,
+  now: string,
+): PendingMutationEnvelope {
+  return {
+    ...mutation,
+    attemptCount: mutation.attemptCount + 1,
+    lastAttemptAt: now,
+    status: "sending",
+    lastErrorCode: null,
+  };
+}
+
+function failureStatus(
+  state: RemoteFailure["state"],
+): PendingMutationEnvelope["status"] {
+  if (state === "conflict") return "conflict";
+  if (state === "failed_permanent") return "failed_permanent";
+  return "failed_retryable";
+}
+
+function failedMutation(
+  mutation: PendingMutationEnvelope,
+  failure: RemoteFailure,
+): PendingMutationEnvelope {
+  return {
+    ...mutation,
+    status: failureStatus(failure.state),
+    lastErrorCode: failure.error,
+  };
+}
+
+function noteFailure(error: string): RemoteFailure {
+  if (error === "replay_conflict") {
+    return { state: "conflict", error };
+  }
+  if (error === "persistence_failed") {
+    return { state: "pending", error };
+  }
+  return { state: "failed_permanent", error };
+}
+
+function factFailure(error: string): RemoteFailure {
+  if (error === "conflict") {
+    return { state: "conflict", error };
+  }
+  if (error === "backend_unavailable" || error === "persistence_failed") {
+    return { state: "pending", error };
+  }
+  return { state: "failed_permanent", error };
+}
+
+function ratingFailure(error: string): RemoteFailure {
+  if (error === "conflict") {
+    return { state: "conflict", error };
+  }
+  return error === "persistence_failed"
+    ? { state: "pending", error }
+    : { state: "failed_permanent", error };
+}
+
 function ratingAcknowledgementFailure(
   command: Extract<
     StructuredVenueReplayCommand,
