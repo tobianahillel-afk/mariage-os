@@ -5,6 +5,7 @@ import {
   coordinator,
   factId,
   factMutation,
+  factSourceId,
   factOperationId,
   noteId,
   noteMutation,
@@ -31,6 +32,7 @@ describe("Venue visit structured replay success", () => {
     expect(remote.calls).toEqual([
       `note:${noteId}`,
       `fact:${factOperationId}`,
+      `link:${factOperationId}:${factSourceId}`,
       `rating:${ratingOperationId}`,
     ]);
     expect(remote.notes[0]).toMatchObject({
@@ -42,6 +44,12 @@ describe("Venue visit structured replay success", () => {
       projectId: scope.projectId,
       factId,
       observationId: factOperationId,
+    });
+    expect(remote.factLinks[0]).toEqual({
+      projectId: scope.projectId,
+      observationId: factOperationId,
+      sourceId: factSourceId,
+      isPrimary: true,
     });
     expect(remote.ratings[0]).toMatchObject({
       projectId: scope.projectId,
@@ -70,6 +78,90 @@ describe("Venue visit structured replay success", () => {
       first,
       second,
     ]);
+  });
+});
+
+
+describe("Venue visit structured replay dependencies", () => {
+  it("blocks a superseding Fact observation while its predecessor is retryable", async () => {
+    const local = new MemoryLocalStore();
+    const remote = new RemoteHarness();
+    const secondId = "62222222-2222-4222-8222-222222222223";
+    remote.factMode = "backend_unavailable";
+    await seed(
+      local,
+      factMutation(),
+      factMutation(
+        secondId,
+        "2026-10-06T12:02:00.000Z",
+        factOperationId,
+      ),
+    );
+
+    const result = await coordinator(local, remote).replayPending();
+
+    expect(result).toEqual([
+      {
+        operationId: factOperationId,
+        state: "pending",
+        error: "backend_unavailable",
+      },
+      {
+        operationId: secondId,
+        state: "pending",
+        error: "dependency_pending",
+      },
+    ]);
+    expect(remote.observations).toHaveLength(0);
+    expect(local.pending.get(secondId)).toMatchObject({
+      status: "failed_retryable",
+      lastErrorCode: "dependency_pending",
+    });
+  });
+
+  it("blocks a later rating revision after an earlier retryable failure", async () => {
+    const local = new MemoryLocalStore();
+    const remote = new RemoteHarness();
+    const secondId = "63333333-3333-4333-8333-333333333334";
+    remote.ratingMode = "failure";
+    await seed(
+      local,
+      ratingMutation(),
+      ratingMutation(
+        secondId,
+        "2026-10-06T12:03:00.000Z",
+        "love_score",
+        1,
+      ),
+    );
+
+    const result = await coordinator(local, remote).replayPending();
+
+    expect(result.map((entry) => [entry.operationId, entry.error])).toEqual([
+      [ratingOperationId, "persistence_failed"],
+      [secondId, "dependency_pending"],
+    ]);
+    expect(remote.ratings).toHaveLength(1);
+    expect(local.pending.get(secondId)).toMatchObject({
+      status: "failed_retryable",
+      lastErrorCode: "dependency_pending",
+    });
+  });
+
+  it("continues a provably independent note after a Fact retryable failure", async () => {
+    const local = new MemoryLocalStore();
+    const remote = new RemoteHarness();
+    remote.factMode = "backend_unavailable";
+    await seed(
+      local,
+      factMutation(),
+      noteMutation(noteId, "2026-10-06T12:03:00.000Z"),
+    );
+
+    const result = await coordinator(local, remote).replayPending();
+
+    expect(result.map((entry) => entry.state)).toEqual(["pending", "synced"]);
+    expect(remote.notes).toHaveLength(1);
   });
 });
 
@@ -161,6 +253,24 @@ describe("Venue visit structured replay Fact failures", () => {
       );
     },
   );
+
+  it("retains a Fact observation when its in-person source link cannot persist", async () => {
+    const local = new MemoryLocalStore();
+    const remote = new RemoteHarness();
+    remote.factLinkMode = "persistence_failed";
+    await seed(local, factMutation());
+
+    await expect(coordinator(local, remote).replayPending()).resolves.toEqual([
+      {
+        operationId: factOperationId,
+        state: "pending",
+        error: "persistence_failed",
+      },
+    ]);
+    expect(remote.observations).toHaveLength(1);
+    expect(remote.factLinks).toHaveLength(1);
+    expect(local.pending.get(factOperationId)?.status).toBe("failed_retryable");
+  });
 });
 
 describe("Venue visit structured replay rating failures", () => {
@@ -197,6 +307,50 @@ describe("Venue visit structured replay rating failures", () => {
       },
     ]);
   });
+
+  it("marks deterministic receipt mismatch permanent", async () => {
+    const local = new MemoryLocalStore();
+    const remote = new RemoteHarness();
+    remote.ratingMode = "replay_identity_mismatch";
+    await seed(local, ratingMutation());
+
+    await expect(coordinator(local, remote).replayPending()).resolves.toEqual([
+      {
+        operationId: ratingOperationId,
+        state: "failed_permanent",
+        error: "replay_identity_mismatch",
+      },
+    ]);
+    expect(local.pending.get(ratingOperationId)?.status).toBe(
+      "failed_permanent",
+    );
+  });
+
+  it.each([
+    ["author", { userId: "69999999-9999-4999-8999-999999999999" }],
+    ["dimension", { dimensionKey: "logistics_score_personal" }],
+    ["rating", { rating: 6 }],
+    ["revision", { revision: 7 }],
+  ] as const)(
+    "retains the local rating when provider ACK has mismatched %s",
+    async (_label, override) => {
+      const local = new MemoryLocalStore();
+      const remote = new RemoteHarness();
+      remote.ratingResponseOverride = override;
+      await seed(local, ratingMutation());
+
+      await expect(coordinator(local, remote).replayPending()).resolves.toEqual(
+        [
+          {
+            operationId: ratingOperationId,
+            state: "failed_permanent",
+            error: "provider_response_invalid",
+          },
+        ],
+      );
+      expect(local.pending.has(ratingOperationId)).toBe(true);
+    },
+  );
 });
 
 describe("Venue visit structured replay rating validation", () => {
