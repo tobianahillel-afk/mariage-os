@@ -182,7 +182,7 @@ RED failures are demonstrated for these intended reasons.
   - Core rerun fails exactly 2 tests: application service drops `operationId/deviceId`; Supabase adapter omits `target_operation_id/target_device_id`; **2,054 existing tests pass**.
   - DB/RLS originally failed 4/7 assertions under the pre-review contract: seven-argument signature absent, legacy signature present, exact retry after response loss raises `40001`, and no replay receipt exists. Fresh review reclassified the legacy-signature-presence failure as a rollout-compatibility requirement; the genuine RED gaps are the missing seven-argument path, failed exact replay and missing receipt.
   - Browser E2E + mutation remains green.
-- Current state: **ACCEPTANCE_PENDING / C-ACCEPTANCE — Pass C gap ∅ / record CI pending**.
+- Current state: **ACCEPTED / COMPLETE**.
 - Parent WP-2.12: BLOCKED, tranches 1–3 GREEN preserved.
 - Accepted sibling support: WP-2.12R.
 - Historical packet findings: `WP212S-AR-001`, `WP212S-AR-002`, `WP212S-AR-003` — **CLOSED / VERIFIED**.
@@ -195,8 +195,8 @@ RED failures are demonstrated for these intended reasons.
 - Review record: `docs/roadmap/lot-2/WP-2.12S-FRESH-PASS-B-V3-2026-10-06.md`.
 - Open packet findings: ∅.
 - Fresh Pass-B/status seal: `54d3faaca10be74556372ec5e2f8ade2c5fddc53` / CI `37462189131` — **5/5 SUCCESS** including clean checkout.
-- Pass C record: `docs/roadmap/lot-2/WP-2.12S-ACCEPTANCE.md` — **PASS / gap ∅**, acceptance-record CI pending.
-- Next permitted action: verify the Pass-C acceptance record with exact-head five-job CI including clean checkout. Only then may WP-2.12S be sealed `ACCEPTED / COMPLETE` and parent WP-2.12 receive a separate resumption seal.
+- Pass C record: `docs/roadmap/lot-2/WP-2.12S-ACCEPTANCE.md` — **PASS / gap ∅**; acceptance-record `8b0eae20d59e6013a14064fdea29451fbb503c42` / CI `37463358444` passed **5/5 SUCCESS**, including clean checkout.
+- Next permitted action: final support seal only, then a separate parent WP-2.12 resumption-governance head and exact-head five-job CI before any new parent production implementation.
 
 
 ## Pass C result — 2026-10-06
@@ -204,8 +204,8 @@ RED failures are demonstrated for these intended reasons.
 Separate acceptance reconciliation is recorded in
 `docs/roadmap/lot-2/WP-2.12S-ACCEPTANCE.md`.
 
-Verdict: **PASS; EXPECTED ↔ IMPLEMENTED ↔ VERIFIED gap ∅**. The support packet
-remains `ACCEPTANCE_PENDING` until the acceptance-record HEAD itself passes all
-five ordinary CI jobs including full verification from a clean checkout.
-Parent WP-2.12 remains blocked until a final WP-2.12S support seal is exact-head
-green.
+Verdict: **PASS; EXPECTED ↔ IMPLEMENTED ↔ VERIFIED gap ∅**. Acceptance-record
+`8b0eae20d59e6013a14064fdea29451fbb503c42` / CI `37463358444` passed all five ordinary CI jobs including
+full verification from a clean checkout. WP-2.12S is therefore
+`ACCEPTED / COMPLETE`. Parent WP-2.12 remains blocked only until the separate
+final support seal and parent resumption-governance gate are exact-head green.

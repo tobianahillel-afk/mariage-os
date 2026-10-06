@@ -1,6 +1,6 @@
 # WP-2.12S — Pass C acceptance reconciliation
 
-Status: **PASS C COMPLETE — gap ∅; acceptance-record exact-head CI pending**.
+Status: **ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record CI 5/5 green**.
 
 This is the separate `EXPECTED ↔ IMPLEMENTED ↔ VERIFIED` reconciliation for
 the bounded replay-safe Venue member-rating support packet. Entry state is
@@ -131,7 +131,8 @@ required bounded WP-2.12S responsibilities
 
 **PASS — EXPECTED ↔ IMPLEMENTED ↔ VERIFIED gap ∅.**
 
-The support packet is eligible for `ACCEPTED / COMPLETE` only after the exact
-HEAD containing this acceptance record passes all five ordinary CI jobs,
-including `Full verify from clean checkout`. Until then WP-2.12S remains
-`ACCEPTANCE_PENDING` and parent WP-2.12 remains blocked.
+The exact HEAD containing this acceptance record,
+`8b0eae20d59e6013a14064fdea29451fbb503c42`, passed CI `37463358444` with all five ordinary jobs green,
+including `Full verify from clean checkout`. WP-2.12S is therefore
+**ACCEPTED / COMPLETE**. Parent WP-2.12 remains blocked until its separate
+resumption-governance head passes its own exact-head five-job CI gate.
