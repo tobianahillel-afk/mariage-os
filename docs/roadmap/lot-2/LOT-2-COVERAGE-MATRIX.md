@@ -128,7 +128,7 @@ ADR 0011 later produced decisive deployed CPU evidence and was rejected for fina
 | WP-2.12 | **BLOCKED — WP-2.12T dependency** | mobile/offline Venue visit + packet E2E completion; tranches 1–3 GREEN; structured reconnect #99 preserved; FIR #42 |
 | WP-2.12R | **ACCEPTED / COMPLETE** | replay-safe fact-observation command identity; Pass C gap ∅ / CI `37335393969` 5/5; 3 points / cohesion PASS |
 | WP-2.12S | **ACCEPTED / COMPLETE** | replay-safe Venue member-rating command identity with expand/switch compatibility; Pass C gap ∅ / CI `37463358444` 5/5; 3 points / cohesion PASS |
-| WP-2.12T | **READY — activation CI pending** | atomic in-person Fact source provenance link; expected source type + revision checked server-side; 3 points / cohesion PASS |
+| WP-2.12T | **REVIEW_PENDING — Pass A GREEN** | atomic in-person Fact source provenance link; canonical `a130fe20147fbe892455b86b5fb6ba28149ccc38` / CI `37543738014` 5/5; Fresh Pass B next; 3 points / cohesion PASS |
 
 ## Sequencing
 
@@ -139,12 +139,12 @@ WP-2.1..WP-2.8C [ACCEPTED]
                 → WP-2.9B [ACCEPTED] → WP-2.10 [ACCEPTED] → WP-2.11 [ACCEPTED] → WP-2.12 [BLOCKED]
                                                                                            ↘ WP-2.12R [ACCEPTED]
                                                                                            ↘ WP-2.12S [ACCEPTED]
-                                                                                           ↘ WP-2.12T [READY gate]
+                                                                                           ↘ WP-2.12T [REVIEW]
                                                                                               → WP-2.12 [resume A after T acceptance]
                                                                                                 → Lot reconciliation → Integration Pass
 ```
 
-Only one packet may be active at a time. WP-2.9A/B/C, WP-2.10, WP-2.11 and support packets WP-2.12R/WP-2.12S are terminal accepted. Parent resumption head `be616638...` / CI `37466734867` passed 5/5, and structured-reconnect PR #99 remains preserved. Fresh review then exposed an atomic source-provenance TOCTOU that requires server-side type/revision enforcement. Parent WP-2.12 is BLOCKED while 3-point support packet WP-2.12T passes its own A/B/C sequence.
+Only one packet may be active at a time. WP-2.9A/B/C, WP-2.10, WP-2.11 and support packets WP-2.12R/WP-2.12S are terminal accepted. Parent structured-reconnect PR #99 remains preserved but BLOCKED. WP-2.12T Pass A is GREEN at canonical `a130fe20...` / CI `37543738014` 5/5; T is now the active REVIEW_PENDING support packet and must complete Fresh Pass B + Pass C before parent resumption.
 
 ## Explicitly outside Lot 2
 
@@ -190,7 +190,8 @@ WP-2.11 = ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record `3167a380521
 WP-2.12 = IN_PROGRESS / A-IMPLEMENT — tranches 1–3 GREEN through `1794a3d9...` / `37280907551`; Fact + Member Rating replay dependencies satisfied; separate resumption-head exact-CI pending; FIR #42
 WP-2.12R = ACCEPTED / COMPLETE — final support seal `cdad9eb82052ac3e2296769e5381b2371558ec4d` / CI `37341157497` 5/5
 WP-2.12S = ACCEPTED / COMPLETE — final support seal `93f2916db125139f7694e56248c188a2cf21f794` / CI `37465538267` 5/5; AR-001/002/003 CLOSED / VERIFIED
-next permitted action = exact-head resumption CI/clean checkout → isolated RED structured reconnect (note / measurement / personal rating) → bounded GREEN
+WP-2.12T = REVIEW_PENDING — Pass A canonical `a130fe20147fbe892455b86b5fb6ba28149ccc38` / CI `37543738014` 5/5; RED #106 closed unmerged; GREEN #107 review-clean
+next permitted action = complete fresh independent WP-2.12T Pass B → separate Pass C → final support seal → separate parent WP-2.12 resumption gate
 media-byte durability/upload remains a separate later parent tranche; no provider rerun is authorized
 ```
 

@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.12T`
 - Lot: 2 — Venues core
 - Name: atomic in-person source provenance enforcement for Venue Fact observation links
-- State: `READY` — activation-governance exact-head CI pending
-- Current pass: `PLAN` (next: `A-IMPLEMENT / RED first`)
+- State: `REVIEW_PENDING`
+- Current pass: `B-ADVERSARIAL-REVIEW` — Pass A GREEN sealed
 - Branch: `lot-2/venues-core`
 - Parent packet: `WP-2.12` — BLOCKED with all previous GREEN work preserved
 - Discovery base: `be616638026b0c56e8d6317b182ccaa5932f1809`
@@ -131,19 +131,22 @@ At minimum:
 
 ## Pass A exit
 
-- [ ] activation-governance HEAD 5/5 including clean checkout
-- [ ] isolated RED proves missing atomic type/revision contract
-- [ ] checked link RPC enforces type + revision in the link transaction
-- [ ] direct authorization/isolation/no-side-effect evidence green
-- [ ] adapter/application contract green with exact receipt validation
-- [ ] legacy Fact/Evidence link behavior remains green
-- [ ] exact-head 5/5 CI including clean checkout
-- [ ] packet moves to `REVIEW_PENDING / B-ADVERSARIAL-REVIEW`
+- [x] activation-governance HEAD 5/5 including clean checkout
+- [x] isolated RED proves missing atomic type/revision contract
+- [x] checked link RPC enforces type + revision in the link transaction
+- [x] direct authorization/isolation/no-side-effect evidence green
+- [x] adapter/application contract green with exact receipt validation
+- [x] legacy Fact/Evidence link behavior remains green
+- [x] exact-head 5/5 CI including clean checkout
+- [x] packet moves to `REVIEW_PENDING / B-ADVERSARIAL-REVIEW`
 
 ## Handoff
 
-- Current state: **READY — activation exact-head CI pending**
-- Parent WP-2.12: **BLOCKED**, prior GREEN work and PR #99 preserved
-- Open support findings: ∅
-- Next permitted action: activation exact-head five-job CI including clean
-  checkout; only then isolated RED-first evidence.
+- Current state: **REVIEW_PENDING / B-ADVERSARIAL-REVIEW**
+- Activation: `8b0dfb431adc2d09b5d75d0b0c8d22b3315424b9` / CI `37538654009` — **5/5 SUCCESS**, clean checkout included.
+- RED-only PR #106 / `b7f3e705c46bd026b5389ec18fda660beb4ebffb` / CI `37539654080` — closed unmerged after the intended checked-link/stale-provenance failures.
+- GREEN PR #107 final reviewed head `f6eaa0e232252f1ff8962979097c17c3ca184ee7` / CI `37542674381` — **5/5 SUCCESS**; 237 files / 2,059 tests / 100% global coverage; final Codex re-review 👍; zero unresolved threads.
+- Canonical GREEN merge: `a130fe20147fbe892455b86b5fb6ba28149ccc38` / CI `37543738014` — **5/5 SUCCESS**, clean checkout included.
+- Parent WP-2.12: **BLOCKED**, prior GREEN work and PR #99 preserved.
+- Open support findings: ∅.
+- Next permitted action: complete fresh independent Pass B. No parent production change before T acceptance and a separate parent resumption gate.

@@ -45,7 +45,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.12 | mobile/offline venue-visit workflow and packet E2E completion          | **BLOCKED — WP-2.12T atomic visit-source provenance dependency**          |
 | WP-2.12R | replay-safe Venue fact-observation command boundary                     | **ACCEPTED / COMPLETE — Pass C gap ∅**                                    |
 | WP-2.12S | replay-safe Venue member-rating command boundary                        | **ACCEPTED / COMPLETE — Pass C gap ∅**                                    |
-| WP-2.12T | atomic Venue fact-observation visit-source provenance link               | **READY — activation exact-head CI pending**                              |
+| WP-2.12T | atomic Venue fact-observation visit-source provenance link               | **REVIEW_PENDING — Pass A GREEN; Fresh Pass B next**                      |
 
 ## WP-2.10 — activation revalidation
 
@@ -155,7 +155,11 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 - Size: **3 points / cohesion PASS** — one forward-only migration/API family (+1) and one provenance-checked link RPC (+2); no table, RLS policy, permission, provider, UI or product-domain expansion.
 - Frozen responsibility: add a checked Fact Observation → Source link command that atomically locks/reads the exact project source and validates the caller-supplied expected `source_type` and source revision before linking. Mismatch must fail closed and create/update no link.
 - Existing general four-argument link behavior remains untouched for accepted non-visit Fact/Evidence flows. WP-2.12 parent will consume only the checked boundary for `in_person_visit` replay after T is accepted.
-- Current/next pass: **PLAN → activation gate → RED-first Pass A**. No WP-2.12T production migration/RPC code, and no parent #99 merge, is authorized before this governance HEAD itself passes all five ordinary jobs including clean checkout.
+- Activation-governance head `8b0dfb431adc2d09b5d75d0b0c8d22b3315424b9` / CI `37538654009` (#2358) passed **5/5 ordinary jobs**, including clean checkout.
+- RED-only PR #106 / `b7f3e705c46bd026b5389ec18fda660beb4ebffb` / CI `37539654080` closed unmerged after failing exactly the intended atomic-provenance assertions: checked RPC absent and stale type/revision still linkable.
+- GREEN PR #107 final reviewed head `f6eaa0e232252f1ff8962979097c17c3ca184ee7` / CI `37542674381` (#2368) passed **5/5 SUCCESS**, including clean checkout; Core reports **237/237 files, 2,059/2,059 tests, 100% statements/branches/functions/lines**. Fresh Codex re-review returned 👍 with zero unresolved threads.
+- PR #107 merged canonically as `a130fe20147fbe892455b86b5fb6ba28149ccc38`; canonical CI `37543738014` (#2369) passed **5/5 SUCCESS**, including full verify from clean checkout.
+- Pass A exit is therefore satisfied. Current/next pass: **REVIEW_PENDING / B-ADVERSARIAL-REVIEW**. Parent WP-2.12 and PR #99 remain blocked/preserved until T completes Fresh Pass B and Pass C.
 
 ## Accepted packet evidence summary
 
@@ -427,7 +431,7 @@ Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.11
 WP-2.9C: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 21accd7f9ab1b845275507b7941a782c5e816a56 / CI 36494697647 5/5 including clean checkout
 WP-2.9A: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 656398bcd5520cfa56d782023d150eb64317161d / CI 36542083037 5/5 including clean checkout
-Current packet: WP-2.12 — IN_PROGRESS / A-IMPLEMENT resumption gate; WP-2.12R final seal `cdad9eb82052ac3e2296769e5381b2371558ec4d` / CI `37341157497` 5/5; WP-2.12S final seal `93f2916db125139f7694e56248c188a2cf21f794` / CI `37465538267` 5/5; tranches 1–3 GREEN preserved; primary FIR #42 / FTR-028
+Current packet: WP-2.12T — REVIEW_PENDING / B-ADVERSARIAL-REVIEW; canonical GREEN `a130fe20147fbe892455b86b5fb6ba28149ccc38` / CI `37543738014` 5/5; parent WP-2.12 remains BLOCKED with PR #99 preserved; primary FIR #42 / FTR-028 support only
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
@@ -466,5 +470,5 @@ FTR-089 FIR: #17 — IN_PROGRESS / parent A accepted, later presentation and Lot
 WP-2.9B: ACCEPTED / COMPLETE; FTR-093 FIR #27 remains IN_PROGRESS for downstream scope; WP29B-AR-001/002 CLOSED / VERIFIED; Pass C gap ∅
 Lots 3–12: NOT_STARTED
 Latest distinct-PDF campaign: 2303df0c9e8d6f72561ec0ce42514663801229d8 / CI 36459949861 / provider job 109058754517 / artifact 10987866873 — 10 distinct exact-size PDFs, 10 finalized flows, 20 valid exact-version CPU readings within Workers Free; provider verdict PASS
-Next permitted action: pass this WP-2.12 resumption-governance HEAD through five ordinary exact-head CI jobs including clean checkout. If green, create an isolated RED-only structured-reconnect tranche covering durable/replay-safe visit note, measurement and personal-rating mutations through the accepted Interaction / Fact Observation / Member Opinion boundaries. Media bytes/upload remain a separate later tranche. No provider campaign is authorized or required.
+Next permitted action: run a complete fresh independent WP-2.12T Pass B against canonical GREEN `a130fe20147fbe892455b86b5fb6ba28149ccc38`, challenging atomic type/revision enforcement, authorization/isolation/no-side-effect behavior, checked adapter receipt validation, legacy general-link compatibility and bounded scope. Parent WP-2.12 / PR #99 remains blocked. No provider campaign is authorized or required.
 ```
