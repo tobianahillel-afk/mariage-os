@@ -162,6 +162,7 @@ type FactMode =
   | "success"
   | "conflict"
   | "backend_unavailable"
+  | "context_failure"
   | "persistence_failed"
   | "authorization_failed";
 type RatingMode = "success" | "failure";
@@ -196,6 +197,9 @@ class RemoteHarness {
     getFactContext: async () => {
       if (this.factMode === "backend_unavailable") {
         throw new VenueFactPersistenceError("backend_unavailable", "offline");
+      }
+      if (this.factMode === "context_failure") {
+        throw new Error("provider");
       }
       return factContext(this.factVenueId);
     },
@@ -585,6 +589,25 @@ describe("Venue visit structured replay scope validation", () => {
     ]);
     expect(remote.observations).toHaveLength(0);
     expect(local.pending.get(factOperationId)?.status).toBe("failed_permanent");
+  });
+});
+
+describe("Venue visit structured replay fact-scope lookup failures", () => {
+  it("keeps an unclassified fact-context failure retryable", async () => {
+    const local = new MemoryLocalStore();
+    const remote = new RemoteHarness();
+    remote.factMode = "context_failure";
+    await seed(local, factMutation());
+
+    await expect(coordinator(local, remote).replayPending()).resolves.toEqual([
+      {
+        operationId: factOperationId,
+        state: "pending",
+        error: "persistence_failed",
+      },
+    ]);
+    expect(remote.observations).toHaveLength(0);
+    expect(local.pending.get(factOperationId)?.status).toBe("failed_retryable");
   });
 });
 
