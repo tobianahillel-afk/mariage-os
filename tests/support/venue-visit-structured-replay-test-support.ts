@@ -76,6 +76,7 @@ export class RemoteHarness {
   factLinkMode: FactLinkMode = "success";
   ratingMode: RatingMode = "success";
   factVenueId = venueId;
+  factSourceType = "in_person_visit";
   ratingResponseOverride: Partial<VenueMemberRatingRecord> = {};
 
   readonly interactions: VenueInteractionPort = {
