@@ -1,10 +1,13 @@
 import {
   appendVenueFactObservation,
   linkVenueFactObservationSource,
+  type VenueFactContext,
   type VenueFactEvidencePort,
+  type VenueFactObservationRecord,
   type VenueFactSourceReadPort,
 } from "@application/facts/venue-fact-evidence-service";
 import { venueFactPersistenceErrorCode } from "@application/facts/venue-fact-persistence-error";
+import { normalizeFactObservation } from "@domain/facts/fact-observation";
 import type { LocalProjectStore } from "@application/local-data/local-project-store";
 import type { PendingMutationEnvelope } from "@application/local-data/local-records";
 import {
@@ -51,6 +54,10 @@ interface RemoteFailure {
   readonly state: Exclude<VenueVisitStructuredReplayState, "synced">;
   readonly error: string;
 }
+
+type FactContextResult =
+  | { readonly ok: true; readonly context: VenueFactContext }
+  | { readonly ok: false; readonly failure: RemoteFailure };
 
 function sendingMutation(
   mutation: PendingMutationEnvelope,
@@ -128,6 +135,41 @@ function ratingAcknowledgementFailure(
     rating.dimensionKey === expected.dimensionKey &&
     rating.rating === expected.rating &&
     rating.revision === expected.expectedRevision + 1
+    ? null
+    : { state: "failed_permanent", error: "provider_response_invalid" };
+}
+
+function jsonValueMatches(left: unknown, right: unknown): boolean {
+  return JSON.stringify(left) === JSON.stringify(right);
+}
+
+function factAcknowledgementFailure(
+  command: Extract<
+    StructuredVenueReplayCommand,
+    { readonly kind: "fact_observation" }
+  >,
+  context: VenueFactContext,
+  observation: VenueFactObservationRecord,
+  expectedUserId: string,
+): RemoteFailure | null {
+  const normalized = normalizeFactObservation(context.definition, command.input);
+  if (!normalized.ok) {
+    return { state: "failed_permanent", error: "provider_response_invalid" };
+  }
+
+  const expected = normalized.value;
+  return observation.id === command.input.observationId &&
+    observation.projectId === command.input.projectId &&
+    observation.factId === command.input.factId &&
+    observation.status === "active" &&
+    observation.supersededByObservationId === null &&
+    observation.createdBy === expectedUserId &&
+    jsonValueMatches(observation.value, expected.value) &&
+    observation.rawValueText === expected.rawValueText &&
+    observation.evidenceLevel === expected.evidenceLevel &&
+    observation.confidence === expected.confidence &&
+    observation.observedAt === expected.observedAt &&
+    observation.note === expected.note
     ? null
     : { state: "failed_permanent", error: "provider_response_invalid" };
 }
@@ -282,8 +324,8 @@ export class VenueVisitStructuredReplayCoordinator {
       { readonly kind: "fact_observation" }
     >,
   ): Promise<RemoteFailure | null> {
-    const scopeFailure = await this.factScopeFailure(command);
-    if (scopeFailure !== null) return scopeFailure;
+    const contextResult = await this.factContext(command);
+    if (!contextResult.ok) return contextResult.failure;
 
     const sourceFailure = await this.factSourceFailure(command);
     if (sourceFailure !== null) return sourceFailure;
@@ -294,6 +336,14 @@ export class VenueVisitStructuredReplayCoordinator {
     );
     if (!observation.ok) return factFailure(observation.error);
 
+    const acknowledgementFailure = factAcknowledgementFailure(
+      command,
+      contextResult.context,
+      observation.observation,
+      this.local.scope.userId,
+    );
+    if (acknowledgementFailure !== null) return acknowledgementFailure;
+
     const link = await linkVenueFactObservationSource(this.facts, {
       projectId: command.input.projectId,
       observationId: command.input.observationId as string,
@@ -303,24 +353,33 @@ export class VenueVisitStructuredReplayCoordinator {
     return link.ok ? null : factFailure(link.error);
   }
 
-  private async factScopeFailure(
+  private async factContext(
     command: Extract<
       StructuredVenueReplayCommand,
       { readonly kind: "fact_observation" }
     >,
-  ): Promise<RemoteFailure | null> {
+  ): Promise<FactContextResult> {
     try {
       const context = await this.facts.getFactContext(
         command.input.projectId,
         command.input.factId,
       );
       return context.venueId === command.venueId
-        ? null
-        : { state: "failed_permanent", error: "fact_scope_mismatch" };
+        ? { ok: true, context }
+        : {
+            ok: false,
+            failure: {
+              state: "failed_permanent",
+              error: "fact_scope_mismatch",
+            },
+          };
     } catch (error) {
-      return factFailure(
-        venueFactPersistenceErrorCode(error) ?? "persistence_failed",
-      );
+      return {
+        ok: false,
+        failure: factFailure(
+          venueFactPersistenceErrorCode(error) ?? "persistence_failed",
+        ),
+      };
     }
   }
 
