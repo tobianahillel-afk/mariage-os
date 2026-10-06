@@ -77,22 +77,29 @@ it("maps the checked visit-source link RPC with exact provenance identity", asyn
   ]);
 });
 
-it("fails closed when the checked link receipt substitutes primary identity", async () => {
-  const adapter = new SupabaseVenueFactEvidenceAdapter(
-    client({ data: linkRow(false), error: null }, []),
-  );
+it(
+  "fails closed when the checked link receipt substitutes primary identity",
+  async () => {
+    const adapter = new SupabaseVenueFactEvidenceAdapter(
+      client({ data: linkRow(false), error: null }, []),
+    );
 
-  await expect(adapter.linkObservationSourceChecked(input)).rejects.toMatchObject({
-    code: "provider_response_invalid",
-  });
-});
+    await expect(
+      adapter.linkObservationSourceChecked(input),
+    ).rejects.toMatchObject({
+      code: "provider_response_invalid",
+    });
+  },
+);
 
 it("maps stale checked provenance to a conflict", async () => {
   const adapter = new SupabaseVenueFactEvidenceAdapter(
     client({ data: null, error: { code: "40001" } }, []),
   );
 
-  await expect(adapter.linkObservationSourceChecked(input)).rejects.toMatchObject({
+  await expect(
+    adapter.linkObservationSourceChecked(input),
+  ).rejects.toMatchObject({
     code: "conflict",
   });
 });
