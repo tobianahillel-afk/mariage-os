@@ -30,6 +30,7 @@ import {
   VENUE_VISIT_MEMBER_RATING_MUTATION,
   VENUE_VISIT_NOTE_MUTATION,
 } from "@application/venues/venue-local-mutation";
+import { VenueMemberOpinionPersistenceError } from "@application/venues/venue-member-opinion-persistence-error";
 import type {
   SaveVenueMemberPreferenceInput,
   SaveVenueMemberRatingInput,
@@ -165,7 +166,7 @@ type FactMode =
   | "context_failure"
   | "persistence_failed"
   | "authorization_failed";
-type RatingMode = "success" | "failure";
+type RatingMode = "success" | "failure" | "conflict";
 
 class RemoteHarness {
   readonly calls: string[] = [];
@@ -242,6 +243,12 @@ class RemoteHarness {
     saveVenueRating: async (input) => {
       this.calls.push(`rating:${input.operationId}`);
       this.ratings.push(input);
+      if (this.ratingMode === "conflict") {
+        throw new VenueMemberOpinionPersistenceError(
+          "conflict",
+          "revision conflict",
+        );
+      }
       if (this.ratingMode === "failure") throw new Error("provider");
       return ratingRecord(input);
     },
@@ -538,6 +545,25 @@ describe("Venue visit structured replay remote failures", () => {
       );
     },
   );
+
+  it("retains a rating serialization conflict as conflict", async () => {
+    const local = new MemoryLocalStore();
+    const remote = new RemoteHarness();
+    remote.ratingMode = "conflict";
+    await seed(local, ratingMutation());
+
+    await expect(coordinator(local, remote).replayPending()).resolves.toEqual([
+      {
+        operationId: ratingOperationId,
+        state: "conflict",
+        error: "conflict",
+      },
+    ]);
+    expect(local.pending.get(ratingOperationId)).toMatchObject({
+      status: "conflict",
+      lastErrorCode: "conflict",
+    });
+  });
 
   it("keeps rating provider failure retryable", async () => {
     const local = new MemoryLocalStore();
