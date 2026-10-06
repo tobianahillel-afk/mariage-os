@@ -56,7 +56,10 @@ export function venueVisitFactAcknowledgementMatches(
   observation: VenueFactObservationRecord,
   expectedUserId: string,
 ): boolean {
-  const normalized = normalizeFactObservation(context.definition, command.input);
+  const normalized = normalizeFactObservation(
+    context.definition,
+    command.input,
+  );
   if (!normalized.ok) return false;
   return [
     identityMatches(command, observation, expectedUserId),
