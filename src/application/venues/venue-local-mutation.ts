@@ -23,6 +23,7 @@ export type VenueReplayCommand =
   | { readonly kind: "visit_note"; readonly input: AppendVenueInteractionInput }
   | {
       readonly kind: "fact_observation";
+      readonly venueId: string;
       readonly input: AppendVenueFactObservationDraft;
     }
   | { readonly kind: "member_rating"; readonly input: SaveVenueRatingDraft };
@@ -185,6 +186,7 @@ function factObservationCommand(
 
   return {
     kind: "fact_observation",
+    venueId: mutation.entityId,
     input: {
       projectId: mutation.projectId,
       factId: uuidValue(payload.factId),
