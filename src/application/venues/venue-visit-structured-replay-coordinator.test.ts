@@ -265,6 +265,52 @@ describe("Venue visit structured replay Fact failures", () => {
   });
 });
 
+describe("Venue visit structured replay Fact ACK validation", () => {
+  it.each([
+    ["observation id", { id: "68888888-8888-4888-8888-888888888888" }],
+    ["project", { projectId: "69999999-9999-4999-8999-999999999999" }],
+    ["Fact", { factId: "6aaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" }],
+    ["value", { value: 13 }],
+    ["raw value", { rawValueText: "13 m" }],
+    ["evidence", { evidenceLevel: "estimated" as const }],
+    ["confidence", { confidence: "low" as const }],
+    ["timestamp", { observedAt: "2026-10-06T12:01:01.000Z" }],
+    ["note", { note: "Autre mesure." }],
+    ["status", { status: "superseded" as const }],
+    [
+      "supersession",
+      {
+        supersededByObservationId:
+          "6bbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      },
+    ],
+    ["author", { createdBy: "6ccccccc-cccc-4ccc-8ccc-cccccccccccc" }],
+  ])(
+    "retains the local Fact mutation when provider ACK substitutes %s",
+    async (_label, override) => {
+      const local = new MemoryLocalStore();
+      const remote = new RemoteHarness();
+      remote.factObservationResponseOverride = override;
+      await seed(local, factMutation());
+
+      await expect(coordinator(local, remote).replayPending()).resolves.toEqual(
+        [
+          {
+            operationId: factOperationId,
+            state: "failed_permanent",
+            error: "provider_response_invalid",
+          },
+        ],
+      );
+      expect(remote.factLinks).toHaveLength(0);
+      expect(local.pending.get(factOperationId)).toMatchObject({
+        status: "failed_permanent",
+        lastErrorCode: "provider_response_invalid",
+      });
+    },
+  );
+});
+
 describe("Venue visit structured replay rating failures", () => {
   it("retains a rating serialization conflict as conflict", async () => {
     const local = new MemoryLocalStore();
