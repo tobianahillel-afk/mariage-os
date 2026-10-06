@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.12S`
 - Lot: 2 — Venues core
 - Name: replay-safe Venue member-rating command identity
-- State: `REVIEW_PENDING`
-- Current pass: `B-ADVERSARIAL-REVIEW` — Pass A + rollout-compatibility remediation sealed
+- State: `ACCEPTANCE_PENDING`
+- Current pass: `C-ACCEPTANCE` — Fresh Pass B v3 PASS; AR-001/002/003 CLOSED / VERIFIED
 - Branch: `lot-2/venues-core`
 - Parent-resumption base: `2b2035740736dde090da9b1f5d86066975e7bc60`
 - Parent-resumption CI: `37342313598` — **5/5 SUCCESS**, including full verify from clean checkout
@@ -182,12 +182,16 @@ RED failures are demonstrated for these intended reasons.
   - Core rerun fails exactly 2 tests: application service drops `operationId/deviceId`; Supabase adapter omits `target_operation_id/target_device_id`; **2,054 existing tests pass**.
   - DB/RLS originally failed 4/7 assertions under the pre-review contract: seven-argument signature absent, legacy signature present, exact retry after response loss raises `40001`, and no replay receipt exists. Fresh review reclassified the legacy-signature-presence failure as a rollout-compatibility requirement; the genuine RED gaps are the missing seven-argument path, failed exact replay and missing receipt.
   - Browser E2E + mutation remains green.
-- Current state: **REVIEW_PENDING / B-ADVERSARIAL-REVIEW**.
+- Current state: **ACCEPTANCE_PENDING / C-ACCEPTANCE**.
 - Parent WP-2.12: BLOCKED, tranches 1–3 GREEN preserved.
 - Accepted sibling support: WP-2.12R.
-- Historical packet finding: `WP212S-AR-001` **CLOSED / VERIFIED** — the legacy five-argument authenticated RPC remains during the expand/switch window; current code uses only the receipt-aware seven-argument RPC.
+- Historical packet findings: `WP212S-AR-001`, `WP212S-AR-002`, `WP212S-AR-003` — **CLOSED / VERIFIED**.
 - Pre-finding GREEN head `a5e6c1a4e51c39882c93d4c13038275a430472bc` / CI `37379588696` passed 5/5, 2,056 tests and 100% coverage.
 - Remediation PR #91 reviewed head `c751c1908ee0fc7691c4ea4d57ade9bad6dfbabb` / CI `37381076113` passed **5/5 SUCCESS**, including clean checkout; fresh independent Codex review on that exact head found no major issue and left zero unresolved threads.
 - PR #91 merged canonically as `c95364bd7f9215fe2686b2e3b76d517cc5b2ded4`; canonical CI `37384351528` passed **5/5 SUCCESS**, including clean checkout. Core reports **236/236 files, 2,056/2,056 tests and 100% statements/branches/functions/lines**.
+- Compatibility-evidence PR #93 closed AR-002 and merged canonically.
+- Authorization-evidence PR #96 final head `2a39bab40aee523f1e4594ab08d6235f3ab2f0b6` / CI `37452807606` closed AR-003 and merged as canonical `c4bac33388c24e7b3c2746242ca6edd017f8ede0` / CI `37453636126` — 5/5 SUCCESS including clean checkout.
+- Fresh Pass B v3 review-only PR #97 / `826ea3dd61d9d13257c83715dc418fae16c5b9df` / CI `37454663521` — **PASS**, Codex clean, 👍, zero unresolved review threads; closed unmerged by design.
+- Review record: `docs/roadmap/lot-2/WP-2.12S-FRESH-PASS-B-V3-2026-10-06.md`.
 - Open packet findings: ∅.
-- Next permitted action: complete fresh independent Pass B over the entire bounded replay-safe member-rating command. Do not resume parent WP-2.12 until WP-2.12S is ACCEPTED.
+- Next permitted action: separate Pass C acceptance reconciliation. Do not resume parent WP-2.12 until WP-2.12S is ACCEPTED.
