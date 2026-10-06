@@ -2,6 +2,7 @@ import {
   appendVenueFactObservation,
   type VenueFactEvidencePort,
 } from "@application/facts/venue-fact-evidence-service";
+import { venueFactPersistenceErrorCode } from "@application/facts/venue-fact-persistence-error";
 import type { LocalProjectStore } from "@application/local-data/local-project-store";
 import type { PendingMutationEnvelope } from "@application/local-data/local-records";
 import {
@@ -202,6 +203,8 @@ export class VenueVisitStructuredReplayCoordinator {
     }
 
     if (command.kind === "fact_observation") {
+      const scopeFailure = await this.factScopeFailure(command);
+      if (scopeFailure !== null) return scopeFailure;
       const result = await appendVenueFactObservation(
         this.facts,
         command.input,
@@ -214,6 +217,27 @@ export class VenueVisitStructuredReplayCoordinator {
       command.input,
     );
     return result.ok ? null : ratingFailure(result.error);
+  }
+
+  private async factScopeFailure(
+    command: Extract<
+      StructuredVenueReplayCommand,
+      { readonly kind: "fact_observation" }
+    >,
+  ): Promise<RemoteFailure | null> {
+    try {
+      const context = await this.facts.getFactContext(
+        command.input.projectId,
+        command.input.factId,
+      );
+      return context.venueId === command.venueId
+        ? null
+        : { state: "failed_permanent", error: "fact_scope_mismatch" };
+    } catch (error) {
+      return factFailure(
+        venueFactPersistenceErrorCode(error) ?? "persistence_failed",
+      );
+    }
   }
 
   private async persistLocalFailure(
