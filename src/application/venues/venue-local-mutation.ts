@@ -257,13 +257,20 @@ function retryableStatus(mutation: PendingMutationEnvelope): boolean {
   );
 }
 
+function venueVisitMutationType(mutationType: string): boolean {
+  return (
+    mutationType === VENUE_VISIT_NOTE_MUTATION ||
+    mutationType === VENUE_VISIT_FACT_OBSERVATION_MUTATION ||
+    mutationType === VENUE_VISIT_MEMBER_RATING_MUTATION
+  );
+}
+
 export function retryableVenueMutation(
   mutation: PendingMutationEnvelope,
 ): boolean {
   return (
     mutation.entityType === "venue" &&
-    (mutation.mutationType === VENUE_CORE_UPDATE_MUTATION ||
-      mutation.mutationType === VENUE_STATUS_MUTATION) &&
+    !venueVisitMutationType(mutation.mutationType) &&
     retryableStatus(mutation)
   );
 }
@@ -273,9 +280,7 @@ export function retryableVenueVisitMutation(
 ): boolean {
   return (
     mutation.entityType === "venue" &&
-    (mutation.mutationType === VENUE_VISIT_NOTE_MUTATION ||
-      mutation.mutationType === VENUE_VISIT_FACT_OBSERVATION_MUTATION ||
-      mutation.mutationType === VENUE_VISIT_MEMBER_RATING_MUTATION) &&
+    venueVisitMutationType(mutation.mutationType) &&
     retryableStatus(mutation)
   );
 }
