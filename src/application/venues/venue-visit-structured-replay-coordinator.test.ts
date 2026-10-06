@@ -81,7 +81,6 @@ describe("Venue visit structured replay success", () => {
   });
 });
 
-
 describe("Venue visit structured replay dependencies", () => {
   it("blocks a superseding Fact observation while its predecessor is retryable", async () => {
     const local = new MemoryLocalStore();
@@ -91,11 +90,7 @@ describe("Venue visit structured replay dependencies", () => {
     await seed(
       local,
       factMutation(),
-      factMutation(
-        secondId,
-        "2026-10-06T12:02:00.000Z",
-        factOperationId,
-      ),
+      factMutation(secondId, "2026-10-06T12:02:00.000Z", factOperationId),
     );
 
     const result = await coordinator(local, remote).replayPending();
@@ -127,12 +122,7 @@ describe("Venue visit structured replay dependencies", () => {
     await seed(
       local,
       ratingMutation(),
-      ratingMutation(
-        secondId,
-        "2026-10-06T12:03:00.000Z",
-        "love_score",
-        1,
-      ),
+      ratingMutation(secondId, "2026-10-06T12:03:00.000Z", "love_score", 1),
     );
 
     const result = await coordinator(local, remote).replayPending();
