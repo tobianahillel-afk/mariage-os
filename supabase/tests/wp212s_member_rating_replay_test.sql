@@ -405,7 +405,7 @@ select set_config(
   true
 );
 select throws_ok(
-  $select public.set_venue_member_rating(
+  $authz$select public.set_venue_member_rating(
     'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
     'cc100000-0000-4000-8000-000000000001',
     'love_score',
@@ -413,27 +413,27 @@ select throws_ok(
     0,
     'dd600000-0000-4000-8000-000000000001',
     'dd700000-0000-4000-8000-000000000001'
-  )$,
+  )$authz$,
   '22023',
   'venue rating unavailable',
   'same operation id cannot cross project identity'
 );
 
 select throws_ok(
-  $select public.set_venue_member_rating(
+  $authz$select public.set_venue_member_rating(
     'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
     'dd100000-0000-4000-8000-000000000001',
     'exterior_aesthetic_score_personal',
     4,
     0
-  )$,
+  )$authz$,
   '42501',
   'venue rating unavailable',
   'authenticated outsider is denied by the legacy five-argument overload'
 );
 
 select throws_ok(
-  $select public.set_venue_member_rating(
+  $authz$select public.set_venue_member_rating(
     'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
     'dd100000-0000-4000-8000-000000000001',
     'value_for_money_score_personal',
@@ -441,7 +441,7 @@ select throws_ok(
     0,
     'dd600000-0000-4000-8000-000000000030',
     'dd700000-0000-4000-8000-000000000030'
-  )$,
+  )$authz$,
   '42501',
   'venue rating unavailable',
   'authenticated outsider is denied by the receipt-aware seven-argument overload'
@@ -641,7 +641,7 @@ select set_config(
   true
 );
 select throws_ok(
-  $select public.set_venue_member_rating(
+  $authz$select public.set_venue_member_rating(
     'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
     'dd100000-0000-4000-8000-000000000001',
     'value_for_money_score_personal',
@@ -649,20 +649,20 @@ select throws_ok(
     0,
     'dd600000-0000-4000-8000-000000000020',
     'dd700000-0000-4000-8000-000000000020'
-  )$,
+  )$authz$,
   '42501',
   'venue rating unavailable',
   'revoked member cannot exploit an existing replay receipt'
 );
 
 select throws_ok(
-  $select public.set_venue_member_rating(
+  $authz$select public.set_venue_member_rating(
     'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
     'dd100000-0000-4000-8000-000000000001',
     'logistics_score_personal',
     6,
     0
-  )$,
+  )$authz$,
   '42501',
   'venue rating unavailable',
   'revoked member is denied by the legacy five-argument overload'
