@@ -93,6 +93,11 @@ export interface LinkObservationSourceInput {
   readonly isPrimary: boolean;
 }
 
+export interface CheckedLinkObservationSourceInput extends LinkObservationSourceInput {
+  readonly expectedSourceType: "in_person_visit";
+  readonly expectedSourceRevision: number;
+}
+
 export interface ResolveVenueFactObservationInput {
   readonly projectId: string;
   readonly factId: string;
@@ -100,6 +105,12 @@ export interface ResolveVenueFactObservationInput {
   readonly expectedRevision: number;
   readonly state: FactResolutionState;
   readonly resolutionNote: string | null;
+}
+
+export interface VenueFactProvenanceLinkPort {
+  linkObservationSourceChecked(
+    input: CheckedLinkObservationSourceInput,
+  ): Promise<ObservationSourceLinkRecord>;
 }
 
 export interface VenueFactEvidencePort {
