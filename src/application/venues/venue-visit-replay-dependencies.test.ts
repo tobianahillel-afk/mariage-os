@@ -118,9 +118,9 @@ describe("structured replay dependency ordering", () => {
       ),
     );
 
-    expect(
-      orderStructuredReplayEntries([love, note, logistics]),
-    ).toHaveLength(3);
+    expect(orderStructuredReplayEntries([love, note, logistics])).toHaveLength(
+      3,
+    );
   });
 
   it("marks a corrupt Fact dependency cycle invalid instead of replaying arbitrarily", () => {
@@ -166,9 +166,7 @@ describe("structured replay dependency blockers", () => {
       mutation: malformedMutation,
       command: null,
     };
-    const fact = entry(
-      factMutation("a2222222-2222-4222-8222-222222222222"),
-    );
+    const fact = entry(factMutation("a2222222-2222-4222-8222-222222222222"));
 
     addReplayFailureBlockers(blockers, malformed);
     addReplayFailureBlockers(blockers, fact);
@@ -204,18 +202,14 @@ describe("structured replay dependency blockers", () => {
         4,
       ),
     );
-    const note = entry(
-      noteMutation("d1111111-1111-4111-8111-111111111111"),
-    );
+    const note = entry(noteMutation("d1111111-1111-4111-8111-111111111111"));
 
     addReplayFailureBlockers(blockers, later);
     addReplayFailureBlockers(blockers, earlier);
     addReplayFailureBlockers(blockers, newest);
     addReplayFailureBlockers(blockers, note);
 
-    expect(
-      blockers.ratingRevisionFloor.get(`${venueId}:love_score`),
-    ).toBe(1);
+    expect(blockers.ratingRevisionFloor.get(`${venueId}:love_score`)).toBe(1);
   });
 
   it("detects blocked Fact supersession and Rating revisions while allowing unrelated work", () => {
@@ -264,9 +258,7 @@ describe("structured replay dependency blockers", () => {
         2,
       ),
     );
-    const note = entry(
-      noteMutation("61111111-1111-4111-8111-111111111111"),
-    );
+    const note = entry(noteMutation("61111111-1111-4111-8111-111111111111"));
 
     addReplayFailureBlockers(blockers, predecessor);
     addReplayFailureBlockers(blockers, ratingFloor);
