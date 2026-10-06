@@ -281,6 +281,32 @@ describe("SupabaseVenueMemberOpinionAdapter rating writes", () => {
     });
   });
 
+  it("surfaces SQLSTATE 22023 as a deterministic replay mismatch", async () => {
+    const adapter = new SupabaseVenueMemberOpinionAdapter(
+      clientWith(
+        resultsWith({
+          saveRating: { data: null, error: { code: "22023" } },
+        }),
+        emptyCaptures(),
+      ),
+    );
+
+    await expect(
+      adapter.saveVenueRating({
+        projectId,
+        venueId,
+        dimensionKey: "love_score",
+        rating: 9,
+        expectedRevision: 0,
+        operationId,
+        deviceId,
+      }),
+    ).rejects.toMatchObject({
+      name: "VenueMemberOpinionPersistenceError",
+      code: "replay_identity_mismatch",
+    });
+  });
+
   it("saves rating through the self-authored RPC", async () => {
     const captures = emptyCaptures();
     const adapter = new SupabaseVenueMemberOpinionAdapter(
