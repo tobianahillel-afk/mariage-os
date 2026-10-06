@@ -1,9 +1,5 @@
 import { VenueFactPersistenceError } from "@application/facts/venue-fact-persistence-error";
 import type {
-  CreateVenueFactSourceInput,
-  LinkObservationSourceInput,
-  ResolveVenueFactObservationInput,
-  UpdateVenueFactSourceInput,
   VenueFactContext,
   VenueFactEvidencePort,
   VenueFactObservationRecord,
@@ -29,8 +25,8 @@ import {
   VENUE_VISIT_MEMBER_RATING_MUTATION,
   VENUE_VISIT_NOTE_MUTATION,
 } from "@application/venues/venue-local-mutation";
+import { VenueMemberOpinionPersistenceError } from "@application/venues/venue-member-opinion-persistence-error";
 import type {
-  SaveVenueMemberPreferenceInput,
   SaveVenueMemberRatingInput,
   VenueMemberOpinionPort,
   VenueMemberRatingRecord,
@@ -161,9 +157,10 @@ type FactMode =
   | "success"
   | "conflict"
   | "backend_unavailable"
+  | "context_failure"
   | "persistence_failed"
   | "authorization_failed";
-type RatingMode = "success" | "failure";
+type RatingMode = "success" | "failure" | "conflict";
 
 export class RemoteHarness {
   readonly calls: string[] = [];
@@ -174,6 +171,7 @@ export class RemoteHarness {
   noteMode: NoteMode = "success";
   factMode: FactMode = "success";
   ratingMode: RatingMode = "success";
+  factVenueId = venueId;
 
   readonly interactions: VenueInteractionPort = {
     appendVenueInteraction: async (input) => {
@@ -193,7 +191,10 @@ export class RemoteHarness {
       if (this.factMode === "backend_unavailable") {
         throw new VenueFactPersistenceError("backend_unavailable", "offline");
       }
-      return factContext();
+      if (this.factMode === "context_failure") {
+        throw new Error("provider");
+      }
+      return factContext(this.factVenueId);
     },
     createSource: async () => {
       throw new Error("not used");
@@ -232,17 +233,23 @@ export class RemoteHarness {
     saveVenueRating: async (input) => {
       this.calls.push(`rating:${input.operationId}`);
       this.ratings.push(input);
+      if (this.ratingMode === "conflict") {
+        throw new VenueMemberOpinionPersistenceError(
+          "conflict",
+          "revision conflict",
+        );
+      }
       if (this.ratingMode === "failure") throw new Error("provider");
       return ratingRecord(input);
     },
   };
 }
 
-function factContext(): VenueFactContext {
+function factContext(contextVenueId = venueId): VenueFactContext {
   return {
     factId,
     projectId: scope.projectId,
-    venueId,
+    venueId: contextVenueId,
     definition: {
       id: "56666666-6666-4666-8666-666666666666",
       projectId: scope.projectId,
@@ -410,8 +417,3 @@ export async function seed(
   }
 }
 
-void (0 as unknown as CreateVenueFactSourceInput);
-void (0 as unknown as UpdateVenueFactSourceInput);
-void (0 as unknown as LinkObservationSourceInput);
-void (0 as unknown as ResolveVenueFactObservationInput);
-void (0 as unknown as SaveVenueMemberPreferenceInput);
