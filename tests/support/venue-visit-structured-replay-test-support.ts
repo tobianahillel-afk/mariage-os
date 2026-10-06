@@ -1,5 +1,6 @@
 import { VenueFactPersistenceError } from "@application/facts/venue-fact-persistence-error";
 import type {
+  LinkObservationSourceInput,
   VenueFactContext,
   VenueFactEvidencePort,
   VenueFactObservationRecord,
@@ -41,6 +42,7 @@ export const scope = createLocalProjectScope(
 );
 export const venueId = "44444444-4444-4444-8444-444444444444";
 export const factId = "55555555-5555-4555-8555-555555555555";
+export const factSourceId = "58888888-8888-4888-8888-888888888888";
 export const noteId = "61111111-1111-4111-8111-111111111111";
 export const factOperationId = "62222222-2222-4222-8222-222222222222";
 export const ratingOperationId = "63333333-3333-4333-8333-333333333333";
@@ -160,18 +162,26 @@ type FactMode =
   | "context_failure"
   | "persistence_failed"
   | "authorization_failed";
-type RatingMode = "success" | "failure" | "conflict";
+type RatingMode =
+  | "success"
+  | "failure"
+  | "conflict"
+  | "replay_identity_mismatch";
+type FactLinkMode = "success" | "persistence_failed" | "authorization_failed";
 
 export class RemoteHarness {
   readonly calls: string[] = [];
   readonly notes: NormalizedAppendVenueInteractionInput[] = [];
   readonly observations: unknown[] = [];
+  readonly factLinks: LinkObservationSourceInput[] = [];
   readonly ratings: SaveVenueMemberRatingInput[] = [];
 
   noteMode: NoteMode = "success";
   factMode: FactMode = "success";
+  factLinkMode: FactLinkMode = "success";
   ratingMode: RatingMode = "success";
   factVenueId = venueId;
+  ratingResponseOverride: Partial<VenueMemberRatingRecord> = {};
 
   readonly interactions: VenueInteractionPort = {
     appendVenueInteraction: async (input) => {
@@ -216,8 +226,21 @@ export class RemoteHarness {
       }
       return observationRecord(input);
     },
-    linkObservationSource: async () => {
-      throw new Error("not used");
+    linkObservationSource: async (input) => {
+      this.calls.push(`link:${input.observationId}:${input.sourceId}`);
+      this.factLinks.push(input);
+      if (this.factLinkMode === "persistence_failed") {
+        throw new VenueFactPersistenceError("persistence_failed", "provider");
+      }
+      if (this.factLinkMode === "authorization_failed") {
+        throw new VenueFactPersistenceError("authorization_failed", "denied");
+      }
+      return {
+        projectId: input.projectId,
+        observationId: input.observationId,
+        sourceId: input.sourceId,
+        isPrimary: input.isPrimary,
+      };
     },
     resolveFromObservation: async () => {
       throw new Error("not used");
@@ -239,8 +262,14 @@ export class RemoteHarness {
           "revision conflict",
         );
       }
+      if (this.ratingMode === "replay_identity_mismatch") {
+        throw new VenueMemberOpinionPersistenceError(
+          "replay_identity_mismatch",
+          "receipt mismatch",
+        );
+      }
       if (this.ratingMode === "failure") throw new Error("provider");
-      return ratingRecord(input);
+      return { ...ratingRecord(input), ...this.ratingResponseOverride };
     },
   };
 }
@@ -351,6 +380,7 @@ export function noteMutation(
 export function factMutation(
   operationId = factOperationId,
   createdAt = "2026-10-06T12:01:00.000Z",
+  supersedesObservationId: string | null = null,
 ): PendingMutationEnvelope {
   return createPendingMutationEnvelope(scope, {
     operationId,
@@ -361,13 +391,15 @@ export function factMutation(
     payload: {
       factId,
       observationId: operationId,
+      sourceId: factSourceId,
+      sourceType: "in_person_visit",
       value: 12.5,
       rawValueText: "12.5 m",
       evidenceLevel: "observed",
       confidence: "high",
       observedAt: createdAt,
       note: "Mesure prise sur place.",
-      supersedesObservationId: null,
+      supersedesObservationId,
     },
     createdAt,
     priorityClass: "essential_structured",
@@ -378,17 +410,18 @@ export function ratingMutation(
   operationId = ratingOperationId,
   createdAt = "2026-10-06T12:02:00.000Z",
   dimensionKey = "love_score",
+  expectedRevision = 0,
 ): PendingMutationEnvelope {
   return createPendingMutationEnvelope(scope, {
     operationId,
     entityType: "venue",
     entityId: venueId,
     mutationType: VENUE_VISIT_MEMBER_RATING_MUTATION,
-    baseRevision: "0",
+    baseRevision: String(expectedRevision),
     payload: {
       dimensionKey,
       rating: 8.5,
-      expectedRevision: 0,
+      expectedRevision,
     },
     createdAt,
     priorityClass: "essential_structured",
