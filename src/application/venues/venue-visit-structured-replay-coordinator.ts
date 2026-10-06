@@ -22,10 +22,7 @@ import {
 } from "@application/venues/venue-member-opinion-service";
 
 type VenueVisitStructuredReplayState =
-  | "synced"
-  | "pending"
-  | "conflict"
-  | "failed_permanent";
+  "synced" | "pending" | "conflict" | "failed_permanent";
 
 export interface VenueVisitStructuredReplayResult {
   readonly operationId: string;
