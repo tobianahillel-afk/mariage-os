@@ -281,6 +281,9 @@ describe("SupabaseVenueMemberOpinionAdapter rating writes", () => {
     });
   });
 
+});
+
+describe("SupabaseVenueMemberOpinionAdapter rating replay safety", () => {
   it("surfaces SQLSTATE 22023 as a deterministic replay mismatch", async () => {
     const adapter = new SupabaseVenueMemberOpinionAdapter(
       clientWith(
