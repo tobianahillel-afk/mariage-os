@@ -35,15 +35,20 @@ it("reconstructs a replay-safe Venue interaction for a visit note", () => {
 
   expect(
     venueReplayCommand(
-      queuedVisitMutation(operationId, "append_venue_interaction", null, {
-        interactionId: operationId,
-        contactId: null,
-        interactionType: "in_person_visit_note",
-        occurredAt: observedAt,
-        summary: "Accès traiteur à confirmer sur place.",
-        nextFollowUpAt: null,
-        sourceId: null,
-      }),
+      queuedVisitMutation(
+        operationId,
+        "append_venue_interaction",
+        null,
+        {
+          interactionId: operationId,
+          contactId: null,
+          interactionType: "in_person_visit_note",
+          occurredAt: observedAt,
+          summary: "Accès traiteur à confirmer sur place.",
+          nextFollowUpAt: null,
+          sourceId: null,
+        },
+      ),
       scope,
     ),
   ).toEqual({
@@ -107,11 +112,16 @@ it("reconstructs a replay-safe personal Venue rating", () => {
 
   expect(
     venueReplayCommand(
-      queuedVisitMutation(operationId, "set_venue_member_rating", "0", {
-        dimensionKey: "love_score",
-        rating: 8.5,
-        expectedRevision: 0,
-      }),
+      queuedVisitMutation(
+        operationId,
+        "set_venue_member_rating",
+        "0",
+        {
+          dimensionKey: "love_score",
+          rating: 8.5,
+          expectedRevision: 0,
+        },
+      ),
       scope,
     ),
   ).toEqual({
