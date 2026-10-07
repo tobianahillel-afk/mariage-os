@@ -267,14 +267,14 @@ select ok(
 
 set local role anon;
 select throws_ok(
-  $select public.link_venue_fact_observation_source_checked(
+  $$select public.link_venue_fact_observation_source_checked(
     'b7000000-0000-4000-8000-000000000001',
     'b7000000-0000-4000-8000-00000000004a',
     'b7000000-0000-4000-8000-000000000059',
     true,
     'in_person_visit',
     1
-  )$,
+  )$$,
   '42501',
   'permission denied for function link_venue_fact_observation_source_checked',
   'anonymous role is directly denied by the checked RPC grant boundary'
@@ -297,14 +297,14 @@ select set_config(
 );
 
 select throws_ok(
-  $select public.link_venue_fact_observation_source_checked(
+  $$select public.link_venue_fact_observation_source_checked(
     'b7000000-0000-4000-8000-000000000001',
     'b7000000-0000-4000-8000-00000000004b',
     'b7000000-0000-4000-8000-000000000059',
     true,
     null::text,
     1
-  )$,
+  )$$,
   '22023',
   'venue fact evidence link unavailable',
   'checked visit boundary rejects null expected source type'
@@ -319,14 +319,14 @@ select is(
 );
 
 select throws_ok(
-  $select public.link_venue_fact_observation_source_checked(
+  $$select public.link_venue_fact_observation_source_checked(
     'b7000000-0000-4000-8000-000000000001',
     'b7000000-0000-4000-8000-00000000004c',
     'b7000000-0000-4000-8000-000000000059',
     true,
     'in_person_visit',
     null::bigint
-  )$,
+  )$$,
   '22023',
   'venue fact evidence link unavailable',
   'checked visit boundary rejects null expected source revision'
@@ -341,14 +341,14 @@ select is(
 );
 
 select throws_ok(
-  $select public.link_venue_fact_observation_source_checked(
+  $$select public.link_venue_fact_observation_source_checked(
     'b7000000-0000-4000-8000-000000000001',
     'b7000000-0000-4000-8000-00000000004d',
     'b7000000-0000-4000-8000-000000000059',
     true,
     'in_person_visit',
     0
-  )$,
+  )$$,
   '22023',
   'venue fact evidence link unavailable',
   'checked visit boundary rejects zero expected source revision'
@@ -363,14 +363,14 @@ select is(
 );
 
 select throws_ok(
-  $select public.link_venue_fact_observation_source_checked(
+  $$select public.link_venue_fact_observation_source_checked(
     'b7000000-0000-4000-8000-000000000001',
     'b7000000-0000-4000-8000-00000000004e',
     'b7000000-0000-4000-8000-000000000059',
     true,
     'in_person_visit',
     -1
-  )$,
+  )$$,
   '22023',
   'venue fact evidence link unavailable',
   'checked visit boundary rejects negative expected source revision'
@@ -385,14 +385,14 @@ select is(
 );
 
 select throws_ok(
-  $select public.link_venue_fact_observation_source_checked(
+  $$select public.link_venue_fact_observation_source_checked(
     'b7000000-0000-4000-8000-000000000001',
     'b7000000-0000-4000-8000-00000000004f',
     'b7000000-0000-4000-8000-000000000059',
     null::boolean,
     'in_person_visit',
     1
-  )$,
+  )$$,
   '22023',
   'venue fact evidence link unavailable',
   'checked visit boundary rejects null primary identity'
