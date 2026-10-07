@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.12T`
 - Lot: 2 — Venues core
 - Name: atomic in-person source provenance enforcement for Venue Fact observation links
-- State: `REVIEW_PENDING`
-- Current pass: `B-ADVERSARIAL-REVIEW` — Pass A GREEN sealed
+- State: `ACCEPTANCE_PENDING`
+- Current pass: `C-ACCEPTANCE` — Fresh Pass B v3 PASS; WP212T-AR-001..004 CLOSED / VERIFIED
 - Branch: `lot-2/venues-core`
 - Parent packet: `WP-2.12` — BLOCKED with all previous GREEN work preserved
 - Discovery base: `be616638026b0c56e8d6317b182ccaa5932f1809`
@@ -142,11 +142,34 @@ At minimum:
 
 ## Handoff
 
-- Current state: **REVIEW_PENDING / B-ADVERSARIAL-REVIEW**
+- Current state: **ACCEPTANCE_PENDING / C-ACCEPTANCE**
 - Activation: `8b0dfb431adc2d09b5d75d0b0c8d22b3315424b9` / CI `37538654009` — **5/5 SUCCESS**, clean checkout included.
 - RED-only PR #106 / `b7f3e705c46bd026b5389ec18fda660beb4ebffb` / CI `37539654080` — closed unmerged after the intended checked-link/stale-provenance failures.
 - GREEN PR #107 final reviewed head `f6eaa0e232252f1ff8962979097c17c3ca184ee7` / CI `37542674381` — **5/5 SUCCESS**; 237 files / 2,059 tests / 100% global coverage; final Codex re-review 👍; zero unresolved threads.
 - Canonical GREEN merge: `a130fe20147fbe892455b86b5fb6ba28149ccc38` / CI `37543738014` — **5/5 SUCCESS**, clean checkout included.
+- Fresh Pass B v1 #109 and v2 #111 remain historical failed review records; evidence remediations #110/#112 were tests-only.
+- Current canonical review base: `8b453d216b11e6b0bdf6297b6b68dbec669cf954` / CI `37551357375` — **5/5 SUCCESS**, 237 files / 2,059 tests / 100% global coverage.
+- Complete Fresh Pass B v3: review-only PR #113 / `aaff9b7ea70951481c3d915449935db183312054` / CI `37552197889` — **PASS**, Codex clean, zero unresolved threads, 5/5 including clean checkout.
+- Review record: `docs/roadmap/lot-2/WP-2.12T-FRESH-PASS-B-V3-2026-10-07.md`.
+- `WP212T-AR-001..004` — **CLOSED / VERIFIED**; new Fresh Pass-B v3 findings: ∅.
 - Parent WP-2.12: **BLOCKED**, prior GREEN work and PR #99 preserved.
-- Open support findings: ∅.
-- Next permitted action: complete fresh independent Pass B. No parent production change before T acceptance and a separate parent resumption gate.
+- Next permitted action: separate Pass C acceptance reconciliation only. No parent production change before T acceptance, final support seal and a separate parent resumption gate.
+
+
+## Fresh Pass B v3 result — 2026-10-07
+
+Complete independent review in
+`docs/roadmap/lot-2/WP-2.12T-FRESH-PASS-B-V3-2026-10-07.md`
+is **PASS**.
+
+Review-only PR #113 exact head
+`aaff9b7ea70951481c3d915449935db183312054` / CI `37552197889`
+passed all five ordinary jobs including clean checkout. Codex reported no major
+issue and left zero unresolved review threads. Canonical review base
+`8b453d216b11e6b0bdf6297b6b68dbec669cf954` / CI `37551357375`
+remains 5/5 green.
+
+WP212T-AR-001..004 are CLOSED / VERIFIED and no new bounded P0/P1/P2 finding
+remains. The packet therefore enters `ACCEPTANCE_PENDING / C-ACCEPTANCE`.
+This does not accept T and does not authorize parent WP-2.12 / PR #99 until
+separate Pass C and the final support seal are exact-head green.
