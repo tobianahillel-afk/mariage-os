@@ -141,7 +141,14 @@ from unnest(array[
   'b7000000-0000-4000-8000-000000000045'::uuid,
   'b7000000-0000-4000-8000-000000000046'::uuid,
   'b7000000-0000-4000-8000-000000000047'::uuid,
-  'b7000000-0000-4000-8000-000000000048'::uuid
+  'b7000000-0000-4000-8000-000000000048'::uuid,
+  'b7000000-0000-4000-8000-00000000004a'::uuid,
+  'b7000000-0000-4000-8000-00000000004b'::uuid,
+  'b7000000-0000-4000-8000-00000000004c'::uuid,
+  'b7000000-0000-4000-8000-00000000004d'::uuid,
+  'b7000000-0000-4000-8000-00000000004e'::uuid,
+  'b7000000-0000-4000-8000-00000000004f'::uuid,
+  'b7000000-0000-4000-8000-000000000040'::uuid
 ]) as ids(observation_id);
 
 insert into public.fact_observations(
@@ -223,6 +230,14 @@ insert into public.sources(
   '2026-10-06T12:00:00Z'::timestamptz,null,'active',
   'b7111111-1111-4111-8111-111111111111',
   'b7111111-1111-4111-8111-111111111111'
+),
+(
+  'b7000000-0000-4000-8000-000000000059',
+  'b7000000-0000-4000-8000-000000000001',
+  'in_person_visit','Validation evidence target',null,'observed',
+  '2026-10-06T12:00:00Z'::timestamptz,null,'active',
+  'b7111111-1111-4111-8111-111111111111',
+  'b7111111-1111-4111-8111-111111111111'
 );
 
 select ok(
@@ -250,11 +265,168 @@ select ok(
   'accepted general link RPC remains executable'
 );
 
+set local role anon;
+select throws_ok(
+  $select public.link_venue_fact_observation_source_checked(
+    'b7000000-0000-4000-8000-000000000001',
+    'b7000000-0000-4000-8000-00000000004a',
+    'b7000000-0000-4000-8000-000000000059',
+    true,
+    'in_person_visit',
+    1
+  )$,
+  '42501',
+  'permission denied for function link_venue_fact_observation_source_checked',
+  'anonymous role is directly denied by the checked RPC grant boundary'
+);
+reset role;
+select is(
+  (
+    select count(*) from public.observation_sources
+    where observation_id='b7000000-0000-4000-8000-00000000004a'
+  ),
+  0::bigint,
+  'anonymous checked-RPC denial creates no link'
+);
+
 set local role authenticated;
 select set_config(
   'request.jwt.claims',
   '{"sub":"b7111111-1111-4111-8111-111111111111","role":"authenticated"}',
   true
+);
+
+select throws_ok(
+  $select public.link_venue_fact_observation_source_checked(
+    'b7000000-0000-4000-8000-000000000001',
+    'b7000000-0000-4000-8000-00000000004b',
+    'b7000000-0000-4000-8000-000000000059',
+    true,
+    null::text,
+    1
+  )$,
+  '22023',
+  'venue fact evidence link unavailable',
+  'checked visit boundary rejects null expected source type'
+);
+select is(
+  (
+    select count(*) from public.observation_sources
+    where observation_id='b7000000-0000-4000-8000-00000000004b'
+  ),
+  0::bigint,
+  'null expected source type creates no link'
+);
+
+select throws_ok(
+  $select public.link_venue_fact_observation_source_checked(
+    'b7000000-0000-4000-8000-000000000001',
+    'b7000000-0000-4000-8000-00000000004c',
+    'b7000000-0000-4000-8000-000000000059',
+    true,
+    'in_person_visit',
+    null::bigint
+  )$,
+  '22023',
+  'venue fact evidence link unavailable',
+  'checked visit boundary rejects null expected source revision'
+);
+select is(
+  (
+    select count(*) from public.observation_sources
+    where observation_id='b7000000-0000-4000-8000-00000000004c'
+  ),
+  0::bigint,
+  'null expected source revision creates no link'
+);
+
+select throws_ok(
+  $select public.link_venue_fact_observation_source_checked(
+    'b7000000-0000-4000-8000-000000000001',
+    'b7000000-0000-4000-8000-00000000004d',
+    'b7000000-0000-4000-8000-000000000059',
+    true,
+    'in_person_visit',
+    0
+  )$,
+  '22023',
+  'venue fact evidence link unavailable',
+  'checked visit boundary rejects zero expected source revision'
+);
+select is(
+  (
+    select count(*) from public.observation_sources
+    where observation_id='b7000000-0000-4000-8000-00000000004d'
+  ),
+  0::bigint,
+  'zero expected source revision creates no link'
+);
+
+select throws_ok(
+  $select public.link_venue_fact_observation_source_checked(
+    'b7000000-0000-4000-8000-000000000001',
+    'b7000000-0000-4000-8000-00000000004e',
+    'b7000000-0000-4000-8000-000000000059',
+    true,
+    'in_person_visit',
+    -1
+  )$,
+  '22023',
+  'venue fact evidence link unavailable',
+  'checked visit boundary rejects negative expected source revision'
+);
+select is(
+  (
+    select count(*) from public.observation_sources
+    where observation_id='b7000000-0000-4000-8000-00000000004e'
+  ),
+  0::bigint,
+  'negative expected source revision creates no link'
+);
+
+select throws_ok(
+  $select public.link_venue_fact_observation_source_checked(
+    'b7000000-0000-4000-8000-000000000001',
+    'b7000000-0000-4000-8000-00000000004f',
+    'b7000000-0000-4000-8000-000000000059',
+    null::boolean,
+    'in_person_visit',
+    1
+  )$,
+  '22023',
+  'venue fact evidence link unavailable',
+  'checked visit boundary rejects null primary identity'
+);
+select is(
+  (
+    select count(*) from public.observation_sources
+    where observation_id='b7000000-0000-4000-8000-00000000004f'
+  ),
+  0::bigint,
+  'null primary identity creates no link'
+);
+
+select is(
+  public.link_venue_fact_observation_source_checked(
+    'b7000000-0000-4000-8000-000000000001',
+    'b7000000-0000-4000-8000-000000000040',
+    'b7000000-0000-4000-8000-000000000059',
+    false,
+    'in_person_visit',
+    1
+  ) ->> 'is_primary',
+  'false',
+  'successful checked non-primary link preserves requested primary identity'
+);
+select is(
+  (
+    select count(*) from public.observation_sources
+    where observation_id='b7000000-0000-4000-8000-000000000040'
+      and source_id='b7000000-0000-4000-8000-000000000059'
+      and not is_primary
+  ),
+  1::bigint,
+  'successful checked non-primary link creates exactly one non-primary relationship'
 );
 
 select is(
