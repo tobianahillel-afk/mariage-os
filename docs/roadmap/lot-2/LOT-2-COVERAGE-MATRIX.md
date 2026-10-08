@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1..WP-2.11 + WP-2.12R/S/T ACCEPTED; WP-2.12U READY gate pending; parent WP-2.12 BLOCKED**
+Status: **IN_PROGRESS — WP-2.1..WP-2.11 + WP-2.12R/S/T ACCEPTED; WP-2.12U REVIEW_FAILED / REMEDIATION (AR-004); parent WP-2.12 BLOCKED/FROZEN**
 
 Purpose: durable current responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`. Detailed historical evidence remains in packet records, acceptance records, FIRs and Git history.
 
@@ -33,10 +33,10 @@ Integration prerequisite is accepted Lot 0 + Lot 1 on `main` through PR #7; `mai
 | private PDF exact-duplicate detection in the user flow, without cross-project disclosure or automatic logical merge | DOCUMENTS acceptance; FTR-089 presentation | WP-2.9A project-scoped SHA-256/index foundation + WP-2.11 user-facing signal | hash foundation accepted in A; presentation downstream |
 | generic project Tags and Venue entity-tag assignments | FTR-093 Lot-2 | WP-2.9B, WP-2.11 | **WP-2.9B + WP-2.11 Venue presentation ACCEPTED**; later target types remain downstream |
 | repository/read-model/provider ports and Supabase adapters | architecture, AUTHZ-006/020 | WP-2.1..WP-2.10 + WP-2.9C | accepted packets green through WP-2.10; Pass C and exact-head CI green |
-| local cache/pending Venue edits | FTR-028 Lot-2, SYN-001..003/007..011, PWA-003/004/006 | WP-2.10, WP-2.12 | WP-2.10 **ACCEPTED**; WP-2.12 **IN_PROGRESS** — schema v2, pin/package + draft durability GREEN |
+| local cache/pending Venue edits | FTR-028 Lot-2, SYN-001..003/007..011, PWA-003/004/006 | WP-2.10, WP-2.12 | WP-2.10 **ACCEPTED**; WP-2.12 **BLOCKED/FROZEN behind U** — schema v2, pin/package + draft durability GREEN and preserved |
 | gallery/table/detail/compare/deep-link workspace | FTR-015/016/017/027, VEN-010/011/014/015 | WP-2.11 | **ACCEPTED / COMPLETE — Pass C gap ∅** |
-| mobile visit mode | FTR-028, PWA-004 | WP-2.12 + WP-2.12R support | WP-2.12 **IN_PROGRESS — resumption CI pending** with shell/package/draft GREEN; WP-2.12R **ACCEPTED / COMPLETE** |
-| file/content validation, trusted binary lifecycle, no private production data in public artifacts | MED-001..010/013 + security/quality controls | WP-2.8A/B/C, WP-2.9A, WP-2.9C, WP-2.12 | media and A/C accepted; WP-2.12 local-binary store/logout safety GREEN; byte lifecycle/upload completion pending |
+| mobile visit mode | FTR-028, PWA-004 | WP-2.12 + WP-2.12R/S/T/U support | WP-2.12 **BLOCKED/FROZEN behind U** with shell/package/draft GREEN preserved; WP-2.12R/S/T **ACCEPTED / COMPLETE**; U under bounded remediation |
+| file/content validation, trusted binary lifecycle, no private production data in public artifacts | MED-001..010/013 + security/quality controls | WP-2.8A/B/C, WP-2.9A, WP-2.9C, WP-2.12 | media and A/C accepted; WP-2.12 local-binary store/logout safety GREEN and preserved while parent is BLOCKED/FROZEN; byte lifecycle/upload completion remains later parent scope |
 | explicit permissions/grants/RLS/direct endpoint and Storage allow+deny evidence | AUTHZ-001..009/012/017/018/020 | owning packets WP-2.1..WP-2.9C | accepted authorization evidence green; C local/exact-head evidence green |
 | synthetic complex Venue exit fixture/integrated workflows | Lot-2 acceptance | WP-2.12 + Lot Integration Pass | downstream |
 | Lot reconciliation + separate Integration Pass | AI-LOT-ORCHESTRATION | after WP-2.1..WP-2.12 | downstream |
@@ -129,7 +129,7 @@ ADR 0011 later produced decisive deployed CPU evidence and was rejected for fina
 | WP-2.12R | **ACCEPTED / COMPLETE** | replay-safe fact-observation command identity; Pass C gap ∅ / CI `37335393969` 5/5; 3 points / cohesion PASS |
 | WP-2.12S | **ACCEPTED / COMPLETE** | replay-safe Venue member-rating command identity with expand/switch compatibility; Pass C gap ∅ / CI `37463358444` 5/5; 3 points / cohesion PASS |
 | WP-2.12T | **ACCEPTED / COMPLETE** | atomic in-person Fact source provenance link; Pass C gap ∅ / CI `37796626397` 5/5; final seal `091557f2b221923bf38debd9472fe51fbee1cdcc` / CI `37798476372` 5/5; AR-001..004 CLOSED / VERIFIED; 3 points / cohesion PASS |
-| WP-2.12U | **READY candidate — activation CI pending** | PostgREST-safe business-conflict signaling for accepted R/S/T replay RPCs; 7 points / cohesion PASS; parent #99 frozen |
+| WP-2.12U | **REVIEW_FAILED / REMEDIATION — WP212U-AR-004 pending verification** | PostgREST-safe business-conflict signaling for accepted R/S/T replay RPCs; 7 points / cohesion PASS; activation/RED/GREEN complete; AR-001/002/003 CLOSED / VERIFIED; parent #99 frozen |
 
 ## Sequencing
 
@@ -141,12 +141,12 @@ WP-2.1..WP-2.8C [ACCEPTED]
                                                                                            ↘ WP-2.12R [ACCEPTED]
                                                                                            ↘ WP-2.12S [ACCEPTED]
                                                                                            ↘ WP-2.12T [ACCEPTED]
-                                                                                           ↘ WP-2.12U [READY gate]
+                                                                                           ↘ WP-2.12U [REMEDIATION / AR-004]
                                                                                               → WP-2.12 [resume A after U acceptance]
                                                                                                 → Lot reconciliation → Integration Pass
 ```
 
-Only one packet may be active at a time. WP-2.9A/B/C, WP-2.10, WP-2.11 and support packets WP-2.12R/S/T are terminal accepted. Parent resumption governance `58c68bf34011ad3b8c72f800d00902b38d3b3913` / CI `37799765769` is 5/5 green, but a new upstream PostgREST retry-safety compatibility finding requires support packet WP-2.12U before #99 may resume. Parent WP-2.12 is BLOCKED/FROZEN; U is the sole active READY candidate.
+Only one packet may be active at a time. WP-2.9A/B/C, WP-2.10, WP-2.11 and support packets WP-2.12R/S/T are terminal accepted. Parent resumption governance `58c68bf34011ad3b8c72f800d00902b38d3b3913` / CI `37799765769` is 5/5 green, but support packet WP-2.12U must be independently accepted before #99 may resume. U activation `2c01f8a2...` / CI `37807120195`, RED #114 and GREEN implementation are complete; AR-001/002/003 are CLOSED / VERIFIED. Documentation-remediation head `1c9deef42c041bd3628ca9c530eb2da6c3fb5db5` / CI `37819079475` is 5/5 green; fresh review found only the remaining AR-004 coverage-matrix handoff contradiction now being remediated. Parent WP-2.12 is BLOCKED/FROZEN; U is the sole active remediation packet.
 
 ## Explicitly outside Lot 2
 
@@ -193,8 +193,8 @@ WP-2.12 = BLOCKED / FROZEN — tranches 1–3 GREEN through `1794a3d9...` / `372
 WP-2.12R = ACCEPTED / COMPLETE — final support seal `cdad9eb82052ac3e2296769e5381b2371558ec4d` / CI `37341157497` 5/5
 WP-2.12S = ACCEPTED / COMPLETE — final support seal `93f2916db125139f7694e56248c188a2cf21f794` / CI `37465538267` 5/5; AR-001/002/003 CLOSED / VERIFIED
 WP-2.12T = ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record `6f460afc1d12134bc12f08e51145f29b01cf6e0f` / CI `37796626397` 5/5; final support seal `091557f2b221923bf38debd9472fe51fbee1cdcc` / CI `37798476372` 5/5 including clean checkout; AR-001..004 CLOSED / VERIFIED
-WP-2.12U = READY candidate — 7 points / cohesion PASS; exact-head activation CI pending
-next permitted action = U activation exact-head five-job CI → RED-only PT412/40001 compatibility evidence → bounded GREEN + independent review/acceptance → only then rebase/reconcile draft PR #99; media remains later
+WP-2.12U = REVIEW_FAILED / REMEDIATION — 7 points / cohesion PASS; activation `2c01f8a2...` / CI `37807120195` 5/5; RED #114 closed unmerged; GREEN #115 implemented; AR-001/002/003 CLOSED / VERIFIED; AR-004 durable-map reconciliation pending verification; prior AR-004 remediation head `1c9deef42c041bd3628ca9c530eb2da6c3fb5db5` / CI `37819079475` 5/5
+next permitted action = prove this coverage-matrix reconciliation with exact-head five-job CI + clean checkout → fresh complete independent review → only a clean zero-finding verdict may move U to REVIEW_PENDING / B-ADVERSARIAL-REVIEW and permit canonical GREEN landing; parent #99 remains frozen; media remains later
 media-byte durability/upload remains a separate later parent tranche; no provider rerun is authorized
 ```
 
