@@ -169,7 +169,9 @@ At minimum:
 - AR-002/003 remediation head `9849498cb9d900f9a541cb5a5083ced1618b325c` / CI `37815477583` passed **5/5 SUCCESS**, including clean checkout.
 - Fresh complete Codex review on `9849498c...` verified AR-002/003 but opened one remaining bounded governance finding:
   - `WP212U-AR-004` **P1 / REMEDIATION** — the authoritative WP-2.12U section in `IMPLEMENTATION-STATUS.md` still described the obsolete READY/PLAN activation state.
-- AR-004 is remediated by synchronizing that authoritative section, packet row, evidence summary and durable handoff with this current remediation state; the new exact head still requires five-job CI + fresh review before closure.
+- AR-004 first remediation head `1c9deef42c041bd3628ca9c530eb2da6c3fb5db5` / CI `37819079475` passed **5/5 SUCCESS**, including clean checkout.
+- Fresh complete Codex review on `1c9deef4...` confirmed the status-board reconciliation but found the Lot-2 coverage matrix still described U as READY/activation-pending and the parent as active in several responsibility rows. This is the same AR-004 durable-handoff inconsistency, not new implementation scope.
+- AR-004 is now remediated across the remaining `LOT-2-COVERAGE-MATRIX.md` status, responsibility rows, packet row, sequence and current reconciliation. The new exact head still requires five-job CI + fresh complete review before closure.
 
 ## Handoff
 
@@ -179,8 +181,9 @@ At minimum:
 - Accepted dependencies: WP-2.12R / S / T terminal ACCEPTED / COMPLETE
 - Parent draft #99: preserved, unchanged, frozen
 - Open U findings: `WP212U-AR-004` pending verification
-- Next permitted action: prove the AR-004 documentation-reconciliation head with
-  all five ordinary CI jobs including clean checkout, then request a fresh
-  complete independent Codex review. Only a clean exact-head verdict with zero
-  unresolved bounded P0/P1/P2 findings may move U to
-  `REVIEW_PENDING / B-ADVERSARIAL-REVIEW` and permit canonical GREEN landing.
+- Next permitted action: prove the complete AR-004 durable-map reconciliation
+  head (including `LOT-2-COVERAGE-MATRIX.md`) with all five ordinary CI jobs
+  including clean checkout, then request a fresh complete independent Codex
+  review. Only a clean exact-head verdict with zero unresolved bounded P0/P1/P2
+  findings may move U to `REVIEW_PENDING / B-ADVERSARIAL-REVIEW` and permit
+  canonical GREEN landing.
