@@ -1,6 +1,5 @@
 export type VenueMemberOpinionPersistenceErrorCode =
-  | "conflict"
-  | "persistence_failed";
+  "conflict" | "persistence_failed";
 
 export class VenueMemberOpinionPersistenceError extends Error {
   readonly code: VenueMemberOpinionPersistenceErrorCode;
