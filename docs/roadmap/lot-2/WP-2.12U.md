@@ -190,7 +190,7 @@ At minimum:
 - Accepted dependencies: WP-2.12R / S / T terminal ACCEPTED / COMPLETE
 - Parent draft #99: preserved, unchanged, frozen
 - Open U findings: ∅; WP212U-AR-001..008 CLOSED / VERIFIED
-- Closed / verified: `WP212U-AR-001..005`
+- Closed / verified: `WP212U-AR-001..008`
 - AR-005 evidence head: `a47a12d844dcd8f9c61303f904c304982da6040c` / CI
   `37828593485` — **5/5 SUCCESS**, including clean checkout; fresh complete
   review on `1331706345368fe1a2658eb7561a10126ae22416` verified AR-005.

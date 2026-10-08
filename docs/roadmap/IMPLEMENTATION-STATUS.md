@@ -175,7 +175,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 - Separate Pass C reconciliation: **PASS / gap ∅** recorded in `docs/roadmap/lot-2/WP-2.12U-ACCEPTANCE.md`; exact-head acceptance-record CI pending. U stays `ACCEPTANCE_PENDING` and parent #99 remains frozen.
 
 
-- State: **ACCEPTANCE_PENDING / C-ACCEPTANCE — Fresh Pass B PASS, WP212U-AR-001..008 CLOSED / VERIFIED**.
+- State: **ACCEPTANCE_PENDING / C-ACCEPTANCE — Pass C PASS / gap ∅; acceptance-record CI pending; WP212U-AR-001..008 CLOSED / VERIFIED**.
 - Activation base: parent resumption-governance head `58c68bf34011ad3b8c72f800d00902b38d3b3913` / CI `37799765769` — **5/5 SUCCESS**, including full verify from clean checkout.
 - Activation-governance head `2c01f8a2b8f48bd069e0382a46e940b385fea224` / CI `37807120195` passed **5/5 SUCCESS**, including clean checkout.
 - Packet record: `docs/roadmap/lot-2/WP-2.12U.md`.

@@ -35,7 +35,7 @@ Integration prerequisite is accepted Lot 0 + Lot 1 on `main` through PR #7; `mai
 | repository/read-model/provider ports and Supabase adapters | architecture, AUTHZ-006/020 | WP-2.1..WP-2.10 + WP-2.9C | accepted packets green through WP-2.10; Pass C and exact-head CI green |
 | local cache/pending Venue edits | FTR-028 Lot-2, SYN-001..003/007..011, PWA-003/004/006 | WP-2.10, WP-2.12 | WP-2.10 **ACCEPTED**; WP-2.12 **BLOCKED/FROZEN behind U** — schema v2, pin/package + draft durability GREEN and preserved |
 | gallery/table/detail/compare/deep-link workspace | FTR-015/016/017/027, VEN-010/011/014/015 | WP-2.11 | **ACCEPTED / COMPLETE — Pass C gap ∅** |
-| mobile visit mode | FTR-028, PWA-004 | WP-2.12 + WP-2.12R/S/T/U support | WP-2.12 **BLOCKED/FROZEN behind U** with shell/package/draft GREEN preserved; WP-2.12R/S/T **ACCEPTED / COMPLETE**; U under bounded remediation |
+| mobile visit mode | FTR-028, PWA-004 | WP-2.12 + WP-2.12R/S/T/U support | WP-2.12 **BLOCKED/FROZEN behind U** with shell/package/draft GREEN preserved; WP-2.12R/S/T **ACCEPTED / COMPLETE**; U Pass C PASS / gap ∅ (acceptance-record CI pending) |
 | file/content validation, trusted binary lifecycle, no private production data in public artifacts | MED-001..010/013 + security/quality controls | WP-2.8A/B/C, WP-2.9A, WP-2.9C, WP-2.12 | media and A/C accepted; WP-2.12 local-binary store/logout safety GREEN and preserved while parent is BLOCKED/FROZEN; byte lifecycle/upload completion remains later parent scope |
 | explicit permissions/grants/RLS/direct endpoint and Storage allow+deny evidence | AUTHZ-001..009/012/017/018/020 | owning packets WP-2.1..WP-2.9C | accepted authorization evidence green; C local/exact-head evidence green |
 | synthetic complex Venue exit fixture/integrated workflows | Lot-2 acceptance | WP-2.12 + Lot Integration Pass | downstream |
@@ -141,7 +141,7 @@ WP-2.1..WP-2.8C [ACCEPTED]
                                                                                            ↘ WP-2.12R [ACCEPTED]
                                                                                            ↘ WP-2.12S [ACCEPTED]
                                                                                            ↘ WP-2.12T [ACCEPTED]
-                                                                                           ↘ WP-2.12U [PASS B PASS / C-ACCEPTANCE]
+                                                                                           ↘ WP-2.12U [PASS C gap ∅ / CI pending]
                                                                                               → WP-2.12 [resume A after U acceptance]
                                                                                                 → Lot reconciliation → Integration Pass
 ```
