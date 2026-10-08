@@ -173,7 +173,7 @@ At minimum:
 - Fresh complete Codex review on `1c9deef4...` confirmed the status-board reconciliation but found the Lot-2 coverage matrix still described U as READY/activation-pending and the parent as active in several responsibility rows. This is the same AR-004 durable-handoff inconsistency, not new implementation scope.
 - AR-004 durable-map remediation head `1cd40096cc62e45b7adee90c2d5e7defd0b307ce` / CI `37820711030` passed **5/5 SUCCESS**, including clean checkout. Fresh complete review confirmed the durable-map contradiction is gone, so `WP212U-AR-004` is **CLOSED / VERIFIED**.
 - That same fresh review opened `WP212U-AR-005` **P1 / REMEDIATION**: the acknowledged-rating PT412 branch proved the error code but did not directly prove the newer rating row and the original replay receipt remained unchanged.
-- AR-005 remediation head begins at `5730147da837ca90e1aaeca6db2a94260517d39e`: direct pgTAP postconditions now require rating=8/revision=2, receipt result_revision=1, and the original receipt→rating binding to remain unchanged. Exact-head five-job CI + fresh complete review remain required before closure.
+- AR-005 final test-remediation head `a47a12d844dcd8f9c61303f904c304982da6040c` / CI `37828593485` passed **5/5 SUCCESS**, including clean checkout. Direct pgTAP postconditions prove rating=8/revision=2, receipt result_revision=1, and the original receipt→rating binding remain unchanged. Only a fresh complete independent review may now close AR-005.
 
 ## Handoff
 
@@ -182,11 +182,12 @@ At minimum:
 - Parent resumption base: `58c68bf34011ad3b8c72f800d00902b38d3b3913` / CI `37799765769` — 5/5
 - Accepted dependencies: WP-2.12R / S / T terminal ACCEPTED / COMPLETE
 - Parent draft #99: preserved, unchanged, frozen
-- Open U findings: `WP212U-AR-005` pending verification
+- Open U findings: `WP212U-AR-005` pending fresh-review verification
 - Closed / verified: `WP212U-AR-001..004`
-- Next permitted action: prove the AR-005 direct no-side-effect evidence on the
-  current exact head with all five ordinary CI jobs including clean checkout,
-  then request a fresh complete independent Codex review. Only a clean
-  exact-head verdict with zero unresolved bounded P0/P1/P2 findings may move U
-  to `REVIEW_PENDING / B-ADVERSARIAL-REVIEW` and permit canonical GREEN
-  landing.
+- AR-005 evidence head: `a47a12d844dcd8f9c61303f904c304982da6040c` / CI
+  `37828593485` — **5/5 SUCCESS**, including clean checkout.
+- Next permitted action: prove this durable remediation/status seal with
+  exact-head five-job CI, then request a fresh complete independent Codex
+  review. Only a clean verdict with zero unresolved bounded P0/P1/P2 findings
+  may close AR-005, move U to `REVIEW_PENDING / B-ADVERSARIAL-REVIEW`, and
+  permit canonical GREEN landing.
