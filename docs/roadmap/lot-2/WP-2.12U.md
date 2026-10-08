@@ -5,7 +5,7 @@
 - Work Packet ID: `WP-2.12U`
 - Lot: 2 — Venues core
 - Name: PostgREST-safe replay conflict signaling across accepted R/S/T RPCs
-- State: `REVIEW_FAILED / REMEDIATION` — fresh review findings `WP212U-AR-002/003` pending verification
+- State: `REVIEW_FAILED / REMEDIATION` — fresh review finding `WP212U-AR-004` pending verification
 - Current pass: `A-IMPLEMENT / GREEN remediation`
 - Branch: `lot-2/venues-core`
 - Parent packet: `WP-2.12` — BLOCKED/FROZEN with prior GREEN work and draft #99 preserved
@@ -153,7 +153,7 @@ At minimum:
 - [x] forward-only migration emits PT412 for bounded business conflicts
 - [x] adapters preserve typed conflict semantics for PT412 and genuine 40001
 - [x] accepted R/S/T authorization/replay behavior remains green on the pre-remediation GREEN head
-- [ ] remediation head passes exact-head 5/5 CI including clean checkout
+- [x] AR-002/003 remediation head `9849498cb9d900f9a541cb5a5083ced1618b325c` / CI `37815477583` passes exact-head 5/5 including clean checkout
 - [ ] fresh independent re-review reports no open bounded P0/P1/P2 finding
 - [ ] packet moves to `REVIEW_PENDING / B-ADVERSARIAL-REVIEW`
 
@@ -166,8 +166,10 @@ At minimum:
 - Fresh Codex re-review on `ae9de6a...` opened two further bounded findings:
   - `WP212U-AR-002` **P1 / REMEDIATION** — durable packet/status handoff was still stale at READY/PLAN.
   - `WP212U-AR-003` **P1 / REMEDIATION** — direct pgTAP coverage was missing for Fact missing-superseded-observation, Rating missing acknowledged row, and Rating nonzero expected revision with no current row.
-- AR-002 is remediated by this durable handoff update.
-- AR-003 direct `PT412` + no-side-effect regressions are now present in the R/S pgTAP suites; exact-head CI and fresh re-review remain required before closure.
+- AR-002/003 remediation head `9849498cb9d900f9a541cb5a5083ced1618b325c` / CI `37815477583` passed **5/5 SUCCESS**, including clean checkout.
+- Fresh complete Codex review on `9849498c...` verified AR-002/003 but opened one remaining bounded governance finding:
+  - `WP212U-AR-004` **P1 / REMEDIATION** — the authoritative WP-2.12U section in `IMPLEMENTATION-STATUS.md` still described the obsolete READY/PLAN activation state.
+- AR-004 is remediated by synchronizing that authoritative section, packet row, evidence summary and durable handoff with this current remediation state; the new exact head still requires five-job CI + fresh review before closure.
 
 ## Handoff
 
@@ -176,8 +178,9 @@ At minimum:
 - Parent resumption base: `58c68bf34011ad3b8c72f800d00902b38d3b3913` / CI `37799765769` — 5/5
 - Accepted dependencies: WP-2.12R / S / T terminal ACCEPTED / COMPLETE
 - Parent draft #99: preserved, unchanged, frozen
-- Open U findings: `WP212U-AR-002/003` pending verification
-- Next permitted action: prove the remediation head with all five ordinary CI
-  jobs including clean checkout, then request a fresh complete independent
-  Codex review. Only a clean exact-head verdict may move U to
+- Open U findings: `WP212U-AR-004` pending verification
+- Next permitted action: prove the AR-004 documentation-reconciliation head with
+  all five ordinary CI jobs including clean checkout, then request a fresh
+  complete independent Codex review. Only a clean exact-head verdict with zero
+  unresolved bounded P0/P1/P2 findings may move U to
   `REVIEW_PENDING / B-ADVERSARIAL-REVIEW` and permit canonical GREEN landing.
