@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.12T`
 - Lot: 2 — Venues core
 - Name: atomic in-person source provenance enforcement for Venue Fact observation links
-- State: `ACCEPTANCE_PENDING`
-- Current pass: `C-ACCEPTANCE` — Fresh Pass B v3 PASS; WP212T-AR-001..004 CLOSED / VERIFIED
+- State: `ACCEPTED` — final support seal exact-head CI pending
+- Current pass: `C-ACCEPTANCE` PASS, gap ∅; acceptance record CI `37796626397` 5/5; WP212T-AR-001..004 CLOSED / VERIFIED
 - Branch: `lot-2/venues-core`
 - Parent packet: `WP-2.12` — BLOCKED with all previous GREEN work preserved
 - Discovery base: `be616638026b0c56e8d6317b182ccaa5932f1809`
@@ -142,7 +142,7 @@ At minimum:
 
 ## Handoff
 
-- Current state: **ACCEPTANCE_PENDING / C-ACCEPTANCE — Pass C gap ∅, acceptance-record CI pending**
+- Current state: **ACCEPTED / COMPLETE — final support seal CI pending**
 - Activation: `8b0dfb431adc2d09b5d75d0b0c8d22b3315424b9` / CI `37538654009` — **5/5 SUCCESS**, clean checkout included.
 - RED-only PR #106 / `b7f3e705c46bd026b5389ec18fda660beb4ebffb` / CI `37539654080` — closed unmerged after the intended checked-link/stale-provenance failures.
 - GREEN PR #107 final reviewed head `f6eaa0e232252f1ff8962979097c17c3ca184ee7` / CI `37542674381` — **5/5 SUCCESS**; 237 files / 2,059 tests / 100% global coverage; final Codex re-review 👍; zero unresolved threads.
@@ -154,7 +154,8 @@ At minimum:
 - `WP212T-AR-001..004` — **CLOSED / VERIFIED**; new Fresh Pass-B v3 findings: ∅.
 - Parent WP-2.12: **BLOCKED**, prior GREEN work and PR #99 preserved.
 - Pass C: **PASS / gap ∅**, recorded in `docs/roadmap/lot-2/WP-2.12T-ACCEPTANCE.md`; Fresh Pass-B/status seal `ce4a55372662b1c9f207c18ea6f3611bcda34c86` / CI `37553218988` — 5/5 SUCCESS.
-- Next permitted action: exact-head five-job CI for the Pass-C acceptance record. Do not accept T, resume PR #99 or change parent code before this CI, a separate final accepted support seal and a parent resumption gate.
+- Pass-C acceptance-record `6f460afc1d12134bc12f08e51145f29b01cf6e0f` / CI `37796626397` is **5/5 SUCCESS**, clean checkout included.
+- Next permitted action: prove the final WP-2.12T accepted support seal on exact-head five-job CI. Parent and PR #99 remain blocked until that succeeds and a separate parent resumption record is verified.
 
 
 ## Fresh Pass B v3 result — 2026-10-07
@@ -184,3 +185,7 @@ gap ∅**. This is a Pass-C verdict, not a terminal acceptance: the acceptance
 record HEAD must pass all five ordinary CI jobs, including clean checkout,
 before the separate final support seal may mark T ACCEPTED. Parent WP-2.12 and
 structured-reconnect PR #99 remain blocked.
+
+## Final support seal — 2026-10-08
+
+Pass C record `6f460afc1d12134bc12f08e51145f29b01cf6e0f` / CI `37796626397` passed all five ordinary jobs including clean checkout. **WP-2.12T is ACCEPTED / COMPLETE**, with its separate final support seal CI pending. The parent remains BLOCKED: #99 is preserved as draft until the final seal and separate parent resumption gate are both exact-head green.
