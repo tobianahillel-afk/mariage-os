@@ -36,7 +36,7 @@ const SOURCE_MUTATION_FAILED = "Venue fact source mutation failed.";
 const OBSERVATION_MUTATION_FAILED = "Venue fact observation mutation failed.";
 const LINK_MUTATION_FAILED = "Venue fact evidence link mutation failed.";
 const RESOLUTION_MUTATION_FAILED = "Venue fact resolution mutation failed.";
-const CONFLICT_CODES = new Set(["40001", "23505"]);
+const CONFLICT_CODES = new Set(["40001", "PT412", "23505"]);
 const BACKEND_CODES = new Set(["PGRST000", "PGRST001", "PGRST002", "PGRST003"]);
 
 interface SupabaseResult {
