@@ -477,7 +477,7 @@ select throws_ok(
     'in_person_visit',
     1
   )$$,
-  '40001',
+  'PT412',
   'stale venue fact evidence source provenance',
   'changed source type/revision is rejected atomically'
 );
@@ -514,7 +514,7 @@ select throws_ok(
     'in_person_visit',
     1
   )$$,
-  '40001',
+  'PT412',
   'stale venue fact evidence source provenance',
   'stale source revision alone is rejected'
 );
@@ -536,7 +536,7 @@ select throws_ok(
     'in_person_visit',
     1
   )$$,
-  '40001',
+  'PT412',
   'stale venue fact evidence source provenance',
   'wrong current source type is rejected'
 );
