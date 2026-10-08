@@ -550,7 +550,7 @@ select is(
 );
 
 select throws_ok(
-  $select public.set_venue_member_rating(
+  $rating_replay$select public.set_venue_member_rating(
     'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
     'dd100000-0000-4000-8000-000000000001',
     'love_score',
@@ -558,7 +558,7 @@ select throws_ok(
     0,
     'dd600000-0000-4000-8000-000000000001',
     'dd700000-0000-4000-8000-000000000001'
-  )$,
+  )$rating_replay$,
   'PT412',
   'venue rating conflict',
   'old acknowledged operation conflicts after the rating changed later'
