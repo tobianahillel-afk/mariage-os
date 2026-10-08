@@ -688,7 +688,34 @@ select is(
 );
 
 select throws_ok(
-  $$select public.append_venue_fact_observation(
+  $wp212u$select public.append_venue_fact_observation(
+    'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+    'ee300000-0000-4000-8000-000000000001',
+    'ee400000-0000-4000-8000-000000000004',
+    'true'::jsonb,
+    'late competing measurement',
+    'observed',
+    'high',
+    '2026-10-05T09:11:00Z',
+    'late competing visit measurement',
+    'ee400000-0000-4000-8000-000000000002'
+  )$wp212u$,
+  'PT412',
+  'venue fact observation unavailable',
+  'already-superseded observation uses non-retryable precondition conflict'
+);
+select is(
+  (
+    select count(*)
+    from public.fact_observations
+    where id = 'ee400000-0000-4000-8000-000000000004'
+  ),
+  0::bigint,
+  'stale supersession conflict creates no new observation'
+);
+
+select throws_ok(
+  $replay$select public.append_venue_fact_observation(
     'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
     'ee300000-0000-4000-8000-000000000001',
     'ee400000-0000-4000-8000-000000000003',
@@ -699,7 +726,7 @@ select throws_ok(
     '2026-10-05T09:10:00Z',
     'new',
     null
-  )$$,
+  )$replay$,
   '23505',
   'venue fact observation conflict',
   'changing supersede intent on replay conflicts'
