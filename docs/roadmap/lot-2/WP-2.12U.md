@@ -194,11 +194,11 @@ At minimum:
 - AR-005 evidence head: `a47a12d844dcd8f9c61303f904c304982da6040c` / CI
   `37828593485` — **5/5 SUCCESS**, including clean checkout; fresh complete
   review on `1331706345368fe1a2658eb7561a10126ae22416` verified AR-005.
-- Last code+documentation GREEN head: `31ded6ba077baa3fa24a1dcc19a24ca2a5eed61a` / CI `37837801921` — **5/5 SUCCESS** including clean checkout. Its fresh review found the remaining authoritative AR-005/006/007 contradiction, treated as the existing AR-007 documentation finding.
+- Previous code+documentation GREEN head: `31ded6ba077baa3fa24a1dcc19a24ca2a5eed61a` / CI `37837801921` — **5/5 SUCCESS** including clean checkout. Subsequent AR-007 authoritative-status follow-up `30227deed15d89aae35e5368a05cfdb79022a2f6` / CI `37839906667` passed **5/5 SUCCESS**; its fresh review opened AR-008, remediated in tests at `d35e77be...` and awaiting fresh exact-head CI/review.
 - Next permitted action: prove the AR-006/007/008 remediation with all five
   ordinary exact-head CI jobs including clean checkout, then request a new
   fresh complete independent Codex review of that SAME exact head. Only a clean
-  verdict with zero unresolved bounded P0/P1/P2 findings may close AR-006/007,
+  verdict with zero unresolved bounded P0/P1/P2 findings may close AR-006/007/008,
   move U to `REVIEW_PENDING / B-ADVERSARIAL-REVIEW`, and permit canonical GREEN
   landing. Parent #99 remains BLOCKED/FROZEN.
 
