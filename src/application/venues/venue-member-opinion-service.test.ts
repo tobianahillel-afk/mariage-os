@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { VenueMemberOpinionPersistenceError } from "./venue-member-opinion-persistence-error";
 import {
   saveVenueMemberPreference,
   saveVenueMemberRating,
@@ -154,6 +155,30 @@ describe("saveVenueMemberRating", () => {
 
     expect(result).toEqual({ ok: false, error: "rating_dimension_invalid" });
     expect(captures.rating).toBeNull();
+  });
+
+  it("preserves typed rating conflicts from persistence", async () => {
+    const captures: Captures = { preference: null, rating: null };
+    const port = portWith(captures);
+    port.saveVenueRating = async (input) => {
+      captures.rating = input;
+      throw new VenueMemberOpinionPersistenceError(
+        "conflict",
+        "provider detail",
+      );
+    };
+
+    await expect(
+      saveVenueMemberRating(port, {
+        projectId,
+        venueId,
+        dimensionKey: "love_score",
+        rating: 5,
+        expectedRevision: 0,
+        operationId,
+        deviceId,
+      }),
+    ).resolves.toEqual({ ok: false, error: "conflict" });
   });
 
   it("hides rating provider failures", async () => {
