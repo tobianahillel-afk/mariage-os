@@ -1,6 +1,6 @@
 # WP-2.12T — Pass C acceptance reconciliation
 
-Status: **ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record CI 5/5 green; final seal CI pending**.
+Status: **ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record and final support seal CI 5/5 green**.
 
 This is a separate EXPECTED ↔ IMPLEMENTED ↔ VERIFIED acceptance review of
 WP-2.12T's bounded atomic Venue Fact in-person source-provenance link. It
@@ -92,4 +92,4 @@ required bounded WP-2.12T responsibilities
 
 **PASS — EXPECTED ↔ IMPLEMENTED ↔ VERIFIED gap ∅.**
 
-The acceptance-record HEAD `6f460afc1d12134bc12f08e51145f29b01cf6e0f` passed CI `37796626397` with all five ordinary jobs green, including `Full verify from clean checkout`. WP-2.12T is therefore **ACCEPTED / COMPLETE** under the separate final support seal, whose exact-head CI is pending. Parent WP-2.12 and draft PR #99 remain blocked until that seal and a separate parent resumption-governance gate are green.
+The acceptance-record HEAD `6f460afc1d12134bc12f08e51145f29b01cf6e0f` passed CI `37796626397` with all five ordinary jobs green, including `Full verify from clean checkout`. WP-2.12T is therefore **ACCEPTED / COMPLETE**; final support seal `091557f2b221923bf38debd9472fe51fbee1cdcc` / CI `37798476372` passed 5/5 including clean checkout. Parent WP-2.12 now enters a separate resumption-governance CI gate; draft PR #99 remains frozen until that gate is green.

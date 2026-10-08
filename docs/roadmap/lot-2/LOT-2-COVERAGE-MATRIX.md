@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1..WP-2.11 + WP-2.12R/S/T ACCEPTED; WP-2.12 parent resumption pending T final-seal CI**
+Status: **IN_PROGRESS — WP-2.1..WP-2.11 + WP-2.12R/S/T ACCEPTED; WP-2.12 parent A-IMPLEMENT resumption exact-head CI pending**
 
 Purpose: durable current responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`. Detailed historical evidence remains in packet records, acceptance records, FIRs and Git history.
 
@@ -125,10 +125,10 @@ ADR 0011 later produced decisive deployed CPU evidence and was rejected for fina
 | WP-2.9B | **ACCEPTED / COMPLETE** | generic project Tags + Venue entity-tags; FIR #27 downstream; AR-001/002 closed |
 | WP-2.10 | **ACCEPTED / COMPLETE** | repositories/local cache/pending offline mutations; Pass C gap ∅ / CI `36849005712` 5/5 |
 | WP-2.11 | **ACCEPTED / COMPLETE** | gallery/table/detail/compare/deep-link workspace; Pass C gap ∅ / CI `37240178167` 5/5 |
-| WP-2.12 | **BLOCKED — WP-2.12T dependency** | mobile/offline Venue visit + packet E2E completion; tranches 1–3 GREEN; structured reconnect #99 preserved; FIR #42 |
+| WP-2.12 | **IN_PROGRESS — A-IMPLEMENT resumption CI pending** | mobile/offline Venue visit + packet E2E completion; tranches 1–3 GREEN; structured reconnect draft #99 preserved; FIR #42 |
 | WP-2.12R | **ACCEPTED / COMPLETE** | replay-safe fact-observation command identity; Pass C gap ∅ / CI `37335393969` 5/5; 3 points / cohesion PASS |
 | WP-2.12S | **ACCEPTED / COMPLETE** | replay-safe Venue member-rating command identity with expand/switch compatibility; Pass C gap ∅ / CI `37463358444` 5/5; 3 points / cohesion PASS |
-| WP-2.12T | **ACCEPTED / COMPLETE — final support seal CI pending** | atomic in-person Fact source provenance link; Pass C gap ∅ / CI `37796626397` 5/5; AR-001..004 CLOSED / VERIFIED; 3 points / cohesion PASS |
+| WP-2.12T | **ACCEPTED / COMPLETE** | atomic in-person Fact source provenance link; Pass C gap ∅ / CI `37796626397` 5/5; final seal `091557f2b221923bf38debd9472fe51fbee1cdcc` / CI `37798476372` 5/5; AR-001..004 CLOSED / VERIFIED; 3 points / cohesion PASS |
 
 ## Sequencing
 
@@ -136,15 +136,15 @@ ADR 0011 later produced decisive deployed CPU evidence and was rejected for fina
 WP-2.1..WP-2.8C [ACCEPTED]
   → WP-2.9C [ACCEPTED]
     → WP-2.9A [ACCEPTED]
-                → WP-2.9B [ACCEPTED] → WP-2.10 [ACCEPTED] → WP-2.11 [ACCEPTED] → WP-2.12 [BLOCKED]
+                → WP-2.9B [ACCEPTED] → WP-2.10 [ACCEPTED] → WP-2.11 [ACCEPTED] → WP-2.12 [resumption CI gate]
                                                                                            ↘ WP-2.12R [ACCEPTED]
                                                                                            ↘ WP-2.12S [ACCEPTED]
-                                                                                           ↘ WP-2.12T [ACCEPTED, seal CI pending]
-                                                                                              → WP-2.12 [resume A after T acceptance]
+                                                                                           ↘ WP-2.12T [ACCEPTED]
+                                                                                              → WP-2.12 [resume A after exact-head gate]
                                                                                                 → Lot reconciliation → Integration Pass
 ```
 
-Only one packet may be active at a time. WP-2.9A/B/C, WP-2.10, WP-2.11 and support packets WP-2.12R/S are terminal accepted. WP-2.12T Pass C is green with AR-001..004 CLOSED / VERIFIED; T is marked ACCEPTED by the final support seal, whose own exact-head CI is pending. Parent PR #99 remains BLOCKED. Parent resumption must be governed separately after the T final support seal is green.
+Only one packet may be active at a time. WP-2.9A/B/C, WP-2.10, WP-2.11 and support packets WP-2.12R/S/T are terminal accepted. T final support seal `091557f2b221923bf38debd9472fe51fbee1cdcc` / CI `37798476372` is 5/5 green. Parent WP-2.12 is the active A-IMPLEMENT resumption-governance candidate. Draft PR #99 is preserved and cannot be modified or merged before this separate exact-head five-job gate passes.
 
 ## Explicitly outside Lot 2
 
@@ -187,11 +187,11 @@ A full review = WP-2.9A-FRESH-PASS-B-2026-09-29.md — PASS; no open A finding
 A Pass C = WP-2.9A-ACCEPTANCE.md — ACCEPTED / gap ∅; record 656398bcd5520cfa56d782023d150eb64317161d / CI 36542083037 5/5
 WP-2.10 = ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record `a2d48341515a516651d11454c3c5e89c01896c21` / CI `36849005712` 5/5 including clean checkout; FTR-028 remains IN_PROGRESS for WP-2.12
 WP-2.11 = ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record `3167a380521119e9650859543778b040527332e2` / CI `37240178167` 5/5; final seal `0a2d051d3f0a45b638f5c1b5f8c81acf36491c36` / CI `37240817336` 5/5; FTR-015/016/017/027 closed completed
-WP-2.12 = IN_PROGRESS / A-IMPLEMENT — tranches 1–3 GREEN through `1794a3d9...` / `37280907551`; Fact + Member Rating replay dependencies satisfied; separate resumption-head exact-CI pending; FIR #42
+WP-2.12 = IN_PROGRESS / A-IMPLEMENT RESUMPTION CI PENDING — tranches 1–3 GREEN through `1794a3d9...` / `37280907551`; Fact + Member Rating + atomic provenance support R/S/T ACCEPTED; draft PR #99 preserved; FIR #42
 WP-2.12R = ACCEPTED / COMPLETE — final support seal `cdad9eb82052ac3e2296769e5381b2371558ec4d` / CI `37341157497` 5/5
 WP-2.12S = ACCEPTED / COMPLETE — final support seal `93f2916db125139f7694e56248c188a2cf21f794` / CI `37465538267` 5/5; AR-001/002/003 CLOSED / VERIFIED
-WP-2.12T = ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record `6f460afc1d12134bc12f08e51145f29b01cf6e0f` / CI `37796626397` 5/5 including clean checkout; final support seal CI pending; AR-001..004 CLOSED / VERIFIED
-next permitted action = final WP-2.12T support seal exact-head five-job CI → separate parent WP-2.12 resumption record/gate → only then resume draft PR #99
+WP-2.12T = ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record `6f460afc1d12134bc12f08e51145f29b01cf6e0f` / CI `37796626397` 5/5; final support seal `091557f2b221923bf38debd9472fe51fbee1cdcc` / CI `37798476372` 5/5 including clean checkout; AR-001..004 CLOSED / VERIFIED
+next permitted action = separate parent WP-2.12 resumption exact-head five-job CI → only then rebase/reconcile draft PR #99 to accepted checked provenance link and re-review; media remains later
 media-byte durability/upload remains a separate later parent tranche; no provider rerun is authorized
 ```
 
