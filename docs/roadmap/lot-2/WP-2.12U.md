@@ -180,7 +180,7 @@ At minimum:
   - `WP212U-AR-006` **P1 / REMEDIATION** — the still-granted legacy five-argument `set_venue_member_rating` overload retained application-generated `40001` on both optimistic-conflict branches, leaving the PostgREST retry hazard reachable during the compatibility window.
   - `WP212U-AR-007` **P1 / REMEDIATION** — this packet identity still named AR-004 as the active blocker while the durable handoff/status/matrix correctly named AR-005.
 - AR-006 implementation now redefines the retained five-argument overload in the U migration with `PT412` for both stale branches and adds direct pgTAP zero-side-effect coverage for existing-row and missing-row stale cases. AR-007 is remediated by synchronizing the packet identity with the current open finding set. Exact-head CI + a new complete review remain required.
-- The first AR-006/007 CI `37831858172` failed at `db:start` because the copied legacy five-argument SQL overload used invalid single-dollar function delimiters. Fix: `f4a3492528f8dfaa194af0d4232eb49e8d8c6c9b`. Corrected migration passed `db:start`, SQL verification, and promotion tests in CI `37837070686`; full clean-checkout verification remains pending. Canonical status and coverage-matrix records agree on AR-006/007.
+- The first AR-006/007 CI `37831858172` failed at `db:start` because the copied legacy five-argument SQL overload used invalid single-dollar function delimiters. Fix: `f4a3492528f8dfaa194af0d4232eb49e8d8c6c9b`. The latest bounded GREEN head `31ded6ba077baa3fa24a1dcc19a24ca2a5eed61a` / CI `37837801921` passed **5/5 SUCCESS**, clean checkout included. Its fresh independent review identified an additional stale AR-005 reference in the canonical implementation-status section; that documentation-only AR-007 continuation is corrected on the next head, without changing the SQL or application behavior.
 
 ## Handoff
 
@@ -194,9 +194,10 @@ At minimum:
 - AR-005 evidence head: `a47a12d844dcd8f9c61303f904c304982da6040c` / CI
   `37828593485` — **5/5 SUCCESS**, including clean checkout; fresh complete
   review on `1331706345368fe1a2658eb7561a10126ae22416` verified AR-005.
-- Next permitted action: prove the AR-006/007 remediation head with all five
-  ordinary exact-head CI jobs including clean checkout, then request a new
-  fresh complete independent Codex review. Only a clean verdict with zero
-  unresolved bounded P0/P1/P2 findings may close AR-006/007, move U to
-  `REVIEW_PENDING / B-ADVERSARIAL-REVIEW`, and permit canonical GREEN
-  landing.
+- Last code+documentation GREEN head: `31ded6ba077baa3fa24a1dcc19a24ca2a5eed61a` / CI `37837801921` — **5/5 SUCCESS** including clean checkout. Its fresh review found the remaining authoritative AR-005/006/007 contradiction, treated as the existing AR-007 documentation finding.
+- Next permitted action: prove the documentation-only AR-007 correction with all
+  five ordinary exact-head CI jobs including clean checkout, then request a new
+  fresh complete independent Codex review of that SAME exact head. Only a clean
+  verdict with zero unresolved bounded P0/P1/P2 findings may close AR-006/007,
+  move U to `REVIEW_PENDING / B-ADVERSARIAL-REVIEW`, and permit canonical GREEN
+  landing. Parent #99 remains BLOCKED/FROZEN.

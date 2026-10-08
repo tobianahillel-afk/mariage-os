@@ -171,7 +171,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 
 ## WP-2.12U — PostgREST-safe replay conflict signaling
 
-- State: **REVIEW_FAILED / REMEDIATION — WP212U-AR-005 pending verification**.
+- State: **REVIEW_FAILED / REMEDIATION — WP212U-AR-006/007 pending exact-head verification and fresh review**.
 - Activation base: parent resumption-governance head `58c68bf34011ad3b8c72f800d00902b38d3b3913` / CI `37799765769` — **5/5 SUCCESS**, including full verify from clean checkout.
 - Activation-governance head `2c01f8a2b8f48bd069e0382a46e940b385fea224` / CI `37807120195` passed **5/5 SUCCESS**, including clean checkout.
 - Packet record: `docs/roadmap/lot-2/WP-2.12U.md`.
@@ -183,7 +183,8 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 - Size remains **7 points / cohesion PASS**; no table, column, RLS policy, permission, provider, UI, media work or new product Feature is added.
 - Parent WP-2.12 and draft #99 remain **BLOCKED / FROZEN** until U is independently accepted. R/S/T remain terminal ACCEPTED / COMPLETE.
 - Fresh complete review verified AR-005 no-side-effect evidence and opened AR-006 (retained five-argument Rating RPC still used retry-prone custom `40001`) and AR-007 (stale packet identity). The U migration now redefines the retained overload with `PT412` on both stale branches, with direct pgTAP regressions; packet identity is aligned. A subsequent CI run `37831858172` failed at migration parsing because the newly copied overload had invalid dollar-quote delimiters; corrected in `f4a3492528f8dfaa194af0d4232eb49e8d8c6c9b`. No acceptance is claimed from that failed run.
-- Current/next pass: **A-IMPLEMENT GREEN remediation → exact-head five-job CI (including clean checkout) → fresh complete independent review**. AR-006/007 remain open pending this proof. Only a clean review with zero unresolved bounded P0/P1/P2 findings may move U to `REVIEW_PENDING / B-ADVERSARIAL-REVIEW` and permit canonical GREEN landing.
+- AR-006/007 corrected GREEN head `31ded6ba077baa3fa24a1dcc19a24ca2a5eed61a` / CI `37837801921` passed **5/5 SUCCESS**, including full verify from clean checkout. Independent review on that exact head verified the bounded SQL/packet changes but found this section's stale AR-005 identity; the contradiction remains part of **AR-007** and is corrected by this documentation-only commit.
+- Current/next pass: **A-IMPLEMENT GREEN remediation → exact-head five-job CI for the corrected documentation head → fresh complete independent review**. AR-006/007 remain OPEN pending that verification; do not merge PR #115 or resume parent #99 until a clean zero-finding review and separate support acceptance gates.
 
 ## Accepted packet evidence summary
 
