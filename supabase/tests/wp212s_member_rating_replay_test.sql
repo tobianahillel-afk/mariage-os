@@ -223,6 +223,92 @@ select is(
   'legacy five-argument overload advances the row revision once'
 );
 
+select throws_ok(
+  $legacy_stale_existing$select public.set_venue_member_rating(
+    'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+    'dd100000-0000-4000-8000-000000000001',
+    'interior_aesthetic_score_personal',
+    6.5,
+    0
+  )$legacy_stale_existing$,
+  'PT412',
+  'venue rating unavailable',
+  'legacy five-argument stale existing-row conflict is non-retryable'
+);
+
+reset role;
+
+select is(
+  (
+    select rating
+    from public.member_ratings
+    where project_id = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'
+      and user_id = 'd1111111-1111-4111-8111-111111111111'
+      and target_type = 'venue'
+      and target_id = 'dd100000-0000-4000-8000-000000000001'
+      and dimension_key = 'interior_aesthetic_score_personal'
+  ),
+  5.25::numeric,
+  'legacy stale existing-row conflict leaves rating unchanged'
+);
+
+select is(
+  (
+    select revision
+    from public.member_ratings
+    where project_id = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'
+      and user_id = 'd1111111-1111-4111-8111-111111111111'
+      and target_type = 'venue'
+      and target_id = 'dd100000-0000-4000-8000-000000000001'
+      and dimension_key = 'interior_aesthetic_score_personal'
+  ),
+  1::bigint,
+  'legacy stale existing-row conflict leaves revision unchanged'
+);
+
+set local role authenticated;
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"d1111111-1111-4111-8111-111111111111","role":"authenticated"}',
+  true
+);
+
+select throws_ok(
+  $legacy_stale_missing$select public.set_venue_member_rating(
+    'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+    'dd100000-0000-4000-8000-000000000001',
+    'logistics_score_personal',
+    6,
+    1
+  )$legacy_stale_missing$,
+  'PT412',
+  'venue rating unavailable',
+  'legacy five-argument nonzero expected revision without a row is non-retryable'
+);
+
+reset role;
+
+select is(
+  (
+    select count(*)
+    from public.member_ratings
+    where project_id = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'
+      and user_id = 'd1111111-1111-4111-8111-111111111111'
+      and target_type = 'venue'
+      and target_id = 'dd100000-0000-4000-8000-000000000001'
+      and dimension_key = 'logistics_score_personal'
+  ),
+  0::bigint,
+  'legacy missing-row stale conflict creates no rating row'
+);
+
+set local role authenticated;
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"d1111111-1111-4111-8111-111111111111","role":"authenticated"}',
+  true
+);
+
 select lives_ok(
   $receipt$select public.set_venue_member_rating(
     'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
@@ -550,7 +636,7 @@ select is(
 );
 
 select throws_ok(
-  $$select public.set_venue_member_rating(
+  $rating_replay$select public.set_venue_member_rating(
     'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
     'dd100000-0000-4000-8000-000000000001',
     'love_score',
@@ -558,10 +644,75 @@ select throws_ok(
     0,
     'dd600000-0000-4000-8000-000000000001',
     'dd700000-0000-4000-8000-000000000001'
-  )$$,
-  '40001',
+  )$rating_replay$,
+  'PT412',
   'venue rating conflict',
   'old acknowledged operation conflicts after the rating changed later'
+);
+
+reset role;
+
+select is(
+  (
+    select rating
+    from public.member_ratings
+    where project_id = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'
+      and user_id = 'd1111111-1111-4111-8111-111111111111'
+      and target_type = 'venue'
+      and target_id = 'dd100000-0000-4000-8000-000000000001'
+      and dimension_key = 'love_score'
+  ),
+  8::numeric,
+  'acknowledged-rating conflict leaves the newer rating value unchanged'
+);
+
+select is(
+  (
+    select revision
+    from public.member_ratings
+    where project_id = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'
+      and user_id = 'd1111111-1111-4111-8111-111111111111'
+      and target_type = 'venue'
+      and target_id = 'dd100000-0000-4000-8000-000000000001'
+      and dimension_key = 'love_score'
+  ),
+  2::bigint,
+  'acknowledged-rating conflict leaves the newer rating revision unchanged'
+);
+
+select is(
+  (
+    select result_revision
+    from public.sync_mutation_receipts
+    where operation_id = 'dd600000-0000-4000-8000-000000000001'
+  ),
+  1::bigint,
+  'acknowledged-rating conflict preserves the original receipt revision'
+);
+
+select is(
+  (
+    select entity_id
+    from public.sync_mutation_receipts
+    where operation_id = 'dd600000-0000-4000-8000-000000000001'
+  ),
+  (
+    select id
+    from public.member_ratings
+    where project_id = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'
+      and user_id = 'd1111111-1111-4111-8111-111111111111'
+      and target_type = 'venue'
+      and target_id = 'dd100000-0000-4000-8000-000000000001'
+      and dimension_key = 'love_score'
+  ),
+  'acknowledged-rating conflict keeps the original receipt bound to the rating row'
+);
+
+set local role authenticated;
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"d1111111-1111-4111-8111-111111111111","role":"authenticated"}',
+  true
 );
 
 select throws_ok(
@@ -574,7 +725,7 @@ select throws_ok(
     'dd600000-0000-4000-8000-000000000003',
     'dd700000-0000-4000-8000-000000000001'
   )$$,
-  '40001',
+  'PT412',
   'venue rating unavailable',
   'genuinely new stale operation still conflicts'
 );
@@ -588,6 +739,152 @@ select is(
   ),
   0::bigint,
   'failed stale operation leaves no durable replay receipt'
+);
+
+select is(
+  (
+    select rating
+    from public.member_ratings
+    where project_id = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'
+      and user_id = 'd1111111-1111-4111-8111-111111111111'
+      and target_type = 'venue'
+      and target_id = 'dd100000-0000-4000-8000-000000000001'
+      and dimension_key = 'love_score'
+  ),
+  8::numeric,
+  'seven-argument stale-operation conflict leaves the newer rating unchanged'
+);
+
+select is(
+  (
+    select revision
+    from public.member_ratings
+    where project_id = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'
+      and user_id = 'd1111111-1111-4111-8111-111111111111'
+      and target_type = 'venue'
+      and target_id = 'dd100000-0000-4000-8000-000000000001'
+      and dimension_key = 'love_score'
+  ),
+  2::bigint,
+  'seven-argument stale-operation conflict leaves the newer revision unchanged'
+);
+
+set local role authenticated;
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"d1111111-1111-4111-8111-111111111111","role":"authenticated"}',
+  true
+);
+
+select lives_ok(
+  $missing_row_setup$select public.set_venue_member_rating(
+    'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+    'dd100000-0000-4000-8000-000000000001',
+    'exterior_aesthetic_score_personal',
+    6,
+    0,
+    'dd600000-0000-4000-8000-000000000004',
+    'dd700000-0000-4000-8000-000000000001'
+  )$missing_row_setup$,
+  'rating setup creates a durable receipt before row disappearance'
+);
+
+reset role;
+delete from public.member_ratings
+where project_id = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'
+  and user_id = 'd1111111-1111-4111-8111-111111111111'
+  and target_type = 'venue'
+  and target_id = 'dd100000-0000-4000-8000-000000000001'
+  and dimension_key = 'exterior_aesthetic_score_personal';
+
+set local role authenticated;
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"d1111111-1111-4111-8111-111111111111","role":"authenticated"}',
+  true
+);
+select throws_ok(
+  $missing_row_replay$select public.set_venue_member_rating(
+    'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+    'dd100000-0000-4000-8000-000000000001',
+    'exterior_aesthetic_score_personal',
+    6,
+    0,
+    'dd600000-0000-4000-8000-000000000004',
+    'dd700000-0000-4000-8000-000000000001'
+  )$missing_row_replay$,
+  'PT412',
+  'venue rating conflict',
+  'receipt whose rating row disappeared uses non-retryable conflict'
+);
+
+reset role;
+select is(
+  (
+    select count(*)
+    from public.member_ratings
+    where project_id = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'
+      and user_id = 'd1111111-1111-4111-8111-111111111111'
+      and target_type = 'venue'
+      and target_id = 'dd100000-0000-4000-8000-000000000001'
+      and dimension_key = 'exterior_aesthetic_score_personal'
+  ),
+  0::bigint,
+  'missing acknowledged rating row is not recreated by replay'
+);
+select is(
+  (
+    select count(*)
+    from public.sync_mutation_receipts
+    where operation_id = 'dd600000-0000-4000-8000-000000000004'
+  ),
+  1::bigint,
+  'missing-row conflict preserves the original durable receipt only'
+);
+
+set local role authenticated;
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"d1111111-1111-4111-8111-111111111111","role":"authenticated"}',
+  true
+);
+select throws_ok(
+  $missing_rating_stale$select public.set_venue_member_rating(
+    'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+    'dd100000-0000-4000-8000-000000000001',
+    'value_for_money_score_personal',
+    6,
+    1,
+    'dd600000-0000-4000-8000-000000000005',
+    'dd700000-0000-4000-8000-000000000001'
+  )$missing_rating_stale$,
+  'PT412',
+  'venue rating unavailable',
+  'nonzero expected revision without a rating uses non-retryable conflict'
+);
+
+reset role;
+select is(
+  (
+    select count(*)
+    from public.member_ratings
+    where project_id = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'
+      and user_id = 'd1111111-1111-4111-8111-111111111111'
+      and target_type = 'venue'
+      and target_id = 'dd100000-0000-4000-8000-000000000001'
+      and dimension_key = 'value_for_money_score_personal'
+  ),
+  0::bigint,
+  'missing-rating stale conflict creates no rating row'
+);
+select is(
+  (
+    select count(*)
+    from public.sync_mutation_receipts
+    where operation_id = 'dd600000-0000-4000-8000-000000000005'
+  ),
+  0::bigint,
+  'missing-rating stale conflict leaves no replay receipt'
 );
 
 set local role authenticated;

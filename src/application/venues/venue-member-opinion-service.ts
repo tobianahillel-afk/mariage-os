@@ -1,3 +1,4 @@
+import { VenueMemberOpinionPersistenceError } from "./venue-member-opinion-persistence-error";
 import {
   normalizeVenueMemberPreference,
   normalizeVenueMemberRating,
@@ -84,6 +85,7 @@ type RatingMutationError =
   | VenueMemberRatingError
   | "operation_id_invalid"
   | "device_id_invalid"
+  | "conflict"
   | "persistence_failed";
 
 export type PreferenceMutationResult =
@@ -140,7 +142,10 @@ export async function saveVenueMemberRating(
       ...normalized.value,
     });
     return { ok: true, rating };
-  } catch {
+  } catch (error) {
+    if (error instanceof VenueMemberOpinionPersistenceError) {
+      return { ok: false, error: error.code };
+    }
     return { ok: false, error: "persistence_failed" };
   }
 }

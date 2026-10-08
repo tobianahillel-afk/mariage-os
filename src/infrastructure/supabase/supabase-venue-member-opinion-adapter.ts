@@ -1,3 +1,4 @@
+import { VenueMemberOpinionPersistenceError } from "@application/venues/venue-member-opinion-persistence-error";
 import type {
   SaveVenueMemberPreferenceInput,
   SaveVenueMemberRatingInput,
@@ -49,6 +50,23 @@ function queryFailure(): never {
 }
 function mutationFailure(): never {
   throw new Error("Venue member opinion mutation failed.");
+}
+
+function providerErrorCode(value: unknown): string {
+  const code = (Object(value) as Record<string, unknown>).code;
+  return typeof code === "string" ? code : "";
+}
+
+function ratingMutationFailure(error: unknown): never {
+  const providerCode = providerErrorCode(error);
+  const code =
+    providerCode === "40001" || providerCode === "PT412"
+      ? "conflict"
+      : "persistence_failed";
+  throw new VenueMemberOpinionPersistenceError(
+    code,
+    "Venue member opinion mutation failed.",
+  );
 }
 
 export class SupabaseVenueMemberOpinionAdapter implements VenueMemberOpinionPort {
@@ -132,10 +150,13 @@ export class SupabaseVenueMemberOpinionAdapter implements VenueMemberOpinionPort
         target_operation_id: input.operationId,
         target_device_id: input.deviceId,
       });
-      if (error !== null) mutationFailure();
+      if (error !== null) ratingMutationFailure(error);
       return parseVenueMemberRatingRow(data, input.projectId, input.venueId);
-    } catch {
-      throw new Error("Venue member opinion mutation failed.");
+    } catch (error) {
+      if (error instanceof VenueMemberOpinionPersistenceError) throw error;
+      throw new Error("Venue member opinion mutation failed.", {
+        cause: error,
+      });
     }
   }
 }

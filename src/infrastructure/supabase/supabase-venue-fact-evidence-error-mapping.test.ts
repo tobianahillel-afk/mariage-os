@@ -112,6 +112,7 @@ function queryClient(
 describe("Supabase venue fact evidence provider failures", () => {
   it.each([
     [{ code: "40001", message: "secret" }, "conflict"],
+    [{ code: "PT412", message: "secret" }, "conflict"],
     [{ code: "23505", message: "secret" }, "conflict"],
     [{ code: "42501", message: "secret" }, "authorization_failed"],
     [{ code: "PGRST001", message: "secret" }, "backend_unavailable"],
