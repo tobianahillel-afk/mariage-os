@@ -76,11 +76,6 @@ it("fails closed when the queued Fact intent cannot be normalized", () => {
   };
 
   expect(
-    venueVisitFactAcknowledgementMatches(
-      command,
-      context,
-      observation,
-      userId,
-    ),
+    venueVisitFactAcknowledgementMatches(command, context, observation, userId),
   ).toBe(false);
 });

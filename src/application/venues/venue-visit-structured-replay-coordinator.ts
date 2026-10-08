@@ -1,8 +1,8 @@
 import {
   appendVenueFactObservation,
-  type VenueFactProvenanceLinkPort,
   type VenueFactContext,
   type VenueFactEvidencePort,
+  type VenueFactProvenanceLinkPort,
   type VenueFactSourceReadPort,
 } from "@application/facts/venue-fact-evidence-service";
 import { venueFactPersistenceErrorCode } from "@application/facts/venue-fact-persistence-error";
@@ -41,10 +41,13 @@ export interface VenueVisitStructuredReplayResult {
   readonly error: string | null;
 }
 
+type VisitFactPorts =
+  VenueFactEvidencePort & VenueFactSourceReadPort & VenueFactProvenanceLinkPort;
+
 interface VenueVisitStructuredReplayDependencies {
   readonly local: LocalProjectStore;
   readonly interactions: VenueInteractionPort;
-  readonly facts: VenueFactEvidencePort & VenueFactSourceReadPort & VenueFactProvenanceLinkPort;
+  readonly facts: VisitFactPorts;
   readonly memberOpinions: VenueMemberOpinionPort;
   readonly now: () => string;
 }
@@ -145,7 +148,7 @@ function ratingAcknowledgementFailure(
 export class VenueVisitStructuredReplayCoordinator {
   private readonly local: LocalProjectStore;
   private readonly interactionService: VenueInteractionService;
-  private readonly facts: VenueFactEvidencePort & VenueFactSourceReadPort & VenueFactProvenanceLinkPort;
+  private readonly facts: VisitFactPorts;
   private readonly memberOpinions: VenueMemberOpinionPort;
   private readonly now: () => string;
 

@@ -1,9 +1,9 @@
 import { VenueFactPersistenceError } from "@application/facts/venue-fact-persistence-error";
 import type {
   CheckedLinkObservationSourceInput,
-  VenueFactProvenanceLinkPort,
   VenueFactContext,
   VenueFactEvidencePort,
+  VenueFactProvenanceLinkPort,
   VenueFactObservationRecord,
   VenueFactSourceReadPort,
   VenueFactSourceRecord,
@@ -67,6 +67,9 @@ type RatingMode =
   "success" | "failure" | "conflict" | "replay_identity_mismatch";
 type FactLinkMode = "success" | "persistence_failed" | "authorization_failed";
 
+type RemoteFactPorts =
+  VenueFactEvidencePort & VenueFactSourceReadPort & VenueFactProvenanceLinkPort;
+
 export class RemoteHarness {
   readonly calls: string[] = [];
   readonly notes: NormalizedAppendVenueInteractionInput[] = [];
@@ -99,7 +102,7 @@ export class RemoteHarness {
     listVenueInteractionHistory: async () => [],
   };
 
-  readonly facts: VenueFactEvidencePort & VenueFactSourceReadPort & VenueFactProvenanceLinkPort = {
+  readonly facts: RemoteFactPorts = {
     getFactContext: async () => {
       if (this.factMode === "backend_unavailable") {
         throw new VenueFactPersistenceError("backend_unavailable", "offline");
