@@ -741,6 +741,34 @@ select is(
   'failed stale operation leaves no durable replay receipt'
 );
 
+select is(
+  (
+    select rating
+    from public.member_ratings
+    where project_id = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'
+      and user_id = 'd1111111-1111-4111-8111-111111111111'
+      and target_type = 'venue'
+      and target_id = 'dd100000-0000-4000-8000-000000000001'
+      and dimension_key = 'love_score'
+  ),
+  8::numeric,
+  'seven-argument stale-operation conflict leaves the newer rating unchanged'
+);
+
+select is(
+  (
+    select revision
+    from public.member_ratings
+    where project_id = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'
+      and user_id = 'd1111111-1111-4111-8111-111111111111'
+      and target_type = 'venue'
+      and target_id = 'dd100000-0000-4000-8000-000000000001'
+      and dimension_key = 'love_score'
+  ),
+  2::bigint,
+  'seven-argument stale-operation conflict leaves the newer revision unchanged'
+);
+
 set local role authenticated;
 select set_config(
   'request.jwt.claims',
