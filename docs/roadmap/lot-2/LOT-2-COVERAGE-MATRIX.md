@@ -128,7 +128,7 @@ ADR 0011 later produced decisive deployed CPU evidence and was rejected for fina
 | WP-2.12 | **BLOCKED — WP-2.12T dependency** | mobile/offline Venue visit + packet E2E completion; tranches 1–3 GREEN; structured reconnect #99 preserved; FIR #42 |
 | WP-2.12R | **ACCEPTED / COMPLETE** | replay-safe fact-observation command identity; Pass C gap ∅ / CI `37335393969` 5/5; 3 points / cohesion PASS |
 | WP-2.12S | **ACCEPTED / COMPLETE** | replay-safe Venue member-rating command identity with expand/switch compatibility; Pass C gap ∅ / CI `37463358444` 5/5; 3 points / cohesion PASS |
-| WP-2.12T | **ACCEPTANCE_PENDING — Fresh Pass B v3 PASS** | atomic in-person Fact source provenance link; canonical `8b453d216b11e6b0bdf6297b6b68dbec669cf954` / CI `37551357375` 5/5; review-only #113 / `aaff9b7...` / CI `37552197889` PASS; AR-001..004 CLOSED / VERIFIED; 3 points / cohesion PASS |
+| WP-2.12T | **ACCEPTANCE_PENDING — Pass C gap ∅; acceptance-record CI pending** | atomic in-person Fact source provenance link; Fresh Pass-B seal `ce4a5537...` / CI `37553218988` 5/5; AR-001..004 CLOSED / VERIFIED; 3 points / cohesion PASS |
 
 ## Sequencing
 
@@ -190,8 +190,8 @@ WP-2.11 = ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record `3167a380521
 WP-2.12 = IN_PROGRESS / A-IMPLEMENT — tranches 1–3 GREEN through `1794a3d9...` / `37280907551`; Fact + Member Rating replay dependencies satisfied; separate resumption-head exact-CI pending; FIR #42
 WP-2.12R = ACCEPTED / COMPLETE — final support seal `cdad9eb82052ac3e2296769e5381b2371558ec4d` / CI `37341157497` 5/5
 WP-2.12S = ACCEPTED / COMPLETE — final support seal `93f2916db125139f7694e56248c188a2cf21f794` / CI `37465538267` 5/5; AR-001/002/003 CLOSED / VERIFIED
-WP-2.12T = ACCEPTANCE_PENDING / C-ACCEPTANCE — Fresh Pass B v3 review-only #113 / `aaff9b7ea70951481c3d915449935db183312054` / CI `37552197889` PASS; canonical `8b453d216b11e6b0bdf6297b6b68dbec669cf954` / CI `37551357375` 5/5; AR-001..004 CLOSED / VERIFIED
-next permitted action = separate WP-2.12T Pass C → final support seal → separate parent WP-2.12 resumption gate
+WP-2.12T = ACCEPTANCE_PENDING / C-ACCEPTANCE — Pass C gap ∅ in `docs/roadmap/lot-2/WP-2.12T-ACCEPTANCE.md`, acceptance-record exact-head CI pending; Fresh Pass-B/status seal `ce4a55372662b1c9f207c18ea6f3611bcda34c86` / CI `37553218988` 5/5; AR-001..004 CLOSED / VERIFIED
+next permitted action = acceptance-record exact-head five-job CI → separate WP-2.12T final support seal and CI → separate parent WP-2.12 resumption gate
 media-byte durability/upload remains a separate later parent tranche; no provider rerun is authorized
 ```
 

@@ -45,7 +45,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.12 | mobile/offline venue-visit workflow and packet E2E completion          | **BLOCKED — WP-2.12T atomic visit-source provenance dependency**          |
 | WP-2.12R | replay-safe Venue fact-observation command boundary                     | **ACCEPTED / COMPLETE — Pass C gap ∅**                                    |
 | WP-2.12S | replay-safe Venue member-rating command boundary                        | **ACCEPTED / COMPLETE — Pass C gap ∅**                                    |
-| WP-2.12T | atomic Venue fact-observation visit-source provenance link               | **ACCEPTANCE_PENDING — Fresh Pass B v3 PASS; AR-001..004 CLOSED / VERIFIED** |
+| WP-2.12T | atomic Venue fact-observation visit-source provenance link               | **ACCEPTANCE_PENDING — Pass C gap ∅; acceptance-record CI pending**        |
 
 ## WP-2.10 — activation revalidation
 
@@ -164,7 +164,8 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 - Complete Fresh Pass B v3 review-only #113 / `aaff9b7ea70951481c3d915449935db183312054` / CI `37552197889` (#2381) is **PASS**: Codex found no major issue, zero unresolved review threads remain, and all five ordinary jobs including clean checkout passed.
 - `WP212T-AR-001..004` are **CLOSED / VERIFIED**; new Fresh Pass-B v3 findings = ∅.
 - Complete review record: `docs/roadmap/lot-2/WP-2.12T-FRESH-PASS-B-V3-2026-10-07.md`.
-- Pass A + Fresh Pass B exit is therefore satisfied. Current/next pass: **ACCEPTANCE_PENDING / C-ACCEPTANCE**. Parent WP-2.12 and PR #99 remain blocked/preserved until T completes separate Pass C and final support seal.
+- Pass A + Fresh Pass B exit is satisfied. Separate Pass C reconciles the bounded T contract as **EXPECTED ↔ IMPLEMENTED ↔ VERIFIED; gap ∅** in `docs/roadmap/lot-2/WP-2.12T-ACCEPTANCE.md`.
+- Current/next pass: **ACCEPTANCE_PENDING / C-ACCEPTANCE — acceptance-record exact-head CI pending**. Parent WP-2.12 and PR #99 remain blocked until this record passes five jobs and a separate final support seal is green.
 
 ## Accepted packet evidence summary
 
@@ -424,7 +425,8 @@ Normative release/deployment/secret contracts require Pages Functions to deploy 
 88. WP-2.12S Fresh Pass-B/status seal `54d3faaca10be74556372ec5e2f8ade2c5fddc53` / CI `37462189131` passed **5/5 SUCCESS**, including full verify from clean checkout. Separate Pass C reconciled all bounded member-rating replay/authorization/rollout responsibilities with gap ∅.
 89. WP-2.12S Pass-C acceptance-record `8b0eae20d59e6013a14064fdea29451fbb503c42` / CI `37463358444` passed **5/5 SUCCESS**, including full verify from clean checkout. Final support seal `93f2916db125139f7694e56248c188a2cf21f794` / CI `37465538267` also passed **5/5 SUCCESS**. WP-2.12S is **ACCEPTED / COMPLETE**.
 90. Both replay support dependencies WP-2.12R and WP-2.12S are terminally accepted. A separate parent resumption-governance head returned WP-2.12 to **IN_PROGRESS / A-IMPLEMENT** with tranches 1–3 preserved before structured-reconnect review discovered the T provenance dependency.
-91. WP-2.12T Fresh Pass B v3 review-only #113 / `aaff9b7ea70951481c3d915449935db183312054` / CI `37552197889` passed **5/5 SUCCESS**, including clean checkout; independent Codex review found no major issue and zero unresolved threads. Canonical evidence base `8b453d216b11e6b0bdf6297b6b68dbec669cf954` / CI `37551357375` is also 5/5. WP212T-AR-001..004 are CLOSED / VERIFIED; T enters **ACCEPTANCE_PENDING / C-ACCEPTANCE** while parent WP-2.12 remains blocked.
+91. WP-2.12T Fresh Pass B v3 review-only #113 / `aaff9b7ea70951481c3d915449935db183312054` / CI `37552197889` passed **5/5 SUCCESS**, including clean checkout; independent Codex review found no major issue and zero unresolved threads. Canonical evidence base `8b453d216b11e6b0bdf6297b6b68dbec669cf954` / CI `37551357375` is also 5/5. WP212T-AR-001..004 are CLOSED / VERIFIED.
+92. WP-2.12T Fresh Pass-B/status seal `ce4a55372662b1c9f207c18ea6f3611bcda34c86` / CI `37553218988` passed **5/5 SUCCESS**, including full verify from clean checkout. Separate Pass C in `docs/roadmap/lot-2/WP-2.12T-ACCEPTANCE.md` now reconciles bounded obligations with gap ∅; exact-head acceptance-record CI is the next mandatory gate before any ACCEPTED transition.
 
 ## Durable handoff
 
@@ -437,7 +439,7 @@ Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.11
 WP-2.9C: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 21accd7f9ab1b845275507b7941a782c5e816a56 / CI 36494697647 5/5 including clean checkout
 WP-2.9A: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 656398bcd5520cfa56d782023d150eb64317161d / CI 36542083037 5/5 including clean checkout
-Current packet: WP-2.12T — ACCEPTANCE_PENDING / C-ACCEPTANCE; Fresh Pass B v3 #113 / `aaff9b7ea70951481c3d915449935db183312054` / CI `37552197889` PASS; WP212T-AR-001..004 CLOSED / VERIFIED; parent WP-2.12 remains BLOCKED with PR #99 preserved; primary FIR #42 / FTR-028 support only
+Current packet: WP-2.12T — ACCEPTANCE_PENDING / C-ACCEPTANCE; Pass C gap ∅; acceptance-record exact-head CI pending; WP212T-AR-001..004 CLOSED / VERIFIED; parent WP-2.12 remains BLOCKED with PR #99 preserved; FIR #42 / FTR-028 support only
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
@@ -476,5 +478,5 @@ FTR-089 FIR: #17 — IN_PROGRESS / parent A accepted, later presentation and Lot
 WP-2.9B: ACCEPTED / COMPLETE; FTR-093 FIR #27 remains IN_PROGRESS for downstream scope; WP29B-AR-001/002 CLOSED / VERIFIED; Pass C gap ∅
 Lots 3–12: NOT_STARTED
 Latest distinct-PDF campaign: 2303df0c9e8d6f72561ec0ce42514663801229d8 / CI 36459949861 / provider job 109058754517 / artifact 10987866873 — 10 distinct exact-size PDFs, 10 finalized flows, 20 valid exact-version CPU readings within Workers Free; provider verdict PASS
-Next permitted action: run separate WP-2.12T Pass C acceptance reconciliation (EXPECTED ↔ IMPLEMENTED ↔ VERIFIED) and prove the acceptance record with exact-head five-job CI including clean checkout. Parent WP-2.12 / PR #99 remains blocked until T is terminally ACCEPTED and a separate parent resumption-governance head passes. No provider campaign is authorized or required.
+Next permitted action: prove WP-2.12T Pass-C acceptance record on exact HEAD with all five ordinary CI jobs including clean checkout. Only if green may the separate final WP-2.12T ACCEPTED seal be committed and independently verified; only after that may parent WP-2.12 enter a separate resumption-governance gate. PR #99 stays blocked. No provider campaign is authorized or required.
 ```

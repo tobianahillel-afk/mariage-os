@@ -142,7 +142,7 @@ At minimum:
 
 ## Handoff
 
-- Current state: **ACCEPTANCE_PENDING / C-ACCEPTANCE**
+- Current state: **ACCEPTANCE_PENDING / C-ACCEPTANCE — Pass C gap ∅, acceptance-record CI pending**
 - Activation: `8b0dfb431adc2d09b5d75d0b0c8d22b3315424b9` / CI `37538654009` — **5/5 SUCCESS**, clean checkout included.
 - RED-only PR #106 / `b7f3e705c46bd026b5389ec18fda660beb4ebffb` / CI `37539654080` — closed unmerged after the intended checked-link/stale-provenance failures.
 - GREEN PR #107 final reviewed head `f6eaa0e232252f1ff8962979097c17c3ca184ee7` / CI `37542674381` — **5/5 SUCCESS**; 237 files / 2,059 tests / 100% global coverage; final Codex re-review 👍; zero unresolved threads.
@@ -153,7 +153,8 @@ At minimum:
 - Review record: `docs/roadmap/lot-2/WP-2.12T-FRESH-PASS-B-V3-2026-10-07.md`.
 - `WP212T-AR-001..004` — **CLOSED / VERIFIED**; new Fresh Pass-B v3 findings: ∅.
 - Parent WP-2.12: **BLOCKED**, prior GREEN work and PR #99 preserved.
-- Next permitted action: separate Pass C acceptance reconciliation only. No parent production change before T acceptance, final support seal and a separate parent resumption gate.
+- Pass C: **PASS / gap ∅**, recorded in `docs/roadmap/lot-2/WP-2.12T-ACCEPTANCE.md`; Fresh Pass-B/status seal `ce4a55372662b1c9f207c18ea6f3611bcda34c86` / CI `37553218988` — 5/5 SUCCESS.
+- Next permitted action: exact-head five-job CI for the Pass-C acceptance record. Do not accept T, resume PR #99 or change parent code before this CI, a separate final accepted support seal and a parent resumption gate.
 
 
 ## Fresh Pass B v3 result — 2026-10-07
@@ -173,3 +174,13 @@ WP212T-AR-001..004 are CLOSED / VERIFIED and no new bounded P0/P1/P2 finding
 remains. The packet therefore enters `ACCEPTANCE_PENDING / C-ACCEPTANCE`.
 This does not accept T and does not authorize parent WP-2.12 / PR #99 until
 separate Pass C and the final support seal are exact-head green.
+
+
+## Pass C reconciliation — 2026-10-08
+
+The separate `docs/roadmap/lot-2/WP-2.12T-ACCEPTANCE.md` reconciles every
+bounded provenance-link responsibility as **EXPECTED ↔ IMPLEMENTED ↔ VERIFIED,
+gap ∅**. This is a Pass-C verdict, not a terminal acceptance: the acceptance
+record HEAD must pass all five ordinary CI jobs, including clean checkout,
+before the separate final support seal may mark T ACCEPTED. Parent WP-2.12 and
+structured-reconnect PR #99 remain blocked.
