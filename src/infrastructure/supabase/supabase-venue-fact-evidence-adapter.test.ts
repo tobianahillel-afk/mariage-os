@@ -105,7 +105,12 @@ function makeClient(
           eq: () => query,
           single: () =>
             Promise.resolve({
-              data: table === "facts" ? factRow : definitionRow,
+              data:
+                table === "facts"
+                  ? factRow
+                  : table === "sources"
+                    ? sourceRow
+                    : definitionRow,
               error: null,
             }),
         };
@@ -344,5 +349,40 @@ it("maps same-project source links and explicit retained resolution", async () =
       target_state: "known",
       target_resolution_note: null,
     },
+  });
+});
+
+it("reads source revision in project scope for atomic visit provenance", async () => {
+  const adapter = new SupabaseVenueFactEvidenceAdapter(makeClient(() => null));
+  await expect(adapter.getSource(projectId, sourceId)).resolves.toMatchObject({
+    id: sourceId,
+    projectId,
+    sourceType: "written_confirmation",
+    revision: 1,
+  });
+});
+
+it("fails closed when source read returns the wrong project", async () => {
+  const client = makeClient(() => null);
+  const adapter = new SupabaseVenueFactEvidenceAdapter({
+    ...client,
+    from(table) {
+      if (table !== "sources") return client.from(table);
+      const query = {
+        eq: () => query,
+        single: () =>
+          Promise.resolve({
+            data: {
+              ...sourceRow,
+              project_id: "99999999-9999-4999-8999-999999999999",
+            },
+            error: null,
+          }),
+      };
+      return { select: () => query };
+    },
+  });
+  await expect(adapter.getSource(projectId, sourceId)).rejects.toMatchObject({
+    code: "provider_response_invalid",
   });
 });
