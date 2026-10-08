@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1..WP-2.11 + WP-2.12R/S/T ACCEPTED; WP-2.12U REVIEW_FAILED / REMEDIATION (AR-004); parent WP-2.12 BLOCKED/FROZEN**
+Status: **IN_PROGRESS — WP-2.1..WP-2.11 + WP-2.12R/S/T ACCEPTED; WP-2.12U REVIEW_FAILED / REMEDIATION (AR-005); parent WP-2.12 BLOCKED/FROZEN**
 
 Purpose: durable current responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`. Detailed historical evidence remains in packet records, acceptance records, FIRs and Git history.
 
@@ -129,7 +129,7 @@ ADR 0011 later produced decisive deployed CPU evidence and was rejected for fina
 | WP-2.12R | **ACCEPTED / COMPLETE** | replay-safe fact-observation command identity; Pass C gap ∅ / CI `37335393969` 5/5; 3 points / cohesion PASS |
 | WP-2.12S | **ACCEPTED / COMPLETE** | replay-safe Venue member-rating command identity with expand/switch compatibility; Pass C gap ∅ / CI `37463358444` 5/5; 3 points / cohesion PASS |
 | WP-2.12T | **ACCEPTED / COMPLETE** | atomic in-person Fact source provenance link; Pass C gap ∅ / CI `37796626397` 5/5; final seal `091557f2b221923bf38debd9472fe51fbee1cdcc` / CI `37798476372` 5/5; AR-001..004 CLOSED / VERIFIED; 3 points / cohesion PASS |
-| WP-2.12U | **REVIEW_FAILED / REMEDIATION — WP212U-AR-004 pending verification** | PostgREST-safe business-conflict signaling for accepted R/S/T replay RPCs; 7 points / cohesion PASS; activation/RED/GREEN complete; AR-001/002/003 CLOSED / VERIFIED; parent #99 frozen |
+| WP-2.12U | **REVIEW_FAILED / REMEDIATION — WP212U-AR-005 pending verification** | PostgREST-safe business-conflict signaling for accepted R/S/T replay RPCs; 7 points / cohesion PASS; activation/RED/GREEN complete; AR-001..004 CLOSED / VERIFIED; parent #99 frozen |
 
 ## Sequencing
 
@@ -141,12 +141,12 @@ WP-2.1..WP-2.8C [ACCEPTED]
                                                                                            ↘ WP-2.12R [ACCEPTED]
                                                                                            ↘ WP-2.12S [ACCEPTED]
                                                                                            ↘ WP-2.12T [ACCEPTED]
-                                                                                           ↘ WP-2.12U [REMEDIATION / AR-004]
+                                                                                           ↘ WP-2.12U [REMEDIATION / AR-005]
                                                                                               → WP-2.12 [resume A after U acceptance]
                                                                                                 → Lot reconciliation → Integration Pass
 ```
 
-Only one packet may be active at a time. WP-2.9A/B/C, WP-2.10, WP-2.11 and support packets WP-2.12R/S/T are terminal accepted. Parent resumption governance `58c68bf34011ad3b8c72f800d00902b38d3b3913` / CI `37799765769` is 5/5 green, but support packet WP-2.12U must be independently accepted before #99 may resume. U activation `2c01f8a2...` / CI `37807120195`, RED #114 and GREEN implementation are complete; AR-001/002/003 are CLOSED / VERIFIED. Documentation-remediation head `1c9deef42c041bd3628ca9c530eb2da6c3fb5db5` / CI `37819079475` is 5/5 green; fresh review found only the remaining AR-004 coverage-matrix handoff contradiction now being remediated. Parent WP-2.12 is BLOCKED/FROZEN; U is the sole active remediation packet.
+Only one packet may be active at a time. WP-2.9A/B/C, WP-2.10, WP-2.11 and support packets WP-2.12R/S/T are terminal accepted. Parent resumption governance `58c68bf34011ad3b8c72f800d00902b38d3b3913` / CI `37799765769` is 5/5 green, but support packet WP-2.12U must be independently accepted before #99 may resume. U activation `2c01f8a2...` / CI `37807120195`, RED #114 and GREEN implementation are complete; AR-001/002/003 are CLOSED / VERIFIED. AR-004 durable-map head `1cd40096cc62e45b7adee90c2d5e7defd0b307ce` / CI `37820711030` is 5/5 green and fresh review confirmed the handoff contradiction is gone. The only open bounded finding is AR-005: direct no-side-effect postconditions for the acknowledged-rating conflict, remediated on current PR #115. Parent WP-2.12 is BLOCKED/FROZEN; U is the sole active remediation packet.
 
 ## Explicitly outside Lot 2
 
@@ -193,8 +193,8 @@ WP-2.12 = BLOCKED / FROZEN — tranches 1–3 GREEN through `1794a3d9...` / `372
 WP-2.12R = ACCEPTED / COMPLETE — final support seal `cdad9eb82052ac3e2296769e5381b2371558ec4d` / CI `37341157497` 5/5
 WP-2.12S = ACCEPTED / COMPLETE — final support seal `93f2916db125139f7694e56248c188a2cf21f794` / CI `37465538267` 5/5; AR-001/002/003 CLOSED / VERIFIED
 WP-2.12T = ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record `6f460afc1d12134bc12f08e51145f29b01cf6e0f` / CI `37796626397` 5/5; final support seal `091557f2b221923bf38debd9472fe51fbee1cdcc` / CI `37798476372` 5/5 including clean checkout; AR-001..004 CLOSED / VERIFIED
-WP-2.12U = REVIEW_FAILED / REMEDIATION — 7 points / cohesion PASS; activation `2c01f8a2...` / CI `37807120195` 5/5; RED #114 closed unmerged; GREEN #115 implemented; AR-001/002/003 CLOSED / VERIFIED; AR-004 durable-map reconciliation pending verification; prior AR-004 remediation head `1c9deef42c041bd3628ca9c530eb2da6c3fb5db5` / CI `37819079475` 5/5
-next permitted action = prove this coverage-matrix reconciliation with exact-head five-job CI + clean checkout → fresh complete independent review → only a clean zero-finding verdict may move U to REVIEW_PENDING / B-ADVERSARIAL-REVIEW and permit canonical GREEN landing; parent #99 remains frozen; media remains later
+WP-2.12U = REVIEW_FAILED / REMEDIATION — 7 points / cohesion PASS; activation `2c01f8a2...` / CI `37807120195` 5/5; RED #114 closed unmerged; GREEN #115 implemented; AR-001..004 CLOSED / VERIFIED; AR-004 durable-map head `1cd40096cc62e45b7adee90c2d5e7defd0b307ce` / CI `37820711030` 5/5; AR-005 acknowledged-rating postcondition evidence pending exact-head verification
+next permitted action = prove AR-005 direct acknowledged-rating no-side-effect evidence with exact-head five-job CI + clean checkout → fresh complete independent review → only a clean zero-finding verdict may move U to REVIEW_PENDING / B-ADVERSARIAL-REVIEW and permit canonical GREEN landing; parent #99 remains frozen; media remains later
 media-byte durability/upload remains a separate later parent tranche; no provider rerun is authorized
 ```
 
