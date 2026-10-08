@@ -5,10 +5,10 @@
 - Work Packet ID: `WP-2.12U`
 - Lot: 2 — Venues core
 - Name: PostgREST-safe replay conflict signaling across accepted R/S/T RPCs
-- State: `ACCEPTED / COMPLETE` — Pass C gap ∅; acceptance-record CI 5/5 green; final status seal CI pending
-- Current pass: `C-ACCEPTANCE COMPLETE` — acceptance-record HEAD `18b706b3...` / CI `37854906006` 5/5; final seal CI pending
+- State: `ACCEPTED / COMPLETE` — Pass C gap ∅; final status seal `319adce60b606b14653cbdac5d9e3f224b5d8614` / CI `37859154995` 5/5 green
+- Current pass: `TERMINAL ACCEPTED` — acceptance-record `18b706b3...` / CI `37854906006` 5/5; final seal `319adce60b606b14653cbdac5d9e3f224b5d8614` / CI `37859154995` 5/5
 - Branch: `lot-2/venues-core`
-- Parent packet: `WP-2.12` — BLOCKED/FROZEN with prior GREEN work and draft #99 preserved
+- Parent packet: `WP-2.12` — A-IMPLEMENT resumption-governance CI pending; prior GREEN and frozen draft #99 preserved
 - Activation base: `58c68bf34011ad3b8c72f800d00902b38d3b3913`
 - Activation-base CI: `37799765769` — **5/5 SUCCESS**, including full verify from clean checkout
 - Activation-governance head: `2c01f8a2b8f48bd069e0382a46e940b385fea224` / CI `37807120195` — **5/5 SUCCESS**, clean checkout included
@@ -184,8 +184,8 @@ At minimum:
 
 ## Handoff
 
-- Current state: **ACCEPTED / COMPLETE — final accepted-status seal CI pending**
-- Current/next pass: Pass C acceptance record verified (`18b706b3...` / CI `37854906006`, 5/5); final accepted-status seal exact-head CI pending
+- Current state: **ACCEPTED / COMPLETE — final accepted-status seal `319adce60b606b14653cbdac5d9e3f224b5d8614` / CI `37859154995` 5/5 green**
+- Current/next pass: terminal acceptance; Pass C record `18b706b3...` / CI `37854906006` and final seal `319adce60b606b14653cbdac5d9e3f224b5d8614` / CI `37859154995` both 5/5 green
 - Parent resumption base: `58c68bf34011ad3b8c72f800d00902b38d3b3913` / CI `37799765769` — 5/5
 - Accepted dependencies: WP-2.12R / S / T terminal ACCEPTED / COMPLETE
 - Parent draft #99: preserved, unchanged, frozen
@@ -195,7 +195,7 @@ At minimum:
   `37828593485` — **5/5 SUCCESS**, including clean checkout; fresh complete
   review on `1331706345368fe1a2658eb7561a10126ae22416` verified AR-005.
 - Previous code+documentation GREEN head: `31ded6ba077baa3fa24a1dcc19a24ca2a5eed61a` / CI `37837801921` — **5/5 SUCCESS** including clean checkout. Subsequent AR-007 authoritative-status follow-up `30227deed15d89aae35e5368a05cfdb79022a2f6` / CI `37839906667` passed **5/5 SUCCESS**; its fresh review opened AR-008, remediated in tests at `d35e77be...` and awaiting fresh exact-head CI/review.
-- Next permitted action: prove the separate U `ACCEPTED / COMPLETE` final status seal with five exact-head ordinary CI jobs including clean checkout. Parent WP-2.12 and draft #99 remain BLOCKED/FROZEN until the final seal is green, then require a separate parent resumption gate.
+- Next permitted action: separate WP-2.12 parent resumption-governance HEAD + five exact-head ordinary CI jobs including clean checkout. PR #99 stays draft/frozen until that gate is green; U is terminal and is not reopened.
 
 ## Fresh Pass-B follow-up — AR-008 (2026-10-08)
 

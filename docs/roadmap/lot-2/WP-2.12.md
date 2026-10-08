@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.12`
 - Lot: 2 — Venues core
 - Name: mobile/offline Venue visit, offline package, local visit media and packet E2E completion
-- State: `IN_PROGRESS` — A-IMPLEMENT resumption-governance exact-head CI pending
-- Current pass: `A-IMPLEMENT RESUMPTION GATE` — tranches 1–3 GREEN and structured-reconnect #99 preserved; WP-2.12R/S/T ACCEPTED; no production changes before resumption CI
+- State: `IN_PROGRESS` — A-IMPLEMENT resumption-governance exact-head CI pending, R/S/T/U accepted
+- Current pass: `A-IMPLEMENT RESUMPTION GATE` — tranches 1–3 GREEN and structured-reconnect #99 preserved; WP-2.12R/S/T/U ACCEPTED; no parent production changes before resumption CI
 - Branch: `lot-2/venues-core`
 - Activation base: `0a2d051d3f0a45b638f5c1b5f8c81acf36491c36`
 - Activation-base CI: `37240817336` — **5/5 SUCCESS**, including full verify from clean checkout; provider-only workflows skipped
@@ -335,8 +335,8 @@ Still required before Pass A exit:
 
 ## Handoff
 
-- Current state: **BLOCKED / FROZEN — WP-2.12U retry-safety support required**
-- Current/next pass: parent A-IMPLEMENT preserved; WP-2.12U activation/RED→GREEN/review/acceptance must complete before structured-reconnect #99 resumes
+- Current state: **IN_PROGRESS / A-IMPLEMENT resumption-governance exact-head CI pending — WP-2.12U accepted**
+- Current/next pass: parent A-IMPLEMENT resumption-governance verification; frozen draft PR #99 may be reconciled only after this exact-head five-job gate passes
 - READY gate: `99cf3b68f91b616b8aca9a218d3fb6ea62b493d9` / CI `37241583422` — 5/5
 - Current canonical parent implementation preserved: `1794a3d9d564769437a22582b918f793e57cf150` / CI `37280907551` — 5/5
 - Pass-A reconciliation: `8ffe905b026645affb6f218b65b601f565e80fe6` / CI `37288210671` — 5/5
@@ -346,7 +346,7 @@ Still required before Pass A exit:
 - Primary FIR: #42 / FTR-028 — IN_PROGRESS
 - Resolved parent dependency: WP-2.12T atomic checked-link provenance is ACCEPTED at final seal `091557f2b221923bf38debd9472fe51fbee1cdcc` / CI `37798476372` 5/5. PR #99 still uses pre-T read-then-link code; its Fact-ACK response validation remediation is preserved and must be independently re-reviewed after reconciliation.
 - Parent resumption governance `58c68bf34011ad3b8c72f800d00902b38d3b3913` / CI `37799765769` passed 5/5 including clean checkout. A new 2026-10-08 Supabase/PostgREST compatibility finding then discovered that accepted R/S/T RPCs explicitly raise custom SQLSTATE `40001` for business conflicts, which can be retried by PostgREST 14. Parent #99 is therefore frozen behind support packet WP-2.12U.
-- Next permitted parent action: none until WP-2.12U is ACCEPTED. After U, rebase/reconcile PR #99, use the accepted atomic checked-link with server-read source revision and `in_person_visit` type, and independently re-review Fact ACK/provenance/dependency behavior. Media remains a separate later parent tranche.
+- Next permitted parent action: prove the separate resumption-governance exact-head five-job CI; then reconcile draft PR #99 with accepted R/S/T/U replay interfaces, atomic checked-link with server-read source revision/type `in_person_visit`, correct `PT412` conflict classification and exact Fact ACK/receipt/dependency ordering. Independent review and exact-head green CI required before merge. Media remains a separate later tranche.
 
 ## A-IMPLEMENT resumption governance — 2026-10-08
 
@@ -354,3 +354,10 @@ Still required before Pass A exit:
 - This governance-only transition resumes the original 9-point parent; it does not merge draft PR #99, change server schema, reopen accepted support packets or start media lifecycle work.
 - Next implementation after this exact-head five-job CI gate: reconcile PR #99 with accepted `linkObservationSourceChecked`, send `expectedSourceType = in_person_visit` plus the server-read `source.revision`, enforce exact receipt and queued Fact ACK, preserve conflict/dependency ordering, then repeat targeted regressions and fresh independent review.
 - Downstream: local binary byte durability + private media upload isolation, mobile checklist/capture/fallback UI, and synthetic offline/restart/reconnect E2E; no generic Lot-10 sync expansion.
+
+## A-IMPLEMENT resumption governance — 2026-10-09 after U acceptance
+
+- PostgREST-safe support WP-2.12U final accepted-status seal `319adce60b606b14653cbdac5d9e3f224b5d8614` / CI `37859154995` passed **5/5 SUCCESS** including full verify from clean checkout. The bounded R/S/T/U replay/provenance support chain is accepted.
+- This is a **governance-only** restart of original WP-2.12; source changes, media, scope expansion and PR #99 merge remain forbidden until this separate HEAD passes ordinary exact-head five-job CI.
+- Draft PR #99 at `2841755c7ffb3d08c5c2c3b97c5ecf96f10a83e9` diverges from the current canonical branch. Reconcile onto a new base or isolated integration branch without overwriting accepted R/S/T/U contracts; retain parent Fact-ACK tests, accepted atomic `linkObservationSourceChecked` with `in_person_visit` and server-read source revision, and accepted `PT412` business conflict semantics.
+- After exact-head gate: run focused replay/authorization/durability/receipt tests, full CI, then a **new independent fresh review** before any parent merge. The original 9-point packet scope remains unchanged; binary-byte/media and mobile E2E are later parent tranches.
