@@ -46,7 +46,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.12R | replay-safe Venue fact-observation command boundary                     | **ACCEPTED / COMPLETE — Pass C gap ∅**                                    |
 | WP-2.12S | replay-safe Venue member-rating command boundary                        | **ACCEPTED / COMPLETE — Pass C gap ∅**                                    |
 | WP-2.12T | atomic Venue fact-observation visit-source provenance link               | **ACCEPTED / COMPLETE — Pass C gap ∅**                                    |
-| WP-2.12U | PostgREST-safe replay conflict signaling across R/S/T RPCs                | **REVIEW_FAILED / REMEDIATION — WP212U-AR-004 pending verification**     |
+| WP-2.12U | PostgREST-safe replay conflict signaling across R/S/T RPCs                | **REVIEW_FAILED / REMEDIATION — WP212U-AR-005 pending verification**     |
 
 ## WP-2.10 — activation revalidation
 
@@ -171,7 +171,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 
 ## WP-2.12U — PostgREST-safe replay conflict signaling
 
-- State: **REVIEW_FAILED / REMEDIATION — WP212U-AR-004 pending verification**.
+- State: **REVIEW_FAILED / REMEDIATION — WP212U-AR-005 pending verification**.
 - Activation base: parent resumption-governance head `58c68bf34011ad3b8c72f800d00902b38d3b3913` / CI `37799765769` — **5/5 SUCCESS**, including full verify from clean checkout.
 - Activation-governance head `2c01f8a2b8f48bd069e0382a46e940b385fea224` / CI `37807120195` passed **5/5 SUCCESS**, including clean checkout.
 - Packet record: `docs/roadmap/lot-2/WP-2.12U.md`.
@@ -448,7 +448,7 @@ Normative release/deployment/secret contracts require Pages Functions to deploy 
 94. WP-2.12T final accepted support seal `091557f2b221923bf38debd9472fe51fbee1cdcc` / CI `37798476372` passed **5/5 SUCCESS**, clean checkout included. T is terminally ACCEPTED / COMPLETE, joining R and S. Parent WP-2.12 can enter the separate resumption-governance phase without modifying PR #99 before its own five-job CI gate.
 95. WP-2.12U activation-governance head `2c01f8a2b8f48bd069e0382a46e940b385fea224` / CI `37807120195` passed **5/5 SUCCESS**, including clean checkout. U entered bounded RED-first Pass A while parent WP-2.12 / draft #99 remained frozen.
 96. WP-2.12U RED-only PR #114 / `deb8ebd24bd5bf424b618e6e4e34832d521430bb` / CI `37808965919` was closed unmerged after reproducing the intended custom-`40001` and missing-`PT412` adapter gaps. Browser/mutation remained green; no production migration landed from the RED branch.
-97. WP-2.12U GREEN PR #115 pre-finding reviewed head `ae9de6a9465929689ea4a006116a60a141ea0730` / CI `37813382721` passed **5/5 SUCCESS**: Core 237 files / 2,063 tests / 100% coverage, DB 86 files / 1,565 tests PASS, browser 40/40, mutation 83.78%, clean checkout PASS. `WP212U-AR-001` is CLOSED / VERIFIED. AR-002/003 remediation head `9849498cb9d900f9a541cb5a5083ced1618b325c` / CI `37815477583` then passed **5/5 SUCCESS**, and fresh complete Codex review verified both remediations but opened `WP212U-AR-004`: authoritative durable handoff maps still contained obsolete READY/PLAN activation instructions. First AR-004 status-board remediation head `1c9deef42c041bd3628ca9c530eb2da6c3fb5db5` / CI `37819079475` passed **5/5 SUCCESS**; fresh review then found the same stale handoff in `LOT-2-COVERAGE-MATRIX.md`. The matrix is now synchronized on PR #115; exact-head CI + fresh review remain required before AR-004 can close.
+97. WP-2.12U GREEN PR #115 pre-finding reviewed head `ae9de6a9465929689ea4a006116a60a141ea0730` / CI `37813382721` passed **5/5 SUCCESS**: Core 237 files / 2,063 tests / 100% coverage, DB 86 files / 1,565 tests PASS, browser 40/40, mutation 83.78%, clean checkout PASS. `WP212U-AR-001` is CLOSED / VERIFIED. AR-002/003 remediation head `9849498cb9d900f9a541cb5a5083ced1618b325c` / CI `37815477583` then passed **5/5 SUCCESS**. AR-004 durable-map remediation head `1cd40096cc62e45b7adee90c2d5e7defd0b307ce` / CI `37820711030` passed **5/5 SUCCESS**, and fresh review confirmed the durable-map contradiction is gone, closing `WP212U-AR-004`. That review opened `WP212U-AR-005` P1: the acknowledged-rating PT412 path lacked direct no-side-effect postconditions. Remediation from `5730147da837ca90e1aaeca6db2a94260517d39e` adds direct rating/revision/receipt/binding postconditions; exact-head CI + fresh review remain required.
 
 ## Durable handoff
 
@@ -461,7 +461,7 @@ Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.11
 WP-2.9C: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 21accd7f9ab1b845275507b7941a782c5e816a56 / CI 36494697647 5/5 including clean checkout
 WP-2.9A: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 656398bcd5520cfa56d782023d150eb64317161d / CI 36542083037 5/5 including clean checkout
-Current packet: WP-2.12U — REVIEW_FAILED / REMEDIATION; activation `2c01f8a2b8f48bd069e0382a46e940b385fea224` / CI `37807120195` 5/5; RED #114 closed unmerged; GREEN #115 pre-finding head `ae9de6a9465929689ea4a006116a60a141ea0730` / CI `37813382721` 5/5; AR-002/003 remediation head `9849498cb9d900f9a541cb5a5083ced1618b325c` / CI `37815477583` 5/5; first AR-004 status-board remediation head `1c9deef42c041bd3628ca9c530eb2da6c3fb5db5` / CI `37819079475` 5/5; WP212U-AR-001/002/003 CLOSED / VERIFIED; WP212U-AR-004 durable-map reconciliation pending verification after coverage-matrix sync; parent WP-2.12 BLOCKED/FROZEN with draft #99 preserved; R/S/T terminal ACCEPTED / COMPLETE
+Current packet: WP-2.12U — REVIEW_FAILED / REMEDIATION; activation `2c01f8a2b8f48bd069e0382a46e940b385fea224` / CI `37807120195` 5/5; RED #114 closed unmerged; GREEN #115 pre-finding head `ae9de6a9465929689ea4a006116a60a141ea0730` / CI `37813382721` 5/5; AR-002/003 remediation `9849498cb9d900f9a541cb5a5083ced1618b325c` / CI `37815477583` 5/5; AR-004 durable-map head `1cd40096cc62e45b7adee90c2d5e7defd0b307ce` / CI `37820711030` 5/5; WP212U-AR-001..004 CLOSED / VERIFIED; WP212U-AR-005 direct acknowledged-rating postcondition evidence pending verification on current PR #115 head; parent WP-2.12 BLOCKED/FROZEN with draft #99 preserved; R/S/T terminal ACCEPTED / COMPLETE
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
@@ -500,5 +500,5 @@ FTR-089 FIR: #17 — IN_PROGRESS / parent A accepted, later presentation and Lot
 WP-2.9B: ACCEPTED / COMPLETE; FTR-093 FIR #27 remains IN_PROGRESS for downstream scope; WP29B-AR-001/002 CLOSED / VERIFIED; Pass C gap ∅
 Lots 3–12: NOT_STARTED
 Latest distinct-PDF campaign: 2303df0c9e8d6f72561ec0ce42514663801229d8 / CI 36459949861 / provider job 109058754517 / artifact 10987866873 — 10 distinct exact-size PDFs, 10 finalized flows, 20 valid exact-version CPU readings within Workers Free; provider verdict PASS
-Next permitted action: verify the complete WP-2.12U AR-004 durable-map reconciliation on PR #115, including `LOT-2-COVERAGE-MATRIX.md`, with exact-head five-job CI including clean checkout, then run a fresh complete independent Codex review. Only a clean head with zero unresolved bounded P0/P1/P2 findings may move U to REVIEW_PENDING / B-ADVERSARIAL-REVIEW and permit canonical GREEN landing. Parent #99 remains frozen until U is accepted. No provider campaign, media work or product-scope expansion is authorized.
+Next permitted action: verify the WP-2.12U AR-005 acknowledged-rating no-side-effect evidence on PR #115 with exact-head five-job CI including clean checkout, then run a fresh complete independent Codex review. Only a clean head with zero unresolved bounded P0/P1/P2 findings may move U to REVIEW_PENDING / B-ADVERSARIAL-REVIEW and permit canonical GREEN landing. Parent #99 remains frozen until U is accepted. No provider campaign, media work or product-scope expansion is authorized.
 ```
