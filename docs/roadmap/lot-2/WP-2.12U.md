@@ -70,8 +70,10 @@ legacy overload compatibility.
 
 Expected changes only:
 
-- one forward-only Supabase migration redefining the three accepted replay-safe
-  functions with `PT412` for their explicit business conflicts;
+- one forward-only Supabase migration redefining three accepted replay RPC
+  families (four function bodies, including the retained five-argument Member
+  Rating compatibility overload) with `PT412` for nine explicit custom
+  business/precondition conflict paths;
 - direct pgTAP regression that each stale/precondition path returns `PT412`
   and creates no side effect beyond the already-accepted semantics;
 - Fact/Evidence provider error mapping adds `PT412 -> conflict`;
