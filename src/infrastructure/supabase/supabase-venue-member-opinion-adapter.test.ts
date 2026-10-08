@@ -279,6 +279,41 @@ describe("SupabaseVenueMemberOpinionAdapter rating writes", () => {
   });
 });
 
+describe("SupabaseVenueMemberOpinionAdapter rating conflict mapping", () => {
+  it.each(["40001", "PT412"] as const)(
+    "maps replay precondition code %s to typed conflict",
+    async (code) => {
+      const adapter = new SupabaseVenueMemberOpinionAdapter(
+        clientWith(
+          resultsWith({
+            saveRating: {
+              data: null,
+              error: { code, message: "secret provider detail" },
+            },
+          }),
+          emptyCaptures(),
+        ),
+      );
+
+      await expect(
+        adapter.saveVenueRating({
+          projectId,
+          venueId,
+          dimensionKey: "love_score",
+          rating: 9,
+          expectedRevision: 0,
+          operationId,
+          deviceId,
+        }),
+      ).rejects.toMatchObject({
+        name: "VenueMemberOpinionPersistenceError",
+        code: "conflict",
+        message: "Venue member opinion mutation failed.",
+      });
+    },
+  );
+});
+
 describe("SupabaseVenueMemberOpinionAdapter unsafe writes", () => {
   it.each(unsafeMutationCases)(
     "fails closed for unsafe mutation response %#",
