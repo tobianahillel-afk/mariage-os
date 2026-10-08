@@ -46,7 +46,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.12R | replay-safe Venue fact-observation command boundary                     | **ACCEPTED / COMPLETE — Pass C gap ∅**                                    |
 | WP-2.12S | replay-safe Venue member-rating command boundary                        | **ACCEPTED / COMPLETE — Pass C gap ∅**                                    |
 | WP-2.12T | atomic Venue fact-observation visit-source provenance link               | **ACCEPTED / COMPLETE — Pass C gap ∅**                                    |
-| WP-2.12U | PostgREST-safe replay conflict signaling across R/S/T RPCs                | **ACCEPTANCE_PENDING — complete independent Pass B PASS; AR-001..008 CLOSED / VERIFIED** |
+| WP-2.12U | PostgREST-safe replay conflict signaling across R/S/T RPCs                | **ACCEPTANCE_PENDING — Pass C PASS / gap ∅; acceptance-record exact-head CI pending** |
 
 ## WP-2.10 — activation revalidation
 
@@ -171,6 +171,10 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 
 ## WP-2.12U — PostgREST-safe replay conflict signaling
 
+- Fresh Pass-B/status seal `4be36d5d86d9cc3b2073f9f4720b69ad4f9b72ba` / CI `37853700955` is **5/5 SUCCESS**, clean checkout included.
+- Separate Pass C reconciliation: **PASS / gap ∅** recorded in `docs/roadmap/lot-2/WP-2.12U-ACCEPTANCE.md`; exact-head acceptance-record CI pending. U stays `ACCEPTANCE_PENDING` and parent #99 remains frozen.
+
+
 - State: **ACCEPTANCE_PENDING / C-ACCEPTANCE — Fresh Pass B PASS, WP212U-AR-001..008 CLOSED / VERIFIED**.
 - Activation base: parent resumption-governance head `58c68bf34011ad3b8c72f800d00902b38d3b3913` / CI `37799765769` — **5/5 SUCCESS**, including full verify from clean checkout.
 - Activation-governance head `2c01f8a2b8f48bd069e0382a46e940b385fea224` / CI `37807120195` passed **5/5 SUCCESS**, including clean checkout.
@@ -184,7 +188,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 - Parent WP-2.12 and draft #99 remain **BLOCKED / FROZEN** until U is independently accepted. R/S/T remain terminal ACCEPTED / COMPLETE.
 - Fresh complete review verified AR-005 no-side-effect evidence and opened AR-006 (retained five-argument Rating RPC still used retry-prone custom `40001`) and AR-007 (stale packet identity). The U migration now redefines the retained overload with `PT412` on both stale branches, with direct pgTAP regressions; packet identity is aligned. A subsequent CI run `37831858172` failed at migration parsing because the newly copied overload had invalid dollar-quote delimiters; corrected in `f4a3492528f8dfaa194af0d4232eb49e8d8c6c9b`. No acceptance is claimed from that failed run.
 - AR-006/007 corrected GREEN head `31ded6ba077baa3fa24a1dcc19a24ca2a5eed61a` / CI `37837801921` passed **5/5 SUCCESS**, including full verify from clean checkout. Independent review on that exact head verified the bounded SQL/packet changes but found this section's stale AR-005 identity; the contradiction remains part of **AR-007** and is corrected by this documentation-only commit.
-- Current/next pass: **C-ACCEPTANCE — separate EXPECTED ↔ IMPLEMENTED ↔ VERIFIED reconciliation**. GREEN PR #115 exact head `a4850a3535b2a98babb90837c4f873a26130515f` / CI `37850249038` passed 5/5, received an independent complete Codex review with no new suggestions and zero unresolved threads. Canonical squash `45f28bbfa77ec1bf66e344a5d3cf3b1fecb95626` has the same Git tree and its CI `37852529610` passed 5/5 including clean checkout. Fresh Pass B record: `docs/roadmap/lot-2/WP-2.12U-FRESH-PASS-B-2026-10-09.md`. Parent WP-2.12 and #99 remain frozen until U's separate Pass C/final seal.
+- Current/next pass: **C-ACCEPTANCE — Pass C PASS / gap ∅; acceptance-record CI pending**. GREEN PR #115 exact head `a4850a3535b2a98babb90837c4f873a26130515f` / CI `37850249038` passed 5/5, received an independent complete Codex review with no new suggestions and zero unresolved threads. Canonical squash `45f28bbfa77ec1bf66e344a5d3cf3b1fecb95626` has the same Git tree and its CI `37852529610` passed 5/5 including clean checkout. Fresh Pass B record: `docs/roadmap/lot-2/WP-2.12U-FRESH-PASS-B-2026-10-09.md`. Parent WP-2.12 and #99 remain frozen until U's separate Pass C/final seal.
 
 ## Accepted packet evidence summary
 
@@ -464,7 +468,7 @@ Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.11
 WP-2.9C: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 21accd7f9ab1b845275507b7941a782c5e816a56 / CI 36494697647 5/5 including clean checkout
 WP-2.9A: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 656398bcd5520cfa56d782023d150eb64317161d / CI 36542083037 5/5 including clean checkout
-Current packet: WP-2.12U — ACCEPTANCE_PENDING / C-ACCEPTANCE; GREEN PR #115 `a4850a35...` / CI `37850249038` 5/5 and independent clean review, canonical merge `45f28bbfa77ec1bf66e344a5d3cf3b1fecb95626` / CI `37852529610` 5/5 (identical Git tree); AR-001..008 CLOSED / VERIFIED; Fresh Pass B PASS. Parent WP-2.12 / draft PR #99 BLOCKED/FROZEN; R/S/T terminal accepted.
+Current packet: WP-2.12U — ACCEPTANCE_PENDING; Pass C PASS / gap ∅; acceptance-record CI pending; Fresh Pass B seal `4be36d5d86d9cc3b2073f9f4720b69ad4f9b72ba` / CI `37853700955` 5/5 including clean checkout; AR-001..008 CLOSED / VERIFIED. Parent WP-2.12 / draft #99 BLOCKED/FROZEN; R/S/T terminal accepted.
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
@@ -503,5 +507,5 @@ FTR-089 FIR: #17 — IN_PROGRESS / parent A accepted, later presentation and Lot
 WP-2.9B: ACCEPTED / COMPLETE; FTR-093 FIR #27 remains IN_PROGRESS for downstream scope; WP29B-AR-001/002 CLOSED / VERIFIED; Pass C gap ∅
 Lots 3–12: NOT_STARTED
 Latest distinct-PDF campaign: 2303df0c9e8d6f72561ec0ce42514663801229d8 / CI 36459949861 / provider job 109058754517 / artifact 10987866873 — 10 distinct exact-size PDFs, 10 finalized flows, 20 valid exact-version CPU readings within Workers Free; provider verdict PASS
-Next permitted action: verify this WP-2.12U Fresh Pass-B/status seal through five exact-head ordinary CI jobs including clean checkout, then record a separate Pass C EXPECTED ↔ IMPLEMENTED ↔ VERIFIED reconciliation (gap ∅) and its own exact-head CI. Only after a separate final ACCEPTED / COMPLETE seal and its CI may WP-2.12 start its resumption-governance gate; draft #99/media remain frozen. No provider campaign, schema expansion or product-scope change.
+Next permitted action: verify the WP-2.12U Pass-C acceptance record with five exact-head ordinary jobs including clean checkout; if green, perform a separate final U `ACCEPTED / COMPLETE` seal and prove it with its own exact-head five-job CI. Only then may parent WP-2.12 undergo resumption governance. Draft #99/media remain frozen. No provider campaign, new schema expansion or product-scope change.
 ```

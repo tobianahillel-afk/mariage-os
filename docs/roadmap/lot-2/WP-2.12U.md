@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.12U`
 - Lot: 2 — Venues core
 - Name: PostgREST-safe replay conflict signaling across accepted R/S/T RPCs
-- State: `ACCEPTANCE_PENDING` — Fresh Pass B PASS; historical `WP212U-AR-001..008` CLOSED / VERIFIED
-- Current pass: `C-ACCEPTANCE` — separate acceptance reconciliation required
+- State: `ACCEPTANCE_PENDING` — Pass C PASS / gap ∅; acceptance-record exact-head CI pending
+- Current pass: `C-ACCEPTANCE` — reconciliation complete; acceptance-record exact-head CI pending
 - Branch: `lot-2/venues-core`
 - Parent packet: `WP-2.12` — BLOCKED/FROZEN with prior GREEN work and draft #99 preserved
 - Activation base: `58c68bf34011ad3b8c72f800d00902b38d3b3913`
@@ -184,8 +184,8 @@ At minimum:
 
 ## Handoff
 
-- Current state: **ACCEPTANCE_PENDING — Fresh Pass B PASS; Pass C pending**
-- Current/next pass: C-ACCEPTANCE — separate EXPECTED ↔ IMPLEMENTED ↔ VERIFIED reconciliation
+- Current state: **ACCEPTANCE_PENDING — Pass C PASS / gap ∅; acceptance-record CI pending**
+- Current/next pass: C-ACCEPTANCE record exact-head verification; final ACCEPTED seal remains separate
 - Parent resumption base: `58c68bf34011ad3b8c72f800d00902b38d3b3913` / CI `37799765769` — 5/5
 - Accepted dependencies: WP-2.12R / S / T terminal ACCEPTED / COMPLETE
 - Parent draft #99: preserved, unchanged, frozen
@@ -195,9 +195,7 @@ At minimum:
   `37828593485` — **5/5 SUCCESS**, including clean checkout; fresh complete
   review on `1331706345368fe1a2658eb7561a10126ae22416` verified AR-005.
 - Previous code+documentation GREEN head: `31ded6ba077baa3fa24a1dcc19a24ca2a5eed61a` / CI `37837801921` — **5/5 SUCCESS** including clean checkout. Subsequent AR-007 authoritative-status follow-up `30227deed15d89aae35e5368a05cfdb79022a2f6` / CI `37839906667` passed **5/5 SUCCESS**; its fresh review opened AR-008, remediated in tests at `d35e77be...` and awaiting fresh exact-head CI/review.
-- Next permitted action: complete a separate Pass C acceptance reconciliation after
-  the Fresh Pass-B/status seal is exact-head five-job green; parent WP-2.12
-  and draft #99 remain BLOCKED/FROZEN until U final accepted support seal.
+- Next permitted action: prove `docs/roadmap/lot-2/WP-2.12U-ACCEPTANCE.md` on an exact-head five-job CI including clean checkout; only then seal U `ACCEPTED / COMPLETE` with separate final CI. Parent WP-2.12 and draft #99 remain BLOCKED/FROZEN until the final seal is green.
 
 ## Fresh Pass-B follow-up — AR-008 (2026-10-08)
 
@@ -217,3 +215,11 @@ At minimum:
 - Optional review-only PR #116 was closed unmerged: Codex quota refused its redundant second review. Its candidate document is not treated as independent review evidence; the independent #115 exact-tree review is the Pass-B evidence.
 - Fresh Pass-B record: `docs/roadmap/lot-2/WP-2.12U-FRESH-PASS-B-2026-10-09.md` — **PASS**.
 - U enters `ACCEPTANCE_PENDING / C-ACCEPTANCE`, NOT `ACCEPTED`; parent WP-2.12 and draft #99 remain frozen until a separate Pass C and final accepted support seal both prove exact-head green.
+
+
+## Pass C reconciliation — 2026-10-09
+
+- Fresh Pass-B/status seal `4be36d5d86d9cc3b2073f9f4720b69ad4f9b72ba` / CI `37853700955` passed **5/5 SUCCESS**, including full verify from clean checkout.
+- Separate acceptance record: `docs/roadmap/lot-2/WP-2.12U-ACCEPTANCE.md` — **PASS / EXPECTED ↔ IMPLEMENTED ↔ VERIFIED gap ∅**, its own exact-head CI **pending**.
+- Historical WP212U-AR-001..008: **CLOSED / VERIFIED**; no new unresolved P0/P1/P2 finding.
+- U remains `ACCEPTANCE_PENDING`, parent WP-2.12/PR #99 remain frozen. Neither media implementation nor Lot-2 integration is authorized.
