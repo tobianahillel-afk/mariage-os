@@ -293,7 +293,7 @@ returns jsonb
 language plpgsql
 security definer
 set search_path = pg_catalog
-as $
+as $$
 declare
   current_row public.member_ratings%rowtype;
   saved_row public.member_ratings%rowtype;
@@ -396,7 +396,7 @@ begin
     'revision', saved_row.revision
   );
 end;
-$;
+$$;
 
 create or replace function public.set_venue_member_rating(
   target_project_id uuid,
