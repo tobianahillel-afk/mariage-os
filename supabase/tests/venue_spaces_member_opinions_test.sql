@@ -188,9 +188,10 @@ begin
   );
   return true;
 exception
+  when sqlstate 'PT412' then return false;
   when insufficient_privilege or invalid_parameter_value or serialization_failure or check_violation then return false;
 end;
-$$;
+$;
 
 set local role anon;
 select throws_ok(
