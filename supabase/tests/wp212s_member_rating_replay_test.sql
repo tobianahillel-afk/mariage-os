@@ -223,6 +223,92 @@ select is(
   'legacy five-argument overload advances the row revision once'
 );
 
+select throws_ok(
+  $legacy_stale_existing$select public.set_venue_member_rating(
+    'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+    'dd100000-0000-4000-8000-000000000001',
+    'interior_aesthetic_score_personal',
+    6.5,
+    0
+  )$legacy_stale_existing$,
+  'PT412',
+  'venue rating unavailable',
+  'legacy five-argument stale existing-row conflict is non-retryable'
+);
+
+reset role;
+
+select is(
+  (
+    select rating
+    from public.member_ratings
+    where project_id = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'
+      and user_id = 'd1111111-1111-4111-8111-111111111111'
+      and target_type = 'venue'
+      and target_id = 'dd100000-0000-4000-8000-000000000001'
+      and dimension_key = 'interior_aesthetic_score_personal'
+  ),
+  5.25::numeric,
+  'legacy stale existing-row conflict leaves rating unchanged'
+);
+
+select is(
+  (
+    select revision
+    from public.member_ratings
+    where project_id = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'
+      and user_id = 'd1111111-1111-4111-8111-111111111111'
+      and target_type = 'venue'
+      and target_id = 'dd100000-0000-4000-8000-000000000001'
+      and dimension_key = 'interior_aesthetic_score_personal'
+  ),
+  1::bigint,
+  'legacy stale existing-row conflict leaves revision unchanged'
+);
+
+set local role authenticated;
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"d1111111-1111-4111-8111-111111111111","role":"authenticated"}',
+  true
+);
+
+select throws_ok(
+  $legacy_stale_missing$select public.set_venue_member_rating(
+    'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+    'dd100000-0000-4000-8000-000000000001',
+    'logistics_score_personal',
+    6,
+    1
+  )$legacy_stale_missing$,
+  'PT412',
+  'venue rating unavailable',
+  'legacy five-argument nonzero expected revision without a row is non-retryable'
+);
+
+reset role;
+
+select is(
+  (
+    select count(*)
+    from public.member_ratings
+    where project_id = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'
+      and user_id = 'd1111111-1111-4111-8111-111111111111'
+      and target_type = 'venue'
+      and target_id = 'dd100000-0000-4000-8000-000000000001'
+      and dimension_key = 'logistics_score_personal'
+  ),
+  0::bigint,
+  'legacy missing-row stale conflict creates no rating row'
+);
+
+set local role authenticated;
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"d1111111-1111-4111-8111-111111111111","role":"authenticated"}',
+  true
+);
+
 select lives_ok(
   $receipt$select public.set_venue_member_rating(
     'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
