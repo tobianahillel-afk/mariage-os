@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1..WP-2.11 + WP-2.12R/S/T ACCEPTED; WP-2.12U ACCEPTANCE_PENDING / Pass C PASS / gap ∅ (acceptance-record CI pending); parent WP-2.12 BLOCKED/FROZEN**
+Status: **IN_PROGRESS — WP-2.1..WP-2.11 + WP-2.12R/S/T ACCEPTED; WP-2.12U ACCEPTED / COMPLETE (final seal CI pending); parent WP-2.12 BLOCKED/FROZEN**
 
 Purpose: durable current responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`. Detailed historical evidence remains in packet records, acceptance records, FIRs and Git history.
 
@@ -35,7 +35,7 @@ Integration prerequisite is accepted Lot 0 + Lot 1 on `main` through PR #7; `mai
 | repository/read-model/provider ports and Supabase adapters | architecture, AUTHZ-006/020 | WP-2.1..WP-2.10 + WP-2.9C | accepted packets green through WP-2.10; Pass C and exact-head CI green |
 | local cache/pending Venue edits | FTR-028 Lot-2, SYN-001..003/007..011, PWA-003/004/006 | WP-2.10, WP-2.12 | WP-2.10 **ACCEPTED**; WP-2.12 **BLOCKED/FROZEN behind U** — schema v2, pin/package + draft durability GREEN and preserved |
 | gallery/table/detail/compare/deep-link workspace | FTR-015/016/017/027, VEN-010/011/014/015 | WP-2.11 | **ACCEPTED / COMPLETE — Pass C gap ∅** |
-| mobile visit mode | FTR-028, PWA-004 | WP-2.12 + WP-2.12R/S/T/U support | WP-2.12 **BLOCKED/FROZEN behind U** with shell/package/draft GREEN preserved; WP-2.12R/S/T **ACCEPTED / COMPLETE**; U Pass C PASS / gap ∅ (acceptance-record CI pending) |
+| mobile visit mode | FTR-028, PWA-004 | WP-2.12 + WP-2.12R/S/T/U support | WP-2.12 **BLOCKED/FROZEN behind U** with shell/package/draft GREEN preserved; WP-2.12R/S/T **ACCEPTED / COMPLETE**; U Pass C gap ∅ / acceptance-record CI `37854906006` 5/5 (final seal CI pending) |
 | file/content validation, trusted binary lifecycle, no private production data in public artifacts | MED-001..010/013 + security/quality controls | WP-2.8A/B/C, WP-2.9A, WP-2.9C, WP-2.12 | media and A/C accepted; WP-2.12 local-binary store/logout safety GREEN and preserved while parent is BLOCKED/FROZEN; byte lifecycle/upload completion remains later parent scope |
 | explicit permissions/grants/RLS/direct endpoint and Storage allow+deny evidence | AUTHZ-001..009/012/017/018/020 | owning packets WP-2.1..WP-2.9C | accepted authorization evidence green; C local/exact-head evidence green |
 | synthetic complex Venue exit fixture/integrated workflows | Lot-2 acceptance | WP-2.12 + Lot Integration Pass | downstream |
@@ -129,7 +129,7 @@ ADR 0011 later produced decisive deployed CPU evidence and was rejected for fina
 | WP-2.12R | **ACCEPTED / COMPLETE** | replay-safe fact-observation command identity; Pass C gap ∅ / CI `37335393969` 5/5; 3 points / cohesion PASS |
 | WP-2.12S | **ACCEPTED / COMPLETE** | replay-safe Venue member-rating command identity with expand/switch compatibility; Pass C gap ∅ / CI `37463358444` 5/5; 3 points / cohesion PASS |
 | WP-2.12T | **ACCEPTED / COMPLETE** | atomic in-person Fact source provenance link; Pass C gap ∅ / CI `37796626397` 5/5; final seal `091557f2b221923bf38debd9472fe51fbee1cdcc` / CI `37798476372` 5/5; AR-001..004 CLOSED / VERIFIED; 3 points / cohesion PASS |
-| WP-2.12U | **ACCEPTANCE_PENDING — Pass C PASS / gap ∅; acceptance-record CI pending** | PostgREST-safe R/S/T conflict signaling; 7 points/cohesion PASS; Fresh Pass-B seal `4be36d5d86d9cc3b2073f9f4720b69ad4f9b72ba` / CI `37853700955` 5/5; AR-001..008 CLOSED / VERIFIED; parent #99 frozen |
+| WP-2.12U | **ACCEPTED / COMPLETE — final accepted-status seal CI pending** | PostgREST-safe R/S/T conflict signaling; 7 points/cohesion PASS; Fresh Pass-B seal `4be36d5d86d9cc3b2073f9f4720b69ad4f9b72ba` / CI `37853700955` 5/5; AR-001..008 CLOSED / VERIFIED; parent #99 frozen |
 
 ## Sequencing
 
@@ -141,12 +141,12 @@ WP-2.1..WP-2.8C [ACCEPTED]
                                                                                            ↘ WP-2.12R [ACCEPTED]
                                                                                            ↘ WP-2.12S [ACCEPTED]
                                                                                            ↘ WP-2.12T [ACCEPTED]
-                                                                                           ↘ WP-2.12U [PASS C gap ∅ / CI pending]
+                                                                                           ↘ WP-2.12U [ACCEPTED / final seal CI pending]
                                                                                               → WP-2.12 [resume A after U acceptance]
                                                                                                 → Lot reconciliation → Integration Pass
 ```
 
-Only one packet may be active at a time. WP-2.9A/B/C, WP-2.10, WP-2.11 and support packets WP-2.12R/S/T remain terminal accepted. U activation/RED/GREEN have been independently reviewed: PR #115 exact head `a4850a35...` / CI `37850249038` 5/5, clean Codex review and 0 unresolved threads. Canonical merge `45f28bbfa77ec1bf66e344a5d3cf3b1fecb95626` / CI `37852529610` passed 5/5 including clean checkout and shares the exact reviewed tree. AR-001..008 are CLOSED / VERIFIED, Fresh Pass B PASS; separate Pass C and final support acceptance remain outstanding. Parent WP-2.12 and draft #99 remain BLOCKED/FROZEN.
+Only one packet may be active at a time. WP-2.9A/B/C, WP-2.10, WP-2.11 and support packets WP-2.12R/S/T remain terminal accepted. U activation/RED/GREEN have been independently reviewed: PR #115 exact head `a4850a35...` / CI `37850249038` 5/5, clean Codex review and 0 unresolved threads. Canonical merge `45f28bbfa77ec1bf66e344a5d3cf3b1fecb95626` / CI `37852529610` passed 5/5 including clean checkout and shares the exact reviewed tree. AR-001..008 are CLOSED / VERIFIED, Fresh Pass B PASS; Pass C acceptance-record `18b706b3...` / CI `37854906006` passed 5/5 including clean checkout; only the final U accepted-status seal CI remains. Parent WP-2.12 and draft #99 stay BLOCKED/FROZEN until that gate is green. Parent WP-2.12 and draft #99 remain BLOCKED/FROZEN.
 
 ## Explicitly outside Lot 2
 
@@ -193,8 +193,8 @@ WP-2.12 = BLOCKED / FROZEN — tranches 1–3 GREEN through `1794a3d9...` / `372
 WP-2.12R = ACCEPTED / COMPLETE — final support seal `cdad9eb82052ac3e2296769e5381b2371558ec4d` / CI `37341157497` 5/5
 WP-2.12S = ACCEPTED / COMPLETE — final support seal `93f2916db125139f7694e56248c188a2cf21f794` / CI `37465538267` 5/5; AR-001/002/003 CLOSED / VERIFIED
 WP-2.12T = ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record `6f460afc1d12134bc12f08e51145f29b01cf6e0f` / CI `37796626397` 5/5; final support seal `091557f2b221923bf38debd9472fe51fbee1cdcc` / CI `37798476372` 5/5 including clean checkout; AR-001..004 CLOSED / VERIFIED
-WP-2.12U = ACCEPTANCE_PENDING / C-ACCEPTANCE — Pass C PASS / gap ∅; Fresh Pass-B/status seal `4be36d5d86d9cc3b2073f9f4720b69ad4f9b72ba` / CI `37853700955` 5/5; acceptance-record exact-head CI pending; historical AR-001..008 CLOSED / VERIFIED; parent #99 frozen.
-next permitted action = exact-head CI for Pass C acceptance record → final WP-2.12U accepted support seal + exact-head CI → only then separate parent WP-2.12 resumption-governance gate; parent #99/media blocked meanwhile.
+WP-2.12U = ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record `18b706b3d3a3ba1a97691c4af18e58a46fb6424b` / CI `37854906006` 5/5 including clean checkout; final accepted-status seal exact-head CI pending; historical AR-001..008 CLOSED / VERIFIED; parent #99 frozen.
+next permitted action = final WP-2.12U accepted support seal exact-head 5/5 CI → separate parent WP-2.12 resumption-governance gate exact-head 5/5 CI → only then reconcile draft #99; parent #99/media blocked meanwhile.
 media-byte durability/upload remains a separate later parent tranche; no provider rerun is authorized
 ```
 

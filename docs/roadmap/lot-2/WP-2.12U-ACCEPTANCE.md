@@ -1,6 +1,6 @@
 # WP-2.12U — Pass C acceptance reconciliation
 
-Status: **PASS C COMPLETE — EXPECTED ↔ IMPLEMENTED ↔ VERIFIED gap ∅; acceptance-record exact-head CI pending**.
+Status: **ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record CI 5/5 green; final status seal CI pending**.
 
 This is the separate bounded Pass C for WP-2.12U: PostgREST-safe signaling of application-generated business/precondition conflicts in the accepted Fact Observation (R), Member Rating (S), and checked in-person provenance-link (T) RPC families.
 
@@ -73,4 +73,4 @@ required bounded WP-2.12U responsibilities
 **PASS — EXPECTED ↔ IMPLEMENTED ↔ VERIFIED gap ∅** on the bounded U responsibility.
 
 This is an acceptance *reconciliation*, not the final acceptance seal.
-WP-2.12U remains **ACCEPTANCE_PENDING** until the exact HEAD containing this record passes all five ordinary CI jobs, including `Full verify from clean checkout`; a separate final U `ACCEPTED / COMPLETE` seal must then pass its own exact-head CI. Parent WP-2.12 / PR #99 cannot resume until both gates are green.
+Acceptance record HEAD `18b706b3d3a3ba1a97691c4af18e58a46fb6424b` / CI `37854906006` passed all **5/5 ordinary jobs**, including `Full verify from clean checkout`. WP-2.12U enters **ACCEPTED / COMPLETE**, subject to a separate final accepted-status seal and its own exact-head five-job CI. Parent WP-2.12 / PR #99 remain BLOCKED/FROZEN until that last U gate is green; only then may parent resumption governance begin.
