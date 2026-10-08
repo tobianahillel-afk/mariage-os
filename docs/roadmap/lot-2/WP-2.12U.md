@@ -5,7 +5,7 @@
 - Work Packet ID: `WP-2.12U`
 - Lot: 2 — Venues core
 - Name: PostgREST-safe replay conflict signaling across accepted R/S/T RPCs
-- State: `REVIEW_FAILED / REMEDIATION` — fresh review findings `WP212U-AR-006/007` pending verification
+- State: `REVIEW_FAILED / REMEDIATION` — fresh review findings `WP212U-AR-006/007/008` pending verification
 - Current pass: `A-IMPLEMENT / GREEN remediation`
 - Branch: `lot-2/venues-core`
 - Parent packet: `WP-2.12` — BLOCKED/FROZEN with prior GREEN work and draft #99 preserved
@@ -189,15 +189,22 @@ At minimum:
 - Parent resumption base: `58c68bf34011ad3b8c72f800d00902b38d3b3913` / CI `37799765769` — 5/5
 - Accepted dependencies: WP-2.12R / S / T terminal ACCEPTED / COMPLETE
 - Parent draft #99: preserved, unchanged, frozen
-- Open U findings: `WP212U-AR-006/007` pending exact-head verification
+- Open U findings: `WP212U-AR-006/007/008` pending exact-head verification
 - Closed / verified: `WP212U-AR-001..005`
 - AR-005 evidence head: `a47a12d844dcd8f9c61303f904c304982da6040c` / CI
   `37828593485` — **5/5 SUCCESS**, including clean checkout; fresh complete
   review on `1331706345368fe1a2658eb7561a10126ae22416` verified AR-005.
 - Last code+documentation GREEN head: `31ded6ba077baa3fa24a1dcc19a24ca2a5eed61a` / CI `37837801921` — **5/5 SUCCESS** including clean checkout. Its fresh review found the remaining authoritative AR-005/006/007 contradiction, treated as the existing AR-007 documentation finding.
-- Next permitted action: prove the documentation-only AR-007 correction with all
-  five ordinary exact-head CI jobs including clean checkout, then request a new
+- Next permitted action: prove the AR-006/007/008 remediation with all five
+  ordinary exact-head CI jobs including clean checkout, then request a new
   fresh complete independent Codex review of that SAME exact head. Only a clean
   verdict with zero unresolved bounded P0/P1/P2 findings may close AR-006/007,
   move U to `REVIEW_PENDING / B-ADVERSARIAL-REVIEW`, and permit canonical GREEN
   landing. Parent #99 remains BLOCKED/FROZEN.
+
+## Fresh Pass-B follow-up — AR-008 (2026-10-08)
+
+- PR #115 / prior head `30227deed15d89aae35e5368a05cfdb79022a2f6` / CI `37839906667` passed **5/5 SUCCESS** including clean checkout; the fresh independent review on that head reported another P1 evidence gap.
+- `WP212U-AR-008` **P1 / REMEDIATION** — the seven-argument stale-revision `PT412` pgTAP test checked absence of a new receipt, but not the *post-call* rating and revision invariants.
+- Bounded test-only correction `d35e77be9807a315bd5afa3895af6e1b9149dbd7` now asserts the existing `love_score` rating remains **8** and revision remains **2** after that exact stale call; the no-receipt assertion remains.
+- AR-006/007 remain pending fresh independent confirmation; AR-008 remains open until current exact-head CI **5/5** and a new complete fresh Pass B are clean. No parent #99 work or provider campaign is authorized.
