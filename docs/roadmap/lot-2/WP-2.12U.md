@@ -5,12 +5,13 @@
 - Work Packet ID: `WP-2.12U`
 - Lot: 2 — Venues core
 - Name: PostgREST-safe replay conflict signaling across accepted R/S/T RPCs
-- State: `READY` — activation-governance HEAD must pass exact-head CI before Pass A starts
-- Current pass: `PLAN` (next: `A-IMPLEMENT / RED first`)
+- State: `REVIEW_FAILED / REMEDIATION` — fresh review findings `WP212U-AR-002/003` pending verification
+- Current pass: `A-IMPLEMENT / GREEN remediation`
 - Branch: `lot-2/venues-core`
 - Parent packet: `WP-2.12` — BLOCKED/FROZEN with prior GREEN work and draft #99 preserved
 - Activation base: `58c68bf34011ad3b8c72f800d00902b38d3b3913`
 - Activation-base CI: `37799765769` — **5/5 SUCCESS**, including full verify from clean checkout
+- Activation-governance head: `2c01f8a2b8f48bd069e0382a46e940b385fea224` / CI `37807120195` — **5/5 SUCCESS**, clean checkout included
 - Primary FIR: #42 / FTR-028 support only; no new product Feature
 - Trigger date: 2026-10-08
 
@@ -20,12 +21,17 @@ During the exact-head parent resumption gate, current Supabase guidance was
 rechecked as required for database/API work.
 
 Supabase now documents that a custom PL/pgSQL
-`RAISE ... ERRCODE '40001'` inside an RPC can trigger PostgREST 14 retry
-behavior because `40001` is interpreted as a transient serialization failure.
-The documented failure mode can repeatedly execute the transaction and flood
-logs until the request is terminated. Mariage OS also pins
-`@supabase/supabase-js 2.112.4`; current client guidance documents automatic
-retries for selected transient PostgREST responses.
+`RAISE ... ERRCODE '40001'` inside an RPC can trigger a PostgREST 14
+server-side transaction retry loop because `40001` is interpreted as a
+transient serialization failure. The documented failure mode can repeatedly
+execute the transaction and flood logs until the request is terminated;
+PostgREST 16 contains the upstream fix.
+
+Mariage OS pins `@supabase/supabase-js 2.112.4`. Current client guidance also
+documents automatic retries for selected transient PostgREST responses, but
+only for idempotent GET/HEAD requests; a normal `.rpc()` call uses POST and is
+not client-retried by default. WP-2.12U therefore addresses the PostgREST 14
+server-side `40001` classification hazard, not a client-side RPC retry loop.
 
 The accepted replay-safe support functions intentionally use custom `40001`
 for **business precondition conflicts**, not native PostgreSQL serialization
@@ -142,22 +148,36 @@ At minimum:
 
 ## Pass A exit
 
-- [ ] activation-governance HEAD 5/5 including clean checkout
-- [ ] isolated RED proves the retry-prone custom 40001 contract
-- [ ] forward-only migration emits PT412 for bounded business conflicts
-- [ ] adapters preserve typed conflict semantics for PT412 and genuine 40001
-- [ ] accepted R/S/T authorization/replay behavior remains green
-- [ ] exact-head 5/5 CI including clean checkout
+- [x] activation-governance HEAD 5/5 including clean checkout
+- [x] isolated RED proves the retry-prone custom 40001 contract
+- [x] forward-only migration emits PT412 for bounded business conflicts
+- [x] adapters preserve typed conflict semantics for PT412 and genuine 40001
+- [x] accepted R/S/T authorization/replay behavior remains green on the pre-remediation GREEN head
+- [ ] remediation head passes exact-head 5/5 CI including clean checkout
+- [ ] fresh independent re-review reports no open bounded P0/P1/P2 finding
 - [ ] packet moves to `REVIEW_PENDING / B-ADVERSARIAL-REVIEW`
+
+## Review findings and remediation evidence
+
+- Activation-governance head `2c01f8a2b8f48bd069e0382a46e940b385fea224` / CI `37807120195`: **5/5 SUCCESS**, including clean checkout.
+- RED-only PR #114 / `deb8ebd24bd5bf424b618e6e4e34832d521430bb` / CI `37808965919`: closed unmerged after reproducing the intended R/S/T `40001` and adapter-mapping gaps.
+- GREEN PR #115 pre-finding reviewed head `ae9de6a9465929689ea4a006116a60a141ea0730` / CI `37813382721`: **5/5 SUCCESS**; Core 237 files / 2,063 tests / 100% coverage, DB 86 files / 1,565 tests PASS, E2E 40/40, mutation 83.78%.
+- `WP212U-AR-001` **CLOSED / VERIFIED** — typed Rating `conflict` is now preserved through `saveVenueMemberRating` and reaches the parent structured replay conflict state.
+- Fresh Codex re-review on `ae9de6a...` opened two further bounded findings:
+  - `WP212U-AR-002` **P1 / REMEDIATION** — durable packet/status handoff was still stale at READY/PLAN.
+  - `WP212U-AR-003` **P1 / REMEDIATION** — direct pgTAP coverage was missing for Fact missing-superseded-observation, Rating missing acknowledged row, and Rating nonzero expected revision with no current row.
+- AR-002 is remediated by this durable handoff update.
+- AR-003 direct `PT412` + no-side-effect regressions are now present in the R/S pgTAP suites; exact-head CI and fresh re-review remain required before closure.
 
 ## Handoff
 
-- Current state: READY, **activation exact-head CI pending**
-- Current/next pass: PLAN → A-IMPLEMENT / RED first
+- Current state: **REVIEW_FAILED / REMEDIATION**
+- Current/next pass: A-IMPLEMENT GREEN remediation → exact-head CI → fresh independent re-review
 - Parent resumption base: `58c68bf34011ad3b8c72f800d00902b38d3b3913` / CI `37799765769` — 5/5
 - Accepted dependencies: WP-2.12R / S / T terminal ACCEPTED / COMPLETE
 - Parent draft #99: preserved, unchanged, frozen
-- Open U findings: ∅
-- Next permitted action: pass this activation-governance HEAD through all five
-  ordinary CI jobs including clean checkout; only then capture RED-only
-  evidence and begin the bounded compatibility implementation.
+- Open U findings: `WP212U-AR-002/003` pending verification
+- Next permitted action: prove the remediation head with all five ordinary CI
+  jobs including clean checkout, then request a fresh complete independent
+  Codex review. Only a clean exact-head verdict may move U to
+  `REVIEW_PENDING / B-ADVERSARIAL-REVIEW` and permit canonical GREEN landing.
