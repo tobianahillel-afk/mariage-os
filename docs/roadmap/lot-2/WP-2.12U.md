@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.12U`
 - Lot: 2 — Venues core
 - Name: PostgREST-safe replay conflict signaling across accepted R/S/T RPCs
-- State: `REVIEW_FAILED / REMEDIATION` — fresh review findings `WP212U-AR-006/007/008` pending verification
-- Current pass: `A-IMPLEMENT / GREEN remediation`
+- State: `ACCEPTANCE_PENDING` — Fresh Pass B PASS; historical `WP212U-AR-001..008` CLOSED / VERIFIED
+- Current pass: `C-ACCEPTANCE` — separate acceptance reconciliation required
 - Branch: `lot-2/venues-core`
 - Parent packet: `WP-2.12` — BLOCKED/FROZEN with prior GREEN work and draft #99 preserved
 - Activation base: `58c68bf34011ad3b8c72f800d00902b38d3b3913`
@@ -156,8 +156,8 @@ At minimum:
 - [x] adapters preserve typed conflict semantics for PT412 and genuine 40001
 - [x] accepted R/S/T authorization/replay behavior remains green on the pre-remediation GREEN head
 - [x] AR-002/003 remediation head `9849498cb9d900f9a541cb5a5083ced1618b325c` / CI `37815477583` passes exact-head 5/5 including clean checkout
-- [ ] fresh independent re-review reports no open bounded P0/P1/P2 finding
-- [ ] packet moves to `REVIEW_PENDING / B-ADVERSARIAL-REVIEW`
+- [x] fresh complete independent review on final GREEN head raised zero new bounded P0/P1/P2 finding
+- [x] packet passed independent Fresh Pass B and moves to `ACCEPTANCE_PENDING / C-ACCEPTANCE`
 
 ## Review findings and remediation evidence
 
@@ -184,23 +184,20 @@ At minimum:
 
 ## Handoff
 
-- Current state: **REVIEW_FAILED / REMEDIATION**
-- Current/next pass: A-IMPLEMENT GREEN remediation → exact-head CI → fresh independent re-review
+- Current state: **ACCEPTANCE_PENDING — Fresh Pass B PASS; Pass C pending**
+- Current/next pass: C-ACCEPTANCE — separate EXPECTED ↔ IMPLEMENTED ↔ VERIFIED reconciliation
 - Parent resumption base: `58c68bf34011ad3b8c72f800d00902b38d3b3913` / CI `37799765769` — 5/5
 - Accepted dependencies: WP-2.12R / S / T terminal ACCEPTED / COMPLETE
 - Parent draft #99: preserved, unchanged, frozen
-- Open U findings: `WP212U-AR-006/007/008` pending exact-head verification
+- Open U findings: ∅; WP212U-AR-001..008 CLOSED / VERIFIED
 - Closed / verified: `WP212U-AR-001..005`
 - AR-005 evidence head: `a47a12d844dcd8f9c61303f904c304982da6040c` / CI
   `37828593485` — **5/5 SUCCESS**, including clean checkout; fresh complete
   review on `1331706345368fe1a2658eb7561a10126ae22416` verified AR-005.
 - Previous code+documentation GREEN head: `31ded6ba077baa3fa24a1dcc19a24ca2a5eed61a` / CI `37837801921` — **5/5 SUCCESS** including clean checkout. Subsequent AR-007 authoritative-status follow-up `30227deed15d89aae35e5368a05cfdb79022a2f6` / CI `37839906667` passed **5/5 SUCCESS**; its fresh review opened AR-008, remediated in tests at `d35e77be...` and awaiting fresh exact-head CI/review.
-- Next permitted action: prove the AR-006/007/008 remediation with all five
-  ordinary exact-head CI jobs including clean checkout, then request a new
-  fresh complete independent Codex review of that SAME exact head. Only a clean
-  verdict with zero unresolved bounded P0/P1/P2 findings may close AR-006/007/008,
-  move U to `REVIEW_PENDING / B-ADVERSARIAL-REVIEW`, and permit canonical GREEN
-  landing. Parent #99 remains BLOCKED/FROZEN.
+- Next permitted action: complete a separate Pass C acceptance reconciliation after
+  the Fresh Pass-B/status seal is exact-head five-job green; parent WP-2.12
+  and draft #99 remain BLOCKED/FROZEN until U final accepted support seal.
 
 ## Fresh Pass-B follow-up — AR-008 (2026-10-08)
 
@@ -208,3 +205,15 @@ At minimum:
 - `WP212U-AR-008` **P1 / REMEDIATION** — the seven-argument stale-revision `PT412` pgTAP test checked absence of a new receipt, but not the *post-call* rating and revision invariants.
 - Bounded test-only correction `d35e77be9807a315bd5afa3895af6e1b9149dbd7` now asserts the existing `love_score` rating remains **8** and revision remains **2** after that exact stale call; the no-receipt assertion remains.
 - AR-006/007/008 remain **OPEN** despite prior review HEAD `f0c13ba09782887cfc1de2568995b6baa24cda0d` / CI `37848432025` (**5/5 SUCCESS**, clean checkout included). That head's new independent review identified an AR-007 governance omission: the current/next-pass line of the canonical status named only AR-006/007. This docs-only correction reconciles all three open findings, but needs its own exact-head five-job CI and new independent complete Pass B before any closure or PR merge. Parent #99 remains BLOCKED/FROZEN; no provider campaign or media work is authorized.
+
+
+## Latest Fresh Pass B disposition — 2026-10-09 (supersedes historical pending notes)
+
+- RED-only #114 remains closed unmerged.
+- GREEN PR #115 final reviewed head `a4850a3535b2a98babb90837c4f873a26130515f` / CI `37850249038` passed 5/5, including clean checkout.
+- Complete independent Codex review requested on that exact head returned **no new major issue** (comment `6070005329`); zero unresolved inline threads remained after verified remediation.
+- Canonical squash merge `45f28bbfa77ec1bf66e344a5d3cf3b1fecb95626` has the same Git tree `ebb5a29b59da9969bb49a44068450ccce0d60b53` as the exact reviewed head. Canonical CI `37852529610` is **5/5 SUCCESS** including clean checkout.
+- Historical findings `WP212U-AR-001..008` **CLOSED / VERIFIED**; no newly unresolved bounded P0/P1/P2 finding.
+- Optional review-only PR #116 was closed unmerged: Codex quota refused its redundant second review. Its candidate document is not treated as independent review evidence; the independent #115 exact-tree review is the Pass-B evidence.
+- Fresh Pass-B record: `docs/roadmap/lot-2/WP-2.12U-FRESH-PASS-B-2026-10-09.md` — **PASS**.
+- U enters `ACCEPTANCE_PENDING / C-ACCEPTANCE`, NOT `ACCEPTED`; parent WP-2.12 and draft #99 remain frozen until a separate Pass C and final accepted support seal both prove exact-head green.
