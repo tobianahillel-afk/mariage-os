@@ -559,7 +559,7 @@ select throws_ok(
     'dd600000-0000-4000-8000-000000000001',
     'dd700000-0000-4000-8000-000000000001'
   )$$,
-  '40001',
+  'PT412',
   'venue rating conflict',
   'old acknowledged operation conflicts after the rating changed later'
 );
@@ -574,7 +574,7 @@ select throws_ok(
     'dd600000-0000-4000-8000-000000000003',
     'dd700000-0000-4000-8000-000000000001'
   )$$,
-  '40001',
+  'PT412',
   'venue rating unavailable',
   'genuinely new stale operation still conflicts'
 );
