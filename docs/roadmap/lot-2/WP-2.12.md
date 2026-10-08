@@ -335,8 +335,8 @@ Still required before Pass A exit:
 
 ## Handoff
 
-- Current state: **IN_PROGRESS / A-IMPLEMENT RESUMPTION — exact-head CI pending**
-- Current/next pass: parent A-IMPLEMENT resumption governance; structured-reconnect #99 remains draft/frozen until exact-head five-job resumption CI is green
+- Current state: **BLOCKED / FROZEN — WP-2.12U retry-safety support required**
+- Current/next pass: parent A-IMPLEMENT preserved; WP-2.12U activation/RED→GREEN/review/acceptance must complete before structured-reconnect #99 resumes
 - READY gate: `99cf3b68f91b616b8aca9a218d3fb6ea62b493d9` / CI `37241583422` — 5/5
 - Current canonical parent implementation preserved: `1794a3d9d564769437a22582b918f793e57cf150` / CI `37280907551` — 5/5
 - Pass-A reconciliation: `8ffe905b026645affb6f218b65b601f565e80fe6` / CI `37288210671` — 5/5
@@ -345,7 +345,8 @@ Still required before Pass A exit:
 - Rating replay dependency satisfied: WP-2.12S final support seal `93f2916db125139f7694e56248c188a2cf21f794` / CI `37465538267` — 5/5, ACCEPTED / COMPLETE
 - Primary FIR: #42 / FTR-028 — IN_PROGRESS
 - Resolved parent dependency: WP-2.12T atomic checked-link provenance is ACCEPTED at final seal `091557f2b221923bf38debd9472fe51fbee1cdcc` / CI `37798476372` 5/5. PR #99 still uses pre-T read-then-link code; its Fact-ACK response validation remediation is preserved and must be independently re-reviewed after reconciliation.
-- Next permitted parent action: prove this resumption-governance HEAD 5/5 including clean checkout; only then resume PR #99, replace the old link path with atomic checked-link type+revision enforcement and verify queued ACK semantics. Media remains a separate later parent tranche.
+- Parent resumption governance `58c68bf34011ad3b8c72f800d00902b38d3b3913` / CI `37799765769` passed 5/5 including clean checkout. A new 2026-10-08 Supabase/PostgREST compatibility finding then discovered that accepted R/S/T RPCs explicitly raise custom SQLSTATE `40001` for business conflicts, which can be retried by PostgREST 14. Parent #99 is therefore frozen behind support packet WP-2.12U.
+- Next permitted parent action: none until WP-2.12U is ACCEPTED. After U, rebase/reconcile PR #99, use the accepted atomic checked-link with server-read source revision and `in_person_visit` type, and independently re-review Fact ACK/provenance/dependency behavior. Media remains a separate later parent tranche.
 
 ## A-IMPLEMENT resumption governance — 2026-10-08
 

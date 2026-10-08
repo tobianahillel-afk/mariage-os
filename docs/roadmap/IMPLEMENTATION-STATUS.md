@@ -42,10 +42,11 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.9B | generic project tags and Venue entity-tag links                        | **ACCEPTED / COMPLETE — Pass C gap ∅**                                      |
 | WP-2.10 | repositories, local cache, pending/offline mutations                   | **ACCEPTED / COMPLETE**                                                     |
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace                       | **ACCEPTED / COMPLETE**                                                    |
-| WP-2.12 | mobile/offline venue-visit workflow and packet E2E completion          | **IN_PROGRESS — A-IMPLEMENT resumption exact-head CI pending**            |
+| WP-2.12 | mobile/offline venue-visit workflow and packet E2E completion          | **BLOCKED — WP-2.12U PostgREST-safe replay conflict signaling**           |
 | WP-2.12R | replay-safe Venue fact-observation command boundary                     | **ACCEPTED / COMPLETE — Pass C gap ∅**                                    |
 | WP-2.12S | replay-safe Venue member-rating command boundary                        | **ACCEPTED / COMPLETE — Pass C gap ∅**                                    |
 | WP-2.12T | atomic Venue fact-observation visit-source provenance link               | **ACCEPTED / COMPLETE — Pass C gap ∅**                                    |
+| WP-2.12U | PostgREST-safe replay conflict signaling across R/S/T RPCs                | **READY — activation exact-head CI pending**                              |
 
 ## WP-2.10 — activation revalidation
 
@@ -167,6 +168,19 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 - Pass A + Fresh Pass B exit is satisfied. Separate Pass C reconciles the bounded T contract as **EXPECTED ↔ IMPLEMENTED ↔ VERIFIED; gap ∅** in `docs/roadmap/lot-2/WP-2.12T-ACCEPTANCE.md`.
 - Pass-C acceptance-record `6f460afc1d12134bc12f08e51145f29b01cf6e0f` / CI `37796626397` passed **5/5 SUCCESS**, including full verify from clean checkout; EXPECTED ↔ IMPLEMENTED ↔ VERIFIED gap ∅.
 - WP-2.12T final support seal `091557f2b221923bf38debd9472fe51fbee1cdcc` / CI `37798476372` passed **5/5 SUCCESS**, including full verify from clean checkout. WP-2.12R/S/T are now terminal **ACCEPTED / COMPLETE**. Parent WP-2.12 may enter a separate **A-IMPLEMENT resumption-governance exact-head CI gate**; PR #99 remains draft/frozen until that gate passes.
+
+## WP-2.12U — PostgREST-safe replay conflict signaling
+
+- **READY candidate** after a 2026-10-08 upstream compatibility finding discovered during parent #99 resumption.
+- Activation base: parent resumption-governance head `58c68bf34011ad3b8c72f800d00902b38d3b3913` / CI `37799765769` — **5/5 SUCCESS**, including full verify from clean checkout.
+- Packet record: `docs/roadmap/lot-2/WP-2.12U.md`.
+- Trigger: Supabase's current troubleshooting guidance states that custom PL/pgSQL `RAISE ... ERRCODE '40001'` inside an RPC can cause PostgREST 14 transaction retries/infinite retry behavior. Mariage OS currently pins `@supabase/supabase-js 2.112.4`, whose PostgREST client also retries selected transient responses. The accepted replay-safe R/S/T functions intentionally raise custom `40001` for business conflicts.
+- Scope is limited to those **explicit application-generated conflict signals**. Genuine PostgreSQL serialization failures remain `40001` and keep their existing conflict mapping.
+- Planned compatibility signal: non-retryable PostgREST custom SQLSTATE `PT412` (HTTP 412 / precondition failed) for stale replay preconditions, with application adapters mapping `PT412` to the existing typed `conflict` result.
+- Affected accepted boundaries only: replay-safe Fact Observation supersession conflict, replay-safe Venue Member Rating revision/receipt conflict, and checked visit-source provenance revision/type conflict.
+- Size: **7 points / cohesion PASS** — one forward-only migration family (1) + three meaningfully changed replay RPCs (6); no table, RLS, permission, provider, UI or new product Feature.
+- Parent WP-2.12 and draft #99 are **BLOCKED / FROZEN** only until U is independently accepted. Existing R/S/T product semantics, grants and authorization remain immutable.
+- Current/next pass: **PLAN → A-IMPLEMENT / RED first**, but no U production migration/client mapping may begin until this activation-governance HEAD itself passes five ordinary exact-head CI jobs including clean checkout.
 
 ## Accepted packet evidence summary
 
@@ -442,7 +456,7 @@ Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.11
 WP-2.9C: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 21accd7f9ab1b845275507b7941a782c5e816a56 / CI 36494697647 5/5 including clean checkout
 WP-2.9A: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 656398bcd5520cfa56d782023d150eb64317161d / CI 36542083037 5/5 including clean checkout
-Current packet: WP-2.12 — IN_PROGRESS / A-IMPLEMENT resumption governance; exact-head five-job CI pending; WP-2.12R/S/T terminal ACCEPTED / COMPLETE; parent tranches 1–3 preserved, draft PR #99 unchanged
+Current packet: WP-2.12U — READY candidate / activation exact-head CI pending; parent WP-2.12 BLOCKED/FROZEN with tranches 1–3 and draft #99 preserved; R/S/T remain terminal ACCEPTED / COMPLETE
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
@@ -481,5 +495,5 @@ FTR-089 FIR: #17 — IN_PROGRESS / parent A accepted, later presentation and Lot
 WP-2.9B: ACCEPTED / COMPLETE; FTR-093 FIR #27 remains IN_PROGRESS for downstream scope; WP29B-AR-001/002 CLOSED / VERIFIED; Pass C gap ∅
 Lots 3–12: NOT_STARTED
 Latest distinct-PDF campaign: 2303df0c9e8d6f72561ec0ce42514663801229d8 / CI 36459949861 / provider job 109058754517 / artifact 10987866873 — 10 distinct exact-size PDFs, 10 finalized flows, 20 valid exact-version CPU readings within Workers Free; provider verdict PASS
-Next permitted action: verify the separate WP-2.12 parent resumption-governance HEAD with all five ordinary CI jobs including clean checkout. Only after green, resume the preserved structured-reconnect draft PR #99 against the accepted checked-link RPC, repair and re-review Fact ACK/provenance/dependency behaviors, then obtain exact-head CI before any merge. No media, provider campaign or server migration in this gate.
+Next permitted action: verify the WP-2.12U activation-governance HEAD with all five ordinary CI jobs including clean checkout. Only after green, create isolated RED-only evidence that the three accepted replay RPC families still emit custom retry-prone SQLSTATE 40001 and that current adapters do not type PT412 as conflict; then implement one forward-only compatibility migration + bounded adapter mappings. Parent #99 remains frozen until U is accepted. No provider campaign, media work or product-scope expansion is authorized.
 ```
