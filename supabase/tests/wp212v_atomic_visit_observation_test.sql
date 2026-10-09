@@ -319,6 +319,56 @@ select is((public.append_venue_fact_observation_visit_atomic(
 select is((select count(*) from public.fact_observations where id='b7000000-0000-4000-8000-000000000061'),1::bigint,'lost ACK replay never duplicates observation');
 select is((select count(*) from public.observation_sources where observation_id='b7000000-0000-4000-8000-000000000061' and is_primary),1::bigint,'lost ACK replay never duplicates primary link');
 
+select is((public.append_venue_fact_observation_visit_atomic(
+  'b7000000-0000-4000-8000-000000000001',
+  'b7000000-0000-4000-8000-000000000031',
+  'b7000000-0000-4000-8000-000000000061',
+  '12.5'::jsonb,'12.5 m','observed','high',
+  '2026-10-06T12:00:00.000Z','Visit measurement',null,
+  'b7000000-0000-4000-8000-000000000051',1
+) -> 'observation' ->> 'supersedes_observation_id'),null::text,
+'atomic receipt confirms that an ordinary observation has no predecessor');
+
+-- A different source cannot become primary for the same observation even
+-- when its source row is separate from the already locked primary source.
+select throws_ok($call$select public.append_venue_fact_observation_visit_atomic(
+  'b7000000-0000-4000-8000-000000000001',
+  'b7000000-0000-4000-8000-000000000031',
+  'b7000000-0000-4000-8000-000000000061',
+  '12.5'::jsonb,'12.5 m','observed','high',
+  '2026-10-06T12:00:00.000Z','Visit measurement',null,
+  'b7000000-0000-4000-8000-000000000052',1
+)$call$,'23505','venue visit observation provenance conflict',
+'a different source cannot create a second primary on the same observation');
+select is((select count(*) from public.observation_sources
+  where observation_id='b7000000-0000-4000-8000-000000000061'
+    and is_primary),1::bigint,'primary source remains unique after conflict');
+select ok(pg_catalog.position(
+  'pg_advisory_xact_lock' in
+  pg_catalog.pg_get_functiondef(to_regprocedure(
+    'public.append_venue_fact_observation_visit_atomic(uuid,uuid,uuid,jsonb,text,text,text,text,text,uuid,uuid,bigint)'
+  ))
+) > 0, 'atomic command serializes concurrent calls on observation identity');
+
+-- The new observation must prove exactly which predecessor it superseded.
+select is((public.append_venue_fact_observation_visit_atomic(
+  'b7000000-0000-4000-8000-000000000001',
+  'b7000000-0000-4000-8000-000000000031',
+  'b7000000-0000-4000-8000-000000000068',
+  '12.5'::jsonb,'12.5 m','observed','high',
+  '2026-10-06T12:00:00.000Z','Visit measurement',
+  'b7000000-0000-4000-8000-000000000040',
+  'b7000000-0000-4000-8000-000000000051',1
+) -> 'observation' ->> 'supersedes_observation_id'),
+'b7000000-0000-4000-8000-000000000040',
+'atomic receipt binds successful supersession to the prior observation');
+select is((select superseded_by_observation_id::text
+  from public.fact_observations
+  where id='b7000000-0000-4000-8000-000000000040'),
+'b7000000-0000-4000-8000-000000000068',
+'the predecessor database row confirms the exact successor');
+
+
 select throws_ok($call$select public.append_venue_fact_observation_visit_atomic(
   'b7000000-0000-4000-8000-000000000001',
   'b7000000-0000-4000-8000-000000000031',
@@ -407,5 +457,37 @@ select throws_ok($call$select public.append_venue_fact_observation_visit_atomic(
 '42501','venue visit observation unavailable','non-member is denied before any append');
 reset role;
 select is((select count(*) from public.fact_observations where id='b7000000-0000-4000-8000-000000000065'),0::bigint,'denied member cannot leave orphan observation');
+
+set local role authenticated;
+select set_config('request.jwt.claims','{"sub":"b7333333-3333-4333-8333-333333333333","role":"authenticated"}',true);
+select throws_ok($call$select public.append_venue_fact_observation_visit_atomic(
+  'b7000000-0000-4000-8000-000000000001',
+  'b7000000-0000-4000-8000-000000000031',
+  'b7000000-0000-4000-8000-000000000066',
+  '12.5'::jsonb,'12.5 m','observed','high',
+  '2026-10-06T12:00:00.000Z','Visit measurement',null,
+  'b7000000-0000-4000-8000-000000000057',1
+)$call$,'42501','venue visit observation unavailable',
+'revoked editor is denied at atomic RPC boundary');
+
+select set_config('request.jwt.claims','{"sub":"b7444444-4444-4444-8444-444444444444","role":"authenticated"}',true);
+select throws_ok($call$select public.append_venue_fact_observation_visit_atomic(
+  'b7000000-0000-4000-8000-000000000001',
+  'b7000000-0000-4000-8000-000000000031',
+  'b7000000-0000-4000-8000-000000000067',
+  '12.5'::jsonb,'12.5 m','observed','high',
+  '2026-10-06T12:00:00.000Z','Visit measurement',null,
+  'b7000000-0000-4000-8000-000000000058',1
+)$call$,'42501','venue visit observation unavailable',
+'active read-only viewer cannot write through the privileged RPC');
+reset role;
+select is((select count(*) from public.fact_observations
+  where id in ('b7000000-0000-4000-8000-000000000066',
+               'b7000000-0000-4000-8000-000000000067')),
+  0::bigint,'revoked/editor and viewer denial leave no observation writes');
+select is((select count(*) from public.observation_sources
+  where observation_id in ('b7000000-0000-4000-8000-000000000066',
+                           'b7000000-0000-4000-8000-000000000067')),
+  0::bigint,'revoked/editor and viewer denial leave no provenance links');
 select * from finish();
 rollback;
