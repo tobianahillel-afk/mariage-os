@@ -1,11 +1,10 @@
 import { expect, it } from "vitest";
-import type {
-  AtomicVenueVisitObservationInput,
-} from "@application/facts/venue-visit-atomic-observation";
 import { parseVenueFactDefinitionRow } from "./parse-venue-fact-row";
-import {
-  parseAtomicVenueVisitObservationReceipt,
-} from "./parse-atomic-venue-visit-observation";
+import * as atomicVisit from "./parse-atomic-venue-visit-observation";
+
+type AtomicInput = Parameters<
+  typeof atomicVisit.parseAtomicVenueVisitObservationReceipt
+>[2];
 
 const projectId = "81111111-1111-4111-8111-111111111111";
 const venueId = "82222222-2222-4222-8222-222222222222";
@@ -52,7 +51,7 @@ function context(valueType = "boolean", optionsJson: unknown = null) {
   };
 }
 
-const input: AtomicVenueVisitObservationInput = {
+const input: AtomicInput = {
   projectId,
   factId,
   observationId,
@@ -102,10 +101,14 @@ const receipt = { observation, link, checkedSource };
 
 function parse(
   payload: unknown,
-  intent: AtomicVenueVisitObservationInput = input,
+  intent: AtomicInput = input,
   definition = context(),
 ) {
-  return parseAtomicVenueVisitObservationReceipt(payload, definition, intent);
+  return atomicVisit.parseAtomicVenueVisitObservationReceipt(
+    payload,
+    definition,
+    intent,
+  );
 }
 
 it("accepts a complete actor-bound atomic receipt", () => {
