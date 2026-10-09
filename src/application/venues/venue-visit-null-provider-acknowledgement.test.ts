@@ -13,12 +13,15 @@ import {
 } from "../../../tests/support/venue-visit-structured-replay-test-support";
 
 it.each([
-  ["note", noteMutation()],
-  ["fact", factMutation()],
-  ["rating", ratingMutation()],
+  ["note null", noteMutation(), null],
+  ["fact null", factMutation(), null],
+  ["rating null", ratingMutation(), null],
+  ["note primitive", noteMutation(), "invalid"],
+  ["fact primitive", factMutation(), "invalid"],
+  ["rating primitive", ratingMutation(), "invalid"],
 ] as const)(
-  "retains a %s after a malformed successful null provider acknowledgement",
-  async (_label, mutation) => {
+  "retains a %s malformed successful provider acknowledgement",
+  async (_label, mutation, receipt) => {
     const local = new MemoryLocalStore();
     const remote = new RemoteHarness();
     await seed(local, mutation);
@@ -28,16 +31,16 @@ it.each([
       interactions: {
         ...remote.interactions,
         appendVenueInteraction: async () =>
-          null as unknown as VenueInteractionRecord,
+          receipt as unknown as VenueInteractionRecord,
       },
       facts: {
         ...remote.facts,
         appendObservation: async () =>
-          null as unknown as VenueFactObservationRecord,
+          receipt as unknown as VenueFactObservationRecord,
       },
       memberOpinions: {
         ...remote.memberOpinions,
-        saveVenueRating: async () => null as unknown as VenueMemberRatingRecord,
+        saveVenueRating: async () => receipt as unknown as VenueMemberRatingRecord,
       },
       now: () => "2026-10-09T00:00:00.000Z",
     });
