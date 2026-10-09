@@ -40,7 +40,8 @@ it.each([
       },
       memberOpinions: {
         ...remote.memberOpinions,
-        saveVenueRating: async () => receipt as unknown as VenueMemberRatingRecord,
+        saveVenueRating: async () =>
+          receipt as unknown as VenueMemberRatingRecord,
       },
       now: () => "2026-10-09T00:00:00.000Z",
     });
