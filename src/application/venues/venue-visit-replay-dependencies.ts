@@ -23,9 +23,9 @@ function replayOrder(
   right: PendingMutationEnvelope,
 ): number {
   const createdOrder = left.createdAt.localeCompare(right.createdAt);
-  return createdOrder !== 0
-    ? createdOrder
-    : left.operationId.toLowerCase().localeCompare(right.operationId.toLowerCase());
+  const leftId = left.operationId.toLowerCase();
+  const rightId = right.operationId.toLowerCase();
+  return createdOrder !== 0 ? createdOrder : leftId.localeCompare(rightId);
 }
 
 function ratingSeriesKey(
