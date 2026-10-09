@@ -172,8 +172,8 @@ it("rejects invalid local fact intent", () => {
 it("normalizes multiselect order in receipts", () => {
   const selections = {
     options: [
-      { key: "a", label: "A" },
-      { key: "b", label: "B" },
+      { key: "a", labelKey: "A" },
+      { key: "b", labelKey: "B" },
     ],
   };
   const intent = { ...input, value: ["b", "a"] };
