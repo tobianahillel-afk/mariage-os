@@ -161,7 +161,7 @@ const badReceipts = [
   ["different note", badObservation({ note: "Different" })],
 ] as const;
 
-it.each(badReceipts)("rejects %s despite provider success", (_name, payload) => {
+it.each(badReceipts)("rejects %s", (_name, payload) => {
   expect(() => parse(payload)).toThrow();
 });
 
