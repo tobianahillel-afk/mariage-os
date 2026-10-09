@@ -24,6 +24,7 @@ declare
   parsed_observed_at timestamptz;
   observation_receipt jsonb;
   link_receipt jsonb;
+  superseded_predecessor_id uuid;
 begin
   if auth.uid() is null then
     raise exception 'venue visit observation unavailable' using errcode = '42501';
@@ -57,6 +58,17 @@ begin
     raise exception 'venue visit observation invalid' using errcode = '22023';
   end if;
 
+  -- Serialize by the stable observation identity, not by a source row:
+  -- concurrent calls may target *different* sources for the same observation.
+  -- An absent primary link cannot be protected with a row lock alone.
+  perform pg_catalog.pg_advisory_xact_lock(
+    pg_catalog.hashtextextended(
+      'wp212v:' || target_project_id::text || ':' ||
+      target_observation_id::text,
+      0
+    )
+  );
+
   -- This lock is acquired BEFORE invoking the accepted observation append.
   -- It is retained until the entire enclosing RPC transaction commits.
   select * into source_row
@@ -75,8 +87,8 @@ begin
   end if;
 
   -- Do not silently convert a historically committed observation tied to a
-  -- different primary source. Concurrent conflicts are also protected by
-  -- the accepted observation-source unique/primary constraints.
+  -- different primary source. The transaction-scoped observation advisory
+  -- lock serializes this absent-row check against other atomic visit calls.
   perform 1
   from public.observation_sources os
   where os.project_id = target_project_id
@@ -109,6 +121,30 @@ begin
     raise exception 'venue visit observation unavailable' using errcode = '42501';
   end if;
 
+  -- A new observation contains only its successor identity. Verify the
+  -- predecessor row actually points to this exact observation before the
+  -- receipt can claim the requested supersession succeeded.
+  select prior.id into superseded_predecessor_id
+  from public.fact_observations prior
+  where prior.project_id = target_project_id
+    and prior.fact_id = target_fact_id
+    and prior.superseded_by_observation_id = target_observation_id
+    and prior.observation_status = 'superseded'
+  for share;
+
+  if superseded_predecessor_id is distinct from
+      target_supersedes_observation_id
+    or exists (
+      select 1 from public.fact_observations other_prior
+      where other_prior.project_id = target_project_id
+        and other_prior.fact_id = target_fact_id
+        and other_prior.superseded_by_observation_id = target_observation_id
+        and other_prior.id is distinct from target_supersedes_observation_id
+    ) then
+    raise exception 'venue visit observation supersession conflict'
+      using errcode = '23505';
+  end if;
+
   link_receipt := public.link_venue_fact_observation_source_checked(
     target_project_id,
     target_observation_id,
@@ -127,7 +163,9 @@ begin
   end if;
 
   return pg_catalog.jsonb_build_object(
-    'observation', observation_receipt,
+    'observation', observation_receipt || pg_catalog.jsonb_build_object(
+      'supersedes_observation_id', superseded_predecessor_id
+    ),
     'link', link_receipt,
     'checkedSource', pg_catalog.jsonb_build_object(
       'projectId', target_project_id,
