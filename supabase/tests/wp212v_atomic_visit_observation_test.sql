@@ -329,6 +329,34 @@ select is((public.append_venue_fact_observation_visit_atomic(
 ) -> 'observation' ->> 'supersedes_observation_id'),null::text,
 'atomic receipt confirms that an ordinary observation has no predecessor');
 
+-- All still-granted primary-link RPCs must share the database invariant,
+-- not merely the new atomic RPC's advisory lock.
+select throws_ok($legacy_primary$select public.link_venue_fact_observation_source(
+  'b7000000-0000-4000-8000-000000000001',
+  'b7000000-0000-4000-8000-000000000061',
+  'b7000000-0000-4000-8000-000000000052',
+  true
+)$legacy_primary$,
+'23505',
+'duplicate key value violates unique constraint "observation_sources_one_primary_per_observation_idx"',
+'legacy public link cannot introduce a second primary on an atomically linked observation');
+
+select throws_ok($checked_primary$select public.link_venue_fact_observation_source_checked(
+  'b7000000-0000-4000-8000-000000000001',
+  'b7000000-0000-4000-8000-000000000061',
+  'b7000000-0000-4000-8000-000000000052',
+  true, 'in_person_visit', 1
+)$checked_primary$,
+'23505',
+'duplicate key value violates unique constraint "observation_sources_one_primary_per_observation_idx"',
+'checked public link cannot introduce a second primary on an atomically linked observation');
+
+select is((select count(*) from public.observation_sources
+  where project_id='b7000000-0000-4000-8000-000000000001'
+    and observation_id='b7000000-0000-4000-8000-000000000061'
+    and is_primary),1::bigint,
+'legacy and checked rejected writes leave the canonical primary unchanged');
+
 -- A different source cannot become primary for the same observation even
 -- when its source row is separate from the already locked primary source.
 select throws_ok($call$select public.append_venue_fact_observation_visit_atomic(
