@@ -34,7 +34,7 @@ it("accepts case-equivalent durable note identity", () => {
   const queued = noteMutation(id.toUpperCase());
   const command = venueReplayCommand({
     ...queued,
-    payload: { ...queued.payload, interactionId: id },
+    payload: { ...(queued.payload as Record<string, string | null>), interactionId: id },
   }, scope);
   expect(command.kind).toBe("visit_note");
 });
