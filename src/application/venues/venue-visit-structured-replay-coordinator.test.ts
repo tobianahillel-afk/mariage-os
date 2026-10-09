@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { venueReplayCommand } from "./venue-local-mutation";
+import { VenueInteractionService } from "./venue-interaction-service";
 import { venueVisitNoteAcknowledgementMatches } from "./venue-visit-note-acknowledgement";
 import {
   MemoryLocalStore,
@@ -270,9 +271,11 @@ describe("Venue visit structured replay note ACK validation", () => {
     const command = venueReplayCommand(noteMutation(), scope);
     if (command.kind !== "visit_note") throw new Error("Invalid fixture");
     const remote = new RemoteHarness();
-    const receipt = await remote.interactions.appendVenueInteraction(
-      command.input,
-    );
+    const receiptResult = await new VenueInteractionService(
+      remote.interactions,
+    ).appendVenueInteraction(command.input);
+    if (!receiptResult.ok) throw new Error("Invalid note fixture");
+    const receipt = receiptResult.value;
     expect(
       venueVisitNoteAcknowledgementMatches(
         { ...command, input: { ...command.input, summary: "" } },
