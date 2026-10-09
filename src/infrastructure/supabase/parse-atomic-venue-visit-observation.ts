@@ -60,6 +60,28 @@ function parseCheckedSource(
   };
 }
 
+function sameObservationPayload(
+  observation: {
+    readonly value: unknown;
+    readonly rawValueText: string | null;
+    readonly evidenceLevel: string;
+    readonly confidence: string;
+  },
+  expected: {
+    readonly value: unknown;
+    readonly rawValueText: string | null;
+    readonly evidenceLevel: string;
+    readonly confidence: string;
+  },
+): boolean {
+  return (
+    stableJson(observation.value) === stableJson(expected.value) &&
+    observation.rawValueText === expected.rawValueText &&
+    observation.evidenceLevel === expected.evidenceLevel &&
+    observation.confidence === expected.confidence
+  );
+}
+
 export function parseAtomicVenueVisitObservationReceipt(
   value: unknown,
   context: VenueFactContext,
@@ -85,10 +107,7 @@ export function parseAtomicVenueVisitObservationReceipt(
   if (
     !link.isPrimary ||
     observation.createdBy !== input.actorId ||
-    stableJson(observation.value) !== stableJson(expected.value) ||
-    observation.rawValueText !== expected.rawValueText ||
-    observation.evidenceLevel !== expected.evidenceLevel ||
-    observation.confidence !== expected.confidence ||
+    !sameObservationPayload(observation, expected) ||
     observation.observedAt !== expected.observedAt ||
     observation.note !== expected.note
   ) {
