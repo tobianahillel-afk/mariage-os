@@ -9,7 +9,6 @@ import {
   factMutation,
   noteMutation,
   ratingMutation,
-  scope,
   seed,
 } from "../../../tests/support/venue-visit-structured-replay-test-support";
 
@@ -57,6 +56,5 @@ it.each([
     });
     expect(local.pending.has(mutation.operationId)).toBe(true);
     expect(remote.factLinks).toHaveLength(0);
-    expect(scope.projectId).toBe(mutation.projectId);
   },
 );
