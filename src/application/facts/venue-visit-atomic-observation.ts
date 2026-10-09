@@ -13,7 +13,7 @@ export interface AtomicVenueVisitObservationInput extends BaseObservationInput {
   readonly actorId: string;
 }
 
-export interface AtomicVenueVisitSourceProof {
+interface AtomicVenueVisitSourceProof {
   readonly projectId: string;
   readonly sourceId: string;
   readonly sourceType: "in_person_visit";
@@ -27,8 +27,3 @@ export interface AtomicVenueVisitObservationReceipt {
   readonly checkedSource: AtomicVenueVisitSourceProof;
 }
 
-export interface AtomicVenueVisitObservationPort {
-  appendAtomicVisitObservation(
-    input: AtomicVenueVisitObservationInput,
-  ): Promise<AtomicVenueVisitObservationReceipt>;
-}
