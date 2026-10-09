@@ -78,6 +78,7 @@ const observation = {
   confidence: "high",
   observation_status: "active",
   superseded_by_observation_id: null,
+  supersedes_observation_id: null,
   observed_at: "2026-09-07T06:30:00.000Z",
   note: null,
   created_by: actorId,
@@ -163,6 +164,25 @@ const badReceipts = [
 
 it.each(badReceipts)("rejects %s", (_name, payload) => {
   expect(() => parse(payload)).toThrow();
+});
+
+it("rejects missing, substituted or unrequested supersession proof", () => {
+  const predecessor = "81111111-1111-4111-8111-111111111112";
+  const intended = { ...input, supersedesObservationId: predecessor };
+
+  expect(() => parse(receipt, intended)).toThrow();
+  expect(() =>
+    parse(badObservation({ supersedes_observation_id: predecessor }), intended),
+  ).not.toThrow();
+  expect(() =>
+    parse(badObservation({ supersedes_observation_id: foreignId }), intended),
+  ).toThrow();
+  expect(() =>
+    parse(badObservation({ supersedes_observation_id: predecessor })),
+  ).toThrow();
+  const missingProof = { ...observation };
+  delete (missingProof as Record<string, unknown>).supersedes_observation_id;
+  expect(() => parse({ ...receipt, observation: missingProof })).toThrow();
 });
 
 it("rejects invalid local fact intent", () => {
