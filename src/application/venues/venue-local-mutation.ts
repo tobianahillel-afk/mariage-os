@@ -58,7 +58,7 @@ function nullableString(value: unknown): string | null {
 
 function uuidValue(value: unknown): string {
   const parsed = stringValue(value);
-  return isUuid(parsed) ? parsed : invalidMutation();
+  return isUuid(parsed) ? parsed.toLowerCase() : invalidMutation();
 }
 
 function nullableUuid(value: unknown): string | null {
@@ -164,7 +164,7 @@ function visitNoteCommand(
 ): VenueReplayCommand {
   requireNoBaseRevision(mutation.baseRevision);
   const interactionId = uuidValue(payload.interactionId);
-  if (interactionId !== mutation.operationId) invalidMutation();
+  if (interactionId !== mutation.operationId.toLowerCase()) invalidMutation();
 
   return {
     kind: "visit_note",
@@ -188,7 +188,7 @@ function factObservationCommand(
 ): VenueReplayCommand {
   requireNoBaseRevision(mutation.baseRevision);
   const observationId = uuidValue(payload.observationId);
-  if (observationId !== mutation.operationId) invalidMutation();
+  if (observationId !== mutation.operationId.toLowerCase()) invalidMutation();
 
   return {
     kind: "fact_observation",
@@ -227,7 +227,7 @@ function memberRatingCommand(
       dimensionKey: stringValue(payload.dimensionKey),
       rating: finiteNumber(payload.rating),
       expectedRevision,
-      operationId: mutation.operationId,
+      operationId: mutation.operationId.toLowerCase(),
       deviceId: mutation.deviceId,
     },
   };
