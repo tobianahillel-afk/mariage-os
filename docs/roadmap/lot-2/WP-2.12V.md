@@ -4,12 +4,13 @@
 
 - Work Packet ID: `WP-2.12V` (bounded support packet; activation exact-head CI pending)
 - Lot: 2 — Venues core
-- Parent: `WP-2.12`, currently A-IMPLEMENT / PR #117 draft
-- State: **READY candidate / ACTIVATION-GOVERNANCE CI PENDING** — no RED or production implementation permitted before the gate
+- Parent: `WP-2.12`, BLOCKED / PR #117 draft
+- State: **PLANNED** — activation revalidation and exact-head governance CI pending; RED/production forbidden before a separate READY seal
+- Current pass: **PLAN / ACTIVATION-REVALIDATION** — no Pass A or RED yet
 - Primary tracking issue: #125
 - Primary Feature: #42 / FTR-028 (support only; no new product Feature)
 - Proposed base: `a2161aa3c2271cd685c07d38d6456630c0a2fb38` — accepted R/S/T/U are present
-- Production changes authorized: **NONE** until this READY candidate head passes all five ordinary exact-head CI jobs, including clean checkout. Proposal head `4311399c0b28a6110b485dfe0d1242d4d12acef6` / CI `37869893376` passed 5/5, but does not substitute for activation-head CI.
+- Production changes authorized: **NONE** until this PLANNED activation candidate passes five ordinary exact-head CI jobs, including clean checkout, and a separate READY seal is committed and verified. Proposal head `4311399c0b28a6110b485dfe0d1242d4d12acef6` / CI `37869893376` passed 5/5, but does not substitute for activation-head CI.
 - Parent PR #117: **DO NOT MERGE** while its atomic observation-provenance MAJOR finding is open
 
 ## Why extraction is required
@@ -22,9 +23,9 @@ the second encounters a changed source revision/type, authorization failure or
 an invalid/lost acknowledgement. Local durable replay must not incorrectly
 claim that such an observation is fully synced with provenance.
 
-The original parent packet is sized **9 points**. The necessary new atomic
-server RPC (+2) and forward-only migration family (+1) push the combined scope
-to 12, exceeding the work-packet maximum. The change cannot be silently added
+The original parent packet is sized **9 points**. The necessary new atomic server RPC (+2), privileged authorization boundary
+(+2) and forward-only migration family (+1) push the combined scope to **14**,
+exceeding the work-packet maximum. The change cannot be silently added
 to WP-2.12 or retroactively reclassify accepted R/S/T/U implementations.
 
 ## Frozen bounded contract — activation candidate
@@ -56,10 +57,27 @@ reconcile the link if and only if its observation identity/immutable intent and
 the current checked source revision/type are valid; otherwise return a
 classified conflict or rejection while retaining the local operation.
 
-The TypeScript application may consider a queued Fact observation synchronized
-**only after both returned records independently match** the durable
-observation intent, scope, provenance source, current user and expected
-revision. An invalid or primitive success payload is never an ACK.
+The atomic RPC must return an object with exactly these independently
+validated components:
+
+- `observation`: accepted canonical observation row. The application
+  checks observation ID, project ID, Fact ID, immutable observation
+  value/metadata/observed-at, supersession identity and `createdBy`
+  against its durable local intent and current authenticated user.
+- `link`: accepted canonical observation-source link row. The application
+  checks exact project/observation/source IDs and `isPrimary === true`.
+- `checkedSource`: evidence **produced inside the same locked SQL
+  transaction**, containing source ID, source type `in_person_visit`,
+  checked revision, project ID and `checkedBy` = `auth.uid()`.
+  The application checks these against the expected source revision,
+  project/user and durable intent.
+
+The accepted `ObservationSourceLinkRecord` does **not** carry actor or source
+revision and must not be treated as proof of either. The accepted observation
+does **not** carry source revision. An invalid, primitive, incomplete or
+foreign successful provider payload is never an ACK; durable work is retained.
+These three components may be composed into one new typed atomic receipt
+without retroactively modifying the accepted individual R/S/T/U records.
 
 ## Intended interfaces
 
@@ -79,9 +97,10 @@ revision. An invalid or primitive success payload is never an ACK.
 |---|---:|
 | One forward-only migration family | 1 |
 | One new transactional public RPC command | 2 |
-| New table/entity/RLS/permissions | 0 |
+| New privileged authorization boundary (authenticated SECURITY DEFINER, explicit membership/permission/grants) | 2 |
+| New table/entity, new RLS policy or permission key | 0 |
 | UI/provider/offline generic semantics | 0 |
-| **Total** | **3** |
+| **Total** | **5** |
 
 Cohesion: **PASS**. Everything implements one invariant: an
 observation and its verified in-person source provenance must commit or
@@ -90,7 +109,7 @@ reconcile together.
 Revalidation is **PASS for design and sizing**. Accepted replay core, checked
 source-link RPC, text-timestamp public wrapper, multiselect normalization,
 supersession and PT412 behavior were re-read from the exact current SQL
-migration chain. The 3-point responsibility is independently reviewable.
+migration chain. The 5-point responsibility is independently reviewable.
 **READY implementation permission is nevertheless gated on this activation
 record's own five ordinary exact-head CI jobs**, including clean checkout.
 
@@ -183,7 +202,7 @@ not count as RED contract evidence.
   `40001`; input/authorization/identity failures fail closed according
   to the existing codes. Direct pgTAP authenticated/anon/foreign-project
   cases are mandatory.
-- Sized **3 points**, cohesion PASS. No new table, RLS policy, permission
+- Sized **5 points**, cohesion PASS: migration + RPC + privileged authorization boundary. No new table, RLS policy, permission
   key, provider campaign, UI route, local schema or generic sync semantics.
 - The only permitted next action is to prove this activation-governance head
   by the five ordinary exact-head CI jobs, including full verify from a
@@ -193,8 +212,8 @@ not count as RED contract evidence.
 
 ## Current handoff
 
-**READY candidate / activation exact-head CI pending.** No RED/production
-change until that gate is green. Parent WP-2.12 / draft PR #117 remains
+**PLANNED / PLAN; activation exact-head CI pending.** No RED/production
+change until that gate is green **and** a separate READY state seal is verified. Parent WP-2.12 / draft PR #117 remains
 **BLOCKED** behind this separately accepted transaction. After V is
 ACCEPTED, the parent must replace its unsafe two-RPC path and undergo fresh
 review before merging. Local media bytes and Lot-2 exit E2E remain later

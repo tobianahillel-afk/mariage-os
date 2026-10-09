@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1..WP-2.11 + WP-2.12R/S/T/U ACCEPTED; parent WP-2.12 BLOCKED behind WP-2.12V READY activation candidate**
+Status: **IN_PROGRESS — WP-2.1..WP-2.11 + WP-2.12R/S/T/U ACCEPTED; parent WP-2.12 BLOCKED behind WP-2.12V PLANNED activation candidate**
 
 Purpose: durable current responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`. Detailed historical evidence remains in packet records, acceptance records, FIRs and Git history.
 
@@ -125,28 +125,28 @@ ADR 0011 later produced decisive deployed CPU evidence and was rejected for fina
 | WP-2.9B | **ACCEPTED / COMPLETE** | generic project Tags + Venue entity-tags; FIR #27 downstream; AR-001/002 closed |
 | WP-2.10 | **ACCEPTED / COMPLETE** | repositories/local cache/pending offline mutations; Pass C gap ∅ / CI `36849005712` 5/5 |
 | WP-2.11 | **ACCEPTED / COMPLETE** | gallery/table/detail/compare/deep-link workspace; Pass C gap ∅ / CI `37240178167` 5/5 |
-| WP-2.12 | **IN_PROGRESS — A-IMPLEMENT resumption CI pending** | mobile/offline Venue visit + packet E2E completion; tranches 1–3 GREEN; structured reconnect draft #99 preserved; FIR #42 |
+| WP-2.12 | **BLOCKED — dependency WP-2.12V** | mobile/offline Venue visit + packet E2E completion; tranches 1–3 GREEN; structured reconnect drafts #99/#117 unmerged; FIR #42 |
 | WP-2.12R | **ACCEPTED / COMPLETE** | replay-safe fact-observation command identity; Pass C gap ∅ / CI `37335393969` 5/5; 3 points / cohesion PASS |
 | WP-2.12S | **ACCEPTED / COMPLETE** | replay-safe Venue member-rating command identity with expand/switch compatibility; Pass C gap ∅ / CI `37463358444` 5/5; 3 points / cohesion PASS |
 | WP-2.12T | **ACCEPTED / COMPLETE** | atomic in-person Fact source provenance link; Pass C gap ∅ / CI `37796626397` 5/5; final seal `091557f2b221923bf38debd9472fe51fbee1cdcc` / CI `37798476372` 5/5; AR-001..004 CLOSED / VERIFIED; 3 points / cohesion PASS |
 | WP-2.12U | **ACCEPTED / COMPLETE — final seal `319adce6...` / CI `37859154995` 5/5** | PostgREST-safe R/S/T conflict signaling; 7 points/cohesion PASS; Fresh Pass-B seal `4be36d5d86d9cc3b2073f9f4720b69ad4f9b72ba` / CI `37853700955` 5/5; AR-001..008 CLOSED / VERIFIED; parent #99 frozen |
+| WP-2.12V | **PLANNED — activation revalidation CI pending** | new atomic observation + checked source transaction; 5 points/cohesion PASS (migration + RPC + privileged authorization boundary); issue #125 / PR #126; parent blocked |
 
 ## Sequencing
 
 ```text
-WP-2.1..WP-2.8C [ACCEPTED]
-  → WP-2.9C [ACCEPTED]
-    → WP-2.9A [ACCEPTED]
-                → WP-2.9B [ACCEPTED] → WP-2.10 [ACCEPTED] → WP-2.11 [ACCEPTED] → WP-2.12 [resumption CI gate]
-                                                                                           ↘ WP-2.12R [ACCEPTED]
-                                                                                           ↘ WP-2.12S [ACCEPTED]
-                                                                                           ↘ WP-2.12T [ACCEPTED]
-                                                                                           ↘ WP-2.12U [ACCEPTED]
-                                                                                              → WP-2.12 [resume A after resumption CI]
-                                                                                                → Lot reconciliation → Integration Pass
+WP-2.1..WP-2.11 [ACCEPTED]
+  → WP-2.12 [BLOCKED / preserved tranches]
+      → WP-2.12R [ACCEPTED]
+      → WP-2.12S [ACCEPTED]
+      → WP-2.12T [ACCEPTED]
+      → WP-2.12U [ACCEPTED]
+      → WP-2.12V [PLANNED: activation CI → READY → A / B / C]
+          → WP-2.12 [resume parent #117 atomic integration + media + mobile E2E]
+              → Lot reconciliation → separate Integration Pass
 ```
 
-Only one packet may be active at a time. WP-2.1..WP-2.11 and bounded support packets WP-2.12R/S/T/U are terminal accepted. Parent WP-2.12 remains BLOCKED by a verified observation/provenance atomicity MAJOR in draft PR #117. The dedicated 3-point WP-2.12V has coherence PASS but must first pass its own READY activation exact-head CI. Parent PRs #117/#99 must not merge or proceed to media/exit E2E until V Pass C accepts the new atomic boundary.
+Only one packet may be active at a time. WP-2.1..WP-2.11 and bounded support packets WP-2.12R/S/T/U are terminal accepted. Parent WP-2.12 remains BLOCKED by a verified observation/provenance atomicity MAJOR in draft PR #117. The dedicated 5-point WP-2.12V has cohesion PASS but remains PLANNED until its activation CI and a separate READY seal pass exact-head CI. Parent PRs #117/#99 must not merge or proceed to media/exit E2E until V Pass C accepts the new atomic boundary.
 
 ## Explicitly outside Lot 2
 
@@ -194,8 +194,8 @@ WP-2.12R = ACCEPTED / COMPLETE — final support seal `cdad9eb82052ac3e2296769e5
 WP-2.12S = ACCEPTED / COMPLETE — final support seal `93f2916db125139f7694e56248c188a2cf21f794` / CI `37465538267` 5/5; AR-001/002/003 CLOSED / VERIFIED
 WP-2.12T = ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record `6f460afc1d12134bc12f08e51145f29b01cf6e0f` / CI `37796626397` 5/5; final support seal `091557f2b221923bf38debd9472fe51fbee1cdcc` / CI `37798476372` 5/5 including clean checkout; AR-001..004 CLOSED / VERIFIED
 WP-2.12U = ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record `18b706b3d3a3ba1a97691c4af18e58a46fb6424b` / CI `37854906006` 5/5; final status seal `319adce60b606b14653cbdac5d9e3f224b5d8614` / CI `37859154995` 5/5 including clean checkout; historical AR-001..008 CLOSED / VERIFIED.
-WP-2.12V = READY candidate / CI pending; new atomic observation + in_person_visit provenance transaction; 3 points / cohesion PASS, issue #125, PR #126.
-next permitted action = V READY exact-head 5/5 CI → RED-only contracts → bounded Pass A → independent Pass B → separate Pass C → parent PR #117 integration and fresh review; media remains separate.
+WP-2.12V = PLANNED / PLAN activation CI pending; new atomic observation + in_person_visit provenance transaction; 5 points / cohesion PASS (including privileged authorization), issue #125, PR #126.
+next permitted action = V PLANNED activation 5/5 CI → separate READY seal 5/5 CI → RED-only contracts → bounded Pass A → independent Pass B → separate Pass C → parent PR #117 integration and fresh review; media remains separate.
 media-byte durability/upload remains a separate later parent tranche; no provider rerun is authorized
 ```
 

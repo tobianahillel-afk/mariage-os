@@ -366,6 +366,6 @@ Still required before Pass A exit:
 
 - Separate parent resumption-governance base `a2161aa3c2271cd685c07d38d6456630c0a2fb38` / CI `37860304869` is **5/5 GREEN** (including clean checkout); the prior U resumption-CI gate is resolved.
 - Parent draft #117 then received a MAJOR review finding: two PostgREST RPC transactions allow a Fact observation to commit without an accepted `in_person_visit` provenance source link.
-- A new atomic RPC (+2) plus a forward-only SQL migration family (+1) would exceed parent WP-2.12's 9-point boundary. Therefore **WP-2.12V** is extracted as a coherent 3-point support packet, issue #125 / activation PR #126.
+- A new atomic RPC (+2) plus a forward-only SQL migration family (+1) would exceed parent WP-2.12's 9-point boundary. Therefore **WP-2.12V** is extracted as a coherent 5-point support packet, issue #125 / activation PR #126.
 - Parent WP-2.12 is **BLOCKED** until V passes exact-head READY, RED-first Pass A, independent Pass B and separate Pass C. Only then may PR #117 replace the two-RPC path and pass its own full review/CI gate.
 - Original #99 remains draft/frozen; local media bytes, mobile finish UI and synthetic Lot-2 exit E2E are not authorized while the parent is blocked.
