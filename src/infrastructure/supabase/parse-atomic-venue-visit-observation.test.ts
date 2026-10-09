@@ -193,3 +193,9 @@ it("compares money JSON regardless of provider key order", () => {
     currency: "EUR",
   });
 });
+
+it("accepts a properly attributed null fact observation", () => {
+  const intent = { ...input, value: null };
+  const server = badObservation({ value: null });
+  expect(parse(server, intent).observation.value).toBeNull();
+});
