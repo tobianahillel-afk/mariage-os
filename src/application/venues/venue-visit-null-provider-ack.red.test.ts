@@ -27,11 +27,13 @@ it.each([
       local,
       interactions: {
         ...remote.interactions,
-        appendVenueInteraction: async () => null as unknown as VenueInteractionRecord,
+        appendVenueInteraction: async () =>
+          null as unknown as VenueInteractionRecord,
       },
       facts: {
         ...remote.facts,
-        appendObservation: async () => null as unknown as VenueFactObservationRecord,
+        appendObservation: async () =>
+          null as unknown as VenueFactObservationRecord,
       },
       memberOpinions: {
         ...remote.memberOpinions,
