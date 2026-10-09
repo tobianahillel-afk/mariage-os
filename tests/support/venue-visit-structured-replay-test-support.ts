@@ -86,6 +86,9 @@ export class RemoteHarness {
   factSourceProjectIdOverride: string | null = null;
   factSourceIdOverride: string | null = null;
   factSourceReadError: Error | null = null;
+  factSourceRevision = 1;
+  factLinkServerRevision = 1;
+  factLinkProjectOverride: string | null = null;
   factObservationResponseOverride: Partial<VenueFactObservationRecord> = {};
   ratingResponseOverride: Partial<VenueMemberRatingRecord> = {};
 
@@ -126,7 +129,7 @@ export class RemoteHarness {
         observedAt: "2026-10-06T12:00:00.000Z",
         notes: null,
         status: "active",
-        revision: 1,
+        revision: this.factSourceRevision,
       };
     },
     createSource: async () => {
@@ -166,12 +169,12 @@ export class RemoteHarness {
       }
       if (
         input.expectedSourceType !== this.factSourceType ||
-        input.expectedSourceRevision !== 1
+        input.expectedSourceRevision !== this.factLinkServerRevision
       ) {
         throw new VenueFactPersistenceError("conflict", "source changed");
       }
       return {
-        projectId: input.projectId,
+        projectId: this.factLinkProjectOverride ?? input.projectId,
         observationId: input.observationId,
         sourceId: input.sourceId,
         isPrimary: input.isPrimary,

@@ -206,3 +206,72 @@ it("maps an unknown source lookup failure to retryable persistence failure", asy
     lastErrorCode: "persistence_failed",
   });
 });
+
+it.each([0, -1, 1.25])(
+  "rejects an unsafe server source revision %s before appending a measurement",
+  async (revision) => {
+    const local = new MemoryLocalStore();
+    const remote = new RemoteHarness();
+    remote.factSourceRevision = revision;
+    await seed(local, factMutation());
+
+    await expect(coordinator(local, remote).replayPending()).resolves.toEqual([
+      {
+        operationId: factOperationId,
+        state: "failed_permanent",
+        error: "provider_response_invalid",
+      },
+    ]);
+    expect(remote.observations).toHaveLength(0);
+    expect(remote.factLinks).toHaveLength(0);
+  },
+);
+
+it("passes the actual server-read revision into the atomic source link", async () => {
+  const local = new MemoryLocalStore();
+  const remote = new RemoteHarness();
+  remote.factSourceRevision = 2;
+  remote.factLinkServerRevision = 2;
+  await seed(local, factMutation());
+
+  const result = await coordinator(local, remote).replayPending();
+  expect(result[0]?.state).toBe("synced");
+  expect(remote.factLinks[0]).toMatchObject({
+    expectedSourceType: "in_person_visit",
+    expectedSourceRevision: 2,
+  });
+  expect(local.pending.size).toBe(0);
+});
+
+it("retains a measurement when the source changes before atomic link", async () => {
+  const local = new MemoryLocalStore();
+  const remote = new RemoteHarness();
+  remote.factSourceRevision = 2;
+  remote.factLinkServerRevision = 3;
+  await seed(local, factMutation());
+
+  await expect(coordinator(local, remote).replayPending()).resolves.toEqual([
+    {
+      operationId: factOperationId,
+      state: "conflict",
+      error: "conflict",
+    },
+  ]);
+  expect(local.pending.get(factOperationId)?.status).toBe("conflict");
+});
+
+it("never settles a measurement on a foreign checked-link receipt", async () => {
+  const local = new MemoryLocalStore();
+  const remote = new RemoteHarness();
+  remote.factLinkProjectOverride = "91111111-1111-4111-8111-111111111111";
+  await seed(local, factMutation());
+
+  await expect(coordinator(local, remote).replayPending()).resolves.toEqual([
+    {
+      operationId: factOperationId,
+      state: "failed_permanent",
+      error: "provider_response_invalid",
+    },
+  ]);
+  expect(local.pending.get(factOperationId)?.status).toBe("failed_permanent");
+});
