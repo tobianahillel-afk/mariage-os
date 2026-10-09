@@ -1,8 +1,5 @@
 import { expect, it } from "vitest";
 import type {
-  AtomicVenueVisitObservationInput,
-} from "@application/facts/venue-visit-atomic-observation";
-import type {
   AppendVenueFactObservationInput,
   CreateVenueFactSourceInput,
   LinkObservationSourceInput,
@@ -350,7 +347,11 @@ it("maps same-project source links and explicit retained resolution", async () =
   });
 });
 
-const atomicInput: AtomicVenueVisitObservationInput = {
+type AtomicInput = Parameters<
+  SupabaseVenueFactEvidenceAdapter["appendAtomicVisitObservation"]
+>[0];
+
+const atomicInput: AtomicInput = {
   ...appendInput,
   sourceId,
   expectedSourceRevision: 1,
