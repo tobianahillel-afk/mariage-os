@@ -229,7 +229,6 @@ describe("Venue visit structured replay note failures", () => {
   });
 });
 
-
 describe("Venue visit structured replay note ACK validation", () => {
   it.each([
     ["interaction ID", { id: "69999999-9999-4999-8999-999999999999" }],
@@ -267,13 +266,12 @@ describe("Venue visit structured replay note ACK validation", () => {
     },
   );
 
-  it("rejects a malformed command before accepting its note receipt", async () => {
+  it("rejects a malformed note before receipt", async () => {
     const command = venueReplayCommand(noteMutation(), scope);
     if (command.kind !== "visit_note") throw new Error("Invalid fixture");
     const remote = new RemoteHarness();
-    const receiptResult = await new VenueInteractionService(
-      remote.interactions,
-    ).appendVenueInteraction(command.input);
+    const service = new VenueInteractionService(remote.interactions);
+    const receiptResult = await service.appendVenueInteraction(command.input);
     if (!receiptResult.ok) throw new Error("Invalid note fixture");
     const receipt = receiptResult.value;
     expect(
