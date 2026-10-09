@@ -34,8 +34,7 @@ const definitionRow = {
 };
 
 function context(valueType = "boolean", optionsJson: unknown = null) {
-  const rule =
-    valueType === "boolean" ? definitionRow.evaluation_rule_json : null;
+  const rule = valueType === "boolean" ? definitionRow.evaluation_rule_json : null;
   return {
     factId,
     projectId,
@@ -118,12 +117,9 @@ it("accepts a complete actor-bound atomic receipt", () => {
   });
 });
 
-it.each([null, 17, [], "success"])(
-  "rejects malformed receipt root %s",
-  (payload) => {
-    expect(() => parse(payload)).toThrow();
-  },
-);
+it.each([null, 17, [], "success"])("rejects bad root %s", (payload) => {
+  expect(() => parse(payload)).toThrow();
+});
 
 function badSource(fields: Record<string, unknown>) {
   return { ...receipt, checkedSource: { ...checkedSource, ...fields } };
@@ -188,10 +184,7 @@ it("compares money JSON regardless of provider key order", () => {
     value: { minor: 10000, currency: "EUR" },
   });
   const parsed = parse(server, intent, context("money"));
-  expect(parsed.observation.value).toEqual({
-    minor: 10000,
-    currency: "EUR",
-  });
+  expect(parsed.observation.value).toEqual({ minor: 10000, currency: "EUR" });
 });
 
 it("accepts a properly attributed null fact observation", () => {
