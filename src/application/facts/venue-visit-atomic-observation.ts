@@ -26,3 +26,13 @@ export interface AtomicVenueVisitObservationReceipt {
   readonly link: ObservationSourceLinkRecord;
   readonly checkedSource: AtomicVenueVisitSourceProof;
 }
+
+/**
+ * Application boundary for committing an observation and its checked visit
+ * provenance atomically. The caller never depends on a provider adapter.
+ */
+export interface AtomicVenueVisitObservationPort {
+  appendAtomicVisitObservation(
+    input: AtomicVenueVisitObservationInput,
+  ): Promise<AtomicVenueVisitObservationReceipt>;
+}
