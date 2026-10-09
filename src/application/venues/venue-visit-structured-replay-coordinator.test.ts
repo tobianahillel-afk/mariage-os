@@ -226,6 +226,40 @@ describe("Venue visit structured replay note failures", () => {
   });
 });
 
+
+describe("Venue visit structured replay note ACK validation", () => {
+  it.each([
+    ["interaction ID", { id: "69999999-9999-4999-8999-999999999999" }],
+    ["project", { projectId: "69999999-9999-4999-8999-999999999999" }],
+    ["Venue", { venueId: "69999999-9999-4999-8999-999999999999" }],
+    ["contact", { contactId: "69999999-9999-4999-8999-999999999999" }],
+    ["source", { sourceId: "69999999-9999-4999-8999-999999999999" }],
+    ["interaction type", { interactionType: "phone_call" }],
+    ["occurred time", { occurredAt: "2026-10-06T13:00:00.000Z" }],
+    ["summary", { summary: "A different note" }],
+    ["follow-up", { nextFollowUpAt: "2026-10-07T13:00:00.000Z" }],
+    ["author", { createdBy: "69999999-9999-4999-8999-999999999999" }],
+  ])("retains local note on mismatched provider %s", async (_label, override) => {
+    const local = new MemoryLocalStore();
+    const remote = new RemoteHarness();
+    remote.noteResponseOverride = override;
+    await seed(local, noteMutation());
+
+    await expect(coordinator(local, remote).replayPending()).resolves.toEqual([
+      {
+        operationId: noteId,
+        state: "failed_permanent",
+        error: "provider_response_invalid",
+      },
+    ]);
+    expect(remote.notes).toHaveLength(1);
+    expect(local.pending.get(noteId)).toMatchObject({
+      status: "failed_permanent",
+      lastErrorCode: "provider_response_invalid",
+    });
+  });
+});
+
 describe("Venue visit structured replay Fact failures", () => {
   it.each([
     ["conflict", "conflict", "conflict"],

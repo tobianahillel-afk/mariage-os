@@ -7,6 +7,7 @@ import {
 } from "@application/facts/venue-fact-evidence-service";
 import { venueFactPersistenceErrorCode } from "@application/facts/venue-fact-persistence-error";
 import { venueVisitFactAcknowledgementMatches } from "./venue-visit-fact-acknowledgement";
+import { venueVisitNoteAcknowledgementMatches } from "./venue-visit-note-acknowledgement";
 import { checkedVenueVisitSourceLink } from "./venue-visit-checked-source-link";
 import type { LocalProjectStore } from "@application/local-data/local-project-store";
 import type { PendingMutationEnvelope } from "@application/local-data/local-records";
@@ -272,7 +273,14 @@ export class VenueVisitStructuredReplayCoordinator {
       const result = await this.interactionService.appendVenueInteraction(
         command.input,
       );
-      return result.ok ? null : noteFailure(result.error);
+      if (!result.ok) return noteFailure(result.error);
+      return venueVisitNoteAcknowledgementMatches(
+        command,
+        result.value,
+        this.local.scope.userId,
+      )
+        ? null
+        : { state: "failed_permanent", error: "provider_response_invalid" };
     }
 
     if (command.kind === "fact_observation") {

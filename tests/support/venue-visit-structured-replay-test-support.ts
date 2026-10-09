@@ -92,6 +92,7 @@ export class RemoteHarness {
   factLinkProjectOverride: string | null = null;
   factObservationResponseOverride: Partial<VenueFactObservationRecord> = {};
   ratingResponseOverride: Partial<VenueMemberRatingRecord> = {};
+  noteResponseOverride: Partial<VenueInteractionRecord> = {};
 
   readonly interactions: VenueInteractionPort = {
     appendVenueInteraction: async (input) => {
@@ -101,7 +102,7 @@ export class RemoteHarness {
         throw new VenueInteractionPersistenceError("conflict", "replay");
       }
       if (this.noteMode === "failure") throw new Error("provider");
-      return interactionRecord(input);
+      return { ...interactionRecord(input), ...this.noteResponseOverride };
     },
     listVenueInteractionHistory: async () => [],
   };
