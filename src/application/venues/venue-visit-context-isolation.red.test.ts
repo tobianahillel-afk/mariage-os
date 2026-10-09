@@ -6,7 +6,6 @@ import {
   RemoteHarness,
   factMutation,
   factOperationId,
-  scope,
   seed,
 } from "../../../tests/support/venue-visit-structured-replay-test-support";
 
