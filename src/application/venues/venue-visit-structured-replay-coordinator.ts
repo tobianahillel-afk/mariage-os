@@ -350,13 +350,18 @@ export class VenueVisitStructuredReplayCoordinator {
         command.input.projectId,
         command.input.factId,
       );
-      return context.venueId === command.venueId
+      const sameFactAndScope =
+        context.projectId === command.input.projectId &&
+        context.factId === command.input.factId &&
+        context.venueId === command.venueId &&
+        context.definition.projectId === command.input.projectId;
+      return sameFactAndScope
         ? { ok: true, context }
         : {
             ok: false,
             failure: {
               state: "failed_permanent",
-              error: "fact_scope_mismatch",
+              error: "provider_response_invalid",
             },
           };
     } catch (error) {
