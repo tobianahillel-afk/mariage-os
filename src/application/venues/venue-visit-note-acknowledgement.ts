@@ -1,4 +1,7 @@
-import { normalizeVenueInteraction, type VenueInteractionRecord } from "@domain/venues/venue-interaction";
+import {
+  normalizeVenueInteraction,
+  type VenueInteractionRecord,
+} from "@domain/venues/venue-interaction";
 import type { StructuredVenueReplayCommand } from "./venue-visit-replay-dependencies";
 
 type NoteReplayCommand = Extract<

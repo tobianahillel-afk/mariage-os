@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { venueReplayCommand } from "./venue-local-mutation";
+import { venueVisitNoteAcknowledgementMatches } from "./venue-visit-note-acknowledgement";
 import {
   MemoryLocalStore,
   RemoteHarness,
@@ -239,24 +241,45 @@ describe("Venue visit structured replay note ACK validation", () => {
     ["summary", { summary: "A different note" }],
     ["follow-up", { nextFollowUpAt: "2026-10-07T13:00:00.000Z" }],
     ["author", { createdBy: "69999999-9999-4999-8999-999999999999" }],
-  ])("retains local note on mismatched provider %s", async (_label, override) => {
-    const local = new MemoryLocalStore();
-    const remote = new RemoteHarness();
-    remote.noteResponseOverride = override;
-    await seed(local, noteMutation());
+  ])(
+    "retains local note on mismatched provider %s",
+    async (_label, override) => {
+      const local = new MemoryLocalStore();
+      const remote = new RemoteHarness();
+      remote.noteResponseOverride = override;
+      await seed(local, noteMutation());
 
-    await expect(coordinator(local, remote).replayPending()).resolves.toEqual([
-      {
-        operationId: noteId,
-        state: "failed_permanent",
-        error: "provider_response_invalid",
-      },
-    ]);
-    expect(remote.notes).toHaveLength(1);
-    expect(local.pending.get(noteId)).toMatchObject({
-      status: "failed_permanent",
-      lastErrorCode: "provider_response_invalid",
-    });
+      await expect(coordinator(local, remote).replayPending()).resolves.toEqual(
+        [
+          {
+            operationId: noteId,
+            state: "failed_permanent",
+            error: "provider_response_invalid",
+          },
+        ],
+      );
+      expect(remote.notes).toHaveLength(1);
+      expect(local.pending.get(noteId)).toMatchObject({
+        status: "failed_permanent",
+        lastErrorCode: "provider_response_invalid",
+      });
+    },
+  );
+
+  it("rejects a malformed command before accepting its note receipt", async () => {
+    const command = venueReplayCommand(noteMutation(), scope);
+    if (command.kind !== "visit_note") throw new Error("Invalid fixture");
+    const remote = new RemoteHarness();
+    const receipt = await remote.interactions.appendVenueInteraction(
+      command.input,
+    );
+    expect(
+      venueVisitNoteAcknowledgementMatches(
+        { ...command, input: { ...command.input, summary: "" } },
+        receipt,
+        scope.userId,
+      ),
+    ).toBe(false);
   });
 });
 
