@@ -4,8 +4,9 @@ import type {
   VenueFactObservationRecord,
 } from "./venue-fact-evidence-service";
 
-export interface AtomicVenueVisitObservationInput
-  extends AppendVenueFactObservationInput {
+type BaseObservationInput = AppendVenueFactObservationInput;
+
+export interface AtomicVenueVisitObservationInput extends BaseObservationInput {
   readonly sourceId: string;
   readonly expectedSourceRevision: number;
   /** The current authenticated session actor, used to reject forged ACKs. */
