@@ -37,14 +37,17 @@ it.each([
   ["observation", { observationId: "92222222-2222-4222-8222-222222222222" }],
   ["source", { sourceId: "93333333-3333-4333-8333-333333333333" }],
   ["primary", { isPrimary: false }],
-] as const)("rejects a wrong %s in a checked-link receipt", async (_name, changed) => {
-  await expect(
-    checkedVenueVisitSourceLink(portWith(changed), input),
-  ).resolves.toEqual({
-    ok: false,
-    error: "provider_response_invalid",
-  });
-});
+] as const)(
+  "rejects a wrong %s in a checked-link receipt",
+  async (_name, changed) => {
+    await expect(
+      checkedVenueVisitSourceLink(portWith(changed), input),
+    ).resolves.toEqual({
+      ok: false,
+      error: "provider_response_invalid",
+    });
+  },
+);
 
 it("retains the typed conflict when the source changed atomically", async () => {
   const port: VenueFactProvenanceLinkPort = {

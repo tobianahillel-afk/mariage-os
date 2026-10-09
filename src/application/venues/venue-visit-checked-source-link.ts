@@ -5,8 +5,7 @@ import type {
 import { venueFactPersistenceErrorCode } from "@application/facts/venue-fact-persistence-error";
 
 type CheckedSourceLinkResult =
-  | { readonly ok: true }
-  | { readonly ok: false; readonly error: string };
+  { readonly ok: true } | { readonly ok: false; readonly error: string };
 
 export async function checkedVenueVisitSourceLink(
   port: VenueFactProvenanceLinkPort,
