@@ -21,9 +21,7 @@ import type {
   VenueFactProvenanceLinkPort,
   VenueFactSourceRecord,
 } from "@application/facts/venue-fact-evidence-service";
-import {
-  parseAtomicVenueVisitObservationReceipt,
-} from "./parse-atomic-venue-visit-observation";
+import { parseAtomicVenueVisitObservationReceipt } from "./parse-atomic-venue-visit-observation";
 import { parseVenueFactDefinitionRow } from "./parse-venue-fact-row";
 import {
   parseObservationSourceLinkRow,
