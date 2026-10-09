@@ -48,6 +48,7 @@ const observationRow = {
   confidence: "high",
   observation_status: "active",
   superseded_by_observation_id: null,
+  supersedes_observation_id: null,
   observed_at: "2026-09-07T06:30:00.000Z",
   note: null,
   created_by: actorId,
