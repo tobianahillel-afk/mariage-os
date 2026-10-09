@@ -11,6 +11,7 @@ import {
 import {
   factMutation,
   noteMutation,
+  ratingMutation,
   scope,
 } from "../../../tests/support/venue-visit-structured-replay-test-support";
 
@@ -75,4 +76,12 @@ it("blocks mixed-case supersession after a prior Fact failed", () => {
       successor.command as StructuredVenueReplayCommand,
     ),
   ).toBe(true);
+});
+
+it("canonicalizes the member-rating replay receipt operation ID", () => {
+  const id = "a3333333-3333-4333-8333-333333333333";
+  const command = venueReplayCommand(ratingMutation(id.toUpperCase()), scope);
+  expect(command.kind).toBe("member_rating");
+  if (command.kind !== "member_rating") return;
+  expect(command.input.operationId).toBe(id);
 });
