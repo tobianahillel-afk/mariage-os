@@ -47,7 +47,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.12S | replay-safe Venue member-rating command boundary                        | **ACCEPTED / COMPLETE — Pass C gap ∅**                                    |
 | WP-2.12T | atomic Venue fact-observation visit-source provenance link               | **ACCEPTED / COMPLETE — Pass C gap ∅**                                    |
 | WP-2.12U | PostgREST-safe replay conflict signaling across R/S/T RPCs                | **ACCEPTED / COMPLETE — final status seal 5/5 green**            |
-| WP-2.12V | atomic visit observation + checked source provenance transaction        | **READY candidate — governance seal exact-head CI pending**             |
+| WP-2.12V | atomic visit observation + checked source provenance transaction        | **REVIEW_FAILED / REMEDIATION — AR-001..003 pending fresh verification** |
 
 ## WP-2.12V — activation revalidation / READY transition (2026-10-09)
 
@@ -59,7 +59,7 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 - Upon V Pass A/B/C acceptance, parent #117 must consume the atomic operation, rerun complete CI and independent fresh review. Existing R/S/T/U are terminal and not reopened.
 
 - PLANNED activation-governance merge `a7e83bdccdc2d1d2330c7e2bbac5ef4da36a88d1` / CI `37916679074` passed **5/5 ordinary jobs**, including full verify from clean checkout. This enables a separate READY state seal; the READY seal itself must pass exact-head CI before RED or production.
-- Separate READY state seal: **recorded / exact-head CI pending**. Parent WP-2.12 and PR #117 remain blocked, with no server migration authorized before the READY gate.
+- Separate READY state seal `314ffd0e29d312d091b7adab05403b2cdec764d1` / CI `37935750162` passed **5/5 SUCCESS**, including clean checkout. RED-only PR #127 was closed unmerged after expected failures. GREEN PR #128 remediated three adversarial findings; reviewed candidate `76f7a4e725023bda51376c594c759357808c9b03` / CI `37950938728` passed **5/5 SUCCESS** (Core, DB/RLS, browser/mutation, preview and clean checkout). AR-001 primary-source concurrency, AR-002 predecessor proof and AR-003 direct revoked/viewer denial remain **OPEN / pending independent verification**. Fresh exact-head Codex review was requested on PR #128 in comment `6084261630`. No Pass-B PASS, merge, Pass C or parent resumption may be claimed until that independent review is clean.
 
 ## WP-2.10 — activation revalidation
 
@@ -483,7 +483,7 @@ Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.11
 WP-2.9C: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 21accd7f9ab1b845275507b7941a782c5e816a56 / CI 36494697647 5/5 including clean checkout
 WP-2.9A: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 656398bcd5520cfa56d782023d150eb64317161d / CI 36542083037 5/5 including clean checkout
-Current packet: WP-2.12V — READY candidate / PLAN; READY governance seal exact-head CI pending; atomic observation/provenance support for WP-2.12; parent PR #117 and #99 remain BLOCKED / unmerged; R/S/T/U ACCEPTED / COMPLETE.
+Current packet: WP-2.12V — REVIEW_FAILED / REMEDIATION; candidate PR #128 exact head `76f7a4e725023bda51376c594c759357808c9b03` / CI `37950938728` 5/5; WP212V-AR-001..003 OPEN pending new complete independent Pass B. Parent PR #117/#99 BLOCKED / unmerged; R/S/T/U ACCEPTED / COMPLETE.
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
@@ -522,5 +522,5 @@ FTR-089 FIR: #17 — IN_PROGRESS / parent A accepted, later presentation and Lot
 WP-2.9B: ACCEPTED / COMPLETE; FTR-093 FIR #27 remains IN_PROGRESS for downstream scope; WP29B-AR-001/002 CLOSED / VERIFIED; Pass C gap ∅
 Lots 3–12: NOT_STARTED
 Latest distinct-PDF campaign: 2303df0c9e8d6f72561ec0ce42514663801229d8 / CI 36459949861 / provider job 109058754517 / artifact 10987866873 — 10 distinct exact-size PDFs, 10 finalized flows, 20 valid exact-version CPU readings within Workers Free; provider verdict PASS
-Next permitted action: prove the separate WP-2.12V READY-governance seal with five ordinary exact-head CI jobs including clean checkout; only after its green result create isolated RED-only evidence, then implement the bounded 5-point atomic observation-and-provenance transaction. Parent #117 and #99 remain unmerged/blocked until V Pass C acceptance and separate parent fresh review. No provider campaign or new product scope.
+Next permitted action: obtain and disposition the complete fresh independent WP-2.12V Pass-B review requested for exact head `76f7a4e725023bda51376c594c759357808c9b03`. If findings remain, perform bounded remediation, exact-head five-job CI and another fresh review. Only after a clean Pass B may PR #128 merge, followed by separate Pass C/acceptance seal. Parent PR #117/#99 remain BLOCKED; media, provider campaigns and later lots are not authorized by this gate.
 ```

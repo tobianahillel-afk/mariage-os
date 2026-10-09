@@ -2,15 +2,15 @@
 
 ## Identity / gate
 
-- Work Packet ID: `WP-2.12V` (bounded support packet; separate READY seal exact-head CI pending)
+- Work Packet ID: `WP-2.12V` (bounded support packet; READY seal 5/5 green, bounded GREEN review remediations under verification)
 - Lot: 2 — Venues core
 - Parent: `WP-2.12`, BLOCKED / PR #117 draft
-- State: **READY candidate** — PLANNED activation CI 5/5 green, separate READY-seal exact-head CI pending; RED/production forbidden until seal passes
-- Current pass: **PLAN / READY-GOVERNANCE** — no Pass A or RED yet
+- State: **REVIEW_FAILED / REMEDIATION** — three historical findings AR-001..003 remain OPEN until a new independent complete Pass B on remediated exact head
+- Current pass: **B-ADVERSARIAL-REVIEW / remediation verification** — RED #127 closed unmerged; GREEN #128 CI 5/5; fresh review pending
 - Primary tracking issue: #125
 - Primary Feature: #42 / FTR-028 (support only; no new product Feature)
 - Proposed base: `a2161aa3c2271cd685c07d38d6456630c0a2fb38` — accepted R/S/T/U are present
-- Production changes authorized: **NONE** until the separate READY-seal commit passes five ordinary exact-head CI jobs, including clean checkout. Proposal head `4311399c0b28a6110b485dfe0d1242d4d12acef6` / CI `37869893376` and PLANNED activation merge `a7e83bdccdc2d1d2330c7e2bbac5ef4da36a88d1` / CI `37916679074` both passed 5/5, but neither substitutes for the new READY-seal exact-head CI.
+- Production scope: **bounded GREEN candidate only** until fresh Pass B/Pass C. READY seal `314ffd0e29d312d091b7adab05403b2cdec764d1` / CI `37935750162` passed 5/5, and GREEN PR #128 exact head `76f7a4e725023bda51376c594c759357808c9b03` / CI `37950938728` passed 5/5; neither result substitutes for independent review.
 - Parent PR #117: **DO NOT MERGE** while its atomic observation-provenance MAJOR finding is open
 
 ## Why extraction is required
@@ -225,3 +225,13 @@ parent slices.
 - Transition: **PLANNED → READY candidate**, with a **separate exact-head READY-seal CI pending**. No claim of Pass A, review or acceptance.
 - The only permitted next action is verifying the READY seal with 5 ordinary jobs including clean checkout. After green, produce an isolated RED-only PR before touching production.
 - Parent WP-2.12, draft #117/#99 stay unmerged/blocked; no provider campaign, schema change or secret action is part of this governance commit.
+
+## Pass-A and adversarial review handoff — 2026-10-09
+
+- READY-seal `314ffd0e29d312d091b7adab05403b2cdec764d1` / CI `37935750162`: **5/5 SUCCESS**, full clean checkout included.
+- RED-only PR #127 at `ef531d80e8ea6c34bcf2a6287c4db29f829e7db8`, CI `37941602719`: intentionally failing missing-contract evidence, **closed without merge**.
+- GREEN PR #128 latest exact head `76f7a4e725023bda51376c594c759357808c9b03` / CI `37950938728`: **5/5 SUCCESS**, including DB/RLS and full verify from clean checkout.
+- Independent review of historical head `d2d9c800d6e1b21915c0d2d9d8456187065362b0` opened `WP212V-AR-001` P1 (same observation/different source concurrency), `WP212V-AR-002` P1 (supersession receipt proof) and `WP212V-AR-003` P2 (revoked/viewer direct denial tests).
+- Candidate code now has observation-scoped transaction advisory locking before source/append, database-backed predecessor receipt proof with strict parser verification, and direct revoked/viewer SQL denial and no-side-effect checks. These are **candidate remediations, not yet independently verified closures**.
+- A complete fresh independent Pass B for the exact remediated head was requested in PR #128 comment `6084261630`. Current verdict: **REVIEW_FAILED / REMEDIATION pending new review**; all three findings remain OPEN until review evidence says otherwise.
+- Parent WP-2.12 and draft PR #117/#99 remain BLOCKED/UNMERGED. No Pass C, support acceptance, parent code resumption, media tranche or later-lot development is authorized by this evidence.
