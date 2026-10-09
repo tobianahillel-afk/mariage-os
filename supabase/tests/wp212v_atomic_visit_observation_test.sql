@@ -343,11 +343,10 @@ select throws_ok($call$select public.append_venue_fact_observation_visit_atomic(
 select is((select count(*) from public.observation_sources
   where observation_id='b7000000-0000-4000-8000-000000000061'
     and is_primary),1::bigint,'primary source remains unique after conflict');
-select ok(pg_catalog.position(
-  'pg_advisory_xact_lock' in
+select ok(pg_catalog.strpos(
   pg_catalog.pg_get_functiondef(to_regprocedure(
     'public.append_venue_fact_observation_visit_atomic(uuid,uuid,uuid,jsonb,text,text,text,text,text,uuid,uuid,bigint)'
-  ))
+  )), 'pg_advisory_xact_lock'
 ) > 0, 'atomic command serializes concurrent calls on observation identity');
 
 -- The new observation must prove exactly which predecessor it superseded.
