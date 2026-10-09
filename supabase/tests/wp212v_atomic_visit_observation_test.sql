@@ -376,12 +376,12 @@ select is((select count(*) from public.observation_sources where observation_id=
 
 -- A historical primary link to a different source must not be reassigned.
 select lives_ok(
-  $select public.link_venue_fact_observation_source_checked(
+  $wp212v_link$select public.link_venue_fact_observation_source_checked(
     'b7000000-0000-4000-8000-000000000001',
     'b7000000-0000-4000-8000-000000000042',
     'b7000000-0000-4000-8000-000000000059',
     true, 'in_person_visit', 1
-  )$,
+  )$wp212v_link$,
   'historical observation starts with a valid different primary source'
 );
 select throws_ok($call$select public.append_venue_fact_observation_visit_atomic(
