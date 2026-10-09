@@ -7,6 +7,7 @@ import {
 } from "@application/facts/venue-fact-evidence-service";
 import { venueFactPersistenceErrorCode } from "@application/facts/venue-fact-persistence-error";
 import { venueVisitFactAcknowledgementMatches } from "./venue-visit-fact-acknowledgement";
+import { checkedVenueVisitSourceLink } from "./venue-visit-checked-source-link";
 import type { LocalProjectStore } from "@application/local-data/local-project-store";
 import type { PendingMutationEnvelope } from "@application/local-data/local-records";
 import {
@@ -319,26 +320,15 @@ export class VenueVisitStructuredReplayCoordinator {
       return { state: "failed_permanent", error: "provider_response_invalid" };
     }
 
-    try {
-      const link = await this.facts.linkObservationSourceChecked({
-        projectId: command.input.projectId,
-        observationId: command.input.observationId as string,
-        sourceId: command.sourceId,
-        isPrimary: true,
-        expectedSourceType: command.sourceType,
-        expectedSourceRevision: sourceResult.revision,
-      });
-      return link.projectId === command.input.projectId &&
-        link.observationId === command.input.observationId &&
-        link.sourceId === command.sourceId &&
-        link.isPrimary
-        ? null
-        : { state: "failed_permanent", error: "provider_response_invalid" };
-    } catch (error) {
-      return factFailure(
-        venueFactPersistenceErrorCode(error) ?? "persistence_failed",
-      );
-    }
+    const link = await checkedVenueVisitSourceLink(this.facts, {
+      projectId: command.input.projectId,
+      observationId: command.input.observationId as string,
+      sourceId: command.sourceId,
+      isPrimary: true,
+      expectedSourceType: command.sourceType,
+      expectedSourceRevision: sourceResult.revision,
+    });
+    return link.ok ? null : factFailure(link.error);
   }
 
   private async factContext(
