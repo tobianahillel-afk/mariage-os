@@ -1,4 +1,5 @@
 import { expect, it } from "vitest";
+import type { AtomicVenueVisitObservationInput } from "@application/facts/venue-visit-atomic-observation";
 import type {
   AppendVenueFactObservationInput,
   CreateVenueFactSourceInput,
@@ -345,4 +346,96 @@ it("maps same-project source links and explicit retained resolution", async () =
       target_resolution_note: null,
     },
   });
+});
+
+const atomicInput: AtomicVenueVisitObservationInput = {
+  ...appendInput,
+  sourceId,
+  expectedSourceRevision: 1,
+  actorId,
+};
+
+const atomicReceipt = {
+  observation: observationRow,
+  link: {
+    project_id: projectId,
+    observation_id: observationId,
+    source_id: sourceId,
+    is_primary: true,
+  },
+  checkedSource: {
+    projectId,
+    sourceId,
+    sourceType: "in_person_visit",
+    checkedRevision: 1,
+    checkedBy: actorId,
+  },
+};
+
+it("uses exactly one atomic RPC and verifies its three receipt components", async () => {
+  const calls: RecordedRpc[] = [];
+  const adapter = new SupabaseVenueFactEvidenceAdapter(
+    makeClient((name) =>
+      name === "append_venue_fact_observation_visit_atomic"
+        ? atomicReceipt
+        : null,
+    calls),
+  );
+
+  await expect(adapter.appendAtomicVisitObservation(atomicInput)).resolves.toMatchObject({
+    observation: { id: observationId, createdBy: actorId },
+    link: { sourceId, isPrimary: true },
+    checkedSource: { checkedRevision: 1, checkedBy: actorId },
+  });
+  expect(calls).toEqual([{
+    name: "append_venue_fact_observation_visit_atomic",
+    args: {
+      target_project_id: projectId,
+      target_fact_id: factId,
+      target_observation_id: observationId,
+      target_value: false,
+      target_raw_value_text: "No",
+      target_evidence_level: "confirmed_for_event",
+      target_confidence: "high",
+      target_observed_at: "2026-09-07T06:30:00.000Z",
+      target_note: null,
+      target_supersedes_observation_id: null,
+      target_source_id: sourceId,
+      target_expected_source_revision: 1,
+    },
+  }]);
+});
+
+it("canonicalizes replay observation identity in the atomic command", async () => {
+  const calls: RecordedRpc[] = [];
+  const adapter = new SupabaseVenueFactEvidenceAdapter(
+    makeClient(() => atomicReceipt, calls),
+  );
+  await expect(
+    adapter.appendAtomicVisitObservation({
+      ...atomicInput, observationId: observationId.toUpperCase(),
+    }),
+  ).resolves.toMatchObject({ observation: { id: observationId } });
+  expect(calls[0]?.args.target_observation_id).toBe(observationId);
+});
+
+it("does not ACK a malformed successful atomic provider payload", async () => {
+  const adapter = new SupabaseVenueFactEvidenceAdapter(makeClient(() => null));
+  await expect(
+    adapter.appendAtomicVisitObservation(atomicInput),
+  ).rejects.toMatchObject({ code: "provider_response_invalid" });
+});
+
+it("preserves PT412 source revision conflicts for durable replay", async () => {
+  const client: SupabaseVenueFactEvidenceClientLike = {
+    ...makeClient(() => null),
+    rpc: () => Promise.resolve({
+      data: null,
+      error: { code: "PT412", message: "stale" },
+    }),
+  };
+  const adapter = new SupabaseVenueFactEvidenceAdapter(client);
+  await expect(
+    adapter.appendAtomicVisitObservation(atomicInput),
+  ).rejects.toMatchObject({ code: "conflict" });
 });
