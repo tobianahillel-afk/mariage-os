@@ -8,6 +8,7 @@ import {
 import { venueFactPersistenceErrorCode } from "@application/facts/venue-fact-persistence-error";
 import { venueVisitFactAcknowledgementMatches } from "./venue-visit-fact-acknowledgement";
 import { venueVisitNoteAcknowledgementMatches } from "./venue-visit-note-acknowledgement";
+import { ratingAcknowledgementFailure } from "./venue-visit-rating-acknowledgement";
 import { checkedVenueVisitSourceLink } from "./venue-visit-checked-source-link";
 import type { LocalProjectStore } from "@application/local-data/local-project-store";
 import type { PendingMutationEnvelope } from "@application/local-data/local-records";
@@ -31,7 +32,6 @@ import {
 import {
   saveVenueMemberRating,
   type VenueMemberOpinionPort,
-  type VenueMemberRatingRecord,
 } from "@application/venues/venue-member-opinion-service";
 
 type VenueVisitStructuredReplayState =
@@ -127,25 +127,6 @@ function ratingFailure(error: string): RemoteFailure {
   return error === "persistence_failed"
     ? { state: "pending", error }
     : { state: "failed_permanent", error };
-}
-
-function ratingAcknowledgementFailure(
-  command: Extract<
-    StructuredVenueReplayCommand,
-    { readonly kind: "member_rating" }
-  >,
-  rating: VenueMemberRatingRecord,
-  expectedUserId: string,
-): RemoteFailure | null {
-  const expected = command.input;
-  return rating.projectId === expected.projectId &&
-    rating.venueId === expected.venueId &&
-    rating.userId === expectedUserId &&
-    rating.dimensionKey === expected.dimensionKey &&
-    rating.rating === expected.rating &&
-    rating.revision === expected.expectedRevision + 1
-    ? null
-    : { state: "failed_permanent", error: "provider_response_invalid" };
 }
 
 export class VenueVisitStructuredReplayCoordinator {
