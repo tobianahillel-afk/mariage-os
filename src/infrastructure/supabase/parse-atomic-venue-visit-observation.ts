@@ -3,7 +3,7 @@ import type {
   AtomicVenueVisitObservationReceipt,
 } from "@application/facts/venue-visit-atomic-observation";
 import type { VenueFactContext } from "@application/facts/venue-fact-evidence-service";
-import { normalizeFactValue } from "@domain/facts/fact-value";
+import { normalizeFactObservation } from "@domain/facts/fact-observation";
 import {
   parseObservationSourceLinkRow,
   parseVenueFactObservationRow,
@@ -78,18 +78,19 @@ export function parseAtomicVenueVisitObservationReceipt(
     input.sourceId,
   );
   const checkedSource = parseCheckedSource(payload.checkedSource, input);
-  const expectedValue = normalizeFactValue(context.definition, input.value);
-  if (!expectedValue.ok) invalid();
+  const normalizedIntent = normalizeFactObservation(context.definition, input);
+  if (!normalizedIntent.ok) invalid();
+  const expected = normalizedIntent.value;
 
   if (
     !link.isPrimary ||
     observation.createdBy !== input.actorId ||
-    stableJson(observation.value) !== stableJson(expectedValue.value) ||
-    observation.rawValueText !== input.rawValueText ||
-    observation.evidenceLevel !== input.evidenceLevel ||
-    observation.confidence !== input.confidence ||
-    observation.observedAt !== input.observedAt ||
-    observation.note !== input.note
+    stableJson(observation.value) !== stableJson(expected.value) ||
+    observation.rawValueText !== expected.rawValueText ||
+    observation.evidenceLevel !== expected.evidenceLevel ||
+    observation.confidence !== expected.confidence ||
+    observation.observedAt !== expected.observedAt ||
+    observation.note !== expected.note
   ) {
     invalid();
   }
