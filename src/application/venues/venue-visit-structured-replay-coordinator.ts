@@ -41,8 +41,9 @@ export interface VenueVisitStructuredReplayResult {
   readonly error: string | null;
 }
 
-type VisitFactPorts =
-  VenueFactEvidencePort & VenueFactSourceReadPort & VenueFactProvenanceLinkPort;
+type VisitFactPorts = VenueFactEvidencePort &
+  VenueFactSourceReadPort &
+  VenueFactProvenanceLinkPort;
 
 interface VenueVisitStructuredReplayDependencies {
   readonly local: LocalProjectStore;

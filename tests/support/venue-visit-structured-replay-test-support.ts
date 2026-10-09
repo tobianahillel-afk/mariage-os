@@ -67,8 +67,9 @@ type RatingMode =
   "success" | "failure" | "conflict" | "replay_identity_mismatch";
 type FactLinkMode = "success" | "persistence_failed" | "authorization_failed";
 
-type RemoteFactPorts =
-  VenueFactEvidencePort & VenueFactSourceReadPort & VenueFactProvenanceLinkPort;
+type RemoteFactPorts = VenueFactEvidencePort &
+  VenueFactSourceReadPort &
+  VenueFactProvenanceLinkPort;
 
 export class RemoteHarness {
   readonly calls: string[] = [];
