@@ -250,11 +250,12 @@ function sourcePayload(
   };
 }
 
+type EvidenceAdapterContracts = VenueFactEvidencePort &
+  VenueFactProvenanceLinkPort &
+  AtomicVenueVisitObservationPort;
+
 export class SupabaseVenueFactEvidenceAdapter
-  implements
-    VenueFactEvidencePort,
-    VenueFactProvenanceLinkPort,
-    AtomicVenueVisitObservationPort
+  implements EvidenceAdapterContracts
 {
   constructor(private readonly client: SupabaseVenueFactEvidenceClientLike) {}
 
