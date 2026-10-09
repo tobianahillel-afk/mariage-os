@@ -26,4 +26,3 @@ export interface AtomicVenueVisitObservationReceipt {
   readonly link: ObservationSourceLinkRecord;
   readonly checkedSource: AtomicVenueVisitSourceProof;
 }
-
