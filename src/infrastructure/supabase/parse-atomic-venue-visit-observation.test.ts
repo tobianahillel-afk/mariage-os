@@ -33,7 +33,8 @@ const definitionRow = {
 };
 
 function context(valueType = "boolean", optionsJson: unknown = null) {
-  const rule = valueType === "boolean" ? definitionRow.evaluation_rule_json : null;
+  const rule =
+    valueType === "boolean" ? definitionRow.evaluation_rule_json : null;
   return {
     factId,
     projectId,
