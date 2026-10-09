@@ -19,12 +19,15 @@ export function ratingAcknowledgementFailure(
   }
   const acknowledgement = rating as VenueMemberRatingRecord;
   const expected = command.input;
-  return acknowledgement.projectId === expected.projectId &&
-    acknowledgement.venueId === expected.venueId &&
-    acknowledgement.userId === expectedUserId &&
-    acknowledgement.dimensionKey === expected.dimensionKey &&
-    acknowledgement.rating === expected.rating &&
-    acknowledgement.revision === expected.expectedRevision + 1
+  const matches = [
+    acknowledgement.projectId === expected.projectId,
+    acknowledgement.venueId === expected.venueId,
+    acknowledgement.userId === expectedUserId,
+    acknowledgement.dimensionKey === expected.dimensionKey,
+    acknowledgement.rating === expected.rating,
+    acknowledgement.revision === expected.expectedRevision + 1,
+  ].every(Boolean);
+  return matches
     ? null
     : { state: "failed_permanent", error: "provider_response_invalid" };
 }
