@@ -16,6 +16,17 @@ import {
   venueId,
 } from "../../../tests/support/venue-visit-structured-replay-test-support";
 
+function expectCheckedVisitLink(remote: RemoteHarness): void {
+  expect(remote.factLinks[0]).toEqual({
+    projectId: scope.projectId,
+    observationId: factOperationId,
+    sourceId: factSourceId,
+    isPrimary: true,
+    expectedSourceType: "in_person_visit",
+    expectedSourceRevision: 1,
+  });
+}
+
 describe("Venue visit structured replay success", () => {
   it("replays note, measurement and rating in durable queue order", async () => {
     const local = new MemoryLocalStore();
@@ -45,14 +56,7 @@ describe("Venue visit structured replay success", () => {
       factId,
       observationId: factOperationId,
     });
-    expect(remote.factLinks[0]).toEqual({
-      projectId: scope.projectId,
-      observationId: factOperationId,
-      sourceId: factSourceId,
-      isPrimary: true,
-      expectedSourceType: "in_person_visit",
-      expectedSourceRevision: 1,
-    });
+    expectCheckedVisitLink(remote);
     expect(remote.ratings[0]).toMatchObject({
       projectId: scope.projectId,
       venueId,
