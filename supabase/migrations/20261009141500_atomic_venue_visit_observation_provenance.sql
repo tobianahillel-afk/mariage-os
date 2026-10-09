@@ -1,5 +1,16 @@
 -- WP-2.12V: one PostgreSQL transaction for replay-safe visit observation
 -- and checked in-person provenance. No R/S/T/U signature is changed.
+--
+-- A row lock or an advisory lock held only by this new RPC is insufficient:
+-- the accepted legacy and checked link RPCs are still granted to users.
+-- Enforce at most one primary source at the table/index boundary for ALL
+-- primary-link writers, including concurrent legacy and atomic calls.
+-- Existing duplicate primaries intentionally make this migration fail closed;
+-- they must be reconciled explicitly rather than silently deleted.
+create unique index if not exists observation_sources_one_primary_per_observation_idx
+  on public.observation_sources (project_id, observation_id)
+  where is_primary;
+
 create function public.append_venue_fact_observation_visit_atomic(
   target_project_id uuid,
   target_fact_id uuid,
