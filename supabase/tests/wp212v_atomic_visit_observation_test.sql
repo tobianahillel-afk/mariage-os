@@ -264,7 +264,7 @@ set local role anon;
 select throws_ok($call$select public.append_venue_fact_observation_visit_atomic(
   'b7000000-0000-4000-8000-000000000001',
   'b7000000-0000-4000-8000-000000000031',
-  'b7000000-0000-4000-8000-0000000000061',
+  'b7000000-0000-4000-8000-000000000061',
   '12.5'::jsonb,'12.5 m','observed','high',
   '2026-10-06T12:00:00.000Z','Visit measurement',null,
   'b7000000-0000-4000-8000-000000000051',1
@@ -279,7 +279,7 @@ select set_config('request.jwt.claims','{"sub":"b7111111-1111-4111-8111-11111111
 select is((public.append_venue_fact_observation_visit_atomic(
   'b7000000-0000-4000-8000-000000000001',
   'b7000000-0000-4000-8000-000000000031',
-  'b7000000-0000-4000-8000-0000000000061',
+  'b7000000-0000-4000-8000-000000000061',
   '12.5'::jsonb,'12.5 m','observed','high',
   '2026-10-06T12:00:00.000Z','Visit measurement',null,
   'b7000000-0000-4000-8000-000000000051',1
@@ -287,7 +287,7 @@ select is((public.append_venue_fact_observation_visit_atomic(
 select is((public.append_venue_fact_observation_visit_atomic(
   'b7000000-0000-4000-8000-000000000001',
   'b7000000-0000-4000-8000-000000000031',
-  'b7000000-0000-4000-8000-0000000000061',
+  'b7000000-0000-4000-8000-000000000061',
   '12.5'::jsonb,'12.5 m','observed','high',
   '2026-10-06T12:00:00.000Z','Visit measurement',null,
   'b7000000-0000-4000-8000-000000000051',1
@@ -295,7 +295,7 @@ select is((public.append_venue_fact_observation_visit_atomic(
 select is((public.append_venue_fact_observation_visit_atomic(
   'b7000000-0000-4000-8000-000000000001',
   'b7000000-0000-4000-8000-000000000031',
-  'b7000000-0000-4000-8000-0000000000061',
+  'b7000000-0000-4000-8000-000000000061',
   '12.5'::jsonb,'12.5 m','observed','high',
   '2026-10-06T12:00:00.000Z','Visit measurement',null,
   'b7000000-0000-4000-8000-000000000051',1
@@ -303,103 +303,109 @@ select is((public.append_venue_fact_observation_visit_atomic(
 select is((public.append_venue_fact_observation_visit_atomic(
   'b7000000-0000-4000-8000-000000000001',
   'b7000000-0000-4000-8000-000000000031',
-  'b7000000-0000-4000-8000-0000000000061',
+  'b7000000-0000-4000-8000-000000000061',
   '12.5'::jsonb,'12.5 m','observed','high',
   '2026-10-06T12:00:00.000Z','Visit measurement',null,
   'b7000000-0000-4000-8000-000000000051',1
-) -> 'observation' ->> 'id'),'b7000000-0000-4000-8000-0000000000061','canonical observation identity is returned');
+) -> 'observation' ->> 'id'),'b7000000-0000-4000-8000-000000000061','canonical observation identity is returned');
 select is((public.append_venue_fact_observation_visit_atomic(
   'b7000000-0000-4000-8000-000000000001',
   'b7000000-0000-4000-8000-000000000031',
-  'b7000000-0000-4000-8000-0000000000061',
+  'b7000000-0000-4000-8000-000000000061',
   '12.5'::jsonb,'12.5 m','observed','high',
   '2026-10-06T12:00:00.000Z','Visit measurement',null,
   'b7000000-0000-4000-8000-000000000051',1
 ) -> 'link' ->> 'source_id'),'b7000000-0000-4000-8000-000000000051','canonical checked link identity is returned');
-select is((select count(*) from public.fact_observations where id='b7000000-0000-4000-8000-0000000000061'),1::bigint,'lost ACK replay never duplicates observation');
-select is((select count(*) from public.observation_sources where observation_id='b7000000-0000-4000-8000-0000000000061' and is_primary),1::bigint,'lost ACK replay never duplicates primary link');
+select is((select count(*) from public.fact_observations where id='b7000000-0000-4000-8000-000000000061'),1::bigint,'lost ACK replay never duplicates observation');
+select is((select count(*) from public.observation_sources where observation_id='b7000000-0000-4000-8000-000000000061' and is_primary),1::bigint,'lost ACK replay never duplicates primary link');
 
 select throws_ok($call$select public.append_venue_fact_observation_visit_atomic(
   'b7000000-0000-4000-8000-000000000001',
   'b7000000-0000-4000-8000-000000000031',
-  'b7000000-0000-4000-8000-0000000000062',
+  'b7000000-0000-4000-8000-000000000062',
   '12.5'::jsonb,'12.5 m','observed','high',
   '2026-10-06T12:00:00.000Z','Visit measurement',null,
   'b7000000-0000-4000-8000-000000000051',2
 )$call$,
 'PT412','stale venue visit source provenance','stale source revision rejects the transaction');
-select is((select count(*) from public.fact_observations where id='b7000000-0000-4000-8000-0000000000062'),0::bigint,'stale revision creates no orphan observation');
+select is((select count(*) from public.fact_observations where id='b7000000-0000-4000-8000-000000000062'),0::bigint,'stale revision creates no orphan observation');
 
 select throws_ok($call$select public.append_venue_fact_observation_visit_atomic(
   'b7000000-0000-4000-8000-000000000001',
   'b7000000-0000-4000-8000-000000000031',
-  'b7000000-0000-4000-8000-0000000000063',
+  'b7000000-0000-4000-8000-000000000063',
   '12.5'::jsonb,'12.5 m','observed','high',
   '2026-10-06T12:00:00.000Z','Visit measurement',null,
   'b7000000-0000-4000-8000-000000000054',1
 )$call$,
 'PT412','stale venue visit source provenance','invalid current source type rejects the transaction');
-select is((select count(*) from public.fact_observations where id='b7000000-0000-4000-8000-0000000000063'),0::bigint,'wrong source type creates no observation');
+select is((select count(*) from public.fact_observations where id='b7000000-0000-4000-8000-000000000063'),0::bigint,'wrong source type creates no observation');
 
 select throws_ok($call$select public.append_venue_fact_observation_visit_atomic(
   'b7000000-0000-4000-8000-000000000001',
   'b7000000-0000-4000-8000-000000000031',
-  'b7000000-0000-4000-8000-0000000000064',
+  'b7000000-0000-4000-8000-000000000064',
   '12.5'::jsonb,'12.5 m','observed','high',
   '2026-10-06T12:00:00.000Z','Visit measurement',null,
   'b7000000-0000-4000-8000-000000000056',1
 )$call$,
 '42501','venue visit observation unavailable','foreign-project source fails non-disclosing');
-select is((select count(*) from public.fact_observations where id='b7000000-0000-4000-8000-0000000000064'),0::bigint,'foreign source creates no observation');
+select is((select count(*) from public.fact_observations where id='b7000000-0000-4000-8000-000000000064'),0::bigint,'foreign source creates no observation');
 
 select throws_ok($call$select public.append_venue_fact_observation_visit_atomic(
   'b7000000-0000-4000-8000-000000000001',
   'b7000000-0000-4000-8000-000000000031',
-  'b7000000-0000-4000-8000-0000000000061',
+  'b7000000-0000-4000-8000-000000000061',
   '12.5'::jsonb,'12.5 m','observed','high',
   '2026-10-06T12:00:00.000Z','Changed replay note',null,
   'b7000000-0000-4000-8000-000000000051',1
 )$call$,
 '23505','venue fact observation conflict','same stable observation ID rejects changed immutable intent');
-select is((select count(*) from public.fact_observations where id='b7000000-0000-4000-8000-0000000000061'),1::bigint,'changed-intent retry does not duplicate observation');
+select is((select count(*) from public.fact_observations where id='b7000000-0000-4000-8000-000000000061'),1::bigint,'changed-intent retry does not duplicate observation');
 
 -- A historical two-call success may have committed a matching observation only.
 select is((public.append_venue_fact_observation_visit_atomic(
   'b7000000-0000-4000-8000-000000000001',
   'b7000000-0000-4000-8000-000000000031',
-  'b7000000-0000-4000-8000-0000000000041',
+  'b7000000-0000-4000-8000-000000000041',
   '12.5'::jsonb,'12.5 m','observed','high',
   '2026-10-06T12:00:00.000Z','Visit measurement',null,
   'b7000000-0000-4000-8000-000000000051',1
 ) -> 'link' ->> 'source_id'),'b7000000-0000-4000-8000-000000000051','matching historical orphan is repaired under the checked source lock');
-select is((select count(*) from public.observation_sources where observation_id='b7000000-0000-4000-8000-0000000000041' and is_primary),1::bigint,'historical replay repairs one primary link');
+select is((select count(*) from public.observation_sources where observation_id='b7000000-0000-4000-8000-000000000041' and is_primary),1::bigint,'historical replay repairs one primary link');
 
 -- A historical primary link to a different source must not be reassigned.
-select public.link_venue_fact_observation_source_checked(
- 'b7000000-0000-4000-8000-000000000001','b7000000-0000-4000-8000-0000000000042','b7000000-0000-4000-8000-000000000059',true,'in_person_visit',1
+select lives_ok(
+  $select public.link_venue_fact_observation_source_checked(
+    'b7000000-0000-4000-8000-000000000001',
+    'b7000000-0000-4000-8000-000000000042',
+    'b7000000-0000-4000-8000-000000000059',
+    true, 'in_person_visit', 1
+  )$,
+  'historical observation starts with a valid different primary source'
 );
 select throws_ok($call$select public.append_venue_fact_observation_visit_atomic(
   'b7000000-0000-4000-8000-000000000001',
   'b7000000-0000-4000-8000-000000000031',
-  'b7000000-0000-4000-8000-0000000000042',
+  'b7000000-0000-4000-8000-000000000042',
   '12.5'::jsonb,'12.5 m','observed','high',
   '2026-10-06T12:00:00.000Z','Visit measurement',null,
   'b7000000-0000-4000-8000-000000000051',1
 )$call$,
 '23505','venue visit observation provenance conflict','foreign primary provenance cannot be silently reassigned');
-select is((select count(*) from public.observation_sources where observation_id='b7000000-0000-4000-8000-0000000000042' and source_id='b7000000-0000-4000-8000-000000000059' and is_primary),1::bigint,'conflicting historical primary provenance remains unchanged');
+select is((select count(*) from public.observation_sources where observation_id='b7000000-0000-4000-8000-000000000042' and source_id='b7000000-0000-4000-8000-000000000059' and is_primary),1::bigint,'conflicting historical primary provenance remains unchanged');
 
-set_config('request.jwt.claims','{"sub":"b7222222-2222-4222-8222-222222222222","role":"authenticated"}',true);
+select set_config('request.jwt.claims','{"sub":"b7222222-2222-4222-8222-222222222222","role":"authenticated"}',true);
 select throws_ok($call$select public.append_venue_fact_observation_visit_atomic(
   'b7000000-0000-4000-8000-000000000001',
   'b7000000-0000-4000-8000-000000000031',
-  'b7000000-0000-4000-8000-0000000000065',
+  'b7000000-0000-4000-8000-000000000065',
   '12.5'::jsonb,'12.5 m','observed','high',
   '2026-10-06T12:00:00.000Z','Visit measurement',null,
   'b7000000-0000-4000-8000-000000000051',1
 )$call$,
 '42501','venue visit observation unavailable','non-member is denied before any append');
 reset role;
-select is((select count(*) from public.fact_observations where id='b7000000-0000-4000-8000-0000000000065'),0::bigint,'denied member cannot leave orphan observation');
+select is((select count(*) from public.fact_observations where id='b7000000-0000-4000-8000-000000000065'),0::bigint,'denied member cannot leave orphan observation');
 select * from finish();
 rollback;
