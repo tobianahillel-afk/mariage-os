@@ -1,3 +1,8 @@
+import type {
+  AtomicVenueVisitObservationInput,
+  AtomicVenueVisitObservationPort,
+  AtomicVenueVisitObservationReceipt,
+} from "@application/facts/venue-visit-atomic-observation";
 import {
   VenueFactPersistenceError,
   type VenueFactPersistenceErrorCode,
@@ -17,6 +22,7 @@ import type {
   VenueFactProvenanceLinkPort,
   VenueFactSourceRecord,
 } from "@application/facts/venue-fact-evidence-service";
+import { parseAtomicVenueVisitObservationReceipt } from "./parse-atomic-venue-visit-observation";
 import { parseVenueFactDefinitionRow } from "./parse-venue-fact-row";
 import {
   parseObservationSourceLinkRow,
@@ -34,6 +40,8 @@ const DEFINITION_COLUMNS =
 const CONTEXT_QUERY_FAILED = "Venue fact evidence context query failed.";
 const SOURCE_MUTATION_FAILED = "Venue fact source mutation failed.";
 const OBSERVATION_MUTATION_FAILED = "Venue fact observation mutation failed.";
+const ATOMIC_VISIT_MUTATION_FAILED =
+  "Atomic Venue visit observation mutation failed.";
 const LINK_MUTATION_FAILED = "Venue fact evidence link mutation failed.";
 const RESOLUTION_MUTATION_FAILED = "Venue fact resolution mutation failed.";
 const CONFLICT_CODES = new Set(["40001", "PT412", "23505"]);
@@ -57,6 +65,7 @@ type EvidenceRpcName =
   | "create_venue_fact_source"
   | "update_venue_fact_source"
   | "append_venue_fact_observation"
+  | "append_venue_fact_observation_visit_atomic"
   | "link_venue_fact_observation_source"
   | "link_venue_fact_observation_source_checked"
   | "resolve_venue_fact_from_observation";
@@ -240,7 +249,10 @@ function sourcePayload(
 }
 
 export class SupabaseVenueFactEvidenceAdapter
-  implements VenueFactEvidencePort, VenueFactProvenanceLinkPort
+  implements
+    VenueFactEvidencePort,
+    VenueFactProvenanceLinkPort,
+    AtomicVenueVisitObservationPort
 {
   constructor(private readonly client: SupabaseVenueFactEvidenceClientLike) {}
 
@@ -318,6 +330,36 @@ export class SupabaseVenueFactEvidenceAdapter
       OBSERVATION_MUTATION_FAILED,
     );
     return observationData(data, context, observationId);
+  }
+
+  async appendAtomicVisitObservation(
+    input: AtomicVenueVisitObservationInput,
+  ): Promise<AtomicVenueVisitObservationReceipt> {
+    const context = await this.getFactContext(input.projectId, input.factId);
+    const data = await rpcData(
+      this.client,
+      "append_venue_fact_observation_visit_atomic",
+      {
+        target_project_id: input.projectId,
+        target_fact_id: input.factId,
+        target_observation_id: input.observationId.toLowerCase(),
+        target_value: input.value,
+        target_raw_value_text: input.rawValueText,
+        target_evidence_level: input.evidenceLevel,
+        target_confidence: input.confidence,
+        target_observed_at: input.observedAt,
+        target_note: input.note,
+        target_supersedes_observation_id: input.supersedesObservationId,
+        target_source_id: input.sourceId,
+        target_expected_source_revision: input.expectedSourceRevision,
+      },
+      ATOMIC_VISIT_MUTATION_FAILED,
+    );
+    try {
+      return parseAtomicVenueVisitObservationReceipt(data, context, input);
+    } catch {
+      fail("provider_response_invalid", ATOMIC_VISIT_MUTATION_FAILED);
+    }
   }
 
   async linkObservationSource(
