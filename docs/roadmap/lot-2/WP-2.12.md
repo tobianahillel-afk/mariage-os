@@ -5,8 +5,8 @@
 - Work Packet ID: `WP-2.12`
 - Lot: 2 — Venues core
 - Name: mobile/offline Venue visit, offline package, local visit media and packet E2E completion
-- State: `IN_PROGRESS` — A-IMPLEMENT resumption-governance exact-head CI pending, R/S/T/U accepted
-- Current pass: `A-IMPLEMENT RESUMPTION GATE` — tranches 1–3 GREEN and structured-reconnect #99 preserved; WP-2.12R/S/T/U ACCEPTED; no parent production changes before resumption CI
+- State: `BLOCKED` — WP-2.12V transactional observation/source provenance dependency; R/S/T/U accepted
+- Current pass: `A-IMPLEMENT BLOCKED` — tranches 1–3 GREEN and structured-reconnect #99 preserved; WP-2.12R/S/T/U ACCEPTED; draft #117 has a MAJOR atomicity finding; no parent production changes before V Pass C
 - Branch: `lot-2/venues-core`
 - Activation base: `0a2d051d3f0a45b638f5c1b5f8c81acf36491c36`
 - Activation-base CI: `37240817336` — **5/5 SUCCESS**, including full verify from clean checkout; provider-only workflows skipped
@@ -361,3 +361,11 @@ Still required before Pass A exit:
 - This is a **governance-only** restart of original WP-2.12; source changes, media, scope expansion and PR #99 merge remain forbidden until this separate HEAD passes ordinary exact-head five-job CI.
 - Draft PR #99 at `2841755c7ffb3d08c5c2c3b97c5ecf96f10a83e9` diverges from the current canonical branch. Reconcile onto a new base or isolated integration branch without overwriting accepted R/S/T/U contracts; retain parent Fact-ACK tests, accepted atomic `linkObservationSourceChecked` with `in_person_visit` and server-read source revision, and accepted `PT412` business conflict semantics.
 - After exact-head gate: run focused replay/authorization/durability/receipt tests, full CI, then a **new independent fresh review** before any parent merge. The original 9-point packet scope remains unchanged; binary-byte/media and mobile E2E are later parent tranches.
+
+## A-IMPLEMENT dependency gate — WP-2.12V (2026-10-09)
+
+- Separate parent resumption-governance base `a2161aa3c2271cd685c07d38d6456630c0a2fb38` / CI `37860304869` is **5/5 GREEN** (including clean checkout); the prior U resumption-CI gate is resolved.
+- Parent draft #117 then received a MAJOR review finding: two PostgREST RPC transactions allow a Fact observation to commit without an accepted `in_person_visit` provenance source link.
+- A new atomic RPC (+2) plus a forward-only SQL migration family (+1) would exceed parent WP-2.12's 9-point boundary. Therefore **WP-2.12V** is extracted as a coherent 3-point support packet, issue #125 / activation PR #126.
+- Parent WP-2.12 is **BLOCKED** until V passes exact-head READY, RED-first Pass A, independent Pass B and separate Pass C. Only then may PR #117 replace the two-RPC path and pass its own full review/CI gate.
+- Original #99 remains draft/frozen; local media bytes, mobile finish UI and synthetic Lot-2 exit E2E are not authorized while the parent is blocked.

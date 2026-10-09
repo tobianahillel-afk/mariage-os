@@ -1,15 +1,15 @@
-# WP-2.12V — Transactional visit observation and checked provenance (proposal)
+# WP-2.12V — Transactional visit observation and checked provenance (activation revalidation)
 
 ## Identity / gate
 
-- Work Packet ID: `WP-2.12V` (proposed support packet; not yet activated)
+- Work Packet ID: `WP-2.12V` (bounded support packet; activation exact-head CI pending)
 - Lot: 2 — Venues core
 - Parent: `WP-2.12`, currently A-IMPLEMENT / PR #117 draft
-- State: **PROPOSED / ACTIVATION_REVALIDATION_PENDING — NOT READY**
+- State: **READY candidate / ACTIVATION-GOVERNANCE CI PENDING** — no RED or production implementation permitted before the gate
 - Primary tracking issue: #125
 - Primary Feature: #42 / FTR-028 (support only; no new product Feature)
 - Proposed base: `a2161aa3c2271cd685c07d38d6456630c0a2fb38` — accepted R/S/T/U are present
-- Production changes authorized: **NONE** until a separate activation-governance head is reviewed and five ordinary CI jobs, including clean checkout, pass
+- Production changes authorized: **NONE** until this READY candidate head passes all five ordinary exact-head CI jobs, including clean checkout. Proposal head `4311399c0b28a6110b485dfe0d1242d4d12acef6` / CI `37869893376` passed 5/5, but does not substitute for activation-head CI.
 - Parent PR #117: **DO NOT MERGE** while its atomic observation-provenance MAJOR finding is open
 
 ## Why extraction is required
@@ -27,7 +27,7 @@ server RPC (+2) and forward-only migration family (+1) push the combined scope
 to 12, exceeding the work-packet maximum. The change cannot be silently added
 to WP-2.12 or retroactively reclassify accepted R/S/T/U implementations.
 
-## Proposed bounded contract
+## Frozen bounded contract — activation candidate
 
 Implement one authenticated, project-authorized command which, in a **single
 Postgres transaction**:
@@ -73,7 +73,7 @@ revision. An invalid or primitive success payload is never an ACK.
 - Stable observation/operation IDs, idempotent conflicts, project isolation,
   `in_person_visit` proof, no last-write-wins, no synthetic cloud success.
 
-## Sizing and cohesion — activation candidate only
+## Sizing and cohesion — revalidated
 
 | Complexity source | Points |
 |---|---:|
@@ -83,13 +83,16 @@ revision. An invalid or primitive success payload is never an ACK.
 | UI/provider/offline generic semantics | 0 |
 | **Total** | **3** |
 
-Cohesion candidate: **PASS**. Everything implements one invariant: an
+Cohesion: **PASS**. Everything implements one invariant: an
 observation and its verified in-person source provenance must commit or
 reconcile together.
 
-These are **candidate** numbers, not an activation verdict. Before READY,
-recheck the exact final RPC signature and prior accepted replay/multiselect/
-supersession edge cases against the current schema and all existing tests.
+Revalidation is **PASS for design and sizing**. Accepted replay core, checked
+source-link RPC, text-timestamp public wrapper, multiselect normalization,
+supersession and PT412 behavior were re-read from the exact current SQL
+migration chain. The 3-point responsibility is independently reviewable.
+**READY implementation permission is nevertheless gated on this activation
+record's own five ordinary exact-head CI jobs**, including clean checkout.
 
 ## Required RED-first evidence
 
@@ -138,9 +141,61 @@ not count as RED contract evidence.
 - importing real wedding/private project data;
 - media byte capture/upload, mobile visit UX and Lot-2 integration completion.
 
+## Activation revalidation — 2026-10-09
+
+- Accepted dependency chain: WP-2.12R/S/T/U are each terminal ACCEPTED;
+  no accepted interface is changed by this governance packet.
+- Canonical parent base: `a2161aa3c2271cd685c07d38d6456630c0a2fb38`
+  / CI `37860304869` passed **5/5**, including clean checkout.
+- Proposal-only PR #126 initial head
+  `4311399c0b28a6110b485dfe0d1242d4d12acef6` / CI
+  `37869893376` passed **5/5**, including clean checkout.
+- SQL baseline verified: `20261005094000_harden_venue_fact_observation_replay_identity.sql`
+  provides the caller-ID public observation wrapper; the current
+  `20261008163000_postgrest_safe_replay_conflicts.sql` provides the
+  internal replay core and the source-checked link operation with
+  `PT412` on stale source type/revision. The latter already locks
+  `public.sources` FOR UPDATE.
+- The original public observation RPC accepts ten typed parameters, including
+  `target_observed_at text`. The new additive atomic RPC will accept those
+  same ten observation fields plus
+  `target_source_id uuid` and `target_expected_source_revision bigint`.
+  It fixes source type to `in_person_visit` and link primary to `true`
+  rather than trusting caller-controlled booleans/types.
+- It must check and lock the authorized source **before** invoking the
+  accepted append/replay command. The subsequent checked link and append
+  occur in the **same SQL statement transaction**; any failure rolls back
+  both writes. Return JSON with independently verifiable
+  `observation` and `link` records, without accepting a successful
+  primitive or partial result in the client.
+- If an observation with the same stable ID already exists, the accepted
+  observation replay core must verify its immutable intent. A missing source
+  link from the historical two-call path may be repaired only with the
+  currently valid source lock/type/revision; a foreign or conflicting primary
+  source link must be rejected, not silently reassigned. A lost success
+  response followed by an identical retry must produce the same pair.
+- Public RPC security: `SECURITY DEFINER` with fixed
+  `search_path = pg_catalog`, explicit `auth.uid()`, active membership,
+  `venues.write` and same-project authorization; REVOKE from
+  `PUBLIC, anon`, GRANT only to `authenticated`. Existing entrypoint
+  grants/signatures stay unchanged.
+- All application precondition conflicts use **PT412**, never a custom
+  `40001`; input/authorization/identity failures fail closed according
+  to the existing codes. Direct pgTAP authenticated/anon/foreign-project
+  cases are mandatory.
+- Sized **3 points**, cohesion PASS. No new table, RLS policy, permission
+  key, provider campaign, UI route, local schema or generic sync semantics.
+- The only permitted next action is to prove this activation-governance head
+  by the five ordinary exact-head CI jobs, including full verify from a
+  clean checkout. **After that**, an isolated unmerged RED-only PR may
+  challenge atomic rollback, replay/recovery, source lock/revision,
+  project isolation and receipt parsing.
+
 ## Current handoff
 
-**PROPOSED / NOT READY.** Review this packet against the exact canonical
-schema, accepted SQL interfaces, parent 9-point scope and #125. If coherent,
-record activation revalidation and prove a separate exact-head READY gate
-before *any* RED/production implementation. PR #117 remains draft/unmerged.
+**READY candidate / activation exact-head CI pending.** No RED/production
+change until that gate is green. Parent WP-2.12 / draft PR #117 remains
+**BLOCKED** behind this separately accepted transaction. After V is
+ACCEPTED, the parent must replace its unsafe two-RPC path and undergo fresh
+review before merging. Local media bytes and Lot-2 exit E2E remain later
+parent slices.

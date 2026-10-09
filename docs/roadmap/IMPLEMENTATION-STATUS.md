@@ -42,11 +42,21 @@ Required current-lot responsibilities minus assigned packet responsibilities: **
 | WP-2.9B | generic project tags and Venue entity-tag links                        | **ACCEPTED / COMPLETE — Pass C gap ∅**                                      |
 | WP-2.10 | repositories, local cache, pending/offline mutations                   | **ACCEPTED / COMPLETE**                                                     |
 | WP-2.11 | gallery/table/detail/compare/deep-link workspace                       | **ACCEPTED / COMPLETE**                                                    |
-| WP-2.12 | mobile/offline venue-visit workflow and packet E2E completion          | **IN_PROGRESS — A-IMPLEMENT resumption-governance CI pending**             |
+| WP-2.12 | mobile/offline venue-visit workflow and packet E2E completion          | **BLOCKED — atomic observation/source transaction WP-2.12V required**     |
 | WP-2.12R | replay-safe Venue fact-observation command boundary                     | **ACCEPTED / COMPLETE — Pass C gap ∅**                                    |
 | WP-2.12S | replay-safe Venue member-rating command boundary                        | **ACCEPTED / COMPLETE — Pass C gap ∅**                                    |
 | WP-2.12T | atomic Venue fact-observation visit-source provenance link               | **ACCEPTED / COMPLETE — Pass C gap ∅**                                    |
 | WP-2.12U | PostgREST-safe replay conflict signaling across R/S/T RPCs                | **ACCEPTED / COMPLETE — final status seal 5/5 green**            |
+| WP-2.12V | atomic visit observation + checked source provenance transaction        | **READY candidate — activation exact-head CI pending**                   |
+
+## WP-2.12V — activation revalidation (2026-10-09)
+
+- Existing parent WP-2.12 structured replay in draft PR #117 has a verified MAJOR atomicity blocker: Fact observation append and checked `in_person_visit` source link were separate PostgREST transactions. Parent remains **BLOCKED**, preserving prior GREEN work; it must not merge or start media/UI follow-ups before V acceptance and parent re-review.
+- Dedicated FIR/support tracking: #125; activation PR #126; packet `docs/roadmap/lot-2/WP-2.12V.md`.
+- Current canonical base `a2161aa3c2271cd685c07d38d6456630c0a2fb38` / CI `37860304869` passed **5/5**, clean checkout included. Initial proposal head `4311399c0b28a6110b485dfe0d1242d4d12acef6` / CI `37869893376` also passed **5/5**, including clean checkout.
+- Revalidated against the final `append_venue_fact_observation_replay_core`, the public text-timestamp append wrapper and `link_venue_fact_observation_source_checked` with source FOR UPDATE and PT412. One additive atomic 12-argument RPC, one forward-only SQL migration family; **size 3 / cohesion PASS**.
+- **READY candidate only**. This activation-governance HEAD must pass five ordinary exact-head CI jobs including clean checkout before the isolated RED-first Pass A. No server migration, parent merge or provider campaign is authorized before that.
+- Upon V Pass A/B/C acceptance, parent #117 must consume the atomic operation, rerun complete CI and independent fresh review. Existing R/S/T/U are terminal and not reopened.
 
 ## WP-2.10 — activation revalidation
 
@@ -470,7 +480,7 @@ Lot 2 branch: lot-2/venues-core
 Accepted durable Lot-2 packets: WP-2.1..WP-2.11
 WP-2.9C: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 21accd7f9ab1b845275507b7941a782c5e816a56 / CI 36494697647 5/5 including clean checkout
 WP-2.9A: ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record 656398bcd5520cfa56d782023d150eb64317161d / CI 36542083037 5/5 including clean checkout
-Current packet: WP-2.12 — IN_PROGRESS / A-IMPLEMENT resumption-governance CI pending; support packets R/S/T/U ACCEPTED / COMPLETE; U final seal `319adce60b606b14653cbdac5d9e3f224b5d8614` / CI `37859154995` 5/5; parent tranches 1–3 preserved; draft PR #99 unchanged/frozen until this resumption gate passes.
+Current packet: WP-2.12V — READY candidate / activation exact-head CI pending, support for WP-2.12 parent; parent BLOCKED behind transaction atomicity; draft PR #117 and #99 unmerged; R/S/T/U ACCEPTED / COMPLETE.
 Latest green readiness: d89b3601d066996c3958f30ad9067b34675f8b22 / 35138142860 / job 104935966498 — SUCCESS
 Exact-size evidence candidate: 4f40613060b4c9de41a32d99ed43fcf6e12c9791 / 35138368708 — 5/5 normal jobs SUCCESS; ten exact 25,000,000-byte promotions HTTP 200/finalized; provider CPU rows absent
 Provider deployment: 064d50b9-3c3d-414e-a6c3-afdcc1051be9 / pages-worker--19505720-preview / Workers Free Pages preview
@@ -509,5 +519,5 @@ FTR-089 FIR: #17 — IN_PROGRESS / parent A accepted, later presentation and Lot
 WP-2.9B: ACCEPTED / COMPLETE; FTR-093 FIR #27 remains IN_PROGRESS for downstream scope; WP29B-AR-001/002 CLOSED / VERIFIED; Pass C gap ∅
 Lots 3–12: NOT_STARTED
 Latest distinct-PDF campaign: 2303df0c9e8d6f72561ec0ce42514663801229d8 / CI 36459949861 / provider job 109058754517 / artifact 10987866873 — 10 distinct exact-size PDFs, 10 finalized flows, 20 valid exact-version CPU readings within Workers Free; provider verdict PASS
-Next permitted action: prove this separate WP-2.12 parent A-IMPLEMENT resumption-governance HEAD with five exact-head ordinary CI jobs including clean checkout. If green, reconcile draft PR #99 against accepted R/S/T/U interfaces, including atomic checked-link `in_person_visit` source revision, PostgREST-safe PT412 conflicts and exact receipt/queued Fact ACK. Re-run targeted regressions plus complete fresh review before merge. Media remains a later tranche; no provider campaign or product-scope expansion.
+Next permitted action: prove WP-2.12V READY activation-governance exact-head CI 5/5 including clean checkout; then create isolated RED-only evidence and implement the 3-point atomic observation-and-provenance transaction. Parent #117 and #99 remain unmerged/blocked until V Pass C acceptance and separate parent fresh review. No provider campaign or new product scope.
 ```

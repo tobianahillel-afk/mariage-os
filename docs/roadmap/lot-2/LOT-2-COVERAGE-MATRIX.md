@@ -1,6 +1,6 @@
 # Lot 2 — Coverage Matrix and Work Packet Plan
 
-Status: **IN_PROGRESS — WP-2.1..WP-2.11 + WP-2.12R/S/T/U ACCEPTED; parent WP-2.12 A-IMPLEMENT resumption-governance CI pending**
+Status: **IN_PROGRESS — WP-2.1..WP-2.11 + WP-2.12R/S/T/U ACCEPTED; parent WP-2.12 BLOCKED behind WP-2.12V READY activation candidate**
 
 Purpose: durable current responsibility-to-packet map for Lot 2 under `docs/engineering/AI-LOT-ORCHESTRATION.md`. Detailed historical evidence remains in packet records, acceptance records, FIRs and Git history.
 
@@ -33,9 +33,9 @@ Integration prerequisite is accepted Lot 0 + Lot 1 on `main` through PR #7; `mai
 | private PDF exact-duplicate detection in the user flow, without cross-project disclosure or automatic logical merge | DOCUMENTS acceptance; FTR-089 presentation | WP-2.9A project-scoped SHA-256/index foundation + WP-2.11 user-facing signal | hash foundation accepted in A; presentation downstream |
 | generic project Tags and Venue entity-tag assignments | FTR-093 Lot-2 | WP-2.9B, WP-2.11 | **WP-2.9B + WP-2.11 Venue presentation ACCEPTED**; later target types remain downstream |
 | repository/read-model/provider ports and Supabase adapters | architecture, AUTHZ-006/020 | WP-2.1..WP-2.10 + WP-2.9C | accepted packets green through WP-2.10; Pass C and exact-head CI green |
-| local cache/pending Venue edits | FTR-028 Lot-2, SYN-001..003/007..011, PWA-003/004/006 | WP-2.10, WP-2.12 | WP-2.10 **ACCEPTED**; WP-2.12 **BLOCKED/FROZEN behind U** — schema v2, pin/package + draft durability GREEN and preserved |
+| local cache/pending Venue edits | FTR-028 Lot-2, SYN-001..003/007..011, PWA-003/004/006 | WP-2.10, WP-2.12 | WP-2.10 **ACCEPTED**; WP-2.12 **BLOCKED behind WP-2.12V** — schema v2, pin/package + draft durability GREEN and preserved |
 | gallery/table/detail/compare/deep-link workspace | FTR-015/016/017/027, VEN-010/011/014/015 | WP-2.11 | **ACCEPTED / COMPLETE — Pass C gap ∅** |
-| mobile visit mode | FTR-028, PWA-004 | WP-2.12 + WP-2.12R/S/T/U support | WP-2.12 **BLOCKED/FROZEN behind U** with shell/package/draft GREEN preserved; WP-2.12R/S/T **ACCEPTED / COMPLETE**; U Pass C gap ∅ / acceptance-record CI `37854906006` 5/5 (final seal CI pending) |
+| mobile visit mode | FTR-028, PWA-004 | WP-2.12 + WP-2.12R/S/T/U support | WP-2.12 **BLOCKED behind WP-2.12V** with shell/package/draft GREEN preserved; WP-2.12R/S/T **ACCEPTED / COMPLETE**; U Pass C gap ∅ / acceptance-record CI `37854906006` 5/5 (final seal CI pending) |
 | file/content validation, trusted binary lifecycle, no private production data in public artifacts | MED-001..010/013 + security/quality controls | WP-2.8A/B/C, WP-2.9A, WP-2.9C, WP-2.12 | media and A/C accepted; WP-2.12 local-binary store/logout safety GREEN and preserved while parent is BLOCKED/FROZEN; byte lifecycle/upload completion remains later parent scope |
 | explicit permissions/grants/RLS/direct endpoint and Storage allow+deny evidence | AUTHZ-001..009/012/017/018/020 | owning packets WP-2.1..WP-2.9C | accepted authorization evidence green; C local/exact-head evidence green |
 | synthetic complex Venue exit fixture/integrated workflows | Lot-2 acceptance | WP-2.12 + Lot Integration Pass | downstream |
@@ -146,7 +146,7 @@ WP-2.1..WP-2.8C [ACCEPTED]
                                                                                                 → Lot reconciliation → Integration Pass
 ```
 
-Only one packet may be active at a time. WP-2.1..WP-2.11 and bounded support packets WP-2.12R/S/T/U are terminal accepted. U final status seal `319adce60b606b14653cbdac5d9e3f224b5d8614` / CI `37859154995` passed five ordinary jobs including clean checkout. Parent WP-2.12 is now the sole A-IMPLEMENT resumption-governance candidate; its draft PR #99 remains frozen and must not be reconciled or merged until this separate governance HEAD itself passes exact-head five-job CI including clean checkout.
+Only one packet may be active at a time. WP-2.1..WP-2.11 and bounded support packets WP-2.12R/S/T/U are terminal accepted. Parent WP-2.12 remains BLOCKED by a verified observation/provenance atomicity MAJOR in draft PR #117. The dedicated 3-point WP-2.12V has coherence PASS but must first pass its own READY activation exact-head CI. Parent PRs #117/#99 must not merge or proceed to media/exit E2E until V Pass C accepts the new atomic boundary.
 
 ## Explicitly outside Lot 2
 
@@ -194,7 +194,8 @@ WP-2.12R = ACCEPTED / COMPLETE — final support seal `cdad9eb82052ac3e2296769e5
 WP-2.12S = ACCEPTED / COMPLETE — final support seal `93f2916db125139f7694e56248c188a2cf21f794` / CI `37465538267` 5/5; AR-001/002/003 CLOSED / VERIFIED
 WP-2.12T = ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record `6f460afc1d12134bc12f08e51145f29b01cf6e0f` / CI `37796626397` 5/5; final support seal `091557f2b221923bf38debd9472fe51fbee1cdcc` / CI `37798476372` 5/5 including clean checkout; AR-001..004 CLOSED / VERIFIED
 WP-2.12U = ACCEPTED / COMPLETE — Pass C gap ∅; acceptance-record `18b706b3d3a3ba1a97691c4af18e58a46fb6424b` / CI `37854906006` 5/5; final status seal `319adce60b606b14653cbdac5d9e3f224b5d8614` / CI `37859154995` 5/5 including clean checkout; historical AR-001..008 CLOSED / VERIFIED.
-next permitted action = parent WP-2.12 A-IMPLEMENT resumption-governance exact-head 5/5 CI → only then reconcile draft PR #99 against accepted R/S/T/U replay + checked-link boundaries → targeted regressions and fresh independent review; media remains separate.
+WP-2.12V = READY candidate / CI pending; new atomic observation + in_person_visit provenance transaction; 3 points / cohesion PASS, issue #125, PR #126.
+next permitted action = V READY exact-head 5/5 CI → RED-only contracts → bounded Pass A → independent Pass B → separate Pass C → parent PR #117 integration and fresh review; media remains separate.
 media-byte durability/upload remains a separate later parent tranche; no provider rerun is authorized
 ```
 
