@@ -1,5 +1,6 @@
 import type {
   AtomicVenueVisitObservationInput,
+  AtomicVenueVisitObservationPort,
   AtomicVenueVisitObservationReceipt,
 } from "@application/facts/venue-visit-atomic-observation";
 import {
@@ -248,7 +249,10 @@ function sourcePayload(
 }
 
 export class SupabaseVenueFactEvidenceAdapter
-  implements VenueFactEvidencePort, VenueFactProvenanceLinkPort
+  implements
+    VenueFactEvidencePort,
+    VenueFactProvenanceLinkPort,
+    AtomicVenueVisitObservationPort
 {
   constructor(private readonly client: SupabaseVenueFactEvidenceClientLike) {}
 

@@ -1,4 +1,8 @@
 import { expect, it } from "vitest";
+import type {
+  AtomicVenueVisitObservationInput,
+  AtomicVenueVisitObservationPort,
+} from "@application/facts/venue-visit-atomic-observation";
 import type { AppendVenueFactObservationInput } from "@application/facts/venue-fact-evidence-service";
 import {
   SupabaseVenueFactEvidenceAdapter,
@@ -97,11 +101,7 @@ const appendInput: AppendVenueFactObservationInput = {
   supersedesObservationId: null,
 };
 
-type AtomicInput = Parameters<
-  SupabaseVenueFactEvidenceAdapter["appendAtomicVisitObservation"]
->[0];
-
-const atomicInput: AtomicInput = {
+const atomicInput: AtomicVenueVisitObservationInput = {
   ...appendInput,
   sourceId,
   expectedSourceRevision: 1,
@@ -125,7 +125,7 @@ const atomicReceipt = {
   },
 };
 
-it("maps one atomic RPC and verifies its receipt", async () => {
+it("maps one atomic RPC through the application port and verifies its receipt", async () => {
   const calls: RecordedRpc[] = [];
   const adapter = new SupabaseVenueFactEvidenceAdapter(
     makeClient(
@@ -137,8 +137,9 @@ it("maps one atomic RPC and verifies its receipt", async () => {
     ),
   );
 
+  const port: AtomicVenueVisitObservationPort = adapter;
   await expect(
-    adapter.appendAtomicVisitObservation(atomicInput),
+    port.appendAtomicVisitObservation(atomicInput),
   ).resolves.toMatchObject({
     observation: { id: observationId, createdBy: actorId },
     link: { sourceId, isPrimary: true },
