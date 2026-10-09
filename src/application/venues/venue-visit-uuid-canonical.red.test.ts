@@ -14,10 +14,15 @@ import {
   scope,
 } from "../../../tests/support/venue-visit-structured-replay-test-support";
 
-function entry(mutation: ReturnType<typeof factMutation>): StructuredReplayEntry {
+function entry(
+  mutation: ReturnType<typeof factMutation>,
+): StructuredReplayEntry {
   return {
     mutation,
-    command: venueReplayCommand(mutation, scope) as StructuredVenueReplayCommand,
+    command: venueReplayCommand(
+      mutation,
+      scope,
+    ) as StructuredVenueReplayCommand,
   };
 }
 
