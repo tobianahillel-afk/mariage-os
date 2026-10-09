@@ -32,10 +32,9 @@ it("normalizes an uppercase queued visit note interaction ID", () => {
 it("accepts case-equivalent durable note identity", () => {
   const id = "a1111111-1111-4111-8111-111111111111";
   const queued = noteMutation(id.toUpperCase());
-  const command = venueReplayCommand({
-    ...queued,
-    payload: { ...(queued.payload as Record<string, string | null>), interactionId: id },
-  }, scope);
+  const payload = queued.payload as Record<string, string | null>;
+  const mutation = { ...queued, payload: { ...payload, interactionId: id } };
+  const command = venueReplayCommand(mutation, scope);
   expect(command.kind).toBe("visit_note");
 });
 
@@ -60,11 +59,9 @@ it("orders mixed-case Fact dependencies before UUID tie-breaking", () => {
 it("blocks mixed-case supersession after a prior Fact failed", () => {
   const predecessorId = "f2222222-2222-4222-8222-222222222222";
   const predecessor = entry(factMutation(predecessorId.toUpperCase()));
-  const successor = entry(factMutation(
-    "12222222-2222-4222-8222-222222222222",
-    "2026-10-06T12:02:00.000Z",
-    predecessorId,
-  ));
+  const successorId = "12222222-2222-4222-8222-222222222222";
+  const at = "2026-10-06T12:02:00.000Z";
+  const successor = entry(factMutation(successorId, at, predecessorId));
   const blockers = createReplayDependencyBlockers();
   addReplayFailureBlockers(blockers, predecessor);
   expect(
