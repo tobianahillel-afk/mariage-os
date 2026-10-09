@@ -25,7 +25,7 @@ function replayOrder(
   const createdOrder = left.createdAt.localeCompare(right.createdAt);
   return createdOrder !== 0
     ? createdOrder
-    : left.operationId.localeCompare(right.operationId);
+    : left.operationId.toLowerCase().localeCompare(right.operationId.toLowerCase());
 }
 
 function ratingSeriesKey(
@@ -34,7 +34,7 @@ function ratingSeriesKey(
     { readonly kind: "member_rating" }
   >,
 ): string {
-  return `${command.input.venueId}:${command.input.dimensionKey}`;
+  return `${command.input.venueId.toLowerCase()}:${command.input.dimensionKey}`;
 }
 
 function dependsOn(
@@ -46,7 +46,7 @@ function dependsOn(
   if (candidate.command.kind === "fact_observation") {
     return (
       candidate.command.input.supersedesObservationId ===
-      predecessor.mutation.operationId
+      predecessor.mutation.operationId.toLowerCase()
     );
   }
 
@@ -114,12 +114,12 @@ export function addReplayFailureBlockers(
 ): void {
   const command = entry.command;
   if (command === null) {
-    blockers.factOperationIds.add(entry.mutation.operationId);
+    blockers.factOperationIds.add(entry.mutation.operationId.toLowerCase());
     return;
   }
 
   if (command.kind === "fact_observation") {
-    blockers.factOperationIds.add(entry.mutation.operationId);
+    blockers.factOperationIds.add(entry.mutation.operationId.toLowerCase());
     return;
   }
 
@@ -140,7 +140,9 @@ export function hasReplayBlockedDependency(
     command.kind === "fact_observation" &&
     command.input.supersedesObservationId !== null
   ) {
-    return blockers.factOperationIds.has(command.input.supersedesObservationId);
+    return blockers.factOperationIds.has(
+      command.input.supersedesObservationId.toLowerCase(),
+    );
   }
 
   if (command.kind === "member_rating") {
