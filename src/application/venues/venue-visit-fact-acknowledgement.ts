@@ -53,16 +53,18 @@ function payloadMatches(
 export function venueVisitFactAcknowledgementMatches(
   command: FactReplayCommand,
   context: VenueFactContext,
-  observation: VenueFactObservationRecord,
+  observation: unknown,
   expectedUserId: string,
 ): boolean {
+  if (typeof observation !== "object" || observation === null) return false;
+  const acknowledged = observation as VenueFactObservationRecord;
   const normalized = normalizeFactObservation(
     context.definition,
     command.input,
   );
   if (!normalized.ok) return false;
   return [
-    identityMatches(command, observation, expectedUserId),
-    payloadMatches(observation, normalized.value),
+    identityMatches(command, acknowledged, expectedUserId),
+    payloadMatches(acknowledged, normalized.value),
   ].every(Boolean);
 }
