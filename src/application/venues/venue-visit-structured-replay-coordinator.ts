@@ -361,7 +361,10 @@ export class VenueVisitStructuredReplayCoordinator {
             ok: false,
             failure: {
               state: "failed_permanent",
-              error: "provider_response_invalid",
+              error:
+                context.venueId === command.venueId
+                  ? "provider_response_invalid"
+                  : "fact_scope_mismatch",
             },
           };
     } catch (error) {
