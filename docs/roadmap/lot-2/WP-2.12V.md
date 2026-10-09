@@ -2,15 +2,15 @@
 
 ## Identity / gate
 
-- Work Packet ID: `WP-2.12V` (bounded support packet; activation exact-head CI pending)
+- Work Packet ID: `WP-2.12V` (bounded support packet; separate READY seal exact-head CI pending)
 - Lot: 2 — Venues core
 - Parent: `WP-2.12`, BLOCKED / PR #117 draft
-- State: **PLANNED** — activation revalidation and exact-head governance CI pending; RED/production forbidden before a separate READY seal
-- Current pass: **PLAN / ACTIVATION-REVALIDATION** — no Pass A or RED yet
+- State: **READY candidate** — PLANNED activation CI 5/5 green, separate READY-seal exact-head CI pending; RED/production forbidden until seal passes
+- Current pass: **PLAN / READY-GOVERNANCE** — no Pass A or RED yet
 - Primary tracking issue: #125
 - Primary Feature: #42 / FTR-028 (support only; no new product Feature)
 - Proposed base: `a2161aa3c2271cd685c07d38d6456630c0a2fb38` — accepted R/S/T/U are present
-- Production changes authorized: **NONE** until this PLANNED activation candidate passes five ordinary exact-head CI jobs, including clean checkout, and a separate READY seal is committed and verified. Proposal head `4311399c0b28a6110b485dfe0d1242d4d12acef6` / CI `37869893376` passed 5/5, but does not substitute for activation-head CI.
+- Production changes authorized: **NONE** until the separate READY-seal commit passes five ordinary exact-head CI jobs, including clean checkout. Proposal head `4311399c0b28a6110b485dfe0d1242d4d12acef6` / CI `37869893376` and PLANNED activation merge `a7e83bdccdc2d1d2330c7e2bbac5ef4da36a88d1` / CI `37916679074` both passed 5/5, but neither substitutes for the new READY-seal exact-head CI.
 - Parent PR #117: **DO NOT MERGE** while its atomic observation-provenance MAJOR finding is open
 
 ## Why extraction is required
@@ -212,9 +212,16 @@ not count as RED contract evidence.
 
 ## Current handoff
 
-**PLANNED / PLAN; activation exact-head CI pending.** No RED/production
-change until that gate is green **and** a separate READY state seal is verified. Parent WP-2.12 / draft PR #117 remains
+**READY candidate / PLAN; separate READY-governance exact-head CI pending.** PLANNED activation merge `a7e83bdccdc2d1d2330c7e2bbac5ef4da36a88d1` / CI `37916679074` passed **5/5**, clean checkout included. No RED/production change until the READY seal itself is **5/5 green**. Parent WP-2.12 / draft PR #117 remains
 **BLOCKED** behind this separately accepted transaction. After V is
 ACCEPTED, the parent must replace its unsafe two-RPC path and undergo fresh
 review before merging. Local media bytes and Lot-2 exit E2E remain later
 parent slices.
+
+## READY state transition — 2026-10-09
+
+- Verified canonical PLANNED activation head: `a7e83bdccdc2d1d2330c7e2bbac5ef4da36a88d1` / CI `37916679074` — **5/5 SUCCESS**, including clean checkout. All provider-only workflows SKIPPED.
+- Revalidated that R/S/T/U remain terminal accepted; V's size is **5 points / cohesion PASS** with one additive atomic RPC, one forward-only migration and its privileged auth boundary.
+- Transition: **PLANNED → READY candidate**, with a **separate exact-head READY-seal CI pending**. No claim of Pass A, review or acceptance.
+- The only permitted next action is verifying the READY seal with 5 ordinary jobs including clean checkout. After green, produce an isolated RED-only PR before touching production.
+- Parent WP-2.12, draft #117/#99 stay unmerged/blocked; no provider campaign, schema change or secret action is part of this governance commit.
