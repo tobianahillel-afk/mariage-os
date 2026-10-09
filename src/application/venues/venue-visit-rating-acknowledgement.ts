@@ -1,6 +1,11 @@
 import type { VenueMemberRatingRecord } from "./venue-member-opinion-service";
 import type { StructuredVenueReplayCommand } from "./venue-visit-replay-dependencies";
 
+type InvalidRatingReceipt = {
+  readonly state: "failed_permanent";
+  readonly error: "provider_response_invalid";
+};
+
 export function ratingAcknowledgementFailure(
   command: Extract<
     StructuredVenueReplayCommand,
@@ -8,7 +13,7 @@ export function ratingAcknowledgementFailure(
   >,
   rating: VenueMemberRatingRecord,
   expectedUserId: string,
-): { readonly state: "failed_permanent"; readonly error: "provider_response_invalid" } | null {
+): InvalidRatingReceipt | null {
   const expected = command.input;
   return rating.projectId === expected.projectId &&
     rating.venueId === expected.venueId &&
