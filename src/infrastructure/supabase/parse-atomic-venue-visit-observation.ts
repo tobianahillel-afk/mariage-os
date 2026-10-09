@@ -82,14 +82,25 @@ function sameObservationPayload(
   );
 }
 
+function verifiedObservationProof(
+  value: unknown,
+  input: AtomicVenueVisitObservationInput,
+): DataRecord {
+  const observation = record(value);
+  const expected = input.supersedesObservationId?.toLowerCase() ?? null;
+  if (observation.supersedes_observation_id !== expected) invalid();
+  return observation;
+}
+
 export function parseAtomicVenueVisitObservationReceipt(
   value: unknown,
   context: VenueFactContext,
   input: AtomicVenueVisitObservationInput,
 ): AtomicVenueVisitObservationReceipt {
   const payload = record(value);
+  const rawObservation = verifiedObservationProof(payload.observation, input);
   const observation = parseVenueFactObservationRow(
-    payload.observation,
+    rawObservation,
     context,
     input.observationId.toLowerCase(),
   );
