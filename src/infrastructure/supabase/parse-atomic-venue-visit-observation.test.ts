@@ -1,7 +1,11 @@
 import { expect, it } from "vitest";
-import type { AtomicVenueVisitObservationInput } from "@application/facts/venue-visit-atomic-observation";
+import type {
+  AtomicVenueVisitObservationInput,
+} from "@application/facts/venue-visit-atomic-observation";
 import { parseVenueFactDefinitionRow } from "./parse-venue-fact-row";
-import { parseAtomicVenueVisitObservationReceipt } from "./parse-atomic-venue-visit-observation";
+import {
+  parseAtomicVenueVisitObservationReceipt,
+} from "./parse-atomic-venue-visit-observation";
 
 const projectId = "81111111-1111-4111-8111-111111111111";
 const venueId = "82222222-2222-4222-8222-222222222222";
@@ -30,6 +34,8 @@ const definitionRow = {
 };
 
 function context(valueType = "boolean", optionsJson: unknown = null) {
+  const rule =
+    valueType === "boolean" ? definitionRow.evaluation_rule_json : null;
   return {
     factId,
     projectId,
@@ -39,7 +45,7 @@ function context(valueType = "boolean", optionsJson: unknown = null) {
         ...definitionRow,
         value_type: valueType,
         options_json: optionsJson,
-        evaluation_rule_json: valueType === "boolean" ? definitionRow.evaluation_rule_json : null,
+        evaluation_rule_json: rule,
       },
       projectId,
       definitionId,
@@ -95,8 +101,17 @@ const checkedSource = {
 
 const receipt = { observation, link, checkedSource };
 
-it("accepts only a complete, actor-bound atomic receipt", () => {
-  expect(parseAtomicVenueVisitObservationReceipt(receipt, context(), input)).toMatchObject({
+function parse(
+  payload: unknown,
+  intent: AtomicVenueVisitObservationInput = input,
+  definition = context(),
+) {
+  return parseAtomicVenueVisitObservationReceipt(payload, definition, intent);
+}
+
+it("accepts a complete actor-bound atomic receipt", () => {
+  const parsed = parse(receipt);
+  expect(parsed).toMatchObject({
     observation: { id: observationId, createdBy: actorId },
     link: { projectId, sourceId, isPrimary: true },
     checkedSource: { checkedRevision: 1, checkedBy: actorId },
@@ -104,60 +119,77 @@ it("accepts only a complete, actor-bound atomic receipt", () => {
 });
 
 it.each([null, 17, [], "success"])(
-  "rejects primitive or missing atomic receipt %s",
+  "rejects malformed receipt root %s",
   (payload) => {
-    expect(() => parseAtomicVenueVisitObservationReceipt(payload, context(), input)).toThrow();
+    expect(() => parse(payload)).toThrow();
   },
 );
 
-it.each([
+function badSource(fields: Record<string, unknown>) {
+  return { ...receipt, checkedSource: { ...checkedSource, ...fields } };
+}
+
+function badLink(fields: Record<string, unknown>) {
+  return { ...receipt, link: { ...link, ...fields } };
+}
+
+function badObservation(fields: Record<string, unknown>) {
+  return { ...receipt, observation: { ...observation, ...fields } };
+}
+
+const badReceipts = [
   ["missing source proof", { ...receipt, checkedSource: null }],
   ["array source proof", { ...receipt, checkedSource: [] }],
-  ["foreign project proof", { ...receipt, checkedSource: { ...checkedSource, projectId: foreignId } }],
-  ["foreign source proof", { ...receipt, checkedSource: { ...checkedSource, sourceId: foreignId } }],
-  ["wrong source type", { ...receipt, checkedSource: { ...checkedSource, sourceType: "official_website" } }],
-  ["invalid checked revision", { ...receipt, checkedSource: { ...checkedSource, checkedRevision: 1.5 } }],
-  ["stale checked revision", { ...receipt, checkedSource: { ...checkedSource, checkedRevision: 2 } }],
-  ["foreign checker", { ...receipt, checkedSource: { ...checkedSource, checkedBy: foreignId } }],
-  ["non-primary link", { ...receipt, link: { ...link, is_primary: false } }],
-  ["substituted link", { ...receipt, link: { ...link, observation_id: foreignId } }],
-  ["substituted observation", { ...receipt, observation: { ...observation, id: foreignId } }],
-  ["foreign observation actor", { ...receipt, observation: { ...observation, created_by: foreignId } }],
-  ["different fact value", { ...receipt, observation: { ...observation, value: true } }],
-  ["different raw value", { ...receipt, observation: { ...observation, raw_value_text: "Yes" } }],
-  ["different evidence", { ...receipt, observation: { ...observation, evidence_level: "estimated" } }],
-  ["different confidence", { ...receipt, observation: { ...observation, confidence: "medium" } }],
-  ["different instant", { ...receipt, observation: { ...observation, observed_at: "2026-09-07T06:31:00.000Z" } }],
-  ["different note", { ...receipt, observation: { ...observation, note: "Different" } }],
-] as const)("rejects %s even if provider claims success", (_case, payload) => {
-  expect(() => parseAtomicVenueVisitObservationReceipt(payload, context(), input)).toThrow();
+  ["foreign project proof", badSource({ projectId: foreignId })],
+  ["foreign source proof", badSource({ sourceId: foreignId })],
+  ["wrong source type", badSource({ sourceType: "official_website" })],
+  ["invalid checked revision", badSource({ checkedRevision: 1.5 })],
+  ["stale checked revision", badSource({ checkedRevision: 2 })],
+  ["foreign checker", badSource({ checkedBy: foreignId })],
+  ["non-primary link", badLink({ is_primary: false })],
+  ["substituted link", badLink({ observation_id: foreignId })],
+  ["substituted observation", badObservation({ id: foreignId })],
+  ["foreign observation actor", badObservation({ created_by: foreignId })],
+  ["different fact value", badObservation({ value: true })],
+  ["different raw value", badObservation({ raw_value_text: "Yes" })],
+  ["different evidence", badObservation({ evidence_level: "estimated" })],
+  ["different confidence", badObservation({ confidence: "medium" })],
+  [
+    "different instant",
+    badObservation({ observed_at: "2026-09-07T06:31:00.000Z" }),
+  ],
+  ["different note", badObservation({ note: "Different" })],
+] as const;
+
+it.each(badReceipts)("rejects %s despite provider success", (_name, payload) => {
+  expect(() => parse(payload)).toThrow();
 });
 
-it("handles canonical multiselect arrays independently of initial order", () => {
-  const selections = { options: [
-    { key: "a", label: "A" },
-    { key: "b", label: "B" },
-  ] };
-  const multiselectInput = { ...input, value: ["b", "a"] };
-  const multiselectReceipt = {
-    ...receipt,
-    observation: { ...observation, value: ["a", "b"] },
-  };
-  expect(
-    parseAtomicVenueVisitObservationReceipt(
-      multiselectReceipt, context("multiselect", selections), multiselectInput,
-    ).observation.value,
-  ).toEqual(["a", "b"]);
+it("rejects invalid local fact intent", () => {
+  expect(() => parse(receipt, { ...input, value: "invalid" })).toThrow();
 });
 
-it("compares money JSON fields regardless of provider key ordering", () => {
-  const moneyInput = { ...input, value: { currency: "EUR", minor: 10000 } };
-  const moneyReceipt = {
-    ...receipt,
-    observation: { ...observation, value: { minor: 10000, currency: "EUR" } },
+it("normalizes multiselect order in receipts", () => {
+  const selections = {
+    options: [
+      { key: "a", label: "A" },
+      { key: "b", label: "B" },
+    ],
   };
-  expect(
-    parseAtomicVenueVisitObservationReceipt(moneyReceipt, context("money"), moneyInput)
-      .observation.value,
-  ).toEqual({ minor: 10000, currency: "EUR" });
+  const intent = { ...input, value: ["b", "a"] };
+  const server = badObservation({ value: ["a", "b"] });
+  const parsed = parse(server, intent, context("multiselect", selections));
+  expect(parsed.observation.value).toEqual(["a", "b"]);
+});
+
+it("compares money JSON regardless of provider key order", () => {
+  const intent = { ...input, value: { currency: "EUR", minor: 10000 } };
+  const server = badObservation({
+    value: { minor: 10000, currency: "EUR" },
+  });
+  const parsed = parse(server, intent, context("money"));
+  expect(parsed.observation.value).toEqual({
+    minor: 10000,
+    currency: "EUR",
+  });
 });
