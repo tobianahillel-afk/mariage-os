@@ -11,24 +11,26 @@ type NoteReplayCommand = Extract<
 
 export function venueVisitNoteAcknowledgementMatches(
   command: NoteReplayCommand,
-  record: VenueInteractionRecord,
+  record: unknown,
   expectedUserId: string,
 ): boolean {
+  if (typeof record !== "object" || record === null) return false;
+  const acknowledgement = record as VenueInteractionRecord;
   const input = command.input;
   const normalized = normalizeVenueInteraction(input);
   if (!normalized.ok) return false;
 
   return [
-    record.id === input.interactionId,
-    record.projectId === input.projectId,
-    record.parentType === "venue",
-    record.venueId === input.venueId,
-    record.contactId === input.contactId,
-    record.sourceId === input.sourceId,
-    record.interactionType === normalized.value.interactionType,
-    record.occurredAt === normalized.value.occurredAt,
-    record.summary === normalized.value.summary,
-    record.nextFollowUpAt === normalized.value.nextFollowUpAt,
-    record.createdBy === expectedUserId,
+    acknowledgement.id === input.interactionId,
+    acknowledgement.projectId === input.projectId,
+    acknowledgement.parentType === "venue",
+    acknowledgement.venueId === input.venueId,
+    acknowledgement.contactId === input.contactId,
+    acknowledgement.sourceId === input.sourceId,
+    acknowledgement.interactionType === normalized.value.interactionType,
+    acknowledgement.occurredAt === normalized.value.occurredAt,
+    acknowledgement.summary === normalized.value.summary,
+    acknowledgement.nextFollowUpAt === normalized.value.nextFollowUpAt,
+    acknowledgement.createdBy === expectedUserId,
   ].every(Boolean);
 }
