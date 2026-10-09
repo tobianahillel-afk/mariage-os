@@ -22,7 +22,9 @@ import type {
   VenueFactProvenanceLinkPort,
   VenueFactSourceRecord,
 } from "@application/facts/venue-fact-evidence-service";
-import { parseAtomicVenueVisitObservationReceipt } from "./parse-atomic-venue-visit-observation";
+import {
+  parseAtomicVenueVisitObservationReceipt,
+} from "./parse-atomic-venue-visit-observation";
 import { parseVenueFactDefinitionRow } from "./parse-venue-fact-row";
 import {
   parseObservationSourceLinkRow,
@@ -40,7 +42,8 @@ const DEFINITION_COLUMNS =
 const CONTEXT_QUERY_FAILED = "Venue fact evidence context query failed.";
 const SOURCE_MUTATION_FAILED = "Venue fact source mutation failed.";
 const OBSERVATION_MUTATION_FAILED = "Venue fact observation mutation failed.";
-const ATOMIC_VISIT_MUTATION_FAILED = "Atomic Venue visit observation mutation failed.";
+const ATOMIC_VISIT_MUTATION_FAILED =
+  "Atomic Venue visit observation mutation failed.";
 const LINK_MUTATION_FAILED = "Venue fact evidence link mutation failed.";
 const RESOLUTION_MUTATION_FAILED = "Venue fact resolution mutation failed.";
 const CONFLICT_CODES = new Set(["40001", "PT412", "23505"]);
