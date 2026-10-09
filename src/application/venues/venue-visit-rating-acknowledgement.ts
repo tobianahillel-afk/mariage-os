@@ -11,16 +11,20 @@ export function ratingAcknowledgementFailure(
     StructuredVenueReplayCommand,
     { readonly kind: "member_rating" }
   >,
-  rating: VenueMemberRatingRecord,
+  rating: unknown,
   expectedUserId: string,
 ): InvalidRatingReceipt | null {
+  if (typeof rating !== "object" || rating === null) {
+    return { state: "failed_permanent", error: "provider_response_invalid" };
+  }
+  const acknowledgement = rating as VenueMemberRatingRecord;
   const expected = command.input;
-  return rating.projectId === expected.projectId &&
-    rating.venueId === expected.venueId &&
-    rating.userId === expectedUserId &&
-    rating.dimensionKey === expected.dimensionKey &&
-    rating.rating === expected.rating &&
-    rating.revision === expected.expectedRevision + 1
+  return acknowledgement.projectId === expected.projectId &&
+    acknowledgement.venueId === expected.venueId &&
+    acknowledgement.userId === expectedUserId &&
+    acknowledgement.dimensionKey === expected.dimensionKey &&
+    acknowledgement.rating === expected.rating &&
+    acknowledgement.revision === expected.expectedRevision + 1
     ? null
     : { state: "failed_permanent", error: "provider_response_invalid" };
 }
