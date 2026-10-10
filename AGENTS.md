@@ -97,6 +97,11 @@ The user is not required to ask for individual Work Packets. Work Packets are in
 
 Use `docs/templates/WORK-PACKET-RECORD.md` for durable packet evidence.
 
+### One scheduled task / multi-role execution
+
+When the operator has only one hourly ChatGPT task, use `docs/engineering/SINGLE-TASK-MULTI-ROLE-EXECUTION.md` for the operational run loop. **Do not wait until the next hourly trigger to transition between Pass A, adversarial self-review, remediation, and eligible Pass C within a live execution.** This operational optimization does not waive any packet-specific requirement for a genuinely independent Pass B, external approval, or exact-HEAD gates. A developer's own adversarial self-review must be labeled as such; it is never external independent approval.
+
+
 ### Guest invitation / RSVP / Email / SMS / WhatsApp work
 
 Mandatory task route:
