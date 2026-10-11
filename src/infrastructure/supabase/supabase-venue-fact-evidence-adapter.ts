@@ -23,6 +23,7 @@ import type {
   VenueFactSourceRecord,
 } from "@application/facts/venue-fact-evidence-service";
 import { parseAtomicVenueVisitObservationReceipt } from "./parse-atomic-venue-visit-observation";
+import { normalizeAtomicVisitIds } from "./normalize-atomic-visit-ids";
 import { parseVenueFactDefinitionRow } from "./parse-venue-fact-row";
 import {
   parseObservationSourceLinkRow,
@@ -245,19 +246,6 @@ function sourcePayload(
     target_observed_at: input.observedAt,
     target_notes: input.notes,
     target_status: input.status,
-  };
-}
-
-function normalizeAtomicVisitIds(input: AtomicVenueVisitObservationInput) {
-  return {
-    ...input,
-    projectId: input.projectId.toLowerCase(),
-    factId: input.factId.toLowerCase(),
-    observationId: input.observationId.toLowerCase(),
-    sourceId: input.sourceId.toLowerCase(),
-    actorId: input.actorId.toLowerCase(),
-    supersedesObservationId:
-      input.supersedesObservationId?.toLowerCase() ?? null,
   };
 }
 
