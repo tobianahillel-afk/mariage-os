@@ -344,7 +344,10 @@ export class SupabaseVenueFactEvidenceAdapter
       actorId: input.actorId.toLowerCase(),
       supersedesObservationId: input.supersedesObservationId?.toLowerCase() ?? null,
     };
-    const context = await this.getFactContext(canonicalInput.projectId, canonicalInput.factId);
+    const context = await this.getFactContext(
+      canonicalInput.projectId,
+      canonicalInput.factId,
+    );
     const data = await rpcData(
       this.client,
       "append_venue_fact_observation_visit_atomic",
