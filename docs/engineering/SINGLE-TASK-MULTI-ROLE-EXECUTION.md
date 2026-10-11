@@ -28,6 +28,20 @@ A single agent changing its own role is **not** a distinct reviewer identity, a 
 
 Use genuinely independent reviewer evidence if available, including an authorized separate reviewer/session or other accepted mechanism, verified against the **exact candidate HEAD**. Quota exhaustion, reviewer silence, scanner output and an AI self-review are not approval. A reviewer service requiring paid credentials is never mandatory for this operational mode; if none is available, leave the formal gate blocked and do **other authorized** technical work. Never circumvent branch protections.
 
+## GitHub Actions completion and wait loop
+
+A pushed commit, opened PR or workflow dispatch is **not** the end of a development step. Before claiming verification, identify the required checks from the applicable contracts and the actual GitHub Actions configuration, then bind each check to the exact candidate commit SHA. Resume unfinished runs before starting duplicate work.
+
+1. Discover the workflow run IDs and their latest attempts for that SHA; record the PR/branch, required job names, run IDs and observed statuses. A newly pushed SHA may not yet have a visible workflow; absence of runs is **UNKNOWN**, never green. Distinguish required jobs from conditional provider-only jobs legitimately skipped.
+2. While required jobs are `queued`, `pending`, `waiting`, `requested` or `in_progress`, recheck after **real** delays when the execution environment permits: initially 10 seconds, then 20, then 30 seconds, optionally 60 seconds for long-running jobs. Do not fabricate sleeps or issue an immediate busy-poll loop if no wait capability exists. Perform independent authorized work during the interval if it cannot invalidate the candidate.
+3. Do not voluntarily end a still-viable session merely because a CI job takes 5–15 minutes. Continue until the relevant runs reach terminal states or the platform/tool/quota budget makes further waiting impossible. The scheduled ChatGPT runtime does **not** guarantee any minimum duration; polling cannot force it to stay alive.
+4. On completion, verify the workflow conclusion **and each required job** on the latest relevant attempt and exact SHA. For packet gates requiring five ordinary jobs, verify all five including full clean-checkout verification. A `skipped`, missing, cancelled, timed-out, failed, stale or action-required **required** job is not success. Conditional skipped jobs are acceptable only when the contract permits them.
+5. On failure, inspect available job steps/logs, distinguish code/test failure from infrastructure or permissions, fix reproducible in-scope defects, and rerun the appropriate checks without weakening gates. Do not repeatedly rerun a job with no diagnosis. After a new commit, invalidate affected old-head evidence and restart discovery on the new SHA.
+6. On success, transition **immediately** to the next authorized review/remediation/acceptance action in the **same** execution. Green CI never substitutes for a required independent Pass B or a GitHub approval.
+7. If interrupted, preserve the resume cursor in an **existing authorized** PR/Work Packet/status location: exact SHA, run IDs, last observed job states and timestamps, outstanding gates and next poll/action. At the next hourly invocation, check those runs first and continue without duplicating commits or PRs. Avoid noisy status-only commits/comments when nothing materially changed.
+
+Treat polling as an observation mechanism, not a substitute for independent review, exact-head proof, or durable coordination. Do not invent an execution duration, an elapsed wait, a delivered notification or a workflow result.
+
 ## Idempotent execution and race safety
 
 - One Work Packet `IN_PROGRESS` per normative orchestration; avoid unrelated parallel mutations.
