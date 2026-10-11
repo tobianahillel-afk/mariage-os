@@ -339,7 +339,7 @@ export class SupabaseVenueFactEvidenceAdapter
       ...input,
       projectId: input.projectId.toLowerCase(),
       factId: input.factId.toLowerCase(),
-      observationId: canonicalInput.observationId,
+      observationId: input.observationId.toLowerCase(),
       sourceId: input.sourceId.toLowerCase(),
       actorId: input.actorId.toLowerCase(),
       supersedesObservationId: input.supersedesObservationId?.toLowerCase() ?? null,
