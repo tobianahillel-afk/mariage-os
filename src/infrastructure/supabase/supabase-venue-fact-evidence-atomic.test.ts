@@ -9,13 +9,13 @@ import {
   type SupabaseVenueFactEvidenceClientLike,
 } from "./supabase-venue-fact-evidence-adapter";
 
-const projectId = "81111111-1111-4111-8111-111111111111";
+const projectId = "81a11111-1111-4111-8111-111111111111";
 const venueId = "82222222-2222-4222-8222-222222222222";
 const definitionId = "83333333-3333-4333-8333-333333333333";
-const factId = "84444444-4444-4444-8444-444444444444";
-const sourceId = "85555555-5555-4555-8555-555555555555";
-const observationId = "86666666-6666-4666-8666-666666666666";
-const actorId = "87777777-7777-4777-8777-777777777777";
+const factId = "84b44444-4444-4444-8444-444444444444";
+const sourceId = "85c55555-5555-4555-8555-555555555555";
+const observationId = "86d66666-6666-4666-8666-666666666666";
+const actorId = "87e77777-7777-4777-8777-777777777777";
 
 const factRow = {
   id: factId,
@@ -58,6 +58,12 @@ const observationRow = {
   created_by: actorId,
 };
 
+interface RecordedQuery {
+  readonly table: string;
+  readonly column: string;
+  readonly value: string;
+}
+
 interface RecordedRpc {
   readonly name: string;
   readonly args: Readonly<Record<string, unknown>>;
@@ -66,12 +72,16 @@ interface RecordedRpc {
 function makeClient(
   rpcResult: (name: string) => unknown,
   recordedRpcs: RecordedRpc[] = [],
+  recordedQueries: RecordedQuery[] = [],
 ): SupabaseVenueFactEvidenceClientLike {
   return {
     from: (table) => ({
       select: () => {
         const query = {
-          eq: () => query,
+          eq: (column: string, value: string) => {
+            recordedQueries.push({ table, column, value });
+            return query;
+          },
           single: () =>
             Promise.resolve({
               data: table === "facts" ? factRow : definitionRow,
@@ -182,8 +192,9 @@ it("canonicalizes atomic replay observation identity", async () => {
 
 it("canonicalizes all UUID identities across context, RPC and receipt", async () => {
   const calls: RecordedRpc[] = [];
+  const queries: RecordedQuery[] = [];
   const adapter = new SupabaseVenueFactEvidenceAdapter(
-    makeClient(() => atomicReceipt, calls),
+    makeClient(() => atomicReceipt, calls, queries),
   );
   await expect(
     adapter.appendAtomicVisitObservation({
@@ -202,6 +213,12 @@ it("canonicalizes all UUID identities across context, RPC and receipt", async ()
   expect(calls[0]?.args.target_project_id).toBe(projectId);
   expect(calls[0]?.args.target_fact_id).toBe(factId);
   expect(calls[0]?.args.target_source_id).toBe(sourceId);
+  expect(queries).toEqual([
+    { table: "facts", column: "project_id", value: projectId },
+    { table: "facts", column: "id", value: factId },
+    { table: "fact_definitions", column: "project_id", value: projectId },
+    { table: "fact_definitions", column: "id", value: definitionId },
+  ]);
 });
 
 it("does not ACK a malformed successful atomic payload", async () => {
