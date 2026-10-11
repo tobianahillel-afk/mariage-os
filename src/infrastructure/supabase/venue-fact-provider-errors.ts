@@ -1,4 +1,7 @@
-import { VenueFactPersistenceError, type VenueFactPersistenceErrorCode } from "@application/facts/venue-fact-persistence-error";
+import {
+  VenueFactPersistenceError,
+  type VenueFactPersistenceErrorCode,
+} from "@application/facts/venue-fact-persistence-error";
 
 const CONFLICT_CODES = new Set(["40001", "PT412", "23505"]);
 const BACKEND_CODES = new Set(["PGRST000", "PGRST001", "PGRST002", "PGRST003"]);
@@ -13,7 +16,7 @@ function providerErrorCode(value: unknown): string {
   return typeof code === "string" ? code : "";
 }
 
-export function classifyProviderError(error: unknown): VenueFactPersistenceErrorCode {
+function classifyProviderError(error: unknown): VenueFactPersistenceErrorCode {
   const code = providerErrorCode(error);
   if (CONFLICT_CODES.has(code)) return "conflict";
   if (code === "42501") return "authorization_failed";
@@ -24,7 +27,10 @@ export function classifyProviderError(error: unknown): VenueFactPersistenceError
   return "persistence_failed";
 }
 
-export function fail(code: VenueFactPersistenceErrorCode, message: string): never {
+export function fail(
+  code: VenueFactPersistenceErrorCode,
+  message: string,
+): never {
   throw new VenueFactPersistenceError(code, message);
 }
 
@@ -39,8 +45,10 @@ export async function providerResult(
   }
 }
 
-export function providerData(result: SupabaseResult, message: string): unknown {
+export function providerData(
+  result: SupabaseResult,
+  message: string,
+): unknown {
   if (result.error !== null) fail(classifyProviderError(result.error), message);
   return result.data;
 }
-
