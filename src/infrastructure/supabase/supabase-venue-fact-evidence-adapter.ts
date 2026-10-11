@@ -20,7 +20,12 @@ import type {
 } from "@application/facts/venue-fact-evidence-service";
 import { parseAtomicVenueVisitObservationReceipt } from "./parse-atomic-venue-visit-observation";
 import { normalizeAtomicVisitIds } from "./normalize-atomic-visit-ids";
-import { fail, providerData, providerResult, type SupabaseResult } from "./venue-fact-provider-errors";
+import {
+  fail,
+  providerData,
+  providerResult,
+  type SupabaseResult,
+} from "./venue-fact-provider-errors";
 import { parseVenueFactDefinitionRow } from "./parse-venue-fact-row";
 import {
   parseObservationSourceLinkRow,
