@@ -335,28 +335,37 @@ export class SupabaseVenueFactEvidenceAdapter
   async appendAtomicVisitObservation(
     input: AtomicVenueVisitObservationInput,
   ): Promise<AtomicVenueVisitObservationReceipt> {
-    const context = await this.getFactContext(input.projectId, input.factId);
+    const canonicalInput = {
+      ...input,
+      projectId: input.projectId.toLowerCase(),
+      factId: input.factId.toLowerCase(),
+      observationId: canonicalInput.observationId,
+      sourceId: input.sourceId.toLowerCase(),
+      actorId: input.actorId.toLowerCase(),
+      supersedesObservationId: input.supersedesObservationId?.toLowerCase() ?? null,
+    };
+    const context = await this.getFactContext(canonicalInput.projectId, canonicalInput.factId);
     const data = await rpcData(
       this.client,
       "append_venue_fact_observation_visit_atomic",
       {
-        target_project_id: input.projectId,
-        target_fact_id: input.factId,
-        target_observation_id: input.observationId.toLowerCase(),
+        target_project_id: canonicalInput.projectId,
+        target_fact_id: canonicalInput.factId,
+        target_observation_id: canonicalInput.observationId,
         target_value: input.value,
         target_raw_value_text: input.rawValueText,
         target_evidence_level: input.evidenceLevel,
         target_confidence: input.confidence,
         target_observed_at: input.observedAt,
         target_note: input.note,
-        target_supersedes_observation_id: input.supersedesObservationId,
-        target_source_id: input.sourceId,
+        target_supersedes_observation_id: canonicalInput.supersedesObservationId,
+        target_source_id: canonicalInput.sourceId,
         target_expected_source_revision: input.expectedSourceRevision,
       },
       ATOMIC_VISIT_MUTATION_FAILED,
     );
     try {
-      return parseAtomicVenueVisitObservationReceipt(data, context, input);
+      return parseAtomicVenueVisitObservationReceipt(data, context, canonicalInput);
     } catch {
       fail("provider_response_invalid", ATOMIC_VISIT_MUTATION_FAILED);
     }
