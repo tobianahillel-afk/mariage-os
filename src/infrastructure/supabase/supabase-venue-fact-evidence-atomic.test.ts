@@ -180,6 +180,30 @@ it("canonicalizes atomic replay observation identity", async () => {
   expect(calls[0]?.args.target_observation_id).toBe(observationId);
 });
 
+it("canonicalizes all UUID identities across context, RPC and receipt", async () => {
+  const calls: RecordedRpc[] = [];
+  const adapter = new SupabaseVenueFactEvidenceAdapter(
+    makeClient(() => atomicReceipt, calls),
+  );
+  await expect(
+    adapter.appendAtomicVisitObservation({
+      ...atomicInput,
+      projectId: projectId.toUpperCase(),
+      factId: factId.toUpperCase(),
+      observationId: observationId.toUpperCase(),
+      sourceId: sourceId.toUpperCase(),
+      actorId: actorId.toUpperCase(),
+    }),
+  ).resolves.toMatchObject({
+    observation: { id: observationId, createdBy: actorId },
+    link: { sourceId },
+    checkedSource: { checkedBy: actorId },
+  });
+  expect(calls[0]?.args.target_project_id).toBe(projectId);
+  expect(calls[0]?.args.target_fact_id).toBe(factId);
+  expect(calls[0]?.args.target_source_id).toBe(sourceId);
+});
+
 it("does not ACK a malformed successful atomic payload", async () => {
   const adapter = new SupabaseVenueFactEvidenceAdapter(makeClient(() => null));
   await expect(
