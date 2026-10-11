@@ -248,6 +248,19 @@ function sourcePayload(
   };
 }
 
+function normalizeAtomicVisitIds(input: AtomicVenueVisitObservationInput) {
+  return {
+    ...input,
+    projectId: input.projectId.toLowerCase(),
+    factId: input.factId.toLowerCase(),
+    observationId: input.observationId.toLowerCase(),
+    sourceId: input.sourceId.toLowerCase(),
+    actorId: input.actorId.toLowerCase(),
+    supersedesObservationId:
+      input.supersedesObservationId?.toLowerCase() ?? null,
+  };
+}
+
 export class SupabaseVenueFactEvidenceAdapter
   implements
     VenueFactEvidencePort,
@@ -335,16 +348,7 @@ export class SupabaseVenueFactEvidenceAdapter
   async appendAtomicVisitObservation(
     input: AtomicVenueVisitObservationInput,
   ): Promise<AtomicVenueVisitObservationReceipt> {
-    const canonicalInput = {
-      ...input,
-      projectId: input.projectId.toLowerCase(),
-      factId: input.factId.toLowerCase(),
-      observationId: input.observationId.toLowerCase(),
-      sourceId: input.sourceId.toLowerCase(),
-      actorId: input.actorId.toLowerCase(),
-      supersedesObservationId:
-        input.supersedesObservationId?.toLowerCase() ?? null,
-    };
+    const canonicalInput = normalizeAtomicVisitIds(input);
     const context = await this.getFactContext(
       canonicalInput.projectId,
       canonicalInput.factId,
