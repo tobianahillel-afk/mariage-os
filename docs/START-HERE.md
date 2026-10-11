@@ -78,6 +78,9 @@ Any older text that classified guest portal/automatic email as post-V1 is supers
 
 If the request is `Do/Fais Lot N`, additionally read `engineering/AI-LOT-ORCHESTRATION.md` before implementation.
 
+For ongoing work driven by **one hourly scheduled task**, also read `engineering/SINGLE-TASK-MULTI-ROLE-EXECUTION.md`: it allows multiple role transitions in one live run, without changing the normative independent-review and acceptance gates.
+
+
 Do not load the entire documentation corpus by default.
 
 ### Human product/design onboarding

@@ -144,6 +144,9 @@ Parallelism is an optimization, never the default completion strategy.
 
 Every Work Packet has three distinct passes.
 
+**Scheduling is not a pass boundary.** In the one-scheduled-task deployment, the same live execution may complete Pass A, perform an adversarial self-review, remediate a finding, repeat verification, and proceed to the next *authorized* phase without waiting another hour. See `SINGLE-TASK-MULTI-ROLE-EXECUTION.md` for the run loop, interruption checkpoints and audit report. The three passes remain distinct **evidence gates**: where the active Work Packet requires a truly independent Pass B, self-review alone cannot transition to `ACCEPTANCE_PENDING` or unlock Pass C, regardless of quality or depth. GitHub formal approval remains separate.
+
+
 ### Pass A — IMPLEMENT
 
 Goal: implement the packet as a complete vertical slice.
