@@ -1,6 +1,7 @@
 import type { AtomicVenueVisitObservationInput } from "@application/facts/venue-visit-atomic-observation";
 
-export function normalizeAtomicVisitIds(input: AtomicVenueVisitObservationInput) {
+export function normalizeAtomicVisitIds(input: AtomicVenueVisitObservationInput,
+) {
   return {
     ...input,
     projectId: input.projectId.toLowerCase(),
