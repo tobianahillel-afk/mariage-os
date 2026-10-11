@@ -12,4 +12,3 @@ export function normalizeAtomicVisitIds(input: AtomicVenueVisitObservationInput)
       input.supersedesObservationId?.toLowerCase() ?? null,
   };
 }
-
