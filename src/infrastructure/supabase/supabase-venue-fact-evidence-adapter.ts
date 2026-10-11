@@ -342,7 +342,8 @@ export class SupabaseVenueFactEvidenceAdapter
       observationId: input.observationId.toLowerCase(),
       sourceId: input.sourceId.toLowerCase(),
       actorId: input.actorId.toLowerCase(),
-      supersedesObservationId: input.supersedesObservationId?.toLowerCase() ?? null,
+      supersedesObservationId:
+        input.supersedesObservationId?.toLowerCase() ?? null,
     };
     const context = await this.getFactContext(
       canonicalInput.projectId,
@@ -361,14 +362,19 @@ export class SupabaseVenueFactEvidenceAdapter
         target_confidence: input.confidence,
         target_observed_at: input.observedAt,
         target_note: input.note,
-        target_supersedes_observation_id: canonicalInput.supersedesObservationId,
+        target_supersedes_observation_id:
+          canonicalInput.supersedesObservationId,
         target_source_id: canonicalInput.sourceId,
         target_expected_source_revision: input.expectedSourceRevision,
       },
       ATOMIC_VISIT_MUTATION_FAILED,
     );
     try {
-      return parseAtomicVenueVisitObservationReceipt(data, context, canonicalInput);
+      return parseAtomicVenueVisitObservationReceipt(
+        data,
+        context,
+        canonicalInput,
+      );
     } catch {
       fail("provider_response_invalid", ATOMIC_VISIT_MUTATION_FAILED);
     }
