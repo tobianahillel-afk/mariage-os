@@ -221,6 +221,41 @@ it("canonicalizes all UUID identities across context, RPC and receipt", async ()
   ]);
 });
 
+it("canonicalizes a non-null predecessor UUID and accepts its matching receipt", async () => {
+  const predecessorId = "8af88888-8888-4888-8888-888888888888";
+  const calls: RecordedRpc[] = [];
+  const receipt = {
+    ...atomicReceipt,
+    observation: {
+      ...observationRow,
+      supersedes_observation_id: predecessorId,
+    },
+  };
+  const adapter = new SupabaseVenueFactEvidenceAdapter(
+    makeClient(() => receipt, calls),
+  );
+
+  await expect(
+    adapter.appendAtomicVisitObservation({
+      ...atomicInput,
+      supersedesObservationId: predecessorId.toUpperCase(),
+    }),
+  ).resolves.toMatchObject({ observation: { id: observationId } });
+  expect(calls[0]?.args.target_supersedes_observation_id).toBe(predecessorId);
+});
+
+it("rejects a receipt that omits the requested predecessor identity", async () => {
+  const adapter = new SupabaseVenueFactEvidenceAdapter(
+    makeClient(() => atomicReceipt),
+  );
+  await expect(
+    adapter.appendAtomicVisitObservation({
+      ...atomicInput,
+      supersedesObservationId: "8af88888-8888-4888-8888-888888888888".toUpperCase(),
+    }),
+  ).rejects.toMatchObject({ code: "provider_response_invalid" });
+});
+
 it("does not ACK a malformed successful atomic payload", async () => {
   const adapter = new SupabaseVenueFactEvidenceAdapter(makeClient(() => null));
   await expect(
