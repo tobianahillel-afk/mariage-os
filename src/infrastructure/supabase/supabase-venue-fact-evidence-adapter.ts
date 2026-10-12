@@ -1,7 +1,8 @@
-import {
-  VenueFactPersistenceError,
-  type VenueFactPersistenceErrorCode,
-} from "@application/facts/venue-fact-persistence-error";
+import type {
+  AtomicVenueVisitObservationInput,
+  AtomicVenueVisitObservationPort,
+  AtomicVenueVisitObservationReceipt,
+} from "@application/facts/venue-visit-atomic-observation";
 import type {
   AppendVenueFactObservationInput,
   CheckedLinkObservationSourceInput,
@@ -17,6 +18,14 @@ import type {
   VenueFactProvenanceLinkPort,
   VenueFactSourceRecord,
 } from "@application/facts/venue-fact-evidence-service";
+import { parseAtomicVenueVisitObservationReceipt } from "./parse-atomic-venue-visit-observation";
+import { normalizeAtomicVisitIds } from "./normalize-atomic-visit-ids";
+import {
+  fail,
+  providerData,
+  providerResult,
+  type SupabaseResult,
+} from "./venue-fact-provider-errors";
 import { parseVenueFactDefinitionRow } from "./parse-venue-fact-row";
 import {
   parseObservationSourceLinkRow,
@@ -34,15 +43,10 @@ const DEFINITION_COLUMNS =
 const CONTEXT_QUERY_FAILED = "Venue fact evidence context query failed.";
 const SOURCE_MUTATION_FAILED = "Venue fact source mutation failed.";
 const OBSERVATION_MUTATION_FAILED = "Venue fact observation mutation failed.";
+const ATOMIC_VISIT_MUTATION_FAILED =
+  "Atomic Venue visit observation mutation failed.";
 const LINK_MUTATION_FAILED = "Venue fact evidence link mutation failed.";
 const RESOLUTION_MUTATION_FAILED = "Venue fact resolution mutation failed.";
-const CONFLICT_CODES = new Set(["40001", "PT412", "23505"]);
-const BACKEND_CODES = new Set(["PGRST000", "PGRST001", "PGRST002", "PGRST003"]);
-
-interface SupabaseResult {
-  readonly data: unknown;
-  readonly error: unknown;
-}
 
 interface EvidenceQueryBuilder {
   eq(column: string, value: string): EvidenceQueryBuilder;
@@ -57,6 +61,7 @@ type EvidenceRpcName =
   | "create_venue_fact_source"
   | "update_venue_fact_source"
   | "append_venue_fact_observation"
+  | "append_venue_fact_observation_visit_atomic"
   | "link_venue_fact_observation_source"
   | "link_venue_fact_observation_source_checked"
   | "resolve_venue_fact_from_observation";
@@ -67,42 +72,6 @@ export interface SupabaseVenueFactEvidenceClientLike {
     functionName: EvidenceRpcName,
     args: Readonly<Record<string, unknown>>,
   ): PromiseLike<SupabaseResult>;
-}
-
-function providerErrorCode(value: unknown): string {
-  const code = (Object(value) as Record<string, unknown>).code;
-  return typeof code === "string" ? code : "";
-}
-
-function classifyProviderError(error: unknown): VenueFactPersistenceErrorCode {
-  const code = providerErrorCode(error);
-  if (CONFLICT_CODES.has(code)) return "conflict";
-  if (code === "42501") return "authorization_failed";
-  if (BACKEND_CODES.has(code)) return "backend_unavailable";
-  if (code === "P0001" || code.startsWith("22") || code.startsWith("23")) {
-    return "data_integrity_failed";
-  }
-  return "persistence_failed";
-}
-
-function fail(code: VenueFactPersistenceErrorCode, message: string): never {
-  throw new VenueFactPersistenceError(code, message);
-}
-
-async function providerResult(
-  call: () => PromiseLike<SupabaseResult>,
-  message: string,
-): Promise<SupabaseResult> {
-  try {
-    return await call();
-  } catch {
-    fail("backend_unavailable", message);
-  }
-}
-
-function providerData(result: SupabaseResult, message: string): unknown {
-  if (result.error !== null) fail(classifyProviderError(result.error), message);
-  return result.data;
 }
 
 async function querySingle(
@@ -240,7 +209,10 @@ function sourcePayload(
 }
 
 export class SupabaseVenueFactEvidenceAdapter
-  implements VenueFactEvidencePort, VenueFactProvenanceLinkPort
+  implements
+    VenueFactEvidencePort,
+    VenueFactProvenanceLinkPort,
+    AtomicVenueVisitObservationPort
 {
   constructor(private readonly client: SupabaseVenueFactEvidenceClientLike) {}
 
@@ -318,6 +290,45 @@ export class SupabaseVenueFactEvidenceAdapter
       OBSERVATION_MUTATION_FAILED,
     );
     return observationData(data, context, observationId);
+  }
+
+  async appendAtomicVisitObservation(
+    input: AtomicVenueVisitObservationInput,
+  ): Promise<AtomicVenueVisitObservationReceipt> {
+    const canonicalInput = normalizeAtomicVisitIds(input);
+    const context = await this.getFactContext(
+      canonicalInput.projectId,
+      canonicalInput.factId,
+    );
+    const data = await rpcData(
+      this.client,
+      "append_venue_fact_observation_visit_atomic",
+      {
+        target_project_id: canonicalInput.projectId,
+        target_fact_id: canonicalInput.factId,
+        target_observation_id: canonicalInput.observationId,
+        target_value: input.value,
+        target_raw_value_text: input.rawValueText,
+        target_evidence_level: input.evidenceLevel,
+        target_confidence: input.confidence,
+        target_observed_at: input.observedAt,
+        target_note: input.note,
+        target_supersedes_observation_id:
+          canonicalInput.supersedesObservationId,
+        target_source_id: canonicalInput.sourceId,
+        target_expected_source_revision: input.expectedSourceRevision,
+      },
+      ATOMIC_VISIT_MUTATION_FAILED,
+    );
+    try {
+      return parseAtomicVenueVisitObservationReceipt(
+        data,
+        context,
+        canonicalInput,
+      );
+    } catch {
+      fail("provider_response_invalid", ATOMIC_VISIT_MUTATION_FAILED);
+    }
   }
 
   async linkObservationSource(
