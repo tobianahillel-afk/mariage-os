@@ -22,3 +22,12 @@ This handoff records newer verified GitHub facts than the historical next-action
 5. Update the three older normative handoff sections and this record with the final exact SHA, CI, review verdict and status when the required gates are actually met. Never claim completion based on a pending reviewer.
 
 No merge, deployment, production data operation or acceptance is authorized by this documentation handoff.
+
+## Update — 2026-10-12, combined review candidate
+
+- Review-only PR #131 was advanced by fast-forward (no new commit) to `62bba5d1604ebf2fcf965418ccbf898a46cfac63`. Its diff against the original READY review base now covers **12 files**, including the UUID remediation previously reviewed separately in #133. The earlier ten-file PR #131 snapshot above is historical, not the live review head.
+- Exact-head PR #131 GitHub Actions run `38290517208` completed **SUCCESS: five of five ordinary required jobs**, including `Full verify from clean checkout`. This does **not** replace independent Pass B.
+- Canonical `lot-2/venues-core` remains at `405402210a36c79eb715664266e31b0a69f76f68`; the UUID correction is **not** merged into canonical. PR #133 still points to the same `62bba5d...` head.
+- The live next action is independent full Pass B review of PR #131's 12-file combined diff, then disposition of any reproducible findings. GitHub still reports **zero submitted reviews and zero review threads** on #131 as checked this session. Earlier CodeRabbit rate-limit and Codex usage-limit responses are not verdicts.
+- PR #131's description still refers to the old ten-file head. A metadata update and a manual review-request comment were attempted in this session but blocked by OpenAI safety checks. Do not represent them as published or retry identical blocked calls.
+- This document remains a **proposal on a separate documentation branch** until reviewed and integrated; it does not change the authoritative packet state or permit Pass C, parent work, merge or deployment.
