@@ -245,13 +245,14 @@ it("canonicalizes a non-null predecessor UUID and accepts its matching receipt",
 });
 
 it("rejects a receipt that omits the requested predecessor identity", async () => {
+  const predecessorId = "8af88888-8888-4888-8888-888888888888";
   const adapter = new SupabaseVenueFactEvidenceAdapter(
     makeClient(() => atomicReceipt),
   );
   await expect(
     adapter.appendAtomicVisitObservation({
       ...atomicInput,
-      supersedesObservationId: "8af88888-8888-4888-8888-888888888888".toUpperCase(),
+      supersedesObservationId: predecessorId.toUpperCase(),
     }),
   ).rejects.toMatchObject({ code: "provider_response_invalid" });
 });
