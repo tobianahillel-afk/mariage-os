@@ -45,10 +45,7 @@ export async function providerResult(
   }
 }
 
-export function providerData(
-  result: SupabaseResult,
-  message: string,
-): unknown {
+export function providerData(result: SupabaseResult, message: string): unknown {
   if (result.error !== null) fail(classifyProviderError(result.error), message);
   return result.data;
 }
