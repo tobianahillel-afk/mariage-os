@@ -185,6 +185,18 @@ it("rejects missing, substituted or unrequested supersession proof", () => {
   expect(() => parse({ ...receipt, observation: missingProof })).toThrow();
 });
 
+it.each([0, -1])(
+  "rejects a non-positive checked source revision %i even when intent agrees",
+  (revision) => {
+    const invalidIntent = { ...input, expectedSourceRevision: revision };
+    const invalidReceipt = {
+      ...receipt,
+      checkedSource: { ...checkedSource, checkedRevision: revision },
+    };
+    expect(() => parse(invalidReceipt, invalidIntent)).toThrow();
+  },
+);
+
 it("rejects invalid local fact intent", () => {
   expect(() => parse(receipt, { ...input, value: "invalid" })).toThrow();
 });
