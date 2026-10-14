@@ -45,7 +45,9 @@ function parseCheckedSource(
     source.projectId !== input.projectId ||
     source.sourceId !== input.sourceId ||
     source.sourceType !== "in_person_visit" ||
+    typeof source.checkedRevision !== "number" ||
     !Number.isSafeInteger(source.checkedRevision) ||
+    source.checkedRevision < 1 ||
     source.checkedRevision !== input.expectedSourceRevision ||
     source.checkedBy !== input.actorId
   ) {
