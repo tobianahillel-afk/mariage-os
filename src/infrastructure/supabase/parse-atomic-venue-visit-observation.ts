@@ -36,6 +36,10 @@ function stableJson(value: unknown): string | undefined {
   return JSON.stringify(value);
 }
 
+function isPositiveSafeInteger(value: unknown): value is number {
+  return typeof value === "number" && Number.isSafeInteger(value) && value > 0;
+}
+
 function parseCheckedSource(
   value: unknown,
   input: AtomicVenueVisitObservationInput,
@@ -45,7 +49,7 @@ function parseCheckedSource(
     source.projectId !== input.projectId ||
     source.sourceId !== input.sourceId ||
     source.sourceType !== "in_person_visit" ||
-    !Number.isSafeInteger(source.checkedRevision) ||
+    !isPositiveSafeInteger(source.checkedRevision) ||
     source.checkedRevision !== input.expectedSourceRevision ||
     source.checkedBy !== input.actorId
   ) {
